@@ -17,9 +17,9 @@ from jsonschema import Draft202012Validator
 
 from unbidden.brain.providers import LLMProvider
 from unbidden.config import Config, Route
-from unbidden.contracts.common import Contract, Cost, new_id, utc_now
+from unbidden.contracts.common import Cost, utc_now
 from unbidden.contracts.events import Event, EventType
-from unbidden.contracts.guardian import ActionRequest, EgressVerdict, Mandate
+from unbidden.contracts.guardian import ActionRequest, EgressAttempt, EgressVerdict, Mandate
 from unbidden.contracts.llm import LLMRequest, LLMResponse, Message, ModelRun, Tier, Usage
 from unbidden.guardian.egress import evaluate_synthetic
 from unbidden.guardian.killswitch import KillSwitch
@@ -60,18 +60,6 @@ class ModelFailed(BrainError):
     def __init__(self, purpose: str, problem: str) -> None:
         super().__init__(f"{purpose}: {problem}")
         self.problem = problem
-
-
-class EgressAttempt(Contract):
-    id: str
-    status: str  # allowed_pending | allowed_sent | blocked | failed
-    purpose: str
-    tier: Tier
-    provider: str
-    model: str
-    verdict: EgressVerdict
-    payload: str
-    created_at: datetime
 
 
 _FENCED_JSON = re.compile(r"^\s*```(?:json)?\s*(?P<body>.*?)\s*```\s*$", re.DOTALL)
@@ -242,16 +230,14 @@ class Brain:
         payload = _payload(request)
         egress = evaluate_synthetic(self.mandate, host, payload, self.identifiers)
         attempt = EgressAttempt(
-            id=new_id("egr"),
             status="allowed_pending" if egress.allowed else "blocked",
             purpose=request.purpose,
-            tier=request.tier,
+            destination=host,
             provider=provider.name,
             model=route.model,
             verdict=egress,
             # A blocked payload is kept only by its fingerprint: it may hold what must not be copied around.
             payload=payload if egress.allowed else f"sha256:{egress.payload_sha256}",
-            created_at=utc_now(),
         )
         self.store.put("egress", attempt)
         self.store.append_event(

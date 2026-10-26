@@ -7,7 +7,6 @@ import pytest
 from unbidden.brain.providers.mock import MockProvider
 from unbidden.brain.router import (
     Brain,
-    EgressAttempt,
     EgressBlocked,
     KillSwitchEngaged,
     ModelFailed,
@@ -16,7 +15,7 @@ from unbidden.brain.router import (
 )
 from unbidden.config import load_config
 from unbidden.contracts.events import EventType
-from unbidden.contracts.guardian import Mandate
+from unbidden.contracts.guardian import EgressAttempt, Mandate
 from unbidden.contracts.llm import LLMRequest, LLMResponse, Message, ModelRun, Tier, ToolCall, ToolSpec, Usage
 from unbidden.guardian.killswitch import KillSwitch
 from unbidden.guardian.scanner import SensitiveTermIndex

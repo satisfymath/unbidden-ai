@@ -114,3 +114,17 @@ class Approval(Contract):
     max_uses: int = Field(default=1, ge=1)
     uses: int = 0
     created_at: datetime = Field(default_factory=utc_now)
+
+
+class EgressAttempt(Contract):
+    """One attempt to send something off this machine, allowed or not, with what it carried."""
+
+    id: str = Field(default_factory=lambda: new_id("egr"))
+    status: Literal["allowed_pending", "allowed_sent", "blocked", "failed"]
+    purpose: str
+    destination: str
+    provider: str
+    model: str | None = None
+    verdict: EgressVerdict
+    payload: str  # the exact payload when allowed; only "sha256:<hash>" when blocked
+    created_at: datetime = Field(default_factory=utc_now)
