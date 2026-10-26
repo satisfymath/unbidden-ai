@@ -76,14 +76,14 @@ CREATE TABLE IF NOT EXISTS jobs (
 );
 CREATE INDEX IF NOT EXISTS jobs_ready ON jobs(status, priority, run_at);
 
-CREATE TABLE IF NOT EXISTS samples (
+CREATE TABLE IF NOT EXISTS rounds (
     ts TEXT NOT NULL,
     target TEXT NOT NULL,
     version TEXT NOT NULL,
-    status INTEGER NOT NULL,
-    ms REAL NOT NULL
+    statuses TEXT NOT NULL,
+    latencies TEXT NOT NULL
 );
-CREATE INDEX IF NOT EXISTS samples_target ON samples(target, ts);
+CREATE INDEX IF NOT EXISTS rounds_target ON rounds(target, ts);
 
 CREATE TABLE IF NOT EXISTS kv (
     key TEXT PRIMARY KEY,
@@ -279,30 +279,25 @@ class Store:
             (job.status.value, job.priority, _ts(job.run_at), _dump(job), job.id),
         )
 
-    # Live samples -------------------------------------------------------------------------------------------
+    # Live probe rounds ------------------------------------------------------------------------------------
 
-    def add_sample(self, target: str, version: str, status: int, ms: float, ts: datetime | None = None) -> None:
+    def add_round(self, target: str, version: str, statuses: list[int], latencies_ms: list[float]) -> None:
         self._conn.execute(
-            "INSERT INTO samples (ts, target, version, status, ms) VALUES (?, ?, ?, ?, ?)",
-            (_ts(ts or utc_now()), target, version, status, ms),
+            "INSERT INTO rounds (ts, target, version, statuses, latencies) VALUES (?, ?, ?, ?, ?)",
+            (_ts(utc_now()), target, version, json.dumps(statuses), json.dumps(latencies_ms)),
         )
 
-    def samples(
-        self, target: str, *, since: datetime | None = None, version: str | None = None
-    ) -> list[tuple[datetime, str, int, float]]:
-        sql = "SELECT ts, version, status, ms FROM samples WHERE target = ?"
+    def rounds(self, target: str, *, version: str | None = None) -> list[tuple[datetime, str, list[int], list[float]]]:
+        sql = "SELECT ts, version, statuses, latencies FROM rounds WHERE target = ?"
         args: list[Any] = [target]
-        if since is not None:
-            sql += " AND ts >= ?"
-            args.append(_ts(since))
         if version is not None:
             sql += " AND version = ?"
             args.append(version)
         rows = self._conn.execute(sql + " ORDER BY ts", args).fetchall()
-        return [(datetime.fromisoformat(r[0]), r[1], int(r[2]), float(r[3])) for r in rows]
+        return [(datetime.fromisoformat(r[0]), r[1], json.loads(r[2]), json.loads(r[3])) for r in rows]
 
-    def sample_targets(self) -> list[str]:
-        return [r[0] for r in self._conn.execute("SELECT DISTINCT target FROM samples ORDER BY 1")]
+    def round_targets(self) -> list[str]:
+        return [r[0] for r in self._conn.execute("SELECT DISTINCT target FROM rounds ORDER BY 1")]
 
     # Key-value --------------------------------------------------------------------------------------------
 
