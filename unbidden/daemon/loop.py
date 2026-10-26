@@ -30,6 +30,9 @@ async def watch(
         now = utc_now()
         bucket = int(now.timestamp() // interval_s)
         store.enqueue(job("observe.head", str(bucket)))
+        mandate = runtime.workspace.mandate()
+        live_bucket = int(now.timestamp() // mandate.operations.probe_every_s)
+        store.enqueue(job("observe.live", str(live_bucket)))
         store.enqueue(job("director.sweep", f"tick:{bucket}"))
         store.enqueue(job("github.poll", str(int(now.timestamp() // poll_every.total_seconds()))))
         while True:
@@ -53,4 +56,4 @@ async def watch(
                 store.finish(claimed)
         if once:
             return
-        await asyncio.sleep(interval_s)
+        await asyncio.sleep(min(interval_s, runtime.workspace.mandate().operations.probe_every_s))

@@ -139,13 +139,21 @@ def cmd_try(args: argparse.Namespace) -> int:
         if opp.category == "performance":
             from unbidden.lab.perf import PerfLab
 
-            perf = PerfLab(runtime.workspace.repo, runtime.brain, runtime.store, stack, images,
-                           progress=lambda m: status.update(m))  # fmt: skip
+            perf = PerfLab(
+                runtime.workspace.repo, runtime.brain, runtime.store, stack, images, progress=lambda m: status.update(m)
+            )
             result = asyncio.run(perf.run(opp))
         else:
-            lab = FixLab(runtime.workspace.repo, runtime.store, runtime.brain, stack, images,
-                         progress=lambda m: status.update(m), bridge=runtime.bridge(),
-                         bridge_first=args.bridge)  # fmt: skip
+            lab = FixLab(
+                runtime.workspace.repo,
+                runtime.store,
+                runtime.brain,
+                stack,
+                images,
+                progress=lambda m: status.update(m),
+                bridge=runtime.bridge(),
+                bridge_first=args.bridge,
+            )
             result = asyncio.run(lab.run(opp))
     data = {
         "opportunity": opp.id,
@@ -202,11 +210,22 @@ def _approve(store: Any, proposal: Proposal, hours: float) -> None:
 
     approval = grant(store, CAPABILITY, proposal.id, granted_by=getpass.getuser(), ttl=timedelta(hours=hours))
     store.append_event(
-        Event(type=EventType.APPROVAL_GRANTED, actor=f"person:{approval.granted_by}", entity_id=approval.id,
-              correlation_id=proposal.opportunity_id, payload={"capability": CAPABILITY, "proposal": proposal.id})
-    )  # fmt: skip
-    store.enqueue(job("github.publish", f"{proposal.id}:{approval.id}", {"id": proposal.id},
-                      correlation_id=proposal.opportunity_id))  # fmt: skip
+        Event(
+            type=EventType.APPROVAL_GRANTED,
+            actor=f"person:{approval.granted_by}",
+            entity_id=approval.id,
+            correlation_id=proposal.opportunity_id,
+            payload={"capability": CAPABILITY, "proposal": proposal.id},
+        )
+    )
+    store.enqueue(
+        job(
+            "github.publish",
+            f"{proposal.id}:{approval.id}",
+            {"id": proposal.id},
+            correlation_id=proposal.opportunity_id,
+        )
+    )
 
 
 def _reject(store: Any, opp: Opportunity, reason: str) -> None:
@@ -218,9 +237,14 @@ def _reject(store: Any, opp: Opportunity, reason: str) -> None:
         proposal.status = ProposalStatus.REJECTED
         store.put("proposals", proposal)
     store.append_event(
-        Event(type=EventType.APPROVAL_REJECTED, actor=f"person:{getpass.getuser()}", entity_id=opp.id,
-              correlation_id=opp.id, payload={"reason": reason})
-    )  # fmt: skip
+        Event(
+            type=EventType.APPROVAL_REJECTED,
+            actor=f"person:{getpass.getuser()}",
+            entity_id=opp.id,
+            correlation_id=opp.id,
+            payload={"reason": reason},
+        )
+    )
 
 
 def cmd_approve(args: argparse.Namespace) -> int:
@@ -278,21 +302,40 @@ def cmd_review(args: argparse.Namespace) -> int:
     return 0
 
 
-MODES = {
-    "supervised": "require_approval",  # unbidden prepares everything and asks before anything reaches GitHub
-    "autopilot": "allow",  # unbidden opens pull requests on its own for what reaches the mandate's evidence level
+MODES: dict[str, dict[str, str]] = {
+    # Unbidden prepares everything and asks before anything reaches GitHub.
+    "supervised": {
+        "open_pull_requests": "require_approval",
+        "merge_pull_requests": "deny",
+        "deploy": "deny",
+        "rollback": "deny",
+    },
+    # Unbidden opens pull requests on its own for what reaches the mandate's evidence level; people merge.
+    "autopilot": {"open_pull_requests": "allow", "merge_pull_requests": "deny", "deploy": "deny", "rollback": "deny"},
+    # Unbidden also merges L4 work, deploys it with the team's steps, judges every deploy, and rolls back to the
+    # last healthy version when one degrades or the system goes down. Requires a passed rollback drill.
+    "autonomous": {
+        "open_pull_requests": "allow",
+        "merge_pull_requests": "allow",
+        "deploy": "allow",
+        "rollback": "allow",
+    },
 }
 
 
+def _current_mode(autonomy: dict[str, Any]) -> str:
+    return next((m for m, v in MODES.items() if all(autonomy.get(k, "deny") == x for k, x in v.items())), "custom")
+
+
 def cmd_mode(args: argparse.Namespace) -> int:
-    """Show or set how much unbidden may do on its own. Merging and deploying stay with people in every mode."""
+    """Show or set how much unbidden may do on its own."""
     import yaml
 
     ws = Workspace.find()
     ws.require()
     raw = yaml.safe_load(ws.mandate_path.read_text())
     autonomy = raw["mandate"].setdefault("autonomy", {})
-    current = next((m for m, v in MODES.items() if autonomy.get("open_pull_requests") == v), "custom")
+    current = _current_mode(autonomy)
     if args.mode is None:
         if _emit(args, {"mode": current, "autonomy": autonomy}):
             return 0
@@ -300,16 +343,99 @@ def cmd_mode(args: argparse.Namespace) -> int:
         for key, value in autonomy.items():
             console.print(f"  {key:24} {value}")
         return 0
-    autonomy["open_pull_requests"] = MODES[args.mode]
-    autonomy["merge_pull_requests"] = "deny"
+    store = ws.store()
+    if args.mode == "autonomous":
+        operations = raw["mandate"].get("operations") or {}
+        drill = store.get_value("rollback_drill") or {}
+        if not operations.get("deploy_steps"):
+            err.print("autonomous needs the team's deploy steps in the mandate (operations.deploy_steps)")
+            return 2
+        if not drill.get("passed"):
+            err.print("autonomous needs a passed rollback drill first: run `unbidden drill`")
+            return 2
+    autonomy.update(MODES[args.mode])
     ws.mandate_path.write_text(yaml.safe_dump(raw, sort_keys=False))
     ws.mandate()  # validate what was written
-    store = ws.store()
     store.append_event(
-        Event(type=EventType.MANDATE_CHANGED, actor=f"person:{getpass.getuser()}",
-              payload={"from": current, "to": args.mode, "open_pull_requests": MODES[args.mode]})
-    )  # fmt: skip
-    console.print(f"mode: [bold]{args.mode}[/] (was {current}). Merging and deploying stay with people.")
+        Event(
+            type=EventType.MANDATE_CHANGED,
+            actor=f"person:{getpass.getuser()}",
+            payload={"from": current, "to": args.mode, "autonomy": MODES[args.mode]},
+        )
+    )
+    console.print(f"mode: [bold]{args.mode}[/] (was {current})")
+    return 0
+
+
+def cmd_drill(args: argparse.Namespace) -> int:
+    """Prove rollback works: deploy the previous version with the team's steps, check health, deploy back."""
+    import subprocess
+
+    from unbidden.contracts.world import WorldModel
+    from unbidden.operate.deploy import drill
+
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    world = store.get("world", "world", WorldModel)
+    health = next(
+        (e for e in (world.of_kind("endpoint") if world else []) if e.name.startswith("GET ") and "health" in e.name),
+        None,
+    )
+    if health is None:
+        err.print("no live health endpoint is known; run `unbidden map` while the system runs")
+        return 2
+    url = f"http://127.0.0.1:{health.attributes['port']}{health.name.split(' ', 1)[1]}"
+    previous = (
+        args.previous
+        or subprocess.run(
+            ["git", "-C", str(ws.repo), "rev-parse", "HEAD~1"], capture_output=True, text=True, check=True
+        ).stdout.strip()
+    )
+    with console.status(f"drill: {previous[:12]} and back, watching {url}"):
+        record = drill(ws.repo, store, ws.mandate(), previous, url)
+    if _emit(args, record):
+        return 0
+    mark = "[green]passed[/]" if record["passed"] else "[red]failed[/]"
+    console.print(f"rollback drill {mark}: back {record['back']}, forth {record['forth']}")
+    return 0 if record["passed"] else 1
+
+
+def cmd_hold(args: argparse.Namespace) -> int:
+    from unbidden.operate.holds import active, release
+
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    if args.action == "release":
+        hold = release(store, args.id, f"person:{getpass.getuser()}", args.reason)
+        console.print(f"released {hold.id}")
+        return 0
+    holds = active(store)
+    if _emit(args, [h.model_dump(mode="json") for h in holds]):
+        return 0
+    console.print("\n".join(f"{h.id}  {h.created_at:%Y-%m-%d %H:%M}  {h.reason}" for h in holds) or "No holds.")
+    return 0
+
+
+def cmd_deploys(args: argparse.Namespace) -> int:
+    """Every deploy unbidden has seen, with its verdict."""
+    from unbidden.observe.live import DeployVerdict
+
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    verdicts = store.list("deploy_verdicts", DeployVerdict)
+    if _emit(args, [v.model_dump(mode="json") for v in verdicts]):
+        return 0
+    for v in verdicts:
+        console.print(
+            f"[bold]{v.id.split(':')[0]}[/] {v.id.split(':', 1)[1][:12]} (after {v.previous[:12]}): {v.impact.value}"
+        )
+        for e in v.endpoints:
+            console.print(f"    {e['target']:36} {e['impact']:22} {'; '.join(e['reasons'])}")
+    if not verdicts:
+        console.print("No deploy judged yet.")
     return 0
 
 
@@ -380,16 +506,19 @@ def cmd_map(args: argparse.Namespace) -> int:
     def status(r: Any) -> str:
         return mark.get(r.status.value) or r.status.value
 
-    console.print(f"[bold]{repo.name}[/] at {world.rev[:12]} · {len(world.resources)} resources, "
-                  f"{len(world.relations)} relations")  # fmt: skip
+    console.print(
+        f"[bold]{repo.name}[/] at {world.rev[:12]} · {len(world.resources)} resources, {len(world.relations)} relations"
+    )
     containers = {r.attributes.get("service"): r for r in world.of_kind("container")}
     console.print("\n[bold]Services[/]")
     for svc in world.of_kind("service") + world.of_kind("database"):
         live = containers.get(svc.name)
         state = f"{live.attributes.get('state')} {live.attributes.get('ports') or ''}" if live else "not running"
         deps = [r.dst.split(":", 1)[1] for r in world.relations if r.src == svc.id and r.predicate == "depends_on"]
-        console.print(f"  {svc.name:12} {svc.attributes.get('image') or 'built here':28} {state:24} "
-                      f"{'→ ' + ', '.join(deps) if deps else ''}")  # fmt: skip
+        console.print(
+            f"  {svc.name:12} {svc.attributes.get('image') or 'built here':28} {state:24} "
+            f"{'→ ' + ', '.join(deps) if deps else ''}"
+        )
     tables = world.of_kind("table")
     if tables:
         console.print("\n[bold]Tables[/]")
@@ -404,8 +533,11 @@ def cmd_map(args: argparse.Namespace) -> int:
     if endpoints:
         console.print("\n[bold]Endpoints[/]")
         for endpoint in endpoints:
-            touches = [f"{r.predicate} {r.dst.split(':', 1)[1]}" for r in world.relations
-                       if r.src == endpoint.id and r.predicate in ("reads", "writes")]  # fmt: skip
+            touches = [
+                f"{r.predicate} {r.dst.split(':', 1)[1]}"
+                for r in world.relations
+                if r.src == endpoint.id and r.predicate in ("reads", "writes")
+            ]
             console.print(f"  {endpoint.name:44} {status(endpoint):30} {', '.join(touches)}")
     if world.blind_spots:
         console.print("\n[bold]What I cannot see[/]")
@@ -486,8 +618,15 @@ def build_parser() -> argparse.ArgumentParser:
     approve.add_argument("--hours", type=float, default=24, help="how long the approval stays valid")
     review = command("review", cmd_review, "read each waiting proposal and approve, reject or skip it", json_out=False)
     review.add_argument("--hours", type=float, default=24, help="how long each approval stays valid")
-    mode = command("mode", cmd_mode, "show or set autonomy: supervised (ask first) or autopilot")
+    mode = command("mode", cmd_mode, "show or set autonomy: supervised, autopilot or autonomous")
     mode.add_argument("mode", nargs="?", choices=sorted(MODES), help="the mode to switch to")
+    drill_ = command("drill", cmd_drill, "prove rollback works before autonomy relies on it")
+    drill_.add_argument("previous", nargs="?", help="the version to roll back to (default HEAD~1)")
+    hold = command("hold", cmd_hold, "list holds, or release one (people only)")
+    hold.add_argument("action", nargs="?", choices=["list", "release"], default="list")
+    hold.add_argument("id", nargs="?")
+    hold.add_argument("reason", nargs="?", default="released by a person")
+    command("deploys", cmd_deploys, "every deploy seen and its verdict")
     reject = command("reject", cmd_reject, "decline an opportunity for good", json_out=False)
     reject.add_argument("id")
     reject.add_argument("reason", nargs="?", default="rejected by a person")

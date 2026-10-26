@@ -77,6 +77,12 @@ class GitHubClient:
     def get_pr(self, number: int) -> dict[str, Any]:
         return self._check(self._http.get(f"/repos/{self.slug}/pulls/{number}"))
 
+    def merge_pr(self, number: int, *, sha: str, method: str = "squash") -> dict[str, Any]:
+        """Merge only if the pull request's head is still exactly the commit that was measured."""
+        return self._check(
+            self._http.put(f"/repos/{self.slug}/pulls/{number}/merge", json={"sha": sha, "merge_method": method})
+        )
+
     def branch_head(self, branch: str) -> str:
         return self._check(self._http.get(f"/repos/{self.slug}/branches/{branch}"))["commit"]["sha"]
 
@@ -94,10 +100,21 @@ def push_branch(repo: Path, slug: str, branch: str, commit: str, token_env: str,
         helper.chmod(stat.S_IRWXU)
         env = {**os.environ, "GIT_ASKPASS": str(helper), "GIT_TERMINAL_PROMPT": "0"}
         result = subprocess.run(
-            ["git", "-C", str(repo), "-c", "credential.helper=", "push", f"https://github.com/{slug}.git",
-             f"{commit}:refs/heads/{branch}"],
-            capture_output=True, text=True, env=env, check=False,
-        )  # fmt: skip
+            [
+                "git",
+                "-C",
+                str(repo),
+                "-c",
+                "credential.helper=",
+                "push",
+                f"https://github.com/{slug}.git",
+                f"{commit}:refs/heads/{branch}",
+            ],
+            capture_output=True,
+            text=True,
+            env=env,
+            check=False,
+        )
         if result.returncode != 0:
             raise PublishError(f"push of {branch} failed: {result.stderr.strip()[-400:]}")
 
@@ -141,16 +158,23 @@ class Publisher:
         payload = f"{proposal.title}\n\n{proposal.body_md}\n\n{patch}"
         egress = evaluate_github(self.mandate, "api.github.com", payload)
         attempt = EgressAttempt(
-            status="allowed_pending" if egress.allowed else "blocked", purpose="github.pull_request",
-            destination="github.com", provider="github", verdict=egress,
+            status="allowed_pending" if egress.allowed else "blocked",
+            purpose="github.pull_request",
+            destination="github.com",
+            provider="github",
+            verdict=egress,
             payload=payload if egress.allowed else f"sha256:{egress.payload_sha256}",
-        )  # fmt: skip
+        )
         self.store.put("egress", attempt)
         self.store.append_event(
-            Event(type=EventType.EGRESS_ALLOWED if egress.allowed else EventType.EGRESS_BLOCKED, actor=ACTOR,
-                  entity_id=attempt.id, correlation_id=proposal.opportunity_id,
-                  payload={"destination": "github.com", "bytes": egress.payload_bytes, "reasons": egress.reasons})
-        )  # fmt: skip
+            Event(
+                type=EventType.EGRESS_ALLOWED if egress.allowed else EventType.EGRESS_BLOCKED,
+                actor=ACTOR,
+                entity_id=attempt.id,
+                correlation_id=proposal.opportunity_id,
+                payload={"destination": "github.com", "bytes": egress.payload_bytes, "reasons": egress.reasons},
+            )
+        )
         if not egress.allowed:
             raise PublishError("; ".join(egress.reasons))
 
@@ -160,8 +184,9 @@ class Publisher:
             client = self._client()
             existing = client.find_pr(proposal.branch)
             if existing is None:
-                push_branch(self.repo, client.slug, proposal.branch, proposal.commit_sha, policy.token_env,
-                            policy.base_branch)  # fmt: skip
+                push_branch(
+                    self.repo, client.slug, proposal.branch, proposal.commit_sha, policy.token_env, policy.base_branch
+                )
                 pr = client.create_pr(
                     title=proposal.title, body=proposal.body_md, head=proposal.branch, base=policy.base_branch
                 )
@@ -182,9 +207,50 @@ class Publisher:
         proposal.egress_attempt_ids = [*proposal.egress_attempt_ids, attempt.id]
         self.store.put("proposals", proposal)
         self.store.append_event(
-            Event(type=EventType.PROPOSAL_PUBLISHED, actor=ACTOR, entity_id=proposal.id,
-                  correlation_id=proposal.opportunity_id, payload={"url": proposal.pr.url, "number": pr["number"]})
-        )  # fmt: skip
+            Event(
+                type=EventType.PROPOSAL_PUBLISHED,
+                actor=ACTOR,
+                entity_id=proposal.id,
+                correlation_id=proposal.opportunity_id,
+                payload={"url": proposal.pr.url, "number": pr["number"]},
+            )
+        )
+        return proposal
+
+    def merge(self, proposal: Proposal) -> Proposal:
+        """Autonomous merge: L4 or better, pinned to the measured commit, within the hourly limit, never held."""
+        from datetime import timedelta
+
+        from unbidden.contracts.common import EvidenceLevel, utc_now
+        from unbidden.operate.deploy import check
+
+        if proposal.status is not ProposalStatus.PR_OPENED or proposal.pr is None:
+            raise PublishError("only an open pull request can be merged")
+        if proposal.evidence_level < EvidenceLevel.FUNCTIONAL_VALIDATION:
+            raise PublishError(f"evidence L{int(proposal.evidence_level)} is below L4; a person merges this one")
+        check(
+            self.store,
+            self.mandate,
+            "github.merge_pull_request",
+            proposal.title,
+            rate_key="merges",
+            limit=self.mandate.operations.max_merges_per_hour,
+        )
+        merged = self._client().merge_pr(proposal.pr.number, sha=proposal.commit_sha)
+        stamps: list[str] = self.store.get_value("merges", [])
+        since = (utc_now() - timedelta(hours=24)).isoformat()
+        self.store.set_value("merges", [*(s for s in stamps if s >= since), utc_now().isoformat()])
+        proposal.status = ProposalStatus.MERGED
+        self.store.put("proposals", proposal)
+        self.store.append_event(
+            Event(
+                type=EventType.MERGED,
+                actor=ACTOR,
+                entity_id=proposal.id,
+                correlation_id=proposal.opportunity_id,
+                payload={"number": proposal.pr.number, "sha": merged.get("sha"), "measured": proposal.commit_sha},
+            )
+        )
         return proposal
 
     def poll(self, proposal: Proposal) -> Proposal:
@@ -200,9 +266,13 @@ class Publisher:
         elif client.branch_head(self.mandate.egress.github.base_branch) != proposal.base_sha:
             proposal.status = ProposalStatus.STALE
             self.store.append_event(
-                Event(type=EventType.PROPOSAL_STALE, actor=ACTOR, entity_id=proposal.id,
-                      correlation_id=proposal.opportunity_id,
-                      payload={"reason": "the base branch moved; the evidence must be measured again"})
-            )  # fmt: skip
+                Event(
+                    type=EventType.PROPOSAL_STALE,
+                    actor=ACTOR,
+                    entity_id=proposal.id,
+                    correlation_id=proposal.opportunity_id,
+                    payload={"reason": "the base branch moved; the evidence must be measured again"},
+                )
+            )
         self.store.put("proposals", proposal)
         return proposal

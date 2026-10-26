@@ -52,5 +52,6 @@ def test_modes_switch_autonomy_but_never_merging(repo: Path, capsys: pytest.Capt
     assert main(["mode", "autopilot"]) == 0
     mandate = (repo / ".unbidden" / "mandate.yaml").read_text()
     assert "open_pull_requests: allow" in mandate and "merge_pull_requests: deny" in mandate
+    assert main(["mode", "autonomous"]) == 2  # no deploy steps, no drill
     main(["mode", "supervised"])
     assert "open_pull_requests: require_approval" in (repo / ".unbidden" / "mandate.yaml").read_text()

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import subprocess
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import timedelta
@@ -68,6 +69,8 @@ class Cycle:
             "proposal.prepare": self.proposal_prepare,
             "github.publish": self.github_publish,
             "github.poll": self.github_poll,
+            "observe.live": self.observe_live,
+            "ops.deploy": self.ops_deploy,
         }
 
     def _env(self, rev: str) -> tuple[Stack, dict[str, DependencyImage]]:
@@ -261,6 +264,38 @@ class Cycle:
         except PublishError as exc:
             self.log(f"{proposal.opportunity_id}: not published: {exc}")
 
+    async def observe_live(self, _: Job) -> None:
+        from unbidden.contracts.world import WorldModel
+        from unbidden.observe.live import LiveWatcher
+
+        world = self.store.get("world", "world", WorldModel)
+        if world is None or not world.of_kind("endpoint"):
+            return
+        watcher = LiveWatcher(
+            self.runtime.workspace.repo, self.store, self.runtime.workspace.mandate(), world, self.log
+        )
+        await asyncio.to_thread(watcher.tick)
+
+    async def ops_deploy(self, j: Job) -> None:
+        """Deploy what was merged: fast-forward the deployment checkout to the remote base, then the team's steps."""
+        from unbidden.operate.deploy import OperationRefused, deploy
+
+        repo = self.runtime.workspace.repo
+        mandate = self.runtime.workspace.mandate()
+        base = mandate.egress.github.base_branch
+        await asyncio.to_thread(subprocess.run, ["git", "-C", str(repo), "fetch", "-q", "origin", base], check=False)
+        target = subprocess.run(
+            ["git", "-C", str(repo), "rev-parse", f"origin/{base}"], capture_output=True, text=True, check=False
+        ).stdout.strip()
+        try:
+            result = await asyncio.to_thread(
+                deploy, repo, self.store, mandate, target, reason=j.payload.get("reason", "merged")
+            )
+        except OperationRefused as exc:
+            self.log(f"deploy refused: {exc}")
+            return
+        self.log(f"deployed {target[:12]}: {'ok' if result.ok else 'FAILED'}")
+
     async def github_poll(self, _: Job) -> None:
         opened = self.store.list("proposals", Proposal, status=ProposalStatus.PR_OPENED.value)
         if not opened:
@@ -274,6 +309,21 @@ class Cycle:
                 continue
             if updated.status is not ProposalStatus.PR_OPENED:
                 self.log(f"{proposal.pr.url if proposal.pr else proposal.id}: {updated.status.value}")
+                continue
+            mandate = self.runtime.workspace.mandate()
+            if mandate.autonomy.merge_pull_requests.value != "allow":
+                continue
+            try:
+                merged = await asyncio.to_thread(publisher.merge, updated)
+            except PublishError as exc:
+                self.log(f"not merged: {exc}")
+                continue
+            except Exception as exc:  # refused by Guardian, a hold or the hourly limit
+                self.log(f"not merged: {exc}")
+                continue
+            self.log(f"merged {merged.pr.url if merged.pr else merged.id}")
+            if mandate.autonomy.deploy.value == "allow":
+                self.store.enqueue(job("ops.deploy", merged.id, {"reason": f"merged {merged.title}"}))
 
 
 RETRY = timedelta(minutes=2)
