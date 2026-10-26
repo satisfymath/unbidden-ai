@@ -9,7 +9,6 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal
 
 from unbidden.guardian.scanner import scan_many, secret_hits
 
@@ -20,16 +19,24 @@ class SandboxError(RuntimeError):
     pass
 
 
+INTERNAL_PREFIX = "unbidden-net-"
+
+
 @dataclass(frozen=True)
 class SandboxSpec:
     image: str
     argv: list[str]
-    network: Literal["none"] = "none"
+    # "none", or an internal Docker network created by unbidden (containers on it reach each other, never the
+    # internet). Anything else is refused.
+    network: str = "none"
     cpus: float = 2.0
     memory: str = "2g"
     pids: int = 512
     timeout_s: float = 600.0
     env: dict[str, str] = field(default_factory=dict[str, str])
+    # Values read from files tracked in the repository (already public there), e.g. a compose service's
+    # environment interpolated from the tracked .env. Not scanned for secrets; everything else in env is.
+    public_env: dict[str, str] = field(default_factory=dict[str, str])
     workdir: str = "/work"
 
 
@@ -53,11 +60,11 @@ def _cap(data: bytes) -> tuple[str, bool]:
 
 
 def docker_argv(spec: SandboxSpec, work: Path, name: str) -> list[str]:
-    if spec.network != "none":  # the type says so; checked again because this is the line that matters
-        raise SandboxError("sandbox network must be none")
+    if spec.network != "none" and not spec.network.startswith(INTERNAL_PREFIX):
+        raise SandboxError(f"sandbox network must be none or an unbidden internal network, not {spec.network!r}")
     argv = [
         "docker", "run", "--rm", "--name", name,
-        "--network", "none",
+        "--network", spec.network,
         "--read-only",
         "--tmpfs", "/tmp:rw,noexec,nosuid,size=512m",
         "--cap-drop", "ALL",
@@ -70,7 +77,7 @@ def docker_argv(spec: SandboxSpec, work: Path, name: str) -> list[str]:
         "-w", spec.workdir,
         "-e", "HOME=/tmp", "-e", "CI=1",
     ]  # fmt: skip
-    for key, value in sorted(spec.env.items()):
+    for key, value in sorted({**spec.public_env, **spec.env}.items()):
         argv += ["-e", f"{key}={value}"]
     return [*argv, spec.image, *spec.argv]
 
@@ -82,6 +89,13 @@ class SandboxRunner:
     def run(self, spec: SandboxSpec, work: Path) -> SandboxResult:
         if secret_hits(scan_many([*spec.argv, *(f"{k}={v}" for k, v in spec.env.items())])):
             raise SandboxError("refusing to pass a secret into the sandbox")
+        if spec.network != "none":
+            inspect = subprocess.run(
+                [self.docker, "network", "inspect", "-f", "{{.Internal}}", spec.network],
+                capture_output=True, text=True, check=False,
+            )  # fmt: skip
+            if inspect.stdout.strip() != "true":
+                raise SandboxError(f"network {spec.network} is not internal; refusing to run")
         name = f"unbidden-{uuid.uuid4().hex[:12]}"
         argv = docker_argv(spec, work, name)
         argv[0] = self.docker
@@ -118,6 +132,8 @@ def snapshot(repo: Path, rev: str, dest: Path | None = None) -> Path:
     subprocess.run(["tar", "-x", "-C", str(target)], input=archive.stdout, check=True)
     target.chmod(0o777)  # the container runs as uid 1000
     for path in target.rglob("*"):
+        if path.is_symlink():  # tracked symlinks may point anywhere, even nowhere; never follow them
+            continue
         if path.is_dir():
             path.chmod(0o777)
         else:

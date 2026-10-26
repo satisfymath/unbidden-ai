@@ -36,7 +36,8 @@ def test_snapshot_holds_only_tracked_files(tmp_path: Path) -> None:
     git = ["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t"]
     subprocess.run(["git", "init", "-q", str(repo)], check=True)
     (repo / "app.py").write_text("x = 1\n")
-    subprocess.run([*git, "add", "app.py"], check=True)
+    (repo / "dangling").symlink_to("../nowhere/at/all")
+    subprocess.run([*git, "add", "app.py", "dangling"], check=True)
     subprocess.run([*git, "commit", "-qm", "init"], check=True)
     (repo / ".env").write_text("API_KEY=real\n")
     work = snapshot(repo, "HEAD", tmp_path / "work")
