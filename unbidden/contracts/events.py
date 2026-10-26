@@ -29,6 +29,10 @@ class EventType(StrEnum):
     MODEL_CALLED = "model.called"
     KILL_SWITCH = "killswitch.changed"
     MANDATE_CHANGED = "mandate.changed"
+    DEPLOYED = "operations.deployed"
+    MERGED = "operations.merged"
+    IMPACT_JUDGED = "impact.judged"
+    OUTCOME_RECORDED = "outcome.recorded"
 
 
 class Event(Contract):
