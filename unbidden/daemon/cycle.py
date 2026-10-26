@@ -99,9 +99,10 @@ class Cycle:
             decision = decide(opp, mandate, Context(open_pull_requests=open_prs, attempts=attempts))
             last: dict[str, Any] = opp.details.get("decision", {})
             seen = (last.get("chosen"), last.get("level"), last.get("attempts"))
-            if seen == (decision.chosen.value, int(opp.evidence_level), attempts):
-                continue  # one decision per opportunity, evidence level and attempt
-            self._record_decision(opp, decision)
+            if seen != (decision.chosen.value, int(opp.evidence_level), attempts):
+                # One recorded decision per opportunity, evidence level and attempt; acting on it is retried
+                # every sweep, safely, because every job is queued under an idempotency key.
+                self._record_decision(opp, decision)
             if decision.chosen is ActionKind.RUN_EXPERIMENT and queued < EXPERIMENTS_PER_SWEEP:
                 if self.store.enqueue(
                     job("lab.experiment", f"{opp.id}:{attempts}", {"id": opp.id}, correlation_id=opp.id)
