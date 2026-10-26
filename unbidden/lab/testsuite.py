@@ -13,11 +13,18 @@ from unbidden.sandbox.runner import SandboxRunner, SandboxSpec
 
 JUNIT_DIR = ".unbidden-junit"
 SUITE = "<suite>"  # name used when a runner cannot tell which test failed
+NETWORK_ERRORS = ("Temporary failure in name resolution", "Network is unreachable", "Name or service not known",
+                  "getaddrinfo failed", "Could not resolve host")  # fmt: skip
+
+
+def needs_network(output: str) -> bool:
+    """Tests that fail only because the sandbox is offline say nothing about the change under test."""
+    return any(marker in output for marker in NETWORK_ERRORS)
 
 
 def test_argv(stack: Stack, language: str) -> list[str] | None:
     if language == "python" and stack.python is not None and stack.python.pytest:
-        return ["python", "-m", "pytest", "-q", "-p", "no:cacheprovider"]
+        return ["python", "-m", "pytest", "-q", "-p", "no:cacheprovider", *stack.python.test_paths]
     if language == "node" and stack.node is not None and stack.node.test_script:
         return [stack.node.manager, "run", stack.node.test_script]
     return None
@@ -46,6 +53,8 @@ def _round(
     )
     result = runner.run(SandboxSpec(image=image.tag, argv=run_argv, env=image.env, timeout_s=timeout_s), work)
     names = _junit_failures(junit)
+    if names and needs_network(result.stdout + result.stderr):
+        names = [f"{n} (needs network)" for n in names]
     if names is None and run_argv is not argv and not result.ok:
         # pytest crashed before writing its report: an environment problem, not a test result.
         return None, False
