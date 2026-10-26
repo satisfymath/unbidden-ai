@@ -19,6 +19,7 @@ class ProviderConfig(_Config):
     kind: Literal["ollama", "openai_compat"]
     base_url: str
     key_env: str | None = None
+    required_tool_choice: bool = True
 
 
 class Route(_Config):
@@ -55,17 +56,22 @@ class Config(_Config):
 DEFAULTS: dict[str, Any] = {
     "providers": {
         "ollama": {"kind": "ollama", "base_url": "http://localhost:11434"},
-        "meta": {"kind": "openai_compat", "base_url": "https://api.meta.ai/v1", "key_env": "MODEL_API_KEY"},
+        "meta": {
+            "kind": "openai_compat",
+            "base_url": "https://api.meta.ai/v1",
+            "key_env": "MODEL_API_KEY",
+            "required_tool_choice": False,
+        },
     },
     "routing": {
         "local": {"provider": "ollama", "model": "muse-glimmer:30b-mlx"},
         "frontier": {"provider": "meta", "model": "muse-spark-1.3", "think_budget": 2048},
-        "code": {"provider": "meta", "model": "muse-code-1.0", "think_budget": 2048},
+        # Muse Code is not offered to this account's key; Spark writes code until a benchmark says otherwise.
+        "code": {"provider": "meta", "model": "muse-spark-1.3", "think_budget": 2048},
     },
     "prices": {
         "models": {
             "muse-spark-1.3": {"input_per_mtok": 1.25, "output_per_mtok": 4.25},
-            "muse-code-1.0": {"input_per_mtok": 1.25, "output_per_mtok": 4.25},
         }
     },
 }

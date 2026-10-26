@@ -29,9 +29,23 @@ def _message(m: Message) -> dict[str, Any]:
     return out
 
 
+REQUIRED_TOOL_RULE = "You must answer by calling exactly one of the tools. Do not answer in plain text."
+
+
 class OpenAICompatProvider:
-    def __init__(self, name: str, base_url: str, key_env: str, *, timeout_s: float = 300) -> None:
+    def __init__(
+        self,
+        name: str,
+        base_url: str,
+        key_env: str,
+        *,
+        required_tool_choice: bool = True,
+        timeout_s: float = 300,
+    ) -> None:
         self.name = name
+        # Meta's API accepts only tool_choice="auto"; "required" then becomes an instruction, and the router
+        # still rejects an answer without a tool call.
+        self.required_tool_choice = required_tool_choice
         self.base_url = base_url.rstrip("/")
         self.key_env = key_env
         self._client = httpx.AsyncClient(base_url=self.base_url, timeout=timeout_s)
@@ -50,9 +64,14 @@ class OpenAICompatProvider:
         return {"Authorization": f"Bearer {key}"}
 
     def body(self, request: LLMRequest, *, model: str, think: str | None, strict: bool = True) -> dict[str, Any]:
+        messages = [_message(m) for m in request.messages]
+        tool_choice = request.tool_choice
+        if request.tools and tool_choice == "required" and not self.required_tool_choice:
+            tool_choice = "auto"
+            messages.append({"role": "system", "content": REQUIRED_TOOL_RULE})
         body: dict[str, Any] = {
             "model": model,
-            "messages": [_message(m) for m in request.messages],
+            "messages": messages,
             "max_tokens": request.max_tokens,
             "temperature": request.temperature,
         }
@@ -71,7 +90,7 @@ class OpenAICompatProvider:
                 }
                 for t in request.tools
             ]
-            body["tool_choice"] = request.tool_choice
+            body["tool_choice"] = tool_choice
             body["parallel_tool_calls"] = False
         if request.response_schema is not None:
             body["response_format"] = (

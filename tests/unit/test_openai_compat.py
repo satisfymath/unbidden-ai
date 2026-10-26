@@ -60,3 +60,20 @@ async def test_429_is_throttled(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_host() -> None:
     assert OpenAICompatProvider("meta", "https://api.meta.ai/v1", "X").host == "api.meta.ai"
+
+
+def test_required_tool_choice_becomes_an_instruction_when_unsupported() -> None:
+    from unbidden.contracts.llm import ToolSpec
+
+    p = OpenAICompatProvider("meta", "https://api.meta.ai/v1", "X", required_tool_choice=False)
+    tool = ToolSpec(name="finish", description="d", parameters={"type": "object"})
+    request = LLMRequest(
+        purpose="t",
+        tier=Tier.FRONTIER,
+        messages=[Message(role="user", content="hi")],
+        tools=[tool],
+        tool_choice="required",
+    )
+    body = p.body(request, model="m", think=None)
+    assert body["tool_choice"] == "auto"
+    assert "exactly one of the tools" in body["messages"][-1]["content"]
