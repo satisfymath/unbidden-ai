@@ -9,6 +9,8 @@ from unbidden.contracts.common import Contract, Cost, EvidenceLevel, Sha, new_id
 
 
 class TestOutcome(StrEnum):
+    __test__ = False  # not a pytest test class
+
     PASSED = "passed"
     REGRESSION = "regression"
     PRE_EXISTING = "pre_existing"
@@ -16,6 +18,8 @@ class TestOutcome(StrEnum):
 
 
 class TestSummary(Contract):
+    __test__ = False  # not a pytest test class
+
     rounds: int
     failed_per_round: list[list[str]]
 
