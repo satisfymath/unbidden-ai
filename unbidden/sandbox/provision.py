@@ -61,8 +61,15 @@ RUN {install}
 
 
 def python_dockerfile(stack: PythonStack) -> str:
-    if stack.lockfile == "uv.lock":
+    if stack.lockfile == "uv.lock" and stack.members:
+        install = "uv sync --frozen --no-install-workspace --all-packages --all-groups --project /deps"
+    elif stack.lockfile == "uv.lock":
         install = "uv sync --frozen --no-install-project --all-groups --project /deps"
+    elif stack.manifest == "setup.py":
+        # The requirements were read statically from setup.py and written into the build context.
+        install = (
+            "uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt"
+        )
     elif stack.manifest == "requirements.txt":
         install = "uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python -r /deps/requirements.txt"
     else:
@@ -92,7 +99,10 @@ def _manifests(repo: Path, rev: str, stack: NodeStack | PythonStack) -> list[str
         wanted += [f for f in ("pnpm-workspace.yaml", ".npmrc") if f in files]
         # Packages vendored under node_modules are never tracked in sane repos; skip them if they are.
         return sorted({f for f in wanted if "node_modules/" not in f})
+    if stack.manifest == "setup.py":
+        return []
     wanted = [stack.manifest] + ([stack.lockfile] if stack.lockfile else [])
+    wanted += [f"{m}/pyproject.toml" for m in stack.members]
     return sorted(set(wanted))
 
 
@@ -101,6 +111,11 @@ def provision(repo: Path, rev: str, stack: NodeStack | PythonStack, *, docker: s
     build = Path(tempfile.mkdtemp(prefix="unbidden-build-"))
     try:
         digest = _copy_from_git(repo, rev, _manifests(repo, rev, stack), build)
+        if isinstance(stack, PythonStack) and stack.manifest == "setup.py":
+            generated = "\n".join(stack.requirements) + "\n"
+            (build / "ctx").mkdir(parents=True, exist_ok=True)
+            (build / "ctx" / "unbidden-requirements.txt").write_text(generated)
+            digest = hashlib.sha256((digest + generated).encode()).hexdigest()[:16]
         dockerfile = node_dockerfile(stack) if isinstance(stack, NodeStack) else python_dockerfile(stack)
         tag = f"unbidden-deps-{language}:{hashlib.sha256((dockerfile + digest).encode()).hexdigest()[:16]}"
         exists = subprocess.run([docker, "image", "inspect", tag], capture_output=True, check=False).returncode == 0
@@ -112,7 +127,7 @@ def provision(repo: Path, rev: str, stack: NodeStack | PythonStack, *, docker: s
                 raise ProvisionError(f"dependency image for {language} failed to build:\n{tail}")
     finally:
         shutil.rmtree(build, ignore_errors=True)
-    if language == "node":
+    if isinstance(stack, NodeStack):
         return DependencyImage(
             tag=tag,
             language="node",
@@ -127,7 +142,7 @@ def provision(repo: Path, rev: str, stack: NodeStack | PythonStack, *, docker: s
         env={
             "PATH": "/deps/.venv/bin:/opt/tools/bin:/usr/local/bin:/usr/bin:/bin",
             "VIRTUAL_ENV": "/deps/.venv",
-            "PYTHONPATH": "/work/src:/work",
+            "PYTHONPATH": ":".join("/work" if r == "." else f"/work/{r}" for r in stack.source_roots),
             "PYTHONDONTWRITEBYTECODE": "1",
         },
         links={},
