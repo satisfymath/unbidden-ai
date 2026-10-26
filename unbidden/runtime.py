@@ -8,7 +8,9 @@ from unbidden.brain.providers import LLMProvider
 from unbidden.brain.providers.ollama import OllamaProvider
 from unbidden.brain.providers.openai_compat import OpenAICompatProvider
 from unbidden.brain.router import Brain
+from unbidden.bridge.service import PrivacyBridge
 from unbidden.config import Config
+from unbidden.contracts.llm import Tier
 from unbidden.observe.stack import Stack, detect_stack
 from unbidden.sandbox.provision import DependencyImage, provision
 from unbidden.store import Store
@@ -42,6 +44,19 @@ class Runtime:
         store = workspace.store()
         brain = Brain(config, build_providers(config), store, workspace.mandate(), killswitch=workspace.killswitch())
         return cls(workspace, config, store, brain)
+
+    def bridge(self) -> PrivacyBridge | None:
+        """The bridge exists only when the mandate may delegate and a key for the remote model is present."""
+        from unbidden.contracts.guardian import Autonomy
+
+        if self.workspace.mandate().autonomy.delegate_synthetic is Autonomy.DENY:
+            return None
+        route = self.config.routing.get(Tier.CODE)
+        provider = self.brain.providers.get(route.provider) if route else None
+        has_key = getattr(provider, "has_key", lambda: False)
+        if provider is None or not has_key():
+            return None
+        return PrivacyBridge(self.brain, repo_name=self.workspace.repo.name)
 
     def stack_and_images(self, rev: str) -> tuple[Stack, dict[str, DependencyImage]]:
         stack = detect_stack(self.workspace.repo, rev)

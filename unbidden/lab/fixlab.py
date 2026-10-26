@@ -17,6 +17,7 @@ from pathlib import Path
 from unbidden.brain.codeblocks import CodeBlockError, parse_files
 from unbidden.brain.prompts import load_prompt
 from unbidden.brain.router import Brain, BrainError
+from unbidden.bridge.service import PrivacyBridge
 from unbidden.contracts.common import EvidenceLevel, EvidenceRef, utc_now
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.experiment import Experiment, TestSummary, Verdict
@@ -92,6 +93,8 @@ class FixLab:
         images: dict[str, DependencyImage],
         *,
         runner: SandboxRunner | None = None,
+        bridge: PrivacyBridge | None = None,
+        bridge_first: bool = False,
         rounds: int = 3,
         repairs: int = 1,
         progress: Progress = lambda _: None,
@@ -102,6 +105,8 @@ class FixLab:
         self.stack = stack
         self.images = images
         self.runner = runner or SandboxRunner()
+        self.bridge = bridge
+        self.bridge_first = bridge_first
         self.rounds = rounds
         self.repairs = repairs
         self.progress = progress
@@ -195,6 +200,22 @@ class FixLab:
         finally:
             discard(base)
 
+    async def _bridge_candidate(
+        self, opp: Opportunity, rev: str, findings: list[Finding]
+    ) -> tuple[Candidate | None, list[str]]:
+        if self.bridge is None:
+            return None, []
+        base = snapshot(self.repo, rev)
+        try:
+            result = await self.bridge.solve(base, findings, correlation_id=opp.id)
+            if result.files is None:
+                return None, [f"bridge: {n}" for n in result.notes]
+            return Candidate("bridge", result.files, unified_patch(base, result.files)), [
+                f"bridge: {n}" for n in result.notes
+            ]
+        finally:
+            discard(base)
+
     # The experiment ------------------------------------------------------------------------------------
 
     async def run(self, opp: Opportunity) -> LabResult:
@@ -230,9 +251,18 @@ class FixLab:
             opp.evidence_level = EvidenceLevel.REPRODUCTION
 
         feedback: str | None = None
-        attempts = 0
+        attempts = self.repairs + 1 if self.bridge_first else 0
+        bridged = False
         candidate = self._tool_candidate(rev, tool, image, paths)
         while True:
+            if candidate is None and attempts > self.repairs and not bridged and self.bridge is not None:
+                # The local model could not prove a fix: ask Muse Spark, through the privacy bridge.
+                bridged = True
+                self.progress("asking Muse Spark through the privacy bridge")
+                candidate, notes = await self._bridge_candidate(opp, rev, findings)
+                result.notes.extend(notes)
+                if candidate is None:
+                    break
             if candidate is None:
                 if attempts > self.repairs:
                     break

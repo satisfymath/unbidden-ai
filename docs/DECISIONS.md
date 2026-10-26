@@ -49,3 +49,22 @@ Measured in `docs/bench/2026-10-26-models.md` (5 runs per task):
 - `local`: `muse-glimmer:30b-mlx`, `think=low` (25/25; with thinking off the privacy rewrite leaked real
   names 5/5, so thinking stays on for every local call).
 - `frontier` and `code`: `muse-spark-1.3` (20/20, 2.3 s median).
+
+## D-008 · 2026-10-26 · The privacy bridge renames with code, not with the model
+
+When the local model cannot prove a fix, FixLab asks Muse Spark through the bridge:
+
+1. Code extracts every private name of the affected files: definitions, imports (module and imported
+   symbols), path parts and the repository name.
+2. Glimmer, locally, suggests neutral names and a one-sentence description of the problem.
+3. Code applies the renaming deterministically and rejects unsafe suggestions (a name already in the code,
+   a private name, a duplicate), inventing neutral ones instead.
+4. The egress gate judges the exact payload against the private names before it is sent.
+5. Code reverses the names in the answer; FixLab measures the result offline like any other candidate.
+
+A model is never the control: if Glimmer leaks a name (it did 5/5 with thinking off), the rename or the gate
+catches it. A test caught that imported symbols were missing from the private names; they are included now.
+Known limit: words in comments or string literals that are not identifiers are not renamed.
+
+First real run (`ledger` sample repository, pyright `reportArgumentType`): 7 private names replaced,
+1,276 bytes sent to `api.meta.ai`, the returned fix measured at L4 (3 test rounds per side), 52 s end to end.

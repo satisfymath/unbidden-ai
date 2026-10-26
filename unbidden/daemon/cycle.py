@@ -139,7 +139,8 @@ class Cycle:
             # Measured just in time: findings of an older commit are re-observed before any lab run.
             return
         stack, images = await asyncio.to_thread(self._env, opp.details["rev"])
-        lab = FixLab(self.runtime.workspace.repo, self.store, self.runtime.brain, stack, images, progress=self.log)
+        lab = FixLab(self.runtime.workspace.repo, self.store, self.runtime.brain, stack, images, progress=self.log,
+                     bridge=self.runtime.bridge())  # fmt: skip
         result = await lab.run(opp)
         opp = self.store.get("opportunities", opp.id, Opportunity) or opp
         if result.verdict is not None and result.verdict.improved:

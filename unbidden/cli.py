@@ -137,7 +137,8 @@ def cmd_try(args: argparse.Namespace) -> int:
     with console.status("preparing") as status:
         stack, images = runtime.stack_and_images(opp.details["rev"])
         lab = FixLab(runtime.workspace.repo, runtime.store, runtime.brain, stack, images,
-                     progress=lambda m: status.update(m))  # fmt: skip
+                     progress=lambda m: status.update(m), bridge=runtime.bridge(),
+                     bridge_first=args.bridge)  # fmt: skip
         result = asyncio.run(lab.run(opp))
     data = {
         "opportunity": opp.id,
@@ -334,6 +335,7 @@ def build_parser() -> argparse.ArgumentParser:
     inbox.add_argument("--all", action="store_true", help="include closed ones")
     try_ = command("try", cmd_try, "run an experiment on one opportunity now")
     try_.add_argument("id")
+    try_.add_argument("--bridge", action="store_true", help="go straight to Muse Spark through the privacy bridge")
     watch = command("watch", cmd_watch, "keep working in the background of this terminal", json_out=False)
     watch.add_argument("--interval", type=float, default=30, help="seconds between looks at HEAD")
     watch.add_argument("--once", action="store_true", help="run one full cycle and exit")
