@@ -93,7 +93,9 @@ def parse_eslint(result: SandboxResult, argv: list[str]) -> AnalyzerReport:
             findings.append(
                 Finding.build(
                     tool="eslint", rule=rule, severity="error" if msg.get("severity") == 2 else "warning",
-                    category="lint", path=_rel(entry.get("filePath", "")), line=msg.get("line"),
+                    # A parse error means the tool's configuration is broken, not that the code is: not ours to fix.
+                    category="config" if rule == "parse-error" else "lint", path=_rel(entry.get("filePath", "")),
+                    line=msg.get("line"),
                     message=str(msg.get("message", "")), extra={"fixable": bool(msg.get("fix"))},
                 )
             )  # fmt: skip
