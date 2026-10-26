@@ -37,7 +37,23 @@ def head_sha(repo: Path) -> str:
     ).stdout.strip()
 
 
-def default_mandate(workspace: str, github_repo: str | None) -> dict[str, object]:
+def default_branch(repo: Path) -> str:
+    """The remote's default branch (what pull requests target), not an assumed 'main'."""
+    out = subprocess.run(
+        ["git", "-C", str(repo), "symbolic-ref", "--short", "refs/remotes/origin/HEAD"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if out.returncode == 0 and "/" in out.stdout:
+        return out.stdout.strip().split("/", 1)[1]
+    current = subprocess.run(
+        ["git", "-C", str(repo), "branch", "--show-current"], capture_output=True, text=True, check=False
+    ).stdout.strip()
+    return current or "main"
+
+
+def default_mandate(workspace: str, github_repo: str | None, base_branch: str = "main") -> dict[str, object]:
     """A supervised start: observe and experiment freely, ask before anything reaches GitHub, never merge."""
     return {
         "mandate": {
@@ -55,7 +71,7 @@ def default_mandate(workspace: str, github_repo: str | None) -> dict[str, object
             "egress": {
                 "package_registries": ["registry.npmjs.org", "pypi.org", "files.pythonhosted.org"],
                 "remote_models": {"destinations": ["api.meta.ai"], "max_payload_bytes": 20000},
-                "github": {"repository": github_repo, "max_open_pull_requests": 3},
+                "github": {"repository": github_repo, "base_branch": base_branch, "max_open_pull_requests": 3},
             },
             "evaluation": {"minimum_evidence_for_proposal": 4},
         }
@@ -104,7 +120,7 @@ class Workspace:
         if self.initialized:
             return False
         self.dir.mkdir(exist_ok=True)
-        mandate = default_mandate(self.repo.name, github_slug(self.repo))
+        mandate = default_mandate(self.repo.name, github_slug(self.repo), default_branch(self.repo))
         self.mandate_path.write_text(yaml.safe_dump(mandate, sort_keys=False))
         self.config_path.write_text(
             "# Overrides of unbidden's defaults. See `unbidden doctor` for the effective routing.\n{}\n"

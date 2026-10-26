@@ -29,14 +29,24 @@ EXPERIMENTS_PER_SWEEP = 3
 
 # Lower runs first: follow-ups on GitHub, then publishing, then observing, then the slow lab.
 PRIORITY = {
-    "github.poll": 10, "github.publish": 20, "proposal.prepare": 30, "observe.head": 40, "observe.scan": 50,
-    "director.sweep": 60, "lab.experiment": 70,
-}  # fmt: skip
+    "github.poll": 10,
+    "github.publish": 20,
+    "proposal.prepare": 30,
+    "observe.head": 40,
+    "observe.scan": 50,
+    "director.sweep": 60,
+    "lab.experiment": 70,
+}
 
 
 def job(type_: str, key: str, payload: dict[str, Any] | None = None, *, correlation_id: str | None = None) -> Job:
-    return Job(type=type_, idempotency_key=f"{type_}:{key}", payload=payload or {}, priority=PRIORITY[type_],
-               correlation_id=correlation_id)  # fmt: skip
+    return Job(
+        type=type_,
+        idempotency_key=f"{type_}:{key}",
+        payload=payload or {},
+        priority=PRIORITY[type_],
+        correlation_id=correlation_id,
+    )
 
 
 @dataclass
@@ -85,6 +95,12 @@ class Cycle:
         )
         opened = sum(len(s.opened) for s in result.sweeps)
         self.log(f"scan of {rev[:12]}: {len(result.reports)} reports, {opened} new opportunities")
+        from unbidden.world.discover import discover
+
+        world = await discover(
+            self.runtime.workspace.repo, rev, self.store, self.runtime.workspace.mandate(), self.runtime.brain
+        )
+        self.log(f"map of {rev[:12]}: {len(world.resources)} resources, {len(world.blind_spots)} blind spots")
         self.store.enqueue(job("director.sweep", f"{rev}:{utc_now():%Y%m%d%H%M}"))
 
     async def director_sweep(self, _: Job) -> None:
@@ -119,16 +135,28 @@ class Cycle:
         self.store.put("decisions", decision)
         opp.details = {
             **opp.details,
-            "decision": {"id": decision.id, "chosen": decision.chosen.value, "level": int(opp.evidence_level),
-                         "attempts": int(opp.details.get("attempts", 0)), "reason": decision.reason},
-        }  # fmt: skip
+            "decision": {
+                "id": decision.id,
+                "chosen": decision.chosen.value,
+                "level": int(opp.evidence_level),
+                "attempts": int(opp.details.get("attempts", 0)),
+                "reason": decision.reason,
+            },
+        }
         self.store.put("opportunities", opp)
         self.store.append_event(
-            Event(type=EventType.DECISION_MADE, actor="director", entity_id=decision.id, correlation_id=opp.id,
-                  payload={"chosen": decision.chosen.value, "reason": decision.reason,
-                           "candidates": [{"kind": c.kind.value, "utility": round(c.utility, 3)}
-                                          for c in decision.candidates]})
-        )  # fmt: skip
+            Event(
+                type=EventType.DECISION_MADE,
+                actor="director",
+                entity_id=decision.id,
+                correlation_id=opp.id,
+                payload={
+                    "chosen": decision.chosen.value,
+                    "reason": decision.reason,
+                    "candidates": [{"kind": c.kind.value, "utility": round(c.utility, 3)} for c in decision.candidates],
+                },
+            )
+        )
         self.log(f"{opp.id}: {decision.chosen.value} ({decision.reason})")
 
     async def lab_experiment(self, j: Job) -> None:
@@ -139,9 +167,24 @@ class Cycle:
             # Measured just in time: findings of an older commit are re-observed before any lab run.
             return
         stack, images = await asyncio.to_thread(self._env, opp.details["rev"])
-        lab = FixLab(self.runtime.workspace.repo, self.store, self.runtime.brain, stack, images, progress=self.log,
-                     bridge=self.runtime.bridge())  # fmt: skip
-        result = await lab.run(opp)
+        if opp.category == "performance":
+            from unbidden.lab.perf import PerfLab
+
+            perf = PerfLab(
+                self.runtime.workspace.repo, self.runtime.brain, self.store, stack, images, progress=self.log
+            )
+            result = await perf.run(opp)
+        else:
+            lab = FixLab(
+                self.runtime.workspace.repo,
+                self.store,
+                self.runtime.brain,
+                stack,
+                images,
+                progress=self.log,
+                bridge=self.runtime.bridge(),
+            )
+            result = await lab.run(opp)
         opp = self.store.get("opportunities", opp.id, Opportunity) or opp
         if result.verdict is not None and result.verdict.improved:
             self.log(f"{opp.id}: improved, evidence L{int(opp.evidence_level)}")
