@@ -1,0 +1,55 @@
+[project]
+name = "unbidden-ai"
+version = "0.1.0"
+description = "A proactive engineering agent on Meta models: finds improvements it can prove and proposes them with evidence."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pydantic>=2.9",
+    "pyyaml>=6.0",
+    "jsonschema>=4.23",
+    "httpx>=0.27",
+]
+
+[project.scripts]
+unbidden = "unbidden.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.7",
+    "pyright>=1.1.390",
+    "types-PyYAML>=6.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["unbidden"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "unit: fast, no external services",
+    "e2e: full cycle with the mock model",
+    "slow: real model or real sandbox",
+]
+addopts = "-m 'not slow'"
+
+[tool.pyright]
+pythonVersion = "3.12"
+include = ["unbidden", "tests"]
+typeCheckingMode = "standard"
+strict = ["unbidden/contracts", "unbidden/guardian"]
