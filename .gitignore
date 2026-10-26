@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.pyright/
+dist/
+build/
+*.egg-info/
+
+# Local state and secrets
+.env
+.env.*
+!.env.example
+.unbidden/
+*.db
+*.db-journal
+
+# OS
+.DS_Store
