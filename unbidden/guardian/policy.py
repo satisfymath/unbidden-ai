@@ -26,6 +26,8 @@ CAPABILITIES: dict[str, CapabilityRule] = {
     "github.push_branch": CapabilityRule("open_pull_requests", network="github"),
     "github.open_pull_request": CapabilityRule("open_pull_requests", network="github"),
     "github.merge_pull_request": CapabilityRule("merge_pull_requests", network="github"),
+    "deploy.run": CapabilityRule("deploy"),
+    "deploy.rollback": CapabilityRule("rollback"),
 }
 
 

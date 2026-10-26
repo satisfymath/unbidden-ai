@@ -24,6 +24,26 @@ class AutonomyPolicy(Contract):
     delegate_synthetic: Autonomy = Autonomy.DENY
     open_pull_requests: Autonomy = Autonomy.DENY
     merge_pull_requests: Autonomy = Autonomy.DENY
+    deploy: Autonomy = Autonomy.DENY
+    rollback: Autonomy = Autonomy.DENY
+
+
+class ProbeAuth(Contract):
+    """How probes log in. Credentials are read from the environment (unbidden's own .env), never stored."""
+
+    username_env: str = "UNBIDDEN_PROBE_USERNAME"
+    password_env: str = "UNBIDDEN_PROBE_PASSWORD"
+
+
+class OperationsPolicy(Contract):
+    """How this system is deployed and watched. Declared by a person; unbidden never invents a deploy."""
+
+    deploy_steps: list[list[str]] = Field(default_factory=list[list[str]])  # argv lists, run in the repo
+    probe_every_s: float = Field(default=5.0, gt=0)
+    probe_auth: ProbeAuth | None = None
+    max_merges_per_hour: int = Field(default=2, ge=0)
+    max_deploys_per_hour: int = Field(default=2, ge=0)
+    guard_samples: int = Field(default=15, ge=5)  # per side, per endpoint, before judging a deploy
 
 
 class BusinessConstraints(Contract):
@@ -66,6 +86,17 @@ class Mandate(Contract):
     autonomy: AutonomyPolicy = Field(default_factory=AutonomyPolicy)
     egress: EgressPolicy = Field(default_factory=EgressPolicy)
     evaluation: EvaluationPolicy = Field(default_factory=EvaluationPolicy)
+    operations: OperationsPolicy = Field(default_factory=OperationsPolicy)
+
+
+class Hold(Contract):
+    """A stop on autonomous changes, set by unbidden after a bad outcome. Only a person releases it."""
+
+    id: str = Field(default_factory=lambda: new_id("hold"))
+    reason: str
+    created_at: datetime = Field(default_factory=utc_now)
+    released_by: str | None = None
+    released_at: datetime | None = None
 
 
 class ActionRequest(Contract):

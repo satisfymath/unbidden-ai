@@ -91,3 +91,25 @@ median difference [8.7, 9.2] ms, CI tests green 3 rounds per side: L4. 200,000 s
 With `muse-glimmer:30b-mlx` (nvfp4) the workload failed six attempts out of six across two runs (invalid SQL,
 an unquoted reserved word); with `muse-glimmer:30b-mxfp8-dflash` (35 GB) it ran on the first attempt. One
 observation, not yet a measurement: the benchmark decides the default.
+
+## D-012 · 2026-10-27 · Three autonomy modes, and rollback only when it is proven
+
+David asked that Unbidden act when something big fails and nobody is watching. The master document allows
+"advanced autopilot" for specific, low-impact production operations "covered by explicit policies, audit,
+exposure limits and **tested rollback**" (§7.1). The earlier prototype had decided the opposite (holds only a
+person releases, no automatic recovery). This changes that, under conditions:
+
+- `unbidden mode supervised | autopilot | autonomous`, switched by a person, audited. Merging and deploying
+  exist only in `autonomous`.
+- `autonomous` refuses to switch on unless the mandate declares the team's deploy steps and a rollback drill
+  (deploy the previous version, health green, deploy back) has passed and is recorded.
+- Automatic rollback has two triggers only: a deploy by Unbidden judged DEGRADED, or an outage (health down or
+  5xx over threshold) after any deploy. It returns to the last version with a HEALTHY verdict and sets a hold
+  that only a person releases. Fixes still go through the lab; nothing is "fixed forward" unmeasured.
+- Merges: L4 only, pinned to the measured commit, at most `max_merges_per_hour`, never while the previous deploy
+  is still being judged.
+
+Carried over from the prototype's impact guard as design, re-measured here: percentiles on pooled individual
+latencies; windows of exactly the previous and the new build with warm-up dropped; INSUFFICIENT_EVIDENCE, never
+HEALTHY, without enough samples; effect ≥ 20 % and ≥ 10 ms; 5xx over 1 % with ≥ 100 requests and ≥ 3 errors;
+HTTP 429 is throttling, not latency.
