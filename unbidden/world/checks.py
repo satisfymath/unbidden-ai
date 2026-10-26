@@ -46,8 +46,9 @@ def unindexed_foreign_keys(world: WorldModel) -> list[Opportunity]:
                 category="performance",
                 title=f"{table.name}.{column} is a foreign key without an index, read by {len(endpoints)} endpoint(s)",
                 summary=(
-                    f"Queries filtering {table.name} by {column} must scan the whole table "
-                    f"(~{table.attributes.get('rows_estimate', '?')} rows now). Read by: {', '.join(endpoints)}."
+                    f"Queries filtering {table.name} by {column} must scan the whole table, so their cost grows with "
+                    f"every row in it, not with the rows a request needs (the live table holds "
+                    f"~{table.attributes.get('rows_estimate', '?')} rows now). Read by: {', '.join(endpoints)}."
                 ),
                 dedup_key=f"world:unindexed_fk:{table.name}.{column}",
                 evidence=[*relation.evidence, *table.evidence[-1:]],

@@ -189,6 +189,9 @@ class Store:
         ).fetchone()
         return None if row is None else model.model_validate_json(row["doc"])
 
+    def delete(self, collection: str, doc_id: str) -> None:
+        self._conn.execute("DELETE FROM docs WHERE collection = ? AND id = ?", (collection, doc_id))
+
     def get_by_key(self, collection: str, key: str, model: type[M]) -> M | None:
         row = self._conn.execute("SELECT doc FROM docs WHERE collection = ? AND key = ?", (collection, key)).fetchone()
         return None if row is None else model.model_validate_json(row["doc"])

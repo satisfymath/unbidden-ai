@@ -38,7 +38,57 @@ def _tests_line(experiment: Experiment) -> str:
     )
 
 
+PERF_LEVELS = {
+    3: "L3 · lab improvement: measured faster in an offline sandbox; the test suite was not run",
+    4: "L4 · functional validation: measured faster in an offline sandbox, and the test suite shows no regression",
+}
+
+
+def build_perf_body(opp: Opportunity, experiment: Experiment, verdict: Verdict, origin: str) -> str:
+    """A performance proposal leads with what was measured, how, and what it does not prove yet."""
+    d = opp.details
+    criteria = verdict.criteria
+    lines = [
+        f"**{opp.title}**",
+        "",
+        PERF_LEVELS.get(int(verdict.evidence_level), f"L{int(verdict.evidence_level)}"),
+        "",
+        "### What was found",
+        f"- {opp.summary}",
+        f"- How: the database schema was read live (read-only) and compared with the endpoints that read "
+        f"`{d.get('table')}`; no one pointed at this table.",
+        "",
+        "### What was measured",
+        *(f"- {reason}" for reason in verdict.reasons),
+        f"- {len(experiment.samples_before_ms)} requests per side after a warm-up, each side in its own sandbox "
+        f"with a fresh database, migrations applied by this repository's own CI setup steps.",
+        f"- Criteria fixed before measuring: {criteria.get('test')}, alpha {criteria.get('alpha')}, median "
+        f"improvement of at least {float(criteria.get('min_median_improvement', 0)):.0%}, {criteria.get('ci')}.",
+        f"- {_tests_line(experiment)}",
+        f"- Candidate written by: {AUTHORS.get(origin, origin)}. The workload (synthetic data and the request) "
+        f"was written by the same local model and is kept with the experiment (sha256 "
+        f"`{(experiment.workload_sha256 or '')[:12]}`).",
+        "",
+        "### Caveats",
+        *(f"- {c}" for c in (verdict.caveats or ["none recorded"])),
+        "",
+        f"<sub>Proposed by Unbidden. Opportunity `{opp.id}`, experiment `{experiment.id}`. "
+        "Nothing was merged or deployed; a person decides.</sub>",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def proposal_title(opp: Opportunity, verdict: Verdict) -> str:
+    if opp.category == "performance" and verdict.reasons:
+        # "GET /x: median 13.0 ms → 4.1 ms (69% faster), ..." becomes the headline.
+        headline = verdict.reasons[0].split(", one-sided")[0]
+        return f"perf: index {opp.details.get('table')}.{opp.details.get('column')} · {headline}"[:120]
+    return f"fix: {opp.title}"[:120]
+
+
 def build_body(opp: Opportunity, experiment: Experiment, verdict: Verdict, origin: str) -> str:
+    if experiment.samples_before_ms:
+        return build_perf_body(opp, experiment, verdict, origin)
     findings = opp.details.get("findings", [])[:20]
     lines = [
         f"**{opp.title}**",
@@ -71,7 +121,7 @@ def prepare(repo: Path, store: Store, opp: Opportunity, experiment: Experiment, 
     candidate = opp.details["candidate"]
     files: dict[str, str] = candidate["files"]
     origin: str = candidate["origin"]
-    title = f"fix: {opp.title}"[:120]
+    title = proposal_title(opp, verdict)
     branch = branch_name(opp.title, opp.id)
     body = build_body(opp, experiment, verdict, origin)
     commit = commit_files(repo, experiment.base_sha, files, f"{title}\n\n{body}", branch)
