@@ -106,13 +106,23 @@ class Cycle:
     async def director_sweep(self, _: Job) -> None:
         mandate = self.runtime.workspace.mandate()
         open_prs = len(self.store.list("proposals", Proposal, status=ProposalStatus.PR_OPENED.value))
+        checked = self._checked_dirs()
         queued = 0
-        live = (OpportunityStatus.OPEN, OpportunityStatus.EXPERIMENTING)
-        opps = [o for o in self.store.list("opportunities", Opportunity) if o.status in live]
+        live = (OpportunityStatus.OPEN, OpportunityStatus.EXPERIMENTING, OpportunityStatus.PROPOSED)
+        unpublished = {
+            p.opportunity_id: p for p in self.store.list("proposals", Proposal, status=ProposalStatus.READY.value)
+        }
+        opps = [
+            o
+            for o in self.store.list("opportunities", Opportunity)
+            if o.status in live and (o.status is not OpportunityStatus.PROPOSED or o.id in unpublished)
+        ]
         opps.sort(key=lambda o: (-o.evidence_level, o.created_at))
         for opp in opps:
             attempts = int(opp.details.get("attempts", 0))
-            decision = decide(opp, mandate, Context(open_pull_requests=open_prs, attempts=attempts))
+            decision = decide(
+                opp, mandate, Context(open_pull_requests=open_prs, attempts=attempts, checked_dirs=checked)
+            )
             last: dict[str, Any] = opp.details.get("decision", {})
             seen = (last.get("chosen"), last.get("level"), last.get("attempts"))
             if seen != (decision.chosen.value, int(opp.evidence_level), attempts):
@@ -125,11 +135,41 @@ class Cycle:
                 ):
                     queued += 1
             elif decision.chosen is ActionKind.PROPOSE_CHANGE:
-                self.store.enqueue(job("proposal.prepare", opp.id, {"id": opp.id}, correlation_id=opp.id))
+                ready = unpublished.get(opp.id)
+                if ready is None:
+                    self.store.enqueue(job("proposal.prepare", opp.id, {"id": opp.id}, correlation_id=opp.id))
+                else:
+                    # Prepared earlier and still unpublished: try again now (the mandate may allow it now).
+                    self.store.enqueue(
+                        job(
+                            "github.publish",
+                            f"{ready.id}:{self.store.get_value('head')}",
+                            {"id": ready.id},
+                            correlation_id=opp.id,
+                        )
+                    )
                 open_prs += 1
             elif decision.chosen is ActionKind.DECLINE:
                 opp.status = OpportunityStatus.DECLINED
                 self.store.put("opportunities", opp)
+                withdrawn = unpublished.get(opp.id)
+                if withdrawn is not None:
+                    withdrawn.status = ProposalStatus.REJECTED
+                    self.store.put("proposals", withdrawn)
+                    self.log(f"{opp.id}: proposal withdrawn before publishing ({decision.reason})")
+
+    def _checked_dirs(self) -> tuple[str, ...]:
+        from unbidden.observe.ci import ci_test_plan
+
+        head = self.store.get_value("head")
+        if not head:
+            return ()
+        dirs: list[str] = []
+        for language in ("python", "node"):
+            plan = ci_test_plan(self.runtime.workspace.repo, head, language)
+            if plan is not None:
+                dirs += [s.cwd or "." for s in plan.steps]
+        return tuple(dict.fromkeys(dirs))
 
     def _record_decision(self, opp: Opportunity, decision: Decision) -> None:
         self.store.put("decisions", decision)

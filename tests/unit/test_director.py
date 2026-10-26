@@ -43,3 +43,15 @@ def test_l3_is_not_enough_for_the_default_mandate(mandate: Mandate) -> None:
 
 def test_gives_up_after_repeated_failures(mandate: Mandate) -> None:
     assert decide(opp(level=2), mandate, Context(0, 2)).chosen is ActionKind.DECLINE
+
+
+def test_style_findings_outside_the_ci_scope_are_declined(mandate: Mandate) -> None:
+    lint = opp(category="lint")
+    lint.details = {"paths": ["scripts/release.py"]}
+    decision = decide(lint, mandate, Context(0, 0, checked_dirs=("backend",)))
+    assert decision.chosen is ActionKind.DECLINE and "backend" in decision.reason
+    lint.details = {"paths": ["backend/app/main.py"]}
+    assert decide(lint, mandate, Context(0, 0, checked_dirs=("backend",))).chosen is ActionKind.RUN_EXPERIMENT
+    bug = opp(category="bugs")
+    bug.details = {"paths": ["scripts/release.py"]}
+    assert decide(bug, mandate, Context(0, 0, checked_dirs=("backend",))).chosen is ActionKind.RUN_EXPERIMENT

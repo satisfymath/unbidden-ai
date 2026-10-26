@@ -33,10 +33,22 @@ RISK_WEIGHT = 0.5
 MAX_LAB_ATTEMPTS = 2
 
 
+LOW_VALUE = {"lint", "format"}
+
+
 @dataclass(frozen=True)
 class Context:
     open_pull_requests: int
     attempts: int  # experiments already run on this opportunity without an improvement
+    checked_dirs: tuple[str, ...] = ()  # where the team's CI works; empty means the whole repository
+
+
+def outside_checked_scope(opp: Opportunity, checked_dirs: tuple[str, ...]) -> bool:
+    """Style findings in code the team's own CI never looks at are not worth a person's review."""
+    if opp.category not in LOW_VALUE or not checked_dirs or "." in checked_dirs:
+        return False
+    paths: list[str] = opp.details.get("paths", [])
+    return bool(paths) and not any(p.startswith(f"{d.rstrip('/')}/") for p in paths for d in checked_dirs)
 
 
 def category_value(category: str, mandate: Mandate) -> float:
@@ -64,6 +76,10 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
     add(ActionKind.WAIT, 0.0, 0.0, 0.0, "doing nothing costs nothing")
     if value == 0.0:
         add(ActionKind.DECLINE, 1.0, 0.0, 0.0, f"category {opp.category!r} has no value under this mandate")
+        return _choose(opp, candidates, ActionKind.DECLINE)
+    if outside_checked_scope(opp, ctx.checked_dirs):
+        reason = f"{opp.category} findings outside what the team's CI checks ({', '.join(ctx.checked_dirs)})"
+        add(ActionKind.DECLINE, 1.0, 0.0, 0.0, reason)
         return _choose(opp, candidates, ActionKind.DECLINE)
 
     level = opp.evidence_level

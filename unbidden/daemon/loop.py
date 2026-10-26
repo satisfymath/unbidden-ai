@@ -30,6 +30,7 @@ async def watch(
         now = utc_now()
         bucket = int(now.timestamp() // interval_s)
         store.enqueue(job("observe.head", str(bucket)))
+        store.enqueue(job("director.sweep", f"tick:{bucket}"))
         store.enqueue(job("github.poll", str(int(now.timestamp() // poll_every.total_seconds()))))
         while True:
             if killswitch.engaged:
