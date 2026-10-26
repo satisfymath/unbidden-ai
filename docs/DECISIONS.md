@@ -41,3 +41,11 @@ routes to Spark until a benchmark shows a better choice. The API accepts only `t
 required tool call is stated as an instruction and still enforced by the router. While free credits are in
 use the provider may use content for product improvement, which is one more reason only synthetic tasks
 are sent.
+
+## D-007 · 2026-10-26 · Routing chosen by the first benchmark
+
+Measured in `docs/bench/2026-10-26-models.md` (5 runs per task):
+
+- `local`: `muse-glimmer:30b-mlx`, `think=low` (25/25; with thinking off the privacy rewrite leaked real
+  names 5/5, so thinking stays on for every local call).
+- `frontier` and `code`: `muse-spark-1.3` (20/20, 2.3 s median).
