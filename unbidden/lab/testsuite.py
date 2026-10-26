@@ -18,7 +18,7 @@ def test_argv(stack: Stack, language: str) -> list[str] | None:
     if language == "python" and stack.python is not None and stack.python.pytest:
         return ["python", "-m", "pytest", "-q", "-p", "no:cacheprovider", f"--junitxml=/work/{JUNIT}"]
     if language == "node" and stack.node is not None and stack.node.test_script:
-        return [stack.node.manager, "test"]
+        return [stack.node.manager, "run", stack.node.test_script]
     return None
 
 

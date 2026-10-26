@@ -107,7 +107,14 @@ def _detect_node(repo: Path, rev: str, files: set[str], blind: list[str]) -> Nod
     deps = _deps(package)
     major, assumed = _node_major(repo, rev, files, package)
     scripts = package.get("scripts", {})
-    test = scripts.get("test") if isinstance(scripts, dict) else None
+    test: str | None = None
+    if isinstance(scripts, dict):
+        # A unit-test script is preferred: full `test` scripts often bundle builds or networked checks.
+        for name in ("test:unit", "test"):
+            value = scripts.get(name)
+            if isinstance(value, str) and "no test specified" not in value:
+                test = name
+                break
     return NodeStack(
         manager=lock[0],
         lockfile=lock[1],
@@ -117,7 +124,7 @@ def _detect_node(repo: Path, rev: str, files: set[str], blind: list[str]) -> Nod
         eslint="eslint" in deps,
         biome="@biomejs/biome" in deps,
         prettier="prettier" in deps,
-        test_script=test if isinstance(test, str) and "no test specified" not in test else None,
+        test_script=test,
     )
 
 

@@ -3,15 +3,20 @@
 from __future__ import annotations
 
 import argparse
+import getpass
 import json
 import sys
 from collections.abc import Sequence
+from datetime import datetime
 from typing import Any
 
 from rich.console import Console
 from rich.table import Table
 
 from unbidden import __version__
+from unbidden.contracts.events import Event, EventType
+from unbidden.contracts.experiment import Proposal, ProposalStatus
+from unbidden.contracts.guardian import EgressAttempt
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
 from unbidden.observe.scan import ScanDenied, scan
 from unbidden.workspace import Workspace, WorkspaceError, head_sha
@@ -156,6 +161,119 @@ def cmd_try(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_watch(args: argparse.Namespace) -> int:
+    """Run in the foreground until interrupted (or one full cycle with --once)."""
+    import asyncio
+
+    from unbidden.daemon.loop import watch
+    from unbidden.runtime import Runtime
+
+    runtime = Runtime.open(Workspace.find())
+
+    def log(message: str) -> None:
+        console.print(f"[dim]{datetime.now():%H:%M:%S}[/] {message}")
+
+    log(f"watching {runtime.workspace.repo} (ctrl-c to stop, `unbidden kill` to freeze)")
+    try:
+        asyncio.run(watch(runtime, log=log, interval_s=args.interval, once=args.once))
+    except KeyboardInterrupt:
+        log("stopped")
+    return 0
+
+
+def _proposal_for(store: Any, opportunity_id: str) -> Proposal | None:
+    return store.get_by_key("proposals", opportunity_id, Proposal)
+
+
+def cmd_approve(args: argparse.Namespace) -> int:
+    from datetime import timedelta
+
+    from unbidden.daemon.cycle import job
+    from unbidden.guardian.approvals import grant
+    from unbidden.publish.github import CAPABILITY
+
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    proposal = _proposal_for(store, args.id)
+    if proposal is None:
+        err.print(f"no proposal for {args.id} yet")
+        return 1
+    approval = grant(store, CAPABILITY, proposal.id, granted_by=getpass.getuser(), ttl=timedelta(hours=args.hours))
+    store.append_event(
+        Event(type=EventType.APPROVAL_GRANTED, actor=f"person:{approval.granted_by}", entity_id=approval.id,
+              correlation_id=proposal.opportunity_id, payload={"capability": CAPABILITY, "proposal": proposal.id})
+    )  # fmt: skip
+    store.enqueue(job("github.publish", f"{proposal.id}:{approval.id}", {"id": proposal.id},
+                      correlation_id=proposal.opportunity_id))  # fmt: skip
+    console.print(f"Approved: the pull request for {proposal.branch} opens on the next cycle (`unbidden watch`).")
+    return 0
+
+
+def cmd_reject(args: argparse.Namespace) -> int:
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    opp = store.get("opportunities", args.id, Opportunity)
+    if opp is None:
+        err.print(f"no opportunity {args.id}")
+        return 1
+    opp.status = OpportunityStatus.DECLINED
+    opp.details = {**opp.details, "rejected_because": args.reason}
+    store.put("opportunities", opp)
+    proposal = _proposal_for(store, opp.id)
+    if proposal is not None and proposal.status is ProposalStatus.READY:
+        proposal.status = ProposalStatus.REJECTED
+        store.put("proposals", proposal)
+    store.append_event(
+        Event(type=EventType.APPROVAL_REJECTED, actor=f"person:{getpass.getuser()}", entity_id=opp.id,
+              correlation_id=opp.id, payload={"reason": args.reason})
+    )  # fmt: skip
+    console.print(f"Rejected {opp.id}. It will not be proposed again.")
+    return 0
+
+
+def cmd_why(args: argparse.Namespace) -> int:
+    """Every decision, verdict and outbound payload behind one opportunity."""
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    opp = store.get("opportunities", args.id, Opportunity)
+    if opp is None:
+        err.print(f"no opportunity {args.id}")
+        return 1
+    events = store.events(correlation_id=opp.id)
+    egress_ids = [e.entity_id for e in events if e.type in (EventType.EGRESS_ALLOWED, EventType.EGRESS_BLOCKED)]
+    attempts = [a for a in (store.get("egress", i, EgressAttempt) for i in egress_ids if i) if a is not None]
+    data = {
+        "opportunity": opp.model_dump(mode="json", exclude={"details"}),
+        "decision": opp.details.get("decision"),
+        "verdict": opp.details.get("verdict"),
+        "egress": [a.model_dump(mode="json") for a in attempts],
+        "events": [e.model_dump(mode="json") for e in events],
+    }
+    if _emit(args, data):
+        return 0
+    console.print(f"[bold]{opp.title}[/] · L{int(opp.evidence_level)} · {opp.status.value}")
+    if data["decision"]:
+        console.print(f"decision: {data['decision']['chosen']} because {data['decision']['reason']}")
+    verdict = data["verdict"]
+    if verdict:
+        console.print(f"verdict: {'improved' if verdict['improved'] else 'not improved'} · tests {verdict['tests']}")
+        for reason in verdict["reasons"] + verdict["caveats"]:
+            console.print(f"  - {reason}")
+    for attempt in attempts:
+        state = "[green]sent[/]" if attempt.status == "allowed_sent" else f"[red]{attempt.status}[/]"
+        console.print(
+            f"egress to {attempt.destination} ({attempt.purpose}): {state}, {attempt.verdict.payload_bytes} bytes"
+        )
+        for reason in attempt.verdict.reasons:
+            console.print(f"  blocked: {reason}")
+        if args.payload:
+            console.print(attempt.payload, markup=False, highlight=False)
+    return 0
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     ws = Workspace.find()
     ws.require()
@@ -216,6 +334,18 @@ def build_parser() -> argparse.ArgumentParser:
     inbox.add_argument("--all", action="store_true", help="include closed ones")
     try_ = command("try", cmd_try, "run an experiment on one opportunity now")
     try_.add_argument("id")
+    watch = command("watch", cmd_watch, "keep working in the background of this terminal", json_out=False)
+    watch.add_argument("--interval", type=float, default=30, help="seconds between looks at HEAD")
+    watch.add_argument("--once", action="store_true", help="run one full cycle and exit")
+    approve = command("approve", cmd_approve, "allow the pull request of a proven opportunity", json_out=False)
+    approve.add_argument("id")
+    approve.add_argument("--hours", type=float, default=24, help="how long the approval stays valid")
+    reject = command("reject", cmd_reject, "decline an opportunity for good", json_out=False)
+    reject.add_argument("id")
+    reject.add_argument("reason", nargs="?", default="rejected by a person")
+    why = command("why", cmd_why, "decisions, verdicts and every outbound payload behind an opportunity")
+    why.add_argument("id")
+    why.add_argument("--payload", action="store_true", help="print each outbound payload byte for byte")
     show = command("show", cmd_show, "one opportunity with its full history")
     show.add_argument("id")
     kill = command("kill", cmd_kill, "stop everything now", json_out=False)
