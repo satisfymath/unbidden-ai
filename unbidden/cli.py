@@ -136,10 +136,17 @@ def cmd_try(args: argparse.Namespace) -> int:
         return 1
     with console.status("preparing") as status:
         stack, images = runtime.stack_and_images(opp.details["rev"])
-        lab = FixLab(runtime.workspace.repo, runtime.store, runtime.brain, stack, images,
-                     progress=lambda m: status.update(m), bridge=runtime.bridge(),
-                     bridge_first=args.bridge)  # fmt: skip
-        result = asyncio.run(lab.run(opp))
+        if opp.category == "performance":
+            from unbidden.lab.perf import PerfLab
+
+            perf = PerfLab(runtime.workspace.repo, runtime.brain, runtime.store, stack, images,
+                           progress=lambda m: status.update(m))  # fmt: skip
+            result = asyncio.run(perf.run(opp))
+        else:
+            lab = FixLab(runtime.workspace.repo, runtime.store, runtime.brain, stack, images,
+                         progress=lambda m: status.update(m), bridge=runtime.bridge(),
+                         bridge_first=args.bridge)  # fmt: skip
+            result = asyncio.run(lab.run(opp))
     data = {
         "opportunity": opp.id,
         "improved": bool(result.verdict and result.verdict.improved),

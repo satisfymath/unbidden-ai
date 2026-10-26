@@ -68,3 +68,26 @@ Known limit: words in comments or string literals that are not identifiers are n
 
 First real run (`ledger` sample repository, pyright `reportArgumentType`): 7 private names replaced,
 1,276 bytes sent to `api.meta.ai`, the returned fix measured at L4 (3 test rounds per side), 52 s end to end.
+
+## D-009 · 2026-10-27 · Tests and measurements run the way the repository's CI runs them
+
+A repository's checks are judged in its own terms: the test job of its GitHub Actions workflow becomes the
+plan (its scripts and working directories, minus installs, Docker and reports), the compose services the job
+starts come up as throwaway containers on an internal network, and the app service's environment applies.
+Performance measurements run as one more test inside that same command, selected with `PYTEST_ADDOPTS -k`,
+so they inherit the team's fixtures and environment. Running pytest bare from the root missed both the
+working directory and a variable set inside the team's test script.
+
+## D-010 · 2026-10-27 · Generic World Model checks find opportunities; nothing names the target
+
+The first check reads only observed and inferred facts: a foreign-key column that leads no index, on a table
+an endpoint reads. On full-stack-fastapi-template it found `item.owner_id`, read by five endpoints; nothing
+upstream reported it. PerfLab measured the local model's migration (index on owner_id, created_at):
+`GET /api/v1/items/` median 13.0 → 4.1 ms (69 % faster), one-sided Mann-Whitney p = 3.4e-08, 95 % CI of the
+median difference [8.7, 9.2] ms, CI tests green 3 rounds per side: L4. 200,000 synthetic rows over 2,000 owners.
+
+## D-011 · 2026-10-27 · The 8-bit Glimmer for long local tasks (to confirm by benchmark)
+
+With `muse-glimmer:30b-mlx` (nvfp4) the workload failed six attempts out of six across two runs (invalid SQL,
+an unquoted reserved word); with `muse-glimmer:30b-mxfp8-dflash` (35 GB) it ran on the first attempt. One
+observation, not yet a measurement: the benchmark decides the default.

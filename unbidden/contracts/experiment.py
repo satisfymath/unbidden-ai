@@ -34,6 +34,9 @@ class Experiment(Contract):
     candidate_tests: TestSummary | None = None
     findings_before: list[str] = Field(default_factory=list)
     findings_after: list[str] = Field(default_factory=list)
+    samples_before_ms: list[float] = Field(default_factory=list[float])
+    samples_after_ms: list[float] = Field(default_factory=list[float])
+    workload_sha256: str | None = None
     cost: Cost = Field(default_factory=Cost)
     started_at: datetime = Field(default_factory=utc_now)
 
