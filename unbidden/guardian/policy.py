@@ -18,6 +18,7 @@ class CapabilityRule:
 CAPABILITIES: dict[str, CapabilityRule] = {
     "repo.read": CapabilityRule("observe"),
     "analyzer.run": CapabilityRule("observe"),
+    "runtime.read": CapabilityRule("observe"),  # docker ps/inspect, read-only SQL, HTTP GET to published ports
     "sandbox.run": CapabilityRule("run_experiments"),
     "model.local": CapabilityRule("run_experiments"),
     "sandbox.provision": CapabilityRule("provision_dependencies", network="package_registries"),
