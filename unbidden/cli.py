@@ -275,6 +275,66 @@ def cmd_why(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_map(args: argparse.Namespace) -> int:
+    """Discover the system (repository, running containers, live API, database) and show the World Model."""
+    import asyncio
+
+    from unbidden.contracts.world import WorldModel
+    from unbidden.runtime import Runtime
+    from unbidden.world.discover import discover
+
+    runtime = Runtime.open(Workspace.find())
+    repo = runtime.workspace.repo
+    if args.cached:
+        world = runtime.store.get("world", "world", WorldModel)
+        if world is None:
+            err.print("no map yet; run `unbidden map`")
+            return 1
+    else:
+        with console.status("mapping the system"):
+            brain = None if args.no_model else runtime.brain
+            world = asyncio.run(discover(repo, head_sha(repo), runtime.store, runtime.workspace.mandate(), brain))
+    if _emit(args, world.model_dump(mode="json")):
+        return 0
+    mark = {"observed": "[green]observed[/]", "inferred": "[yellow]inferred[/]"}
+
+    def status(r: Any) -> str:
+        return mark.get(r.status.value) or r.status.value
+
+    console.print(f"[bold]{repo.name}[/] at {world.rev[:12]} · {len(world.resources)} resources, "
+                  f"{len(world.relations)} relations")  # fmt: skip
+    containers = {r.attributes.get("service"): r for r in world.of_kind("container")}
+    console.print("\n[bold]Services[/]")
+    for svc in world.of_kind("service") + world.of_kind("database"):
+        live = containers.get(svc.name)
+        state = f"{live.attributes.get('state')} {live.attributes.get('ports') or ''}" if live else "not running"
+        deps = [r.dst.split(":", 1)[1] for r in world.relations if r.src == svc.id and r.predicate == "depends_on"]
+        console.print(f"  {svc.name:12} {svc.attributes.get('image') or 'built here':28} {state:24} "
+                      f"{'→ ' + ', '.join(deps) if deps else ''}")  # fmt: skip
+    tables = world.of_kind("table")
+    if tables:
+        console.print("\n[bold]Tables[/]")
+        for table in tables:
+            rows = table.attributes.get("rows_estimate")
+            indexes = len(table.attributes.get("indexes", []))
+            detail = (
+                f"~{rows} rows, {indexes} indexes" if rows is not None else f"model {table.attributes.get('model')}"
+            )
+            console.print(f"  {table.name:16} {status(table):30} {detail}")
+    endpoints = world.of_kind("endpoint")
+    if endpoints:
+        console.print("\n[bold]Endpoints[/]")
+        for endpoint in endpoints:
+            touches = [f"{r.predicate} {r.dst.split(':', 1)[1]}" for r in world.relations
+                       if r.src == endpoint.id and r.predicate in ("reads", "writes")]  # fmt: skip
+            console.print(f"  {endpoint.name:44} {status(endpoint):30} {', '.join(touches)}")
+    if world.blind_spots:
+        console.print("\n[bold]What I cannot see[/]")
+        for spot in world.blind_spots:
+            console.print(f"  - {spot.what}: {spot.why}")
+    return 0
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     ws = Workspace.find()
     ws.require()
@@ -330,6 +390,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     command("init", cmd_init, "set up unbidden in this repository")
     command("scan", cmd_scan, "run the repository's own checks in the sandbox and record opportunities")
+    map_ = command("map", cmd_map, "discover the system and show what is known, how, and what cannot be seen")
+    map_.add_argument("--cached", action="store_true", help="show the last map without discovering again")
+    map_.add_argument("--no-model", action="store_true", help="skip relations inferred by the local model")
     command("status", cmd_status, "what unbidden knows and is doing")
     inbox = command("inbox", cmd_inbox, "opportunities, most proven first")
     inbox.add_argument("--all", action="store_true", help="include closed ones")
