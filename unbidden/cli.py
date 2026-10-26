@@ -117,6 +117,45 @@ def cmd_show(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_try(args: argparse.Namespace) -> int:
+    """Run one experiment now, in the foreground."""
+    import asyncio
+
+    from unbidden.lab.fixlab import FixLab
+    from unbidden.runtime import Runtime
+
+    runtime = Runtime.open(Workspace.find())
+    opp = runtime.store.get("opportunities", args.id, Opportunity)
+    if opp is None:
+        err.print(f"no opportunity {args.id}")
+        return 1
+    with console.status("preparing") as status:
+        stack, images = runtime.stack_and_images(opp.details["rev"])
+        lab = FixLab(runtime.workspace.repo, runtime.store, runtime.brain, stack, images,
+                     progress=lambda m: status.update(m))  # fmt: skip
+        result = asyncio.run(lab.run(opp))
+    data = {
+        "opportunity": opp.id,
+        "improved": bool(result.verdict and result.verdict.improved),
+        "verdict": result.verdict.model_dump(mode="json") if result.verdict else None,
+        "origin": result.candidate.origin if result.candidate else None,
+        "patch": result.candidate.patch if result.candidate else None,
+        "notes": result.notes,
+    }
+    if _emit(args, data):
+        return 0
+    if result.verdict is not None and result.verdict.improved:
+        console.print(
+            f"[green]improved[/] · evidence L{int(result.verdict.evidence_level)} · {result.verdict.tests.value}"
+        )
+        console.print(result.candidate.patch if result.candidate else "")
+    else:
+        console.print("[yellow]no improvement proven[/]")
+    for note in result.notes + (result.verdict.caveats if result.verdict else []):
+        console.print(f"  [dim]{note}[/]")
+    return 0
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     ws = Workspace.find()
     ws.require()
@@ -175,6 +214,8 @@ def build_parser() -> argparse.ArgumentParser:
     command("status", cmd_status, "what unbidden knows and is doing")
     inbox = command("inbox", cmd_inbox, "opportunities, most proven first")
     inbox.add_argument("--all", action="store_true", help="include closed ones")
+    try_ = command("try", cmd_try, "run an experiment on one opportunity now")
+    try_.add_argument("id")
     show = command("show", cmd_show, "one opportunity with its full history")
     show.add_argument("id")
     kill = command("kill", cmd_kill, "stop everything now", json_out=False)
