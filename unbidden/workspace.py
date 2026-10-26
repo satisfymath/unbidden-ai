@@ -67,6 +67,9 @@ def default_mandate(workspace: str, github_repo: str | None, base_branch: str = 
                 "delegate_synthetic": "allow",
                 "open_pull_requests": "require_approval",
                 "merge_pull_requests": "deny",
+                "deploy": "deny",
+                "rollback": "deny",
+                "use_new_capabilities": "require_approval",
             },
             "egress": {
                 "package_registries": ["registry.npmjs.org", "pypi.org", "files.pythonhosted.org"],

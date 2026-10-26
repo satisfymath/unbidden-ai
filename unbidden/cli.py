@@ -309,9 +309,16 @@ MODES: dict[str, dict[str, str]] = {
         "merge_pull_requests": "deny",
         "deploy": "deny",
         "rollback": "deny",
+        "use_new_capabilities": "require_approval",
     },
     # Unbidden opens pull requests on its own for what reaches the mandate's evidence level; people merge.
-    "autopilot": {"open_pull_requests": "allow", "merge_pull_requests": "deny", "deploy": "deny", "rollback": "deny"},
+    "autopilot": {
+        "open_pull_requests": "allow",
+        "merge_pull_requests": "deny",
+        "deploy": "deny",
+        "rollback": "deny",
+        "use_new_capabilities": "allow",
+    },
     # Unbidden also merges L4 work, deploys it with the team's steps, judges every deploy, and rolls back to the
     # last healthy version when one degrades or the system goes down. Requires a passed rollback drill.
     "autonomous": {
@@ -319,6 +326,7 @@ MODES: dict[str, dict[str, str]] = {
         "merge_pull_requests": "allow",
         "deploy": "allow",
         "rollback": "allow",
+        "use_new_capabilities": "allow",
     },
 }
 
@@ -480,6 +488,83 @@ def cmd_why(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_forge(args: argparse.Namespace) -> int:
+    """Build, list or approve capabilities Unbidden made for itself."""
+    import asyncio
+
+    from unbidden.forge.adapter import LogAdapter
+    from unbidden.forge.build import Forge, compose_logs
+    from unbidden.runtime import Runtime
+
+    runtime = Runtime.open(Workspace.find())
+    store = runtime.store
+    if args.action == "approve":
+        adapter = store.get("capabilities", args.target, LogAdapter)
+        if adapter is None or adapter.status != "validated":
+            err.print("only a validated capability can be approved")
+            return 1
+        adapter.status, adapter.approved_by = "approved", f"person:{getpass.getuser()}"
+        store.put("capabilities", adapter)
+        store.append_event(
+            Event(
+                type=EventType.CAPABILITY_APPROVED,
+                actor=adapter.approved_by,
+                entity_id=adapter.id,
+                payload={"source": adapter.source, "version": adapter.version},
+            )
+        )
+        console.print(f"approved {adapter.id} ({adapter.source} v{adapter.version})")
+        return 0
+    if args.action == "build":
+        service = args.target or "backend"
+        lines = compose_logs(runtime.workspace.repo, service)
+        with console.status(f"forging a log adapter for {service} from {len(lines)} lines"):
+            result = asyncio.run(Forge(runtime.brain, store).build_log_adapter(f"compose:{service}", lines))
+        for note in result.notes:
+            console.print(f"  [dim]{note}[/]")
+        if result.adapter is None:
+            err.print("no adapter was built")
+            return 1
+        a = result.adapter
+        console.print(f"{a.id} {a.source} v{a.version}: [bold]{a.status}[/] · {a.quality}")
+        console.print(f"  pattern: {a.pattern}", markup=False)
+        return 0
+    adapters = store.list("capabilities", LogAdapter)
+    if _emit(args, [a.model_dump(mode="json") for a in adapters]):
+        return 0
+    for a in adapters:
+        console.print(f"{a.id}  {a.source} v{a.version}  {a.status:10} coverage {a.quality.get('coverage')}")
+    return 0
+
+
+def cmd_logs(args: argparse.Namespace) -> int:
+    """Real traffic of a service, read with the capability Forge built for its log format."""
+    from unbidden.forge.build import compose_logs
+    from unbidden.forge.logs import summarize, usable
+
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    source = f"compose:{args.service}"
+    adapter = usable(store, ws.mandate(), source)
+    if adapter is None:
+        err.print(f"no usable capability reads {source}; run `unbidden forge build {args.service}`")
+        return 1
+    traffic = summarize(adapter, compose_logs(ws.repo, args.service, tail=args.tail))
+    data = {
+        "adapter": adapter.id,
+        "lines": traffic.lines,
+        "parsed": traffic.parsed,
+        "routes": {r: dict(c) for r, c in traffic.by_route.items()},
+    }
+    if _emit(args, data):
+        return 0
+    console.print(f"{source} via {adapter.id} v{adapter.version}: {traffic.parsed}/{traffic.lines} lines parsed")
+    for route, counts in sorted(traffic.by_route.items(), key=lambda kv: -sum(kv[1].values()))[:20]:
+        console.print(f"  {route:44} {dict(counts)}")
+    return 0
+
+
 def cmd_map(args: argparse.Namespace) -> int:
     """Discover the system (repository, running containers, live API, database) and show the World Model."""
     import asyncio
@@ -627,6 +712,12 @@ def build_parser() -> argparse.ArgumentParser:
     hold.add_argument("id", nargs="?")
     hold.add_argument("reason", nargs="?", default="released by a person")
     command("deploys", cmd_deploys, "every deploy seen and its verdict")
+    forge = command("forge", cmd_forge, "capabilities unbidden built for itself: list, build or approve")
+    forge.add_argument("action", nargs="?", choices=["list", "build", "approve"], default="list")
+    forge.add_argument("target", nargs="?", help="service to build for, or capability id to approve")
+    logs = command("logs", cmd_logs, "real traffic of a service, read with a capability forge built")
+    logs.add_argument("service", nargs="?", default="backend")
+    logs.add_argument("--tail", type=int, default=2000)
     reject = command("reject", cmd_reject, "decline an opportunity for good", json_out=False)
     reject.add_argument("id")
     reject.add_argument("reason", nargs="?", default="rejected by a person")

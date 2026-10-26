@@ -33,6 +33,8 @@ class EventType(StrEnum):
     MERGED = "operations.merged"
     IMPACT_JUDGED = "impact.judged"
     OUTCOME_RECORDED = "outcome.recorded"
+    CAPABILITY_BUILT = "capability.built"
+    CAPABILITY_APPROVED = "capability.approved"
 
 
 class Event(Contract):

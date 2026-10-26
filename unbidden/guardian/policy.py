@@ -26,6 +26,7 @@ CAPABILITIES: dict[str, CapabilityRule] = {
     "github.push_branch": CapabilityRule("open_pull_requests", network="github"),
     "github.open_pull_request": CapabilityRule("open_pull_requests", network="github"),
     "github.merge_pull_request": CapabilityRule("merge_pull_requests", network="github"),
+    "capability.use": CapabilityRule("use_new_capabilities"),  # turn on an adapter Forge built and validated
     "deploy.run": CapabilityRule("deploy"),
     "deploy.rollback": CapabilityRule("rollback"),
 }

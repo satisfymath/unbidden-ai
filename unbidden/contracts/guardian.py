@@ -26,6 +26,7 @@ class AutonomyPolicy(Contract):
     merge_pull_requests: Autonomy = Autonomy.DENY
     deploy: Autonomy = Autonomy.DENY
     rollback: Autonomy = Autonomy.DENY
+    use_new_capabilities: Autonomy = Autonomy.DENY
 
 
 class ProbeAuth(Contract):
