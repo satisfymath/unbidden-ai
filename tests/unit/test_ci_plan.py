@@ -1,0 +1,81 @@
+from __future__ import annotations
+
+import subprocess
+from pathlib import Path
+
+import pytest
+
+from unbidden.lab.testsuite import test_plan as build_test_plan
+from unbidden.observe.ci import ci_test_plan
+from unbidden.observe.stack import detect_stack
+
+pytestmark = pytest.mark.unit
+
+WORKFLOW = """
+name: Test Backend
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: docker compose up -d --wait db mailpit
+      - name: Migrate
+        run: uv run bash scripts/prestart.sh
+        working-directory: backend
+      - run: uv run bash scripts/tests-start.sh "Coverage for ${{ github.sha }}"
+        working-directory: backend
+      - run: uv run coverage report --fail-under=90
+        working-directory: backend
+"""
+COMPOSE = """
+services:
+  db:
+    image: postgres:18
+  mailpit:
+    image: axllent/mailpit
+  backend:
+    build: {context: ., dockerfile: backend/Dockerfile}
+    depends_on: [db]
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/app
+"""
+
+
+@pytest.fixture
+def repo(tmp_path: Path) -> Path:
+    files = {
+        ".github/workflows/test-backend.yml": WORKFLOW,
+        "compose.yml": COMPOSE,
+        ".env": "POSTGRES_PASSWORD=changethis\n",
+        "pyproject.toml": '[project]\nname="r"\n[tool.uv.workspace]\nmembers=["backend"]\n',
+        "uv.lock": "",
+        "backend/pyproject.toml": '[project]\nname="app"\n[dependency-groups]\ndev=["pytest"]\n',
+        "backend/tests/test_a.py": "def test_a(): pass\n",
+    }
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    for path, text in files.items():
+        (tmp_path / path).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / path).write_text(text)
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    return tmp_path
+
+
+def test_ci_steps_keep_the_teams_scripts_and_drop_tooling(repo: Path) -> None:
+    plan = ci_test_plan(repo, "HEAD", "python")
+    assert plan is not None
+    assert plan.services == ("db", "mailpit")
+    assert [(s.cwd, s.command) for s in plan.steps] == [
+        ("backend", "bash scripts/prestart.sh"),
+        ("backend", 'bash scripts/tests-start.sh "Coverage for "'),
+    ]
+    assert "cd /work/backend" in plan.script() and "docker" not in plan.script()
+
+
+def test_test_plan_brings_the_services_and_the_app_environment(repo: Path) -> None:
+    plan = build_test_plan(repo, "HEAD", detect_stack(repo), "python")
+    assert plan is not None and plan.source.startswith("CI test-backend.yml")
+    assert [s.name for s in plan.services] == ["db", "mailpit"]
+    assert plan.env["DATABASE_URL"] == "postgresql://postgres:changethis@db:5432/app"

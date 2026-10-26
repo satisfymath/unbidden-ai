@@ -25,7 +25,7 @@ from unbidden.contracts.finding import AnalyzerReport, Finding
 from unbidden.contracts.llm import LLMRequest, Message, Tier
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
 from unbidden.lab.evaluator import CRITERIA, evaluate_fix
-from unbidden.lab.testsuite import run_suite, test_argv
+from unbidden.lab.testsuite import TestPlan, run_suite, test_plan
 from unbidden.observe.stack import Stack
 from unbidden.sandbox.provision import DependencyImage, link_dependencies
 from unbidden.sandbox.runner import SandboxRunner, SandboxSpec, discard, snapshot
@@ -226,7 +226,7 @@ class FixLab:
         targeted: list[str] = list(opp.details["fingerprints"])
         findings = [Finding.model_validate(f) for f in opp.details["findings"]]
         paths: list[str] = list(opp.details["paths"])
-        suite = test_argv(self.stack, tool.language)
+        suite = test_plan(self.repo, rev, self.stack, tool.language)
         result = LabResult(None, None, None)
 
         self.progress(f"reproducing {opp.title}")
@@ -302,7 +302,7 @@ class FixLab:
         siblings: list[Tool],
         before: list[AnalyzerReport],
         targeted: list[str],
-        suite: list[str] | None,
+        suite: TestPlan | None,
         baseline_tests: TestSummary | None,
     ) -> tuple[Experiment, Verdict, Candidate]:
         experiment = Experiment(
