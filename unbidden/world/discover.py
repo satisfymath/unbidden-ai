@@ -12,6 +12,7 @@ from unbidden.guardian.policy import PolicyEngine
 from unbidden.guardian.scanner import SensitiveTermIndex
 from unbidden.observe.stack import detect_stack
 from unbidden.store import Store
+from unbidden.world.checks import run_checks
 from unbidden.world.relations import infer_endpoint_tables
 from unbidden.world.runtime import discover_runtime
 from unbidden.world.static import discover_static
@@ -29,6 +30,7 @@ async def discover(repo: Path, rev: str, store: Store, mandate: Mandate, brain: 
     if brain is not None:
         await infer_endpoint_tables(repo, rev, world, brain)
     store.put(COLLECTION, world)
+    run_checks(world, store)
     store.append_event(
         Event(
             type=EventType.WORKSPACE_INITIALIZED,

@@ -14,7 +14,15 @@ from unbidden.contracts.common import EvidenceLevel
 from unbidden.contracts.guardian import Mandate
 from unbidden.contracts.opportunity import ActionKind, CandidateAction, Decision, Opportunity, OpportunityStatus
 
-CATEGORY_VALUE = {"bugs": 1.5, "types": 1.0, "security": 1.2, "lint": 0.5, "format": 0.2, "tests": 1.0}
+CATEGORY_VALUE = {
+    "bugs": 1.5,
+    "performance": 1.3,
+    "types": 1.0,
+    "security": 1.2,
+    "lint": 0.5,
+    "format": 0.2,
+    "tests": 1.0,
+}
 PRIORITY_BOOST = {
     "correctness": {"bugs", "types", "tests"},
     "maintainability": {"lint", "format"},
