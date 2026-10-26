@@ -24,6 +24,20 @@ class Tool:
     parse: Parser
     fix_argv: tuple[str, ...] | None = None  # the tool's own correction, tried before any model is asked
 
+    def report(self, result: SandboxResult, argv: list[str]) -> AnalyzerReport:
+        """Parse, then label every finding with this tool's own name and category."""
+        report = self.parse(result, argv)
+        findings = [
+            Finding.build(
+                tool=self.name, rule=f.rule, severity=f.severity, category=self.category, path=f.path,
+                message=f.message, line=f.line, extra=f.extra,
+            )
+            if f.category != "config"
+            else f.model_copy(update={"tool": self.name})
+            for f in report.findings
+        ]  # fmt: skip
+        return report.model_copy(update={"tool": self.name, "findings": findings})
+
 
 def _report(tool: str, result: SandboxResult, argv: list[str], findings: list[Finding], parsed: bool) -> AnalyzerReport:
     if result.timed_out:
@@ -170,6 +184,10 @@ def parse_pyright(result: SandboxResult, argv: list[str]) -> AnalyzerReport:
     return _report("pyright", result, argv, findings, parsed=True)
 
 
+# Rules that find bugs, not style: syntax errors, undefined names, shadowed definitions, broken comparisons,
+# mutable default arguments. Run with Unbidden's own pinned ruff, ignoring the repository's configuration.
+BASELINE_RUFF_RULES = "E9,F63,F7,F82,F811,B006"
+
 TOOLS: dict[str, Tool] = {
     "tsc": Tool("tsc", "node", "types", ("tsc", "--noEmit", "--pretty", "false"), parse_tsc),
     "eslint": Tool(
@@ -183,6 +201,12 @@ TOOLS: dict[str, Tool] = {
     "ruff": Tool(
         "ruff", "python", "lint", ("ruff", "check", "--output-format", "json", "--no-cache", "--exit-zero", "."),
         parse_ruff, fix_argv=("ruff", "check", "--fix", "--no-cache", "."),
+    ),
+    "ruff-baseline": Tool(
+        "ruff-baseline", "python", "bugs",
+        ("/opt/tools/bin/ruff", "check", "--isolated", "--select", BASELINE_RUFF_RULES, "--output-format", "json",
+         "--no-cache", "--exit-zero", "."),
+        parse_ruff,
     ),
     "pyright": Tool(
         "pyright", "python", "types", ("pyright", "--outputjson", "--pythonpath", "/deps/.venv/bin/python"),
@@ -204,6 +228,9 @@ def tools_for(stack: Any) -> list[Tool]:
     if stack.python is not None:
         if stack.python.ruff:
             selected.append(TOOLS["ruff"])
+        else:
+            # A repository that declares no linter still deserves a look for plain bugs.
+            selected.append(TOOLS["ruff-baseline"])
         if stack.python.pyright:
             selected.append(TOOLS["pyright"])
     return selected

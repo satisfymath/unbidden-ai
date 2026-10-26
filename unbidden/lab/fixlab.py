@@ -126,7 +126,7 @@ class FixLab:
         reports: list[AnalyzerReport] = []
         for tool in tools:
             result = self.runner.run(SandboxSpec(image=image.tag, argv=list(tool.argv), env=image.env), work)
-            reports.append(tool.parse(result, list(tool.argv)))
+            reports.append(tool.report(result, list(tool.argv)))
         return reports
 
     # Candidates ----------------------------------------------------------------------------------------

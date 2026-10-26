@@ -14,8 +14,12 @@ from unbidden.contracts.common import EvidenceLevel
 from unbidden.contracts.guardian import Mandate
 from unbidden.contracts.opportunity import ActionKind, CandidateAction, Decision, Opportunity, OpportunityStatus
 
-CATEGORY_VALUE = {"types": 1.0, "security": 1.2, "lint": 0.5, "format": 0.2, "tests": 1.0}
-PRIORITY_BOOST = {"correctness": {"types", "tests"}, "maintainability": {"lint", "format"}, "security": {"security"}}
+CATEGORY_VALUE = {"bugs": 1.5, "types": 1.0, "security": 1.2, "lint": 0.5, "format": 0.2, "tests": 1.0}
+PRIORITY_BOOST = {
+    "correctness": {"bugs", "types", "tests"},
+    "maintainability": {"lint", "format"},
+    "security": {"security"},
+}
 EXPERIMENT_COST_USD = 0.02  # local compute of one experiment, measured order of magnitude
 RISK_WEIGHT = 0.5
 MAX_LAB_ATTEMPTS = 2

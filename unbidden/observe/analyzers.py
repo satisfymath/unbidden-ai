@@ -28,7 +28,7 @@ def run_tool(
         link_dependencies(work, image)
         argv = list(tool.argv)
         result = runner.run(SandboxSpec(image=image.tag, argv=argv, env=image.env, timeout_s=timeout_s), work)
-        return tool.parse(result, argv)
+        return tool.report(result, argv)
     finally:
         discard(work)
 
