@@ -82,6 +82,10 @@ class LiveWatcher:
         if self.store.get("deploy_verdicts", deploy_id, DeployVerdict) is None:
             self._judge(deploy_id, current, previous)
 
+    def _served(self, target: str, version: str) -> bool:
+        """Endpoints the probe user may not read (401/403 throughout) cannot be judged; they are left out."""
+        return any(r.served for r in self._rounds(target, version))
+
     def _outage(self, version: str) -> bool:
         for target in self.store.round_targets():
             if not any(h in target.lower() for h in HEALTH_HINTS):

@@ -49,7 +49,7 @@ class Round:
     @property
     def served(self) -> list[float]:
         """Latencies of requests the service actually served (not throttled, not failed)."""
-        return [ms for ms, st in zip(self.latencies_ms, self.statuses, strict=True) if 200 <= st < 500 and st != 429]
+        return [ms for ms, st in zip(self.latencies_ms, self.statuses, strict=True) if 200 <= st < 400]
 
 
 @dataclass(frozen=True)
