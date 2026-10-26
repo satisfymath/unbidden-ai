@@ -23,7 +23,7 @@ _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
             r"""(?ix)
             \b[\w.-]*(?:password|passwd|secret|token|api[_-]?key|private[_-]?key|access[_-]?key)[\w.-]*
             ["']?\s*[:=]\s*
-            ["']?(?P<value>[^\s"',;}{]{6,})
+            ["']?(?P<value>[^\s"',;}{()\[\]]{6,})
             """
         ),
     ),
@@ -81,10 +81,26 @@ class SensitiveTermIndex:
         return [Hit(f"identifier:{m.group(0).lower()}", m.start(), m.end()) for m in self._regex.finditer(text)]
 
 
+_CODE_NAME = re.compile(r"^[a-z_][a-z_]*$")
+
+
+def _is_code_reference(match: re.Match[str]) -> bool:
+    """`password = new_password`, `token = r.json()`, `key = response["k"]`: code, not a credential.
+
+    Only unquoted values qualify: a quoted literal is always judged as a possible secret.
+    """
+    text, start, end = match.string, match.start("value"), match.end("value")
+    if start > 0 and text[start - 1] in "'\"":
+        return False
+    if end < len(text) and text[end] in "([.":
+        return True
+    return bool(_CODE_NAME.match(match.group("value")))
+
+
 def _secret_span(kind: str, match: re.Match[str]) -> tuple[int, int] | None:
     if kind == "credential_assignment":
         value = match.group("value")
-        if _PLACEHOLDER.match(value):
+        if _PLACEHOLDER.match(value) or _is_code_reference(match):
             return None
         return match.start("value"), match.end("value")
     if match.re.groups:

@@ -20,6 +20,8 @@ FAKE_GH = "ghp_" + "A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8"
         "-----BEGIN OPENSSH PRIVATE KEY-----",
         'password: "hunter2hunter2"',
         "sk-" + "x" * 30,
+        'password = "supersecretpassword"',
+        "DB_PASSWORD=Xk9fT2qLm8",
     ],
 )
 def test_detects_secrets(text: str) -> None:
@@ -36,6 +38,10 @@ def test_detects_secrets(text: str) -> None:
         "MODEL_API_KEY=",
         "the token budget is spent per call",
         "api_key: str",
+        "password = random_lower_string()",
+        'auth_token = response["access_token"]',
+        "tokens = r.json()",
+        "user_in = UserCreate(email=email, password=password)",
     ],
 )
 def test_ignores_placeholders(text: str) -> None:
