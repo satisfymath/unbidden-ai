@@ -137,7 +137,8 @@ class Brain:
             raise BrainError(f"provider {route.provider!r} for tier {tier} is not available")
         return route, provider
 
-    async def complete(self, request: LLMRequest) -> LLMResponse:
+    async def complete(self, request: LLMRequest, *, identifiers: SensitiveTermIndex | None = None) -> LLMResponse:
+        """`identifiers` adds names that must not leave the machine on this call, on top of the workspace's."""
         route, provider = self.route(request.tier)
         self._guard_prompt(request)
         think = route.think_schema_only if request.schema_only else route.think
@@ -149,7 +150,7 @@ class Brain:
             if self.killswitch is not None and self.killswitch.engaged:
                 raise KillSwitchEngaged("the kill switch is engaged")
             sized = current.model_copy(update={"max_tokens": max_tokens})
-            egress_id = self._gate(sized, route, provider) if request.tier.remote else None
+            egress_id = self._gate(sized, route, provider, identifiers) if request.tier.remote else None
             self._check_local(request)
             try:
                 response = await provider.chat(sized, model=route.model, think=think)
@@ -208,7 +209,7 @@ class Brain:
         if not verdict.allowed:
             raise PolicyDenied("; ".join(verdict.reasons))
 
-    def _gate(self, request: LLMRequest, route: Route, provider: LLMProvider) -> str:
+    def _gate(self, request: LLMRequest, route: Route, provider: LLMProvider, extra: SensitiveTermIndex | None) -> str:
         host = getattr(provider, "host", provider.name)
         verdict = self.policy.evaluate(
             ActionRequest(capability="model.remote.synthetic", purpose=request.purpose, destinations=[host])
@@ -228,7 +229,10 @@ class Brain:
         if spent >= cap:
             raise SpendLimitReached(f"remote spend this month is US${spent:.2f}, at the US${cap:.2f} cap")
         payload = _payload(request)
-        egress = evaluate_synthetic(self.mandate, host, payload, self.identifiers)
+        index = self.identifiers
+        if extra is not None and len(extra):
+            index = SensitiveTermIndex([*self.identifiers.terms, *extra.terms])
+        egress = evaluate_synthetic(self.mandate, host, payload, index)
         attempt = EgressAttempt(
             status="allowed_pending" if egress.allowed else "blocked",
             purpose=request.purpose,

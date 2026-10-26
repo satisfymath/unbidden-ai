@@ -71,6 +71,10 @@ class SensitiveTermIndex:
     def __len__(self) -> int:
         return len(self._terms)
 
+    @property
+    def terms(self) -> frozenset[str]:
+        return frozenset(self._terms)
+
     def find(self, text: str) -> list[Hit]:
         if self._regex is None:
             return []
