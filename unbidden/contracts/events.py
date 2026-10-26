@@ -28,6 +28,7 @@ class EventType(StrEnum):
     POLICY_DENIED = "policy.denied"
     MODEL_CALLED = "model.called"
     KILL_SWITCH = "killswitch.changed"
+    MANDATE_CHANGED = "mandate.changed"
 
 
 class Event(Contract):

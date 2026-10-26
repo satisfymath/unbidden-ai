@@ -193,13 +193,37 @@ def _proposal_for(store: Any, opportunity_id: str) -> Proposal | None:
     return store.get_by_key("proposals", opportunity_id, Proposal)
 
 
-def cmd_approve(args: argparse.Namespace) -> int:
+def _approve(store: Any, proposal: Proposal, hours: float) -> None:
     from datetime import timedelta
 
     from unbidden.daemon.cycle import job
     from unbidden.guardian.approvals import grant
     from unbidden.publish.github import CAPABILITY
 
+    approval = grant(store, CAPABILITY, proposal.id, granted_by=getpass.getuser(), ttl=timedelta(hours=hours))
+    store.append_event(
+        Event(type=EventType.APPROVAL_GRANTED, actor=f"person:{approval.granted_by}", entity_id=approval.id,
+              correlation_id=proposal.opportunity_id, payload={"capability": CAPABILITY, "proposal": proposal.id})
+    )  # fmt: skip
+    store.enqueue(job("github.publish", f"{proposal.id}:{approval.id}", {"id": proposal.id},
+                      correlation_id=proposal.opportunity_id))  # fmt: skip
+
+
+def _reject(store: Any, opp: Opportunity, reason: str) -> None:
+    opp.status = OpportunityStatus.DECLINED
+    opp.details = {**opp.details, "rejected_because": reason}
+    store.put("opportunities", opp)
+    proposal = _proposal_for(store, opp.id)
+    if proposal is not None and proposal.status is ProposalStatus.READY:
+        proposal.status = ProposalStatus.REJECTED
+        store.put("proposals", proposal)
+    store.append_event(
+        Event(type=EventType.APPROVAL_REJECTED, actor=f"person:{getpass.getuser()}", entity_id=opp.id,
+              correlation_id=opp.id, payload={"reason": reason})
+    )  # fmt: skip
+
+
+def cmd_approve(args: argparse.Namespace) -> int:
     ws = Workspace.find()
     ws.require()
     store = ws.store()
@@ -207,13 +231,7 @@ def cmd_approve(args: argparse.Namespace) -> int:
     if proposal is None:
         err.print(f"no proposal for {args.id} yet")
         return 1
-    approval = grant(store, CAPABILITY, proposal.id, granted_by=getpass.getuser(), ttl=timedelta(hours=args.hours))
-    store.append_event(
-        Event(type=EventType.APPROVAL_GRANTED, actor=f"person:{approval.granted_by}", entity_id=approval.id,
-              correlation_id=proposal.opportunity_id, payload={"capability": CAPABILITY, "proposal": proposal.id})
-    )  # fmt: skip
-    store.enqueue(job("github.publish", f"{proposal.id}:{approval.id}", {"id": proposal.id},
-                      correlation_id=proposal.opportunity_id))  # fmt: skip
+    _approve(store, proposal, args.hours)
     console.print(f"Approved: the pull request for {proposal.branch} opens on the next cycle (`unbidden watch`).")
     return 0
 
@@ -226,18 +244,72 @@ def cmd_reject(args: argparse.Namespace) -> int:
     if opp is None:
         err.print(f"no opportunity {args.id}")
         return 1
-    opp.status = OpportunityStatus.DECLINED
-    opp.details = {**opp.details, "rejected_because": args.reason}
-    store.put("opportunities", opp)
-    proposal = _proposal_for(store, opp.id)
-    if proposal is not None and proposal.status is ProposalStatus.READY:
-        proposal.status = ProposalStatus.REJECTED
-        store.put("proposals", proposal)
-    store.append_event(
-        Event(type=EventType.APPROVAL_REJECTED, actor=f"person:{getpass.getuser()}", entity_id=opp.id,
-              correlation_id=opp.id, payload={"reason": args.reason})
-    )  # fmt: skip
+    _reject(store, opp, args.reason)
     console.print(f"Rejected {opp.id}. It will not be proposed again.")
+    return 0
+
+
+def cmd_review(args: argparse.Namespace) -> int:
+    """Go through every proposal waiting for a person: read its evidence, then approve, reject or skip."""
+    from rich.markdown import Markdown
+
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    waiting = store.list("proposals", Proposal, status=ProposalStatus.READY.value)
+    if not waiting:
+        console.print("Nothing is waiting for you.")
+        return 0
+    for proposal in waiting:
+        opp = store.get("opportunities", proposal.opportunity_id, Opportunity)
+        if opp is None or opp.status is OpportunityStatus.DECLINED:
+            continue
+        console.rule(f"[bold]{proposal.title}")
+        console.print(Markdown(proposal.body_md))
+        console.print(f"[dim]branch {proposal.branch} · commit {proposal.commit_sha[:12]}[/]")
+        answer = console.input("[bold][a]pprove · [r]eject · [s]kip ? [/]").strip().lower()[:1]
+        if answer == "a":
+            _approve(store, proposal, args.hours)
+            console.print("[green]approved[/]: it opens on the next cycle")
+        elif answer == "r":
+            reason = console.input("why (optional): ").strip() or "rejected by a person in review"
+            _reject(store, opp, reason)
+            console.print("[red]rejected[/]")
+    return 0
+
+
+MODES = {
+    "supervised": "require_approval",  # unbidden prepares everything and asks before anything reaches GitHub
+    "autopilot": "allow",  # unbidden opens pull requests on its own for what reaches the mandate's evidence level
+}
+
+
+def cmd_mode(args: argparse.Namespace) -> int:
+    """Show or set how much unbidden may do on its own. Merging and deploying stay with people in every mode."""
+    import yaml
+
+    ws = Workspace.find()
+    ws.require()
+    raw = yaml.safe_load(ws.mandate_path.read_text())
+    autonomy = raw["mandate"].setdefault("autonomy", {})
+    current = next((m for m, v in MODES.items() if autonomy.get("open_pull_requests") == v), "custom")
+    if args.mode is None:
+        if _emit(args, {"mode": current, "autonomy": autonomy}):
+            return 0
+        console.print(f"mode: [bold]{current}[/]")
+        for key, value in autonomy.items():
+            console.print(f"  {key:24} {value}")
+        return 0
+    autonomy["open_pull_requests"] = MODES[args.mode]
+    autonomy["merge_pull_requests"] = "deny"
+    ws.mandate_path.write_text(yaml.safe_dump(raw, sort_keys=False))
+    ws.mandate()  # validate what was written
+    store = ws.store()
+    store.append_event(
+        Event(type=EventType.MANDATE_CHANGED, actor=f"person:{getpass.getuser()}",
+              payload={"from": current, "to": args.mode, "open_pull_requests": MODES[args.mode]})
+    )  # fmt: skip
+    console.print(f"mode: [bold]{args.mode}[/] (was {current}). Merging and deploying stay with people.")
     return 0
 
 
@@ -412,6 +484,10 @@ def build_parser() -> argparse.ArgumentParser:
     approve = command("approve", cmd_approve, "allow the pull request of a proven opportunity", json_out=False)
     approve.add_argument("id")
     approve.add_argument("--hours", type=float, default=24, help="how long the approval stays valid")
+    review = command("review", cmd_review, "read each waiting proposal and approve, reject or skip it", json_out=False)
+    review.add_argument("--hours", type=float, default=24, help="how long each approval stays valid")
+    mode = command("mode", cmd_mode, "show or set autonomy: supervised (ask first) or autopilot")
+    mode.add_argument("mode", nargs="?", choices=sorted(MODES), help="the mode to switch to")
     reject = command("reject", cmd_reject, "decline an opportunity for good", json_out=False)
     reject.add_argument("id")
     reject.add_argument("reason", nargs="?", default="rejected by a person")

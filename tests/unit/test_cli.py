@@ -42,3 +42,15 @@ def test_kill_switch_round_trip(repo: Path, capsys: pytest.CaptureFixture[str]) 
     assert (repo / ".unbidden" / "KILL").exists()
     main(["resume"])
     assert not (repo / ".unbidden" / "KILL").exists()
+
+
+def test_modes_switch_autonomy_but_never_merging(repo: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    main(["init"])
+    capsys.readouterr()
+    assert main(["mode", "--json"]) == 0
+    assert json.loads(capsys.readouterr().out)["mode"] == "supervised"
+    assert main(["mode", "autopilot"]) == 0
+    mandate = (repo / ".unbidden" / "mandate.yaml").read_text()
+    assert "open_pull_requests: allow" in mandate and "merge_pull_requests: deny" in mandate
+    main(["mode", "supervised"])
+    assert "open_pull_requests: require_approval" in (repo / ".unbidden" / "mandate.yaml").read_text()
