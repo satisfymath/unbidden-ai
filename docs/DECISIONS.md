@@ -659,3 +659,45 @@ row, and the lab cannot yet tell whether the test database enforces foreign keys
 
 **Next for L5.** Deploy the branch to the local mealie with the mandate's deploy steps, on data shaped like a large
 household, and observe `GET /api/foods/empty` live before and after.
+
+## D-036 · 2026-10-27 · mealie's index, live: no change on Postgres, and an L5 that is not one
+
+**What was done.**
+1. A large household's shopping lists were seeded in the local mealie, through its API as the probe user: 50 lists
+   × 100 items (5,000) over 580 foods, 80% checked off.
+2. The watcher recorded a baseline of `GET /api/foods/empty`: 29 rounds, median 5.3 ms.
+3. The `food_id` branch was deployed with `unbidden deploy`, through the guarded deploy path. The index and its
+   migration (`7b1f2ec4d00a`) are live.
+
+**Result.**
+
+| `GET /api/foods/empty` (live) | Before | After |
+|---|---|---|
+| Median | 5.3 ms | 5.0 ms |
+| p95 | 8.4 ms | 8.6 ms |
+
+Within the criteria: no change claimed. Outcome class: **invalid**. The baseline deploy's commit is inferred: it was
+running before Unbidden watched, and nothing in its image says what code it holds. The opportunity stays at **L4**.
+
+**Why no change, predicted before the deploy.** The lab measured on the tests' SQLite. There, `NOT EXISTS (... WHERE
+food_id = f.id)` runs once per food, so without the index it scans the table 2,000 times: 14.5 s at 200,000 items.
+Postgres plans the same query as one hash anti-join, which `EXPLAIN ANALYZE` showed at 0.5 ms for 5,000 items. The
+L4 is real for SQLite, mealie's default engine, and says nothing about this deployment.
+
+**What changed in Unbidden.**
+- A performance verdict records the engine it was measured on, and says so when the running system uses another.
+- `unbidden deploy <ref>` deploys a local commit through the same guards as the merge path.
+- Live outcomes are attached to any proposal whose commit is in the deployed version, not only merged ones.
+- Ledger fixes:
+  - A deploy that the watcher saw before Unbidden finished binding it is upgraded once the binding exists. It was
+    recorded "inferred, by external" and never looked at again.
+  - Build steps vouch only for services with a `build:`. A Docker Hub image (`postgres:16`) had been bound as built
+    from the commit.
+- The compose project name comes from the resolved path.
+
+**What a valid L5 needs here.** A baseline deployed by Unbidden. Either deploy the next change on top of `a351dc2`,
+or start from a version Unbidden deploys itself. The current mealie can no longer roll back below the index
+migration without a downgrade. For this index, the meaningful live test is a mealie on SQLite.
+
+**`unit_id`.** Not measurable with the current lab. No workload ran at the base in four rounds of five attempts.
+Its endpoint is a merge that deletes what it merges.
