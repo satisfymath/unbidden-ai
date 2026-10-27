@@ -205,3 +205,27 @@ def ci_commands(repo: Path, rev: str) -> str | None:
         called |= {".pre-commit-config.yaml"} & tracked
     extra = [_git(repo, "show", f"{rev}:{path}")[:20000] for path in sorted(called)]
     return "\n".join([text, *extra]).lower()
+
+
+def ci_status(slug: str, sha: str, token: str | None = None, *, timeout_s: float = 10.0) -> str | None:
+    """'green' when every check run of the commit that finished succeeded (or was skipped), 'red' when one failed,
+    None when there are none or GitHub cannot be read. Read-only, one request."""
+    import httpx
+
+    headers = {"Accept": "application/vnd.github+json", **({"Authorization": f"Bearer {token}"} if token else {})}
+    try:
+        response = httpx.get(
+            f"https://api.github.com/repos/{slug}/commits/{sha}/check-runs",
+            params={"per_page": "100"},
+            headers=headers,
+            timeout=timeout_s,
+        )
+    except httpx.HTTPError:
+        return None
+    if response.status_code != 200:
+        return None
+    runs = [r for r in response.json().get("check_runs", []) if r.get("status") == "completed"]
+    if not runs:
+        return None
+    conclusions = {str(r.get("conclusion")) for r in runs}
+    return "red" if conclusions & {"failure", "timed_out", "action_required"} else "green"

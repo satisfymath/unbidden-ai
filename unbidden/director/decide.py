@@ -42,6 +42,7 @@ class Context:
     attempts: int  # experiments already run on this opportunity without an improvement
     checked_dirs: tuple[str, ...] = ()  # where the team's CI works; empty means the whole repository
     ci_commands: str | None = ""  # what the team's workflows run, lowercased; None when no workflow could be read
+    ci_status: str | None = None  # "green" / "red": the team's own checks on this commit, when GitHub could be read
 
 
 def outside_checked_scope(opp: Opportunity, checked_dirs: tuple[str, ...]) -> bool:
@@ -96,6 +97,10 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
             0.0,
             f"the team's CI does not run {tool}: its style is not the team's standard",
         )
+        return _choose(opp, candidates, ActionKind.DECLINE)
+    if opp.category in LOW_VALUE and ctx.ci_status == "green" and tool and ctx.ci_commands and tool in ctx.ci_commands:
+        reason = f"the team's CI runs {tool} and passes on this commit: these findings come from Unbidden's environment"
+        add(ActionKind.DECLINE, 1.0, 0.0, 0.0, reason)
         return _choose(opp, candidates, ActionKind.DECLINE)
     if outside_checked_scope(opp, ctx.checked_dirs):
         reason = f"{opp.category} findings outside what the team's CI checks ({', '.join(ctx.checked_dirs)})"

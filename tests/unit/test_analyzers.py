@@ -58,3 +58,14 @@ def test_a_build_failure_keeps_the_installers_own_error() -> None:
     )
     kept = build_error(stderr)
     assert "pywatchman" in kept and NEEDS_COMPILER.search(kept)
+
+
+def test_a_finding_in_a_deep_path_still_gets_a_title() -> None:
+    from unbidden.observe.analyzers import TITLE_MAX, _title  # pyright: ignore[reportPrivateUsage]
+
+    deep = "packages/" + "/".join(["very-long-directory-name"] * 12) + "/generated/system.gen.d.ts"
+    finding = Finding(
+        tool="tsc", rule="TS2307", severity="error", category="types", path=deep, line=1, message="m",
+        fingerprint="0123456789abcdef",
+    )  # type: ignore[arg-type]  # fmt: skip
+    assert len(_title("tsc:packages/lexical-devtools", [finding])) <= TITLE_MAX

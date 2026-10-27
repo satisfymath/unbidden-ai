@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import getpass
 import json
+import os
 import sys
 from collections.abc import Sequence
 from datetime import datetime
@@ -496,9 +497,11 @@ def cmd_deploys(args: argparse.Namespace) -> int:
 def cmd_decide(args: argparse.Namespace) -> int:
     """What the Director would do with each open opportunity now, and why; nothing is queued or changed."""
     from unbidden.contracts.experiment import Proposal, ProposalStatus
+    from unbidden.contracts.guardian import ActionRequest
     from unbidden.daemon.cycle import checked_dirs
     from unbidden.director.decide import Context, decide
-    from unbidden.observe.ci import ci_commands
+    from unbidden.guardian.policy import PolicyEngine
+    from unbidden.observe.ci import ci_commands, ci_status
 
     ws = Workspace.find()
     ws.require()
@@ -507,6 +510,10 @@ def cmd_decide(args: argparse.Namespace) -> int:
     head = head_sha(ws.repo)
     dirs = checked_dirs(ws.repo, head)
     commands = ci_commands(ws.repo, head)
+    status = None
+    slug = mandate.egress.github.repository
+    if slug and PolicyEngine(mandate).evaluate(ActionRequest(capability="github.read", purpose="CI status")).allowed:
+        status = ci_status(slug, head, os.environ.get(mandate.egress.github.token_env))
     open_prs = len(store.list("proposals", Proposal, status=ProposalStatus.PR_OPENED.value))
     live = (OpportunityStatus.OPEN, OpportunityStatus.EXPERIMENTING, OpportunityStatus.PROPOSED)
     rows = []
@@ -521,6 +528,7 @@ def cmd_decide(args: argparse.Namespace) -> int:
                 attempts=int(opp.details.get("attempts", 0)),
                 checked_dirs=dirs,
                 ci_commands=commands,
+                ci_status=status,
             ),
         )
         rows.append(
@@ -541,6 +549,7 @@ def cmd_decide(args: argparse.Namespace) -> int:
             reasons[key] = reasons.get(key, 0) + 1
     data = {
         "checked_dirs": list(dirs),
+        "ci_status": status,
         "open": len(rows),
         "chosen": counts,
         "declined_or_waiting_because": reasons,

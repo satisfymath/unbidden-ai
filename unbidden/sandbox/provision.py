@@ -240,6 +240,11 @@ def link_dependencies(work: Path, image: DependencyImage) -> None:
         path.symlink_to(target)
 
 
+NODE_HEAP_MB = 4096
+NODE_MEMORY = "6g"
+DEFAULT_MEMORY = "2g"
+
+
 def sandbox_spec(
     image: DependencyImage,
     argv: list[str],
@@ -252,6 +257,9 @@ def sandbox_spec(
     """The one way to run something against a dependency image: its setup, its environment, and for a workspace
     package, that package's directory with its own node_modules/.bin first on PATH."""
     env = dict(image.env)
+    if image.language == "node":
+        # Type checks of large monorepos exhaust Node's default heap; the container gets room for a larger one.
+        env.setdefault("NODE_OPTIONS", f"--max-old-space-size={NODE_HEAP_MB}")
     workdir = "/work" if cwd in (".", "") else f"/work/{cwd}"
     if cwd not in (".", "") and "PATH" in env:
         env["PATH"] = f"{workdir}/node_modules/.bin:{env['PATH']}"
@@ -264,4 +272,5 @@ def sandbox_spec(
         timeout_s=timeout_s,
         public_env=public_env or {},
         network=network,
+        memory=NODE_MEMORY if image.language == "node" else DEFAULT_MEMORY,
     )

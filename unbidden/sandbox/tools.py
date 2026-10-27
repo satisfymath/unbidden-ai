@@ -61,7 +61,10 @@ def _report(tool: str, result: SandboxResult, argv: list[str], findings: list[Fi
     elif result.stdout_truncated or result.stderr_truncated:
         completeness, error = Completeness.TRUNCATED, "output exceeded the capture cap"
     elif not parsed:
-        completeness, error = Completeness.FAILED, (result.stderr or result.stdout).strip()[-500:] or "unparseable"
+        text = (result.stderr or result.stdout).strip()
+        # The message is at the start, the stack at the end: keep both.
+        error = (text if len(text) <= 900 else f"{text[:500]}\n...\n{text[-400:]}") or "unparseable"
+        completeness = Completeness.FAILED
     else:
         completeness, error = Completeness.COMPLETE, None
     dropped = max(0, len(findings) - MAX_FINDINGS)

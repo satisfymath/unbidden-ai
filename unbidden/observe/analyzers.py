@@ -51,13 +51,19 @@ class Sweep:
     resolved: list[Opportunity]
 
 
+TITLE_MAX = 200
+
+
 def _title(tool: str, findings: list[Finding]) -> str:
     first = findings[0]
     n = len(findings)
     plural = "s" if n > 1 else ""
     if first.category == "types":
-        return f"{n} {tool} error{plural} in {first.path}"
-    return f"{n} {tool} {first.rule} finding{plural} in {PurePosixPath(first.path).parent}/"
+        title = f"{n} {tool} error{plural} in {first.path}"
+    else:
+        title = f"{n} {tool} {first.rule} finding{plural} in {PurePosixPath(first.path).parent}/"
+    # Deep monorepo paths exceed a title; the full paths are in the details.
+    return title if len(title) <= TITLE_MAX else f"{title[: TITLE_MAX - 30]}...{title[-27:]}"
 
 
 def record_report(store: Store, report: AnalyzerReport, rev: str) -> Sweep:

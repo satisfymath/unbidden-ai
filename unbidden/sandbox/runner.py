@@ -12,7 +12,7 @@ from pathlib import Path
 
 from unbidden.guardian.scanner import scan_many, secret_hits
 
-OUTPUT_CAP = 2_000_000  # bytes kept per stream; tools like prettier report on stderr, so both are kept
+OUTPUT_CAP = 16_000_000  # bytes kept per stream (a large monorepo's eslint report passed 2 MB); both streams are kept
 
 
 class SandboxError(RuntimeError):

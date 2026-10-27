@@ -73,3 +73,20 @@ def test_style_from_a_tool_the_ci_does_not_run_is_declined_and_waits_when_the_ci
     assert waiting.chosen is ActionKind.WAIT
     acted = decide(opp, mandate, Context(open_pull_requests=0, attempts=0, ci_commands="uv run ruff check ."))
     assert acted.chosen is not ActionKind.DECLINE
+
+
+def test_style_findings_against_a_green_ci_of_the_same_tool_are_unbiddens_environment(mandate: Mandate) -> None:
+    opp = Opportunity(
+        source="eslint",
+        category="lint",
+        title="t",
+        summary="s",
+        dedup_key="k",
+        evidence=[EvidenceRef(kind="file", locator="x")],
+        details={"tool": "eslint", "paths": ["app/x.js"]},
+    )
+    green = Context(open_pull_requests=0, attempts=0, ci_commands="pnpm run eslint", ci_status="green")
+    decided = decide(opp, mandate, green)
+    assert decided.chosen is ActionKind.DECLINE and "environment" in decided.reason
+    red = Context(open_pull_requests=0, attempts=0, ci_commands="pnpm run eslint", ci_status="red")
+    assert decide(opp, mandate, red).chosen is not ActionKind.DECLINE

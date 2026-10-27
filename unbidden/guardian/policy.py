@@ -23,6 +23,8 @@ CAPABILITIES: dict[str, CapabilityRule] = {
     "model.local": CapabilityRule("run_experiments"),
     "sandbox.provision": CapabilityRule("provision_dependencies", network="package_registries"),
     "model.remote.synthetic": CapabilityRule("delegate_synthetic", network="remote_models"),
+    # Read-only: the status of the team's own checks on a commit of the mandate's repository.
+    "github.read": CapabilityRule("observe", network="github"),
     "github.push_branch": CapabilityRule("open_pull_requests", network="github"),
     "github.open_pull_request": CapabilityRule("open_pull_requests", network="github"),
     "github.merge_pull_request": CapabilityRule("merge_pull_requests", network="github"),

@@ -90,7 +90,7 @@ def run_one(repo: dict[str, str], workdir: Path) -> dict[str, Any]:
         "opportunities": len(inbox),
         "by_category": _count(o.get("category", "?") for o in inbox),
         "by_status": _count(o.get("status", "?") for o in inbox),
-        "director": {k: decided.get(k) for k in ("chosen", "declined_or_waiting_because", "checked_dirs")},
+        "director": {k: decided.get(k) for k in ("chosen", "declined_or_waiting_because", "checked_dirs", "ci_status")},
         "seconds": round(sum(s["seconds"] for s in row["steps"].values()), 1),
     }
     failed = [n for n, s in row["steps"].items() if s["code"] != 0]
