@@ -1357,6 +1357,80 @@ def cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_spend(args: argparse.Namespace) -> int:
+    """Remote model spend on this machine, every workspace together, against the balance a person verified."""
+    from datetime import UTC
+
+    from unbidden.brain.spend import Budget, SpendLedger, summarize
+
+    ledger = SpendLedger()
+    if args.verified_balance is not None:
+        if not args.source:
+            err.print("say where the balance was read (--source), e.g. 'Meta developer dashboard, Billing'")
+            return 2
+        current = ledger.budget()
+        budget = Budget(
+            remaining_usd=args.verified_balance,
+            verified_at=datetime.now(UTC),
+            source=f"{args.source} (entered by {getpass.getuser()})",
+            expires_at=datetime.fromisoformat(args.expires) if args.expires else current.expires_at,
+            reserve_fraction=args.reserve if args.reserve is not None else current.reserve_fraction,
+            reserve_released=False,
+            unverified_allowance_usd=current.unverified_allowance_usd,
+        )
+        ledger.set_budget(budget)
+        with (ledger.dir / "budget-history.jsonl").open("a") as history:
+            history.write(budget.model_dump_json() + "\n")
+    elif args.release_reserve:
+        budget = ledger.budget()
+        if not budget.verified:
+            err.print("there is no verified balance whose reserve could be released")
+            return 2
+        ledger.set_budget(budget.model_copy(update={"reserve_released": True}))
+        with (ledger.dir / "budget-history.jsonl").open("a") as history:
+            history.write(json.dumps({"reserve_released_by": getpass.getuser(), "at": datetime.now(UTC).isoformat()}))
+            history.write("\n")
+    status = ledger.status()
+    rows = ledger.rows(run=args.run)
+    data = {
+        "budget": ledger.budget().model_dump(mode="json"),
+        "verified": status.verified,
+        "permitted_usd": round(status.permitted_usd, 4),
+        "spent_since_verification_usd": round(status.spent_usd, 4),
+        "available_usd": round(status.available_usd, 4),
+        "reserve_usd": round(status.reserve_usd, 4),
+        "expired": status.expired,
+        "basis": "list price x reported tokens; worst cost where usage is unknown. Not a billing statement.",
+        "by_model": summarize(rows, "model"),
+        "by_run": summarize(rows, "run"),
+        "by_workspace": summarize(rows, "workspace"),
+        "by_purpose": summarize(rows, "purpose"),
+    }
+    if _emit(args, data):
+        return 0
+    console.print(f"[bold]{status.reason}[/]")
+    if status.verified:
+        console.print(
+            f"  verified at {status.since:%Y-%m-%d %H:%M} UTC · reserve held back US${status.reserve_usd:.2f}"
+        )
+    console.print(
+        f"  permitted US${status.permitted_usd:.2f} · spent US${status.spent_usd:.4f} · "
+        f"available US${status.available_usd:.4f}{' · EXPIRED' if status.expired else ''}"
+    )
+    for title, key in (("model", "by_model"), ("run", "by_run"), ("workspace", "by_workspace")):
+        table = Table(box=None, header_style="bold", title=f"by {title}", title_justify="left")
+        for column in (title, "calls", "retries", "failed", "tokens in", "tokens out", "US$"):
+            table.add_column(column)
+        for name, g in sorted(data[key].items(), key=lambda kv: -kv[1]["usd"]):
+            table.add_row(
+                name, *(f"{int(g[k])}" for k in ("calls", "retries", "failed", "tokens_in", "tokens_out")),
+                f"{g['usd']:.4f}",
+            )  # fmt: skip
+        console.print(table)
+    console.print("[dim]costs are list price x reported tokens, worst cost when unknown; the dashboard is the bill[/]")
+    return 0
+
+
 def cmd_kill(args: argparse.Namespace) -> int:
     ws = Workspace.find()
     ws.require()
@@ -1430,6 +1504,13 @@ def build_parser() -> argparse.ArgumentParser:
     models.add_argument("profile", nargs="?", choices=["local", "local-first", "frontier"])
     models.add_argument("--private-code", choices=["allow", "deny"], help="private code to frontier models")
     command("route", cmd_route, "which model serves each task here, and why (dry)")
+    spend = command("spend", cmd_spend, "remote model spend on this machine against the verified credit balance")
+    spend.add_argument("--run", help="only the calls of one run (UNBIDDEN_RUN), e.g. a benchmark's")
+    spend.add_argument("--verified-balance", type=float, metavar="USD", help="the balance a person read just now")
+    spend.add_argument("--source", help="where that balance was read")
+    spend.add_argument("--expires", metavar="ISO", help="when the credits expire, e.g. 2026-11-04T21:00:00-05:00")
+    spend.add_argument("--reserve", type=float, help="share held back for validation and the demo (default 0.2)")
+    spend.add_argument("--release-reserve", action="store_true", help="allow spending the reserve (people only)")
     egress = command("egress", cmd_egress, "everything that left this machine, with the exact payloads")
     egress.add_argument("--payload", action="store_true")
     egress.add_argument("--last", type=int, default=30)

@@ -24,6 +24,8 @@ from typing import Any
 
 import httpx
 
+from unbidden.brain.spend import SpendLedger, SpendRefused, worst_cost
+from unbidden.config import load_config
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import ActionRequest, EgressAttempt, Mandate
 from unbidden.guardian.egress import evaluate_screenshots
@@ -164,14 +166,46 @@ def visual_judge(
         "max_tokens": 3000,
         "messages": [{"role": "user", "content": content}],
     }  # fmt: skip
-    response = httpx.post(
-        f"{base_url}/chat/completions", json=body, headers={"Authorization": f"Bearer {key}"}, timeout=180
-    )
+    # The same machine-wide budget as every other remote call (brain/spend.py).
+    price = load_config().prices.models.get(VISUAL_MODEL)
+    if price is None:
+        return {"degraded": None, "what": f"not sent: no price is known for {VISUAL_MODEL}"}
+    ledger = SpendLedger()
+    est = worst_cost(len(json.dumps(body)), 3000, price.input_per_mtok, price.output_per_mtok)
+    try:
+        spend_id = ledger.reserve(
+            est_usd=est, workspace=mandate.workspace, purpose="lab.ui.visual", provider="meta", model=VISUAL_MODEL,
+            attempt=1,
+        )  # fmt: skip
+    except SpendRefused as exc:
+        attempt.status = "failed"
+        store.put("egress", attempt)
+        return {"degraded": None, "what": f"not sent: {exc}"}
+    try:
+        response = httpx.post(
+            f"{base_url}/chat/completions", json=body, headers={"Authorization": f"Bearer {key}"}, timeout=180
+        )
+    except httpx.HTTPError as exc:
+        ledger.settle(spend_id, usd=None, usage_reported=False, status="failed", note=str(exc)[:300])
+        raise
     attempt.status = "allowed_sent" if response.status_code == 200 else "failed"
     store.put("egress", attempt)
     if response.status_code != 200:
+        billed = None if response.status_code >= 500 else 0.0
+        ledger.settle(spend_id, usd=billed, usage_reported=False, status="failed", note=f"HTTP {response.status_code}")
         return {"degraded": None, "what": f"model answered {response.status_code}"}
-    text = response.json()["choices"][0]["message"].get("content") or ""
+    data = response.json()
+    usage = data.get("usage") or {}
+    tokens_in, tokens_out = int(usage.get("prompt_tokens", 0)), int(usage.get("completion_tokens", 0))
+    reported = tokens_in > 0 or tokens_out > 0
+    ledger.settle(
+        spend_id,
+        usd=(tokens_in * price.input_per_mtok + tokens_out * price.output_per_mtok) / 1e6 if reported else None,
+        tokens_in=tokens_in,
+        tokens_out=tokens_out,
+        usage_reported=reported,
+    )
+    text = data["choices"][0]["message"].get("content") or ""
     found = re.search(r"\{.*\}", text, re.DOTALL)
     try:
         answer = json.loads(found.group(0)) if found else {}

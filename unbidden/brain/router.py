@@ -11,13 +11,14 @@ from __future__ import annotations
 import json
 import re
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, NoReturn
 
 from jsonschema import Draft202012Validator
 
 from unbidden.brain.codeblocks import CodeBlockError, parse_files
-from unbidden.brain.providers import LLMProvider, ProviderError
+from unbidden.brain.providers import LLMProvider, ProviderError, ProviderRejected, ProviderThrottled
 from unbidden.brain.route_policy import NEVER_REMOTE, RouteDecision, decide_route
+from unbidden.brain.spend import SpendLedger, SpendRefused, worst_cost
 from unbidden.brain.tasks import task_for
 from unbidden.config import Config, Route
 from unbidden.contracts.common import Cost, utc_now
@@ -128,6 +129,7 @@ class Brain:
         *,
         identifiers: SensitiveTermIndex | None = None,
         killswitch: KillSwitch | None = None,
+        spend: SpendLedger | None = None,
     ) -> None:
         self.config = config
         self.providers = providers
@@ -136,6 +138,7 @@ class Brain:
         self.policy = PolicyEngine(mandate)
         self.identifiers = identifiers or SensitiveTermIndex()
         self.killswitch = killswitch
+        self.spend = spend or SpendLedger()  # never optional: every remote call passes the machine's budget
         self.repo_public = False  # set by the runtime only when GitHub confirms it; unknown means private
         self.served_by: dict[str, ModelRun] = {}  # purpose -> the last run that answered it, for honest attribution
 
@@ -198,7 +201,11 @@ class Brain:
             if self.killswitch is not None and self.killswitch.engaged:
                 raise KillSwitchEngaged("the kill switch is engaged")
             sized = current.model_copy(update={"max_tokens": max_tokens})
-            egress_id = self._gate(sized, route, provider, identifiers, classification) if tier.remote else None
+            egress_id, spend_id = (
+                self._gate(sized, route, provider, identifiers, classification, attempt)
+                if tier.remote
+                else (None, None)
+            )
             self._check_local(routed)
             try:
                 response = await provider.chat(sized, model=route.model, think=think)
@@ -206,9 +213,11 @@ class Brain:
                 self._record(
                     sized, route, provider, attempt, None, f"provider error: {exc}", egress_id, sent=False, why=why
                 )
+                self._settle(spend_id, route, None, exc)
                 raise
             problem_or_none = check_output(request, response)
             self._record(sized, route, provider, attempt, response, problem_or_none, egress_id, sent=True, why=why)
+            self._settle(spend_id, route, response, None)
             if problem_or_none is None:
                 return response
             problem = problem_or_none
@@ -272,7 +281,10 @@ class Brain:
         provider: LLMProvider,
         extra: SensitiveTermIndex | None,
         classification: Classification | None = None,
-    ) -> str:
+        try_number: int = 1,
+    ) -> tuple[str, str]:
+        """Policy, the contributor rule, both spend limits, then the egress gate; returns the egress attempt and the
+        spend reservation of a call allowed to leave."""
         host = getattr(provider, "host", provider.name)
         verdict = self.policy.evaluate(
             ActionRequest(capability="model.remote.synthetic", purpose=request.purpose, destinations=[host])
@@ -287,11 +299,31 @@ class Brain:
                 )
             )
             raise PolicyDenied("; ".join(verdict.reasons))
+        if route.model.endswith("-contributor") and self.config.brain.contributor_models != "allow":
+            # Contributor variants are cheaper because the provider may train on what they receive: other terms,
+            # chosen by a person in the config, never by a fallback.
+            self._deny(request, "contributor_model", f"{route.model} has contributor data terms; not allowed here")
         spent = self.month_remote_spend()
         cap = self.mandate.business_constraints.maximum_monthly_spend_usd
         if spent >= cap:
             raise SpendLimitReached(f"remote spend this month is US${spent:.2f}, at the US${cap:.2f} cap")
         payload = _payload(request)
+        price = self.config.prices.models.get(route.model)
+        if price is None:
+            self._deny(request, "spend", f"no price is known for {route.model}, so its cost cannot be bounded")
+        est = worst_cost(len(payload.encode()), request.max_tokens, price.input_per_mtok, price.output_per_mtok)
+        try:
+            spend_id = self.spend.reserve(
+                est_usd=est,
+                workspace=self.mandate.workspace,
+                purpose=request.purpose,
+                provider=provider.name,
+                model=route.model,
+                attempt=try_number,
+                correlation_id=request.correlation_id,
+            )
+        except SpendRefused as exc:
+            self._deny(request, "spend", str(exc), raise_as=SpendLimitReached)
         index = self.identifiers
         if extra is not None and len(extra):
             index = SensitiveTermIndex([*self.identifiers.terms, *extra.terms])
@@ -331,8 +363,43 @@ class Brain:
             )
         )
         if not egress.allowed:
+            self.spend.release(spend_id, "blocked by the egress gate")
             raise EgressBlocked(egress)
-        return attempt.id
+        return attempt.id, spend_id
+
+    def _deny(
+        self, request: LLMRequest, rule: str, reason: str, *, raise_as: type[BrainError] = PolicyDenied
+    ) -> NoReturn:
+        self.store.append_event(
+            Event(
+                type=EventType.POLICY_DENIED,
+                actor=ACTOR,
+                correlation_id=request.correlation_id,
+                payload={"rule": rule, "reasons": [reason], "purpose": request.purpose},
+            )
+        )
+        raise raise_as(reason)
+
+    def _settle(self, spend_id: str | None, route: Route, response: LLMResponse | None, exc: Exception | None) -> None:
+        if spend_id is None:
+            return
+        if response is not None:
+            usage = response.usage
+            reported = usage.prompt_tokens > 0 or usage.completion_tokens > 0
+            self.spend.settle(
+                spend_id,
+                # Without reported usage the worst cost stands: an answer was generated and billed somehow.
+                usd=self._cost(route, response, True).usd_remote if reported else None,
+                tokens_in=usage.prompt_tokens,
+                tokens_out=usage.completion_tokens,
+                usage_reported=reported,
+            )
+        elif isinstance(exc, ProviderThrottled | ProviderRejected):
+            # Refused before any generation (429, 400): not billed.
+            self.spend.settle(spend_id, usd=0.0, usage_reported=False, status="failed", note=str(exc)[:300])
+        else:
+            # A timeout or a 5xx may have been billed; keep the worst cost.
+            self.spend.settle(spend_id, usd=None, usage_reported=False, status="failed", note=str(exc)[:300])
 
     # Accounting -------------------------------------------------------------------------------------------
 

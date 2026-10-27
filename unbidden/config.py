@@ -44,6 +44,8 @@ class Prices(_Config):
 
 class BrainConfig(_Config):
     max_repairs: int = Field(default=1, ge=0)
+    # `-contributor` models trade data-use terms for price; only a person turns them on.
+    contributor_models: Literal["deny", "allow"] = "deny"
 
 
 class Config(_Config):

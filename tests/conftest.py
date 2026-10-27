@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from unbidden.contracts.guardian import (
@@ -21,6 +23,15 @@ def credentials() -> CredentialBroker:
     for name, purpose in (("GITHUB_TOKEN", "github"), ("TEST_KEY", "model.remote"), ("MODEL_API_KEY", "model.remote")):
         held.grant(name, purpose)
     return held
+
+
+@pytest.fixture(autouse=True)
+def spend_home(tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Every test gets its own machine-wide spend ledger, never the real one in ~/.unbidden."""
+    home = tmp_path_factory.mktemp("unbidden-home")
+    monkeypatch.setenv("UNBIDDEN_HOME", str(home))
+    monkeypatch.delenv("UNBIDDEN_RUN", raising=False)
+    return home
 
 
 @pytest.fixture
