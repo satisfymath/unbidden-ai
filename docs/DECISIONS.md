@@ -202,3 +202,26 @@ Protection depended on where a module called from, not on what it sent.
   Code answers now have a contract (`expect_files`), so a frontier answer without file blocks is repaired or falls
   back to local instead of being accepted.
 - `unbidden models`, `unbidden route` (dry explanation per task) and `unbidden egress --payload`.
+
+## D-018 · 2026-10-27 · Routing measured on real repositories, and Rich searched blind
+
+Routing (D-017), checked with `unbidden route` on three real workspaces:
+- raciona (private, confirmed by GitHub's 404 without a token): private code stays local or leaves only renamed
+  through the bridge in every profile; logs and data never leave; `frontier` without `private_code_to_frontier`
+  behaves like `local-first` for private content. A run sending raciona-derived content out (even renamed) was
+  refused by the session's permission layer pending David's explicit consent, which is the right default.
+- full-stack-fastapi-template and Rich (public, confirmed): heavy work goes to Muse Spark first, local fallback.
+
+Rich, never told about its open issues (#4238, #4239, #4242):
+- With Spark writing the property tests (public code), a full probe took 17 s instead of minutes locally.
+- Two refinement rounds turned an over-strict round-trip property on `markup.escape` (failing first on control
+  characters, which rendering drops by design) into a narrower one that still fails: `render(escape("\\")).plain`
+  is `"\\\\"`. Kept as L1, for a person: it may be a broken promise or an acceptable edge.
+- Two crashes in the public `rich.cells.split_text`: `IndexError` at `cells.py:266` (input `"0\x1f"`, position 2)
+  and `ZeroDivisionError` at `cells.py:256` (input `"\x1f"`, position 1), on zero-width text. The first is the
+  same line as issue #4239 with a different, simpler trigger; the second appears in no issue. They were first
+  missed because Hypothesis grouped them in an ExceptionGroup; the parser reads those now.
+- RobustLab, fix written by Spark (`if cell_position >= cell_length: return text, ""`): the property test fails
+  at the base and passes with the fix, Rich's suite three rounds per side with no regression (one test,
+  `test_console::test_brokenpipeerror`, fails on both sides): L4 in 58 s. The fix also resolves #4239's exact
+  reproduction (IndexError at the base, no crash with the fix), checked in the sandbox.

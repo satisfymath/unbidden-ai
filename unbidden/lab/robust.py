@@ -38,7 +38,19 @@ REGRESSION_FILE = "tests/test_unbidden_regression_{name}.py"
 def single_test(source: str, name: str) -> str:
     """The probe file reduced to its imports and one test: the regression test that ships with the fix."""
     tree = ast.parse(source)
-    keep = [n for n in tree.body if not isinstance(n, ast.FunctionDef) or n.name == name]
+    test = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == name)
+    used = {n.id for n in ast.walk(test) if isinstance(n, ast.Name)} | {
+        n.value.id for n in ast.walk(test) if isinstance(n, ast.Attribute) and isinstance(n.value, ast.Name)
+    }
+    keep: list[ast.stmt] = []
+    for node in tree.body:
+        if isinstance(node, ast.Import | ast.ImportFrom):
+            names = [a for a in node.names if (a.asname or a.name.split(".")[0]) in used]
+            if names:
+                node.names = names
+                keep.append(node)
+        elif not isinstance(node, ast.FunctionDef) or node.name == name:
+            keep.append(node)
     return ast.unparse(ast.Module(body=keep, type_ignores=[])) + "\n"
 
 
