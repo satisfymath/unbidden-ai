@@ -40,7 +40,9 @@ class NeedsApproval(PublishError):
 
 class GitHubClient:
     def __init__(self, slug: str, token_env: str, *, transport: httpx.BaseTransport | None = None) -> None:
-        token = os.environ.get(token_env)
+        from unbidden.guardian.credentials import broker
+
+        token = broker().get(token_env, "github")
         if not token:
             raise PublishError(f"{token_env} is not set; unbidden cannot reach GitHub")
         self.slug = slug
@@ -98,7 +100,15 @@ def push_branch(repo: Path, slug: str, branch: str, commit: str, token_env: str,
             f'  *) printf "%s" "${token_env}" ;;\nesac\n'
         )
         helper.chmod(stat.S_IRWXU)
-        env = {**os.environ, "GIT_ASKPASS": str(helper), "GIT_TERMINAL_PROMPT": "0"}
+        from unbidden.guardian.credentials import broker
+
+        # The token reaches only this git process, through the helper it calls; never argv, never os.environ.
+        env = {
+            **os.environ,
+            "GIT_ASKPASS": str(helper),
+            "GIT_TERMINAL_PROMPT": "0",
+            token_env: broker().get(token_env, "github") or "",
+        }
         result = subprocess.run(
             [
                 "git",

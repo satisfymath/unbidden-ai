@@ -19,11 +19,12 @@ HEALTH_EVERY_S = 60.0
 
 def _model_key(runtime: Runtime) -> str | None:
     """The remote model's key, read only to send what the mandate allows; never logged or stored."""
-    import os
 
     route = runtime.config.routing.get(Tier.CODE)
     provider = runtime.brain.providers.get(route.provider) if route else None
-    return os.environ.get(getattr(provider, "key_env", "")) or None
+    from unbidden.guardian.credentials import broker
+
+    return broker().get(getattr(provider, "key_env", ""), "model.remote") or None
 
 
 def _probe_forever(runtime: Runtime, log: Log, stop: threading.Event) -> None:

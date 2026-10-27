@@ -10,7 +10,17 @@ from unbidden.contracts.guardian import (
     Mandate,
     RemoteModelPolicy,
 )
+from unbidden.guardian.credentials import CredentialBroker, reset
 from unbidden.store import Store
+
+
+@pytest.fixture(autouse=True)
+def credentials() -> CredentialBroker:
+    """A fresh broker per test, with the grants a runtime would give the test names."""
+    held = reset()
+    for name, purpose in (("GITHUB_TOKEN", "github"), ("TEST_KEY", "model.remote"), ("MODEL_API_KEY", "model.remote")):
+        held.grant(name, purpose)
+    return held
 
 
 @pytest.fixture

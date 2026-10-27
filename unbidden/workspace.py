@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -170,7 +169,9 @@ class Workspace:
             return bool(cached.get("public"))
         public = False
         try:
-            token = os.environ.get("GITHUB_TOKEN")
+            from unbidden.guardian.credentials import broker
+
+            token = broker().get("GITHUB_TOKEN", "github")
             headers = {
                 "Accept": "application/vnd.github+json",
                 **({"Authorization": f"Bearer {token}"} if token else {}),
@@ -189,11 +190,19 @@ class Workspace:
 
         The observed repository's `.env` is never read: its secrets are not ours to hold.
         """
-        for path in (self.dir / ".env", Path.home() / ".unbidden" / ".env"):
-            if not path.exists():
-                continue
-            for line in path.read_text().splitlines():
-                key, sep, value = line.partition("=")
-                key = key.strip()
-                if sep and key and not key.startswith("#"):
-                    os.environ.setdefault(key, value.strip().strip("'\""))
+        from unbidden.guardian.credentials import broker
+
+        # Into the credential broker, not the process environment (see guardian/credentials.py).
+        held = broker()
+        held.load([self.dir / ".env", Path.home() / ".unbidden" / ".env"])
+        held.grant("GITHUB_TOKEN", "github")
+        if self.initialized:
+            for provider in self.config().providers.values():
+                if provider.key_env:
+                    held.grant(provider.key_env, "model.remote")
+            mandate = self.mandate()
+            held.grant(mandate.egress.github.token_env, "github")
+            probe = mandate.operations.probe_auth
+            if probe is not None:
+                held.grant(probe.username_env, "probe")
+                held.grant(probe.password_env, "probe")

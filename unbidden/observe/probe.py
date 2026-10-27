@@ -9,7 +9,6 @@ password flow, uses credentials read from unbidden's own environment.
 
 from __future__ import annotations
 
-import os
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -71,7 +70,10 @@ class Prober:
     def _login(self, client: httpx.Client) -> str | None:
         if self.auth is None:
             return None
-        user, password = os.environ.get(self.auth.username_env), os.environ.get(self.auth.password_env)
+        from unbidden.guardian.credentials import broker
+
+        user = broker().get(self.auth.username_env, "probe")
+        password = broker().get(self.auth.password_env, "probe")
         if not user or not password:
             return None
         for container in self.app_containers().values():

@@ -5,11 +5,17 @@ from __future__ import annotations
 import hashlib
 
 from unbidden.contracts.guardian import EgressKind, EgressVerdict, Mandate
+from unbidden.guardian.credentials import broker
 from unbidden.guardian.policy import GITHUB_HOSTS
 from unbidden.guardian.scanner import SensitiveTermIndex, scan, secret_hits
 
 
 def _verdict(kind: EgressKind, destination: str, payload: str, reasons: list[str], matched: list[str]) -> EgressVerdict:
+    leaked = broker().leaked(payload)
+    if leaked:
+        # A held credential's exact value, whatever pattern scanners would make of it, never leaves.
+        reasons = [*reasons, f"payload contains the value of held credential(s): {', '.join(leaked)}"]
+        matched = [*matched, *(f"credential:{name}" for name in leaked)]
     data = payload.encode()
     return EgressVerdict(
         allowed=not reasons,
@@ -69,6 +75,8 @@ def evaluate_screenshots(mandate: Mandate, destination: str, images: list[bytes]
     secrets = secret_hits(scan(text))
     if secrets:
         reasons.append(f"the text sent with the images contains {len(secrets)} secret(s)")
+    if broker().leaked(text):
+        reasons.append("the text sent with the images contains a held credential's value")
     digest = hashlib.sha256(b"".join(images) + text.encode()).hexdigest()
     return EgressVerdict(
         allowed=not reasons,

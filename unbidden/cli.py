@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import getpass
 import json
-import os
 import sys
 from collections.abc import Sequence
 from datetime import datetime
@@ -19,6 +18,7 @@ from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.experiment import Proposal, ProposalStatus
 from unbidden.contracts.guardian import EgressAttempt
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
+from unbidden.guardian.credentials import broker
 from unbidden.observe.scan import ScanDenied, scan
 from unbidden.workspace import Workspace, WorkspaceError, head_sha
 
@@ -513,7 +513,7 @@ def cmd_decide(args: argparse.Namespace) -> int:
     status = None
     slug = mandate.egress.github.repository
     if slug and PolicyEngine(mandate).evaluate(ActionRequest(capability="github.read", purpose="CI status")).allowed:
-        status = ci_status(slug, head, os.environ.get(mandate.egress.github.token_env))
+        status = ci_status(slug, head, broker().get(mandate.egress.github.token_env, "github"))
     open_prs = len(store.list("proposals", Proposal, status=ProposalStatus.PR_OPENED.value))
     live = (OpportunityStatus.OPEN, OpportunityStatus.EXPERIMENTING, OpportunityStatus.PROPOSED)
     rows = []
@@ -970,7 +970,6 @@ def cmd_egress(args: argparse.Namespace) -> int:
 
 def cmd_doctor(args: argparse.Namespace) -> int:
     """Everything unbidden needs here, checked: machine and local model, Ollama, Docker, Meta API, GitHub, mandate."""
-    import os
     import shutil
     import subprocess
 
@@ -1006,7 +1005,7 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         shutil.which("docker") and subprocess.run(["docker", "info"], capture_output=True, check=False).returncode == 0
     )
     checks.append(("docker", bool(docker), "running" if docker else "not running: the sandbox needs Docker"))
-    key = bool(os.environ.get("MODEL_API_KEY"))
+    key = broker().has("MODEL_API_KEY")
     reachable = False
     if key:
         try:
@@ -1014,7 +1013,7 @@ def cmd_doctor(args: argparse.Namespace) -> int:
                 httpx.get(
                     "https://api.meta.ai/v1/models",
                     timeout=8,
-                    headers={"Authorization": f"Bearer {os.environ['MODEL_API_KEY']}"},
+                    headers={"Authorization": f"Bearer {broker().get('MODEL_API_KEY', 'model.remote')}"},
                 ).status_code
                 == 200
             )
@@ -1034,8 +1033,8 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     checks.append(
         (
             "github",
-            bool(os.environ.get("GITHUB_TOKEN")),
-            "GITHUB_TOKEN set" if os.environ.get("GITHUB_TOKEN") else "no GITHUB_TOKEN: proposals stay local branches",
+            broker().has("GITHUB_TOKEN"),
+            "GITHUB_TOKEN set" if broker().has("GITHUB_TOKEN") else "no GITHUB_TOKEN: proposals stay local branches",
         )
     )
     if ws.initialized:

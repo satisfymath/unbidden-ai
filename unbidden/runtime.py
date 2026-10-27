@@ -54,6 +54,23 @@ def build_providers(config: Config) -> dict[str, LLMProvider]:
     return providers
 
 
+def _grant_model_keys(config: Config, store: Store) -> None:
+    """Each remote model's key may be used to call that model, nothing else (granted again here for runtimes opened
+    without load_env); every use is audited, never the value."""
+    from unbidden.contracts.events import AuditEntry
+    from unbidden.guardian.credentials import broker
+
+    held = broker()
+    for provider in config.providers.values():
+        if provider.key_env:
+            held.grant(provider.key_env, "model.remote")
+    held.audit = lambda name, purpose, given: store.append_audit(
+        AuditEntry(
+            actor="guardian", kind="credential.use", summary=f"{name} for {purpose}: {'given' if given else 'refused'}"
+        )
+    )
+
+
 @dataclass
 class Runtime:
     workspace: Workspace
@@ -68,6 +85,7 @@ class Runtime:
         config = workspace.config()
         resolve_local_model(config)
         store = workspace.store()
+        _grant_model_keys(config, store)
         brain = Brain(config, build_providers(config), store, workspace.mandate(), killswitch=workspace.killswitch())
         brain.repo_public = workspace.repo_public(store)
         return cls(workspace, config, store, brain)
