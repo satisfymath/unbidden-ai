@@ -68,6 +68,7 @@ def containers_from(
     project label is not the listing's project is dropped, whatever the listing said."""
     projects = {str(r.get("Project")) for r in rows if r.get("Project")}
     created = {str(i.get("Id")): str(i.get("Created") or "") for i in images}
+    digests = {str(i.get("Id")): (i.get("RepoDigests") or [None])[0] for i in images}
     found: list[RunningContainer] = []
     for item in inspected:
         labels: dict[str, str] = (item.get("Config") or {}).get("Labels") or {}
@@ -83,6 +84,7 @@ def containers_from(
                 image_created=created.get(image_id) or None,
                 started_at=(item.get("State") or {}).get("StartedAt"),
                 revision_label=labels.get(REVISION_LABEL) or None,
+                repo_digest=digests.get(image_id),
             )
         )
     return sorted(found, key=lambda c: c.service)
@@ -114,7 +116,8 @@ def bind(
     record: dict[str, Any] = {}
     for c in containers:
         built = parse_ts(c.image_created)
-        verified = rebuilt or (built is not None and built >= started)
+        # Build steps vouch only for images built here; one pulled from a registry was not built from the checkout.
+        verified = (rebuilt and not c.repo_digest) or (built is not None and built >= started)
         if c.image_id in bindings and bindings[c.image_id].get("verified") and not verified:
             continue  # an earlier deploy built this image; that binding stays
         bindings[c.image_id] = {
@@ -159,6 +162,14 @@ def resolve(
         return commit, "inferred", "deployed by Unbidden, but images were not rebuilt by that deploy"
     if len(commits) > 1:
         return None, "unknown", "containers hold images bound to different commits: " + ", ".join(sorted(commits))
+    pulled = [c for c in containers if c.repo_digest]
+    if pulled and len(pulled) == len(containers):
+        return (
+            None,
+            "unknown",
+            f"images pulled from a registry ({pulled[0].repo_digest}), not built from this checkout; "
+            "they carry no revision label",
+        )
     if head:
         return (
             head,
@@ -213,6 +224,9 @@ def observe(
     known: dict[str, str] = store.get_value("container_deploys", {})
     if key in known:
         return store.get(COLLECTION, known[key], Deployment)
+    latest = deployments(store)[-1:]
+    if latest and {c.container_id for c in containers} <= {c.container_id for c in latest[0].containers}:
+        return latest[0]  # containers stopped or restarted, none new: not a deploy
     commit, status, reason = resolve(containers, store.get_value("image_bindings", {}), head)
     initiated = initiator(store, containers, commit)
     sequence: list[str] = store.get_value("deploy_sequence", [])

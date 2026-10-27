@@ -18,6 +18,7 @@ OBSERVED, INFERRED = EpistemicStatus.OBSERVED, EpistemicStatus.INFERRED
 _TABLE_CLASS = re.compile(r"^class\s+(\w+)\s*\(([^)]*)\)\s*:", re.MULTILINE)
 _TABLENAME = re.compile(r"__tablename__\s*=\s*[\"'](\w+)[\"']")
 _ROUTE = re.compile(r"@(?P<obj>\w+)\.(?P<method>get|post|put|patch|delete)\(\s*[\"'](?P<path>[^\"']*)[\"']")
+_HOST_KEY = re.compile(r"(?:^|_)(?:HOST|HOSTNAME|SERVER)$", re.IGNORECASE)
 _ROUTER_PREFIX = re.compile(r"APIRouter\([^)]*prefix\s*=\s*[\"'](?P<prefix>[^\"']+)[\"']")
 
 
@@ -40,14 +41,17 @@ def snake(name: str) -> str:
 
 def service_references(compose: Compose, service: Service) -> list[tuple[str, str, str]]:
     """(key, other service, value) for each environment value that addresses another service of the project:
-    `host:port` or a URL with that host. A bare word is not an address (`SERVICE_NAME=cart` names, not calls)."""
+    `host:port`, a URL with that host, or exactly the service's name under a key that says it is a host
+    (`FLAGD_HOST=flagd`, `ADMINER_DEFAULT_SERVER=db`). Any other bare word is not an address
+    (`SERVICE_NAME=cart` names, it does not call)."""
     found: list[tuple[str, str, str]] = []
     for key, value in sorted(service.environment.items()):
         for other in compose.services:
             if other == service.name:
                 continue
             name = re.escape(other)
-            if re.search(rf"(?:^|[\s,;=@/])({name}):\d+|://{name}(?:[:/]|$)", value):
+            hostish = _HOST_KEY.search(key) is not None and value.strip() == other
+            if hostish or re.search(rf"(?:^|[\s,;=@/])({name}):\d+|://{name}(?:[:/]|$)", value):
                 found.append((key, other, value))
     return found
 

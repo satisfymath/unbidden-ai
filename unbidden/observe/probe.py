@@ -96,9 +96,10 @@ class Prober:
 
     def round(self) -> int:
         """One pass over every target. Returns the number of requests sent."""
-        version = self.version()
-        if version is None:
+        deployment = self.deployment()
+        if deployment is None:
             return 0
+        version = ledger.version_of(deployment)
         sent = 0
         with httpx.Client(timeout=10.0) as client:
             for target in self.targets():
@@ -120,7 +121,6 @@ class Prober:
                     statuses.append(status)
                     if status == 401:
                         self._token = None
-                deploy = len(self.store.get_value("deploy_sequence", [])) - 1
-                self.store.add_round(target.label, version, statuses, latencies, deploy=deploy)
+                self.store.add_round(target.label, version, statuses, latencies, deploy=deployment.index)
                 sent += len(statuses)
         return sent

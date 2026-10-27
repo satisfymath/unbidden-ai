@@ -16,26 +16,38 @@ import httpx
 
 from unbidden.contracts.common import EpistemicStatus, EvidenceRef
 from unbidden.contracts.world import BlindSpot, Relation, Resource, WorldModel
-from unbidden.observe.compose import load_compose
+from unbidden.observe.compose import DATA_IMAGES, load_compose
 from unbidden.world.connectors import COMPOSE_DOCKER, OPENAPI_HTTP, POSTGRES_READONLY
 
 OBSERVED = EpistemicStatus.OBSERVED
 OPENAPI_PATHS = ("/openapi.json", "/api/openapi.json", "/api/v1/openapi.json", "/v1/openapi.json", "/docs/openapi.json")
 METHODS = ("get", "post", "put", "patch", "delete")
 
-_PG_TABLES = """
-SELECT c.relname, GREATEST(c.reltuples, 0)::bigint, pg_total_relation_size(c.oid)
+_SYSTEM_SCHEMAS = "('pg_catalog', 'information_schema', 'pg_toast')"
+_PG_DATABASES = "SELECT datname FROM pg_database WHERE NOT datistemplate AND datallowconn ORDER BY 1"
+_PG_TABLES = f"""
+SELECT n.nspname, c.relname, GREATEST(c.reltuples, 0)::bigint, pg_total_relation_size(c.oid)
 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-WHERE c.relkind = 'r' AND n.nspname = 'public' ORDER BY 1
+WHERE c.relkind IN ('r', 'p') AND n.nspname NOT IN {_SYSTEM_SCHEMAS} ORDER BY 1, 2
 """
-_PG_INDEXES = "SELECT tablename, indexname, indexdef FROM pg_indexes WHERE schemaname = 'public' ORDER BY 1, 2"
-_PG_FKS = """
-SELECT tc.table_name, kcu.column_name, ccu.table_name
+_PG_INDEXES = f"""
+SELECT schemaname, tablename, indexname, indexdef FROM pg_indexes
+WHERE schemaname NOT IN {_SYSTEM_SCHEMAS} ORDER BY 1, 2, 3
+"""
+_PG_FKS = f"""
+SELECT tc.table_schema, tc.table_name, kcu.column_name, ccu.table_schema, ccu.table_name
 FROM information_schema.table_constraints tc
 JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
 JOIN information_schema.constraint_column_usage ccu ON ccu.constraint_name = tc.constraint_name
-WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = 'public'
+WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema NOT IN {_SYSTEM_SCHEMAS}
 """
+
+
+def table_id(database: str, default: str, schema: str, table: str) -> str:
+    """`item` for public tables of the default database (as before); qualified names otherwise."""
+    if database == default and schema == "public":
+        return table
+    return f"{schema}.{table}" if database == default else f"{database}/{schema}.{table}"
 
 
 def _ref(kind: str, locator: str, note: str | None = None) -> EvidenceRef:
@@ -129,6 +141,81 @@ def _reconcile_endpoint(world: WorldModel, method: str, path: str, live: set[str
     return {}
 
 
+def _postgres(world: WorldModel, service: str, container: str, user: str, default: str) -> bool:
+    """Tables, indexes and foreign keys of every database and schema the server holds. False if nothing was read."""
+    databases = [row[0] for row in psql(container, user, default, _PG_DATABASES) or []] or [default]
+    read_any, empty = False, True
+    for database in databases:
+        tables = psql(container, user, database, _PG_TABLES)
+        if tables is None:
+            world.blind_spots.append(
+                BlindSpot(what=f"tables of {service}/{database}", why="read-only SQL inside its container failed")
+            )
+            continue
+        read_any = True
+        locator = f"psql {service}/{database} (read-only)"
+        for schema, table, rows, size in tables:
+            empty = False
+            tid = f"table:{table_id(database, default, schema, table)}"
+            world.add(
+                Resource(
+                    id=tid,
+                    kind="table",
+                    name=table_id(database, default, schema, table),
+                    attributes={
+                        "database": service,
+                        "db": database,
+                        "schema": schema,
+                        "rows_estimate": int(rows),
+                        "bytes": int(size),
+                        "indexes": [],
+                    },
+                    status=OBSERVED,
+                    confidence=1.0,
+                    evidence=[_ref("config", locator)],
+                    source=POSTGRES_READONLY.ref,
+                )
+            )
+            world.relate(
+                Relation(
+                    src=f"service:{service}",
+                    dst=tid,
+                    predicate="defines",
+                    status=OBSERVED,
+                    confidence=1.0,
+                    evidence=[_ref("config", locator)],
+                    source=POSTGRES_READONLY.ref,
+                )
+            )
+        for schema, table, index, definition in psql(container, user, database, _PG_INDEXES) or []:
+            resource = world.resources.get(f"table:{table_id(database, default, schema, table)}")
+            if resource is not None:
+                columns = re.search(r"\(([^)]*)\)", definition)
+                resource.attributes["indexes"] = [
+                    *resource.attributes.get("indexes", []),
+                    {"name": index, "columns": columns.group(1) if columns else ""},
+                ]
+        for schema, table, column, target_schema, target in psql(container, user, database, _PG_FKS) or []:
+            src = table_id(database, default, schema, table)
+            dst = table_id(database, default, target_schema, target)
+            world.relate(
+                Relation(
+                    src=f"table:{src}",
+                    dst=f"table:{dst}",
+                    predicate="references",
+                    status=OBSERVED,
+                    confidence=1.0,
+                    evidence=[_ref("config", locator, f"{src}.{column} -> {dst}")],
+                    source=POSTGRES_READONLY.ref,
+                )
+            )
+    if read_any and empty:
+        world.blind_spots.append(
+            BlindSpot(what=f"tables of {service}", why="no database holds tables yet (migrations not applied?)")
+        )
+    return read_any
+
+
 def discover_runtime(repo: Path, world: WorldModel, rev: str = "HEAD") -> set[str]:
     """Add what the running system shows. Returns the sources that actually ran, so facts they no longer see can
     be marked obsolete, and facts of sources that could not run are kept as they were."""
@@ -140,9 +227,26 @@ def discover_runtime(repo: Path, world: WorldModel, rev: str = "HEAD") -> set[st
         return set()
     ran = {COMPOSE_DOCKER.ref}
     compose = load_compose(repo, rev)
+    undeclared: list[str] = []
     for container in containers:
         service = container.get("Service", "")
         name = container.get("Name", "")
+        if f"service:{service}" not in world.resources:
+            # Running, but declared in a compose file not read (an override, `-f` files): known from Docker only.
+            undeclared.append(service)
+            data = DATA_IMAGES.match(str(container.get("Image", "")))
+            world.add(
+                Resource(
+                    id=f"service:{service}",
+                    kind="database" if data and data.group(1) not in ("redis", "valkey") else "service",
+                    name=service,
+                    attributes={"image": container.get("Image"), "engine": data.group(1) if data else None},
+                    status=OBSERVED,
+                    confidence=1.0,
+                    evidence=[_ref("config", f"docker compose ps#{name}")],
+                    source=COMPOSE_DOCKER.ref,
+                )
+            )
         world.add(
             Resource(
                 id=f"container:{name}",
@@ -233,63 +337,15 @@ def discover_runtime(repo: Path, world: WorldModel, rev: str = "HEAD") -> set[st
         data = compose.services.get(service) if compose else None
         if data is not None and data.data_kind == "postgres":
             user = data.environment.get("POSTGRES_USER", "postgres")
-            database = data.environment.get("POSTGRES_DB", user)
-            tables = psql(name, user, database, _PG_TABLES)
-            if tables is None:
-                world.blind_spots.append(
-                    BlindSpot(what=f"tables of {service}", why="read-only SQL inside its container failed")
-                )
-                continue
-            ran.add(POSTGRES_READONLY.ref)
-            locator = f"psql {service}/{database} (read-only)"
-            if not tables:
-                world.blind_spots.append(
-                    BlindSpot(
-                        what=f"tables of {service}", why="the database has no tables yet (migrations not applied?)"
-                    )
-                )
-            for table, rows, size in tables:
-                world.add(
-                    Resource(
-                        id=f"table:{table}",
-                        kind="table",
-                        name=table,
-                        attributes={"database": service, "rows_estimate": int(rows), "bytes": int(size), "indexes": []},
-                        status=OBSERVED,
-                        confidence=1.0,
-                        evidence=[_ref("config", locator)],
-                        source=POSTGRES_READONLY.ref,
-                    )
-                )
-                world.relate(
-                    Relation(
-                        src=f"service:{service}",
-                        dst=f"table:{table}",
-                        predicate="defines",
-                        status=OBSERVED,
-                        confidence=1.0,
-                        evidence=[_ref("config", locator)],
-                        source=POSTGRES_READONLY.ref,
-                    )
-                )
-            for table, index, definition in psql(name, user, database, _PG_INDEXES) or []:
-                resource = world.resources.get(f"table:{table}")
-                if resource is not None:
-                    columns = re.search(r"\(([^)]*)\)", definition)
-                    resource.attributes["indexes"] = [
-                        *resource.attributes.get("indexes", []),
-                        {"name": index, "columns": columns.group(1) if columns else ""},
-                    ]
-            for table, column, target in psql(name, user, database, _PG_FKS) or []:
-                world.relate(
-                    Relation(
-                        src=f"table:{table}",
-                        dst=f"table:{target}",
-                        predicate="references",
-                        status=OBSERVED,
-                        confidence=1.0,
-                        evidence=[_ref("config", locator, f"{table}.{column} -> {target}")],
-                        source=POSTGRES_READONLY.ref,
-                    )
-                )
+            default = data.environment.get("POSTGRES_DB", user)
+            if _postgres(world, service, name, user, default):
+                ran.add(POSTGRES_READONLY.ref)
+    if undeclared:
+        world.blind_spots.append(
+            BlindSpot(
+                what="services " + ", ".join(sorted(set(undeclared))),
+                why=f"running, but not declared in {compose.path if compose else 'any compose file read'}: "
+                "their environment, build and dependencies are unknown",
+            )
+        )
     return ran

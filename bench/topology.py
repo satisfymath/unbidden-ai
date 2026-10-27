@@ -140,6 +140,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("pairs", nargs="+", help="reference.yaml map.json [reference.yaml map.json ...]")
     parser.add_argument("--out", help="write <out>.json and <out>.md")
+    parser.add_argument("--after-fix", action="store_true", help="the extractor changed after seeing this score")
     args = parser.parse_args()
     if len(args.pairs) % 2:
         parser.error("give reference/map pairs")
@@ -147,7 +148,11 @@ def main() -> None:
     for ref_path, map_path in zip(args.pairs[::2], args.pairs[1::2], strict=True):
         reference = yaml.safe_load(Path(ref_path).read_text())
         world = json.loads(Path(map_path).read_text())
-        results.append(score(reference, world))
+        result = score(reference, world)
+        if args.after_fix:
+            result["blind"] = False
+            result["system"] += " (after fixes)"
+        results.append(result)
     print(as_markdown(results))
     if args.out:
         Path(f"{args.out}.json").write_text(json.dumps(results, indent=2) + "\n")

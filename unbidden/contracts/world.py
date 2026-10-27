@@ -79,6 +79,7 @@ class RunningContainer(Contract):
     image_created: str | None = None
     started_at: str | None = None
     revision_label: str | None = None  # org.opencontainers.image.revision, when the image carries it
+    repo_digest: str | None = None  # set when the image was pulled from a registry rather than built here
 
 
 class Deployment(Contract):

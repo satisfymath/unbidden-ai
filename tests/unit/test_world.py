@@ -169,3 +169,53 @@ def test_environment_addresses_become_inferred_calls_and_bare_names_do_not(tmp_p
     assert links[("service:checkout", "service:cart", "calls")].evidence[0].locator.endswith("environment.CART_ADDR")
     # SERVICE_NAME=cart names the service, it does not address it: only CART_ADDR made the link.
     assert sum(1 for k in links if k[:2] == ("service:checkout", "service:cart")) == 1
+
+
+def test_a_bare_environment_key_takes_its_value_from_the_tracked_dotenv(tmp_path: Path) -> None:
+    compose = """services:
+  frontend:
+    image: x/frontend
+    environment:
+      - CART_ADDR
+      - UNSET_ADDR
+  cart:
+    image: x/cart
+  cache:
+    image: ghcr.io/valkey-io/valkey:9.1.2-alpine3.24
+"""
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "compose.yaml").write_text(compose)
+    (tmp_path / ".env").write_text("CART_PORT=7070\nCART_ADDR=cart:${CART_PORT}\n")
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    world = WorldModel(rev="HEAD")
+    discover_static(tmp_path, "HEAD", detect_stack(tmp_path), world)
+    assert ("service:frontend", "service:cart", "calls") in {r.key for r in world.relations}
+    assert world.resources["service:cache"].attributes["engine"] == "valkey"
+    assert any("UNSET_ADDR" in b.what for b in world.blind_spots)
+
+
+def test_tables_outside_public_or_the_default_database_get_qualified_ids() -> None:
+    from unbidden.world.runtime import table_id
+
+    assert table_id("app", "app", "public", "item") == "item"
+    assert table_id("app", "app", "catalog", "products") == "catalog.products"
+    assert table_id("astronomy_db", "postgres", "catalog", "products") == "astronomy_db/catalog.products"
+
+
+def test_a_key_that_says_host_makes_a_bare_service_name_an_address() -> None:
+    from unbidden.observe.compose import Compose, Service
+    from unbidden.world.static import service_references
+
+    def svc(name: str, **env: str) -> Service:
+        return Service(name, "img", None, None, env, (), ())
+
+    compose = Compose(
+        path="compose.yaml",
+        services={
+            "proxy": svc("proxy", FLAGD_HOST="flagd", FLAGD_PORT="8013", OTEL_SERVICE_NAME="flagd"),
+            "flagd": svc("flagd"),
+        },
+    )
+    assert service_references(compose, compose.services["proxy"]) == [("FLAGD_HOST", "flagd", "flagd")]

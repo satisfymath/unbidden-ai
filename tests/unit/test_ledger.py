@@ -125,3 +125,24 @@ def test_an_unknown_version_gets_an_image_derived_tag(store: Store) -> None:
     assert d is not None and d.commit is None and d.commit_status == "unknown"
     assert ledger.version_of(d) == "unknown-0123456789ab"
     assert not ledger.is_attributable(d)
+
+
+def test_images_pulled_from_a_registry_are_not_credited_to_the_checkout() -> None:
+    pulled = container("c1", "i1", T0).model_copy(update={"repo_digest": "ghcr.io/o/demo@sha256:abc"})
+    commit, status, reason = ledger.resolve([pulled], {}, head=B)
+    assert (commit, status) == (None, "unknown") and "registry" in reason
+
+
+def test_a_stopped_container_is_not_a_deploy_and_its_return_is_the_same_deploy(store: Store) -> None:
+    both = [container("c1", "i1", T0, label=A), container("c2", "i2", T0, label=A).model_copy(update={"service": "w"})]
+    first = ledger.observe(store, both, head=None, now=T0)
+    fewer = ledger.observe(store, both[:1], head=None, now=T0)
+    again = ledger.observe(store, both, head=None, now=T0)
+    assert first and fewer and again and first.index == fewer.index == again.index == 0
+    assert store.get_value("deploy_sequence") == [A]
+
+
+def test_build_steps_do_not_vouch_for_an_image_pulled_from_a_registry(store: Store) -> None:
+    pulled = container("c1", "i1", T0 - timedelta(days=1)).model_copy(update={"repo_digest": "ghcr.io/o/x@sha256:1"})
+    record = ledger.bind(store, [pulled], A, started=T0, rebuilt=True)
+    assert record["backend"]["verified"] is False

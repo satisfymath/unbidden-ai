@@ -15,7 +15,9 @@ from typing import Any
 import yaml
 
 COMPOSE_FILES = ("compose.yml", "compose.yaml", "docker-compose.yml", "docker-compose.yaml")
-DATA_IMAGES = re.compile(r"^(?:docker\.io/)?(?:library/)?(postgres|mysql|mariadb|redis|mongo)(?::|$)")
+DATA_IMAGES = re.compile(
+    r"^(?:docker\.io/|ghcr\.io/valkey-io/)?(?:library/|valkey/)?(postgres|mysql|mariadb|redis|mongo|valkey)(?::|$)"
+)
 _VAR = re.compile(
     r"\$\{(?P<name>[A-Za-z_][A-Za-z0-9_]*)(?:(?P<op>:?[-?])(?P<arg>[^}]*))?\}|\$(?P<bare>[A-Za-z_][A-Za-z0-9_]*)"
 )
@@ -98,7 +100,11 @@ def _env_block(raw: Any, env: dict[str, str], unresolved: list[str]) -> dict[str
     if isinstance(raw, dict):
         items = [(str(k), "" if v is None else str(v)) for k, v in raw.items()]  # pyright: ignore[reportUnknownVariableType]
     elif isinstance(raw, list):
-        items = [(str(e).partition("=")[0], str(e).partition("=")[2]) for e in raw]  # pyright: ignore[reportUnknownVariableType]
+        items = []
+        for entry in raw:  # pyright: ignore[reportUnknownVariableType]
+            key, eq, value = str(entry).partition("=")  # pyright: ignore[reportUnknownArgumentType]
+            # `- KEY` without a value passes KEY from compose's environment, which includes the .env file.
+            items.append((key, value if eq else f"${{{key}}}"))
     else:
         items = []
     for key, value in items:
