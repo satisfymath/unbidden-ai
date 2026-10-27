@@ -220,6 +220,23 @@ class LiveWatcher:
         reason = f"deploy {current} ({history[current][:12]}) judged {impact.value}"
         place(self.store, reason)
         target = self._last_healthy(history, current)
+        if target is not None:
+            # Explain it, read-only, before anyone touches it again.
+            from unbidden.contracts.jobs import Job
+
+            self.store.enqueue(
+                Job(
+                    type="research.investigate",
+                    idempotency_key=f"research.investigate:{current}",
+                    priority=15,
+                    payload={
+                        "good": target,
+                        "bad": history[current],
+                        "incident": reason,
+                        "subject": f"deploy {current}",
+                    },
+                )
+            )
         if self.mandate.autonomy.rollback is not Autonomy.ALLOW or target is None:
             self.log(f"{reason}: hold placed; rollback needs a person (`unbidden mode`) or a healthy version")
             return

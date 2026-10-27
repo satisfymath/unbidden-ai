@@ -32,6 +32,7 @@ EXPERIMENTS_PER_SWEEP = 3
 PRIORITY = {
     "observe.live": 5,
     "ops.deploy": 8,
+    "research.investigate": 15,
     "github.poll": 10,
     "github.publish": 20,
     "proposal.prepare": 30,
@@ -73,6 +74,7 @@ class Cycle:
             "github.poll": self.github_poll,
             "observe.live": self.observe_live,
             "ops.deploy": self.ops_deploy,
+            "research.investigate": self.research_investigate,
         }
 
     def _env(self, rev: str) -> tuple[Stack, dict[str, DependencyImage]]:
@@ -277,6 +279,26 @@ class Cycle:
             self.runtime.workspace.repo, self.store, self.runtime.workspace.mandate(), world, self.log
         )
         await asyncio.to_thread(watcher.tick)
+
+    async def research_investigate(self, j: Job) -> None:
+        from unbidden.research.investigate import Investigation
+
+        investigation = Investigation(
+            self.runtime.workspace.repo,
+            self.runtime.brain,
+            self.store,
+            self.runtime.workspace.mandate(),
+            j.payload["good"],
+            j.payload["bad"],
+            j.payload["incident"],
+            j.payload["subject"],
+            log=self.log,
+        )
+        hypothesis = await investigation.run()
+        if hypothesis is not None:
+            self.log(
+                f"hypothesis ({hypothesis.mechanism}, confidence {hypothesis.confidence:.2f}): {hypothesis.statement}"
+            )
 
     async def ops_deploy(self, j: Job) -> None:
         """Deploy what was merged: fast-forward the deployment checkout to the remote base, then the team's steps."""

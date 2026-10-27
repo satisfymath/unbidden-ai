@@ -35,6 +35,7 @@ class EventType(StrEnum):
     OUTCOME_RECORDED = "outcome.recorded"
     CAPABILITY_BUILT = "capability.built"
     CAPABILITY_APPROVED = "capability.approved"
+    HYPOTHESIS_RECORDED = "hypothesis.recorded"
 
 
 class Event(Contract):

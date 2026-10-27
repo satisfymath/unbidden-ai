@@ -566,6 +566,42 @@ def cmd_logs(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_investigate(args: argparse.Namespace) -> int:
+    """Explain a failure between a healthy and a failed version, read-only, with the local model."""
+    import asyncio
+
+    from unbidden.research.investigate import Investigation
+    from unbidden.runtime import Runtime
+
+    runtime = Runtime.open(Workspace.find())
+    incident = args.incident or f"version {args.bad[:12]} failed where {args.good[:12]} worked"
+    investigation = Investigation(
+        runtime.workspace.repo,
+        runtime.brain,
+        runtime.store,
+        runtime.workspace.mandate(),
+        args.good,
+        args.bad,
+        incident,
+        f"{args.good[:12]}..{args.bad[:12]}",
+        log=lambda m: console.print(f"[dim]{m}[/]"),
+    )
+    hypothesis = asyncio.run(investigation.run())
+    if hypothesis is None:
+        err.print("no hypothesis reached")
+        return 1
+    if _emit(args, hypothesis.model_dump(mode="json")):
+        return 0
+    console.print(
+        f"[bold]hypothesis[/] ({hypothesis.mechanism}, confidence {hypothesis.confidence:.2f}, "
+        f"claimed {hypothesis.confidence_claimed:.2f}, L{int(hypothesis.evidence_level)})"
+    )
+    console.print(hypothesis.statement)
+    for item in hypothesis.evidence:
+        console.print(f"  - {item}")
+    return 0
+
+
 def cmd_map(args: argparse.Namespace) -> int:
     """Discover the system (repository, running containers, live API, database) and show the World Model."""
     import asyncio
@@ -713,6 +749,10 @@ def build_parser() -> argparse.ArgumentParser:
     hold.add_argument("id", nargs="?")
     hold.add_argument("reason", nargs="?", default="released by a person")
     command("deploys", cmd_deploys, "every deploy seen and its verdict")
+    inv = command("investigate", cmd_investigate, "explain a failure between two versions, read-only")
+    inv.add_argument("good")
+    inv.add_argument("bad")
+    inv.add_argument("--incident", help="what was observed, in words")
     forge = command("forge", cmd_forge, "capabilities unbidden built for itself: list, build or approve")
     forge.add_argument("action", nargs="?", choices=["list", "build", "approve"], default="list")
     forge.add_argument("target", nargs="?", help="service to build for, or capability id to approve")
