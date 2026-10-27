@@ -104,6 +104,7 @@ class Hypothesis(Contract):
     # Set by code, not by the model: text that tried to instruct the model was read, or cited evidence was never read.
     injection: list[dict[str, str]] = Field(default_factory=list)
     unsupported_evidence: list[str] = Field(default_factory=list)
+    tainted_evidence: list[str] = Field(default_factory=list)  # found only in output that tried to steer the model
 
 
 def _git(repo: Path, *args: str) -> str:
@@ -124,6 +125,7 @@ class Investigation:
     log: Callable[[str], None] = print
     steps: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
     read: list[str] = field(default_factory=list[str])
+    tainted: list[str] = field(default_factory=list[str])  # outputs in which the scanner found an attempt to steer
     hits: list[dict[str, str]] = field(default_factory=list[dict[str, str]])
 
     def _services(self) -> list[str]:
@@ -213,8 +215,11 @@ class Investigation:
             if call.name == "finish":
                 return self._conclude(Finish.model_validate(call.arguments))
             output = self.run_tool(call)
-            self.read.append(output[:MAX_OUTPUT])
-            for hit in injection.scan(output[:MAX_OUTPUT]):
+            hits = injection.scan(output[:MAX_OUTPUT])
+            # Only the lines that try to steer are tainted; the rest of the same output is still evidence.
+            for line in output[:MAX_OUTPUT].splitlines():
+                (self.tainted if injection.scan(line) else self.read).append(line)
+            for hit in hits:
                 self.hits.append({"tool": call.name, "kind": hit.kind, "excerpt": hit.excerpt})
             self.steps.append(
                 {"step": step + 1, "tool": call.name, "arguments": call.arguments, "output_chars": len(output)}
@@ -234,10 +239,11 @@ class Investigation:
 
     def _conclude(self, finish: Finish) -> Hypothesis:
         level = EvidenceLevel.REASONABLE_SUSPICION
-        missing = injection.unsupported(finish.evidence, self.read)
+        # Evidence must have been read; evidence found only in output that tried to steer the model does not count.
+        missing = injection.unsupported(finish.evidence, self.read + self.tainted)
+        leaning = [e for e in injection.unsupported(finish.evidence, self.read) if e not in missing]
         confidence = capped_confidence(finish.confidence, level)
-        if self.hits or missing:
-            # A conclusion that read an attempt to steer it, or cites what it never read, is not trusted by code.
+        if missing or leaning:
             confidence = CONFIDENCE_FLOOR
         hypothesis = Hypothesis(
             subject=self.subject,
@@ -250,6 +256,7 @@ class Investigation:
             steps=self.steps,
             injection=self.hits,
             unsupported_evidence=missing,
+            tainted_evidence=leaning,
         )
         if self.hits:
             self.store.append_event(
