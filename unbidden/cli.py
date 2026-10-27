@@ -493,6 +493,62 @@ def cmd_deploys(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_decide(args: argparse.Namespace) -> int:
+    """What the Director would do with each open opportunity now, and why; nothing is queued or changed."""
+    from unbidden.contracts.experiment import Proposal, ProposalStatus
+    from unbidden.daemon.cycle import checked_dirs
+    from unbidden.director.decide import Context, decide
+
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    mandate = ws.mandate()
+    head = head_sha(ws.repo)
+    dirs = checked_dirs(ws.repo, head)
+    open_prs = len(store.list("proposals", Proposal, status=ProposalStatus.PR_OPENED.value))
+    live = (OpportunityStatus.OPEN, OpportunityStatus.EXPERIMENTING, OpportunityStatus.PROPOSED)
+    rows = []
+    for opp in store.list("opportunities", Opportunity):
+        if opp.status not in live:
+            continue
+        d = decide(
+            opp,
+            mandate,
+            Context(open_pull_requests=open_prs, attempts=int(opp.details.get("attempts", 0)), checked_dirs=dirs),
+        )
+        rows.append(
+            {
+                "id": opp.id,
+                "category": opp.category,
+                "level": int(opp.evidence_level),
+                "chosen": d.chosen.value,
+                "reason": d.reason,
+            }
+        )
+    counts: dict[str, int] = {}
+    reasons: dict[str, int] = {}
+    for r in rows:
+        counts[r["chosen"]] = counts.get(r["chosen"], 0) + 1
+        if r["chosen"] in ("decline", "wait"):
+            key = r["reason"].split(" (")[0][:90]
+            reasons[key] = reasons.get(key, 0) + 1
+    data = {
+        "checked_dirs": list(dirs),
+        "open": len(rows),
+        "chosen": counts,
+        "declined_or_waiting_because": reasons,
+        "decisions": rows,
+    }
+    if _emit(args, data):
+        return 0
+    console.print(f"{len(rows)} open opportunities; CI checks {', '.join(dirs) or 'the whole repository'}")
+    for kind, n in sorted(counts.items(), key=lambda kv: -kv[1]):
+        console.print(f"  {kind:16} {n}")
+    for reason, n in sorted(reasons.items(), key=lambda kv: -kv[1]):
+        console.print(f"    {n:4}  {reason}")
+    return 0
+
+
 def cmd_why(args: argparse.Namespace) -> int:
     """Every decision, verdict and outbound payload behind one opportunity."""
     ws = Workspace.find()
@@ -1236,6 +1292,7 @@ def build_parser() -> argparse.ArgumentParser:
     map_.add_argument("--scope", metavar="ID", help="what a resource connects to, how each link is known, the gaps")
     map_.add_argument("--connectors", action="store_true", help="what each connector learns, needs and costs")
     command("status", cmd_status, "what unbidden knows and is doing")
+    command("decide", cmd_decide, "what the Director would do with each open opportunity, without doing it")
     command("health", cmd_health, "errors and latency of each service against its baseline, and where trouble starts")
     inbox = command("inbox", cmd_inbox, "opportunities, most proven first")
     inbox.add_argument("--all", action="store_true", help="include closed ones")

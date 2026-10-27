@@ -7,6 +7,7 @@ import subprocess
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import timedelta
+from pathlib import Path
 from typing import Any
 
 from unbidden.contracts.common import utc_now
@@ -166,31 +167,8 @@ class Cycle:
                     self.log(f"{opp.id}: proposal withdrawn before publishing ({decision.reason})")
 
     def _checked_dirs(self) -> tuple[str, ...]:
-        import json as _json
-
-        from unbidden.observe.ci import ci_lint_packages, ci_test_plan
-        from unbidden.observe.stack import detect_stack
-
         head = self.store.get_value("head")
-        if not head:
-            return ()
-        repo = self.runtime.workspace.repo
-        stack = detect_stack(repo, head)
-        if stack.node is not None and stack.node.packages:
-            root = subprocess.run(
-                ["git", "-C", str(repo), "show", f"{head}:package.json"], capture_output=True, text=True
-            )
-            scripts = _json.loads(root.stdout or "{}").get("scripts", {}) if root.returncode == 0 else {}
-            names = {p.name: p.path for p in stack.node.packages}
-            linted = ci_lint_packages(repo, head, names, scripts)
-            if linted is not None:
-                return tuple(sorted(linted))
-        dirs: list[str] = []
-        for language in ("python", "node"):
-            plan = ci_test_plan(self.runtime.workspace.repo, head, language)
-            if plan is not None:
-                dirs += [s.cwd or "." for s in plan.steps]
-        return tuple(dict.fromkeys(dirs))
+        return checked_dirs(self.runtime.workspace.repo, head) if head else ()
 
     def _record_decision(self, opp: Opportunity, decision: Decision) -> None:
         self.store.put("decisions", decision)
@@ -368,6 +346,29 @@ class Cycle:
             self.log(f"merged {merged.pr.url if merged.pr else merged.id}")
             if mandate.autonomy.deploy.value == "allow":
                 self.store.enqueue(job("ops.deploy", merged.id, {"reason": f"merged {merged.title}"}))
+
+
+def checked_dirs(repo: Path, head: str) -> tuple[str, ...]:
+    """Where the team's CI checks code: the packages it lints, or the directories its test steps run in."""
+    import json as _json
+
+    from unbidden.observe.ci import ci_lint_packages, ci_test_plan
+    from unbidden.observe.stack import detect_stack
+
+    stack = detect_stack(repo, head)
+    if stack.node is not None and stack.node.packages:
+        root = subprocess.run(["git", "-C", str(repo), "show", f"{head}:package.json"], capture_output=True, text=True)
+        scripts = _json.loads(root.stdout or "{}").get("scripts", {}) if root.returncode == 0 else {}
+        names = {p.name: p.path for p in stack.node.packages}
+        linted = ci_lint_packages(repo, head, names, scripts)
+        if linted is not None:
+            return tuple(sorted(linted))
+    dirs: list[str] = []
+    for language in ("python", "node"):
+        plan = ci_test_plan(repo, head, language)
+        if plan is not None:
+            dirs += [s.cwd or "." for s in plan.steps]
+    return tuple(dict.fromkeys(dirs))
 
 
 RETRY = timedelta(minutes=2)

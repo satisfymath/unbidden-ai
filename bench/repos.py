@@ -64,6 +64,7 @@ def run_one(repo: dict[str, str], workdir: Path) -> dict[str, Any]:
         ("map", ["map", "--no-model", "--json"]),
         ("scan", ["scan", "--json"]),
         ("inbox", ["inbox", "--all", "--json"]),
+        ("decide", ["decide", "--json"]),
     ):
         step = _run([*UNBIDDEN, *argv], target)
         row["steps"][name] = {k: v for k, v in step.items() if k != "stdout"}
@@ -71,6 +72,7 @@ def run_one(repo: dict[str, str], workdir: Path) -> dict[str, Any]:
     world = row.pop("map") or {}
     scan = row.pop("scan") or {}
     inbox = row.pop("inbox") or []
+    decided = row.pop("decide") or {}
     kinds: dict[str, int] = {}
     for r in (world.get("resources") or {}).values():
         if r["status"] != "obsolete":
@@ -86,6 +88,7 @@ def run_one(repo: dict[str, str], workdir: Path) -> dict[str, Any]:
         "opportunities": len(inbox),
         "by_category": _count(o.get("category", "?") for o in inbox),
         "by_status": _count(o.get("status", "?") for o in inbox),
+        "director": {k: decided.get(k) for k in ("chosen", "declined_or_waiting_because", "checked_dirs")},
         "seconds": round(sum(s["seconds"] for s in row["steps"].values()), 1),
     }
     failed = [n for n, s in row["steps"].items() if s["code"] != 0]
@@ -93,6 +96,12 @@ def run_one(repo: dict[str, str], workdir: Path) -> dict[str, Any]:
         f"failed at {failed[0]}" if failed else ("no stack analyzed" if not scan.get("languages") else "ran")
     )
     return row
+
+
+def _director(summary: dict[str, Any]) -> str:
+    chosen = (summary.get("director") or {}).get("chosen") or {}
+    act = chosen.get("run_experiment", 0) + chosen.get("propose_change", 0)
+    return f"{act} / {chosen.get('decline', 0)} / {chosen.get('wait', 0)}"
 
 
 def _count(values: Any) -> dict[str, int]:
@@ -105,8 +114,8 @@ def _count(values: Any) -> dict[str, int]:
 def as_markdown(rows: list[dict[str, Any]]) -> str:
     lines = [
         "| Repository | Split | Outcome | Languages | CI understood | Analyzers (complete/total) | Findings "
-        "| Opportunities | Time (s) |",
-        "|---|---|---|---|---|---|---|---|---|",
+        "| Opportunities | Director: act / decline / wait | Time (s) |",
+        "|---|---|---|---|---|---|---|---|---|---|",
     ]
     for r in rows:
         s = r.get("summary") or {}
@@ -116,7 +125,7 @@ def as_markdown(rows: list[dict[str, Any]]) -> str:
         lines.append(
             f"| {r['name']} | {r['split']} | {r['outcome']} | {', '.join(s.get('languages') or []) or '-'} | "
             f"{'yes' if s.get('ci_understood') else 'no'} | {complete}/{len(reports)} | {findings} | "
-            f"{s.get('opportunities', 0)} | {s.get('seconds', '-')} |"
+            f"{s.get('opportunities', 0)} | {_director(s)} | {s.get('seconds', '-')} |"
         )
     return "\n".join(lines)
 
