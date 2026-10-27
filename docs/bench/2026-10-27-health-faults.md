@@ -45,7 +45,7 @@ as impact v2 was (D-014):
 - require a much larger sample for p95 than for error counts;
 - for chronic services, use a threshold from the baseline's own variation rather than a fixed multiple.
 
-## Holdout faults (fixed in a39a6df's successor a67e6c4 before they were run)
+## Holdout faults (fixed in a67e6c4, before they were run)
 
 Live under health-v1, with traces and proxy counters recorded for each anomaly:
 
