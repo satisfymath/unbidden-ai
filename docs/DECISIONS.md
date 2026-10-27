@@ -344,3 +344,31 @@ rebuilt from scratch at every map, with no history, no age and no obsolete facts
   0.75 (not blind). Reading the deployed `compose.override.yml` also brings in mailpit and playwright, which are
   declared but not running. The pre-registered reference does not list them, so service precision drops to 0.67,
   and that is how it is reported.
+
+## D-024 · 2026-10-27 · Metrics and traces: anomalies found in a running system, and where they fail
+
+opentelemetry-demo runs its own Prometheus and Jaeger. Unbidden now reads both, read-only, with fixed queries.
+
+- **Calls seen in traffic.** The project's client call metrics give 11 observed calls, which expire after 15
+  minutes. The frontend's gRPC calls carry no peer label, so they stay as configuration inferences: that is how much
+  of the call graph the telemetry covers.
+- **What the project's own metrics say.** Each service's requests, errors and p95, and each container's CPU and
+  memory. The demo's Prometheus scrapes the whole host, other projects included; only this project's services and
+  containers are taken in, and that is tested.
+- **Two findings without injecting anything.**
+  - quote fails about 20 % of its requests all the time. Its traces put the origin in quote.
+  - load-generator calls a host `agent` that no service of the project provides.
+- **`unbidden health`, also on the probe thread every 60 s.** Criteria health-v1 were committed before any fault was
+  injected. A degraded service whose dependencies are healthy is named where the degradation starts. This is a
+  hypothesis, recorded with the queries, the scope and a plan that says which next sources Unbidden can read.
+  Traces through an affected service then agree or disagree.
+- **Results** (`docs/bench/2026-10-27-health-faults.md`):
+  - control: 0 anomalies in 13 minutes;
+  - `paymentFailure` passed (3 min);
+  - `productCatalogFailure` passed (4 min), with the traces agreeing; the first attempt is void because the operator
+    activated the flag wrongly;
+  - `adFailure` was detected but did not pass: a latency false alarm on a low-traffic service ranked first;
+  - `cartFailure`, an extra trial, was missed: the failure of one operation is diluted in the service.
+
+  These are three passes and two failures, all reported. health-v2 candidates (judge per operation, require larger
+  samples for p95, use variation-based thresholds for chronic services) wait for a calibration.
