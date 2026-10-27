@@ -323,3 +323,24 @@ rebuilt from scratch at every map, with no history, no age and no obsolete facts
   - Metrics, traces and logs connectors.
   - Traefik labels.
   - Several compose files.
+
+## D-023 · 2026-10-27 · A verified deploy, live; three more compose facts; Traefik routes
+
+- **The missing acceptance check of D-022, done.** The earlier autonomous watcher was stopped (with the prototype's
+  collector and containers) so a deploy could be made under the new code. `unbidden drill` on
+  full-stack-fastapi-template passed in 40 s. The deploy it left is **104feb4 `verified`, by unbidden**, and
+  `deploys --commit 104feb4` finds it with its image.
+- **Three bugs the drill exposed, fixed:**
+  - Docker's containerd store gives local builds a digest (`backend@sha256:...`), which had been read as "pulled
+    from a registry". Only a digest naming a registry host counts now.
+  - Deploys run by a drill were credited to nobody.
+  - Containers recreated on the same code kept weaker evidence about their deploy.
+
+  A ledger record written before the fix (deploy 5, "pulled from a registry") is left as it was written.
+- **The deployment's own compose files.** The running containers say which files they were started with; those are
+  read from git and merged in order, as compose merges them. opentelemetry-demo's 5 observability services are now
+  declared rather than only known from Docker.
+- **Traefik router labels are routes from the proxy.** On full-stack-fastapi-template, link recall goes from 0.25 to
+  0.75 (not blind). Reading the deployed `compose.override.yml` also brings in mailpit and playwright, which are
+  declared but not running. The pre-registered reference does not list them, so service precision drops to 0.67,
+  and that is how it is reported.
