@@ -20,10 +20,11 @@ from pydantic import BaseModel, Field
 from unbidden.brain.prompts import load_prompt
 from unbidden.brain.providers import ProviderError
 from unbidden.brain.router import Brain, BrainError
-from unbidden.contracts.common import Contract, EvidenceLevel, capped_confidence, new_id, utc_now
+from unbidden.contracts.common import CONFIDENCE_FLOOR, Contract, EvidenceLevel, capped_confidence, new_id, utc_now
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import ActionRequest, Mandate
 from unbidden.contracts.llm import LLMRequest, Message, Tier, ToolCall, ToolSpec
+from unbidden.guardian import injection
 from unbidden.guardian.policy import PolicyEngine
 from unbidden.store import Store
 
@@ -100,6 +101,9 @@ class Hypothesis(Contract):
     evidence_level: EvidenceLevel = EvidenceLevel.REASONABLE_SUSPICION
     steps: list[dict[str, Any]] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=utc_now)
+    # Set by code, not by the model: text that tried to instruct the model was read, or cited evidence was never read.
+    injection: list[dict[str, str]] = Field(default_factory=list)
+    unsupported_evidence: list[str] = Field(default_factory=list)
 
 
 def _git(repo: Path, *args: str) -> str:
@@ -119,6 +123,8 @@ class Investigation:
     subject: str
     log: Callable[[str], None] = print
     steps: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
+    read: list[str] = field(default_factory=list[str])
+    hits: list[dict[str, str]] = field(default_factory=list[dict[str, str]])
 
     def _services(self) -> list[str]:
         from unbidden.observe.compose import load_compose
@@ -207,6 +213,9 @@ class Investigation:
             if call.name == "finish":
                 return self._conclude(Finish.model_validate(call.arguments))
             output = self.run_tool(call)
+            self.read.append(output[:MAX_OUTPUT])
+            for hit in injection.scan(output[:MAX_OUTPUT]):
+                self.hits.append({"tool": call.name, "kind": hit.kind, "excerpt": hit.excerpt})
             self.steps.append(
                 {"step": step + 1, "tool": call.name, "arguments": call.arguments, "output_chars": len(output)}
             )
@@ -215,7 +224,7 @@ class Investigation:
                 Message(role="assistant", content=response.content or "", tool_calls=[call], source="repo"),
                 Message(
                     role="tool",
-                    content=output[:MAX_OUTPUT],
+                    content=injection.fence(call.name, output[:MAX_OUTPUT]),
                     tool_call_id=call.id,
                     source="runtime" if call.name == "service_errors" else "repo",
                 ),
@@ -225,16 +234,32 @@ class Investigation:
 
     def _conclude(self, finish: Finish) -> Hypothesis:
         level = EvidenceLevel.REASONABLE_SUSPICION
+        missing = injection.unsupported(finish.evidence, self.read)
+        confidence = capped_confidence(finish.confidence, level)
+        if self.hits or missing:
+            # A conclusion that read an attempt to steer it, or cites what it never read, is not trusted by code.
+            confidence = CONFIDENCE_FLOOR
         hypothesis = Hypothesis(
             subject=self.subject,
             statement=finish.statement,
             mechanism=finish.mechanism,
             evidence=finish.evidence,
             confidence_claimed=finish.confidence,
-            confidence=capped_confidence(finish.confidence, level),
+            confidence=confidence,
             evidence_level=level,
             steps=self.steps,
+            injection=self.hits,
+            unsupported_evidence=missing,
         )
+        if self.hits:
+            self.store.append_event(
+                Event(
+                    type=EventType.POLICY_DENIED,
+                    actor="guardian",
+                    entity_id=hypothesis.id,
+                    payload={"control": "untrusted content tried to instruct the model", "hits": self.hits[:10]},
+                )
+            )
         self.store.put("hypotheses", hypothesis)
         self.store.append_event(
             Event(
