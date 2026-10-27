@@ -21,7 +21,12 @@ def trials(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if row.get("phase") != "inject":
             continue
         flag = row["flag"]
-        watch = [r for r in rows[i + 1 :] if r.get("phase") == f"fault:{flag}"]
+        watch = []
+        for r in rows[i + 1 :]:  # this trial's minutes only: the same flag may be tried twice
+            if r.get("phase") in ("inject", "result"):
+                break
+            if r.get("phase") == f"fault:{flag}":
+                watch.append(r)
         expect = watch[0]["expect"] if watch else None
         first_any = next((r["minute"] for r in watch if r["suspects"]), None)
         listed = next((r["minute"] for r in watch if expect in r["suspects"]), None)
