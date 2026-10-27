@@ -108,6 +108,10 @@ Guaranteed by code, and covered by tests:
 - **Metrics and traces.** The project's own Prometheus and Jaeger are read with fixed queries only; only this
   project's services and containers are taken in, and span attributes are dropped on parsing
   (`tests/unit/test_health.py`).
+- **Credentials.** Unbidden's secrets are held by a broker (`guardian/credentials.py`), not the process environment.
+  Each one is given only for the purposes granted, every use is audited without its value, and the egress gate
+  refuses any payload that contains a held value (`tests/unit/test_credentials.py`). It is not a vault: the values
+  are in the process's memory.
 - **Untrusted text.** Tool output reaches the investigator fenced; text that tries to instruct a model is recorded,
   and evidence found only in it lowers the hypothesis to the floor (`tests/unit/test_injection.py`).
 - **Docker scope.** Only containers of the workspace's compose project are read, checked on each container's

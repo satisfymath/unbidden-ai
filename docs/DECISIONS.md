@@ -485,3 +485,24 @@ v1, v2 and v3 each found 1 of 3. v3 was one minute earlier on payment, with more
 
 The detector has now failed two holdouts. It is reported as the weakest part of Unbidden, not hidden behind the
 faults it was designed on.
+
+## D-030 · 2026-10-27 · A credential broker, CI status per job, and polyglot services analyzed one by one
+
+- **Credential broker** (`guardian/credentials.py`).
+  - **Before:** `.unbidden/.env` was copied into `os.environ`, where code that builds prompts and every subprocess
+    could read it.
+  - **Now:** the broker holds Unbidden's secrets, and the declared ones found in the environment, and removes them
+    from it. Each is given per purpose: the remote model's key for `model.remote`, the GitHub token for `github`,
+    probe credentials for `probe`. Every hand-out and refusal is audited without its value, and the egress gate
+    refuses a payload that contains a held credential's exact value. The git push gets the token in its own
+    environment only.
+  - **Limit:** not a vault; the values live in this process's memory.
+  - **Also found:** full-stack-fastapi-template's workspace has never had a `GITHUB_TOKEN`, so its autonomous watcher
+    could not publish a pull request even if it found an improvement.
+- **CI status per job.** The Director reads the conclusion of the jobs that run a tool, not of the whole commit. On
+  chatwoot the commit is red (other jobs failed) but its eslint job is green: the 82 style findings Unbidden's eslint
+  reported are now declined as its environment's.
+- **Polyglot services.** A compose service built from a directory with its own manifest and lockfile is extracted at
+  the commit and scanned as a repository of its own, with the same trusted tools. Findings are recorded with
+  prefixed paths and a tool named `tool@dir`. The lab cannot reproduce them inside the repository yet, so the
+  Director leaves them waiting and says why.
