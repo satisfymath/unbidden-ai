@@ -26,16 +26,16 @@ cannot leave a deploy unjudged.
 |---|---|
 | `contracts/` | Pydantic models shared by everything: findings, opportunities, experiments, proposals, mandate, events, jobs, LLM requests. `contracts` and `guardian` are pyright-strict |
 | `store/` | SQLite in WAL mode. Events and audit are append-only, enforced by triggers. Also holds the job queue, key-value state and probe rounds tagged by deploy |
-| `observe/` | `stack.py` detects languages, package managers and workspaces. `ci.py` turns GitHub Actions workflows into the test plan and the lint scope. `compose.py` reads services. `analyzers.py` and `scan.py` run the repository's own tools in the sandbox. `probe.py`, `impact.py` and `live.py` handle production |
+| `observe/` | `health.py` judges each service against its own baseline from the project's metrics and localizes a degradation along observed calls. `stack.py` detects languages, package managers and workspaces. `ci.py` turns GitHub Actions workflows into the test plan and the lint scope. `compose.py` reads services. `analyzers.py` and `scan.py` run the repository's own tools in the sandbox. `probe.py`, `impact.py` and `live.py` handle production |
 | `world/` | A world model of the running system: static facts (models, routes, tables), runtime facts, inferred relations, and generic checks that find opportunities without naming the target. Each fact names its connector (`connectors.py`), when it was seen and the revision or deploy it describes; `reconcile.py` merges each map into the previous one; `scope.py` walks from an anomaly to the components and gaps behind it |
 | `director/` | Picks the next action for each opportunity by expected utility (p_success × value − cost − risk) within the mandate. Declines what lies outside the CI's scope |
 | `lab/` | `FixLab` (fixes for findings), `PerfLab` (migration plus a model-written workload run inside the team's own test command), `RobustLab` (fixes for crashes). `evaluator.py` compares base and candidate. `perfstats.py` provides Mann-Whitney and CIs |
 | `sandbox/` | `runner.py`: `--network none`, read-only root, all capabilities dropped, uid 1000, snapshot at `/work`. `provision.py` builds dependency images, including code generation such as Prisma. `sidecars.py` starts databases on an `--internal` network |
 | `brain/` | `router.py` routes each request with `route_policy.py` and `tasks.py`, repairs malformed answers and falls back between tiers. Providers: Ollama, OpenAI-compatible (Meta Model API), mock. `hardware.py` chooses the local model for the machine. Prompts are versioned files in `prompts/` |
-| `guardian/` | Pure Python and deny-by-default. `policy.py` holds capabilities. `classify.py` labels content. `scanner.py` finds secrets. `egress.py` is the outbound gate and records every attempt. Also approvals, the kill switch and mandate loading. It imports nothing from `brain/` |
+| `guardian/` | Pure Python and deny-by-default. `injection.py` fences what the system under observation wrote, scans it for attempts to instruct a model and checks that cited evidence was read. `policy.py` holds capabilities. `classify.py` labels content. `scanner.py` finds secrets. `egress.py` is the outbound gate and records every attempt. Also approvals, the kill switch and mandate loading. It imports nothing from `brain/` |
 | `bridge/` | The privacy bridge. `rename.py` renames every word that is neither the language's nor a declared dependency's. `service.py` adds the local outsider review, the send, the reverse renaming and dry runs |
 | `research/` | `investigate.py` is a read-only tool loop (git log, git diff, service errors, read file). `robustness.py` covers property tests written by a model and parsing their crashes |
-| `forge/` | Capabilities Unbidden builds for itself: today, regex log adapters. Each is judged by a versioned oracle (held-out real lines plus metamorphic variants) before it can be used |
+| `forge/` | Capabilities Unbidden builds for itself: regex log adapters and stats readers (`stats.py`, for text metrics endpoints no connector reads). Each carries a card (purpose, typed IO, permissions it cannot widen, privacy, limits, tests, failures, how to disable it) and is judged by a versioned oracle with no model (held-out real lines plus metamorphic variants) before it can be used. A format a reader already exists for is not built |
 | `publish/` | Branches, PR bodies with their evidence, and pinned merges through the GitHub API |
 | `operate/` | Deploys and rollbacks using the team's declared steps, holds, and the deploy ledger (`ledger.py`): which commit each set of running containers holds, and how that is known |
 | `cli.py` | Every human interaction. `--json` everywhere |
@@ -105,6 +105,11 @@ Guaranteed by code, and covered by tests:
 - **Sandbox.** Sandboxed code has no network. Sidecar databases sit on an internal network.
 - **Level 5 needs known code.** No level 5 between deploys whose commit was inferred or unknown
   (`tests/unit/test_live.py`).
+- **Metrics and traces.** The project's own Prometheus and Jaeger are read with fixed queries only; only this
+  project's services and containers are taken in, and span attributes are dropped on parsing
+  (`tests/unit/test_health.py`).
+- **Untrusted text.** Tool output reaches the investigator fenced; text that tries to instruct a model is recorded,
+  and evidence found only in it lowers the hypothesis to the floor (`tests/unit/test_injection.py`).
 - **Docker scope.** Only containers of the workspace's compose project are read, checked on each container's
   label as well as by the listing (`tests/unit/test_ledger.py`).
 - **Knowledge ages, it is not erased or kept fresh by default.** A fact its source no longer sees becomes

@@ -107,14 +107,16 @@ A claim's confidence is capped by its level. Only L4 and above becomes a pull re
 
 | Command | What it does |
 |---|---|
-| `init`, `doctor`, `status`, `map` | Set up, check the machine, see what Unbidden knows and cannot see |
+| `init`, `doctor`, `status`, `map` | Set up, check the machine, see what Unbidden knows and cannot see. `map --scope <id>` walks from one component to what it rests on, with each fact's source and age; `map --connectors` says what each connector reads and costs |
+| `health` | Each service's errors and latency against its own baseline (from the project's Prometheus), where a degradation starts, and whether traces agree |
 | `scan`, `inbox`, `show`, `try`, `why` | Find opportunities, inspect them, run an experiment, see every decision and payload behind it |
+| `decide` | What the Director would do with each open opportunity, and why, without doing it |
 | `review`, `approve`, `reject` | Decide on waiting proposals |
 | `watch` | The background agent |
-| `mode`, `drill`, `deploys`, `hold`, `kill`, `resume` | Autonomy and operations |
+| `mode`, `drill`, `deploys`, `hold`, `kill`, `resume` | Autonomy and operations. `deploys` says which commit each deploy runs and how that is known (verified, observed, inferred, unknown); `deploys --commit <sha>` finds the deploys that ran it |
 | `probe` | Property-based crash search on a Python package |
 | `investigate` | Read-only explanation of a failure between two versions |
-| `forge`, `logs` | Capabilities Unbidden builds for itself (log adapters), judged by an oracle before use |
+| `forge`, `logs` | Capabilities Unbidden builds for itself (log adapters; readers for text metrics endpoints with `forge stats <url>`), judged by an oracle with no model before use, and disabled with `forge disable` |
 | `models`, `route`, `egress` | Model profile, routing explanation, outbound audit |
 
 Every command accepts `--json`.
