@@ -111,10 +111,43 @@ def property_violations(output: str) -> list[tuple[str, str]]:
 _FAIL_HEADER = re.compile(r"^_{3,} (test_\w+) _{3,}$", re.MULTILINE)
 
 
+_GROUP_PART = re.compile(r"^\s*\+?-+\+?-* \d+ -+$", re.MULTILINE)
+_PY_FRAME = re.compile(r'File "(?:/work/)?(?P<path>[\w/.-]+\.py)", line (?P<line>\d+), in (?P<fn>\w+)')
+_PY_EXC = re.compile(r"^\s*\|?\s*(?P<exc>\w+(?:Error|Exception)): (?P<msg>.*)$", re.MULTILINE)
+_PY_CASE = re.compile(r"Failing test case: (?P<case>.+?)\n\s*\|?\s*\n", re.DOTALL)
+
+
+def _group_crashes(name: str, body: str, package: str) -> list[Crash]:
+    """Hypothesis reports several distinct failures as an ExceptionGroup, in Python's traceback format."""
+    crashes: list[Crash] = []
+    for part in _GROUP_PART.split(body)[1:]:
+        frames = [m for m in _PY_FRAME.finditer(part) if m.group("path").startswith(f"{package}/")]
+        excs = [m for m in _PY_EXC.finditer(part) if m.group("exc") != "ExceptionGroup"]
+        if not frames or not excs or excs[-1].group("exc") not in BUG_EXCEPTIONS:
+            continue
+        frame = frames[-1]
+        case = _PY_CASE.search(part)
+        example = re.sub(r"\n\s*\|\s*", " ", case.group("case")).strip() if case else ""
+        crashes.append(
+            Crash(
+                name,
+                excs[-1].group("exc"),
+                excs[-1].group("msg").strip()[:300],
+                f"{frame.group('path')}:{frame.group('line')} in {frame.group('fn')}",
+                example[:600],
+                part[-2500:],
+            )
+        )
+    return crashes
+
+
 def parse_crashes(output: str, package: str) -> list[Crash]:
     crashes: list[Crash] = []
     sections = _FAIL_HEADER.split(output)
     for name, body in zip(sections[1::2], sections[2::2], strict=False):
+        if "ExceptionGroup" in body:
+            crashes.extend(_group_crashes(name, body, package))
+            continue
         exc = re.findall(r"^E\s+(\w+(?:Error|Exception))\b:?\s*(.*)$", body, re.MULTILINE)
         frames = re.findall(rf"^({re.escape(package)}/[\w/]+\.py):(\d+): in (\w+)", body, re.MULTILINE)
         example = re.search(r"Falsifying example: (.+?)(?:\n\n|\n[A-Z_]{2,})", body, re.DOTALL)

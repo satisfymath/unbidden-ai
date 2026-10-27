@@ -615,7 +615,7 @@ def cmd_investigate(args: argparse.Namespace) -> int:
 
 
 def cmd_probe(args: argparse.Namespace) -> int:
-    """Look for crashes in a package with property-based tests the local model writes, run offline."""
+    """Look for crashes in a package with property-based tests a model writes, run offline."""
     import asyncio
 
     from unbidden.research.robustness import RobustnessProbe, parse_crashes, property_violations
@@ -628,33 +628,38 @@ def cmd_probe(args: argparse.Namespace) -> int:
         err.print("robustness probes need a Python package")
         return 2
     probe = RobustnessProbe(runtime.workspace.repo, runtime.store, runtime.brain, images["python"])
-    with console.status(f"writing property tests for {args.package}"):
-        tests = asyncio.run(probe.write_tests(rev, args.package, args.count))
     artifacts = runtime.workspace.dir / "artifacts"
     artifacts.mkdir(exist_ok=True)
-    (artifacts / f"robustness-{rev[:12]}.answer.md").write_text(probe.last_answer)
-    if tests is None:
-        err.print("the local model wrote no usable tests (its answer is kept in .unbidden/artifacts)")
+
+    async def session() -> tuple[str, str] | None:
+        # One event loop for every model call: the HTTP clients belong to it.
+        with console.status(f"writing property tests for {args.package}"):
+            tests = await probe.write_tests(rev, args.package, args.count)
+        (artifacts / f"robustness-{rev[:12]}.answer.md").write_text(probe.last_answer)
+        if tests is None:
+            return None
+        with console.status("running them offline"):
+            output = await asyncio.to_thread(probe.run_tests, rev, tests)
+        for round_ in range(args.refine):
+            violations = property_violations(output)
+            if not violations:
+                break
+            console.print(f"[dim]round {round_ + 1}: {len(violations)} property violation(s) sent back[/]")
+            with console.status("refining the properties"):
+                refined = await probe.refine(tests, output)
+            if refined is None:
+                break
+            tests = refined
+            with console.status("running them again"):
+                output = await asyncio.to_thread(probe.run_tests, rev, tests)
+        return tests, output
+
+    outcome = asyncio.run(session())
+    if outcome is None:
+        err.print("no usable tests were written (the answer is kept in .unbidden/artifacts)")
         return 1
-    artifacts = runtime.workspace.dir / "artifacts"
-    artifacts.mkdir(exist_ok=True)
+    tests, output = outcome
     (artifacts / f"robustness-{rev[:12]}.py").write_text(tests)
-    with console.status("running them offline"):
-        output = probe.run_tests(rev, tests)
-    for round_ in range(args.refine):
-        violations = property_violations(output)
-        if not violations:
-            break
-        console.print(
-            f"[dim]round {round_ + 1}: {len(violations)} property violation(s) sent back to be narrowed or kept[/]"
-        )
-        with console.status("refining the properties"):
-            refined = asyncio.run(probe.refine(tests, output))
-        if refined is None:
-            break
-        tests = refined
-        with console.status("running them again"):
-            output = probe.run_tests(rev, tests)
     (artifacts / f"robustness-{rev[:12]}.log").write_text(output)
     crashes = parse_crashes(output, args.package)
     opened = probe.record(rev, args.package, tests, crashes)

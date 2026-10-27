@@ -47,3 +47,33 @@ def test_the_regression_test_keeps_imports_and_one_test() -> None:
     source = "from rich.text import Text\n\ndef test_a(s):\n    Text(s)\n\ndef test_b(s):\n    pass\n"
     reduced = single_test(source, "test_a")
     assert "from rich.text import Text" in reduced and "def test_a" in reduced and "test_b" not in reduced
+
+
+GROUP = """
+_________________________ test_split_text_never_crashes _________________________
+  | ExceptionGroup: Hypothesis found 2 distinct failures. (2 sub-exceptions)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "/work/tests/test_unbidden_robustness.py", line 69, in test_split_text_never_crashes
+    |   File "/work/rich/cells.py", line 266, in _split_text
+    | IndexError: list index out of range
+    | Failing test case: test_split_text_never_crashes(
+    |     text='0\\x1f',
+    | )
+    |
+    +---------------- 2 ----------------
+    |   File "/work/rich/cells.py", line 256, in _split_text
+    | ZeroDivisionError: division by zero
+    | Failing test case: test_split_text_never_crashes(
+    |     text='\\x1f',
+    | )
+    |
+"""
+
+
+def test_every_failure_of_an_exception_group_is_read() -> None:
+    crashes = parse_crashes(GROUP, "rich")
+    assert [(c.exception, c.frame) for c in crashes] == [
+        ("IndexError", "rich/cells.py:266 in _split_text"),
+        ("ZeroDivisionError", "rich/cells.py:256 in _split_text"),
+    ]
