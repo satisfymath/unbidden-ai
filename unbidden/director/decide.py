@@ -127,6 +127,9 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
         reason = f"proven only to L{int(level)}; the mandate asks L{int(minimum)} before proposing"
         add(ActionKind.DECLINE, 0.0, 0.0, 0.0, reason)
         return _choose(opp, candidates, ActionKind.DECLINE)
+    elif (blocked := opp.details.get("blocked")) and blocked.get("rev") == opp.details.get("rev"):
+        add(ActionKind.WAIT, 0.0, 0.0, 0.0, f"not measurable at this commit: {str(blocked.get('why', ''))[:200]}")
+        return _choose(opp, candidates, ActionKind.WAIT)
     elif ctx.attempts >= MAX_LAB_ATTEMPTS:
         add(ActionKind.DECLINE, 0.0, 0.0, 0.0, f"{ctx.attempts} experiments found no proven fix")
         return _choose(opp, candidates, ActionKind.DECLINE)
@@ -138,7 +141,8 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
 
 
 def _choose(opp: Opportunity, candidates: list[CandidateAction], chosen: ActionKind) -> Decision:
-    reason = next((c.reason for c in candidates if c.kind is chosen), "")
+    # The last candidate of that kind: a specific reason (a full PR cap, a blocked lab) follows the default "wait".
+    reason = next((c.reason for c in reversed(candidates) if c.kind is chosen), "")
     return Decision(
         opportunity_id=opp.id, evidence_level=opp.evidence_level, candidates=candidates, chosen=chosen, reason=reason
     )

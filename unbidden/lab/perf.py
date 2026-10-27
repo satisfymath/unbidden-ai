@@ -92,6 +92,7 @@ class PerfResult:
     verdict: Verdict | None = None
     candidate: Candidate | None = None
     notes: list[str] = field(default_factory=list[str])
+    blocked: str | None = None  # what Unbidden lacks to run the experiment at all: not an experiment, not a negative
 
 
 def _git(repo: Path, *args: str) -> str:
@@ -178,9 +179,11 @@ class PerfLab:
 
     def _models_file(self, rev: str, table: str) -> str | None:
         for path in _git(self.repo, "ls-tree", "-r", "--name-only", rev).splitlines():
-            if path.endswith(".py") and "/tests/" not in path:
+            if path.endswith(".py") and not re.search(r"(^|/)(tests|alembic|migrations|versions)/", path):
                 text = self._show(rev, path)
                 if re.search(rf"class\s+{re.escape(table)}\s*\(", text, re.IGNORECASE) and "table=True" in text:
+                    return path
+                if re.search(rf"__tablename__\s*=\s*[\"']{re.escape(table)}[\"']", text):  # SQLAlchemy
                     return path
         return None
 
@@ -266,9 +269,21 @@ class PerfLab:
         head = alembic_head(self.repo, rev)
         models_file = self._models_file(rev, table)
         handlers = self._handlers(opp, rev)
-        if plan is None or ci is None or head is None or models_file is None or not handlers:
-            result.notes.append("cannot measure: needs a CI test job, one Alembic head, the model and the handlers")
+        missing = [
+            what
+            for what, have in (
+                ("a CI job that runs the tests", plan is not None and ci is not None),
+                ("a single Alembic head", head is not None),
+                (f"the model of table {table}", models_file is not None),
+                ("the handlers of the endpoints that read it", bool(handlers)),
+            )
+            if not have
+        ]
+        if missing:
+            result.blocked = "cannot measure: no " + ", no ".join(missing)
+            result.notes.append(result.blocked)
             return result
+        assert plan is not None and ci is not None and head is not None and models_file is not None
         cwd = ci.steps[-1].cwd if ci.steps else "."
         test_dir = self.stack.python.test_paths[0] if self.stack.python and self.stack.python.test_paths else "tests"
         list_endpoint = next((e for e in endpoints if e.startswith("GET ") and "{" not in e), endpoints[0])

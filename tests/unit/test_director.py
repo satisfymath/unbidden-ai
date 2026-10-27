@@ -33,7 +33,8 @@ def test_unknown_category_is_declined_with_reason(mandate: Mandate) -> None:
 def test_proven_l4_is_proposed_unless_the_cap_is_full(mandate: Mandate) -> None:
     proven = opp(level=4, improved=True, status=OpportunityStatus.EXPERIMENTING)
     assert decide(proven, mandate, Context(0, 0)).chosen is ActionKind.PROPOSE_CHANGE
-    assert decide(proven, mandate, Context(3, 0)).chosen is ActionKind.WAIT
+    capped = decide(proven, mandate, Context(3, 0))
+    assert capped.chosen is ActionKind.WAIT and "cap 3" in capped.reason
 
 
 def test_l3_is_not_enough_for_the_default_mandate(mandate: Mandate) -> None:
@@ -90,3 +91,12 @@ def test_style_findings_against_a_green_ci_of_the_same_tool_are_unbiddens_enviro
     assert decided.chosen is ActionKind.DECLINE and "environment" in decided.reason
     red = Context(open_pull_requests=0, attempts=0, ci_commands="pnpm run eslint", ci_status="red")
     assert decide(opp, mandate, red).chosen is not ActionKind.DECLINE
+
+
+def test_a_lab_that_could_not_run_waits_instead_of_counting_as_a_failed_experiment(mandate: Mandate) -> None:
+    blocked = opp(category="performance")
+    blocked.details = {"rev": "abc", "blocked": {"rev": "abc", "why": "cannot measure: no a single Alembic head"}}
+    decision = decide(blocked, mandate, Context(0, 0))
+    assert decision.chosen is ActionKind.WAIT and "Alembic" in decision.reason
+    blocked.details = {**blocked.details, "rev": "def"}  # a new commit: worth trying again
+    assert decide(blocked, mandate, Context(0, 0)).chosen is ActionKind.RUN_EXPERIMENT

@@ -16,7 +16,7 @@ from typing import Any
 import yaml
 
 _SKIP = re.compile(
-    r"(?ix)\b(docker|compose|pip\s+install|uv\s+sync|uv\s+pip|poetry\s+install|npm\s+(ci|install)|pnpm\s+install"
+    r"(?ix)\b(docker|compose|pip\s+install|uv\s+sync|uv\s+lock|uv\s+pip|poetry\s+install|npm\s+(ci|install)|pnpm\s+install"
     r"|yarn\s+install|apt-get|brew|curl|wget|codecov|coverage\s+report|coverage\s+html|smokeshow|git\s+)"
     # Activating a virtualenv: the dependency image already puts its environment first.
     r"|^\s*(source|\.)\s+\S*(venv|VENV|activate)\S*\s*$"
@@ -67,22 +67,88 @@ _PY_TESTS = re.compile(
     r"\bpytest\b|-m (pytest|unittest)\b|\b(make|tox|nox|hatch run|poetry run|uv run)\s+[\w:-]*test"
     r"|[\w./-]*test[\w-]*\.(sh|py)\b"
 )
+# Checks the scan already runs, offline and pinned; in a test plan they only add time and network needs.
+_CHECK_RUN = re.compile(r"\b(pre-commit|mypy|pyright|semgrep|ruff|flake8|black|isort|pylint|codespell)\b")
+# A job that does any of this publishes something: never run as a test plan, whatever else it does.
+_PUBLISHES = re.compile(
+    r"\bgh\s+(pr|release|issue|api)\b|\bgit\s+push\b|\b(docker|helm)\s+push\b|"
+    r"\btwine\s+upload\b|\b(npm|pnpm|yarn)\s+publish\b|\buv\s+publish\b"
+)
+_TASK_CALL = re.compile(r"^\s*task\s+(?P<name>[\w:.-]+)(?P<rest>.*)$")
+TASKFILES = ("Taskfile.yml", "Taskfile.yaml", "taskfile.yml", "taskfile.yaml")
+
+
+def taskfile_tasks(repo: Path, rev: str) -> dict[str, list[str]]:
+    """The commands of each task in the repository's Taskfile (go-task), nested `task:` calls expanded once."""
+    for name in TASKFILES:
+        text = _git(repo, "show", f"{rev}:{name}")
+        if not text:
+            continue
+        try:
+            tasks = (yaml.safe_load(text) or {}).get("tasks") or {}
+        except yaml.YAMLError:
+            return {}
+        raw: dict[str, list[Any]] = {
+            str(k): (v.get("cmds") or []) if isinstance(v, dict) else [v] if isinstance(v, str) else []
+            for k, v in tasks.items()
+        }
+
+        def commands(cmds: list[Any], depth: int = 0, raw: dict[str, list[Any]] = raw) -> list[str]:
+            out: list[str] = []
+            for cmd in cmds:
+                if isinstance(cmd, str):
+                    out.append(cmd)
+                elif isinstance(cmd, dict) and isinstance(cmd.get("cmd"), str):
+                    out.append(str(cmd["cmd"]))
+                elif isinstance(cmd, dict) and isinstance(cmd.get("task"), str) and depth < 2:
+                    out += commands(raw.get(str(cmd["task"]), []), depth + 1)
+            return out
+
+        return {k: commands(v) for k, v in raw.items()}
+    return {}
+
+
+def _expand_tasks(command: str, tasks: dict[str, list[str]]) -> str:
+    """`task py:test -- -k x` becomes the task's own commands, its CLI arguments in place of `{{ .CLI_ARGS }}`."""
+    lines: list[str] = []
+    for line in command.splitlines():
+        call = _TASK_CALL.match(line)
+        if call is None or call.group("name") not in tasks:
+            lines.append(line)
+            continue
+        args = call.group("rest").partition("--")[2].strip()
+        lines += [re.sub(r"\{\{\s*\.CLI_ARGS\s*\}\}", args, c) for c in tasks[call.group("name")]]
+    return "\n".join(lines)
+
+
+def _parses(command: str) -> bool:
+    """Whether a cleaned step is still valid shell: dropping lines can leave an empty `if ... then else fi`."""
+    return subprocess.run(["bash", "-n"], input=command, capture_output=True, text=True, check=False).returncode == 0
+
+
 # Jobs that need more than the repository: a browser, a deployed system, another operating system.
 _NEEDS_MORE = re.compile(r"e2e|browser|playwright|cypress|integration|smoke|deploy|release|\bwin|windows|macos")
 
 
-def _job_plan(workflow: str, job_name: str, job: dict[str, Any], language: str) -> CiPlan | None:
+def _job_plan(
+    workflow: str, job_name: str, job: dict[str, Any], language: str, tasks: dict[str, list[str]] | None = None
+) -> CiPlan | None:
     defaults = ((job.get("defaults") or {}).get("run") or {}).get("working-directory", ".")
     steps: list[CiStep] = []
     services: list[str] = []
-    for step in job.get("steps") or []:
-        run = step.get("run") if isinstance(step, dict) else None
-        if not isinstance(run, str):
+    runs = [s for s in job.get("steps") or [] if isinstance(s, dict) and isinstance(s.get("run"), str)]
+    if any(_PUBLISHES.search(_expand_tasks(str(s["run"]), tasks or {})) for s in runs):
+        return None
+    for step in runs:
+        if step.get("continue-on-error") is True:  # optional by the team's own account (a cache check)
             continue
+        run = _expand_tasks(str(step["run"]), tasks or {})
         for match in _COMPOSE_UP.finditer(run):
             services += [a for a in match.group("args").split() if not a.startswith("-")]
         command = _clean(run)
         if command is not None:
+            command = "\n".join(line for line in command.splitlines() if not _CHECK_RUN.search(line))
+        if command and _parses(command):
             steps.append(CiStep(cwd=str(step.get("working-directory") or defaults), command=command))
     text = " ".join(s.command for s in steps)
     runs_tests = _PY_TESTS.search(text) if language == "python" else re.search(r"\btest\b", text)
@@ -120,15 +186,17 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
         )
 
     jobs.sort(key=rank)
+    tasks = taskfile_tasks(repo, rev)
     for name, job_name, job in jobs:
         hint = " ".join(
             str(s.get("run", "")) + str(s.get("uses", "")) for s in job.get("steps") or [] if isinstance(s, dict)
         )
+        hint = _expand_tasks(hint, tasks) if tasks else hint
         if language == "python" and not re.search(r"python|pytest|uv |poetry", hint):
             continue
         if language == "node" and not re.search(r"node|npm|pnpm|yarn|bun", hint):
             continue
-        plan = _job_plan(name, job_name, job, language)
+        plan = _job_plan(name, job_name, job, language, tasks)
         if plan is not None:
             return plan
     return None

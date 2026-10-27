@@ -236,7 +236,13 @@ class Cycle:
             )
             result = await lab.run(opp)
         opp = self.store.get("opportunities", opp.id, Opportunity) or opp
-        if result.verdict is not None and result.verdict.improved:
+        blocked = getattr(result, "blocked", None)
+        if blocked:
+            # Nothing ran: what is missing is Unbidden's, not evidence against the opportunity.
+            opp.details = {**opp.details, "blocked": {"rev": opp.details.get("rev"), "why": blocked}}
+            self.store.put("opportunities", opp)
+            self.log(f"{opp.id}: not measured ({blocked})")
+        elif result.verdict is not None and result.verdict.improved:
             self.log(f"{opp.id}: improved, evidence L{int(opp.evidence_level)}")
         else:
             opp.details = {**opp.details, "attempts": int(opp.details.get("attempts", 0)) + 1}
