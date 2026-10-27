@@ -452,3 +452,23 @@ before, plus lexical, docusaurus (7 of 40 packages) and chatwoot.
 **Criterion, measured.** Of 108 opportunity groups, 4 were declined, against 0 under the act-on-everything
 policy. 82 of the 104 that would be acted on are chatwoot style findings, likely an environment difference, that
 the per-commit CI status cannot rule out because that commit's CI is red. Next, CI status should be read per job.
+
+## D-028 · 2026-10-27 · Autonomous in the test environments; screenshots allowed; a multimodal judge that earned its place
+
+- **Autonomy.** David set Unbidden to run autonomous, with every capability, in its test environments: that is the
+  product. full-stack-fastapi-template (the fork) runs `unbidden watch` autonomous. opentelemetry-demo runs
+  autonomous for everything local (experiments, delegation, Forge capabilities), but GitHub publishing is denied
+  there, because its repository is a third party's upstream.
+- **Screenshots** of the project's own pages may go to a Meta multimodal model only where the mandate says
+  `models.screenshots_to_frontier: allow`, through the `model.remote.screenshot` capability. The egress gate records
+  each send with its size and digest, and the images stay in `.unbidden/artifacts/ui/`. Images cannot be scanned
+  for secrets as text can, which is why this is an explicit per-workspace choice.
+- **The UI lab.** Pages are captured in a pinned Playwright container. Two judges answer whether the page is healthy
+  and what is wrong. On the pre-registered evaluation (`docs/bench/2026-10-27-ui-eval.md`) the visual judge
+  (Muse Spark 1.3) beat the browser judge: detection 8/12 against 6/12, attribution 5/9 against 3/9. It saw blank
+  images that the DOM reported as loaded, 3 of 3 times. By its own rule it is now in the critical path: an anomaly
+  records both judges' view of the product's page.
+- **L5.** In full-stack-fastapi-template, Unbidden finds no new improvement it can measure: the one it found (the
+  index) is deployed, and its verdict stays at L4 under the criteria of its time (D-014). No new L5 is claimed; the
+  autonomous watcher keeps looking. What is missing for an L5 in opentelemetry-demo is analysis of its languages
+  (Go, .NET, Java, Rust) and deploy steps for a service built from source.
