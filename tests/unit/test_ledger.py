@@ -172,3 +172,22 @@ def test_containers_recreated_by_unbiddens_deploy_of_the_same_code_upgrade_the_d
     again = ledger.observe(store, [rebuilt], head=A, now=now)
     assert again is not None and again.index == first.index
     assert (again.commit_status, again.initiated_by) == ("verified", "unbidden")
+
+
+def test_build_steps_vouch_only_for_services_the_compose_file_builds(store: Store) -> None:
+    app = container("c1", "i1", T0 - timedelta(days=2))
+    db = container("c2", "i2", T0 - timedelta(days=30)).model_copy(update={"service": "postgres"})
+    record = ledger.bind(store, [app, db], A, started=T0, rebuilt=True, built={"backend"})
+    assert record["backend"]["verified"] is True
+    assert record["postgres"]["verified"] is False  # `image: postgres:16`, pulled, not built from the checkout
+
+
+def test_a_deploy_seen_before_its_binding_is_upgraded_once_the_binding_exists(store: Store) -> None:
+    running = [container("c1", "i1", T0 + timedelta(seconds=30), started=T0 + timedelta(seconds=40))]
+    first = ledger.observe(store, running, head=A, now=T0 + timedelta(seconds=45))
+    assert first is not None and first.commit_status == "inferred"
+    ledger.bind(store, running, A, started=T0)  # Unbidden's deploy finishes binding after the watcher saw it
+    store.set_value("unbidden_deploys", [{"commit": A, "at": (T0 + timedelta(seconds=60)).isoformat()}])
+    again = ledger.observe(store, running, head=A, now=T0 + timedelta(seconds=90))
+    assert again is not None and again.id == first.id
+    assert again.commit_status == "verified" and again.initiated_by == "unbidden"

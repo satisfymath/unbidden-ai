@@ -118,7 +118,13 @@ def steps_build(steps: list[list[str]]) -> bool:
 
 
 def bind(
-    store: Store, containers: list[RunningContainer], commit: str, started: datetime, *, rebuilt: bool = False
+    store: Store,
+    containers: list[RunningContainer],
+    commit: str,
+    started: datetime,
+    *,
+    rebuilt: bool = False,
+    built: set[str] | None = None,
 ) -> dict[str, Any]:
     """After Unbidden's own deploy of `commit`: remember which images hold it. A binding is verified when the deploy
     steps built from the checkout or the image was created inside this deploy; a container merely restarted on an
@@ -126,9 +132,12 @@ def bind(
     bindings: dict[str, dict[str, Any]] = store.get_value("image_bindings", {})
     record: dict[str, Any] = {}
     for c in containers:
-        built = parse_ts(c.image_created)
-        # Build steps vouch only for images built here; one pulled from a registry was not built from the checkout.
-        verified = (rebuilt and not from_registry(c)) or (built is not None and built >= started)
+        created = parse_ts(c.image_created)
+        # Build steps vouch only for images built here: a service with a `build:` (when the compose file says), not
+        # one pulled from a registry. Docker Hub digests name no host (`postgres@sha256:...`), so the compose file
+        # is what tells `postgres:16` from a local build.
+        here = (built is None or c.service in built) and not from_registry(c)
+        verified = (rebuilt and here) or (created is not None and created >= started)
         if c.image_id in bindings and bindings[c.image_id].get("verified") and not verified:
             continue  # an earlier deploy built this image; that binding stays
         bindings[c.image_id] = {
@@ -155,7 +164,12 @@ def bind(
 def bind_after_deploy(
     repo: Path, store: Store, commit: str, started: datetime, *, rebuilt: bool = False
 ) -> dict[str, Any]:
-    return bind(store, snapshot(repo), commit, started, rebuilt=rebuilt)
+    from unbidden.observe.compose import load_compose
+    from unbidden.world.runtime import compose_files
+
+    compose = load_compose(repo, "HEAD", compose_files(repo) or None)
+    built = {name for name, s in compose.services.items() if s.build_context} if compose is not None else None
+    return bind(store, snapshot(repo), commit, started, rebuilt=rebuilt, built=built)
 
 
 def resolve(
@@ -233,7 +247,18 @@ def observe(
     key = ",".join(sorted(c.container_id for c in containers))
     known: dict[str, str] = store.get_value("container_deploys", {})
     if key in known:
-        return store.get(COLLECTION, known[key], Deployment)
+        current = store.get(COLLECTION, known[key], Deployment)
+        if current is not None:
+            # Seen before Unbidden's deploy finished binding it: better evidence since then upgrades the record.
+            commit, status, reason = resolve(containers, store.get_value("image_bindings", {}), head)
+            changed = False
+            if commit == current.commit and STRENGTH[status] > STRENGTH[current.commit_status]:
+                current.commit_status, current.commit_reason, changed = status, reason, True
+            if current.initiated_by != "unbidden" and initiator(store, containers, current.commit) == "unbidden":
+                current.initiated_by, changed = "unbidden", True
+            if changed:
+                store.put(COLLECTION, current)
+        return current
     latest = deployments(store)[-1:]
     if latest and {c.container_id for c in containers} <= {c.container_id for c in latest[0].containers}:
         return latest[0]  # containers stopped or restarted, none new: not a deploy
