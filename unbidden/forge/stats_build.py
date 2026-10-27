@@ -121,6 +121,29 @@ async def _build(
     tries: int,
     transform: LogTransform | None,
 ) -> BuildResult:
+    reuse = reusable(store, lines)
+    if reuse is not None:
+        adopted = reuse.model_copy(
+            update={
+                "id": f"cap_{random.Random(source).getrandbits(64):016x}",
+                "source": source,
+                "version": 1 + len([a for a in store.list(COLLECTION, StatsAdapter) if a.source == source]),
+                "provenance": {**reuse.provenance, "reused_from": reuse.id, "reused_source": reuse.source},
+                "card": _card(source, permissions),
+            }
+        )
+        store.put(COLLECTION, adopted)
+        store.append_event(
+            Event(
+                type=EventType.CAPABILITY_BUILT,
+                actor="forge",
+                entity_id=adopted.id,
+                payload={"decision": f"reuse:{reuse.id}", "source": source},
+            )
+        )
+        return BuildResult(
+            adopted, f"reuse:{reuse.id}", [f"{reuse.id} (built for {reuse.source}) passes the oracle here"]
+        )
     known = known_format(lines)
     if known is not None:
         store.append_event(
@@ -237,6 +260,18 @@ def usable(store: Store, source: str) -> StatsAdapter | None:
         if a.source == source and a.status in ("validated", "approved") and a.quality.get("oracle") == ORACLE_VERSION
     ]
     return max(candidates, key=lambda a: a.version) if candidates else None
+
+
+def reusable(store: Store, lines: list[str]) -> StatsAdapter | None:
+    """A validated reader built for another source that the current oracle also passes on these lines: reused
+    instead of building a new one (the same software, in another project, serves the same format)."""
+    _, heldout = split(lines)
+    for adapter in sorted(store.list(COLLECTION, StatsAdapter), key=lambda a: a.created_at, reverse=True):
+        if adapter.status not in ("validated", "approved") or adapter.quality.get("oracle") != ORACLE_VERSION:
+            continue
+        if oracle(adapter.line, adapter.entity, heldout).passed:
+            return adapter
+    return None
 
 
 def disable(store: Store, capability_id: str, why: str) -> StatsAdapter | None:

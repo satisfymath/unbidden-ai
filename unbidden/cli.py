@@ -705,7 +705,7 @@ def _forge_stats(runtime: Any, url: str | None) -> int:
         for note in result.notes:
             console.print(f"  [dim]{note}[/]")
         console.print(f"decision: [bold]{result.decision}[/]")
-        if result.adapter is None or result.decision != "built":
+        if result.adapter is None:
             return 0 if result.decision.startswith("reuse") else 1
         adapter = result.adapter
         console.print(f"{adapter.id} v{adapter.version}: {adapter.status} · {adapter.quality}")

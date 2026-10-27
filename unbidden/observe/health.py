@@ -208,6 +208,36 @@ def trace_check(traces: Jaeger, suspect: Suspect) -> dict[str, Any]:
     }
 
 
+def proxy_errors(store: Store, world: WorldModel, wait_s: float = 10.0) -> dict[str, dict[str, float]]:
+    """Errors each proxy saw per upstream over a few seconds, through stats readers Forge built: counters are read
+    twice and only their growth counts."""
+    import time
+
+    from unbidden.forge import stats_build
+    from unbidden.forge.stats import deltas, read
+
+    readers = [
+        (str(c.attributes.get("service")), e["url"], stats_build.usable(store, e["url"]))
+        for c in world.of_kind("container")
+        for e in c.attributes.get("text_endpoints", [])
+    ]
+    readers = [(s, u, a) for s, u, a in readers if a is not None]
+    if not readers:
+        return {}
+    before = {u: stats_build.fetch(u) for _, u, _ in readers}
+    time.sleep(wait_s)
+    found: dict[str, dict[str, float]] = {}
+    for service, url, adapter in readers:
+        after = stats_build.fetch(url)
+        assert adapter is not None
+        metrics = {r.metric for r in read(adapter, after) if r.metric and ("5xx" in r.metric or "error" in r.metric)}
+        for metric in sorted(metrics):
+            grown = {e: d for e, d in deltas(adapter, before[url], after, metric).items() if d > 0}
+            if grown:
+                found[f"{service} {metric}"] = grown
+    return found
+
+
 @dataclass
 class HealthWatcher:
     store: Store
@@ -260,6 +290,10 @@ class HealthWatcher:
                     record["traces"] = trace_check(self.traces, suspect)
                 except JaegerError as exc:
                     record["traces"] = {"error": str(exc)}
+            try:
+                record["proxies"] = proxy_errors(self.store, self.world)
+            except Exception as exc:  # a reader that fails is recorded, never blocks the anomaly
+                record["proxies"] = {"error": {str(exc)[:200]: 0.0}}
             open_[name] = record
             self.store.append_event(
                 Event(type=EventType.ANOMALY_DETECTED, actor="observer", entity_id=f"service:{name}", payload=record)

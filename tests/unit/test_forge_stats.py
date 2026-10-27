@@ -86,3 +86,22 @@ def test_patterns_come_back_as_raw_text_with_their_backslashes() -> None:
     line, entity = parse_spec(answer)
     assert (line, entity) == (r"(?P<name>[^:]+): (?P<value>-?\d+(\.\d+)?)", None)
     assert admit(line, None) == []
+
+
+def test_a_reader_built_elsewhere_is_reused_when_it_passes_the_oracle_here(store: object) -> None:
+    from unbidden.forge import stats_build
+    from unbidden.store import Store
+
+    assert isinstance(store, Store)
+    built = StatsAdapter(
+        source="http://127.0.0.1:10000/stats",
+        version=1,
+        line=GOOD_LINE,
+        entity=GOOD_ENTITY,
+        card=card(),
+        quality={"oracle": 1},
+    )
+    store.put(stats_build.COLLECTION, built)
+    other_project = envoy_like(9)
+    assert stats_build.reusable(store, other_project) is not None
+    assert stats_build.reusable(store, ["a b c 1", "x y 2"] * 40) is None
