@@ -40,6 +40,8 @@ def decide_route(
     private_code_to_frontier: bool = False,
     remote_available: bool = True,
 ) -> RouteDecision:
+    if task.local_only:
+        return RouteDecision(Tier.LOCAL, None, False, "this task never leaves the machine")
     leave = may_leave(label, profile, private_code_to_frontier=private_code_to_frontier) and remote_available
     if not leave:
         why = (

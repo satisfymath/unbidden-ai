@@ -14,12 +14,14 @@ Weight = Literal["light", "heavy"]
 class TaskSpec:
     weight: Weight
     escalate: bool = True  # may another route be tried when the first one fails
+    local_only: bool = False  # never leaves, whatever the profile (e.g. reviewing what is about to leave)
 
 
 TASKS: dict[str, TaskSpec] = {
     # Classify, decide, pick among known names: local models do these well and fast.
     "world.endpoint_tables": TaskSpec("light", escalate=False),
-    "bridge.names": TaskSpec("light", escalate=False),  # always local: it reads the private code to rename it
+    "bridge.names": TaskSpec("light", escalate=False, local_only=True),  # reads the private code to rename it
+    "bridge.review": TaskSpec("light", escalate=False, local_only=True),  # looks for what still gives it away
     "research.step": TaskSpec("light"),
     # Write code, tests, workloads or parsers: where a frontier model earns its cost.
     "lab.fix_candidate": TaskSpec("heavy"),
