@@ -127,6 +127,21 @@ def test_an_unknown_version_gets_an_image_derived_tag(store: Store) -> None:
     assert not ledger.is_attributable(d)
 
 
+def test_a_local_build_with_a_digest_is_not_taken_for_a_registry_image(store: Store) -> None:
+    """Docker's containerd store gives local builds a digest too: `backend@sha256:...`."""
+    local = container("c1", "i1", T0 - timedelta(days=1)).model_copy(update={"repo_digest": "backend@sha256:b75c"})
+    assert not ledger.from_registry(local)
+    assert ledger.bind(store, [local], A, started=T0, rebuilt=True)["backend"]["verified"] is True
+
+
+def test_a_drill_deploy_is_credited_to_unbidden(store: Store) -> None:
+    now = datetime.now(UTC)
+    built = container("c1", "i1", now - timedelta(days=1), started=now - timedelta(seconds=30))
+    ledger.bind(store, [built], A, started=now - timedelta(seconds=60), rebuilt=True)  # every deploy and drill step
+    d = ledger.observe(store, [built], head=B)
+    assert d is not None and (d.commit_status, d.initiated_by) == ("verified", "unbidden")
+
+
 def test_images_pulled_from_a_registry_are_not_credited_to_the_checkout() -> None:
     pulled = container("c1", "i1", T0).model_copy(update={"repo_digest": "ghcr.io/o/demo@sha256:abc"})
     commit, status, reason = ledger.resolve([pulled], {}, head=B)
@@ -146,3 +161,14 @@ def test_build_steps_do_not_vouch_for_an_image_pulled_from_a_registry(store: Sto
     pulled = container("c1", "i1", T0 - timedelta(days=1)).model_copy(update={"repo_digest": "ghcr.io/o/x@sha256:1"})
     record = ledger.bind(store, [pulled], A, started=T0, rebuilt=True)
     assert record["backend"]["verified"] is False
+
+
+def test_containers_recreated_by_unbiddens_deploy_of_the_same_code_upgrade_the_deploy(store: Store) -> None:
+    now = datetime.now(UTC)
+    first = ledger.observe(store, [container("c1", "i1", now, started=now - timedelta(hours=2))], head=A, now=now)
+    assert first is not None and (first.commit_status, first.initiated_by) == ("inferred", "unknown")
+    rebuilt = container("c2", "i1", now, started=now)
+    ledger.bind(store, [rebuilt], A, started=now - timedelta(seconds=30), rebuilt=True)
+    again = ledger.observe(store, [rebuilt], head=A, now=now)
+    assert again is not None and again.index == first.index
+    assert (again.commit_status, again.initiated_by) == ("verified", "unbidden")

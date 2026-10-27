@@ -34,6 +34,7 @@ PROJECT_LABEL = "com.docker.compose.project"
 ENVIRONMENT = "local-compose"
 UNBIDDEN_DEPLOY_WINDOW = timedelta(minutes=30)
 COLLECTION = "deployments"
+STRENGTH = {"unknown": 0, "inferred": 1, "observed": 2, "verified": 2}
 
 
 def parse_ts(value: str | None) -> datetime | None:
@@ -101,6 +102,16 @@ def snapshot(repo: Path) -> list[RunningContainer]:
     return containers_from(rows, inspected, images)
 
 
+def from_registry(container: RunningContainer) -> bool:
+    """Whether the image came from a registry. A digest alone does not say so: Docker's containerd image store
+    gives local builds one too (`backend@sha256:...`). Only a digest naming a registry host does."""
+    if not container.repo_digest:
+        return False
+    repository = container.repo_digest.split("@", 1)[0]
+    host = repository.split("/", 1)[0]
+    return "/" in repository and ("." in host or ":" in host or host == "localhost")
+
+
 def steps_build(steps: list[list[str]]) -> bool:
     """Whether declared deploy steps build images from the checkout (`docker compose up --build`, `docker build`)."""
     return any("--build" in argv or (len(argv) > 2 and argv[0] == "docker" and "build" in argv[1:3]) for argv in steps)
@@ -117,7 +128,7 @@ def bind(
     for c in containers:
         built = parse_ts(c.image_created)
         # Build steps vouch only for images built here; one pulled from a registry was not built from the checkout.
-        verified = (rebuilt and not c.repo_digest) or (built is not None and built >= started)
+        verified = (rebuilt and not from_registry(c)) or (built is not None and built >= started)
         if c.image_id in bindings and bindings[c.image_id].get("verified") and not verified:
             continue  # an earlier deploy built this image; that binding stays
         bindings[c.image_id] = {
@@ -135,6 +146,9 @@ def bind(
         }
         record[c.service] = bindings[c.image_id]
     store.set_value("image_bindings", bindings)
+    # Every deploy Unbidden ran (a drill's two included), so the containers it starts are credited to it.
+    ran: list[dict[str, str]] = store.get_value("unbidden_deploys", [])
+    store.set_value("unbidden_deploys", [*ran[-49:], {"commit": commit, "at": utc_now().isoformat()}])
     return record
 
 
@@ -162,7 +176,7 @@ def resolve(
         return commit, "inferred", "deployed by Unbidden, but images were not rebuilt by that deploy"
     if len(commits) > 1:
         return None, "unknown", "containers hold images bound to different commits: " + ", ".join(sorted(commits))
-    pulled = [c for c in containers if c.repo_digest]
+    pulled = [c for c in containers if from_registry(c)]
     if pulled and len(pulled) == len(containers):
         return (
             None,
@@ -188,15 +202,11 @@ def initiator(store: Store, containers: list[RunningContainer], commit: str | No
         return "unknown"
     started = max(starts)
     last: dict[str, Any] | None = store.get_value("deployed_by_unbidden")
-    at = parse_ts(last.get("at")) if last else None
-    if (
-        last
-        and commit
-        and last.get("commit") == commit
-        and at is not None
-        and abs(at - started) <= UNBIDDEN_DEPLOY_WINDOW
-    ):
-        return "unbidden"
+    ours: list[dict[str, Any]] = [*store.get_value("unbidden_deploys", []), *([last] if last else [])]
+    for record in ours:
+        at = parse_ts(record.get("at"))
+        if commit and record.get("commit") == commit and at is not None and abs(at - started) <= UNBIDDEN_DEPLOY_WINDOW:
+            return "unbidden"
     watching = [d.seen_at for d in store.list(COLLECTION, Deployment)]
     return "external" if watching and min(watching) < started else "unknown"
 
@@ -247,6 +257,11 @@ def observe(
         current = store.get(COLLECTION, str(index), Deployment)
         if current is not None:
             current.containers = containers
+            # Recreated on the same code: keep the deploy, but better evidence about it replaces weaker.
+            if STRENGTH[status] > STRENGTH[current.commit_status]:
+                current.commit_status, current.commit_reason = status, reason
+            if initiated == "unbidden":
+                current.initiated_by = "unbidden"
             store.put(COLLECTION, current)
             known[key] = current.id
             store.set_value("container_deploys", known)
