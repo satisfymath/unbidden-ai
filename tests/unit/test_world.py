@@ -261,3 +261,31 @@ def test_several_compose_files_merge_as_compose_does(tmp_path: Path) -> None:
     assert compose.path == "compose.yaml+compose.extra.yaml"
     default = load_compose(tmp_path, "HEAD")  # nothing known about the deployment: the default file
     assert default is not None and set(default.services) == {"cart", "valkey"}
+
+
+def test_traefik_router_labels_become_routes_from_the_proxy(tmp_path: Path) -> None:
+    compose = """services:
+  proxy:
+    image: traefik:3.0
+  backend:
+    image: x/backend
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.backend-http.rule=Host(`api.localhost`)
+  adminer:
+    image: adminer
+    labels:
+      traefik.http.routers.adminer-http.rule: Host(`adminer.localhost`)
+  hidden:
+    image: x/hidden
+    labels: [traefik.enable=false, traefik.http.routers.h.rule=Host(`h`)]
+"""
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "compose.yml").write_text(compose)
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    world = WorldModel(rev="HEAD")
+    discover_static(tmp_path, "HEAD", detect_stack(tmp_path), world)
+    routes = {(r.src, r.dst) for r in world.relations if r.predicate == "calls"}
+    assert routes == {("service:proxy", "service:backend"), ("service:proxy", "service:adminer")}

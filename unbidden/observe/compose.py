@@ -33,6 +33,7 @@ class Service:
     depends_on: tuple[str, ...]
     ports: tuple[str, ...]
     healthcheck: tuple[str, ...] = ()
+    labels: tuple[str, ...] = ()  # "key=value"
 
     @property
     def data_kind(self) -> str | None:
@@ -129,6 +130,12 @@ def _names(raw: Any) -> list[str]:
     return [str(x) for x in raw] if isinstance(raw, list) else [str(x) for x in raw] if isinstance(raw, dict) else []  # pyright: ignore[reportUnknownVariableType]
 
 
+def _labels(raw: Any) -> list[str]:
+    if isinstance(raw, dict):
+        return [f"{k}={v}" for k, v in raw.items()]  # pyright: ignore[reportUnknownVariableType]
+    return [str(x) for x in raw] if isinstance(raw, list) else []  # pyright: ignore[reportUnknownVariableType]
+
+
 def merge_spec(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
     """Compose's merge of one service across files: environment by key, depends_on and ports added up, mappings
     merged, anything else replaced by the later file."""
@@ -190,6 +197,7 @@ def load_compose(repo: Path, rev: str = "HEAD", files: list[str] | None = None) 
             depends_on=tuple(_names(spec.get("depends_on"))),
             ports=tuple(str(p) for p in spec.get("ports") or []),
             healthcheck=tuple(str(h) for h in health) if isinstance(health, list) else (str(health),),
+            labels=tuple(_labels(spec.get("labels"))),
         )
     return Compose(path="+".join(n for n, _ in texts), services=services, unresolved=sorted(set(unresolved)))
 

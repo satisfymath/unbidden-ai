@@ -135,6 +135,22 @@ def discover_static(
                         ],
                     )
                 )
+        proxies = [s.name for s in compose.services.values() if "traefik" in (s.image or "").split("/")[-1]]
+        for service in compose.services.values():
+            rule = next((label for label in service.labels if label.startswith("traefik.http.routers.")), None)
+            if not proxies or rule is None or "traefik.enable=false" in service.labels:
+                continue
+            for proxy in proxies:
+                world.relate(
+                    Relation(
+                        src=f"service:{proxy}",
+                        dst=f"service:{service.name}",
+                        predicate="calls",
+                        status=INFERRED,
+                        confidence=0.8,
+                        evidence=[_ref("config", f"{compose.path}#services.{service.name}.labels", rule[:120])],
+                    )
+                )
         if compose.unresolved:
             world.blind_spots.append(
                 BlindSpot(
