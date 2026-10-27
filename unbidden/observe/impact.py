@@ -8,6 +8,7 @@ the test compares round medians, since requests within a round are not independe
 from __future__ import annotations
 
 import statistics
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
@@ -16,7 +17,9 @@ from scipy.stats import mannwhitneyu  # pyright: ignore[reportUnknownVariableTyp
 
 ALPHA = 0.01
 MIN_EFFECT = 0.20
-MIN_DELTA_MS = 10.0
+MIN_DELTA_MS = 10.0  # v1 floor
+MIN_DELTA_MS_V2 = 0.2  # practical resolution of a loopback round trip
+NOISE_MADS = 3.0
 WARMUP_ROUNDS = 2
 ERROR_RATE = 0.01
 MIN_REQUESTS_FOR_ERRORS = 100
@@ -81,7 +84,25 @@ def _errors(rounds: list[Round]) -> tuple[int, int]:
     return sum(1 for s in statuses if s >= 500 or s == 0), len(statuses)
 
 
-def judge_endpoint(target: str, before: list[Round], after: list[Round], min_rounds: int) -> EndpointImpact:
+def judge_endpoint_v1(target: str, before: list[Round], after: list[Round], min_rounds: int) -> EndpointImpact:
+    """Criteria v1 (absolute floor of 10 ms), kept to re-read verdicts recorded under them."""
+    return judge_endpoint(target, before, after, min_rounds, floor=lambda _: MIN_DELTA_MS)
+
+
+def scale_aware_floor(baseline_round_medians: list[float]) -> float:
+    """Criteria v2: a change must exceed the baseline's own round-to-round noise (3 MADs), and 0.2 ms."""
+    center = statistics.median(baseline_round_medians)
+    mad = statistics.median(abs(m - center) for m in baseline_round_medians)
+    return max(MIN_DELTA_MS_V2, NOISE_MADS * mad)
+
+
+def judge_endpoint(
+    target: str,
+    before: list[Round],
+    after: list[Round],
+    min_rounds: int,
+    floor: Callable[[list[float]], float] = scale_aware_floor,
+) -> EndpointImpact:
     before = before[-min_rounds * 2 :]
     after = after[WARMUP_ROUNDS:]
     errors, total = _errors(after)
@@ -116,14 +137,15 @@ def judge_endpoint(target: str, before: list[Round], after: list[Round], min_rou
     pooled_b = [ms for r in before for ms in r.served]
     pooled_a = [ms for r in after for ms in r.served]
     p50_b, p50_a = statistics.median(pooled_b), statistics.median(pooled_a)
+    min_delta = floor(b_medians)
     slower: Any = mannwhitneyu(a_medians, b_medians, alternative="greater")
     faster: Any = mannwhitneyu(b_medians, a_medians, alternative="greater")
     delta = p50_a - p50_b
     impact, p_value, reasons = Impact.HEALTHY, None, []
-    if float(slower.pvalue) < ALPHA and delta >= MIN_DELTA_MS and delta / p50_b >= MIN_EFFECT:
+    if float(slower.pvalue) < ALPHA and delta >= min_delta and delta / p50_b >= MIN_EFFECT:
         impact, p_value = Impact.DEGRADED, float(slower.pvalue)
         reasons.append(f"median {p50_b:.1f} → {p50_a:.1f} ms ({delta / p50_b:+.0%}), p = {p_value:.2g}")
-    elif float(faster.pvalue) < ALPHA and -delta >= MIN_DELTA_MS and -delta / p50_b >= MIN_EFFECT:
+    elif float(faster.pvalue) < ALPHA and -delta >= min_delta and -delta / p50_b >= MIN_EFFECT:
         impact, p_value = Impact.IMPROVED, float(faster.pvalue)
         reasons.append(f"median {p50_b:.1f} → {p50_a:.1f} ms ({delta / p50_b:+.0%}), p = {p_value:.2g}")
     else:

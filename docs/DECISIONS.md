@@ -113,3 +113,35 @@ Carried over from the prototype's impact guard as design, re-measured here: perc
 latencies; windows of exactly the previous and the new build with warm-up dropped; INSUFFICIENT_EVIDENCE, never
 HEALTHY, without enough samples; effect ≥ 20 % and ≥ 10 ms; 5xx over 1 % with ≥ 100 requests and ≥ 3 errors;
 HTTP 429 is throttling, not latency.
+
+## D-013 · 2026-10-27 · The first autonomous run, what it got right and what it exposed
+
+On full-stack-fastapi-template (fork), in `autonomous` mode after a passed rollback drill, with nobody
+intervening:
+
+- It withdrew two lint proposals outside what the team's CI checks, published the index PR
+  (satisfymath/full-stack-fastapi-template#1), merged it pinned to the measured commit and deployed it with the
+  team's steps; production then had `ix_item_owner_created` and Alembic at the model's revision.
+- It found two lint findings its own migration had introduced in `models.py`, fixed one to L4 and merged it
+  (#2); #3 went stale when the base moved.
+
+Exposed, and fixed:
+
+1. PerfLab did not run the repository's checks on its candidate; now it does, both sides, and feeds new
+   findings back to the model.
+2. #2 was merged five minutes after #1 while probes were starved by queued lab work: #1's deploy got four
+   rounds and no verdict. Probes now run on their own thread; a merge waits for the last deploy's verdict;
+   a deploy too short to judge is skipped as a baseline and named as a confounder.
+3. An endpoint the probe user may not read (403) kept every verdict waiting; a scripted edit claiming to fix
+   it had silently not applied. Fixed and covered by a test.
+
+## D-014 · 2026-10-27 · No level 5 for the index: the pre-registered floor said "no change claimed"
+
+The deploy carrying the index was judged against the last well-measured version (f4bcfab):
+`GET /api/v1/items/` median 10.5 → 1.7 ms. Under criteria v1 (an absolute floor of 10 ms, inherited from a
+system whose endpoints sat near 60 ms) a difference of 8.8 ms is not claimed, so the verdict is HEALTHY and
+the opportunity stays at L4. That verdict stands: criteria are not changed after seeing their data.
+
+Criteria v2 replace the fixed floor with the baseline's own noise (max(0.2 ms, 3 MADs of round medians)),
+calibrated before adoption on rounds not used to choose them (`docs/bench/2026-10-27-impact-calibration.md`:
+A/A 0/15 claims, +30 % caught on 10/15, +50 % on 13/15). v2 applies to deploys judged from now on.
