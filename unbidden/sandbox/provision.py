@@ -64,11 +64,13 @@ def node_dockerfile(stack: NodeStack) -> str:
         for p in stack.packages
         if p.prisma_schema
     )
+    # The package manager corepack fetches here is kept where the sandbox user (uid 1000, no network) can run it.
     return f"""FROM node:{stack.major}-slim
-ENV CI=1 COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+ENV CI=1 COREPACK_ENABLE_DOWNLOAD_PROMPT=0 COREPACK_HOME=/opt/corepack
 WORKDIR /deps
 COPY ctx/ /deps/
-RUN {install}{generate}
+RUN {install}{generate} \\
+ && mkdir -p /opt/corepack && chmod -R a+rX /opt/corepack
 """
 
 
@@ -209,7 +211,13 @@ def _provision(
             tag=tag,
             language="node",
             registries=NODE_REGISTRIES,
-            env={"PATH": "/deps/node_modules/.bin:/usr/local/bin:/usr/bin:/bin"},
+            env={
+                "PATH": "/deps/node_modules/.bin:/usr/local/bin:/usr/bin:/bin",
+                "COREPACK_HOME": "/opt/corepack",
+                "COREPACK_ENABLE_DOWNLOAD_PROMPT": "0",
+                # node_modules is the image's, linked in: installed and verified when the image was built.
+                "npm_config_verify_deps_before_run": "false",
+            },
             links={"node_modules": "/deps/node_modules"},
             # A workspace package's node_modules holds relative links into the store and to sibling packages;
             # copied into /work (links only, cheap) they resolve against the snapshot's real sources.

@@ -21,16 +21,27 @@ COLLECTION = "opportunities"
 
 
 def run_tool(
-    runner: SandboxRunner, repo: Path, rev: str, tool: Tool, image: DependencyImage, *, timeout_s: float = 600
+    runner: SandboxRunner,
+    repo: Path,
+    rev: str,
+    tool: Tool,
+    image: DependencyImage,
+    *,
+    timeout_s: float = 600,
+    prepared: Path | None = None,
 ) -> AnalyzerReport:
-    work = snapshot(repo, rev)
+    """Run one trusted tool on a fresh snapshot, or on a `prepared` one (the repository's own build already run
+    in it, shared by every tool of the scan; analyzers only read it)."""
+    work = prepared or snapshot(repo, rev)
     try:
-        link_dependencies(work, image)
+        if prepared is None:
+            link_dependencies(work, image)
         argv = list(tool.argv)
         result = runner.run(sandbox_spec(image, argv, cwd=tool.cwd, timeout_s=timeout_s), work)
         return tool.report(result, argv)
     finally:
-        discard(work)
+        if prepared is None:
+            discard(work)
 
 
 def group_key(finding: Finding) -> str:

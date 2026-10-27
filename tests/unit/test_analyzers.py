@@ -69,3 +69,10 @@ def test_a_finding_in_a_deep_path_still_gets_a_title() -> None:
         fingerprint="0123456789abcdef",
     )  # type: ignore[arg-type]  # fmt: skip
     assert len(_title("tsc:packages/lexical-devtools", [finding])) <= TITLE_MAX
+
+
+def test_postinstall_scripts_that_only_install_git_hooks_are_not_run() -> None:
+    from unbidden.observe.scan import GIT_HOOK_TOOLS
+
+    assert GIT_HOOK_TOOLS.match("husky") and GIT_HOOK_TOOLS.match("husky install")
+    assert not GIT_HOOK_TOOLS.match("pnpm build:packages")
