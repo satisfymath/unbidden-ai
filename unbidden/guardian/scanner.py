@@ -37,6 +37,7 @@ _PLACEHOLDER = re.compile(
         |\{\{.*\}\}                # {{ template }}
         |true|false|null|none|undefined
         |str|string|int|bytes|optional\[.*
+        |(?:bool|int|float|str|bytes|dict|list|tuple|optional|union)(?:\[[^=]*\])?=.*   # annotation with a default
         |(?:x+|\*+|\.{3,}|changeme|placeholder|redacted|example|dummy|your[_-].*|xxx.*)
         |os\.environ.*|process\.env.*|getenv.*|settings\..*|config\..*|env\..*
     )$""",

@@ -42,6 +42,7 @@ def test_detects_secrets(text: str) -> None:
         'auth_token = response["access_token"]',
         "tokens = r.json()",
         "user_in = UserCreate(email=email, password=password)",
+        "def ask(prompt: str, password: bool=False, choices: list=None)",
     ],
 )
 def test_ignores_placeholders(text: str) -> None:
