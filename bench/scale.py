@@ -325,6 +325,8 @@ def main() -> None:
 
     from unbidden.brain.spend import SpendLedger
 
+    if unbidden_version()["dirty"]:
+        raise SystemExit("Unbidden's package has uncommitted changes: a benchmark runs on one commit; commit first")
     status = SpendLedger().status()
     print(f"budget: {status.reason}; available US${status.available_usd:.2f}", flush=True)
     if args.profile != "local" and not status.verified and not args.method_check:
