@@ -376,8 +376,9 @@ def discover_runtime(repo: Path, world: WorldModel, rev: str = "HEAD", files: li
         declared = compose.services.get(service) if compose else None
         if published and not described and (declared is None or declared.data_kind is None):
             for port in published:
-                if web_page(port):
-                    world.resources[f"container:{name}"].attributes["web_page"] = f"http://127.0.0.1:{port}/"
+                attrs = world.resources[f"container:{name}"].attributes
+                if "web_page" not in attrs and web_page(port):  # the first (lowest) port; later ones are admin pages
+                    attrs["web_page"] = f"http://127.0.0.1:{port}/"
                 for found in text_metrics(port):
                     world.resources[f"container:{name}"].attributes.setdefault("text_endpoints", []).append(found)
             world.blind_spots.append(
