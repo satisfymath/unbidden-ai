@@ -701,3 +701,61 @@ migration without a downgrade. For this index, the meaningful live test is a mea
 
 **`unit_id`.** Not measurable with the current lab. No workload ran at the base in four rounds of five attempts.
 Its endpoint is a merge that deletes what it merges.
+
+## D-037 · 2026-10-27 · One spend ledger for the machine, autonomous probing, and a benchmark across repositories
+
+**Why.** The next question is whether Unbidden can enter many systems it has never seen and show, without a person
+directing each step, whether each one improved. Three things stood in the way: spend was bounded per workspace and
+only after the fact, the autonomous loop never looked for crashes by itself, and the benchmark stopped at a scan.
+
+**Credits, audited.**
+- The Meta Model API key works and lists `muse-spark-1.3` (Standard) with `-contributor` variants. No endpoint gives a
+  balance, usage or billing: every path tried (`/v1/usage`, `/v1/billing`, `/v1/credits`, `/v1/organization/*`,
+  OpenAI's legacy billing paths) returns 404. The balance can only be read on the dashboard, by a person.
+- Public sources, not verified against our account: $150 of credits per selected participant; Standard at US$1.25 /
+  US$4.25 per million input / output tokens (the prices in `config.py`); credits claimable until Nov 4, 9 PM ET.
+- Recorded remote spend in every surviving workspace state before this change: 33 calls, 104k input and 135k output
+  tokens, US$0.70 at list price. A lower bound: state in `/tmp` scratchpads may have been lost before it was copied.
+
+**The spend ledger** (`brain/spend.py`, `~/.unbidden/spend.db`).
+- One ledger for every workspace on the machine. Before a remote call leaves, its worst cost is reserved in one
+  transaction: every payload byte a token, plus all of `max_tokens`, at list price. A call that does not fit is refused
+  and nothing is sent.
+- After the call the reservation becomes the reported usage. A timeout, a 5xx or an answer without usage keeps its
+  worst cost; a 429 or 400 costs nothing.
+- The budget is the balance a person read (`unbidden spend --verified-balance <USD> --source <where>`), counted from
+  that moment, minus a 20 % reserve that only `--release-reserve` frees. Without a verified balance, a US$1 allowance,
+  enough to check the remote path. The mandate's monthly cap still applies per workspace.
+- `-contributor` models are refused unless the config allows them: they trade data-use terms for price.
+- The visual judge called the API directly and bypassed all accounting; it now reserves and settles like the rest.
+- Every call carries `UNBIDDEN_RUN`, so spend is attributed to a run and a repository.
+- Verified end to end: one synthetic call to Muse Spark 1.3, worst cost US$0.0092 reserved, settled at US$0.00049
+  from 15 input and 111 output tokens reported.
+
+**Autonomous probing.** After each scan the Director finds the repository's importable packages from the tree (src or
+flat layout; tests and tooling excluded), records whether probing is worth it and why, and probes the package with the
+most public surface once per commit. Before, robustness probes ran only when a person named the package.
+
+**The scale benchmark** (`bench/scale.py`, `bench/repos/scale.yaml`, `bench/scale_report.py`).
+- 10 pilot and 10 holdout repositories chosen by written criteria, pinned and committed before any run, including
+  Go, Ruby and Rust repositories Unbidden does not analyze: they stay in the denominator.
+- Per repository: `init`, the benchmark mandate (autonomous locally; GitHub, merge and deploy denied, since these are
+  third parties' upstreams; profile `frontier`; a spend cap), `map`, `watch --once` under a wall-clock limit. The
+  record is read from the workspace's state and the ledger, never from printed output.
+- Outcome classes are fixed rules (`classify`). Rates carry Wilson intervals over stated eligibility. Level 5 needs an
+  authorized deployment and none exists here: it is reported as not eligible, never as a failure or a success.
+- A remote-model run refuses to start without a verified balance unless declared a method check.
+
+**Method checks, under the US$1 allowance (no verified balance yet).** Each exposed a general failure, fixed:
+1. humanize: hatch-vcs reads the version from `.git`, which a build context of manifests never has (version pinned
+   for the dependency build). Then hatchling refused a missing `readme` (declared documents now copied). Then the
+   package imported `humanize._version`, generated at build time (a stub at the path the config declares).
+2. ky: a Node project without a lockfile was "no stack" while Python without one proceeds. npm now resolves it at
+   provisioning time, said as a blind spot.
+3. cobra: Go was skipped silently. Manifests of unanalyzed languages are now named.
+4. The harness counted a probe that was decided but never ran as a bootstrap; the cycle now records whether the
+   probe's tests ran.
+5. On humanize the probe found `KeyError` in `naturaldelta(0, minimum_unit='')` and recorded nothing. Newer pytest
+   omits `in function` from frames, Hypothesis says "Failing test case", and the short summary was read as part of
+   the last failure. All fixed with a test. The next probe drew different tests and did not hit it: **a probe is a
+   sample**, and one probe per commit finds a given crash only sometimes.

@@ -1,0 +1,257 @@
+{
+  "run": "method-check-pilot",
+  "manifest": "bench/repos/scale.yaml",
+  "unbidden_commit": "c50db50cdfa02b33a29e02279be90ee1796b4ffe",
+  "settings": {
+    "split": "pilot",
+    "workers": 2,
+    "minutes": 20.0,
+    "repo_budget": 0.08,
+    "profile": "frontier"
+  },
+  "rows": [
+    {
+      "name": "pyjwt",
+      "run": "method-check-pilot",
+      "tag": "bench:method-check-pilot:pyjwt",
+      "meta": {
+        "url": "https://github.com/jpadilla/pyjwt",
+        "commit": "16231abfd1d8eab4953e8779b3017b859c88565e",
+        "split": "pilot",
+        "license": "MIT",
+        "language": "Python",
+        "shape": "library",
+        "database": "none",
+        "domain": "security tokens"
+      },
+      "started_at": "2026-10-27T23:20:08.402117+00:00",
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.3,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.2,
+          "timed_out": false,
+          "max_rss_mb": 39.6,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/method-check-pilot/pyjwt\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/method-check-pilot/pyjwt/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.1,
+          "timed_out": false,
+          "max_rss_mb": 58.0,
+          "log_tail": "      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"16231abfd1d8eab4953e8779b3017b859c88565e\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-27T23:20:10.710486Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-27T23:20:10.710517Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"16231abfd1d8eab4953e8779b3017b859c88565e\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:pyjwt\",\n      \"kind\": \"repo\",\n      \"name\": \"pyjwt\",\n      \"attributes\": {\n        \"rev\": \"16231abfd1d8eab4953e8779b3017b859c88565e\",\n        \"languages\": [\n          \"python\"\n        ]\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-27T23:20:10.618700Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 14.9,
+          "timed_out": false,
+          "max_rss_mb": 124.1,
+          "log_tail": "20:20:11 watching /Users/david/unbidden-bench/method-check-pilot/pyjwt (ctrl-c \nto stop, `unbidden kill` to freeze)\n20:20:11 HEAD is 16231abfd1d8\n20:20:11 provisioning python dependencies\n20:20:19 scan of 16231abfd1d8: 0 reports, 0 new opportunities\n20:20:20 map of 16231abfd1d8: 1 resources, 2 blind spots\n20:20:20 robustness probe at 16231abfd1d8: investigate (probe jwt (38 public \nfunctions sampled))\n20:20:25 research.probe failed: dependency image for python failed to build:\nerror: No solution found when resolving dependencies\n  cause: Because the current Python version (3.9.25) does not satisfy \nPython>=3.10 and pytest==9.1.1 depends on Python>=3.10, we can conclude that \npytest==9.1.1 cannot be used.\nERROR: process \"/bin/sh -c ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js \n/usr/local/bin/npm  && npm install -g pyright@1.1.414  && pip install \n--no-cache-dir uv  && uv venv /opt/tools && uv pip install --python \n/opt/tools/bin/python ruff==0.17.2 pytest==9.1.1\" did not complete successfully:\nexit code: 1\n4.217 error: No solution found when resolving dependencies\n4.217   cause: Because the current Python version (3.9.25) does not satisfy \nPython>=3.10 and pytest==9.1.1 depends on Python>=3.10, we can conclude that \npytest==9.1.1 cannot be used.\n--------------------\nERROR: failed to build: failed to solve: process \"/bin/sh -c ln -s \n/usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm  && npm \ninstall -g pyright@1.1.414  && pip install --no-cache-dir uv  && uv venv \n/opt/tools && uv pip install --python /opt/tools/bin/python ruff==0.17.2 \npytest==9.1.1\" did not complete successfully: exit code: 1",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "16231abfd1d8eab4953e8779b3017b859c88565e",
+        "probe": {
+          "rev": "16231abfd1d8eab4953e8779b3017b859c88565e",
+          "package": "jwt",
+          "ran": false,
+          "why": "environment: dependency image for python failed to build:\nerror: No solution found when resolving dependencies\n  cause: Because the current Python version (3.9.25) does not satisfy Python>=3.10 and pytest==9.1.1 depends on Python>=3.10, we can conclude that pytest==9.1.1 cannot be used.\nERROR: process \"/bin/sh -"
+        },
+        "languages": [
+          "python"
+        ],
+        "blind_spots": [
+          "pyproject.toml without uv.lock: dependencies resolved at provisioning time"
+        ],
+        "problems": [
+          "dependency image for python failed to build:\nerror: No solution found when resolving dependencies\n  cause: Because the current Python version (3.9.25) does not satisfy Python>=3.10 and pytest==9.1.1 depends on Python>=3.10, we can conclude that pytest==9.1.1 cannot be used.\nERROR: process \"/bin/sh -c ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm  && npm install -g pyright@1.1.414  && pip install --no-cache-dir uv  && uv venv /opt/tools && uv pip install --python /opt/tools/bin/python ruff==0.17.2 pytest==9.1.1\" did not complete successfully: exit code: 1\n4.445 error: No solution found when resolving dependencies\n4.445   cause: Because the current Python version (3.9.25) does not satisfy Python>=3.10 and pytest==9.1.1 depends on Python>=3.10, we can conclude that pytest==9.1.1 cannot be used.\n--------------------\nERROR: failed to build: failed to solve: process \"/bin/sh -c ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm  && npm install -g pyright@1.1.414  && pip install --no-cache-dir uv  && uv venv /opt/tools && uv pip install --python /opt/tools/bin/python ruff==0.17.2 pytest==9.1.1\" did not complete successfully: exit code: 1"
+        ],
+        "analyzers": [],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [
+          {
+            "chosen": "investigate",
+            "kind": "robustness_probe",
+            "reason": "probe jwt (38 public functions sampled)",
+            "rev": "16231abfd1d8eab4953e8779b3017b859c88565e",
+            "targets": [
+              [
+                "jwt",
+                38
+              ]
+            ],
+            "ts": "2026-10-27T23:20:20.490628+00:00"
+          }
+        ],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {},
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-27T23:20:25.929286+00:00",
+      "seconds": 17.5,
+      "outcome": "bootstrap failed"
+    },
+    {
+      "name": "humanize",
+      "run": "method-check-pilot",
+      "tag": "bench:method-check-pilot:humanize",
+      "meta": {
+        "url": "https://github.com/python-humanize/humanize",
+        "commit": "6b817b963dbb091b9ad20a746cb6a26653a93b95",
+        "split": "pilot",
+        "license": "MIT",
+        "language": "Python",
+        "shape": "library",
+        "database": "none",
+        "domain": "text formatting"
+      },
+      "started_at": "2026-10-27T23:20:08.402259+00:00",
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.3,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.2,
+          "timed_out": false,
+          "max_rss_mb": 39.6,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/method-check-pilot/humanize\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/method-check-pilot/humanize/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.2,
+          "timed_out": false,
+          "max_rss_mb": 57.8,
+          "log_tail": "      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"6b817b963dbb091b9ad20a746cb6a26653a93b95\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-27T23:20:10.710482Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-27T23:20:10.710517Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"6b817b963dbb091b9ad20a746cb6a26653a93b95\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:humanize\",\n      \"kind\": \"repo\",\n      \"name\": \"humanize\",\n      \"attributes\": {\n        \"rev\": \"6b817b963dbb091b9ad20a746cb6a26653a93b95\",\n        \"languages\": [\n          \"python\"\n        ]\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-27T23:20:10.620002Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 17.5,
+          "timed_out": false,
+          "max_rss_mb": 125.2,
+          "log_tail": "20:20:11 watching /Users/david/unbidden-bench/method-check-pilot/humanize \n(ctrl-c to stop, `unbidden kill` to freeze)\n20:20:11 HEAD is 6b817b963dbb\n20:20:11 provisioning python dependencies\n20:20:11 running ruff\n20:20:11 running mypy\n20:20:12 scan of 6b817b963dbb: 2 reports, 0 new opportunities\n20:20:12 map of 6b817b963dbb: 1 resources, 2 blind spots\n20:20:12 robustness probe at 6b817b963dbb: investigate (probe src/humanize (15 \npublic functions sampled))\n20:20:13 writing property tests for src/humanize\n20:20:26 running them offline\n20:20:28 robustness probe of src/humanize: 2 failed, 6 passed in 1.59s; 0 \ncrash(es), 0 new; 0 property violation(s) kept for a person (L1)",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "6b817b963dbb091b9ad20a746cb6a26653a93b95",
+        "probe": {
+          "rev": "6b817b963dbb091b9ad20a746cb6a26653a93b95",
+          "package": "src/humanize",
+          "ran": true,
+          "summary": "2 failed, 6 passed in 1.59s",
+          "crashes": 0,
+          "opened": 0,
+          "violations": 0
+        },
+        "languages": [
+          "python"
+        ],
+        "blind_spots": [
+          "pyproject.toml without uv.lock: dependencies resolved at provisioning time"
+        ],
+        "problems": [],
+        "analyzers": [
+          {
+            "tool": "ruff",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          },
+          {
+            "tool": "mypy",
+            "completeness": "failed",
+            "findings": 0,
+            "error": "/deps/.venv/bin/python: No module named mypy"
+          }
+        ],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [
+          {
+            "chosen": "investigate",
+            "kind": "robustness_probe",
+            "reason": "probe src/humanize (15 public functions sampled)",
+            "rev": "6b817b963dbb091b9ad20a746cb6a26653a93b95",
+            "targets": [
+              [
+                "src/humanize",
+                15
+              ]
+            ],
+            "ts": "2026-10-27T23:20:12.705775+00:00"
+          }
+        ],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {
+          "code": {
+            "calls": 1,
+            "ok": 1,
+            "tokens_in": 822,
+            "tokens_out": 2945,
+            "compute_s": 12.53105324995704
+          }
+        },
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-27T23:20:28.540708+00:00",
+      "seconds": 20.2,
+      "outcome": "nothing found"
+    }
+  ],
+  "spend": {
+    "by_repo": {
+      "bench:method-check-pilot:humanize": {
+        "calls": 1,
+        "retries": 0,
+        "failed": 0,
+        "tokens_in": 822,
+        "tokens_out": 2945,
+        "usd": 0.01354375,
+        "unreported": 0
+      }
+    },
+    "by_model": {
+      "muse-spark-1.3": {
+        "calls": 1,
+        "retries": 0,
+        "failed": 0,
+        "tokens_in": 822,
+        "tokens_out": 2945,
+        "usd": 0.01354375,
+        "unreported": 0
+      }
+    },
+    "by_purpose": {
+      "research.robustness": {
+        "calls": 1,
+        "retries": 0,
+        "failed": 0,
+        "tokens_in": 822,
+        "tokens_out": 2945,
+        "usd": 0.01354375,
+        "unreported": 0
+      }
+    }
+  }
+}
