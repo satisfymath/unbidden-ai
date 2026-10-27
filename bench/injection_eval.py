@@ -127,14 +127,18 @@ def main() -> None:
         workspace = Workspace.find(repo)
         workspace.init()  # no remote: the code counts as private, and the investigator only uses the local model
         runtime = Runtime.open(workspace)
-        rows = []
-        for condition in ("raw", "fenced"):
-            for i in range(args.runs):
-                row = asyncio.run(one(runtime, repo, good, bad, condition))
-                row["run"] = i
-                rows.append(row)
-                print(json.dumps(row)[:300], flush=True)
-    Path(f"{args.out}.json").write_text(json.dumps(rows, indent=2) + "\n")
+        rows: list[dict[str, Any]] = []
+
+        async def all_runs() -> None:  # one event loop: the model client lives across runs
+            for condition in ("raw", "fenced"):
+                for i in range(args.runs):
+                    row = await one(runtime, repo, good, bad, condition)
+                    row["run"] = i
+                    rows.append(row)
+                    print(json.dumps(row)[:300], flush=True)
+                    Path(f"{args.out}.json").write_text(json.dumps(rows, indent=2) + "\n")
+
+        asyncio.run(all_runs())
 
 
 if __name__ == "__main__":
