@@ -16,8 +16,17 @@ from unbidden.observe.stack import detect_stack
 from unbidden.operate import ledger
 from unbidden.store import Store
 from unbidden.workspace import head_sha
+from unbidden.world import prometheus
 from unbidden.world.checks import run_checks
-from unbidden.world.connectors import COMPOSE_DOCKER, GIT_STATIC, LEDGER, LLM_RELATIONS, OPENAPI_HTTP, POSTGRES_READONLY
+from unbidden.world.connectors import (
+    COMPOSE_DOCKER,
+    GIT_STATIC,
+    LEDGER,
+    LLM_RELATIONS,
+    OPENAPI_HTTP,
+    POSTGRES_READONLY,
+    PROMETHEUS,
+)
 from unbidden.world.reconcile import reconcile
 from unbidden.world.relations import infer_endpoint_tables
 from unbidden.world.runtime import discover_runtime
@@ -106,6 +115,19 @@ def add_deployment(world: WorldModel, deployment: Deployment, containers: list[R
         )
 
 
+def _metrics(repo: Path, world: WorldModel) -> set[str]:
+    """The project's own Prometheus, when it runs one. Unreachable is a blind spot; what it saw before is kept."""
+    url = prometheus.find(world)
+    if url is None:
+        return set()
+    try:
+        prometheus.observe(prometheus.Prometheus(url), world, prometheus.project_ips(repo))
+    except prometheus.PrometheusError as exc:
+        world.blind_spots.append(BlindSpot(what="metrics", why=f"the project's Prometheus could not be read: {exc}"))
+        return set()
+    return {PROMETHEUS.ref}
+
+
 async def discover(repo: Path, rev: str, store: Store, mandate: Mandate, brain: Brain | None) -> WorldModel:
     policy = PolicyEngine(mandate)
     previous = store.get(COLLECTION, "world", WorldModel)
@@ -128,6 +150,7 @@ async def discover(repo: Path, rev: str, store: Store, mandate: Mandate, brain: 
                 if fact.source in RUNTIME_SOURCES and fact.valid_for is None:
                     fact.valid_for = f"deployment:{deployment.id}"
                     fact.environment = deployment.environment
+        ran |= _metrics(repo, world)
     else:
         world.blind_spots.append(BlindSpot(what="the running system", why="runtime.read is not allowed by the mandate"))
     if brain is not None:

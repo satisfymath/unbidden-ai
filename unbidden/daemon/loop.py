@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import threading
+import time
 import traceback
 from datetime import timedelta
 from typing import Any
@@ -12,15 +13,20 @@ from unbidden.contracts.common import utc_now
 from unbidden.daemon.cycle import RETRY, Cycle, Log, job
 from unbidden.runtime import Runtime
 
+HEALTH_EVERY_S = 60.0
+
 
 def _probe_forever(runtime: Runtime, log: Log, stop: threading.Event) -> None:
     """Probes run on their own thread with their own connection, so long lab or model work never starves them:
     a deploy that is not observed cannot be judged."""
     from unbidden.contracts.world import WorldModel
+    from unbidden.observe.health import HealthWatcher
     from unbidden.observe.live import LiveWatcher
+    from unbidden.world import prometheus
 
     store = runtime.workspace.store()
     killswitch = runtime.workspace.killswitch()
+    last_health = 0.0
     while not stop.is_set():
         mandate = runtime.workspace.mandate()
         world = store.get("world", "world", WorldModel)
@@ -29,6 +35,13 @@ def _probe_forever(runtime: Runtime, log: Log, stop: threading.Event) -> None:
                 LiveWatcher(runtime.workspace.repo, store, mandate, world, log).tick()
             except Exception as exc:
                 log(f"live probe failed: {exc}")
+        url = prometheus.find(world) if world is not None else None
+        if url and not killswitch.engaged and time.monotonic() - last_health >= HEALTH_EVERY_S:
+            last_health = time.monotonic()
+            try:
+                HealthWatcher(store, world, prometheus.Prometheus(url), log).tick()  # type: ignore[arg-type]
+            except Exception as exc:
+                log(f"health check failed: {exc}")
         stop.wait(mandate.operations.probe_every_s)
 
 

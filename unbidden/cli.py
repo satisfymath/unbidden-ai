@@ -1038,6 +1038,68 @@ def cmd_map(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_health(args: argparse.Namespace) -> int:
+    """Each service's errors and latency against its own baseline, from the project's metrics; where trouble starts."""
+    from unbidden.contracts.world import WorldModel
+    from unbidden.observe.health import HealthWatcher
+    from unbidden.world import prometheus
+
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    world = store.get("world", "world", WorldModel)
+    url = prometheus.find(world) if world else None
+    if world is None or url is None:
+        err.print("no Prometheus of this project is known; run `unbidden map` while the system runs")
+        return 2
+    try:
+        report = HealthWatcher(store, world, prometheus.Prometheus(url), log=lambda _: None).tick()
+    except prometheus.PrometheusError as exc:
+        err.print(str(exc))
+        return 1
+    open_ = store.get_value("open_anomalies", {})
+    data = {
+        **{k: v for k, v in report.items() if k not in ("verdicts", "suspects")},
+        "verdicts": [
+            {
+                "service": v.service,
+                "degraded": v.degraded,
+                "chronic": v.chronic,
+                "reasons": list(v.reasons),
+                "requests": round(v.now.requests),
+                "error_ratio": round(v.now.error_ratio, 4),
+                "p95_ms": v.now.p95_ms,
+                "baseline_error_ratio": round(v.baseline.error_ratio, 4) if v.baseline else None,
+                "baseline_p95_ms": v.baseline.p95_ms if v.baseline else None,
+            }
+            for v in report["verdicts"]
+        ],
+        "anomalies": list(open_.values()),
+    }
+    if _emit(args, data):
+        return 0
+    console.print(
+        f"[bold]Health[/] from {url} · {report['criteria']['criteria_version']}, window {report['criteria']['window']}"
+    )
+    for v in data["verdicts"]:
+        mark = "[red]degraded[/]" if v["degraded"] else ("[yellow]chronic[/]" if v["chronic"] else "ok")
+        base = v["baseline_p95_ms"]
+        console.print(
+            f"  {v['service']:18} {v['requests']:6} req  {v['error_ratio']:6.1%} err  "
+            f"p95 {v['p95_ms'] or 0:7.1f} ms (was {base or 0:.1f})  {mark}"
+        )
+    for anomaly in data["anomalies"]:
+        console.print(f"\n[bold red]Anomaly[/] (hypothesis, via {anomaly['via']} links): {anomaly['statement']}")
+        for service, reasons in anomaly["reasons"].items():
+            console.print(f"    {service}: {'; '.join(reasons)}")
+        console.print("  next:")
+        for step in anomaly["plan"]:
+            console.print(f"    - {step['step']} [{step['source']}: {step['available']}]")
+    if report["unmeasured"]:
+        console.print(f"\nNo request metrics for: {', '.join(report['unmeasured'])}")
+    return 0
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     ws = Workspace.find()
     ws.require()
@@ -1099,6 +1161,7 @@ def build_parser() -> argparse.ArgumentParser:
     map_.add_argument("--scope", metavar="ID", help="what a resource connects to, how each link is known, the gaps")
     map_.add_argument("--connectors", action="store_true", help="what each connector learns, needs and costs")
     command("status", cmd_status, "what unbidden knows and is doing")
+    command("health", cmd_health, "errors and latency of each service against its baseline, and where trouble starts")
     inbox = command("inbox", cmd_inbox, "opportunities, most proven first")
     inbox.add_argument("--all", action="store_true", help="include closed ones")
     try_ = command("try", cmd_try, "run an experiment on one opportunity now")

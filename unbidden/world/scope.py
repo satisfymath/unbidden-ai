@@ -15,7 +15,7 @@ from pydantic import Field
 
 from unbidden.contracts.common import Contract, EpistemicStatus, utc_now
 from unbidden.contracts.world import BlindSpot, Fact, Relation, WorldModel
-from unbidden.world.connectors import NOT_COVERED
+from unbidden.world.connectors import NOT_COVERED, PROMETHEUS
 
 DEFAULT_DEPTH = 3
 
@@ -155,5 +155,9 @@ def scope(world: WorldModel, root: str, *, depth: int = DEFAULT_DEPTH, now: date
                 + ", ".join(r.id for r in inferred_links[:4]),
             )
         )
-    result.blind_spots.extend(BlindSpot(what=k, why=v) for k, v in NOT_COVERED.items())
+    covered = {f.source for f in [*world.resources.values(), *world.relations]}
+    for what, why in NOT_COVERED.items():
+        if what == "metrics" and PROMETHEUS.ref in covered:
+            continue
+        result.blind_spots.append(BlindSpot(what=what, why=why))
     return result

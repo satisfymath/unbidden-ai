@@ -38,6 +38,8 @@ class EventType(StrEnum):
     HYPOTHESIS_RECORDED = "hypothesis.recorded"
     WORLD_CHANGED = "world.changed"
     DEPLOYMENT_OBSERVED = "deployment.observed"
+    ANOMALY_DETECTED = "anomaly.detected"
+    ANOMALY_RESOLVED = "anomaly.resolved"
 
 
 class Event(Contract):

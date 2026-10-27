@@ -65,6 +65,17 @@ LEDGER = ConnectorSpec(
     scope="deploys of this compose project observed by Unbidden",
 )
 
+PROMETHEUS = ConnectorSpec(
+    id="prometheus-metrics",
+    version=1,
+    purpose="who calls whom in real traffic, and each service's requests, errors, latency and resource use",
+    discovers=["calls (observed)", "uses_database (observed)", "calls to hosts outside the project"],
+    measures=["requests", "error ratio", "p95 latency", "container cpu", "container memory"],
+    capability="runtime.read",
+    cost="local: about ten instant queries per map, fixed templates, 5 s timeout each",
+    scope="the project's own Prometheus; only this project's services and containers are taken in",
+)
+
 CONNECTORS: tuple[ConnectorSpec, ...] = (
     GIT_STATIC,
     COMPOSE_DOCKER,
@@ -72,6 +83,7 @@ CONNECTORS: tuple[ConnectorSpec, ...] = (
     POSTGRES_READONLY,
     LLM_RELATIONS,
     LEDGER,
+    PROMETHEUS,
 )
 
 # Sources that, when they did not run, leave the system unobserved rather than empty.

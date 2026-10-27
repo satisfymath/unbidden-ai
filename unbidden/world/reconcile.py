@@ -72,8 +72,14 @@ def _carry(old: Fact, ran: set[str], now: datetime, label: str, diff: WorldDiff)
     return old
 
 
+LIVE_READINGS = ("traffic", "resources")  # refreshed at every map; a new reading is not a change of the system
+
+
 def _attributes_changed(old: Resource, new: Resource) -> bool:
-    return old.attributes != new.attributes or old.status != new.status
+    def stable(attributes: dict[str, Any]) -> dict[str, Any]:
+        return {k: v for k, v in attributes.items() if k not in LIVE_READINGS}
+
+    return stable(old.attributes) != stable(new.attributes) or old.status != new.status
 
 
 def reconcile(
