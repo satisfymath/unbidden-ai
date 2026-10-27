@@ -602,3 +602,60 @@ change verdicts: like the sustained Prometheus signal, it is not calibrated yet.
 
 **Status.** No L5 on mealie yet. The watcher is now probing it. The next step is whether anything measurable is worth
 improving.
+
+## D-035 · 2026-10-27 · First L4 on mealie: an index found, written, and measured by Unbidden
+
+**Result.** Unbidden found that `shopping_list_items.food_id` has no index and that mealie's own code filters by it:
+- `repository_foods.get_empty`, a correlated `EXISTS` per food;
+- `repository_foods.merge`.
+
+It wrote the change itself, held it to mealie's checks (`ruff`, `mypy`), and measured it with a workload inside
+mealie's test suite: 2,000 foods and 200,000 synthetic list items, called as a normal user.
+
+| | Value |
+|---|---|
+| `GET /api/foods/empty`, median | 14,524 ms → 7.2 ms |
+| one-sided Mann-Whitney | p = 3.4e-08 |
+| 95% CI of the median difference | [13,445, 15,827] ms |
+
+The change is two lines: the migration and `index=True`. It is a local branch (`a351dc2`), not published: there is
+no fork or token for satisfymath yet.
+
+**What this is not.**
+- It is not L5. The data is synthetic and its scale (200k items in one group) is far above a household's; the effect
+  grows with foods × items, so it is smaller at real sizes. Nothing was deployed or observed live.
+- The suite already fails in the sandbox before the change; the candidate adds no failures.
+
+**What it took** (each a bug in Unbidden, fixed, in commit order; each attempt they consumed was given back with
+`reopen`, recorded):
+1. The compose project was found from the repository root.
+2. Endpoints' code locations: per-router prefixes; parameter names; double mounts.
+3. The scan:
+   - C headers from Debian;
+   - Python from `requires-python`;
+   - the repository's cooling period;
+   - mypy.
+4. A lab that cannot start counted as a failed experiment, and the Director declined on it.
+5. The CI test job: `locale-sync.yml`, which runs `gh pr create`, was chosen; Taskfiles were not read.
+6. Models found only for SQLModel.
+7. Job keys: an attempt-only key, then reused keys after resets. Hence `reopen()`.
+8. Candidates: the model rewrote 10 KB files it saw cut. An index is now written from the finding.
+9. The check listed endpoints that read the table rather than those whose code filters by the column.
+   - `handler_source` ran into sibling methods.
+   - Calls are now resolved to one definition by file name and receiver.
+10. `pytest -n auto` was killed at the sandbox's memory limit before writing a line; the lab times serially.
+11. The workload prompt:
+    - asked for Postgres SQL on SQLite tests;
+    - could not pass fixtures;
+    - showed neither the fixtures, their types, the referenced models, nor a test calling the endpoint.
+
+**Security, observed.** The egress gate blocked several workload prompts:
+- over the 20 KB cap, because my larger test context pushed them past it; the budget is back to 9,000 characters;
+- three times for a `credential_assignment` pattern from mealie's test fixtures (test passwords). None of
+  Unbidden's credentials were in them.
+
+**Six opportunities are not measured, on purpose.** Their only cost is the database's own check on deleting a parent
+row, and the lab cannot yet tell whether the test database enforces foreign keys.
+
+**Next for L5.** Deploy the branch to the local mealie with the mandate's deploy steps, on data shaped like a large
+household, and observe `GET /api/foods/empty` live before and after.

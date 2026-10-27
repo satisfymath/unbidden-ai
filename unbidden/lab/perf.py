@@ -293,7 +293,7 @@ class PerfLab:
             out.append(f"`{target}` in `{path}`:\n```python\n" + "\n".join(text[start:end])[:2500] + "\n```")
         return "\n\n".join(out)[:budget] or "(none found)"
 
-    def _test_examples(self, rev: str, endpoint: str = "", table: str = "", budget: int = 20000) -> str:
+    def _test_examples(self, rev: str, endpoint: str = "", table: str = "", budget: int = 9000) -> str:
         """What a workload needs to fit the repository's own tests, most specific first: an existing test that calls
         the endpoint (its imports and calls are real), every pytest fixture the suite defines (name, parameters,
         file), the fixture files about the table, and the conftest."""
