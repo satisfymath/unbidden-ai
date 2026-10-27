@@ -47,6 +47,8 @@ def test_the_regression_test_keeps_imports_and_one_test() -> None:
     source = "from rich.text import Text\n\ndef test_a(s):\n    Text(s)\n\ndef test_b(s):\n    pass\n"
     reduced = single_test(source, "test_a")
     assert "from rich.text import Text" in reduced and "def test_a" in reduced and "test_b" not in reduced
+    unused = "from rich.cells import cell_len\nfrom rich.text import Text\n\ndef test_a(s):\n    Text(s)\n"
+    assert "cell_len" not in single_test(unused, "test_a")
 
 
 GROUP = """
