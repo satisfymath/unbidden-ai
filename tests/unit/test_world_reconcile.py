@@ -96,3 +96,16 @@ def test_facts_from_before_sources_were_recorded_are_judged_by_what_ran() -> Non
     legacy.source = None
     merged, _ = reconcile(world(legacy), world(), {STATIC})
     assert merged.resources["container:api-1"].status is EpistemicStatus.OBSOLETE
+
+
+def test_model_inferred_links_from_before_sources_survive_a_map_without_the_model() -> None:
+    legacy = Relation(
+        src="endpoint:GET /items/",
+        dst="table:item",
+        predicate="reads",
+        status=EpistemicStatus.INFERRED,
+        confidence=0.6,
+        evidence=[EvidenceRef(kind="file", locator="items.py:3")],
+    )
+    merged, diff = reconcile(world(legacy), world(), {STATIC, DOCKER})
+    assert merged.relations[0].status is EpistemicStatus.INFERRED and diff.obsoleted == []

@@ -5,8 +5,9 @@ run. That is a guess: a person may have built from another checkout, or restarte
 of a deploy is resolved from evidence, and says which:
 
 1. `observed`: the images carry `org.opencontainers.image.revision`.
-2. `verified`: Unbidden ran the deploy steps for that commit, and the images were built inside that deploy
-   (bound at deploy time, image ID -> commit).
+2. `verified`: Unbidden ran the deploy steps for that commit, and those steps build images from the checkout
+   (an image reused from the build cache is still that commit's build: same inputs, same image ID), or the
+   image was created inside that deploy. Bound at deploy time, image ID -> commit.
 3. `inferred`: the checkout's HEAD when the containers were first seen, with that reason written down.
 4. `unknown`: none of the above.
 
@@ -98,14 +99,22 @@ def snapshot(repo: Path) -> list[RunningContainer]:
     return containers_from(rows, inspected, images)
 
 
-def bind(store: Store, containers: list[RunningContainer], commit: str, started: datetime) -> dict[str, Any]:
-    """After Unbidden's own deploy of `commit`: remember which images hold it. A binding is verified only when the
-    image was built inside this deploy; a container merely restarted on an older image proves nothing."""
+def steps_build(steps: list[list[str]]) -> bool:
+    """Whether declared deploy steps build images from the checkout (`docker compose up --build`, `docker build`)."""
+    return any("--build" in argv or (len(argv) > 2 and argv[0] == "docker" and "build" in argv[1:3]) for argv in steps)
+
+
+def bind(
+    store: Store, containers: list[RunningContainer], commit: str, started: datetime, *, rebuilt: bool = False
+) -> dict[str, Any]:
+    """After Unbidden's own deploy of `commit`: remember which images hold it. A binding is verified when the deploy
+    steps built from the checkout or the image was created inside this deploy; a container merely restarted on an
+    older image proves nothing."""
     bindings: dict[str, dict[str, Any]] = store.get_value("image_bindings", {})
     record: dict[str, Any] = {}
     for c in containers:
         built = parse_ts(c.image_created)
-        verified = built is not None and built >= started
+        verified = rebuilt or (built is not None and built >= started)
         if c.image_id in bindings and bindings[c.image_id].get("verified") and not verified:
             continue  # an earlier deploy built this image; that binding stays
         bindings[c.image_id] = {
@@ -113,7 +122,11 @@ def bind(store: Store, containers: list[RunningContainer], commit: str, started:
             "verified": verified,
             "service": c.service,
             "at": utc_now().isoformat(),
-            "reason": "image built during Unbidden's deploy of this commit"
+            "reason": (
+                "built from this commit's checkout by the deploy steps (a cached build is the same build)"
+                if rebuilt
+                else "image created during Unbidden's deploy of this commit"
+            )
             if verified
             else "the deploy steps did not rebuild this image; the code it holds predates the deploy",
         }
@@ -122,8 +135,10 @@ def bind(store: Store, containers: list[RunningContainer], commit: str, started:
     return record
 
 
-def bind_after_deploy(repo: Path, store: Store, commit: str, started: datetime) -> dict[str, Any]:
-    return bind(store, snapshot(repo), commit, started)
+def bind_after_deploy(
+    repo: Path, store: Store, commit: str, started: datetime, *, rebuilt: bool = False
+) -> dict[str, Any]:
+    return bind(store, snapshot(repo), commit, started, rebuilt=rebuilt)
 
 
 def resolve(
@@ -140,7 +155,7 @@ def resolve(
     if all(bound) and len(commits) == 1:
         commit = commits.pop()
         if all(b and b.get("verified") for b in bound):
-            return commit, "verified", "images built during Unbidden's deploy of this commit"
+            return commit, "verified", "images built by Unbidden's deploy of this commit"
         return commit, "inferred", "deployed by Unbidden, but images were not rebuilt by that deploy"
     if len(commits) > 1:
         return None, "unknown", "containers hold images bound to different commits: " + ", ".join(sorted(commits))
@@ -151,6 +166,28 @@ def resolve(
             "the checkout's HEAD when these containers were first seen; nothing in the images says what code they hold",
         )
     return None, "unknown", "no label, no binding, no checkout"
+
+
+def initiator(store: Store, containers: list[RunningContainer], commit: str | None) -> str:
+    """Who started these containers. `unbidden` when its last deploy of this commit finished within minutes of the
+    containers starting; `external` when the ledger was already watching before they started and Unbidden did not
+    deploy them; `unknown` when they started before anything was watching."""
+    starts = [t for c in containers if (t := parse_ts(c.started_at)) is not None]
+    if not starts:
+        return "unknown"
+    started = max(starts)
+    last: dict[str, Any] | None = store.get_value("deployed_by_unbidden")
+    at = parse_ts(last.get("at")) if last else None
+    if (
+        last
+        and commit
+        and last.get("commit") == commit
+        and at is not None
+        and abs(at - started) <= UNBIDDEN_DEPLOY_WINDOW
+    ):
+        return "unbidden"
+    watching = [d.seen_at for d in store.list(COLLECTION, Deployment)]
+    return "external" if watching and min(watching) < started else "unknown"
 
 
 def version_of(deployment: Deployment) -> str:
@@ -177,12 +214,7 @@ def observe(
     if key in known:
         return store.get(COLLECTION, known[key], Deployment)
     commit, status, reason = resolve(containers, store.get_value("image_bindings", {}), head)
-    by_unbidden: dict[str, Any] | None = store.get_value("deployed_by_unbidden")
-    initiated = "external"
-    if by_unbidden and commit and by_unbidden.get("commit") == commit:
-        at = parse_ts(by_unbidden.get("at"))
-        if at is not None and now - at <= UNBIDDEN_DEPLOY_WINDOW:
-            initiated = "unbidden"
+    initiated = initiator(store, containers, commit)
     sequence: list[str] = store.get_value("deploy_sequence", [])
     draft = Deployment(
         id="pending",

@@ -17,6 +17,7 @@ from pydantic import Field
 
 from unbidden.contracts.common import Contract, EpistemicStatus, utc_now
 from unbidden.contracts.world import Fact, Relation, Resource, WorldModel
+from unbidden.world.connectors import LLM_RELATIONS
 
 KEEP_OBSOLETE = timedelta(days=7)
 OBSOLETE = EpistemicStatus.OBSOLETE
@@ -43,6 +44,16 @@ def _relation_id(relation: Relation) -> str:
     return f"{relation.src} -{relation.predicate}-> {relation.dst}"
 
 
+def _source_of(fact: Fact) -> str | None:
+    """The connector a fact came from. Facts stored before sources were recorded are attributed by what they are:
+    reads/writes links only ever came from the local model; anything else is judged by whatever ran now."""
+    if fact.source is not None:
+        return fact.source
+    if isinstance(fact, Relation) and fact.predicate in ("reads", "writes"):
+        return LLM_RELATIONS.ref
+    return None
+
+
 def _retire(fact: Fact, now: datetime) -> None:
     fact.status = OBSOLETE
     fact.obsolete_since = fact.obsolete_since or now
@@ -52,8 +63,7 @@ def _carry(old: Fact, ran: set[str], now: datetime, label: str, diff: WorldDiff)
     """What becomes of a fact the fresh map does not contain. None drops it."""
     if old.status is OBSOLETE:
         return old if old.obsolete_since and now - old.obsolete_since < KEEP_OBSOLETE else None
-    # A fact from before sources were recorded is judged by whatever ran now.
-    unseen = old.source in ran or (old.source is None and bool(ran))
+    unseen = _source_of(old) in ran or (_source_of(old) is None and bool(ran))
     if unseen or (old.expires_at is not None and old.expires_at <= now):
         _retire(old, now)
         diff.obsoleted.append(label)

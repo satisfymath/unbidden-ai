@@ -24,14 +24,16 @@ def inspected(cid: str, project: str, service: str, image: str, started: str, **
     }
 
 
-def container(cid: str, image: str, created: datetime | None, label: str | None = None) -> RunningContainer:
+def container(
+    cid: str, image: str, created: datetime | None, label: str | None = None, started: datetime | None = None
+) -> RunningContainer:
     return RunningContainer(
         service="backend",
         container_id=cid,
         name=f"fst-backend-{cid}",
         image_id=image,
         image_created=created.isoformat() if created else None,
-        started_at=None,
+        started_at=started.isoformat() if started else None,
         revision_label=label,
     )
 
@@ -77,15 +79,29 @@ def test_a_restart_on_an_older_image_binds_nothing_verified(store: Store) -> Non
     assert (commit, status) == (A, "inferred") and "not rebuilt" in reason
 
 
-def test_containers_nobody_accounts_for_are_head_inferred_and_external(store: Store) -> None:
-    d = ledger.observe(store, [container("c1", "i1", T0)], head=B, now=T0)
-    assert d is not None and (d.commit, d.commit_status, d.initiated_by) == (B, "inferred", "external")
+def test_a_cached_build_by_the_deploy_steps_is_still_that_commits_build(store: Store) -> None:
+    """`docker compose up --build` on unchanged inputs reuses the cached image: same ID, created long ago."""
+    cached = container("c1", "i1", T0 - timedelta(days=1))
+    ledger.bind(store, [cached], A, started=T0, rebuilt=True)
+    commit, status, _ = ledger.resolve([cached], store.get_value("image_bindings", {}), head=B)
+    assert (commit, status) == (A, "verified")
+    assert ledger.steps_build([["docker", "compose", "up", "-d", "--build", "--wait", "backend"]])
+    assert ledger.steps_build([["docker", "build", "-t", "x", "."]])
+    assert not ledger.steps_build([["docker", "compose", "up", "-d"], ["./migrate.sh", "build"]])
+
+
+def test_containers_nobody_accounts_for_are_head_inferred_and_their_initiator_unknown(store: Store) -> None:
+    d = ledger.observe(store, [container("c1", "i1", T0, started=T0)], head=B, now=T0)
+    assert d is not None and (d.commit, d.commit_status, d.initiated_by) == (B, "inferred", "unknown")
     assert "HEAD" in d.commit_reason
     assert store.get_value("deploy_sequence") == [B]
+    # Once the ledger is watching, containers started later that Unbidden did not deploy are external.
+    later = ledger.observe(store, [container("c2", "i2", T0, started=T0 + timedelta(hours=1))], head=A)
+    assert later is not None and later.initiated_by == "external"
 
 
 def test_unbiddens_own_deploy_is_attributed_and_found_by_commit(store: Store) -> None:
-    built = container("c1", "i1", T0 + timedelta(seconds=40))
+    built = container("c1", "i1", T0 + timedelta(seconds=40), started=T0 + timedelta(seconds=45))
     ledger.bind(store, [built], A, started=T0)
     store.set_value("deployed_by_unbidden", {"commit": A, "at": (T0 + timedelta(seconds=50)).isoformat()})
     d = ledger.observe(store, [built], head=B, now=T0 + timedelta(minutes=1))

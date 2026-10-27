@@ -80,6 +80,20 @@ def _fact(fid: str, what: str, fact: Fact, hops: int, now: datetime, attributes:
     )
 
 
+USERS_OF = ("uses_database", "reads", "writes", "depends_on", "calls")
+
+
+def _peer(world: WorldModel, node: str, relation: Relation) -> bool:
+    """A link that leads from a component of the scope to its peers rather than to what it rests on: other users of
+    a shared data store or service, or the other endpoints a service serves. Not followed past the root."""
+    resource = world.resources.get(node)
+    if resource is None:
+        return False
+    if relation.dst == node and relation.predicate in USERS_OF:
+        return True
+    return relation.src == node and relation.predicate == "serves"
+
+
 def scope(world: WorldModel, root: str, *, depth: int = DEFAULT_DEPTH, now: datetime | None = None) -> Scope:
     now = now or utc_now()
     if root not in world.resources:
@@ -100,12 +114,7 @@ def scope(world: WorldModel, root: str, *, depth: int = DEFAULT_DEPTH, now: date
             if node not in (relation.src, relation.dst):
                 continue
             other = relation.dst if relation.src == node else relation.src
-            # Do not walk through a data store to everything else that uses it: that is not this root's scope.
-            through_shared = world.resources.get(node) is not None and world.resources[node].kind in (
-                "database",
-                "table",
-            )
-            if through_shared and hops[node] > 0 and relation.predicate in ("uses_database", "reads", "writes"):
+            if hops[node] > 0 and _peer(world, node, relation):
                 continue
             used.append((hops[node], relation))
             if other not in hops:
