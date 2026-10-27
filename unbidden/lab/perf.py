@@ -212,6 +212,7 @@ class PerfLab:
         self.runner = runner or SandboxRunner()
         self.progress = progress
         self.repairs = repairs
+        self.auth_lines: list[str] = []  # how the example test passes credentials
 
     # Model-written artifacts ----------------------------------------------------------------------------
 
@@ -327,6 +328,12 @@ class PerfLab:
                 )
             )
             for caller in callers[:1]:
+                # How that test passes credentials, quoted back if a workload is refused (401/403).
+                self.auth_lines = [
+                    line.strip()
+                    for line in sources[caller].splitlines()
+                    if re.search(r"\b(headers|auth|cookies)\s*=", line)
+                ][:3]
                 calling.append(
                     f"An existing test that calls `{endpoint}`, `{caller}`:\n```python\n{sources[caller][:3500]}```"
                 )
@@ -565,6 +572,8 @@ class PerfLab:
                     " shown below does (the same fixture attribute, the same argument), without wrapping them again;"
                     " if the endpoint needs a permission, use the fixture that has it."
                 )
+                if self.auth_lines:
+                    feedback += " That test does it like this:\n" + "\n".join(f"    {x}" for x in self.auth_lines)
             last_line = next((ln for ln in error.splitlines() if ln.startswith("E ") or "Error" in ln), "no output")
             result.notes.append(f"workload attempt {attempt + 1} failed: {last_line[:200]}")
             self._keep(opp, f"workload-attempt-{attempt + 1}", workload[f"{LAB_DIR}/workload.py"], error)
