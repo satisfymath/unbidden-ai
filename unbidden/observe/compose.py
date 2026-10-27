@@ -187,6 +187,9 @@ def load_compose(repo: Path, rev: str = "HEAD", files: list[str] | None = None) 
         build = spec.get("build")
         context = build.get("context") if isinstance(build, dict) else build if isinstance(build, str) else None
         dockerfile = build.get("dockerfile") if isinstance(build, dict) else None
+        # Build paths are interpolated like everything else (opentelemetry-demo: dockerfile: ${PAYMENT_DOCKERFILE}).
+        context = interpolate(str(context), dotenv, unresolved) if context else None
+        dockerfile = interpolate(str(dockerfile), dotenv, unresolved) if dockerfile else None
         health = (spec.get("healthcheck") or {}).get("test") or []
         services[service_name] = Service(
             name=service_name,
