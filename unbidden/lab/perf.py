@@ -578,7 +578,11 @@ class PerfLab:
             result.notes.append(f"workload attempt {attempt + 1} failed: {last_line[:200]}")
             self._keep(opp, f"workload-attempt-{attempt + 1}", workload[f"{LAB_DIR}/workload.py"], error)
         if before is None or workload is None:
-            result.notes.append("no workload ran at the base; nothing was measured")
+            # Nothing was measured, so nothing is known about the change: the lab could not build a workload
+            # (kept in artifacts). That blocks this commit; it is not evidence against the opportunity.
+            last = next((n for n in reversed(result.notes) if n.startswith("workload attempt")), "")
+            result.blocked = f"cannot measure: no workload ran at the base after {self.repairs + 1} attempts ({last})"
+            result.notes.append(result.blocked)
             return result
 
         self.progress("measuring the candidate")
