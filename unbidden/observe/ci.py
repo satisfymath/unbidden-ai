@@ -137,10 +137,11 @@ def ci_lint_packages(repo: Path, rev: str, packages: dict[str, str], root_script
         return None
     expanded: list[str] = []
     for command in commands:
-        expanded.append(command)
         call = _SCRIPT_CALL.search(command)
         if call and not _FILTER.search(command) and call.group("script") in root_scripts:
-            expanded.append(root_scripts[call.group("script")])
+            expanded.append(root_scripts[call.group("script")])  # the root script says what it lints
+        else:
+            expanded.append(command)
     dirs: set[str] = set()
     for command in expanded:
         filtered = [m.group("name") or m.group("yarn") for m in _FILTER.finditer(command)]
