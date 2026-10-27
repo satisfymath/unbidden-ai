@@ -29,7 +29,7 @@ from unbidden.world.connectors import (
 )
 from unbidden.world.reconcile import reconcile
 from unbidden.world.relations import infer_endpoint_tables
-from unbidden.world.runtime import discover_runtime
+from unbidden.world.runtime import compose_files, discover_runtime
 from unbidden.world.static import discover_static
 
 COLLECTION = "world"
@@ -133,14 +133,17 @@ async def discover(repo: Path, rev: str, store: Store, mandate: Mandate, brain: 
     previous = store.get(COLLECTION, "world", WorldModel)
     world = WorldModel(rev=rev)
     ran: set[str] = set()
+    runtime_allowed = policy.evaluate(ActionRequest(capability="runtime.read", purpose="map the running system"))
+    # The files the deployment was started with, when it runs: they declare what actually runs.
+    files = compose_files(repo) if runtime_allowed.allowed else []
     if policy.evaluate(ActionRequest(capability="repo.read", purpose="map the repository")).allowed:
-        discover_static(repo, rev, detect_stack(repo, rev), world)
+        discover_static(repo, rev, detect_stack(repo, rev), world, files or None)
         world.stamp(GIT_STATIC.ref, valid_for=rev)
         ran.add(GIT_STATIC.ref)
     else:
         world.blind_spots.append(BlindSpot(what="the repository", why="repo.read is not allowed by the mandate"))
-    if policy.evaluate(ActionRequest(capability="runtime.read", purpose="map the running system")).allowed:
-        ran |= discover_runtime(repo, world, rev)
+    if runtime_allowed.allowed:
+        ran |= discover_runtime(repo, world, rev, files or None)
         containers = [c for c in ledger.snapshot(repo) if c.service in app_services(world)]
         deployment = ledger.observe(store, containers, head_sha(repo)) if containers else None
         if deployment is not None:

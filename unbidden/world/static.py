@@ -56,7 +56,9 @@ def service_references(compose: Compose, service: Service) -> list[tuple[str, st
     return found
 
 
-def discover_static(repo: Path, rev: str, stack: Stack, world: WorldModel) -> None:
+def discover_static(
+    repo: Path, rev: str, stack: Stack, world: WorldModel, compose_files: list[str] | None = None
+) -> None:
     files = _files(repo, rev)
     world.add(
         Resource(
@@ -70,7 +72,7 @@ def discover_static(repo: Path, rev: str, stack: Stack, world: WorldModel) -> No
         )
     )
 
-    compose = load_compose(repo, rev)
+    compose = load_compose(repo, rev, compose_files)
     if compose is None:
         world.blind_spots.append(
             BlindSpot(what="services", why="no compose file; services are not declared in the repository")

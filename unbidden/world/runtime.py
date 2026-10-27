@@ -16,7 +16,7 @@ import httpx
 
 from unbidden.contracts.common import EpistemicStatus, EvidenceRef
 from unbidden.contracts.world import BlindSpot, Relation, Resource, WorldModel
-from unbidden.observe.compose import DATA_IMAGES, load_compose
+from unbidden.observe.compose import DATA_IMAGES, deployed_compose_files, load_compose
 from unbidden.world.connectors import COMPOSE_DOCKER, OPENAPI_HTTP, POSTGRES_READONLY
 
 OBSERVED = EpistemicStatus.OBSERVED
@@ -216,7 +216,19 @@ def _postgres(world: WorldModel, service: str, container: str, user: str, defaul
     return read_any
 
 
-def discover_runtime(repo: Path, world: WorldModel, rev: str = "HEAD") -> set[str]:
+def compose_files(repo: Path) -> list[str]:
+    """The compose files this project's running containers were started with, relative to the repository."""
+    from unbidden.operate.ledger import _docker_json  # pyright: ignore[reportPrivateUsage]
+
+    ids = [str(r["ID"]) for r in running_containers(repo) if r.get("ID")]
+    labels = [
+        str(((item.get("Config") or {}).get("Labels") or {}).get("com.docker.compose.project.config_files", ""))
+        for item in (_docker_json("inspect", *ids) if ids else [])
+    ]
+    return deployed_compose_files(repo, [label for label in labels if label])
+
+
+def discover_runtime(repo: Path, world: WorldModel, rev: str = "HEAD", files: list[str] | None = None) -> set[str]:
     """Add what the running system shows. Returns the sources that actually ran, so facts they no longer see can
     be marked obsolete, and facts of sources that could not run are kept as they were."""
     containers = running_containers(repo)
@@ -226,7 +238,7 @@ def discover_runtime(repo: Path, world: WorldModel, rev: str = "HEAD") -> set[st
         )
         return set()
     ran = {COMPOSE_DOCKER.ref}
-    compose = load_compose(repo, rev)
+    compose = load_compose(repo, rev, files)
     undeclared: list[str] = []
     for container in containers:
         service = container.get("Service", "")

@@ -219,3 +219,45 @@ def test_a_key_that_says_host_makes_a_bare_service_name_an_address() -> None:
         },
     )
     assert service_references(compose, compose.services["proxy"]) == [("FLAGD_HOST", "flagd", "flagd")]
+
+
+def test_several_compose_files_merge_as_compose_does(tmp_path: Path) -> None:
+    from unbidden.observe.compose import deployed_compose_files, load_compose
+
+    base = """services:
+  cart:
+    image: x/cart
+    environment:
+      - VALKEY_ADDR=valkey:6379
+    depends_on: [valkey]
+  valkey:
+    image: valkey/valkey:9
+"""
+    extra = """services:
+  cart:
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://collector:4317
+    depends_on: [collector]
+  collector:
+    image: otel/collector
+"""
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "compose.yaml").write_text(base)
+    (tmp_path / "compose.extra.yaml").write_text(extra)
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    files = deployed_compose_files(
+        tmp_path, [f"{tmp_path}/compose.yaml,{tmp_path}/compose.extra.yaml,/elsewhere/x.yaml"]
+    )
+    assert files == ["compose.yaml", "compose.extra.yaml"]
+    compose = load_compose(tmp_path, "HEAD", files)
+    assert compose is not None and set(compose.services) == {"cart", "valkey", "collector"}
+    assert compose.services["cart"].environment == {
+        "VALKEY_ADDR": "valkey:6379",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://collector:4317",
+    }
+    assert compose.services["cart"].depends_on == ("valkey", "collector")
+    assert compose.path == "compose.yaml+compose.extra.yaml"
+    default = load_compose(tmp_path, "HEAD")  # nothing known about the deployment: the default file
+    assert default is not None and set(default.services) == {"cart", "valkey"}

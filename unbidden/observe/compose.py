@@ -98,7 +98,8 @@ def interpolate(text: str, env: dict[str, str], unresolved: list[str]) -> str:
 def _env_block(raw: Any, env: dict[str, str], unresolved: list[str]) -> dict[str, str]:
     out: dict[str, str] = {}
     if isinstance(raw, dict):
-        items = [(str(k), "" if v is None else str(v)) for k, v in raw.items()]  # pyright: ignore[reportUnknownVariableType]
+        # `KEY:` with no value, like `- KEY`, passes KEY from compose's environment.
+        items = [(str(k), f"${{{k}}}" if v is None else str(v)) for k, v in raw.items()]  # pyright: ignore[reportUnknownVariableType]
     elif isinstance(raw, list):
         items = []
         for entry in raw:  # pyright: ignore[reportUnknownVariableType]
@@ -112,24 +113,73 @@ def _env_block(raw: Any, env: dict[str, str], unresolved: list[str]) -> dict[str
     return out
 
 
-def load_compose(repo: Path, rev: str = "HEAD") -> Compose | None:
-    for name in COMPOSE_FILES:
+def _as_env_dict(raw: Any) -> dict[str, str | None]:
+    if isinstance(raw, dict):
+        return {str(k): None if v is None else str(v) for k, v in raw.items()}  # pyright: ignore[reportUnknownVariableType]
+    if isinstance(raw, list):
+        out: dict[str, str | None] = {}
+        for entry in raw:  # pyright: ignore[reportUnknownVariableType]
+            key, eq, value = str(entry).partition("=")  # pyright: ignore[reportUnknownArgumentType]
+            out[key] = value if eq else None
+        return out
+    return {}
+
+
+def _names(raw: Any) -> list[str]:
+    return [str(x) for x in raw] if isinstance(raw, list) else [str(x) for x in raw] if isinstance(raw, dict) else []  # pyright: ignore[reportUnknownVariableType]
+
+
+def merge_spec(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
+    """Compose's merge of one service across files: environment by key, depends_on and ports added up, mappings
+    merged, anything else replaced by the later file."""
+    merged = dict(base)
+    for key, value in override.items():
+        if key == "environment":
+            env = {**_as_env_dict(base.get(key)), **_as_env_dict(value)}
+            merged[key] = env
+        elif key == "depends_on":
+            merged[key] = list(dict.fromkeys([*_names(base.get(key)), *_names(value)]))
+        elif key == "ports":
+            merged[key] = [*(base.get(key) or []), *(value or [])]
+        elif isinstance(value, dict) and isinstance(base.get(key), dict):
+            merged[key] = merge_spec(base[key], value)  # pyright: ignore[reportUnknownArgumentType]
+        else:
+            merged[key] = value
+    return merged
+
+
+def load_compose(repo: Path, rev: str = "HEAD", files: list[str] | None = None) -> Compose | None:
+    """The services of the compose files `files` (in order, later ones overriding), or of the first default file.
+
+    Pass `files` when the deployment's own file list is known (`deployed_compose_files`): a project started with
+    `-f compose.yaml -f compose.observability.yaml` runs services the default file does not declare.
+    """
+    texts: list[tuple[str, str]] = []
+    for name in files or []:
         text = _git_show(repo, rev, name)
         if text is not None:
-            break
-    else:
-        return None
+            texts.append((name, text))
+    if not texts:
+        for name in COMPOSE_FILES:
+            text = _git_show(repo, rev, name)
+            if text is not None:
+                texts.append((name, text))
+                break
+        else:
+            return None
     dotenv = parse_dotenv(_git_show(repo, rev, ".env") or "")
-    raw = yaml.safe_load(text) or {}
+    specs: dict[str, dict[str, Any]] = {}
+    for _, text in texts:
+        raw = yaml.safe_load(text) or {}
+        for service_name, spec in (raw.get("services") or {}).items():
+            if isinstance(spec, dict):
+                specs[service_name] = merge_spec(specs.get(service_name, {}), spec)  # pyright: ignore[reportUnknownArgumentType]
     unresolved: list[str] = []
     services: dict[str, Service] = {}
-    for service_name, spec in (raw.get("services") or {}).items():
-        if not isinstance(spec, dict):
-            continue
+    for service_name, spec in specs.items():
         build = spec.get("build")
         context = build.get("context") if isinstance(build, dict) else build if isinstance(build, str) else None
         dockerfile = build.get("dockerfile") if isinstance(build, dict) else None
-        depends = spec.get("depends_on") or []
         health = (spec.get("healthcheck") or {}).get("test") or []
         services[service_name] = Service(
             name=service_name,
@@ -137,8 +187,24 @@ def load_compose(repo: Path, rev: str = "HEAD") -> Compose | None:
             build_context=context,
             dockerfile=dockerfile,
             environment=_env_block(spec.get("environment"), dotenv, unresolved),
-            depends_on=tuple(depends if isinstance(depends, list) else depends.keys()),
+            depends_on=tuple(_names(spec.get("depends_on"))),
             ports=tuple(str(p) for p in spec.get("ports") or []),
             healthcheck=tuple(str(h) for h in health) if isinstance(health, list) else (str(health),),
         )
-    return Compose(path=name, services=services, unresolved=sorted(set(unresolved)))
+    return Compose(path="+".join(n for n, _ in texts), services=services, unresolved=sorted(set(unresolved)))
+
+
+def deployed_compose_files(repo: Path, labels: list[str]) -> list[str]:
+    """The compose files a running project was started with (`com.docker.compose.project.config_files`), relative
+    to the repository; files outside it are left out (they cannot be read from git)."""
+    root = repo.resolve()
+    found: list[str] = []
+    for value in labels:
+        for path in value.split(","):
+            try:
+                relative = Path(path).resolve().relative_to(root)
+            except ValueError:
+                continue
+            if str(relative) not in found:
+                found.append(str(relative))
+    return found
