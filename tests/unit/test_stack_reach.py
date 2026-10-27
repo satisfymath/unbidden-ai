@@ -108,3 +108,21 @@ def test_versions_from_git_do_not_break_the_dependency_image() -> None:
 
     stack = PythonStack(version="3.12", lockfile=None, manifest="pyproject.toml", ruff=True, pyright=False, pytest=True)
     assert "SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0" in python_dockerfile(stack)
+
+
+def test_documents_a_manifest_declares_go_into_the_build_context(tmp_path: Path) -> None:
+    from unbidden.sandbox.provision import _manifests  # pyright: ignore[reportPrivateUsage]
+
+    repo = commit(
+        tmp_path,
+        {
+            "pyproject.toml": '[project]\nname="x"\nreadme="README.md"\n',
+            "README.md": "x\n",
+            "LICENSE": "MIT\n",
+            "src/x/__init__.py": "",
+            "docs/README.md": "not at the root\n",
+        },
+    )
+    stack = detect_stack(repo)
+    assert stack.python is not None
+    assert _manifests(repo, "HEAD", stack.python) == ["LICENSE", "README.md", "pyproject.toml"]

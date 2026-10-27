@@ -143,7 +143,14 @@ def _manifests(repo: Path, rev: str, stack: NodeStack | PythonStack) -> list[str
         return []
     wanted = [stack.manifest] + ([stack.lockfile] if stack.lockfile else [])
     wanted += [f"{m}/pyproject.toml" for m in stack.members]
+    # Build backends read the documents a manifest declares (hatchling refuses a missing `readme`) even when only the
+    # metadata is built. Documents, never code.
+    for directory in ["", *(f"{m}/" for m in stack.members)]:
+        wanted += [f for f in files if f.startswith(directory) and METADATA_DOC.match(f.removeprefix(directory))]
     return sorted(set(wanted))
+
+
+METADATA_DOC = re.compile(r"^(README|LICEN[CS]E|COPYING|NOTICE|AUTHORS|CHANGELOG|CHANGES)[\w.-]*$", re.IGNORECASE)
 
 
 def build_error(stderr: str, keep: int = 12) -> str:

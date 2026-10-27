@@ -28,7 +28,7 @@ cannot leave a deploy unjudged.
 | `store/` | SQLite in WAL mode. Events and audit are append-only, enforced by triggers. Also holds the job queue, key-value state and probe rounds tagged by deploy |
 | `observe/` | `health.py` judges each service against its own baseline from the project's metrics and localizes a degradation along observed calls. `stack.py` detects languages, package managers and workspaces. `ci.py` turns GitHub Actions workflows into the test plan and the lint scope. `compose.py` reads services. `analyzers.py` and `scan.py` run the repository's own tools in the sandbox. `probe.py`, `impact.py` and `live.py` handle production |
 | `world/` | A world model of the running system: static facts (models, routes, tables), runtime facts, inferred relations, and generic checks that find opportunities without naming the target. Each fact names its connector (`connectors.py`), when it was seen and the revision or deploy it describes; `reconcile.py` merges each map into the previous one; `scope.py` walks from an anomaly to the components and gaps behind it |
-| `director/` | Picks the next action for each opportunity by expected utility (p_success × value − cost − risk) within the mandate. Declines what lies outside the CI's scope |
+| `director/` | Picks the next action for each opportunity by expected utility (p_success × value − cost − risk) within the mandate. Declines what lies outside the CI's scope. After each scan it also decides whether to probe the repository's own package for crashes (once per commit), and records why |
 | `lab/` | `FixLab` (fixes for findings), `PerfLab` (migration plus a model-written workload run inside the team's own test command), `RobustLab` (fixes for crashes). `evaluator.py` compares base and candidate. `perfstats.py` provides Mann-Whitney and CIs |
 | `sandbox/` | `runner.py`: `--network none`, read-only root, all capabilities dropped, uid 1000, snapshot at `/work`. `provision.py` builds dependency images, including code generation such as Prisma. `sidecars.py` starts databases on an `--internal` network |
 | `brain/` | `router.py` routes each request with `route_policy.py` and `tasks.py`, repairs malformed answers and falls back between tiers. Providers: Ollama, OpenAI-compatible (Meta Model API), mock. `hardware.py` chooses the local model for the machine. Prompts are versioned files in `prompts/` |
@@ -39,6 +39,7 @@ cannot leave a deploy unjudged.
 | `publish/` | Branches, PR bodies with their evidence, and pinned merges through the GitHub API |
 | `operate/` | Deploys and rollbacks using the team's declared steps, holds, and the deploy ledger (`ledger.py`): which commit each set of running containers holds, and how that is known |
 | `cli.py` | Every human interaction. `--json` everywhere |
+| `bench/` | Benchmarks, outside the product: `scale.py` runs full autonomous cycles on pinned repositories and records each from state and the spend ledger; `scale_report.py` turns the record into rates with intervals |
 
 ## Models
 
@@ -56,6 +57,14 @@ cannot leave a deploy unjudged.
    `expect_files` is set. A bad answer gets one repair attempt, then falls back to the other tier.
 5. **Record the run.** Every `ModelRun` stores the route, the reason and the model that actually answered.
    Proposals credit that model.
+
+**Spend.** Promotional credits are one balance for every workspace, so remote spend is kept in one ledger per machine
+(`brain/spend.py`, `~/.unbidden/spend.db`), not per workspace. Before a remote call leaves, its worst cost (every
+payload byte a token, plus all of `max_tokens`, at list price) is reserved in one transaction against the balance a
+person read on the dashboard (`unbidden spend --verified-balance`), minus a reserve only a person releases. After the
+call the reservation becomes the reported usage; a call that may have been billed without reporting usage keeps its
+worst cost. Without a verified balance only a small allowance is spent. `-contributor` models, whose data-use terms
+differ, are refused unless the config allows them. Each call carries the run that caused it (`UNBIDDEN_RUN`).
 
 ## Privacy bridge
 
@@ -108,6 +117,10 @@ Guaranteed by code, and covered by tests:
 - **Metrics and traces.** The project's own Prometheus and Jaeger are read with fixed queries only; only this
   project's services and containers are taken in, and span attributes are dropped on parsing
   (`tests/unit/test_health.py`).
+- **Spend.** No remote call leaves without a reservation that fits the verified budget, across every workspace on the
+  machine; refused calls send nothing; the reserve is not spent unless a person releases it; contributor models are
+  refused by default (`tests/unit/test_spend.py`). The costs are list price times reported tokens: an estimate, the
+  provider's dashboard is the bill.
 - **Credentials.** Unbidden's secrets are held by a broker (`guardian/credentials.py`), not the process environment.
   Each one is given only for the purposes granted, every use is audited without its value, and the egress gate
   refuses any payload that contains a held value (`tests/unit/test_credentials.py`). It is not a vault: the values
