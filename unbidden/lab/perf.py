@@ -293,7 +293,7 @@ class PerfLab:
             out.append(f"`{target}` in `{path}`:\n```python\n" + "\n".join(text[start:end])[:2500] + "\n```")
         return "\n\n".join(out)[:budget] or "(none found)"
 
-    def _test_examples(self, rev: str, endpoint: str = "", table: str = "", budget: int = 14000) -> str:
+    def _test_examples(self, rev: str, endpoint: str = "", table: str = "", budget: int = 20000) -> str:
         """What a workload needs to fit the repository's own tests, most specific first: an existing test that calls
         the endpoint (its imports and calls are real), every pytest fixture the suite defines (name, parameters,
         file), the fixture files about the table, and the conftest."""
@@ -339,6 +339,23 @@ class PerfLab:
             blocks.append(
                 "Fixtures the test suite defines (use these; do not invent others):\n" + "\n".join(fixtures[:80])
             )
+            # The classes those fixtures are typed with (`unique_user: TestUser`): their attributes are the contract.
+            typed = sorted({t for f in fixtures for t in re.findall(r":\s*(?:\w+\.)?([A-Z]\w+)", f)})
+            for name in typed[:6]:
+                found = next(
+                    (
+                        (p, m.start())
+                        for p, text in sources.items()
+                        if (m := re.search(rf"^class {name}\b", text, re.M))
+                    ),
+                    None,
+                )
+                if found is not None:
+                    path, at = found
+                    body = sources[path][at:]
+                    end = re.compile(r"^\S", re.M).search(body, body.find("\n") + 1)  # next top-level line
+                    definition = body[: end.start()] if end else body
+                    blocks.append(f"`{name}` in `{path}`:\n```python\n{definition[:1500]}```")
 
         # 3. Fixture files about the table, then the conftest.
         words = {w.removesuffix("s") for w in re.split(r"[_.]", table.lower()) if len(w) > 2}
