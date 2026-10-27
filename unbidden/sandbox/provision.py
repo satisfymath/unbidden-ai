@@ -14,9 +14,13 @@ import subprocess
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from unbidden.observe.stack import NodeStack, PythonStack, tracked_files
 from unbidden.sandbox.runner import SandboxSpec
+
+if TYPE_CHECKING:
+    from unbidden.guardian.policy import PolicyEngine
 
 NODE_REGISTRIES = ["registry.npmjs.org"]
 PYTHON_REGISTRIES = ["pypi.org", "files.pythonhosted.org"]
@@ -74,7 +78,7 @@ RUN {install}{generate} \\
 """
 
 
-def python_dockerfile(stack: PythonStack, *, system_build_tools: bool = False) -> str:
+def python_dockerfile(stack: PythonStack, *, system_build_tools: bool = False, headers: tuple[str, ...] = ()) -> str:
     if stack.lockfile == "uv.lock" and stack.members:
         install = "uv sync --frozen --no-install-workspace --all-packages --all-groups --project /deps"
     elif stack.lockfile == "uv.lock":
@@ -90,8 +94,9 @@ def python_dockerfile(stack: PythonStack, *, system_build_tools: bool = False) -
     else:
         install = "uv sync --no-install-project --all-groups --project /deps"
     build_tools = (
-        "RUN apt-get update && apt-get install -y --no-install-recommends build-essential"
-        " && rm -rf /var/lib/apt/lists/*\n"
+        "RUN apt-get update && apt-get install -y --no-install-recommends "
+        + " ".join(("build-essential", *headers))
+        + " && rm -rf /var/lib/apt/lists/*\n"
         if system_build_tools
         else ""
     )
@@ -108,10 +113,16 @@ WORKDIR /deps
 COPY ctx/ /deps/
 RUN {install} \\
  && (/deps/.venv/bin/python -c "import pytest" 2>/dev/null \\
-     || uv pip install --python /deps/.venv/bin/python pytest=={PYTEST_VERSION}) \\
+     || uv pip install --python /deps/.venv/bin/python pytest=={PYTEST_VERSION} \\
+     || uv pip install --python /deps/.venv/bin/python pytest) \\
  && (/deps/.venv/bin/python -c "import hypothesis" 2>/dev/null \\
-     || uv pip install --python /deps/.venv/bin/python hypothesis=={HYPOTHESIS_VERSION})
+     || uv pip install --python /deps/.venv/bin/python hypothesis=={HYPOTHESIS_VERSION} \\
+     || uv pip install --python /deps/.venv/bin/python hypothesis)
 """
+
+
+# The pinned version first; when the repository's own uv settings exclude it (mealie's `exclude-newer`, a
+# supply-chain cooling period), the newest one they allow.
 
 
 def _manifests(repo: Path, rev: str, stack: NodeStack | PythonStack) -> list[str]:
@@ -147,6 +158,55 @@ NEEDS_COMPILER = re.compile(
     r"No such file or directory: '(gcc|cc|g\+\+)'|command '(gcc|cc)' failed|unable to execute 'gcc'"
 )
 SYSTEM_REGISTRIES = ["deb.debian.org"]
+MISSING_HEADER = re.compile(r"(?:fatal error: |provides `)(?P<header>[\w/.+-]+\.h)")
+MISSING_TOOL = re.compile(
+    r"(?P<tool>pg_config|mysql_config|xslt-config|xml2-config) executable not found|"
+    r"(?P<tool2>pg_config|mysql_config): not found"
+)
+# The Debian package that provides a header (or config tool) Python packages commonly build against.
+HEADER_PACKAGES = {
+    "lber.h": "libldap2-dev",
+    "ldap.h": "libldap2-dev",
+    "sasl/sasl.h": "libsasl2-dev",
+    "sasl.h": "libsasl2-dev",
+    "libpq-fe.h": "libpq-dev",
+    "pg_config": "libpq-dev",
+    "mysql.h": "default-libmysqlclient-dev",
+    "mysql_config": "default-libmysqlclient-dev",
+    "ffi.h": "libffi-dev",
+    "openssl/ssl.h": "libssl-dev",
+    "libxml/xmlversion.h": "libxml2-dev",
+    "xml2-config": "libxml2-dev",
+    "libxslt/xsltconfig.h": "libxslt1-dev",
+    "xslt-config": "libxslt1-dev",
+    "jpeglib.h": "libjpeg-dev",
+    "zlib.h": "zlib1g-dev",
+    "krb5.h": "libkrb5-dev",
+    "gssapi/gssapi.h": "libkrb5-dev",
+    "yaml.h": "libyaml-dev",
+    "sqlite3.h": "libsqlite3-dev",
+    "bzlib.h": "libbz2-dev",
+    "lzma.h": "liblzma-dev",
+    "Python.h": "python3-dev",
+}
+MAX_SYSTEM_RETRIES = 4
+
+
+def system_tools_allowed(policy: PolicyEngine) -> bool:
+    """Whether the mandate allows system packages (a compiler, C headers) from Debian's archive."""
+    from unbidden.contracts.guardian import ActionRequest
+
+    request = ActionRequest(
+        capability="sandbox.provision", purpose="system build tools", destinations=SYSTEM_REGISTRIES
+    )
+    return policy.evaluate(request).allowed
+
+
+def missing_packages(error: str) -> list[str]:
+    """Debian packages for the headers and config tools a failed build names, as far as they are known."""
+    names = [m.group("header") for m in MISSING_HEADER.finditer(error)]
+    names += [m.group("tool") or m.group("tool2") for m in MISSING_TOOL.finditer(error)]
+    return sorted({HEADER_PACKAGES[n] for n in names if n in HEADER_PACKAGES})
 
 
 def provision(
@@ -158,7 +218,8 @@ def provision(
     system_build_tools: bool = False,
 ) -> DependencyImage:
     """Build (or reuse) the dependency image. `system_build_tools` (the mandate allows Debian's archive) lets a Python
-    install that needs a C compiler retry with one; without it the failure says that is what is missing."""
+    install that needs a C compiler retry with one, then with the Debian packages of the C headers the build names
+    (`lber.h` is `libldap2-dev`); without it the failure says that is what is missing."""
     if isinstance(stack, NodeStack) and ".pnpmfile.cjs" in tracked_files(repo, rev):
         # pnpm runs that file (repository code) during the install, with network access: not done here.
         raise ProvisionError(
@@ -174,12 +235,35 @@ def provision(
                     f"{exc}\nA package is built from source and needs a C compiler; system packages come from "
                     f"{', '.join(SYSTEM_REGISTRIES)}, which the mandate's package registries do not list."
                 ) from exc
-            return _provision(repo, rev, stack, docker=docker, system_build_tools=True)
+            headers: tuple[str, ...] = ()
+            for _ in range(MAX_SYSTEM_RETRIES):
+                try:
+                    return _provision(repo, rev, stack, docker=docker, system_build_tools=True, headers=headers)
+                except ProvisionError as again:
+                    more = [p for p in missing_packages(str(again)) if p not in headers]
+                    if not more:
+                        unknown = sorted({m.group("header") for m in MISSING_HEADER.finditer(str(again))})
+                        if unknown:
+                            raise ProvisionError(
+                                f"{again}\nThe build needs C headers Unbidden does not know a Debian package for: "
+                                f"{', '.join(unknown)}"
+                            ) from again
+                        raise
+                    headers = (*headers, *more)
+            raise ProvisionError(
+                f"python dependencies still fail to build with build-essential and {', '.join(headers)} installed"
+            ) from exc
         raise
 
 
 def _provision(
-    repo: Path, rev: str, stack: NodeStack | PythonStack, *, docker: str, system_build_tools: bool
+    repo: Path,
+    rev: str,
+    stack: NodeStack | PythonStack,
+    *,
+    docker: str,
+    system_build_tools: bool,
+    headers: tuple[str, ...] = (),
 ) -> DependencyImage:
     language = "node" if isinstance(stack, NodeStack) else "python"
     build = Path(tempfile.mkdtemp(prefix="unbidden-build-"))
@@ -193,7 +277,7 @@ def _provision(
         dockerfile = (
             node_dockerfile(stack)
             if isinstance(stack, NodeStack)
-            else python_dockerfile(stack, system_build_tools=system_build_tools)
+            else python_dockerfile(stack, system_build_tools=system_build_tools, headers=headers)
         )
         tag = f"unbidden-deps-{language}:{hashlib.sha256((dockerfile + digest).encode()).hexdigest()[:16]}"
         exists = subprocess.run([docker, "image", "inspect", tag], capture_output=True, check=False).returncode == 0

@@ -104,6 +104,13 @@ class Runtime:
         return PrivacyBridge(self.brain, repo_name=self.workspace.repo.name)
 
     def stack_and_images(self, rev: str) -> tuple[Stack, dict[str, DependencyImage]]:
+        from unbidden.guardian.policy import PolicyEngine
+        from unbidden.sandbox.provision import system_tools_allowed
+
         stack = detect_stack(self.workspace.repo, rev)
-        images = {lang: provision(self.workspace.repo, rev, getattr(stack, lang)) for lang in stack.languages}
+        system = system_tools_allowed(PolicyEngine(self.workspace.mandate()))
+        images = {
+            lang: provision(self.workspace.repo, rev, getattr(stack, lang), system_build_tools=system)
+            for lang in stack.languages
+        }
         return stack, images

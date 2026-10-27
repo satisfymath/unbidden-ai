@@ -230,6 +230,36 @@ def parse_pyright(result: SandboxResult, argv: list[str]) -> AnalyzerReport:
     return _report("pyright", result, argv, findings, parsed=True)
 
 
+# mypy ------------------------------------------------------------------------------------------------
+
+
+def parse_mypy(result: SandboxResult, argv: list[str]) -> AnalyzerReport:
+    """mypy's `--output json`: one object per line. A run with errors exits 1; anything else unparsed is a failure."""
+    findings: list[Finding] = []
+    parsed = result.exit_code in (0, 1)
+    for line in (result.stdout or "").splitlines():
+        try:
+            d: dict[str, Any] = json.loads(line)
+        except ValueError:
+            continue
+        if d.get("severity") != "error":
+            continue
+        findings.append(
+            Finding.build(
+                tool="mypy",
+                rule=str(d.get("code") or "general"),
+                severity="error",
+                category="types",
+                path=_rel(str(d.get("file", ""))),
+                line=int(d.get("line") or 0),
+                message=str(d.get("message", "")).splitlines()[0],
+            )
+        )
+    if result.exit_code == 1 and not findings:
+        parsed = False  # it failed without reporting a type error: configuration, plugin or import trouble
+    return _report("mypy", result, argv, findings, parsed=parsed)
+
+
 # Rules that find bugs, not style: syntax errors, undefined names, shadowed definitions, broken comparisons,
 # mutable default arguments. Run with Unbidden's own pinned ruff, ignoring the repository's configuration.
 BASELINE_RUFF_RULES = "E9,F63,F7,F82,F811,B006"
@@ -292,6 +322,14 @@ TOOLS: dict[str, Tool] = {
         ("pyright", "--outputjson", "--pythonpath", "/deps/.venv/bin/python"),
         parse_pyright,
     ),
+    # The repository's own mypy, from its environment: its configuration may load plugins installed there.
+    "mypy": Tool(
+        "mypy",
+        "python",
+        "types",
+        ("/deps/.venv/bin/python", "-m", "mypy", "--output", "json", "--no-error-summary", "--cache-dir", "/tmp/mypy"),
+        parse_mypy,
+    ),
 }
 
 
@@ -321,6 +359,9 @@ def tools_for(stack: Any) -> list[Tool]:
             selected.append(TOOLS["ruff-baseline"])
         if stack.python.pyright:
             selected.append(TOOLS["pyright"])
+        if stack.python.mypy is not None:
+            mypy = TOOLS["mypy"]
+            selected.append(replace(mypy, argv=(*mypy.argv, *stack.python.mypy)))
     return selected
 
 

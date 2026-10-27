@@ -16,12 +16,12 @@ from unbidden.guardian.policy import PolicyEngine
 from unbidden.observe.analyzers import Sweep, record_report, run_tool
 from unbidden.observe.stack import NodeStack, Stack, detect_stack
 from unbidden.sandbox.provision import (
-    SYSTEM_REGISTRIES,
     DependencyImage,
     ProvisionError,
     link_dependencies,
     provision,
     sandbox_spec,
+    system_tools_allowed,
 )
 from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
 from unbidden.sandbox.tools import tools_for
@@ -137,7 +137,14 @@ def _isolated(repo: Path, rev: str, directory: str) -> Path:
 
 
 def _scan_services(
-    repo: Path, rev: str, store: Store, stack: Stack, runner: SandboxRunner, result: ScanResult, progress: Progress
+    repo: Path,
+    rev: str,
+    store: Store,
+    stack: Stack,
+    runner: SandboxRunner,
+    result: ScanResult,
+    progress: Progress,
+    system_tools: bool = False,
 ) -> None:
     """Each service of a polyglot repository, analyzed in isolation with the same trusted tools. Findings are
     recorded against the repository with their paths prefixed; the lab cannot yet run them inside the repository,
@@ -152,7 +159,9 @@ def _scan_services(
             for language in sub_stack.languages:
                 try:
                     progress(f"provisioning {language} dependencies of {directory}")
-                    images[language] = provision(sub, "HEAD", getattr(sub_stack, language))
+                    images[language] = provision(
+                        sub, "HEAD", getattr(sub_stack, language), system_build_tools=system_tools
+                    )
                 except ProvisionError as exc:
                     result.problems.append(f"{directory}: {exc}")
             for tool in tools_for(sub_stack):
@@ -191,12 +200,7 @@ def scan(
         try:
             _allow(policy, "sandbox.provision", f"install {language} dependencies", registries)
             progress(f"provisioning {language} dependencies")
-            system = policy.evaluate(
-                ActionRequest(
-                    capability="sandbox.provision", purpose="system build tools", destinations=SYSTEM_REGISTRIES
-                )
-            ).allowed
-            images[language] = provision(repo, rev, lang_stack, system_build_tools=system)
+            images[language] = provision(repo, rev, lang_stack, system_build_tools=system_tools_allowed(policy))
         except (ScanDenied, ProvisionError) as exc:
             result.problems.append(str(exc))
     _allow(policy, "analyzer.run", "run the repository's own checks")
@@ -217,7 +221,7 @@ def scan(
     finally:
         for work in prepared.values():
             discard(work)
-    _scan_services(repo, rev, store, stack, runner, result, progress)
+    _scan_services(repo, rev, store, stack, runner, result, progress, system_tools_allowed(policy))
     store.set_value("last_scan", {"rev": rev, "tools": [r.tool for r in result.reports]})
     if not result.reports:
         store.append_event(

@@ -57,6 +57,7 @@ class PythonStack:
     requirements: tuple[str, ...] = ()  # read statically from setup.py; setup.py itself is never executed
     source_roots: tuple[str, ...] = ("src", ".")  # directories put on PYTHONPATH, relative to the repository
     test_paths: tuple[str, ...] = ()  # where pytest should look; empty means its own discovery
+    mypy: tuple[str, ...] | None = None  # mypy's targets when the repository uses it; empty: its config names them
 
 
 @dataclass(frozen=True)
@@ -244,10 +245,35 @@ def _tests_under(files: set[str], roots: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(dict.fromkeys(found))
 
 
+def mypy_targets(pyproject: str, files: set[str], members: tuple[str, ...]) -> tuple[str, ...]:
+    """What mypy checks: nothing to name when its configuration lists `files`; else the package named after the
+    project (`mealie`), else the workspace members, else the repository."""
+    project = tomllib.loads(pyproject)
+    if project.get("tool", {}).get("mypy", {}).get("files"):
+        return ()
+    name = str(project.get("project", {}).get("name", "")).replace("-", "_")
+    for package in (name, f"src/{name}"):
+        if name and f"{package}/__init__.py" in files:
+            return (package,)
+    return members or (".",)
+
+
+def requires_python(pyproject: str) -> str | None:
+    """The lowest minor version `requires-python` admits (`>=3.14,<3.15` is 3.14), when it names one."""
+    try:
+        spec = str(tomllib.loads(pyproject).get("project", {}).get("requires-python", ""))
+    except tomllib.TOMLDecodeError:
+        return None
+    found = re.search(r"(?:>=|~=|==)\s*(3\.\d+)", spec)
+    return found.group(1) if found else None
+
+
 def _detect_python(repo: Path, rev: str, files: set[str], blind: list[str]) -> PythonStack | None:
     version = DEFAULT_PYTHON
     if ".python-version" in files:
         version = _read(repo, rev, ".python-version").strip() or DEFAULT_PYTHON
+    elif "pyproject.toml" in files:
+        version = requires_python(_read(repo, rev, "pyproject.toml")) or DEFAULT_PYTHON
     if "pyproject.toml" in files and "poetry.lock" in files:
         project = tomllib.loads(_read(repo, rev, "pyproject.toml"))
         if "poetry" in project.get("tool", {}):
@@ -273,6 +299,7 @@ def _detect_python(repo: Path, rev: str, files: set[str], blind: list[str]) -> P
             blind.append("pyproject.toml without uv.lock: dependencies resolved at provisioning time")
         roots = tuple(dict.fromkeys([*members, "src", "."]))
         tests = _tests_under(files, (*members, "."))
+        mypy = mypy_targets(_read(repo, rev, "pyproject.toml"), files, members) if '"mypy' in text else None
         return PythonStack(
             version=version,
             lockfile=lock,
@@ -283,6 +310,7 @@ def _detect_python(repo: Path, rev: str, files: set[str], blind: list[str]) -> P
             members=members,
             source_roots=roots,
             test_paths=tests if members else (),
+            mypy=mypy,
         )
     if "requirements.txt" in files:
         return PythonStack(
