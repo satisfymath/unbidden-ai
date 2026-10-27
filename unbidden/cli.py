@@ -630,8 +630,11 @@ def cmd_probe(args: argparse.Namespace) -> int:
     probe = RobustnessProbe(runtime.workspace.repo, runtime.store, runtime.brain, images["python"])
     with console.status(f"writing property tests for {args.package}"):
         tests = asyncio.run(probe.write_tests(rev, args.package, args.count))
+    artifacts = runtime.workspace.dir / "artifacts"
+    artifacts.mkdir(exist_ok=True)
+    (artifacts / f"robustness-{rev[:12]}.answer.md").write_text(probe.last_answer)
     if tests is None:
-        err.print("the local model wrote no usable tests")
+        err.print("the local model wrote no usable tests (its answer is kept in .unbidden/artifacts)")
         return 1
     artifacts = runtime.workspace.dir / "artifacts"
     artifacts.mkdir(exist_ok=True)

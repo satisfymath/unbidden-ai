@@ -110,6 +110,7 @@ class RobustnessProbe:
     ) -> None:
         self.repo, self.store, self.brain, self.image = repo, store, brain, image
         self.runner = runner or SandboxRunner()
+        self.last_answer = ""
 
     async def write_tests(self, rev: str, package: str, count: int = 8) -> str | None:
         prompt = load_prompt("robustness_tests")
@@ -133,9 +134,16 @@ class RobustnessProbe:
                     ],
                 )
             )
-            return parse_files(response.content).get(PROBE_FILE)
-        except (BrainError, ProviderError, CodeBlockError):
+        except (BrainError, ProviderError):
             return None
+        self.last_answer = response.content
+        try:
+            return parse_files(response.content).get(PROBE_FILE)
+        except CodeBlockError:
+            # One fenced Python block of Hypothesis tests is the file, even without the `# file:` header.
+            blocks = re.findall(r"```(?:python)?\n(.*?)```", response.content, re.DOTALL)
+            tests = [b for b in blocks if "@given" in b]
+            return tests[0] if len(tests) == 1 else None
 
     def run_tests(self, rev: str, tests: str, *, timeout_s: float = 900) -> str:
         work = snapshot(self.repo, rev)
