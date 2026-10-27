@@ -553,6 +553,12 @@ class PerfLab:
             if before is not None:
                 break
             feedback = f"Your previous workload failed when run. The end of its output:\n```\n{error}\n```\nFix it."
+            if re.search(r"HTTP 40[13]\b|assert 40[13] == 200", error):
+                feedback += (
+                    "\nThe request was not authenticated or not allowed. Pass credentials exactly as the existing test"
+                    " shown below does (the same fixture attribute, the same argument), without wrapping them again;"
+                    " if the endpoint needs a permission, use the fixture that has it."
+                )
             last_line = next((ln for ln in error.splitlines() if ln.startswith("E ") or "Error" in ln), "no output")
             result.notes.append(f"workload attempt {attempt + 1} failed: {last_line[:200]}")
             self._keep(opp, f"workload-attempt-{attempt + 1}", workload[f"{LAB_DIR}/workload.py"], error)
