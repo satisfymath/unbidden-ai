@@ -38,6 +38,51 @@ CRITERIA: dict[str, str | float | int] = {
 }
 
 
+# A candidate, not in use: designed after the faults of D-024 and to be calibrated before it may replace v1.
+V2_MIN_OP_REQUESTS, V2_MIN_LATENCY_REQUESTS, V2_SIGMAS = 10, 50, 4.0
+CRITERIA_V2_CANDIDATE: dict[str, str | float | int] = {
+    "criteria_version": "health-v2-candidate",
+    "window": WINDOW,
+    "baseline": f"{BASELINE} ending where the window starts",
+    "unit": "each operation (span name) of a service; a service is degraded when one of its operations is",
+    "errors": f">= {V2_MIN_OP_REQUESTS} requests, >= {MIN_ERRORS} errors, ratio >= max({ERROR_FLOOR}, "
+    f"baseline + {V2_SIGMAS} binomial standard deviations)",
+    "latency": f">= {V2_MIN_LATENCY_REQUESTS} requests both sides, p95 >= max({LATENCY_FACTOR}x, "
+    f"+{LATENCY_DELTA_MS} ms) baseline",
+}
+
+
+def judge_v2(now: ServiceHealth, baseline: ServiceHealth | None) -> bool:
+    import math
+
+    base = baseline.error_ratio if baseline and baseline.requests else 0.0
+    spread = math.sqrt(max(base * (1 - base), 1e-9) / max(now.requests, 1.0))
+    errors = (
+        now.requests >= V2_MIN_OP_REQUESTS
+        and now.errors >= MIN_ERRORS
+        and now.error_ratio >= max(ERROR_FLOOR, base + V2_SIGMAS * spread)
+    )
+    latency = (
+        baseline is not None
+        and now.p95_ms is not None
+        and baseline.p95_ms is not None
+        and now.requests >= V2_MIN_LATENCY_REQUESTS
+        and baseline.requests >= V2_MIN_LATENCY_REQUESTS
+        and now.p95_ms >= max(LATENCY_FACTOR * baseline.p95_ms, baseline.p95_ms + LATENCY_DELTA_MS)
+    )
+    return errors or latency
+
+
+def degraded_services(prom: Prometheus, criteria: str, at: float | None = None) -> set[str]:
+    """Services judged degraded at `at` (or now) under criteria v1 or the v2 candidate; for calibrations."""
+    if criteria == "health-v1":
+        now, base = health(prom, WINDOW, at=at), health(prom, BASELINE, offset=WINDOW, at=at)
+        return {name for name, h in now.items() if judge(h, base.get(name)).degraded}
+    by = "service_name, span_name"
+    now, base = health(prom, WINDOW, at=at, by=by), health(prom, BASELINE, offset=WINDOW, at=at, by=by)
+    return {key.split("/", 1)[0] for key, h in now.items() if judge_v2(h, base.get(key))}
+
+
 @dataclass(frozen=True)
 class Verdict:
     service: str

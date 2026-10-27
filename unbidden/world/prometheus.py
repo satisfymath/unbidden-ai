@@ -54,11 +54,13 @@ class Prometheus:
     transport: httpx.BaseTransport | None = None
     sent: list[str] = field(default_factory=list[str])
 
-    def query(self, promql: str) -> list[tuple[dict[str, str], float]]:
+    def query(self, promql: str, at: float | None = None) -> list[tuple[dict[str, str], float]]:
+        """An instant query, now or at a past Unix time (`at`), which calibrations replay history with."""
         self.sent.append(promql)
+        params = {"query": promql, **({"time": str(at)} if at is not None else {})}
         try:
             with httpx.Client(timeout=self.timeout_s, transport=self.transport) as client:
-                response = client.get(f"{self.url}/api/v1/query", params={"query": promql})
+                response = client.get(f"{self.url}/api/v1/query", params=params)
         except httpx.HTTPError as exc:
             raise PrometheusError(f"{self.url} unreachable: {exc}") from exc
         body = response.json() if "json" in response.headers.get("content-type", "") else {}
@@ -105,25 +107,27 @@ class ServiceHealth:
         return self.errors / self.requests if self.requests else 0.0
 
 
-def health(prom: Prometheus, window: str, *, offset: str | None = None) -> dict[str, ServiceHealth]:
-    """Requests, errors and p95 of each service's server spans over `window` (ending `offset` ago)."""
+def health(
+    prom: Prometheus, window: str, *, offset: str | None = None, at: float | None = None, by: str = "service_name"
+) -> dict[str, ServiceHealth]:
+    """Requests, errors and p95 of server spans over `window` (ending `offset` before `at`), per service, or per
+    service and operation with `by="service_name, span_name"` (keys are then `service/operation`)."""
     shift = f" offset {offset}" if offset else ""
-    total = prom.query(f"sum by (service_name) (increase({SPAN_CALLS}{{{SERVER}}}[{window}]{shift}))")
+    total = prom.query(f"sum by ({by}) (increase({SPAN_CALLS}{{{SERVER}}}[{window}]{shift}))", at)
     failed = prom.query(
-        f'sum by (service_name) (increase({SPAN_CALLS}{{{SERVER},status_code="STATUS_CODE_ERROR"}}[{window}]{shift}))'
+        f'sum by ({by}) (increase({SPAN_CALLS}{{{SERVER},status_code="STATUS_CODE_ERROR"}}[{window}]{shift}))', at
     )
     p95 = prom.query(
-        f"histogram_quantile(0.95, sum by (service_name, le) (rate({SPAN_BUCKETS}{{{SERVER}}}[{window}]{shift})))"
+        f"histogram_quantile(0.95, sum by ({by}, le) (rate({SPAN_BUCKETS}{{{SERVER}}}[{window}]{shift})))", at
     )
-    errors = {m.get("service_name", ""): v for m, v in failed}
-    latency = {m.get("service_name", ""): v for m, v in p95 if not math.isinf(v)}
+
+    def key(m: dict[str, str]) -> str:
+        return "/".join(m.get(k.strip(), "") for k in by.split(","))
+
+    errors = {key(m): v for m, v in failed}
+    latency = {key(m): v for m, v in p95 if not math.isinf(v)}
     return {
-        m.get("service_name", ""): ServiceHealth(
-            m.get("service_name", ""),
-            v,
-            errors.get(m.get("service_name", ""), 0.0),
-            latency.get(m.get("service_name", "")),
-        )
+        key(m): ServiceHealth(key(m), v, errors.get(key(m), 0.0), latency.get(key(m)))
         for m, v in total
         if m.get("service_name")
     }

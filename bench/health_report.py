@@ -54,9 +54,7 @@ def main() -> None:
     controls = [r for r in rows if r.get("phase") == "control"]
     false_controls = [r for r in controls if r["suspects"]]
     print(f"control minutes: {len(controls)}, with an anomaly open: {len(false_controls)}")
-    print(
-        "| Fault | Expected | First anomaly (min) | Listed (min) | Top-1 (min) | Pass | Other suspects |"
-    )
+    print("| Fault | Expected | First anomaly (min) | Listed (min) | Top-1 (min) | Pass | Other suspects |")
     print("|---|---|---|---|---|---|---|")
     for t in trials(rows):
         print(
