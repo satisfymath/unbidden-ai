@@ -200,7 +200,7 @@ class FixLab:
             files = {p: c for p, c in files.items() if p in paths}
             if not files:
                 return None
-            return Candidate("model", files, unified_patch(base, files))
+            return Candidate(self.brain.author("lab.fix_candidate"), files, unified_patch(base, files))
         finally:
             discard(base)
 

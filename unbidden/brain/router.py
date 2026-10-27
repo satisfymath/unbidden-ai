@@ -137,6 +137,7 @@ class Brain:
         self.identifiers = identifiers or SensitiveTermIndex()
         self.killswitch = killswitch
         self.repo_public = False  # set by the runtime only when GitHub confirms it; unknown means private
+        self.served_by: dict[str, ModelRun] = {}  # purpose -> the last run that answered it, for honest attribution
 
     def route(self, tier: Tier) -> tuple[Route, LLMProvider]:
         route = self.config.routing.get(tier)
@@ -224,6 +225,11 @@ class Brain:
                 }
             )
         raise ModelFailed(request.purpose, problem)
+
+    def author(self, purpose: str) -> str:
+        """Who wrote the last accepted answer for a purpose: 'frontier' when a remote model did, else 'model'."""
+        run = self.served_by.get(purpose)
+        return "frontier" if run is not None and run.tier.remote else "model"
 
     async def complete_json(self, request: LLMRequest) -> tuple[Any, LLMResponse]:
         if request.response_schema is None:
@@ -378,6 +384,8 @@ class Brain:
             route_reason=why,
         )
         self.store.put("model_runs", run)
+        if run.ok:
+            self.served_by[run.purpose] = run
         if egress_id is not None:
             attempt_doc = self.store.get("egress", egress_id, EgressAttempt)
             if attempt_doc is not None:

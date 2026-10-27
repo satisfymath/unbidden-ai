@@ -133,7 +133,7 @@ class RobustLab:
                 )
             )
             files = {p: c for p, c in parse_files(response.content).items() if p == path}
-            return Candidate("model", files, unified_patch(base, files)) if files else None
+            return Candidate(self.brain.author("lab.robust_fix"), files, unified_patch(base, files)) if files else None
         except (BrainError, ProviderError, CodeBlockError):
             return None
         finally:
@@ -183,7 +183,7 @@ class RobustLab:
             level = EvidenceLevel.FUNCTIONAL_VALIDATION if improved and sides else EvidenceLevel.LAB_IMPROVEMENT
             files = {**candidate.files, test_file: test}
             candidate = Candidate(
-                "model", files, candidate.patch + unified_patch(snapshot(self.repo, rev), {test_file: test})
+                candidate.origin, files, candidate.patch + unified_patch(snapshot(self.repo, rev), {test_file: test})
             )
             experiment = Experiment(
                 opportunity_id=opp.id,
@@ -226,7 +226,7 @@ class RobustLab:
                     **opp.details,
                     "experiment_id": experiment.id,
                     "verdict": verdict.model_dump(mode="json"),
-                    "candidate": {"origin": "model", "files": files},
+                    "candidate": {"origin": candidate.origin, "files": files},
                 }
                 opp.evidence = [*opp.evidence, EvidenceRef(kind="experiment", locator=experiment.id)]
                 opp.updated_at = utc_now()
