@@ -64,7 +64,8 @@ DEFAULTS: dict[str, Any] = {
         },
     },
     "routing": {
-        "local": {"provider": "ollama", "model": "muse-glimmer:30b-mlx"},
+        # "auto": the best Meta model this machine can run, among those installed (see brain/hardware.py).
+        "local": {"provider": "ollama", "model": "auto"},
         "frontier": {"provider": "meta", "model": "muse-spark-1.3", "think_budget": 2048},
         # Muse Code is not offered to this account's key; Spark writes code until a benchmark says otherwise.
         "code": {"provider": "meta", "model": "muse-spark-1.3", "think_budget": 2048},

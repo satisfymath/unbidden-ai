@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import httpx
+
+from unbidden.brain.hardware import Recommendation, detect, recommend
 from unbidden.brain.providers import LLMProvider
 from unbidden.brain.providers.ollama import OllamaProvider
 from unbidden.brain.providers.openai_compat import OpenAICompatProvider
@@ -15,6 +18,28 @@ from unbidden.observe.stack import Stack, detect_stack
 from unbidden.sandbox.provision import DependencyImage, provision
 from unbidden.store import Store
 from unbidden.workspace import Workspace
+
+
+def installed_models(base_url: str) -> set[str]:
+    try:
+        return {m["name"] for m in httpx.get(f"{base_url}/api/tags", timeout=3).json().get("models", [])}
+    except (httpx.HTTPError, ValueError):
+        return set()
+
+
+def resolve_local_model(config: Config) -> Recommendation | None:
+    """Replace `model: auto` with the best installed Meta model that fits this machine."""
+    route = config.routing.get(Tier.LOCAL)
+    if route is None or route.model != "auto":
+        return None
+    provider = config.providers.get(route.provider)
+    installed = installed_models(provider.base_url) if provider else set()
+    rec = recommend(detect(), installed)
+    route.model = rec.model.tag
+    route.think = route.think_schema_only = rec.model.think
+    if rec.model.think is None:
+        route.think_budget = 0
+    return rec
 
 
 def build_providers(config: Config) -> dict[str, LLMProvider]:
@@ -41,6 +66,7 @@ class Runtime:
         workspace.require()
         workspace.load_env()
         config = workspace.config()
+        resolve_local_model(config)
         store = workspace.store()
         brain = Brain(config, build_providers(config), store, workspace.mandate(), killswitch=workspace.killswitch())
         brain.repo_public = workspace.repo_public(store)

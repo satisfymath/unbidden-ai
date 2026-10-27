@@ -245,3 +245,19 @@ here: this log is public.)
   that repository's content were refused by the session's permission layer): about 1.5 times as many names
   renamed, two more domain words flagged and renamed by the review, none of the earlier revealing words left,
   and the published UI library kept with its real API.
+
+## D-020 · 2026-10-27 · The local model is chosen for the machine it runs on
+
+Users do not all have 64 GB. `routing.local.model: auto` (the default) resolves, when a workspace opens, to the
+best Meta model that fits this machine among those installed in Ollama; `unbidden doctor` shows the choice and
+`--fix` pulls it when missing. Apple silicon (MLX builds) keeps 30 % of unified memory, at most 10 GB, for
+Docker, throwaway databases and the system; elsewhere the GPU's memory decides (GGUF builds).
+
+| Memory for a model | Model | Note |
+|---|---|---|
+| ≥ 42 GB | Glimmer 30B 8-bit (`mxfp8` MLX, `q8_0` GGUF) | best local quality measured |
+| ≥ 24 GB | Glimmer 30B 4-bit (`nvfp4` MLX, `q4_K_M` GGUF) | 25/25 on the task benchmark |
+| ≥ 6.5 GB | Llama 3.1 8B | light local work; hints the `frontier` profile for heavy public work |
+| ≥ 3 GB | Llama 3.2 3B | only what never leaves (renaming, reviewing) |
+
+An installed model that fits is preferred over a better one that needs a download.
