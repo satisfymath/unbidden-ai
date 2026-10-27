@@ -120,6 +120,67 @@ def alembic_head(repo: Path, rev: str) -> tuple[str, str, str] | None:
     return str(Path(path).parent), heads[0], path
 
 
+_COLUMN_CALL = re.compile(r"(mapped_column|Column|Field)\(")
+
+
+def index_candidate(
+    show: Callable[[str], str], table: str, column: str, models_file: str, head: tuple[str, str, str]
+) -> dict[str, str] | None:
+    """The change an unindexed foreign key asks for, written without a model: `index=True` on the column of the
+    class mapped to `table`, and an Alembic migration that creates the index after the current head. None when the
+    column is not declared on one line, where an edit by pattern would be a guess."""
+    source = show(models_file)
+    lines = source.splitlines(keepends=True)
+    mapped = next(
+        (i for i, x in enumerate(lines) if re.search(rf"__tablename__\s*=\s*[\"']{re.escape(table)}[\"']", x)), None
+    )
+    if mapped is None:
+        return None
+    start = max((i for i in range(mapped) if lines[i].startswith("class ")), default=0)
+    end = next((i for i in range(mapped, len(lines)) if lines[i].startswith("class ")), len(lines))
+    declared = [
+        i
+        for i in range(start, end)
+        if re.match(rf"\s+{re.escape(column)}\s*(:|=)", lines[i]) and _COLUMN_CALL.search(lines[i])
+    ]
+    if len(declared) != 1:
+        return None
+    line = lines[declared[0]].rstrip("\n")
+    if "index=" in line or not line.rstrip().endswith(")") or line.count("(") != line.count(")"):
+        return None
+    stripped = line.rstrip()
+    lines[declared[0]] = f"{stripped[:-1]}, index=True)\n"
+    migrations_dir, head_rev, _ = head
+    revision = hashlib.sha256(f"{table}.{column}:{head_rev}".encode()).hexdigest()[:12]
+    name = f"ix_{table}_{column}"
+    migration = f'''"""add index on {table}.{column}
+
+Revision ID: {revision}
+Revises: {head_rev}
+
+"""
+
+from alembic import op
+
+# revision identifiers, used by Alembic.
+revision = "{revision}"
+down_revision: str | None = "{head_rev}"
+branch_labels: str | tuple[str, ...] | None = None
+depends_on: str | tuple[str, ...] | None = None
+
+
+def upgrade():
+    with op.batch_alter_table("{table}", schema=None) as batch_op:
+        batch_op.create_index(batch_op.f("{name}"), ["{column}"], unique=False)
+
+
+def downgrade():
+    with op.batch_alter_table("{table}", schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f("{name}"))
+'''
+    return {models_file: "".join(lines), f"{migrations_dir}/{revision}_add_index_{table}_{column}.py": migration}
+
+
 class PerfLab:
     def __init__(
         self,
@@ -302,9 +363,19 @@ class PerfLab:
             models=self._show(rev, models_file)[:8000],
             handlers="\n\n".join(f"`{e}` in `{f}`:\n```python\n{c}```" for e, f, c in handlers[:4]),
         )
-        candidate_files: dict[str, str] | None = None
         before_findings = self._findings(rev, {})
-        for attempt in range(2):
+        candidate_files: dict[str, str] | None = None
+        origin = ""
+        column = str(opp.details.get("column", ""))
+        if opp.details.get("check") == "unindexed_foreign_key" and column:
+            candidate_files = index_candidate(lambda path: self._show(rev, path), table, column, models_file, head)
+            if candidate_files and self._findings(rev, candidate_files) - before_findings:
+                result.notes.append("the written index change added findings; asking the local model instead")
+                candidate_files = None
+            elif candidate_files:
+                origin = "rule"  # written by Unbidden from the finding, no model involved
+                self.progress(f"candidate: index on {table}.{column}, written from the finding")
+        for attempt in range(0 if candidate_files else 2):
             self.progress(f"asking the local model for the schema change (attempt {attempt + 1})")
             candidate_files = await self._ask_files("lab.perf_candidate", content, opp, cand_prompt.sha256, 4000)
             if not candidate_files:
@@ -323,7 +394,7 @@ class PerfLab:
             return result
         base_dir = snapshot(self.repo, rev)
         candidate = Candidate(
-            self.brain.author("lab.perf_candidate"), candidate_files, unified_patch(base_dir, candidate_files)
+            origin or self.brain.author("lab.perf_candidate"), candidate_files, unified_patch(base_dir, candidate_files)
         )
         discard(base_dir)
         # Workload, repaired against the base until it runs.

@@ -44,7 +44,7 @@ Progress = Callable[[str], None]
 
 @dataclass
 class Candidate:
-    origin: str  # "tool" | "model"
+    origin: str  # "tool" | "rule" (Unbidden, from the finding) | "model" | "frontier"
     files: dict[str, str]
     patch: str
 
