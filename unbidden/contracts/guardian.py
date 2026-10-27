@@ -80,6 +80,13 @@ class EvaluationPolicy(Contract):
     min_relative_effect: float = Field(default=0.20, gt=0.0)
 
 
+class ModelsPolicy(Contract):
+    """Which models may serve this workspace. Secrets and production data stay local in every profile."""
+
+    profile: Literal["local", "local-first", "frontier"] = "local-first"
+    private_code_to_frontier: Literal["deny", "allow"] = "deny"
+
+
 class Mandate(Contract):
     workspace: str = Field(min_length=1)
     priorities: list[str] = Field(default_factory=list)
@@ -88,6 +95,7 @@ class Mandate(Contract):
     egress: EgressPolicy = Field(default_factory=EgressPolicy)
     evaluation: EvaluationPolicy = Field(default_factory=EvaluationPolicy)
     operations: OperationsPolicy = Field(default_factory=OperationsPolicy)
+    models: ModelsPolicy = Field(default_factory=ModelsPolicy)
 
 
 class Hold(Contract):

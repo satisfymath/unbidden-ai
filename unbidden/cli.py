@@ -652,6 +652,109 @@ def cmd_probe(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_models(args: argparse.Namespace) -> int:
+    """Show or set which models may serve this workspace. Secrets and production data stay local in every profile."""
+    import yaml
+
+    ws = Workspace.find()
+    ws.require()
+    raw = yaml.safe_load(ws.mandate_path.read_text())
+    models = raw["mandate"].setdefault("models", {"profile": "local-first", "private_code_to_frontier": "deny"})
+    if args.profile is None and args.private_code is None:
+        if _emit(args, models):
+            return 0
+        console.print(
+            f"profile: [bold]{models.get('profile', 'local-first')}[/] · private code to frontier models: "
+            f"{models.get('private_code_to_frontier', 'deny')} · secrets and production data: always local"
+        )
+        return 0
+    before = dict(models)
+    if args.profile is not None:
+        models["profile"] = args.profile
+    if args.private_code is not None:
+        models["private_code_to_frontier"] = args.private_code
+    ws.mandate_path.write_text(yaml.safe_dump(raw, sort_keys=False))
+    ws.mandate()
+    ws.store().append_event(
+        Event(
+            type=EventType.MANDATE_CHANGED,
+            actor=f"person:{getpass.getuser()}",
+            payload={"models": {"from": before, "to": models}},
+        )
+    )
+    console.print(f"models: {models}")
+    return 0
+
+
+def cmd_route(args: argparse.Namespace) -> int:
+    """Which model would serve each kind of task here, and why. Dry: no model is called."""
+    from unbidden.brain.route_policy import decide_route
+    from unbidden.brain.tasks import TASKS, TYPICAL_SOURCES
+    from unbidden.contracts.llm import Message, Source
+    from unbidden.guardian.classify import classify
+    from unbidden.runtime import Runtime
+
+    runtime = Runtime.open(Workspace.find())
+    models = runtime.workspace.mandate().models
+    rows = []
+    for purpose, spec in TASKS.items():
+        sources: tuple[Source, ...] = TYPICAL_SOURCES.get(purpose, ("repo",))
+        for source in sources:
+            label = classify(
+                [Message(role="user", content="", source=source)], repo_public=runtime.brain.repo_public
+            ).label  # type: ignore[arg-type]
+            d = decide_route(
+                models.profile,
+                spec,
+                label,
+                private_code_to_frontier=models.private_code_to_frontier == "allow",
+                remote_available=runtime.bridge() is not None or models.profile != "local",
+            )
+            rows.append(
+                {
+                    "task": purpose,
+                    "weight": spec.weight,
+                    "content": label.value,
+                    "first": d.tier.value,
+                    "fallback": d.fallback.value if d.fallback else "-",
+                    "why": d.reason,
+                }
+            )
+    if _emit(args, {"profile": models.profile, "repo_public": runtime.brain.repo_public, "routes": rows}):
+        return 0
+    console.print(
+        f"profile [bold]{models.profile}[/] · repository {'public' if runtime.brain.repo_public else 'private'}"
+        f" · secrets and production data always local"
+    )
+    table = Table(box=None, header_style="bold")
+    for column in ("task", "weight", "content", "first", "fallback", "why"):
+        table.add_column(column)
+    for row in rows:
+        table.add_row(*(str(row[k]) for k in ("task", "weight", "content", "first", "fallback", "why")))
+    console.print(table)
+    return 0
+
+
+def cmd_egress(args: argparse.Namespace) -> int:
+    """Everything that left this machine, or tried to: destination, purpose, size, and the exact payload."""
+    ws = Workspace.find()
+    ws.require()
+    attempts = sorted(ws.store().list("egress", EgressAttempt), key=lambda a: a.created_at)
+    if _emit(args, [a.model_dump(mode="json") for a in attempts]):
+        return 0
+    for a in attempts[-args.last :]:
+        mark = {"allowed_sent": "[green]sent[/]", "blocked": "[red]blocked[/]"}.get(a.status, a.status)
+        console.print(
+            f"{a.created_at:%m-%d %H:%M} {mark:22} {a.destination:16} {a.purpose:26} "
+            f"{a.verdict.payload_bytes:>7} B  {'; '.join(a.verdict.reasons)[:80]}"
+        )
+        if args.payload and a.status != "blocked":
+            console.print(a.payload, markup=False, highlight=False)
+    if not attempts:
+        console.print("Nothing has left this machine.")
+    return 0
+
+
 def cmd_map(args: argparse.Namespace) -> int:
     """Discover the system (repository, running containers, live API, database) and show the World Model."""
     import asyncio
@@ -799,6 +902,13 @@ def build_parser() -> argparse.ArgumentParser:
     hold.add_argument("id", nargs="?")
     hold.add_argument("reason", nargs="?", default="released by a person")
     command("deploys", cmd_deploys, "every deploy seen and its verdict")
+    models = command("models", cmd_models, "show or set the model profile: local, local-first or frontier")
+    models.add_argument("profile", nargs="?", choices=["local", "local-first", "frontier"])
+    models.add_argument("--private-code", choices=["allow", "deny"], help="private code to frontier models")
+    command("route", cmd_route, "which model serves each task here, and why (dry)")
+    egress = command("egress", cmd_egress, "everything that left this machine, with the exact payloads")
+    egress.add_argument("--payload", action="store_true")
+    egress.add_argument("--last", type=int, default=30)
     probe = command("probe", cmd_probe, "look for crashes with property-based tests, run offline", json_out=False)
     probe.add_argument("package")
     probe.add_argument("--count", type=int, default=8, help="how many functions to probe")

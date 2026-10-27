@@ -177,12 +177,15 @@ class FixLab:
                 findings="\n".join(f"- {f.path}:{f.line or '?'} {f.rule}: {f.message}" for f in findings[:50]),
                 files="\n\n".join(blocks),
             )
-            messages = [Message(role="user", content=content)]
+            messages = [Message(role="user", content=content, source="repo")]
             if feedback:
-                messages.append(Message(role="user", content=f"A previous attempt failed: {feedback}. Try again."))
+                messages.append(
+                    Message(role="user", content=f"A previous attempt failed: {feedback}. Try again.", source="repo")
+                )
             response = await self.brain.complete(
                 LLMRequest(
                     purpose="lab.fix_candidate",
+                    expect_files=True,
                     tier=Tier.LOCAL,
                     messages=messages,
                     max_tokens=min(8000, 1000 + size // 2),

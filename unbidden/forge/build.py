@@ -15,7 +15,7 @@ from unbidden.brain.providers import ProviderError
 from unbidden.brain.router import Brain, BrainError, parse_json
 from unbidden.bridge.rename import RenameMap, build_map
 from unbidden.contracts.events import Event, EventType
-from unbidden.contracts.llm import LLMRequest, Message, Tier
+from unbidden.contracts.llm import LLMRequest, Message, Source, Tier
 from unbidden.forge.adapter import ORACLE_VERSION, LogAdapter, admit, oracle, parse_line
 from unbidden.guardian.scanner import SensitiveTermIndex
 from unbidden.store import Store
@@ -102,18 +102,18 @@ class Forge:
         prompt_name: str,
         schema: dict[str, Any],
         *,
-        tier: Tier = Tier.LOCAL,
+        source: Source = "runtime",
         identifiers: SensitiveTermIndex | None = None,
         **values: str,
     ) -> Any:
         prompt = load_prompt(prompt_name)
         request = LLMRequest(
             purpose=purpose,
-            tier=tier,
+            tier=Tier.LOCAL,
             response_schema=schema,
             max_tokens=3000,
             prompt_sha256=prompt.sha256,
-            messages=[Message(role="user", content=prompt.render(schema=json.dumps(schema), **values))],
+            messages=[Message(role="user", content=prompt.render(schema=json.dumps(schema), **values), source=source)],
         )
         response = await self.brain.complete(request, identifiers=identifiers)
         return parse_json(response.content)
@@ -155,7 +155,8 @@ class Forge:
         tests_text = "\n".join(
             view(f"{shown[t['line'] - 1]} → method={t['method']} path={t['path']} status={t['status']}") for t in tests
         )
-        tier = Tier.LOCAL if transform is None else Tier.CODE
+        # Real log lines are production data and stay local; the bridge's renamed view may leave.
+        msg_source: Source = "runtime" if transform is None else "synthetic"
         identifiers = transform.identifiers if transform else None
         feedback = ""
         tries = self.repairs + 1 if transform is None else 3
@@ -165,7 +166,7 @@ class Forge:
                     "forge.adapter" if transform is None else "forge.adapter.bridge",
                     "forge_pattern",
                     PATTERN_SCHEMA,
-                    tier=tier,
+                    source=msg_source,
                     identifiers=identifiers,
                     feedback=feedback,
                     tests=tests_text,

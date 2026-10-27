@@ -15,12 +15,16 @@ from typing import Any
 
 from jsonschema import Draft202012Validator
 
-from unbidden.brain.providers import LLMProvider
+from unbidden.brain.codeblocks import CodeBlockError, parse_files
+from unbidden.brain.providers import LLMProvider, ProviderError
+from unbidden.brain.route_policy import NEVER_REMOTE, RouteDecision, decide_route
+from unbidden.brain.tasks import task_for
 from unbidden.config import Config, Route
 from unbidden.contracts.common import Cost, utc_now
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import ActionRequest, EgressAttempt, EgressVerdict, Mandate
-from unbidden.contracts.llm import LLMRequest, LLMResponse, Message, ModelRun, Tier, Usage
+from unbidden.contracts.llm import ContentLabel, LLMRequest, LLMResponse, Message, ModelRun, Tier, Usage
+from unbidden.guardian.classify import Classification, classify
 from unbidden.guardian.egress import evaluate_synthetic
 from unbidden.guardian.killswitch import KillSwitch
 from unbidden.guardian.policy import PolicyEngine
@@ -84,6 +88,11 @@ def check_output(request: LLMRequest, response: LLMResponse) -> str | None:
         errors = sorted(Draft202012Validator(tool.parameters).iter_errors(call.arguments), key=str)
         if errors:
             return f"the arguments of {call.name} do not match its schema: {errors[0].message}"
+    if request.expect_files:
+        try:
+            parse_files(response.content)
+        except CodeBlockError as exc:
+            return f"{exc}; answer with each file in a fenced block whose first line is `# file: <path>`"
     if request.response_schema is not None and not response.tool_calls:
         try:
             value = parse_json(response.content)
@@ -127,6 +136,7 @@ class Brain:
         self.policy = PolicyEngine(mandate)
         self.identifiers = identifiers or SensitiveTermIndex()
         self.killswitch = killswitch
+        self.repo_public = False  # set by the runtime only when GitHub confirms it; unknown means private
 
     def route(self, tier: Tier) -> tuple[Route, LLMProvider]:
         route = self.config.routing.get(tier)
@@ -137,39 +147,79 @@ class Brain:
             raise BrainError(f"provider {route.provider!r} for tier {tier} is not available")
         return route, provider
 
+    def decide(self, request: LLMRequest) -> tuple[RouteDecision, Classification]:
+        """Which model serves this request, from the profile, the task and what the request holds."""
+        classification = classify(request.messages, repo_public=self.repo_public)
+        models = self.mandate.models
+        route = self.config.routing.get(Tier.CODE)
+        provider = self.providers.get(route.provider) if route else None
+        remote_available = provider is not None and bool(getattr(provider, "has_key", lambda: True)())
+        decision = decide_route(
+            models.profile,
+            task_for(request.purpose),
+            classification.label,
+            private_code_to_frontier=models.private_code_to_frontier == "allow",
+            remote_available=remote_available,
+        )
+        return decision, classification
+
     async def complete(self, request: LLMRequest, *, identifiers: SensitiveTermIndex | None = None) -> LLMResponse:
         """`identifiers` adds names that must not leave the machine on this call, on top of the workspace's."""
-        route, provider = self.route(request.tier)
         self._guard_prompt(request)
+        decision, classification = self.decide(request)
+        tiers = [decision.tier, *([decision.fallback] if decision.fallback else [])]
+        last: Exception | None = None
+        for tier in tiers:
+            try:
+                return await self._complete_on(tier, request, identifiers, decision, classification)
+            except (ModelFailed, ProviderError, EgressBlocked, SpendLimitReached, PolicyDenied) as exc:
+                last = exc
+        assert last is not None
+        raise last
+
+    async def _complete_on(
+        self,
+        tier: Tier,
+        request: LLMRequest,
+        identifiers: SensitiveTermIndex | None,
+        decision: RouteDecision,
+        classification: Classification,
+    ) -> LLMResponse:
+        route, provider = self.route(tier)
         think = route.think_schema_only if request.schema_only else route.think
         budget = route.think_budget if think not in (None, "off") else 0
         max_tokens = min(request.max_tokens + budget, route.max_tokens_cap)
-        current = request
+        routed = request.model_copy(update={"tier": tier})
+        current = routed
         problem = "no attempt was made"
+        why = f"{decision.reason}; label {classification.label.value}"
         for attempt in range(1, self.config.brain.max_repairs + 2):
             if self.killswitch is not None and self.killswitch.engaged:
                 raise KillSwitchEngaged("the kill switch is engaged")
             sized = current.model_copy(update={"max_tokens": max_tokens})
-            egress_id = self._gate(sized, route, provider, identifiers) if request.tier.remote else None
-            self._check_local(request)
+            egress_id = self._gate(sized, route, provider, identifiers, classification) if tier.remote else None
+            self._check_local(routed)
             try:
                 response = await provider.chat(sized, model=route.model, think=think)
             except Exception as exc:
-                self._record(sized, route, provider, attempt, None, f"provider error: {exc}", egress_id, sent=False)
+                self._record(
+                    sized, route, provider, attempt, None, f"provider error: {exc}", egress_id, sent=False, why=why
+                )
                 raise
             problem_or_none = check_output(request, response)
-            self._record(sized, route, provider, attempt, response, problem_or_none, egress_id, sent=True)
+            self._record(sized, route, provider, attempt, response, problem_or_none, egress_id, sent=True, why=why)
             if problem_or_none is None:
                 return response
             problem = problem_or_none
             if response.truncated:
                 max_tokens = min(max_tokens * 2, route.max_tokens_cap)
+            answer_source = "synthetic" if classification.label is ContentLabel.SYNTHETIC else None
             current = current.model_copy(
                 update={
                     "messages": [
                         *current.messages,
-                        Message(role="assistant", content=response.content or "(no answer)"),
-                        Message(role="user", content=f"Your previous answer was rejected: {problem}."),
+                        Message(role="assistant", content=response.content or "(no answer)", source=answer_source),
+                        Message(role="user", content=f"Your previous answer was rejected: {problem}.", source="prompt"),
                     ]
                 }
             )
@@ -209,7 +259,14 @@ class Brain:
         if not verdict.allowed:
             raise PolicyDenied("; ".join(verdict.reasons))
 
-    def _gate(self, request: LLMRequest, route: Route, provider: LLMProvider, extra: SensitiveTermIndex | None) -> str:
+    def _gate(
+        self,
+        request: LLMRequest,
+        route: Route,
+        provider: LLMProvider,
+        extra: SensitiveTermIndex | None,
+        classification: Classification | None = None,
+    ) -> str:
         host = getattr(provider, "host", provider.name)
         verdict = self.policy.evaluate(
             ActionRequest(capability="model.remote.synthetic", purpose=request.purpose, destinations=[host])
@@ -232,7 +289,14 @@ class Brain:
         index = self.identifiers
         if extra is not None and len(extra):
             index = SensitiveTermIndex([*self.identifiers.terms, *extra.terms])
-        egress = evaluate_synthetic(self.mandate, host, payload, index)
+        label = classification.label if classification else ContentLabel.SYNTHETIC
+        # Real names are expected in public code (and in private code a person allowed out); everything else must
+        # carry none. Secrets and production data are refused here again, whatever the route decided.
+        names = index if label in (ContentLabel.SYNTHETIC, ContentLabel.INSTRUCTIONS) else SensitiveTermIndex()
+        egress = evaluate_synthetic(self.mandate, host, payload, names)
+        if label in NEVER_REMOTE:
+            reasons = [*egress.reasons, f"{label.value} never leaves this machine"]
+            egress = egress.model_copy(update={"allowed": False, "reasons": reasons})
         attempt = EgressAttempt(
             status="allowed_pending" if egress.allowed else "blocked",
             purpose=request.purpose,
@@ -296,6 +360,7 @@ class Brain:
         egress_id: str | None,
         *,
         sent: bool,
+        why: str | None = None,
     ) -> None:
         run = ModelRun(
             purpose=request.purpose,
@@ -310,6 +375,7 @@ class Brain:
             usage=response.usage if response is not None else Usage(),
             cost=self._cost(route, response, request.tier.remote),
             correlation_id=request.correlation_id,
+            route_reason=why,
         )
         self.store.put("model_runs", run)
         if egress_id is not None:

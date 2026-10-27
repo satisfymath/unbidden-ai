@@ -83,6 +83,7 @@ class PrivacyBridge:
                     messages=[
                         Message(
                             role="user",
+                            source="repo",
                             content=names_prompt.render(
                                 schema=str(NAMES_SCHEMA),
                                 names="\n".join(f"- {n}" for n in sorted(private)),
@@ -117,8 +118,9 @@ class PrivacyBridge:
             response = await self.brain.complete(
                 LLMRequest(
                     purpose="bridge.solve",
+                    expect_files=True,
                     tier=Tier.CODE,
-                    messages=[Message(role="user", content=content)],
+                    messages=[Message(role="user", content=content, source="synthetic")],
                     max_tokens=4000,
                     prompt_sha256=solve_prompt.sha256,
                     correlation_id=correlation_id,

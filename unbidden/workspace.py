@@ -151,6 +151,39 @@ class Workspace:
     def killswitch(self) -> KillSwitch:
         return KillSwitch(self.dir)
 
+    def repo_public(self, store: Store, *, max_age_hours: float = 6) -> bool:
+        """Whether GitHub confirms this repository is public. Anything else (no remote, an error, a private
+        repository) is treated as private: code may only leave as a public repository's code."""
+        from datetime import UTC, datetime, timedelta
+
+        import httpx
+
+        slug = github_slug(self.repo)
+        if slug is None:
+            return False
+        cached = store.get_value("repo_visibility") or {}
+        fresh = (
+            cached.get("slug") == slug
+            and cached.get("checked_at", "") > (datetime.now(UTC) - timedelta(hours=max_age_hours)).isoformat()
+        )
+        if fresh:
+            return bool(cached.get("public"))
+        public = False
+        try:
+            token = os.environ.get("GITHUB_TOKEN")
+            headers = {
+                "Accept": "application/vnd.github+json",
+                **({"Authorization": f"Bearer {token}"} if token else {}),
+            }
+            response = httpx.get(f"https://api.github.com/repos/{slug}", headers=headers, timeout=10)
+            public = response.status_code == 200 and response.json().get("private") is False
+        except (httpx.HTTPError, ValueError):
+            public = False
+        store.set_value(
+            "repo_visibility", {"slug": slug, "public": public, "checked_at": datetime.now(UTC).isoformat()}
+        )
+        return public
+
     def load_env(self) -> None:
         """Read unbidden's own `.env` files into the environment without overriding what is already set.
 

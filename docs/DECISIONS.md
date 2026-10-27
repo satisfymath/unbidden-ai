@@ -180,3 +180,25 @@ Exposed, and fixed:
   database pool. Claimed confidence 0.95, capped at 0.60 because nothing was reproduced (L1).
 - Blind spot recorded: `docker compose logs` returns the current container's lines, so errors of a container
   replaced by a rollback are not readable afterwards.
+
+## D-017 · 2026-10-27 · Model routing by profile, from what each message holds
+
+Routing used to be a fixed tier per call: the local model did nearly everything and Muse Spark only came in through
+the bridge after local failures (five failed local attempts before Forge escalated; minutes per robustness round).
+Protection depended on where a module called from, not on what it sent.
+
+- Every `Message` declares its `source` (prompt, repo, runtime, database, synthetic). Undeclared means private code.
+- A deterministic classifier labels the request with its most restricted part: instructions < synthetic <
+  public_code < private_code < production_data < secret. Text patterns (secrets, environment files, emails,
+  non-documentation IPs, log lines) can only make it stricter. Repository code is public only when GitHub confirms
+  it (`private: false`); anything else, including an unreachable API, is private.
+- Profiles in the mandate: `local`, `local-first` (default) and `frontier`, plus `private_code_to_frontier`
+  (deny by default). Secrets and production data stay local in every profile; private code leaves only renamed by
+  the bridge unless a person allows it in `frontier`.
+- Tasks declare a weight. Heavy work (fixes, migrations, workloads, property tests, adapters) goes to the frontier
+  model first when its content may leave, with the local model as fallback; light work starts local. Unknown
+  purposes are light and never leave.
+- The egress gate re-checks the label: secret and production_data are refused there too, whatever was decided.
+  Code answers now have a contract (`expect_files`), so a frontier answer without file blocks is repaired or falls
+  back to local instead of being accepted.
+- `unbidden models`, `unbidden route` (dry explanation per task) and `unbidden egress --payload`.

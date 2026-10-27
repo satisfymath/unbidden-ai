@@ -43,6 +43,7 @@ class Runtime:
         config = workspace.config()
         store = workspace.store()
         brain = Brain(config, build_providers(config), store, workspace.mandate(), killswitch=workspace.killswitch())
+        brain.repo_public = workspace.repo_public(store)
         return cls(workspace, config, store, brain)
 
     def bridge(self) -> PrivacyBridge | None:

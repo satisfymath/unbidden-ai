@@ -118,12 +118,14 @@ class RobustnessProbe:
             response = await self.brain.complete(
                 LLMRequest(
                     purpose="research.robustness",
+                    expect_files=True,
                     tier=Tier.LOCAL,
                     max_tokens=5000,
                     prompt_sha256=prompt.sha256,
                     messages=[
                         Message(
                             role="user",
+                            source="repo",
                             content=prompt.render(
                                 package=package,
                                 count=str(count),

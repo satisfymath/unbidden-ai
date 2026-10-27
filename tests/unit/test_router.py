@@ -39,12 +39,21 @@ def make_brain(store: Store, mandate: Mandate, **kwargs: Any) -> tuple[Brain, Mo
     config = load_config()
     config.routing[Tier.LOCAL].provider = "local"
     config.routing[Tier.FRONTIER].provider = "remote"
+    config.routing[Tier.CODE].provider = "remote"
     local, remote = MockProvider(), RemoteMock()
     brain = Brain(config, {"local": local, "remote": remote}, store, mandate, **kwargs)
     return brain, local, remote
 
 
 def request(tier: Tier = Tier.LOCAL, text: str = "decide", **kwargs: Any) -> LLMRequest:
+    """A remote-bound request is a heavy task with synthetic content, which local-first sends out."""
+    if tier.remote:
+        return LLMRequest(
+            purpose="bridge.solve",
+            tier=tier,
+            **kwargs,
+            messages=[Message(role="user", content=text, source="synthetic")],
+        )
     return LLMRequest(purpose="test.decide", tier=tier, messages=[Message(role="user", content=text)], **kwargs)
 
 
@@ -123,7 +132,7 @@ async def test_remote_call_with_real_identifiers_is_blocked(store: Store, mandat
 
 async def test_allowed_remote_call_records_the_exact_payload(store: Store, mandate: Mandate) -> None:
     brain, _, remote = make_brain(store, mandate)
-    remote.script("test.decide", "ok")
+    remote.script("bridge.solve", "ok")
     await brain.complete(request(Tier.FRONTIER, text="group child_rows by parent_id"))
     (attempt,) = store.list("egress", EgressAttempt)
     assert attempt.status == "allowed_sent"
@@ -148,3 +157,61 @@ async def test_kill_switch_stops_calls(store: Store, mandate: Mandate, tmp_path:
     with pytest.raises(KillSwitchEngaged):
         await brain.complete(request())
     assert local.requests == []
+
+
+async def test_private_code_never_reaches_the_remote_model_in_local_first(store: Store, mandate: Mandate) -> None:
+    brain, local, remote = make_brain(store, mandate)
+    local.script("lab.fix_candidate", "# file: a.py\nx = 1\n")
+    request_ = LLMRequest(
+        purpose="lab.fix_candidate",
+        tier=Tier.CODE,
+        messages=[Message(role="user", content="fix this private code", source="repo")],
+    )
+    await brain.complete(request_)
+    assert remote.requests == [] and len(local.requests) == 1
+    run = store.list("model_runs", ModelRun)[-1]
+    assert run.route_reason is not None and "private_code" in run.route_reason
+
+
+async def test_public_code_goes_to_the_frontier_model_for_heavy_work(store: Store, mandate: Mandate) -> None:
+    brain, local, remote = make_brain(store, mandate)
+    brain.repo_public = True
+    remote.script("lab.fix_candidate", "# file: a.py\nx = 1\n")
+    await brain.complete(
+        LLMRequest(
+            purpose="lab.fix_candidate",
+            tier=Tier.LOCAL,
+            messages=[Message(role="user", content="fix this public code", source="repo")],
+        )
+    )
+    assert len(remote.requests) == 1 and local.requests == []
+
+
+async def test_production_data_stays_local_even_in_the_frontier_profile(store: Store, mandate: Mandate) -> None:
+    mandate.models.profile = "frontier"
+    mandate.models.private_code_to_frontier = "allow"
+    brain, local, remote = make_brain(store, mandate)
+    local.script("forge.adapter", "ok")
+    log = "\n".join(f'INFO: 10.0.0.{i}:5 - "GET /a HTTP/1.1" 200 OK' for i in range(5))
+    await brain.complete(
+        LLMRequest(
+            purpose="forge.adapter", tier=Tier.CODE, messages=[Message(role="user", content=log, source="runtime")]
+        )
+    )
+    assert remote.requests == [] and len(local.requests) == 1
+
+
+async def test_a_failed_frontier_answer_falls_back_to_the_local_model(store: Store, mandate: Mandate) -> None:
+    brain, local, remote = make_brain(store, mandate)
+    brain.repo_public = True
+    remote.script("lab.fix_candidate", "no file here", repeat=True)
+    local.script("lab.fix_candidate", "# file: a.py\nx = 1\n")
+    response = await brain.complete(
+        LLMRequest(
+            purpose="lab.fix_candidate",
+            tier=Tier.LOCAL,
+            expect_files=True,
+            messages=[Message(role="user", content="fix", source="repo")],
+        )
+    )
+    assert response.content.startswith("# file:")

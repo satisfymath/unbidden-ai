@@ -177,6 +177,7 @@ class Investigation:
         messages = [
             Message(
                 role="system",
+                source="prompt",
                 content=prompt.render(
                     incident=self.incident,
                     good=self.good[:12],
@@ -184,7 +185,7 @@ class Investigation:
                     services=", ".join(self._services()) or "unknown",
                 ),
             ),
-            Message(role="user", content="Begin the investigation."),
+            Message(role="user", content="Begin the investigation.", source="prompt"),
         ]
         for step in range(MAX_STEPS):
             try:
@@ -211,8 +212,13 @@ class Investigation:
             )
             self.log(f"investigating: {call.name}({json.dumps(call.arguments)[:80]})")
             messages += [
-                Message(role="assistant", content=response.content or "", tool_calls=[call]),
-                Message(role="tool", content=output[:MAX_OUTPUT], tool_call_id=call.id),
+                Message(role="assistant", content=response.content or "", tool_calls=[call], source="repo"),
+                Message(
+                    role="tool",
+                    content=output[:MAX_OUTPUT],
+                    tool_call_id=call.id,
+                    source="runtime" if call.name == "service_errors" else "repo",
+                ),
             ]
         self.log(f"investigation ended after {MAX_STEPS} steps without a hypothesis")
         return None

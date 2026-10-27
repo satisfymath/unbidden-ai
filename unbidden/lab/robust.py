@@ -106,12 +106,13 @@ class RobustLab:
                 path=path,
                 source=source,
             )
-            messages = [Message(role="user", content=content)]
+            messages = [Message(role="user", content=content, source="repo")]
             if feedback:
-                messages.append(Message(role="user", content=f"A previous attempt failed: {feedback}"))
+                messages.append(Message(role="user", content=f"A previous attempt failed: {feedback}", source="repo"))
             response = await self.brain.complete(
                 LLMRequest(
                     purpose="lab.robust_fix",
+                    expect_files=True,
                     tier=Tier.LOCAL,
                     messages=messages,
                     prompt_sha256=prompt.sha256,

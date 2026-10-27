@@ -146,8 +146,9 @@ class PerfLab:
             response = await self.brain.complete(
                 LLMRequest(
                     purpose=purpose,
+                    expect_files=True,
                     tier=Tier.LOCAL,
-                    messages=[Message(role="user", content=content)],
+                    messages=[Message(role="user", content=content, source="repo")],
                     max_tokens=max_tokens,
                     prompt_sha256=sha,
                     correlation_id=opp.id,

@@ -27,9 +27,30 @@ class ToolCall(Contract):
     arguments: dict[str, Any]
 
 
+Source = Literal["prompt", "repo", "runtime", "database", "synthetic"]
+
+
+class ContentLabel(StrEnum):
+    """What a message holds, from least to most restricted. A request carries its most restricted label."""
+
+    INSTRUCTIONS = "instructions"  # unbidden's own prompts
+    SYNTHETIC = "synthetic"  # produced by the privacy bridge: renamed and verified
+    PUBLIC_CODE = "public_code"  # tracked files of a repository GitHub confirms is public
+    PRIVATE_CODE = "private_code"  # tracked files of any other repository, and anything of unknown origin
+    PRODUCTION_DATA = "production_data"  # logs, HTTP responses, database rows, personal data
+    SECRET = "secret"  # credentials, keys, passwords, .env content
+
+    @property
+    def rank(self) -> int:
+        return list(ContentLabel).index(self)
+
+
 class Message(Contract):
     role: Literal["system", "user", "assistant", "tool"]
     content: str
+    # Where the content came from, declared by whoever built it. None means unknown, and unknown is treated as
+    # private code: a caller that forgets to say errs on the side that never leaves the machine.
+    source: Source | None = None
     tool_calls: list[ToolCall] = Field(default_factory=list[ToolCall])
     tool_call_id: str | None = None
 
@@ -54,6 +75,7 @@ class LLMRequest(Contract):
     tools: list[ToolSpec] = Field(default_factory=list[ToolSpec])
     tool_choice: Literal["auto", "required"] = "auto"
     response_schema: dict[str, Any] | None = None
+    expect_files: bool = False  # the answer must hold `# file:` blocks
     max_tokens: int = Field(default=1024, gt=0)
     temperature: float = 0.0
     prompt_sha256: str | None = None
@@ -97,4 +119,5 @@ class ModelRun(Contract):
     usage: Usage
     cost: Cost
     correlation_id: str | None = None
+    route_reason: str | None = None  # why this model served the call
     created_at: datetime = Field(default_factory=utc_now)

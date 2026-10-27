@@ -58,6 +58,7 @@ async def infer_endpoint_tables(repo: Path, rev: str, world: WorldModel, brain: 
                     messages=[
                         Message(
                             role="user",
+                            source="repo",
                             content=prompt.render(
                                 tables=", ".join(tables),
                                 schema=str(schema),
