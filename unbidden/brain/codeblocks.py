@@ -9,7 +9,8 @@ from __future__ import annotations
 import re
 from pathlib import PurePosixPath
 
-_HEADER = re.compile(r"^(?:#|//)\s*file:\s*(?P<path>\S+)\s*$", re.MULTILINE)
+# The header may also share its line with the opening fence: ```# file: a.py (seen from Glimmer).
+_HEADER = re.compile(r"^(?:```[\w+-]*\s*)?(?:#|//)\s*file:\s*(?P<path>\S+)\s*$", re.MULTILINE)
 _FENCE = re.compile(r"^```[\w+-]*\s*$")
 
 

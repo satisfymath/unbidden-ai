@@ -29,3 +29,7 @@ def test_unsafe_paths(path: str) -> None:
 def test_no_header() -> None:
     with pytest.raises(CodeBlockError):
         parse_files("```python\nx = 1\n```")
+
+
+def test_header_on_the_fence_line() -> None:
+    assert parse_files("```# file: tests/test_a.py\nimport x\n```") == {"tests/test_a.py": "import x\n"}
