@@ -74,13 +74,27 @@ class LiveWatcher:
         history = self.history()
         if len(history) < 2:
             return
-        current, previous = history[-1], history[-2]
+        current = history[-1]
+        previous = self._baseline(history)
         deploy_id = f"{len(history) - 1}:{current}"
         if self._outage(current):
             self._bad(current, previous, Impact.OUTAGE, [])
             return
         if self.store.get("deploy_verdicts", deploy_id, DeployVerdict) is None:
             self._judge(deploy_id, current, previous)
+
+    def _baseline(self, history: list[str]) -> str:
+        """The deploy to compare against: the previous one, or, when it ran too briefly to be judged, the most
+        recent earlier one with enough rounds. What was skipped over is listed as a confounder."""
+        need = self.mandate.operations.guard_samples
+        targets = self.store.round_targets()
+        for index in range(len(history) - 2, -1, -1):
+            version = history[index]
+            if version == history[-1]:
+                continue
+            if any(len(self._rounds(t, version)) >= need for t in targets):
+                return version
+        return history[-2]
 
     def _served(self, target: str, version: str) -> bool:
         """Endpoints the probe user may not read (401/403 throughout) cannot be judged; they are left out."""
@@ -113,6 +127,7 @@ class LiveWatcher:
             criteria=CRITERIA,
         )
         self.store.put("deploy_verdicts", record)
+        self.store.set_value(f"verdict_of:{deploy_id.split(':', 1)[0]}", verdict.value)
         self.store.append_event(
             Event(
                 type=EventType.IMPACT_JUDGED,
@@ -138,6 +153,8 @@ class LiveWatcher:
         by_target = {e.target: e for e in endpoints}
         version = record.id.split(":", 1)[1]
         commits = _git(self.repo, "log", "--format=%h %s", f"{previous}..{version}").splitlines()
+        skipped = self.history()[:-1]
+        skipped = skipped[skipped.index(previous) + 1 :] if previous in skipped else []
         for proposal in self.store.list("proposals", Proposal):
             if proposal.status not in (ProposalStatus.MERGED, ProposalStatus.PR_OPENED):
                 continue
@@ -150,7 +167,15 @@ class LiveWatcher:
                 continue
             judged = [by_target[e] for e in opp.details.get("endpoints", []) if e in by_target]
             confounders = [
-                f"{len(commits)} commit(s) shipped in this deploy: " + "; ".join(commits[:5]),
+                f"{len(commits)} commit(s) between the two measured versions: " + "; ".join(commits[:5]),
+                *(
+                    [
+                        f"{len(skipped)} intermediate deploy(s) ran too briefly to be judged on their own: "
+                        + ", ".join(v[:12] for v in skipped)
+                    ]
+                    if skipped
+                    else []
+                ),
                 "traffic is unbidden's own probes, not users",
                 "data volume and cache state differ between the two windows",
             ]

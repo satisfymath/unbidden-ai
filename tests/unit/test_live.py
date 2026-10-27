@@ -68,3 +68,12 @@ def test_without_rollback_autonomy_only_a_hold_is_placed(
     add_rounds(store, B, 60, 20, 2)
     watcher(store, mandate)._judge(f"1:{B}", B, A)  # pyright: ignore[reportPrivateUsage]
     assert called == [] and len(active(store)) == 1
+
+
+def test_a_deploy_too_short_to_judge_is_skipped_as_baseline_and_named(store: Store, mandate: Mandate) -> None:
+    store.set_value("deploy_sequence", [A, B, C])
+    add_rounds(store, A, 20, 20, 1)
+    add_rounds(store, B, 20, 4, 2)  # replaced by the next deploy after four rounds
+    add_rounds(store, C, 8, 20, 3)
+    w = watcher(store, mandate)
+    assert w._baseline([A, B, C]) == A  # pyright: ignore[reportPrivateUsage]

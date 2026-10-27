@@ -3,18 +3,43 @@
 from __future__ import annotations
 
 import asyncio
+import threading
 import traceback
 from datetime import timedelta
+from typing import Any
 
 from unbidden.contracts.common import utc_now
 from unbidden.daemon.cycle import RETRY, Cycle, Log, job
 from unbidden.runtime import Runtime
 
 
+def _probe_forever(runtime: Runtime, log: Log, stop: threading.Event) -> None:
+    """Probes run on their own thread with their own connection, so long lab or model work never starves them:
+    a deploy that is not observed cannot be judged."""
+    from unbidden.contracts.world import WorldModel
+    from unbidden.observe.live import LiveWatcher
+
+    store = runtime.workspace.store()
+    killswitch = runtime.workspace.killswitch()
+    while not stop.is_set():
+        mandate = runtime.workspace.mandate()
+        world = store.get("world", "world", WorldModel)
+        if world is not None and world.of_kind("endpoint") and not killswitch.engaged:
+            try:
+                LiveWatcher(runtime.workspace.repo, store, mandate, world, log).tick()
+            except Exception as exc:
+                log(f"live probe failed: {exc}")
+        stop.wait(mandate.operations.probe_every_s)
+
+
 async def watch(
-    runtime: Runtime, *, log: Log = print, interval_s: float = 30, poll_every: timedelta = timedelta(minutes=5),
+    runtime: Runtime,
+    *,
+    log: Log = print,
+    interval_s: float = 30,
+    poll_every: timedelta = timedelta(minutes=5),
     once: bool = False,
-) -> None:  # fmt: skip
+) -> None:
     """Observe HEAD every `interval_s`, follow pull requests every `poll_every`, and work the queue in between.
 
     With `once`, run until the queue is empty and return: one full cycle, useful for demos and tests.
@@ -26,13 +51,32 @@ async def watch(
     if requeued:
         log(f"resumed {requeued} interrupted job(s)")
     killswitch = runtime.workspace.killswitch()
+    stop = threading.Event()
+    if not once:
+        threading.Thread(target=_probe_forever, args=(runtime, log, stop), name="unbidden-probes", daemon=True).start()
+    try:
+        await _work(runtime, cycle, handlers, store, killswitch, log, interval_s, poll_every, once)
+    finally:
+        stop.set()
+
+
+async def _work(
+    runtime: Runtime,
+    cycle: Cycle,
+    handlers: dict[str, Any],
+    store: Any,
+    killswitch: Any,
+    log: Log,
+    interval_s: float,
+    poll_every: timedelta,
+    once: bool,
+) -> None:
     while True:
         now = utc_now()
         bucket = int(now.timestamp() // interval_s)
         store.enqueue(job("observe.head", str(bucket)))
-        mandate = runtime.workspace.mandate()
-        live_bucket = int(now.timestamp() // mandate.operations.probe_every_s)
-        store.enqueue(job("observe.live", str(live_bucket)))
+        if once:
+            store.enqueue(job("observe.live", str(bucket)))
         store.enqueue(job("director.sweep", f"tick:{bucket}"))
         store.enqueue(job("github.poll", str(int(now.timestamp() // poll_every.total_seconds()))))
         while True:
@@ -50,10 +94,11 @@ async def watch(
                 await handler(claimed)
             except Exception as exc:
                 log(f"{claimed.type} failed: {exc}")
-                store.finish(claimed, error=f"{type(exc).__name__}: {exc}\n{traceback.format_exc(limit=3)}",
-                             retry_in=RETRY)  # fmt: skip
+                store.finish(
+                    claimed, error=f"{type(exc).__name__}: {exc}\n{traceback.format_exc(limit=3)}", retry_in=RETRY
+                )
             else:
                 store.finish(claimed)
         if once:
             return
-        await asyncio.sleep(min(interval_s, runtime.workspace.mandate().operations.probe_every_s))
+        await asyncio.sleep(interval_s)

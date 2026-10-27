@@ -228,6 +228,10 @@ class Publisher:
             raise PublishError("only an open pull request can be merged")
         if proposal.evidence_level < EvidenceLevel.FUNCTIONAL_VALIDATION:
             raise PublishError(f"evidence L{int(proposal.evidence_level)} is below L4; a person merges this one")
+        sequence: list[str] = self.store.get_value("deploy_sequence", [])
+        if len(sequence) >= 2 and self.store.get_value(f"verdict_of:{len(sequence) - 1}") is None:
+            # One change at a time: until the last deploy has its verdict, another merge would blur what it did.
+            raise PublishError(f"deploy {sequence[-1][:12]} has no verdict yet; merging waits for it")
         check(
             self.store,
             self.mandate,

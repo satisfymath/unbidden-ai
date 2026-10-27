@@ -13,6 +13,7 @@ import hashlib
 import json
 import re
 import subprocess
+from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -35,6 +36,7 @@ from unbidden.observe.stack import Stack
 from unbidden.sandbox.provision import DependencyImage, link_dependencies
 from unbidden.sandbox.runner import SandboxRunner, SandboxSpec, discard, snapshot
 from unbidden.sandbox.sidecars import data_services
+from unbidden.sandbox.tools import tools_for
 
 ACTOR = "lab"
 LAB_DIR = ".unbidden-lab"
@@ -234,6 +236,26 @@ class PerfLab:
         (folder / f"{name}.py").write_text(code)
         (folder / f"{name}.log").write_text(output)
 
+    def _findings(self, rev: str, files: dict[str, str]) -> Counter[str]:
+        """Findings of every check the repository uses, as a multiset of 'tool rule path: message'."""
+        image = self.images["python"]
+        work = snapshot(self.repo, rev)
+        try:
+            for path, content in files.items():
+                (work / path).parent.mkdir(parents=True, exist_ok=True)
+                (work / path).write_text(content)
+            link_dependencies(work, image)
+            found: Counter[str] = Counter()
+            for tool in tools_for(self.stack):
+                if tool.language != "python":
+                    continue
+                result = self.runner.run(SandboxSpec(image=image.tag, argv=list(tool.argv), env=image.env), work)
+                for f in tool.report(result, list(tool.argv)).findings:
+                    found[f"{f.tool} {f.rule} {f.path}: {f.message}"] += 1
+            return found
+        finally:
+            discard(work)
+
     # The experiment -------------------------------------------------------------------------------------
 
     async def run(self, opp: Opportunity) -> PerfResult:
@@ -253,33 +275,41 @@ class PerfLab:
         list_endpoint = next((e for e in endpoints if e.startswith("GET ") and "{" not in e), endpoints[0])
         handler = next((h for h in handlers if h[0] == list_endpoint), handlers[0])
 
-        # Candidate.
-        self.progress("asking the local model for the schema change")
+        # Candidate, held to the repository's own checks: a speed-up may not bring new findings with it.
         cand_prompt = load_prompt("perf_candidate")
         migrations_dir, head_rev, head_file = head
-        candidate_files = await self._ask_files(
-            "lab.perf_candidate",
-            cand_prompt.render(
-                problem=opp.summary,
-                migrations_dir=migrations_dir,
-                head=head_rev,
-                head_file=head_file,
-                head_example=self._show(rev, head_file)[:4000],
-                models_file=models_file,
-                models=self._show(rev, models_file)[:8000],
-                handlers="\n\n".join(f"`{e}` in `{f}`:\n```python\n{c}```" for e, f, c in handlers[:4]),
-            ),
-            opp,
-            cand_prompt.sha256,
-            4000,
+        content = cand_prompt.render(
+            problem=opp.summary,
+            migrations_dir=migrations_dir,
+            head=head_rev,
+            head_file=head_file,
+            head_example=self._show(rev, head_file)[:4000],
+            models_file=models_file,
+            models=self._show(rev, models_file)[:8000],
+            handlers="\n\n".join(f"`{e}` in `{f}`:\n```python\n{c}```" for e, f, c in handlers[:4]),
         )
+        candidate_files: dict[str, str] | None = None
+        before_findings = self._findings(rev, {})
+        for attempt in range(2):
+            self.progress(f"asking the local model for the schema change (attempt {attempt + 1})")
+            candidate_files = await self._ask_files("lab.perf_candidate", content, opp, cand_prompt.sha256, 4000)
+            if not candidate_files:
+                continue
+            new = self._findings(rev, candidate_files) - before_findings
+            if not new:
+                break
+            listed = "\n".join(f"- {f}" for f in sorted(new.elements())[:10])
+            result.notes.append(f"candidate attempt {attempt + 1} added {sum(new.values())} finding(s)")
+            content += (
+                f"\n\nYour previous change added findings from this repository's own checks:\n{listed}\nAvoid them."
+            )
+            candidate_files = None
         if not candidate_files:
-            result.notes.append("the local model gave no usable schema change")
+            result.notes.append("the local model gave no schema change that keeps the repository's checks clean")
             return result
         base_dir = snapshot(self.repo, rev)
         candidate = Candidate("model", candidate_files, unified_patch(base_dir, candidate_files))
         discard(base_dir)
-
         # Workload, repaired against the base until it runs.
         wl_prompt = load_prompt("perf_workload")
         feedback = ""

@@ -104,3 +104,22 @@ def test_secret_in_patch_blocks_publishing(
 def test_only_unbidden_branches_are_pushed(tmp_path: Path) -> None:
     with pytest.raises(PublishError):
         github.push_branch(tmp_path, "acme/shop", "main", "a" * 40, "GITHUB_TOKEN", "main")
+
+
+def test_no_merge_while_the_last_deploy_awaits_its_verdict(
+    store: Store, mandate: Mandate, repo: tuple[Path, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from unbidden.contracts.experiment import PullRequestRef
+
+    path, base = repo
+    monkeypatch.setenv("GITHUB_TOKEN", "t0ken-value-123")
+    mandate.autonomy.merge_pull_requests = __import__(
+        "unbidden.contracts.guardian", fromlist=["Autonomy"]
+    ).Autonomy.ALLOW
+    prop = proposal(base)
+    prop.status = ProposalStatus.PR_OPENED
+    prop.pr = PullRequestRef(number=7, url="u", head_sha=base)
+    store.set_value("deploy_sequence", ["a" * 40, "b" * 40])
+    publisher = Publisher(path, store, mandate, GitHubClient("acme/shop", "GITHUB_TOKEN", transport=fake_github([])))
+    with pytest.raises(PublishError, match="no verdict yet"):
+        publisher.merge(prop)
