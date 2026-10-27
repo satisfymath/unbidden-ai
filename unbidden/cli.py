@@ -388,6 +388,35 @@ def cmd_mode(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_deploy(args: argparse.Namespace) -> int:
+    """Deploy a local commit or branch (a proposal not published, say) with the mandate's steps, as the merge path
+    would: the same Guardian checks and rate limit, the same ledger binding, the same event the live watcher judges."""
+    import subprocess
+
+    from unbidden.operate.deploy import OperationRefused, deploy
+
+    ws = Workspace.find()
+    ws.require()
+    found = subprocess.run(["git", "-C", str(ws.repo), "rev-parse", "--verify", f"{args.ref}^{{commit}}"],
+                           capture_output=True, text=True, check=False)  # fmt: skip
+    if found.returncode != 0:
+        err.print(f"no commit named {args.ref}")
+        return 2
+    commit = found.stdout.strip()
+    try:
+        with console.status(f"deploying {commit[:12]} with the mandate's steps"):
+            result = deploy(ws.repo, ws.store(), ws.mandate(), commit, reason=args.reason or f"deploy {args.ref}")
+    except OperationRefused as exc:
+        err.print(f"deploy refused: {exc}")
+        return 2
+    if _emit(args, {"commit": commit, "ok": result.ok, "log": result.log[-3000:]}):
+        return 0 if result.ok else 1
+    console.print(f"deployed {commit[:12]}: {'[green]ok[/]' if result.ok else '[red]FAILED[/]'}")
+    if not result.ok:
+        console.print(result.log[-3000:])
+    return 0 if result.ok else 1
+
+
 def cmd_drill(args: argparse.Namespace) -> int:
     """Prove rollback works: deploy the previous version with the team's steps, check health, deploy back."""
     import subprocess
@@ -1384,6 +1413,9 @@ def build_parser() -> argparse.ArgumentParser:
     review.add_argument("--hours", type=float, default=24, help="how long each approval stays valid")
     mode = command("mode", cmd_mode, "show or set autonomy: supervised, autopilot or autonomous")
     mode.add_argument("mode", nargs="?", choices=sorted(MODES), help="the mode to switch to")
+    deploy_ = command("deploy", cmd_deploy, "deploy a local commit or branch with the mandate's steps")
+    deploy_.add_argument("ref", help="a commit or branch, e.g. a proposal's branch")
+    deploy_.add_argument("--reason", help="recorded with the deploy")
     drill_ = command("drill", cmd_drill, "prove rollback works before autonomy relies on it")
     drill_.add_argument("previous", nargs="?", help="the version to roll back to (default HEAD~1)")
     hold = command("hold", cmd_hold, "list holds, or release one (people only)")
