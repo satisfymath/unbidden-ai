@@ -30,7 +30,29 @@ from unbidden.guardian.egress import evaluate_screenshots
 from unbidden.guardian.policy import PolicyEngine
 from unbidden.store import Store
 
-PLAYWRIGHT_IMAGE = "mcr.microsoft.com/playwright/python:v1.49.1-noble"
+PLAYWRIGHT_BASE = "mcr.microsoft.com/playwright/python:v1.49.1-noble"  # browsers and their libraries, pinned
+PLAYWRIGHT_IMAGE = "unbidden-ui:1.49.1"  # the base plus the matching playwright package from PyPI
+
+
+def ensure_image() -> None:
+    """Build the capture image once; it only adds the pinned playwright package to the pinned base."""
+    if (
+        subprocess.run(["docker", "image", "inspect", PLAYWRIGHT_IMAGE], capture_output=True, check=False).returncode
+        == 0
+    ):
+        return
+    dockerfile = f"FROM {PLAYWRIGHT_BASE}\nRUN pip install --no-cache-dir --break-system-packages playwright==1.49.1\n"
+    out = subprocess.run(
+        ["docker", "build", "-q", "-t", PLAYWRIGHT_IMAGE, "-"],
+        input=dockerfile,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if out.returncode != 0:
+        raise RuntimeError(f"the capture image could not be built: {out.stderr.strip()[-400:]}")
+
+
 CAPTURE_SCRIPT = Path(__file__).with_name("ui_capture.py")
 VISUAL_MODEL = "muse-spark-1.3"
 
@@ -46,6 +68,7 @@ class Capture:
 def capture(url: str, out_dir: Path, *, wait_ms: int = 3000, timeout_s: float = 120) -> Capture:
     """Load `url` (a page the project publishes on this machine) in a container and keep what it showed.
     `http://127.0.0.1:<port>` is reached from the container as the host's published port."""
+    ensure_image()
     target = re.sub(r"^http://(127\.0\.0\.1|localhost)", "http://host.docker.internal", url)
     work = Path(tempfile.mkdtemp(prefix="unbidden-ui-"))
     try:
