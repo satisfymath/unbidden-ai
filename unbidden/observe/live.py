@@ -111,10 +111,8 @@ class LiveWatcher:
 
     def _judge(self, deploy_id: str, current: str, previous: str) -> None:
         need = self.mandate.operations.guard_samples
-        endpoints = [
-            judge_endpoint(t, self._rounds(t, previous), self._rounds(t, current), need)
-            for t in self.store.round_targets()
-        ]
+        judgeable = [t for t in self.store.round_targets() if self._served(t, previous)]
+        endpoints = [judge_endpoint(t, self._rounds(t, previous), self._rounds(t, current), need) for t in judgeable]
         verdict = overall(endpoints)
         waiting = verdict is Impact.INSUFFICIENT and any(e.rounds_after < need for e in endpoints)
         if waiting:

@@ -77,3 +77,16 @@ def test_a_deploy_too_short_to_judge_is_skipped_as_baseline_and_named(store: Sto
     add_rounds(store, C, 8, 20, 3)
     w = watcher(store, mandate)
     assert w._baseline([A, B, C]) == A  # pyright: ignore[reportPrivateUsage]
+
+
+def test_an_endpoint_the_probe_user_may_not_read_does_not_block_the_verdict(store: Store, mandate: Mandate) -> None:
+    store.set_value("deploy_sequence", [A, B])
+    add_rounds(store, A, 20, 20, 1)
+    add_rounds(store, B, 20, 20, 2)
+    for version in (A, B):
+        for _ in range(20):
+            store.add_round("GET /admin/", version, [403] * 5, [1.0] * 5)
+    watcher(store, mandate)._judge(f"1:{B}", B, A)  # pyright: ignore[reportPrivateUsage]
+    verdict = store.get("deploy_verdicts", f"1:{B}", DeployVerdict)
+    assert verdict is not None and verdict.impact.value == "healthy"
+    assert [e["target"] for e in verdict.endpoints] == ["GET /items/"]
