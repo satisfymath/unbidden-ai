@@ -60,10 +60,25 @@ def _ref(kind: str, locator: str, note: str | None = None) -> EvidenceRef:
     return EvidenceRef(kind=kind, locator=locator, note=note)  # type: ignore[arg-type]
 
 
+def compose_project(repo: Path) -> str:
+    """The compose project name, as compose derives it: a top-level `name:` in the repository's compose file, else
+    the repository directory's name, lowercased, letters, digits, `-` and `_` only."""
+    from unbidden.observe.compose import COMPOSE_FILES
+
+    for name in COMPOSE_FILES:
+        path = repo / name
+        if path.exists():
+            found = re.search(r"^name:\s*['\"]?([\w.-]+)", path.read_text(), re.MULTILINE)
+            if found:
+                return found.group(1)
+    return re.sub(r"[^a-z0-9_-]", "", repo.name.lower())
+
+
 def running_containers(repo: Path) -> list[dict[str, Any]]:
-    """Containers of this repository's compose project only (`--project-directory` scopes the query)."""
+    """Containers of this repository's compose project only. The project is named, not found from a compose file
+    in the repository's root: a project started with `-f docker/compose.yml` has none there."""
     out = subprocess.run(
-        ["docker", "compose", "--project-directory", str(repo), "ps", "--format", "json"],
+        ["docker", "compose", "-p", compose_project(repo), "ps", "--format", "json"],
         capture_output=True,
         text=True,
         check=False,

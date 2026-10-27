@@ -19,6 +19,7 @@ from unbidden.contracts.llm import LLMRequest, Message, Source, Tier
 from unbidden.forge.adapter import ORACLE_VERSION, LogAdapter, admit, oracle, parse_line
 from unbidden.guardian.scanner import SensitiveTermIndex
 from unbidden.store import Store
+from unbidden.world.runtime import compose_project
 
 COLLECTION = "capabilities"
 SHOWN = 30
@@ -60,8 +61,8 @@ def compose_logs(repo: Path, service: str, tail: int = 3000) -> list[str]:
         [
             "docker",
             "compose",
-            "--project-directory",
-            str(repo),
+            "-p",
+            compose_project(repo),
             "logs",
             "--no-log-prefix",
             "--tail",

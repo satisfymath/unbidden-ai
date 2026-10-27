@@ -11,7 +11,7 @@ of a deploy is resolved from evidence, and says which:
 3. `inferred`: the checkout's HEAD when the containers were first seen, with that reason written down.
 4. `unknown`: none of the above.
 
-Only containers of this workspace's compose project are read: `docker compose --project-directory` scopes the
+Only containers of this workspace's compose project are read: `docker compose -p <project>` scopes the
 listing, and each inspected container must also carry this project's label.
 """
 

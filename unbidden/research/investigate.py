@@ -27,6 +27,7 @@ from unbidden.contracts.llm import LLMRequest, Message, Tier, ToolCall, ToolSpec
 from unbidden.guardian import injection
 from unbidden.guardian.policy import PolicyEngine
 from unbidden.store import Store
+from unbidden.world.runtime import compose_project
 
 MAX_STEPS = 10
 MAX_OUTPUT = 6000
@@ -139,8 +140,8 @@ class Investigation:
             [
                 "docker",
                 "compose",
-                "--project-directory",
-                str(self.repo),
+                "-p",
+                compose_project(self.repo),
                 "logs",
                 "--no-log-prefix",
                 "--tail",
