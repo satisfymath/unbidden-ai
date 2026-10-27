@@ -27,6 +27,7 @@ class EventType(StrEnum):
     EGRESS_BLOCKED = "egress.blocked"
     POLICY_DENIED = "policy.denied"
     MODEL_CALLED = "model.called"
+    MODEL_FALLBACK = "model.fallback"
     KILL_SWITCH = "killswitch.changed"
     MANDATE_CHANGED = "mandate.changed"
     DEPLOYED = "operations.deployed"

@@ -215,3 +215,32 @@ async def test_a_failed_frontier_answer_falls_back_to_the_local_model(store: Sto
         )
     )
     assert response.content.startswith("# file:")
+
+
+async def test_every_fallback_is_recorded_and_a_mandate_can_refuse_the_local_one(
+    store: Store, mandate: Mandate
+) -> None:
+    def ask() -> LLMRequest:
+        return LLMRequest(
+            purpose="lab.fix_candidate",
+            tier=Tier.LOCAL,
+            expect_files=True,
+            messages=[Message(role="user", content="fix", source="repo")],
+        )
+
+    brain, local, remote = make_brain(store, mandate)
+    brain.repo_public = True
+    remote.script("lab.fix_candidate", "no file here", repeat=True)
+    local.script("lab.fix_candidate", "# file: a.py\nx = 1\n")
+    await brain.complete(ask())
+    (taken,) = [e for e in store.events() if e.type is EventType.MODEL_FALLBACK]
+    assert taken.payload["from"] == "code" and taken.payload["to"] == "local" and taken.payload["taken"] is True
+    assert "ModelFailed" in taken.payload["cause"]
+
+    mandate.models.local_fallback = "deny"
+    calls = len(local.requests)
+    with pytest.raises(ModelFailed):
+        await brain.complete(ask())
+    assert len(local.requests) == calls  # the local model was never asked
+    refused = [e for e in store.events() if e.type is EventType.MODEL_FALLBACK][-1]
+    assert refused.payload["taken"] is False

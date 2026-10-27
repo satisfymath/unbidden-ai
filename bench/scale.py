@@ -45,7 +45,7 @@ MAX_WORKERS = 3
 
 
 def bench_mandate(
-    raw: dict[str, Any], *, profile: str, repo_budget_usd: float, fork: str | None = None
+    raw: dict[str, Any], *, profile: str, repo_budget_usd: float, fork: str | None = None, local_fallback: str = "deny"
 ) -> dict[str, Any]:
     """The mandate `init` wrote, set for an unattended run on someone else's repository. With `fork` (owner/name, an
     authorized fork), proposals become pull requests there; the upstream is never written to."""
@@ -67,7 +67,7 @@ def bench_mandate(
     registries = m["egress"].setdefault("package_registries", [])
     if "deb.debian.org" not in registries:
         registries.append("deb.debian.org")  # C headers and compilers some installs need (D-027)
-    m["models"] = {"profile": profile, "private_code_to_frontier": "deny"}
+    m["models"] = {"profile": profile, "private_code_to_frontier": "deny", "local_fallback": local_fallback}
     if fork is not None:
         m["egress"]["github"]["repository"] = fork
         m["autonomy"]["open_pull_requests"] = "allow"
@@ -254,6 +254,7 @@ def run_one(repo: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
                         profile=args.profile,
                         repo_budget_usd=args.repo_budget,
                         fork=f"{args.fork_owner}/{repo['name']}" if args.fork_owner else None,
+                        local_fallback=args.local_fallback,
                     ),
                     sort_keys=False,
                 )
@@ -310,6 +311,12 @@ def main() -> None:
     parser.add_argument("--repo-budget", type=float, default=1.0, help="remote spend cap per repository, US$")
     parser.add_argument("--profile", choices=["local", "local-first", "frontier"], default="frontier")
     parser.add_argument("--method-check", action="store_true", help="run without a verified balance (allowance only)")
+    parser.add_argument(
+        "--local-fallback",
+        choices=["allow", "deny"],
+        default="deny",
+        help="whether the local model takes over when the remote one fails (always recorded)",
+    )
     parser.add_argument("--fork-owner", help="publish pull requests to <owner>/<name>, an authorized fork")
     parser.add_argument("--cleanup-images", action="store_true", help="remove dependency images this run created")
     args = parser.parse_args()
@@ -347,7 +354,10 @@ def main() -> None:
             "unbidden_commit": subprocess.run(
                 ["git", "-C", str(PROJECT), "rev-parse", "HEAD"], capture_output=True, text=True
             ).stdout.strip(),
-            "settings": {k: getattr(args, k) for k in ("split", "workers", "minutes", "repo_budget", "profile")},
+            "settings": {
+                k: getattr(args, k)
+                for k in ("split", "workers", "minutes", "repo_budget", "profile", "local_fallback", "fork_owner")
+            },
             "rows": rows,
             "spend": spend_by_run(args.run),
         }

@@ -88,6 +88,9 @@ class ModelsPolicy(Contract):
     # Screenshots of the project's own pages may be shown to a remote multimodal model. Images cannot be scanned for
     # secrets the way text is, so this is a person's explicit choice per workspace, off by default.
     screenshots_to_frontier: Literal["deny", "allow"] = "deny"
+    # When the chosen remote model fails or is refused, whether the local model takes over. Every fallback is
+    # recorded either way; "deny" keeps a remote-first run from loading a large local model unannounced.
+    local_fallback: Literal["allow", "deny"] = "allow"
 
 
 class Mandate(Contract):

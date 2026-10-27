@@ -173,7 +173,22 @@ class Brain:
         decision, classification = self.decide(request)
         tiers = [decision.tier, *([decision.fallback] if decision.fallback else [])]
         last: Exception | None = None
-        for tier in tiers:
+        for i, tier in enumerate(tiers):
+            if i > 0:
+                assert last is not None
+                to_local = not tier.remote and tiers[0].remote
+                allowed = not to_local or self.mandate.models.local_fallback == "allow"
+                self.store.append_event(
+                    Event(
+                        type=EventType.MODEL_FALLBACK,
+                        actor=ACTOR,
+                        correlation_id=request.correlation_id,
+                        payload={"purpose": request.purpose, "from": tiers[0].value, "to": tier.value,
+                                 "cause": f"{type(last).__name__}: {str(last)[:300]}", "taken": allowed},
+                    )
+                )  # fmt: skip
+                if not allowed:
+                    break
             try:
                 return await self._complete_on(tier, request, identifiers, decision, classification)
             except (ModelFailed, ProviderError, EgressBlocked, SpendLimitReached, PolicyDenied) as exc:

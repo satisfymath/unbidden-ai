@@ -25,6 +25,9 @@ from unbidden.contracts.experiment import Experiment, TestSummary, Verdict
 from unbidden.contracts.finding import AnalyzerReport, Finding
 from unbidden.contracts.llm import LLMRequest, Message, Tier
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
+from unbidden.lab.context import SpliceError, payload_bytes, splice
+from unbidden.lab.context import render as render_context
+from unbidden.lab.context import select as select_context
 from unbidden.lab.evaluator import CRITERIA, evaluate_fix
 from unbidden.lab.testsuite import TestPlan, run_suite, test_plan
 from unbidden.observe.stack import Stack
@@ -34,7 +37,7 @@ from unbidden.sandbox.tools import Tool, tool_named, tools_for
 from unbidden.store import Store
 
 ACTOR = "lab"
-MAX_PROMPT_FILE_BYTES = 60_000
+PAYLOAD_ENVELOPE = 600  # JSON keys, the schema field and the repair message around the prompt
 SUPPRESSION = re.compile(
     r"@ts-ignore|@ts-expect-error|@ts-nocheck|eslint-disable|biome-ignore|#\s*type:\s*ignore|#\s*noqa"
     r"|pyright:\s*ignore|#\s*pragma:\s*no\s*cover"
@@ -110,6 +113,7 @@ class FixLab:
         self.bridge_first = bridge_first
         self.rounds = rounds
         self.repairs = repairs
+        self.context_notes: list[str] = []  # how each request's code was chosen, and answers that could not be used
         self.progress = progress
 
     # Sandbox helpers -----------------------------------------------------------------------------------
@@ -159,24 +163,29 @@ class FixLab:
         base = snapshot(self.repo, rev)
         try:
             paths = sorted({f.path for f in findings})
-            blocks: list[str] = []
-            size = 0
-            for path in paths:
-                text = (base / path).read_text(errors="replace")
-                size += len(text)
-                if size > MAX_PROMPT_FILE_BYTES:
-                    return None
-                blocks.append(f"`{path}`:\n```\n{text}```")
             language = "Python" if paths[0].endswith(".py") else "TypeScript/JavaScript"
-            prompt = load_prompt("fix_findings")
-            content = prompt.render(
-                language=language,
-                suppressions="`# type: ignore`, `# noqa`" if language == "Python" else "`@ts-ignore`, `eslint-disable`",
-                comment="#" if language == "Python" else "//",
-                tool=opp.source,
-                findings="\n".join(f"- {f.path}:{f.line or '?'} {f.rule}: {f.message}" for f in findings[:50]),
-                files="\n\n".join(blocks),
-            )
+            comment = "#" if language == "Python" else "//"
+            listed = "\n".join(f"- {f.path}:{f.line or '?'} {f.rule}: {f.message}" for f in findings[:50])
+            fields = {
+                "language": language,
+                "suppressions": "`# type: ignore`, `# noqa`"
+                if language == "Python"
+                else "`@ts-ignore`, `eslint-disable`",
+                "comment": comment,
+                "tool": opp.source,
+                "findings": listed,
+            }
+            # The code gets what the egress cap leaves after the rest of the prompt, halved: the request and one
+            # repair (which repeats the answer) must both fit. The same bound holds for a local model.
+            cap = self.brain.mandate.egress.remote_models.max_payload_bytes
+            overhead = payload_bytes(load_prompt("fix_excerpts").render(**fields, files="")) + PAYLOAD_ENVELOPE
+            selection = select_context(base, [(f.path, f.line) for f in findings], max(0, (cap - overhead) // 2))
+            self.context_notes.append(f"context: {selection.mode}, {selection.reason}")
+            if selection.mode == "does_not_fit":
+                return None
+            prompt = load_prompt("fix_findings" if selection.mode == "files" else "fix_excerpts")
+            content = prompt.render(**fields, files=render_context(selection, comment))
+            size = selection.bytes
             messages = [Message(role="user", content=content, source="repo")]
             if feedback:
                 messages.append(
@@ -195,7 +204,10 @@ class FixLab:
             )
             try:
                 files = parse_files(response.content)
-            except CodeBlockError:
+                if selection.mode == "excerpts":
+                    files = splice(base, selection.excerpts, files)
+            except (CodeBlockError, SpliceError) as exc:
+                self.context_notes.append(f"answer not usable: {exc}")
                 return None
             files = {p: c for p, c in files.items() if p in paths}
             if not files:
@@ -278,6 +290,12 @@ class FixLab:
                 except (BrainError, ProviderError) as exc:
                     result.notes.append(f"model: {exc}")
                     break
+                finally:
+                    result.notes.extend(self.context_notes)
+                    fits = not any(n.startswith("context: does_not_fit") for n in self.context_notes)
+                    self.context_notes.clear()
+                if not fits:
+                    break  # explicit: the findings cannot all be shown within the egress cap; nothing was sent
                 if candidate is None:
                     feedback = "the answer had no usable `file:` blocks for the listed files"
                     continue
