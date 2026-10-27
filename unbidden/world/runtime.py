@@ -71,7 +71,7 @@ def compose_project(repo: Path) -> str:
             found = re.search(r"^name:\s*['\"]?([\w.-]+)", path.read_text(), re.MULTILINE)
             if found:
                 return found.group(1)
-    return re.sub(r"[^a-z0-9_-]", "", repo.name.lower())
+    return re.sub(r"[^a-z0-9_-]", "", repo.resolve().name.lower())  # resolved: Path(".").name is empty
 
 
 def running_containers(repo: Path) -> list[dict[str, Any]]:
