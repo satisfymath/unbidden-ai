@@ -1,0 +1,25 @@
+{
+  "ledger_started": "2026-10-27T23:05:20.795814+00:00",
+  "historical": {
+    "calls": 32,
+    "tokens_in": 102909,
+    "tokens_out": 133629,
+    "usd": 0.6966,
+    "first": "2026-10-26T19:50:13.641002Z"
+  },
+  "ledger": {
+    "rows": 19,
+    "by_status": {
+      "settled": 18,
+      "released": 1
+    },
+    "usd": 0.2596
+  },
+  "workspaces_since_ledger": {
+    "runs": 17,
+    "runs_that_reached_the_provider": 17,
+    "usd": 0.2591
+  },
+  "total_usd": 0.9561,
+  "basis": "list price x reported tokens (US$1.25 / US$4.25 per million for muse-spark-1.3); not a bill"
+}
