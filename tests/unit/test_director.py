@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from unbidden.contracts.common import EvidenceLevel, EvidenceRef
@@ -100,3 +102,18 @@ def test_a_lab_that_could_not_run_waits_instead_of_counting_as_a_failed_experime
     assert decision.chosen is ActionKind.WAIT and "Alembic" in decision.reason
     blocked.details = {**blocked.details, "rev": "def"}  # a new commit: worth trying again
     assert decide(blocked, mandate, Context(0, 0)).chosen is ActionKind.RUN_EXPERIMENT
+
+
+def test_a_reopened_opportunity_keeps_its_history_and_gets_new_experiment_keys(tmp_path: Path) -> None:
+    from unbidden.director.decide import reopen
+    from unbidden.store import Store
+
+    store = Store(tmp_path / "s.db")
+    o = opp(category="performance")
+    o.details = {"rev": "abc", "attempts": 2, "decision": {"chosen": "decline"}}
+    o.status = OpportunityStatus.DECLINED
+    store.put("opportunities", o)
+    again = reopen(store, o, "the lab could not run fixtures (fixed)")
+    assert again.status is OpportunityStatus.OPEN and again.details == {"rev": "abc", "reopened": 1}
+    events = [e for e in store.events() if e.entity_id == o.id]
+    assert events[-1].payload == {"reopened": 1, "reason": "the lab could not run fixtures (fixed)"}

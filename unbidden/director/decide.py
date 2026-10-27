@@ -11,8 +11,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from unbidden.contracts.common import EvidenceLevel
+from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import Mandate
 from unbidden.contracts.opportunity import ActionKind, CandidateAction, Decision, Opportunity, OpportunityStatus
+from unbidden.store import Store
 
 CATEGORY_VALUE = {
     "bugs": 1.5,
@@ -146,3 +148,24 @@ def _choose(opp: Opportunity, candidates: list[CandidateAction], chosen: ActionK
     return Decision(
         opportunity_id=opp.id, evidence_level=opp.evidence_level, candidates=candidates, chosen=chosen, reason=reason
     )
+
+
+def reopen(store: Store, opp: Opportunity, reason: str, actor: str = "operator") -> Opportunity:
+    """Give an opportunity its experiments back, when what consumed them was Unbidden's own fault (a lab bug fixed
+    since). Its history stays: the reopening is counted, recorded with its reason, and keys new experiment jobs."""
+    opp.details = {
+        **{k: v for k, v in opp.details.items() if k not in ("attempts", "decision", "blocked")},
+        "reopened": int(opp.details.get("reopened", 0)) + 1,
+    }
+    opp.status = OpportunityStatus.OPEN
+    store.put("opportunities", opp)
+    store.append_event(
+        Event(
+            type=EventType.OPPORTUNITY_OPENED,
+            actor=actor,
+            entity_id=opp.id,
+            correlation_id=opp.id,
+            payload={"reopened": opp.details["reopened"], "reason": reason},
+        )
+    )
+    return opp

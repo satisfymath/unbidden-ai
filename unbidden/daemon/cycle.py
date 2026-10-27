@@ -143,11 +143,13 @@ class Cycle:
                 # every sweep, safely, because every job is queued under an idempotency key.
                 self._record_decision(opp, decision)
             if decision.chosen is ActionKind.RUN_EXPERIMENT and queued < EXPERIMENTS_PER_SWEEP:
+                # One experiment per attempt at each commit (a lab blocked at one commit runs again at the next) and
+                # per reopening: a reopened opportunity's attempts start again under a new key.
+                rev, reopened = str(opp.details.get("rev", ""))[:12], int(opp.details.get("reopened", 0))
                 if self.store.enqueue(
                     job(
-                        # One experiment per attempt at each commit: a lab blocked at one commit runs again at the next.
                         "lab.experiment",
-                        f"{opp.id}:{str(opp.details.get('rev', ''))[:12]}:{attempts}",
+                        f"{opp.id}:{rev}:r{reopened}:{attempts}",
                         {"id": opp.id},
                         correlation_id=opp.id,
                     )
