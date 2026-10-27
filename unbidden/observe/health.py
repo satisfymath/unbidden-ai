@@ -144,11 +144,81 @@ def surprising(errors: int, total: int, base_rate: float = V3_BASE_RATE) -> bool
     return float(result.pvalue) < V3_ALPHA
 
 
-def degraded_services(prom: Prometheus, criteria: str, at: float | None = None) -> set[str]:
+MEM_FACTOR, MEM_DELTA_BYTES, MEM_LIMIT_SHARE, MEM_CLEAR_SHARE = 1.5, 20 * 2**20, 0.85, 0.75
+CPU_FACTOR, CPU_DELTA_CORES = 2.0, 0.5  # container_cpu_utilization_ratio is in cores, not a share of a limit
+WARM_UP_S = 3600.0
+
+
+def resource_pressure(prom: Prometheus, containers: dict[str, str], at: float | None = None) -> dict[str, list[str]]:
+    """service -> reasons, for containers of this project whose memory grew well past their baseline or neared
+    their limit, or whose CPU is high and doubled. Requests can look healthy while a leak fills memory."""
+
+    def per_container(query: str) -> dict[str, float]:
+        return {
+            m.get("container_name", ""): v for m, v in prom.query(query, at) if m.get("container_name") in containers
+        }
+
+    mem = "container_memory_usage_total_bytes"
+    cpu = "container_cpu_utilization_ratio"
+    mem_now = per_container(f"avg_over_time({mem}[{WINDOW}])")
+    mem_base = per_container(f"avg_over_time({mem}[{BASELINE}] offset {WINDOW})")
+    # The half hour before the baseline: growth that was already under way then is a trend (a JVM heap, a cache
+    # warming), not something that started now.
+    mem_older = per_container(f"avg_over_time({mem}[{BASELINE}] offset 35m)")
+    # A container's first hour is its warm-up: heaps and caches grow; memory is judged only after it.
+    uptime = per_container("container_uptime_seconds")
+    limit = per_container("container_memory_usage_limit_bytes")
+    cpu_now = per_container(f"avg_over_time({cpu}[{WINDOW}])")
+    cpu_base = per_container(f"avg_over_time({cpu}[{BASELINE}] offset {WINDOW})")
+    found: dict[str, list[str]] = {}
+    for name, service in containers.items():
+        reasons: list[str] = []
+        now, base, cap, older = mem_now.get(name), mem_base.get(name), limit.get(name), mem_older.get(name)
+        warmed = uptime.get(name, 0.0) >= WARM_UP_S
+        steady_before = warmed and older is not None and base is not None and base <= 1.1 * older
+        if now is not None and base and steady_before and now >= MEM_FACTOR * base and now - base >= MEM_DELTA_BYTES:
+            reasons.append(f"memory {base / 2**20:.0f} -> {now / 2**20:.0f} MiB")
+        elif (
+            warmed
+            and now is not None
+            and cap
+            and base
+            and now >= MEM_LIMIT_SHARE * cap
+            and base < MEM_LIMIT_SHARE * cap
+        ):
+            reasons.append(f"memory {now / 2**20:.0f} MiB of a {cap / 2**20:.0f} MiB limit (was below)")
+        c_now, c_base = cpu_now.get(name), cpu_base.get(name)
+        if (
+            c_now is not None
+            and c_base is not None
+            and c_now >= CPU_FACTOR * c_base
+            and c_now - c_base >= CPU_DELTA_CORES
+        ):
+            reasons.append(f"cpu {c_base or 0:.2f} -> {c_now:.2f}")
+        if reasons:
+            found.setdefault(service, []).extend(reasons)
+    return found
+
+
+CRITERIA_V4_CANDIDATE: dict[str, str] = {
+    "criteria_version": "health-v4-candidate",
+    "as": "health-v1",
+    "plus": f"a container up for an hour whose memory newly averages >= {MEM_FACTOR}x and +20 MiB a baseline that was "
+    f"itself steady, or newly passes {MEM_LIMIT_SHARE:.0%} of its limit; or whose CPU is {CPU_FACTOR}x its baseline "
+    f"and {CPU_DELTA_CORES} cores more",
+}
+
+
+def degraded_services(
+    prom: Prometheus, criteria: str, at: float | None = None, containers: dict[str, str] | None = None
+) -> set[str]:
     """Services judged degraded at `at` (or now) under criteria v1 or the v2 candidate; for calibrations."""
-    if criteria == "health-v1":
+    if criteria in ("health-v1", "health-v4-candidate"):
         now, base = health(prom, WINDOW, at=at), health(prom, BASELINE, offset=WINDOW, at=at)
-        return {name for name, h in now.items() if judge(h, base.get(name)).degraded}
+        found = {name for name, h in now.items() if judge(h, base.get(name)).degraded}
+        if criteria == "health-v4-candidate":
+            found |= set(resource_pressure(prom, containers or {}, at))
+        return found
     by = "service_name, span_name"
     now, base = health(prom, WINDOW, at=at, by=by), health(prom, BASELINE, offset=WINDOW, at=at, by=by)
     judge_op = judge_v3 if criteria == "health-v3-candidate" else judge_v2

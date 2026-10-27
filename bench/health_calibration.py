@@ -13,14 +13,16 @@ from __future__ import annotations
 
 import argparse
 import json
-from datetime import datetime, timedelta, timezone
+import subprocess
+from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
 from unbidden.observe.health import degraded_services
+from unbidden.world.jaeger import Jaeger, origins
 from unbidden.world.prometheus import Prometheus
 
-CRITERIA = ("health-v1", "health-v2-candidate", "health-v3-candidate")
+CRITERIA = ("health-v1", "health-v2-candidate", "health-v3-candidate", "health-v4-candidate")
 
 
 def _ts(day: str, clock: str, tz: timezone) -> datetime:
@@ -58,6 +60,8 @@ def main() -> None:
     parser.add_argument("--tz", default="-03:00")
     parser.add_argument("--clean-until", help="local ISO time; minutes after the last scenario up to it are clean")
     parser.add_argument("--out")
+    parser.add_argument("--jaeger", help="Jaeger API v3 base, to tell confirmed failures from false alarms")
+    parser.add_argument("--workspace", default=str(Path.home() / "opentelemetry-demo"))
     args = parser.parse_args()
     sign = -1 if args.tz.startswith("-") else 1
     hours, minutes = args.tz.lstrip("+-").split(":")
@@ -71,15 +75,35 @@ def main() -> None:
             clean.append(at)
             at += timedelta(minutes=1)
     prom = Prometheus(args.prometheus)
+    # Container -> service of the project, from the running compose project (resources are judged per container).
+    rows = subprocess.run(
+        ["docker", "compose", "--project-directory", args.workspace, "ps", "--format", "json"],
+        capture_output=True, text=True, check=False,
+    ).stdout.splitlines()  # fmt: skip
+    containers = {json.loads(r)["Name"]: json.loads(r)["Service"] for r in rows if r.strip().startswith("{")}
     result: dict[str, Any] = {}
+    traces = Jaeger(args.jaeger) if args.jaeger else None
+    confirmed_cache: dict[tuple[str, float], bool] = {}
+
+    def confirmed(service: str, at: datetime) -> bool:
+        """Traces of that window put failure origins in the service itself: a real problem, not a false alarm."""
+        key = (service, at.timestamp())
+        if traces is None:
+            return False
+        if key not in confirmed_cache:
+            counts, _, _ = origins(traces.spans(service, minutes=5, end=at.astimezone(UTC)))
+            confirmed_cache[key] = counts.get(service, 0) > 0
+        return confirmed_cache[key]
+
     for criteria in CRITERIA:
-        alarms = [sorted(degraded_services(prom, criteria, at.timestamp())) for at in clean]
+        alarms = [sorted(degraded_services(prom, criteria, at.timestamp(), containers)) for at in clean]
+        real = [[s for s in a if confirmed(s, at)] for a, at in zip(alarms, clean, strict=True)]
         trials = []
         for start, end, expect in faults:
             minutes = []
             at = start
             while at <= end:
-                minutes.append(sorted(degraded_services(prom, criteria, at.timestamp())))
+                minutes.append(sorted(degraded_services(prom, criteria, at.timestamp(), containers)))
                 at += timedelta(minutes=1)
             first = next((i for i, d in enumerate(minutes) if expect in d), None)
             trials.append({"expect": expect, "minutes": len(minutes), "detected_min": first,
@@ -87,12 +111,16 @@ def main() -> None:
         result[criteria] = {
             "clean_minutes": len(clean),
             "clean_minutes_with_alarm": sum(1 for a in alarms if a),
+            "clean_minutes_with_unconfirmed_alarm": sum(
+                1 for a, r in zip(alarms, real, strict=True) if set(a) - set(r)
+            ),
             "alarmed_services": sorted({s for a in alarms for s in a}),
             "trials": trials,
         }
     for criteria, r in result.items():
         print(f"{criteria}: {r['clean_minutes_with_alarm']}/{r['clean_minutes']} clean minutes alarmed "
-              f"({', '.join(r['alarmed_services']) or 'none'})")  # fmt: skip
+              f"({', '.join(r['alarmed_services']) or 'none'}), "
+              f"{r['clean_minutes_with_unconfirmed_alarm']} with an alarm traces do not confirm")  # fmt: skip
         for t in r["trials"]:
             print(
                 f"   {t['expect']:16} detected at minute {t['detected_min']} of {t['minutes']}; others: {t['others']}"

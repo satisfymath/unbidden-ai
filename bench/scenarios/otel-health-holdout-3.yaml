@@ -1,0 +1,9 @@
+# Third holdout, fixed on 2026-10-27 before it was run, after health-v4-candidate (v1 plus container memory and CPU)
+# was designed on every earlier scenario, its memory rule tuned three times on seen data. v1 and v4 are judged on it
+# by replaying the same history; neither changes after.
+control_minutes: 10
+faults:
+  - {flag: adHighCpu, variant: "on", expect: ad}
+  - {flag: emailMemoryLeak, variant: 100x, expect: email}
+  - {flag: cartFailure, variant: "25%", expect: cart}
+pass: the expected service degraded within 5 minutes

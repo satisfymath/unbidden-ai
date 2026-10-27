@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass, field
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 import httpx
@@ -58,8 +58,8 @@ class Jaeger:
             raise JaegerError(f"{self.base}{path} answered {response.status_code}")
         return response.json()
 
-    def spans(self, service: str, minutes: int = 5, limit: int = 100) -> list[Span]:
-        now = utc_now()
+    def spans(self, service: str, minutes: int = 5, limit: int = 100, end: datetime | None = None) -> list[Span]:
+        now = end or utc_now()
         body = self._get(
             "/traces",
             {
