@@ -281,3 +281,45 @@ could be learned. Now:
 - The lint scope comes from the workflows' own commands (`pnpm --filter <package> lint`, root scripts they
   call): style findings in a package the CI does not lint are declined. On the monorepo above, 857 lint
   findings in an unlinted package would otherwise have become proposals.
+
+## D-022 · 2026-10-27 · Runtime truth: what runs, how it is known, and what the map no longer sees
+
+An audit against the master document found that the commit attributed to each deploy was assumed, not read. It was
+the checkout's HEAD at the moment new containers appeared, and level 5 rested on that assumption. The World Model was
+rebuilt from scratch at every map, with no history, no age and no obsolete facts.
+
+- **Deploy ledger** (`operate/ledger.py`). Each set of application containers is a deploy. Its commit is:
+  - `observed` when the images carry a revision label;
+  - `verified` when Unbidden's own deploy steps built those images locally from that commit. A cached build counts:
+    on full-stack-fastapi-template the running image predated Unbidden's rollback by 74 minutes, because compose
+    reused it;
+  - `inferred` when it is HEAD at the time the containers were first seen, and the record says so;
+  - `unknown` otherwise. Images pulled from a registry are never credited to the checkout.
+
+  Who started a deploy is read from container start times; containers started before the ledger watched are `unknown`.
+- **Outcomes.** Results are positive, negative, inconclusive or invalid. Only a positive result between two deploys
+  whose commits are verified or observed is level 5. Confounders are structured. Every verdict records the criteria
+  version it applied: verdicts judged under v2 since D-014 still stored `min_delta_ms: 10`, and they are not rewritten.
+- **Facts with provenance** (`world/connectors.py`, `world/reconcile.py`). Each fact records its connector, when it
+  was seen, its environment and the revision or deploy it describes.
+  - A fact that its source ran and no longer saw becomes obsolete.
+  - A fact whose source did not run keeps its age.
+  - Every map emits `world.changed` with its diff.
+- **Scope of an anomaly** (`world/scope.py`). A degraded or outage verdict carries the components behind it, up to the
+  deploy and image, together with what cannot be seen: no metrics, traces or logs connector, and links never seen in
+  traffic.
+- **Docker scope.** Only containers of the workspace's compose project are read, and each container's label is checked.
+  This machine runs other projects.
+- **Measured** against reference topologies committed before scoring (`docs/bench/2026-10-27-world-topology.md`).
+  - opentelemetry-demo, blind: services 0.8, links recall **0.032**, running commit wrong (inferred HEAD for images
+    pulled from a registry).
+  - The causes were general: bare compose keys, Postgres databases and schemas, registry images. After the fixes, not
+    blind: services 1.0, links P 0.84 / R 1.0, commit `unknown` with the digest. The `_HOST` key rule was added after
+    seeing the misses.
+  - full-stack-fastapi-template (not blind): links recall 0.25. Traefik label routes are not read.
+- **Not done yet.**
+  - A live `verified` binding. The only built-from-source system here is watched by a running autonomous watcher on the
+    earlier code, and deploying under it was not done without a person.
+  - Metrics, traces and logs connectors.
+  - Traefik labels.
+  - Several compose files.
