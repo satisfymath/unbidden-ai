@@ -21,8 +21,8 @@ from unbidden.contracts.common import EvidenceLevel, EvidenceRef
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.llm import LLMRequest, Message, Tier
 from unbidden.contracts.opportunity import Opportunity
-from unbidden.sandbox.provision import DependencyImage, link_dependencies
-from unbidden.sandbox.runner import SandboxRunner, SandboxSpec, discard, snapshot
+from unbidden.sandbox.provision import DependencyImage, link_dependencies, sandbox_spec
+from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
 from unbidden.store import Store
 
 PROBE_FILE = "tests/test_unbidden_robustness.py"
@@ -257,9 +257,7 @@ class RobustnessProbe:
                 "addopts=",
                 "--hypothesis-seed=0",
             ]
-            result = self.runner.run(
-                SandboxSpec(image=self.image.tag, argv=argv, env=self.image.env, timeout_s=timeout_s), work
-            )
+            result = self.runner.run(sandbox_spec(self.image, argv, timeout_s=timeout_s), work)
             return result.stdout + result.stderr
         finally:
             discard(work)

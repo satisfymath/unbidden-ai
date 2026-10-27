@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from unbidden.observe.stack import NodeStack, PythonStack, tracked_files
+from unbidden.sandbox.runner import SandboxSpec
 
 NODE_REGISTRIES = ["registry.npmjs.org"]
 PYTHON_REGISTRIES = ["pypi.org", "files.pythonhosted.org"]
@@ -31,6 +32,7 @@ class DependencyImage:
     registries: list[str]
     env: dict[str, str]
     links: dict[str, str]  # path inside /work -> target inside the image, created as symlinks in each snapshot
+    setup: tuple[str, ...] = ()  # shell steps run in the container before each command
 
 
 class ProvisionError(RuntimeError):
@@ -53,11 +55,19 @@ def node_dockerfile(stack: NodeStack) -> str:
         "npm": "npm ci --ignore-scripts --no-audit --no-fund",
         "pnpm": "corepack enable && pnpm install --frozen-lockfile --ignore-scripts",
     }[stack.manager]
+    # Code generation a type check depends on, from trusted tools only (never arbitrary install scripts): Prisma's
+    # client is generated from the tracked schema, the one step besides installing that may use the network.
+    generate = "".join(
+        f" \\\n && (cd /deps/{p.path} && ./node_modules/.bin/prisma generate --schema "
+        f"{(p.prisma_schema or '').removeprefix(p.path + '/')})"
+        for p in stack.packages
+        if p.prisma_schema
+    )
     return f"""FROM node:{stack.major}-slim
 ENV CI=1 COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 WORKDIR /deps
 COPY ctx/ /deps/
-RUN {install}
+RUN {install}{generate}
 """
 
 
@@ -101,6 +111,7 @@ def _manifests(repo: Path, rev: str, stack: NodeStack | PythonStack) -> list[str
         wanted = [f for f in files if f == "package.json" or f.endswith("/package.json")]
         wanted += [stack.lockfile]
         wanted += [f for f in ("pnpm-workspace.yaml", ".npmrc") if f in files]
+        wanted += [p.prisma_schema for p in stack.packages if p.prisma_schema]
         # Packages vendored under node_modules are never tracked in sane repos; skip them if they are.
         return sorted({f for f in wanted if "node_modules/" not in f})
     if stack.manifest in ("setup.py", "poetry.lock"):
@@ -138,6 +149,12 @@ def provision(repo: Path, rev: str, stack: NodeStack | PythonStack, *, docker: s
             registries=NODE_REGISTRIES,
             env={"PATH": "/deps/node_modules/.bin:/usr/local/bin:/usr/bin:/bin"},
             links={"node_modules": "/deps/node_modules"},
+            # A workspace package's node_modules holds relative links into the store and to sibling packages;
+            # copied into /work (links only, cheap) they resolve against the snapshot's real sources.
+            setup=tuple(
+                f"mkdir -p /work/{p.path} && cp -a /deps/{p.path}/node_modules /work/{p.path}/ 2>/dev/null || true"
+                for p in stack.packages
+            ),
         )
     return DependencyImage(
         tag=tag,
@@ -159,3 +176,30 @@ def link_dependencies(work: Path, image: DependencyImage) -> None:
         if path.is_symlink() or path.exists():
             continue
         path.symlink_to(target)
+
+
+def sandbox_spec(
+    image: DependencyImage,
+    argv: list[str],
+    *,
+    cwd: str = ".",
+    timeout_s: float = 600,
+    public_env: dict[str, str] | None = None,
+    network: str = "none",
+) -> SandboxSpec:
+    """The one way to run something against a dependency image: its setup, its environment, and for a workspace
+    package, that package's directory with its own node_modules/.bin first on PATH."""
+    env = dict(image.env)
+    workdir = "/work" if cwd in (".", "") else f"/work/{cwd}"
+    if cwd not in (".", "") and "PATH" in env:
+        env["PATH"] = f"{workdir}/node_modules/.bin:{env['PATH']}"
+    return SandboxSpec(
+        image=image.tag,
+        argv=argv,
+        env=env,
+        setup=image.setup,
+        workdir=workdir,
+        timeout_s=timeout_s,
+        public_env=public_env or {},
+        network=network,
+    )

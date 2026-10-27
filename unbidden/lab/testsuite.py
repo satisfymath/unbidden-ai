@@ -11,8 +11,8 @@ from unbidden.contracts.experiment import TestSummary
 from unbidden.observe.ci import ci_test_plan
 from unbidden.observe.compose import Service, load_compose
 from unbidden.observe.stack import Stack
-from unbidden.sandbox.provision import DependencyImage
-from unbidden.sandbox.runner import SandboxRunner, SandboxSpec
+from unbidden.sandbox.provision import DependencyImage, sandbox_spec
+from unbidden.sandbox.runner import SandboxRunner
 from unbidden.sandbox.sidecars import data_services
 
 
@@ -42,9 +42,12 @@ def test_plan(repo: Path, rev: str, stack: Stack, language: str) -> TestPlan | N
         named = [compose.services[n] for n in ci.services if n in compose.services] if compose is not None else []
         services = tuple(s for s in named if s.image and not s.build_context)
         return TestPlan(
-            argv=("bash", "-c", ci.script()), source=f"CI {ci.workflow} > {ci.job}", pytest=language == "python",
-            services=services, env=env,
-        )  # fmt: skip
+            argv=("bash", "-c", ci.script()),
+            source=f"CI {ci.workflow} > {ci.job}",
+            pytest=language == "python",
+            services=services,
+            env=env,
+        )
     argv = _default_argv(stack, language)
     if argv is None:
         return None
@@ -56,8 +59,13 @@ def test_plan(repo: Path, rev: str, stack: Stack, language: str) -> TestPlan | N
 
 JUNIT_DIR = ".unbidden-junit"
 SUITE = "<suite>"  # name used when a runner cannot tell which test failed
-NETWORK_ERRORS = ("Temporary failure in name resolution", "Network is unreachable", "Name or service not known",
-                  "getaddrinfo failed", "Could not resolve host")  # fmt: skip
+NETWORK_ERRORS = (
+    "Temporary failure in name resolution",
+    "Network is unreachable",
+    "Name or service not known",
+    "getaddrinfo failed",
+    "Could not resolve host",
+)
 
 
 def needs_network(output: str) -> bool:
@@ -98,10 +106,9 @@ def _round(
     if plan.pytest:
         env["PYTEST_ADDOPTS"] = f"--junitxml=/work/{JUNIT_DIR}/round-{n}.xml -p no:cacheprovider"
     with data_services(list(plan.services)) as sidecars:
-        spec = SandboxSpec(
-            image=image.tag,
-            argv=list(plan.argv),
-            env=image.env,
+        spec = sandbox_spec(
+            image,
+            list(plan.argv),
             public_env=env,
             timeout_s=timeout_s,
             network=sidecars.network if sidecars else "none",
@@ -121,9 +128,14 @@ def _round(
 
 
 def run_suite(
-    runner: SandboxRunner, work: Path, image: DependencyImage, plan: TestPlan, *, rounds: int = 3,
+    runner: SandboxRunner,
+    work: Path,
+    image: DependencyImage,
+    plan: TestPlan,
+    *,
+    rounds: int = 3,
     timeout_s: float = 900,
-) -> TestSummary:  # fmt: skip
+) -> TestSummary:
     failed_per_round: list[list[str]] = []
     n = 0
     for _ in range(rounds):

@@ -166,11 +166,25 @@ class Cycle:
                     self.log(f"{opp.id}: proposal withdrawn before publishing ({decision.reason})")
 
     def _checked_dirs(self) -> tuple[str, ...]:
-        from unbidden.observe.ci import ci_test_plan
+        import json as _json
+
+        from unbidden.observe.ci import ci_lint_packages, ci_test_plan
+        from unbidden.observe.stack import detect_stack
 
         head = self.store.get_value("head")
         if not head:
             return ()
+        repo = self.runtime.workspace.repo
+        stack = detect_stack(repo, head)
+        if stack.node is not None and stack.node.packages:
+            root = subprocess.run(
+                ["git", "-C", str(repo), "show", f"{head}:package.json"], capture_output=True, text=True
+            )
+            scripts = _json.loads(root.stdout or "{}").get("scripts", {}) if root.returncode == 0 else {}
+            names = {p.name: p.path for p in stack.node.packages}
+            linted = ci_lint_packages(repo, head, names, scripts)
+            if linted is not None:
+                return tuple(sorted(linted))
         dirs: list[str] = []
         for language in ("python", "node"):
             plan = ci_test_plan(self.runtime.workspace.repo, head, language)

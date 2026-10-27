@@ -19,6 +19,19 @@ NodeManager = Literal["npm", "pnpm", "yarn"]
 
 
 @dataclass(frozen=True)
+class NodePackage:
+    """One package of a JavaScript workspace (monorepo), analyzed in its own directory."""
+
+    path: str
+    name: str
+    typescript: bool
+    typecheck: tuple[str, ...] | None  # the package's own tsc command, if its typecheck script is plain tsc
+    eslint: bool
+    biome: bool
+    prisma_schema: str | None = None  # tracked schema whose client must be generated first
+
+
+@dataclass(frozen=True)
 class NodeStack:
     manager: NodeManager
     lockfile: str
@@ -29,6 +42,7 @@ class NodeStack:
     biome: bool
     prettier: bool
     test_script: str | None
+    packages: tuple[NodePackage, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -93,6 +107,54 @@ def _deps(package: dict[str, Any]) -> set[str]:
     return names
 
 
+def _workspace_globs(repo: Path, rev: str, files: set[str], package: dict[str, Any]) -> list[str]:
+    globs: list[str] = []
+    if "pnpm-workspace.yaml" in files:
+        import yaml
+
+        data = yaml.safe_load(_read(repo, rev, "pnpm-workspace.yaml")) or {}
+        globs += [str(g) for g in data.get("packages", []) if not str(g).startswith("!")]
+    workspaces = package.get("workspaces")
+    if isinstance(workspaces, dict):
+        workspaces = workspaces.get("packages", [])  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+    if isinstance(workspaces, list):
+        globs += [str(g) for g in workspaces]  # pyright: ignore[reportUnknownVariableType]
+    return globs
+
+
+def _workspace_packages(repo: Path, rev: str, files: set[str], root: dict[str, Any]) -> tuple[NodePackage, ...]:
+    packages: list[NodePackage] = []
+    for glob in _workspace_globs(repo, rev, files, root):
+        for manifest in sorted(f for f in files if f.endswith("/package.json") and "node_modules/" not in f):
+            directory = manifest.removesuffix("/package.json")
+            if not fnmatch.fnmatch(directory, glob.rstrip("/")):
+                continue
+            data = json.loads(_read(repo, rev, manifest))
+            deps = _deps(data) | _deps(root)
+            scripts = data.get("scripts", {}) if isinstance(data.get("scripts"), dict) else {}
+            typecheck = str(scripts.get("typecheck", ""))
+            plain_tsc = re.fullmatch(r"tsc(?:\s+-{1,2}[\w-]+)*", typecheck.strip())
+            packages.append(
+                NodePackage(
+                    path=directory,
+                    name=str(data.get("name", directory)),
+                    typescript="typescript" in deps and f"{directory}/tsconfig.json" in files,
+                    typecheck=tuple(typecheck.split()) if plain_tsc else None,
+                    eslint="eslint" in _deps(data),
+                    biome="@biomejs/biome" in _deps(data),
+                    prisma_schema=next(
+                        (
+                            f
+                            for f in (f"{directory}/prisma/schema.prisma", f"{directory}/schema.prisma")
+                            if f in files and "prisma" in deps
+                        ),
+                        None,
+                    ),
+                )
+            )
+    return tuple(dict.fromkeys(packages))
+
+
 def _detect_node(repo: Path, rev: str, files: set[str], blind: list[str]) -> NodeStack | None:
     if "package.json" not in files:
         return None
@@ -108,8 +170,7 @@ def _detect_node(repo: Path, rev: str, files: set[str], blind: list[str]) -> Nod
     if lock[0] == "yarn":
         blind.append("yarn projects are not supported yet")
         return None
-    if "pnpm-workspace.yaml" in files or package.get("workspaces"):
-        blind.append("workspace (monorepo) packages are analyzed from the root only")
+    packages = _workspace_packages(repo, rev, files, package)
     deps = _deps(package)
     major, assumed = _node_major(repo, rev, files, package)
     scripts = package.get("scripts", {})
@@ -131,6 +192,7 @@ def _detect_node(repo: Path, rev: str, files: set[str], blind: list[str]) -> Nod
         biome="@biomejs/biome" in deps,
         prettier="prettier" in deps,
         test_script=test,
+        packages=packages,
     )
 
 

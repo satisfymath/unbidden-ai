@@ -107,3 +107,44 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
             if plan is not None:
                 return plan
     return None
+
+
+_LINT_RUN = re.compile(r"\b(lint|eslint|biome|ruff|prettier)\b")
+_FILTER = re.compile(r"(?:--filter|-F|--workspace|-w)[ =]+(?P<name>[@\w./-]+)|yarn\s+workspace\s+(?P<yarn>[@\w./-]+)")
+_SCRIPT_CALL = re.compile(r"\b(?:pnpm|npm|yarn)\s+(?:run\s+)?(?P<script>[\w:-]+)")
+
+
+def ci_lint_packages(repo: Path, rev: str, packages: dict[str, str], root_scripts: dict[str, str]) -> set[str] | None:
+    """Directories whose code the team's CI lints, from the workflows' own commands.
+
+    `packages` maps workspace package names to directories. A filtered command (`pnpm --filter @app/web lint`)
+    names its package; a root script (`pnpm lint`) is expanded once. None means CI does not say: no filtering.
+    """
+    commands: list[str] = []
+    for name in _git(repo, "ls-tree", "--name-only", f"{rev}:.github/workflows").split():
+        if not name.endswith((".yml", ".yaml")):
+            continue
+        try:
+            workflow = yaml.safe_load(_git(repo, "show", f"{rev}:.github/workflows/{name}")) or {}
+        except yaml.YAMLError:
+            continue
+        for job in (workflow.get("jobs") or {}).values():
+            for step in (job.get("steps") or []) if isinstance(job, dict) else []:
+                run = step.get("run") if isinstance(step, dict) else None
+                if isinstance(run, str):
+                    commands += [ln.strip() for ln in run.splitlines() if _LINT_RUN.search(ln)]
+    if not commands:
+        return None
+    expanded: list[str] = []
+    for command in commands:
+        expanded.append(command)
+        call = _SCRIPT_CALL.search(command)
+        if call and not _FILTER.search(command) and call.group("script") in root_scripts:
+            expanded.append(root_scripts[call.group("script")])
+    dirs: set[str] = set()
+    for command in expanded:
+        filtered = [m.group("name") or m.group("yarn") for m in _FILTER.finditer(command)]
+        if not filtered:
+            dirs.add(".")  # a lint run over the whole repository
+        dirs.update(packages[n] for n in filtered if n in packages)
+    return dirs

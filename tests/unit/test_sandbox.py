@@ -43,3 +43,9 @@ def test_snapshot_holds_only_tracked_files(tmp_path: Path) -> None:
     work = snapshot(repo, "HEAD", tmp_path / "work")
     assert (work / "app.py").read_text() == "x = 1\n"
     assert not (work / ".env").exists()
+
+
+def test_a_package_runs_in_its_directory_with_the_whole_snapshot_mounted(tmp_path: Path) -> None:
+    argv = docker_argv(SandboxSpec(image="img", argv=["tsc"], workdir="/work/apps/web", setup=("true",)), tmp_path, "n")
+    assert f"{tmp_path}:/work:rw" in argv and argv[argv.index("-w") + 1] == "/work/apps/web"
+    assert argv[-5:-2] == ["sh", "-c", 'true && exec "$@"'] and argv[-2:] == ["sh", "tsc"]

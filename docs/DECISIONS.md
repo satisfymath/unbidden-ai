@@ -261,3 +261,23 @@ Docker, throwaway databases and the system; elsewhere the GPU's memory decides (
 | ≥ 3 GB | Llama 3.2 3B | only what never leaves (renaming, reviewing) |
 
 An installed model that fits is preferred over a better one that needs a download.
+
+## D-021 · 2026-10-27 · JavaScript workspaces are analyzed package by package, as their CI does
+
+A pnpm monorepo was analyzed from its root only, where nothing is type-checked: zero findings, and nothing
+could be learned. Now:
+
+- Workspace packages come from `pnpm-workspace.yaml` or `workspaces`; each runs its own checks in its own
+  directory (`tsc:apps/web`, using the package's plain `tsc` typecheck script when it has one), with findings
+  reported relative to the repository. The snapshot is always mounted at `/work`; a package's
+  `node_modules` (relative links into the store and to sibling packages) is copied into it at container start,
+  so workspace imports resolve against the real sources.
+- Code generation a type check depends on runs while building the dependency image, from trusted tools only:
+  Prisma's client from the tracked schema. Without it, one package reported 1,309 type errors (232 missing
+  exports) and 121 false opportunities; with it, 0, and the complete report closed the 121 on its own.
+- A tsc report dominated by missing modules or exports is marked failed for the environment instead of opening
+  opportunities.
+- ESLint's JSON is slimmed by a fixed filter (it repeats each file's source) so large packages fit the capture.
+- The lint scope comes from the workflows' own commands (`pnpm --filter <package> lint`, root scripts they
+  call): style findings in a package the CI does not lint are declined. On the monorepo above, 857 lint
+  findings in an unlinted package would otherwise have become proposals.
