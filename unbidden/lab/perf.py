@@ -77,6 +77,18 @@ _REVISION = re.compile(r"^revision\s*(?::\s*str)?\s*=\s*['\"]([^'\"]+)['\"]", re
 _DOWN = re.compile(r"^down_revision\s*(?::[^=]+)?=\s*['\"]?([^'\"\n]*)['\"]?", re.MULTILINE)
 
 
+_PARALLEL = re.compile(r"\s(?:-n|--numprocesses)(?:\s+|=)\S+|\s--dist(?:\s+|=)\S+")
+
+
+def serial(argv: tuple[str, ...]) -> tuple[str, ...]:
+    """The team's test command without pytest-xdist's workers: the lab times one selected test, which parallel
+    workers cannot speed up, and each worker imports the whole application (mealie's `-n auto` exceeded the
+    sandbox's memory before any test ran)."""
+    return tuple(
+        "\n".join(_PARALLEL.sub("", line) if "pytest" in line else line for line in arg.splitlines()) for arg in argv
+    )
+
+
 def failure_excerpt(output: str, limit: int = 2500) -> str:
     """The lines that say what went wrong (pytest's `E` lines, tracebacks' last frames), not the noise around."""
     lines = output.splitlines()
@@ -277,7 +289,7 @@ class PerfLab:
             with data_services(list(plan.services)) as sidecars:
                 spec = sandbox_spec(
                     image,
-                    list(plan.argv),
+                    list(serial(plan.argv)),
                     public_env=env,
                     timeout_s=900,
                     network=sidecars.network if sidecars else "none",
@@ -340,6 +352,11 @@ class PerfLab:
             )
             if not have
         ]
+        if opp.details.get("cost_path") == "parent_delete":
+            # The cost is the database's own foreign-key check; whether the test database makes it (SQLite only
+            # with `PRAGMA foreign_keys`) is not something the lab can tell yet, and a test run without it would
+            # report "no effect" for the wrong reason.
+            missing.append("test database known to enforce foreign keys")
         if missing:
             result.blocked = "cannot measure: no " + ", no ".join(missing)
             result.notes.append(result.blocked)

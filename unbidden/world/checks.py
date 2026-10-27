@@ -3,6 +3,7 @@ anything specific to one system: they read only what discovery observed or infer
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from unbidden.contracts.common import EvidenceRef, utc_now
@@ -70,51 +71,85 @@ def full_table_scans(world: WorldModel, previous: dict[str, Any], seconds: float
     return found
 
 
-def unindexed_foreign_keys(world: WorldModel) -> list[Opportunity]:
-    """A foreign key column that leads no index, on a table some endpoint reads.
+def unindexed_foreign_keys(world: WorldModel, repo: Path | None = None) -> list[Opportunity]:
+    """A foreign key column that leads no index, with the endpoints where that costs.
 
-    Filtering or joining on such a column scans the whole table, so the cost grows with all rows in the
-    system rather than with the rows a request needs.
+    It costs where rows are looked up by the column: code that filters by it, found in the repository (see
+    `column_use`); without such code, only the database's own check when a parent row is deleted, which some engines
+    make (Postgres) and others may not (SQLite without `foreign_keys`). Endpoints that merely read the table are not
+    affected; without a repository to read, they are what is listed, as before.
     """
+    from unbidden.world.column_use import column_users
+
     found: list[Opportunity] = []
     for relation in world.current_relations():
         if relation.predicate != "references" or relation.src not in world.resources:
             continue
         table = world.resources[relation.src]
+        parent = world.resources.get(relation.dst)
         note = relation.evidence[0].note or ""
         column = note.split(" -> ")[0].split(".")[-1] if " -> " in note else ""
         if not column or any(cols and cols[0] == column for cols in _indexed_columns(table.attributes)):
             continue
-        readers = sorted(r.src for r in world.current_relations() if r.dst == table.id and r.predicate == "reads")
-        if not readers:
+        rows = table.attributes.get("rows_estimate", "?")
+        if repo is not None:
+            users = column_users(repo, world.rev, world, table.name, column)
+            ids = [f"endpoint:{name}" for name, _ in users]
+            if users:
+                via = sorted({f"{u.file}:{u.line} {u.function}" for _, u in users})
+                path, what = "filter", f"filtered by {len(ids)} endpoint(s)"
+                why = (
+                    f"Code filters {table.name} by {column} ({', '.join(via)}): without an index every such lookup "
+                    f"scans the whole table (~{rows} rows now), so its cost grows with all rows, not the ones it needs."
+                )
+            else:
+                ids = sorted(
+                    r.src
+                    for r in world.current_relations()
+                    if parent is not None
+                    and r.dst == parent.id
+                    and r.predicate == "writes"
+                    and r.src.startswith("endpoint:DELETE ")
+                )
+                path, what = (
+                    "parent_delete",
+                    f"checked when {len(ids)} endpoint(s) delete a {parent.name if parent else 'parent'} row",
+                )
+                why = (
+                    f"No code filters {table.name} by {column}. The cost is the database's own check when a "
+                    f"{parent.name if parent else 'parent'} row is deleted: it looks for referencing rows by {column}, "
+                    f"scanning {table.name} (~{rows} rows) on engines that enforce foreign keys."
+                )
+        else:
+            ids = sorted(r.src for r in world.current_relations() if r.dst == table.id and r.predicate == "reads")
+            path, what = "readers", f"read by {len(ids)} endpoint(s)"
+            why = f"Queries filtering {table.name} by {column} must scan the whole table (~{rows} rows now)."
+        ids = [i for i in ids if i in world.resources]
+        if not ids:
             continue
-        endpoints = [world.resources[r].name for r in readers if r in world.resources]
+        endpoints = [world.resources[i].name for i in ids]
         found.append(
             Opportunity(
                 source="world",
                 category="performance",
-                title=f"{table.name}.{column} is a foreign key without an index, read by {len(endpoints)} endpoint(s)",
-                summary=(
-                    f"Queries filtering {table.name} by {column} must scan the whole table, so their cost grows with "
-                    f"every row in it, not with the rows a request needs (the live table holds "
-                    f"~{table.attributes.get('rows_estimate', '?')} rows now). Read by: {', '.join(endpoints)}."
-                ),
+                title=f"{table.name}.{column} is a foreign key without an index, {what}",
+                summary=f"{why} Endpoints: {', '.join(endpoints)}.",
                 dedup_key=f"world:unindexed_fk:{table.name}.{column}",
                 evidence=[*relation.evidence, *table.evidence[-1:]],
                 details={
                     "check": "unindexed_foreign_key",
                     "table": table.name,
                     "column": column,
+                    "cost_path": path,
                     "endpoints": endpoints,
                     "rev": world.rev,
                     "code": [
                         {
-                            "endpoint": world.resources[r].name,
-                            "file": world.resources[r].attributes.get("file"),
-                            "line": world.resources[r].attributes.get("line"),
+                            "endpoint": world.resources[i].name,
+                            "file": world.resources[i].attributes.get("file"),
+                            "line": world.resources[i].attributes.get("line"),
                         }
-                        for r in readers
-                        if r in world.resources
+                        for i in ids
                     ],
                 },
             )
@@ -122,10 +157,7 @@ def unindexed_foreign_keys(world: WorldModel) -> list[Opportunity]:
     return found
 
 
-CHECKS = (unindexed_foreign_keys,)
-
-
-def run_checks(world: WorldModel, store: Store) -> list[Opportunity]:
+def run_checks(world: WorldModel, store: Store, repo: Path | None = None) -> list[Opportunity]:
     opened: list[Opportunity] = []
     # Scan counters of the previous map, to judge only what happened since (see full_table_scans).
     last: dict[str, Any] = store.get_value("table_scans", {})
@@ -133,7 +165,7 @@ def run_checks(world: WorldModel, store: Store) -> list[Opportunity]:
     seconds = now_ts - float(last.get("ts", now_ts))
     current = {t.id: t.attributes["scans"] for t in world.of_kind("table") if t.attributes.get("scans")}
     store.set_value("table_scans", {"ts": now_ts, "tables": current})
-    candidates = [opp for check in CHECKS for opp in check(world)]
+    candidates = unindexed_foreign_keys(world, repo)
     if seconds > 0:
         candidates += full_table_scans(world, last.get("tables", {}), seconds)
     for opp in candidates:

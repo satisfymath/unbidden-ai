@@ -22,6 +22,9 @@ class SandboxError(RuntimeError):
 INTERNAL_PREFIX = "unbidden-net-"
 
 
+KILLED = 137  # 128 + SIGKILL
+
+
 @dataclass(frozen=True)
 class SandboxSpec:
     image: str
@@ -116,6 +119,9 @@ class SandboxRunner:
             timed_out = True
         stdout, out_cut = _cap(out)
         stderr, err_cut = _cap(err)
+        if not timed_out and proc.returncode == KILLED:
+            # Killed from outside, usually by the memory limit; the process could not say so itself.
+            stderr += f"\n[unbidden] killed by the sandbox (exit 137), most often at its memory limit ({spec.memory})"
         return SandboxResult(
             exit_code=None if timed_out else proc.returncode,
             stdout=stdout,

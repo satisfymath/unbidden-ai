@@ -45,3 +45,15 @@ def test_no_candidate_when_the_column_spans_lines_or_is_already_indexed() -> Non
     indexed = MODELS.replace('ForeignKey("labels.id"))', 'ForeignKey("labels.id"), index=True)', 1)
     assert index_candidate(lambda _: indexed, "shopping_list_items", "label_id", "m.py", HEAD) is None
     assert index_candidate(lambda _: MODELS, "nope", "label_id", "m.py", HEAD) is None
+
+
+def test_the_lab_times_one_test_without_parallel_workers() -> None:
+    from unbidden.lab.perf import serial
+
+    script = "set -e\ncd /work\npytest -n auto --dist loadfile -x\necho -n done"
+    assert serial(("bash", "-c", script)) == ("bash", "-c", "set -e\ncd /work\npytest -x\necho -n done")
+    assert serial(("pytest", "--numprocesses=4", "tests")) == (
+        "pytest",
+        "--numprocesses=4",
+        "tests",
+    )  # argv items alone

@@ -184,7 +184,7 @@ async def discover(repo: Path, rev: str, store: Store, mandate: Mandate, brain: 
         ran.add(LLM_RELATIONS.ref)
     world, diff = reconcile(previous, world, ran)
     store.put(COLLECTION, world)
-    run_checks(world, store)
+    run_checks(world, store, repo)
     store.append_event(
         Event(
             type=EventType.WORKSPACE_INITIALIZED if previous is None else EventType.WORLD_CHANGED,
