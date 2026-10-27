@@ -222,7 +222,22 @@ def scan(
         for work in prepared.values():
             discard(work)
     _scan_services(repo, rev, store, stack, runner, result, progress, system_tools_allowed(policy))
-    store.set_value("last_scan", {"rev": rev, "tools": [r.tool for r in result.reports]})
+    store.set_value(
+        "last_scan",
+        {
+            "rev": rev,
+            "tools": [r.tool for r in result.reports],
+            "languages": result.stack.languages,
+            "blind_spots": result.stack.blind_spots,
+            "problems": result.problems,
+            # What each analyzer gave, so a run can be audited (and benchmarked) from state alone.
+            "reports": [
+                {"tool": r.tool, "completeness": r.completeness.value, "findings": len(r.findings),
+                 "error": (r.error or "")[:300]}
+                for r in result.reports
+            ],
+        },
+    )  # fmt: skip
     if not result.reports:
         store.append_event(
             Event(type=EventType.ANALYZER_RAN, actor="observer", payload={"rev": rev, "problems": result.problems})
