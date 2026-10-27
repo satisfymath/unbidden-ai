@@ -53,15 +53,17 @@ DRIVER = f'''"""Unbidden's measurement driver: fixed code, never written by a mo
 It runs as one more test inside the repository's own CI test command, so it gets exactly the environment,
 fixtures and configuration the team's tests get.
 """
-import importlib.util, json, time
+import importlib.util, inspect, json, time
 from pathlib import Path
 
 
-def {DRIVER_TEST}():
+def {DRIVER_TEST}(request):
     spec = importlib.util.spec_from_file_location("unbidden_workload", "/work/{LAB_DIR}/workload.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    call = module.build()
+    # build()'s parameters are the suite's own fixtures, by name (`def build(api_client, unique_user)`).
+    fixtures = {{name: request.getfixturevalue(name) for name in inspect.signature(module.build).parameters}}
+    call = module.build(**fixtures)
     for _ in range({WARMUP}):
         status = call()
         assert status == 200, f"warm-up returned HTTP {{status}}"
