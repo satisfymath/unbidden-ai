@@ -77,6 +77,12 @@ def report(data: dict[str, Any]) -> str:
         "",
         f"Unbidden at `{data['unbidden_commit'][:12]}`; manifest `{data['manifest']}`; settings {data['settings']}.",
         "Nobody chose an opportunity, an experiment or a fix; no person intervened during the runs.",
+        *(
+            [f"Code under test differed between rows: {sorted(versions)}."]
+            if len(versions := {(r.get("unbidden") or {}).get("commit", "?")[:12] for r in rows}) > 1
+            or any((r.get("unbidden") or {}).get("dirty") for r in rows)
+            else []
+        ),
         "",
         "## Rates",
         "",

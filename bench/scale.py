@@ -222,6 +222,8 @@ def run_one(repo: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
             k: repo.get(k) for k in ("url", "commit", "split", "license", "language", "shape", "database", "domain")
         },
         "started_at": datetime.now(UTC).isoformat(),
+        # Each repository launches Unbidden from this checkout: the code under test is recorded per row.
+        "unbidden": unbidden_version(),
         "steps": {},
     }
     workdir = Path(args.workdir).expanduser()
@@ -264,6 +266,13 @@ def spend_by_run(run: str) -> dict[str, Any]:
         "by_model": summarize(rows, "model"),
         "by_purpose": summarize(rows, "purpose"),
     }
+
+
+def unbidden_version() -> dict[str, Any]:
+    git = ["git", "-C", str(PROJECT)]
+    commit = subprocess.run([*git, "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    dirty = subprocess.run([*git, "status", "--porcelain", "--", "unbidden"], capture_output=True, text=True).stdout
+    return {"commit": commit, "dirty": bool(dirty.strip())}
 
 
 def deps_images() -> set[str]:
