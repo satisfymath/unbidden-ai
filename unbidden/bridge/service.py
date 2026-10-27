@@ -99,8 +99,10 @@ class PrivacyBridge:
             )
         except (BrainError, ProviderError):
             return None
-        words = {w.strip() for w in value["words"] if len(w.strip()) >= 3}
-        return {w for w in words if re.search(rf"(?<![\w$]){re.escape(w)}(?![\w$])", content) and w not in synthetic}
+        # Flagged phrases ("panel-overview") are split into the words the renaming works on; a flagged word that is
+        # itself a synthetic name gets a more neutral one on the next round, since the map may not reuse it.
+        tokens = {t for w in value["words"] for t in re.findall(r"[A-Za-z_$][\w$]*", w) if len(t) >= 3}
+        return {t for t in tokens if re.search(rf"(?<![\w$]){re.escape(t)}(?![\w$])", content)}
 
     async def solve(
         self, base: Path, findings: list[Finding], *, correlation_id: str, dry_run: bool = False
