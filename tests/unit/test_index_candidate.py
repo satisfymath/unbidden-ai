@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from unbidden.lab.perf import index_candidate
@@ -57,3 +59,31 @@ def test_the_lab_times_one_test_without_parallel_workers() -> None:
         "--numprocesses=4",
         "tests",
     )  # argv items alone
+
+
+def test_the_workload_sees_a_test_calling_the_endpoint_and_the_real_fixtures(tmp_path: Path) -> None:
+    import subprocess
+
+    from unbidden.lab.perf import PerfLab
+
+    files = {
+        "tests/utils/routes.py": 'foods_merge = "/api/foods/merge"\n',
+        "tests/conftest.py": "@fixture(scope='session')\ndef api_client():\n    ...\n",
+        "tests/fixtures/fixture_users.py": "@fixture(scope='module')\ndef unique_user(session, api_client):\n    ...\n",
+        "tests/test_foods_merge.py": (
+            "from tests.utils import routes\n\ndef test_merge(api_client):\n    api_client.put(routes.foods_merge)\n"
+        ),
+        "tests/test_other.py": "def test_x():\n    pass\n",
+    }
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    for path, text in files.items():
+        (tmp_path / path).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / path).write_text(text)
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    lab = PerfLab.__new__(PerfLab)
+    lab.repo = tmp_path
+    text = lab._test_examples("HEAD", "PUT /api/foods/merge", "shopping_list_items")  # pyright: ignore[reportPrivateUsage]
+    assert "`tests/test_foods_merge.py`" in text and "test_other" not in text
+    assert "- `unique_user(session, api_client)` in `tests/fixtures/fixture_users.py`" in text

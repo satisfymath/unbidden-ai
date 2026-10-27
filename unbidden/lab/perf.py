@@ -260,14 +260,66 @@ class PerfLab:
                     return path
         return None
 
-    def _test_examples(self, rev: str) -> str:
-        paths = [
-            p
-            for p in _git(self.repo, "ls-tree", "-r", "--name-only", rev).splitlines()
-            if re.search(r"(conftest\.py|tests/utils/[^/]+\.py)$", p)
+    def _test_examples(self, rev: str, endpoint: str = "", table: str = "", budget: int = 14000) -> str:
+        """What a workload needs to fit the repository's own tests, most specific first: an existing test that calls
+        the endpoint (its imports and calls are real), every pytest fixture the suite defines (name, parameters,
+        file), the fixture files about the table, and the conftest."""
+        tracked = _git(self.repo, "ls-tree", "-r", "--name-only", rev).splitlines()
+        tests = [p for p in tracked if p.endswith(".py") and re.search(r"(^|/)tests?/", p)]
+        sources = {p: self._show(rev, p) for p in tests}
+        blocks: list[str] = []
+
+        # 1. A test that calls the endpoint, by its path or by a constant holding it (`foods_merge = "/api/..."`).
+        path = endpoint.partition(" ")[2]
+        literal = re.sub(r"\{[^}]*\}.*$", "", path).rstrip("/") if path else ""
+        if literal:
+            names = {
+                m.group(1)
+                for text in sources.values()
+                for m in re.finditer(rf"^(\w+)\s*=\s*f?[\"']{re.escape(literal)}/?[\"']", text, re.MULTILINE)
+            }
+            needles = [literal, *(rf"\b{n}\b" for n in names)]
+            callers = [
+                p
+                for p, text in sources.items()
+                if Path(p).name.startswith("test_")
+                and any(re.search(n if n != literal else re.escape(n), text) for n in needles)
+            ]
+            callers.sort(
+                key=lambda p: (
+                    -len(set(re.split(r"[/_.]", literal.lower())) & set(re.split(r"[/_.]", p.lower()))),
+                    len(sources[p]),
+                )
+            )
+            for caller in callers[:1]:
+                blocks.append(
+                    f"An existing test that calls `{endpoint}`, `{caller}`:\n```python\n{sources[caller][:5000]}```"
+                )
+
+        # 2. Every fixture the suite defines.
+        fixtures = [
+            f"- `{m.group(2)}({m.group(3).strip()})` in `{p}`"
+            for p, text in sources.items()
+            for m in re.finditer(r"@(?:pytest\.)?fixture[^\n]*\n(?:@[^\n]*\n)*(async\s+)?def\s+(\w+)\(([^)]*)\)", text)
         ]
-        blocks = [f"`{p}`:\n```python\n{self._show(rev, p)[:3000]}```" for p in paths[:4]]
-        return "\n\n".join(blocks) or "(no test helpers found)"
+        if fixtures:
+            blocks.append(
+                "Fixtures the test suite defines (use these; do not invent others):\n" + "\n".join(fixtures[:80])
+            )
+
+        # 3. Fixture files about the table, then the conftest.
+        words = {w.removesuffix("s") for w in re.split(r"[_.]", table.lower()) if len(w) > 2}
+        related = [
+            p
+            for p in sources
+            if re.search(r"(fixture|conftest)", Path(p).name)
+            and words & {w.removesuffix("s") for w in re.split(r"[/_.]", p.lower())}
+        ]
+        for extra in [*related[:2], *[p for p in sources if Path(p).name == "conftest.py"][:1]]:
+            blocks.append(f"`{extra}`:\n```python\n{sources[extra][:3000]}```")
+
+        text = "\n\n".join(blocks)
+        return text[:budget] if text else "(no test helpers found)"
 
     # Measurement ----------------------------------------------------------------------------------------
 
@@ -435,7 +487,7 @@ class PerfLab:
                     handler=handler[2],
                     models_file=models_file,
                     models=self._show(rev, models_file)[:8000],
-                    test_examples=self._test_examples(rev),
+                    test_examples=self._test_examples(rev, list_endpoint, table),
                 ),
                 opp,
                 wl_prompt.sha256,
