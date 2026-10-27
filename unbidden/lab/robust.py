@@ -26,6 +26,7 @@ from unbidden.lab.evaluator import classify_tests
 from unbidden.lab.fixlab import Candidate, added_suppressions, unified_patch
 from unbidden.lab.testsuite import run_suite, test_plan
 from unbidden.observe.stack import Stack
+from unbidden.provenance import provenance
 from unbidden.research.robustness import parse_crashes
 from unbidden.sandbox.provision import DependencyImage, link_dependencies, sandbox_spec
 from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
@@ -190,6 +191,7 @@ class RobustLab:
                 rounds=3,
                 baseline_tests=sides[0] if sides else None,
                 candidate_tests=sides[1] if sides else None,
+                provenance=provenance(self.brain, [self.image], hypothesis_seed=0),
             )
             verdict = Verdict(
                 experiment_id=experiment.id,

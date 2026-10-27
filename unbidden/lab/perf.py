@@ -34,6 +34,7 @@ from unbidden.lab.perfstats import PERF_CRITERIA, judge
 from unbidden.lab.testsuite import TestPlan, run_suite, test_plan
 from unbidden.observe.ci import ci_test_plan
 from unbidden.observe.stack import Stack
+from unbidden.provenance import provenance
 from unbidden.sandbox.provision import DependencyImage, link_dependencies, sandbox_spec
 from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
 from unbidden.sandbox.sidecars import data_services
@@ -655,6 +656,7 @@ class PerfLab:
             samples_before_ms=before,
             samples_after_ms=after,
             workload_sha256=hashlib.sha256(workload[f"{LAB_DIR}/workload.py"].encode()).hexdigest(),
+            provenance=provenance(self.brain, list(self.images.values()), engine=self.engine),
         )
         reasons = [
             f"{list_endpoint}: median {stats.median_before:.1f} ms → {stats.median_after:.1f} ms "

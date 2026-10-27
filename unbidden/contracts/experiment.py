@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
+from typing import Any
 
 from pydantic import Field
 
@@ -37,6 +38,8 @@ class Experiment(Contract):
     samples_before_ms: list[float] = Field(default_factory=list[float])
     samples_after_ms: list[float] = Field(default_factory=list[float])
     workload_sha256: str | None = None
+    # Unbidden's commit and cleanliness, model routes, images, seed: what produced this measurement.
+    provenance: dict[str, Any] = Field(default_factory=dict)
     cost: Cost = Field(default_factory=Cost)
     started_at: datetime = Field(default_factory=utc_now)
 

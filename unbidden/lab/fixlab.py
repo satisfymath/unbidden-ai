@@ -33,6 +33,7 @@ from unbidden.lab.evaluator import CRITERIA, evaluate_fix
 from unbidden.lab.testsuite import TestPlan, run_suite, test_plan
 from unbidden.observe.ci import ci_python_versions
 from unbidden.observe.stack import Stack
+from unbidden.provenance import provenance
 from unbidden.sandbox.provision import DependencyImage, ProvisionError, link_dependencies, provision, sandbox_spec
 from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
 from unbidden.sandbox.tools import Tool, tool_named, tools_for
@@ -340,6 +341,7 @@ class FixLab:
         experiment = Experiment(
             opportunity_id=opp.id, base_sha=rev, candidate_patch_sha256=candidate.sha256, rounds=self.rounds,
             baseline_tests=baseline_tests, findings_before=_fingerprints(before),
+            provenance=provenance(self.brain, [image], python=self.stack.python.version if self.stack.python else None),
         )  # fmt: skip
         self.store.append_event(
             Event(type=EventType.EXPERIMENT_STARTED, actor=ACTOR, entity_id=experiment.id, correlation_id=opp.id,

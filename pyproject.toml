@@ -36,6 +36,8 @@ packages = ["unbidden"]
 [tool.ruff]
 line-length = 120
 target-version = "py312"
+# Evidence: code written by a model during a run, kept byte for byte.
+extend-exclude = ["docs/bench"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
