@@ -105,3 +105,19 @@ traces put the origin in quote). "Clean minutes with an alarm" mixes false alarm
 nobody injected. The next calibration has to count them apart:
 - alarms whose origin traces confirm;
 - alarms that nothing confirms.
+
+## Third holdout (fixed in 23b691e before it was run): v4 against v1
+
+| Criteria | Clean minutes with an alarm | adHighCpu | emailMemoryLeak 100x | cartFailure 25% |
+|---|---|---|---|---|
+| health-v1 | 1 / 10 (quote) | missed | missed | missed |
+| health-v4-candidate | 1 / 10 (quote) | **minute 5** | missed (a slower leak) | missed (one operation, diluted) |
+
+**Decision.** On data it had not seen, v4 found one fault more than v1 with no more alarms, as it did on the second
+holdout (the leak, at minute 4). It becomes the live criterion, `health-v4`. The evidence is thin: one blind
+detection. It stays under measurement.
+
+**Still missed:**
+- a slow leak, which does not grow 1.5× within 35 minutes;
+- an error confined to one operation, which per-operation judging (v2) caught on designed faults but which brought
+  noise on the holdouts.

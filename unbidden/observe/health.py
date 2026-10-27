@@ -508,6 +508,23 @@ class HealthWatcher:
         base_h = health(self.prom, BASELINE, offset=WINDOW)
         services = {r.name for r in self.world.of_kind("service")} | {r.name for r in self.world.of_kind("database")}
         verdicts = [judge(h, base_h.get(name)) for name, h in sorted(now_h.items()) if name in services]
+        containers = {
+            str(c.name): str(c.attributes.get("service"))
+            for c in self.world.of_kind("container")
+            if c.attributes.get("service")
+        }
+        pressure = resource_pressure(self.prom, containers)
+        verdicts = [
+            Verdict(v.service, True, v.chronic, (*v.reasons, *pressure.pop(v.service, [])), v.now, v.baseline)
+            if v.service in pressure
+            else v
+            for v in verdicts
+        ]
+        # Services under pressure that serve no request spans (a worker, a database) are verdicts of their own.
+        verdicts += [
+            Verdict(name, True, False, tuple(why), ServiceHealth(name, 0, 0, None), None)
+            for name, why in pressure.items()
+        ]
         degraded = {v.service for v in verdicts if v.degraded}
         suspects = localize(self.world, degraded)
         shared = common_cause(self.world, suspects)
@@ -515,7 +532,7 @@ class HealthWatcher:
             suspects = [shared]
         return {
             "at": (at or utc_now()).isoformat(),
-            "criteria": CRITERIA,
+            "criteria": {**CRITERIA, "criteria_version": "health-v4", "resources": CRITERIA_V4_CANDIDATE["plus"]},
             "verdicts": verdicts,
             "degraded": sorted(degraded),
             "chronic": sorted(v.service for v in verdicts if v.chronic),
@@ -542,7 +559,7 @@ class HealthWatcher:
                 "via": suspect.via,
                 "reasons": {s: list(verdicts[s].reasons) for s in [name, *suspect.effects] if s in verdicts},
                 "common_cause": name.startswith("("),
-                "criteria": CRITERIA,
+                "criteria": report["criteria"],
                 "started": report["at"],
                 "queries": self.prom.sent[-3:],
                 "plan": plan(self.world, suspect, traces=self.traces is not None),

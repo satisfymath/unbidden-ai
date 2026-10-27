@@ -506,3 +506,19 @@ faults it was designed on.
   the commit and scanned as a repository of its own, with the same trusted tools. Findings are recorded with
   prefixed paths and a tool named `tool@dir`. The lab cannot reproduce them inside the repository yet, so the
   Director leaves them waiting and says why.
+
+## D-031 · 2026-10-27 · health-v4 adopted: container memory and CPU, after a blind holdout
+
+v4 is v1 plus new container pressure:
+- **memory:** 1.5× and +20 MiB over a baseline that was itself steady, or newly past 85 % of the limit, with
+  hysteresis at 75 %, after an hour of warm-up;
+- **CPU:** doubled, and at least half a core more. The metric is in cores, which the first version wrongly read as
+  a share.
+
+**Results.**
+- Third holdout, fixed before it was run: v4 found `adHighCpu` at minute 5 where v1 found nothing, and raised no
+  more alarms (1 of 10 clean minutes for both).
+- Second holdout, seen while designing v4: the leak at minute 4, with no more alarms than v1.
+
+v4 replaces v1 in the live watcher and records its criteria with every anomaly. One blind detection is little
+evidence; the detector stays the part of Unbidden most in need of measurement.
