@@ -1,0 +1,7 @@
+# Test fixtures plant fake credentials on purpose to prove they never leak.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "fake secrets planted by tests"
+paths = ['''tests/.*''']

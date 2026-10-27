@@ -1,0 +1,205 @@
+"""Build a dependency-only image per lockfile, the one step that may reach a package registry.
+
+The build context holds only manifests and lockfiles copied from git, never repository code or local files,
+and install scripts are disabled where the package manager allows it. Network access during the build is
+authorised by the mandate's registry allowlist; it is a policy check, not a firewall, and is reported so.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import shutil
+import subprocess
+import tempfile
+from dataclasses import dataclass
+from pathlib import Path
+
+from unbidden.observe.stack import NodeStack, PythonStack, tracked_files
+from unbidden.sandbox.runner import SandboxSpec
+
+NODE_REGISTRIES = ["registry.npmjs.org"]
+PYTHON_REGISTRIES = ["pypi.org", "files.pythonhosted.org"]
+PYRIGHT_VERSION = "1.1.414"
+RUFF_VERSION = "0.17.2"
+PYTEST_VERSION = "9.1.1"
+HYPOTHESIS_VERSION = "6.170.12"  # for robustness probes; installed only when the project does not bring it
+
+
+@dataclass(frozen=True)
+class DependencyImage:
+    tag: str
+    language: str
+    registries: list[str]
+    env: dict[str, str]
+    links: dict[str, str]  # path inside /work -> target inside the image, created as symlinks in each snapshot
+    setup: tuple[str, ...] = ()  # shell steps run in the container before each command
+
+
+class ProvisionError(RuntimeError):
+    pass
+
+
+def _copy_from_git(repo: Path, rev: str, paths: list[str], dest: Path) -> str:
+    digest = hashlib.sha256()
+    for path in sorted(paths):
+        data = subprocess.run(["git", "-C", str(repo), "show", f"{rev}:{path}"], capture_output=True, check=True).stdout
+        target = dest / "ctx" / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+        digest.update(path.encode() + b"\0" + data)
+    return digest.hexdigest()[:16]
+
+
+def node_dockerfile(stack: NodeStack) -> str:
+    install = {
+        "npm": "npm ci --ignore-scripts --no-audit --no-fund",
+        "pnpm": "corepack enable && pnpm install --frozen-lockfile --ignore-scripts",
+    }[stack.manager]
+    # Code generation a type check depends on, from trusted tools only (never arbitrary install scripts): Prisma's
+    # client is generated from the tracked schema, the one step besides installing that may use the network.
+    generate = "".join(
+        f" \\\n && (cd /deps/{p.path} && ./node_modules/.bin/prisma generate --schema "
+        f"{(p.prisma_schema or '').removeprefix(p.path + '/')})"
+        for p in stack.packages
+        if p.prisma_schema
+    )
+    return f"""FROM node:{stack.major}-slim
+ENV CI=1 COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+WORKDIR /deps
+COPY ctx/ /deps/
+RUN {install}{generate}
+"""
+
+
+def python_dockerfile(stack: PythonStack) -> str:
+    if stack.lockfile == "uv.lock" and stack.members:
+        install = "uv sync --frozen --no-install-workspace --all-packages --all-groups --project /deps"
+    elif stack.lockfile == "uv.lock":
+        install = "uv sync --frozen --no-install-project --all-groups --project /deps"
+    elif stack.manifest in ("setup.py", "poetry.lock"):
+        # The requirements were read statically (setup.py's install_requires, poetry.lock's pins) and written
+        # into the build context.
+        install = (
+            "uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt"
+        )
+    elif stack.manifest == "requirements.txt":
+        install = "uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python -r /deps/requirements.txt"
+    else:
+        install = "uv sync --no-install-project --all-groups --project /deps"
+    return f"""FROM node:22-slim AS node
+FROM python:{stack.version}-slim
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \\
+ && npm install -g pyright@{PYRIGHT_VERSION} \\
+ && pip install --no-cache-dir uv \\
+ && uv venv /opt/tools && uv pip install --python /opt/tools/bin/python ruff=={RUFF_VERSION} pytest=={PYTEST_VERSION}
+ENV UV_PROJECT_ENVIRONMENT=/deps/.venv UV_LINK_MODE=copy
+WORKDIR /deps
+COPY ctx/ /deps/
+RUN {install} \\
+ && (/deps/.venv/bin/python -c "import pytest" 2>/dev/null \\
+     || uv pip install --python /deps/.venv/bin/python pytest=={PYTEST_VERSION}) \\
+ && (/deps/.venv/bin/python -c "import hypothesis" 2>/dev/null \\
+     || uv pip install --python /deps/.venv/bin/python hypothesis=={HYPOTHESIS_VERSION})
+"""
+
+
+def _manifests(repo: Path, rev: str, stack: NodeStack | PythonStack) -> list[str]:
+    files = tracked_files(repo, rev)
+    if isinstance(stack, NodeStack):
+        wanted = [f for f in files if f == "package.json" or f.endswith("/package.json")]
+        wanted += [stack.lockfile]
+        wanted += [f for f in ("pnpm-workspace.yaml", ".npmrc") if f in files]
+        wanted += [p.prisma_schema for p in stack.packages if p.prisma_schema]
+        # Packages vendored under node_modules are never tracked in sane repos; skip them if they are.
+        return sorted({f for f in wanted if "node_modules/" not in f})
+    if stack.manifest in ("setup.py", "poetry.lock"):
+        return []
+    wanted = [stack.manifest] + ([stack.lockfile] if stack.lockfile else [])
+    wanted += [f"{m}/pyproject.toml" for m in stack.members]
+    return sorted(set(wanted))
+
+
+def provision(repo: Path, rev: str, stack: NodeStack | PythonStack, *, docker: str = "docker") -> DependencyImage:
+    language = "node" if isinstance(stack, NodeStack) else "python"
+    build = Path(tempfile.mkdtemp(prefix="unbidden-build-"))
+    try:
+        digest = _copy_from_git(repo, rev, _manifests(repo, rev, stack), build)
+        if isinstance(stack, PythonStack) and stack.manifest in ("setup.py", "poetry.lock"):
+            generated = "\n".join(stack.requirements) + "\n"
+            (build / "ctx").mkdir(parents=True, exist_ok=True)
+            (build / "ctx" / "unbidden-requirements.txt").write_text(generated)
+            digest = hashlib.sha256((digest + generated).encode()).hexdigest()[:16]
+        dockerfile = node_dockerfile(stack) if isinstance(stack, NodeStack) else python_dockerfile(stack)
+        tag = f"unbidden-deps-{language}:{hashlib.sha256((dockerfile + digest).encode()).hexdigest()[:16]}"
+        exists = subprocess.run([docker, "image", "inspect", tag], capture_output=True, check=False).returncode == 0
+        if not exists:
+            (build / "Dockerfile").write_text(dockerfile)
+            result = subprocess.run([docker, "build", "-q", "-t", tag, str(build)], capture_output=True, text=True)
+            if result.returncode != 0:
+                tail = "\n".join(result.stderr.strip().splitlines()[-15:])
+                raise ProvisionError(f"dependency image for {language} failed to build:\n{tail}")
+    finally:
+        shutil.rmtree(build, ignore_errors=True)
+    if isinstance(stack, NodeStack):
+        return DependencyImage(
+            tag=tag,
+            language="node",
+            registries=NODE_REGISTRIES,
+            env={"PATH": "/deps/node_modules/.bin:/usr/local/bin:/usr/bin:/bin"},
+            links={"node_modules": "/deps/node_modules"},
+            # A workspace package's node_modules holds relative links into the store and to sibling packages;
+            # copied into /work (links only, cheap) they resolve against the snapshot's real sources.
+            setup=tuple(
+                f"mkdir -p /work/{p.path} && cp -a /deps/{p.path}/node_modules /work/{p.path}/ 2>/dev/null || true"
+                for p in stack.packages
+            ),
+        )
+    return DependencyImage(
+        tag=tag,
+        language="python",
+        registries=PYTHON_REGISTRIES,
+        env={
+            "PATH": "/deps/.venv/bin:/opt/tools/bin:/usr/local/bin:/usr/bin:/bin",
+            "VIRTUAL_ENV": "/deps/.venv",
+            "PYTHONPATH": ":".join("/work" if r == "." else f"/work/{r}" for r in stack.source_roots),
+            "PYTHONDONTWRITEBYTECODE": "1",
+        },
+        links={},
+    )
+
+
+def link_dependencies(work: Path, image: DependencyImage) -> None:
+    for name, target in image.links.items():
+        path = work / name
+        if path.is_symlink() or path.exists():
+            continue
+        path.symlink_to(target)
+
+
+def sandbox_spec(
+    image: DependencyImage,
+    argv: list[str],
+    *,
+    cwd: str = ".",
+    timeout_s: float = 600,
+    public_env: dict[str, str] | None = None,
+    network: str = "none",
+) -> SandboxSpec:
+    """The one way to run something against a dependency image: its setup, its environment, and for a workspace
+    package, that package's directory with its own node_modules/.bin first on PATH."""
+    env = dict(image.env)
+    workdir = "/work" if cwd in (".", "") else f"/work/{cwd}"
+    if cwd not in (".", "") and "PATH" in env:
+        env["PATH"] = f"{workdir}/node_modules/.bin:{env['PATH']}"
+    return SandboxSpec(
+        image=image.tag,
+        argv=argv,
+        env=env,
+        setup=image.setup,
+        workdir=workdir,
+        timeout_s=timeout_s,
+        public_env=public_env or {},
+        network=network,
+    )

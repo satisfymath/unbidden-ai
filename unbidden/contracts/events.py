@@ -1,0 +1,57 @@
+from __future__ import annotations
+
+from datetime import datetime
+from enum import StrEnum
+from typing import Any
+
+from pydantic import Field
+
+from unbidden.contracts.common import Contract, utc_now
+
+
+class EventType(StrEnum):
+    WORKSPACE_INITIALIZED = "workspace.initialized"
+    HEAD_MOVED = "repo.head_moved"
+    ANALYZER_RAN = "analyzer.ran"
+    OPPORTUNITY_OPENED = "opportunity.opened"
+    OPPORTUNITY_RESOLVED = "opportunity.resolved"
+    DECISION_MADE = "decision.made"
+    EXPERIMENT_STARTED = "experiment.started"
+    VERDICT_RECORDED = "verdict.recorded"
+    PROPOSAL_READY = "proposal.ready"
+    PROPOSAL_PUBLISHED = "proposal.published"
+    PROPOSAL_STALE = "proposal.stale"
+    APPROVAL_GRANTED = "approval.granted"
+    APPROVAL_REJECTED = "approval.rejected"
+    EGRESS_ALLOWED = "egress.allowed"
+    EGRESS_BLOCKED = "egress.blocked"
+    POLICY_DENIED = "policy.denied"
+    MODEL_CALLED = "model.called"
+    KILL_SWITCH = "killswitch.changed"
+    MANDATE_CHANGED = "mandate.changed"
+    DEPLOYED = "operations.deployed"
+    MERGED = "operations.merged"
+    IMPACT_JUDGED = "impact.judged"
+    OUTCOME_RECORDED = "outcome.recorded"
+    CAPABILITY_BUILT = "capability.built"
+    CAPABILITY_APPROVED = "capability.approved"
+    HYPOTHESIS_RECORDED = "hypothesis.recorded"
+
+
+class Event(Contract):
+    seq: int | None = None
+    ts: datetime = Field(default_factory=utc_now)
+    type: EventType
+    actor: str
+    entity_id: str | None = None
+    correlation_id: str | None = None
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
+class AuditEntry(Contract):
+    ts: datetime = Field(default_factory=utc_now)
+    actor: str
+    kind: str
+    summary: str
+    correlation_id: str | None = None
+    data: dict[str, Any] = Field(default_factory=dict)
