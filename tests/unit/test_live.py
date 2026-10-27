@@ -255,3 +255,25 @@ def test_a_degraded_deploy_carries_the_scope_of_what_degraded(store: Store, mand
     components = [c["id"] for c in judged.scope[0]["components"]]
     assert components == ["endpoint:GET /items/", "service:api"]
     assert any(b.startswith("metrics:") for b in judged.scope[0]["blind_spots"])
+
+
+def test_a_slowdown_spread_over_many_deploys_is_caught_against_the_oldest_rounds(
+    store: Store, mandate: Mandate
+) -> None:
+    from datetime import timedelta
+
+    from unbidden.contracts.common import utc_now
+
+    now = utc_now()
+    # Four hours of rounds, one per minute; a deploy every twenty minutes; slow for the last 30 minutes.
+    for minute in range(240):
+        ts = now - timedelta(minutes=240 - minute)
+        latency = 2500.0 if minute >= 210 else 40.0
+        store.add_round("GET /items/", f"v{minute // 20}", [200] * 5, [latency] * 5, deploy=minute // 20)
+        store._conn.execute("UPDATE rounds SET ts = ? WHERE rowid = last_insert_rowid()", (ts.isoformat(),))  # pyright: ignore[reportPrivateUsage]
+    logs: list[str] = []
+    w = LiveWatcher(Path("."), store, mandate, WorldModel(rev=A), log=logs.append)
+    w._sustained(now)  # pyright: ignore[reportPrivateUsage]
+    assert any("sustained degradation on GET /items/" in line for line in logs)
+    judged = [e for e in store.events() if e.entity_id == "sustained:GET /items/"]
+    assert len(judged) == 1 and judged[0].payload["factor"] > 10

@@ -539,3 +539,31 @@ each map with the previous one, and on the fork it opens nothing, which is the r
 
 **Status.** No new L5 is claimed. The fork has no measurable improvement left that Unbidden can find. The check
 stays, to catch a regression.
+
+## D-033 · 2026-10-27 · What the prototype knew and this product had lost; the sustained detector ported
+
+An audit of the earlier prototype (`satisfymath/unbidden`, about 27k lines) against this product listed what it had
+and this product lacked, in order of value:
+1. a sustained-degradation detector;
+2. logs as evidence (windows, shape groups, error after deploy);
+3. authorised file and ssh log sources;
+4. an external probe of public URLs that reads the running commit from `/health`;
+5. an endurance protocol with criteria fixed in advance;
+6. load tests as experiments;
+7. "Ask" requests in natural language;
+8. a Director with a value-of-information term;
+9. dependency-vulnerability fixes.
+
+Already here, or deliberately dropped: spend caps, merge caps, scoped approvals, the kill switch and the Postgres
+store.
+
+**Ported first: the sustained detector.** The prototype's lesson was a p95 of 2.5 s for four hours that nothing
+flagged, because a deploy every twenty minutes reset the baseline.
+- `observe/impact.py:sustained` is the prototype's judge: the newest 3 samples all above the largest of 1.5×, +50 ms
+  and 4 MADs over the oldest samples.
+- The live watcher checks each probed endpoint once a minute against the oldest half hour of the last four hours,
+  whatever was deployed in between. When the code changed, it opens a read-only investigation between the commit at
+  the start of the window and the current one; when it did not, it says the cause is data, load or the environment.
+- From Prometheus, `health` reports a service whose p95 now sits above its own p95 of four hours ago. This is a
+  separate signal, not part of the verdict: it is not calibrated on a holdout yet. Its first live reading, checkout
+  at 182 ms against about 99 ms, came on a day of heavy load on the host.

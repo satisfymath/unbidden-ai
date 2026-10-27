@@ -431,6 +431,35 @@ def web_page(world: WorldModel) -> str | None:
     return pages[0][1] if pages else None
 
 
+def sustained_services(prom: Prometheus, at: float | None = None) -> dict[str, list[str]]:
+    """service -> reason, for services whose p95 of the last minutes sits above a threshold set by the same service
+    3.5 to 4 hours earlier, whatever happened in between (ported from the prototype: deploys and short baselines
+    hid a 2.5 s p95 for four hours there)."""
+    from unbidden.observe.impact import SUSTAINED_PERSISTENCE, sustained
+
+    end = at if at is not None else utc_now().timestamp()
+
+    def p95_at(ts: float) -> dict[str, float]:
+        return {
+            k: h.p95_ms
+            for k, h in health(prom, WINDOW, at=ts).items()
+            if h.p95_ms is not None and h.requests >= MIN_REQUESTS
+        }
+
+    old = [p95_at(end - 4 * 3600 + i * 300) for i in range(7)]  # 4 h to 3.5 h ago, every 5 minutes
+    new = [p95_at(end - i * 300) for i in reversed(range(SUSTAINED_PERSISTENCE))]  # the last 15 minutes
+    found: dict[str, list[str]] = {}
+    for service in set().union(*new) if new else set():
+        baseline = [o[service] for o in old if service in o]
+        recent = [n[service] for n in new if service in n]
+        verdict = sustained(baseline, recent)
+        if verdict is not None:
+            found[service] = [
+                f"p95 {verdict.baseline_median:.0f} ms four hours ago, {verdict.recent_median:.0f} ms now"
+            ]
+    return found
+
+
 class UiCheck:
     """What the product's page looks like during an anomaly, against a reference taken while all was healthy."""
 
@@ -514,6 +543,8 @@ class HealthWatcher:
             if c.attributes.get("service")
         }
         pressure = resource_pressure(self.prom, containers)
+        # Reported beside the verdicts, not in them: not calibrated on a holdout yet.
+        drift = sustained_services(self.prom)
         verdicts = [
             Verdict(v.service, True, v.chronic, (*v.reasons, *pressure.pop(v.service, [])), v.now, v.baseline)
             if v.service in pressure
@@ -538,6 +569,7 @@ class HealthWatcher:
             "chronic": sorted(v.service for v in verdicts if v.chronic),
             "suspects": suspects,
             "unmeasured": sorted(services - set(now_h)),
+            "sustained": drift,
             # Too few requests to say anything either way: not "healthy", unjudged.
             "unjudged": sorted(name for name, h in now_h.items() if name in services and h.requests < MIN_REQUESTS),
         }

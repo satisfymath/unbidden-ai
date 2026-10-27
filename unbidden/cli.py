@@ -1270,6 +1270,8 @@ def cmd_health(args: argparse.Namespace) -> int:
             console.print(f"    - {step['step']} [{step['source']}: {step['available']}]")
     if report["unmeasured"]:
         console.print(f"\nNo request metrics for: {', '.join(report['unmeasured'])}")
+    for service, why in (report.get("sustained") or {}).items():
+        console.print(f"[yellow]sustained[/] {service}: {'; '.join(why)} (a signal, not a verdict: not calibrated yet)")
     if report.get("unjudged"):
         console.print(f"Too little traffic to judge: {', '.join(report['unjudged'])}")
     return 0

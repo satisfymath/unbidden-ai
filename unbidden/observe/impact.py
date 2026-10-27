@@ -181,3 +181,40 @@ def overall(endpoints: list[EndpointImpact]) -> Impact:
     if not endpoints or Impact.INSUFFICIENT in kinds:
         return Impact.INSUFFICIENT
     return Impact.IMPROVED if Impact.IMPROVED in kinds else Impact.HEALTHY
+
+
+# Sustained degradation (ported from the prototype's observer, D-062 there): a deploy every twenty minutes reset the
+# baseline to already-degraded samples and a p95 of 2.5 s went unnoticed for four hours. The oldest part of a long
+# window is a baseline no deploy can reset.
+SUSTAINED_REL, SUSTAINED_ABS_MS, SUSTAINED_MAD_K, SUSTAINED_PERSISTENCE = 1.5, 50.0, 4.0, 3
+SUSTAINED_CRITERIA: dict[str, float | int | str] = {
+    "criteria_version": "sustained-v1",
+    "baseline": "the oldest samples of the window, whatever deploys happened since",
+    "threshold": f"max({SUSTAINED_REL}x median, median + {SUSTAINED_ABS_MS} ms, "
+    f"median + {SUSTAINED_MAD_K} x 1.4826 MAD)",
+    "persistence": f"the newest {SUSTAINED_PERSISTENCE} samples all above it",
+}
+
+
+@dataclass(frozen=True)
+class Sustained:
+    baseline_median: float
+    threshold: float
+    recent_median: float
+
+    @property
+    def factor(self) -> float:
+        return self.recent_median / self.baseline_median if self.baseline_median else float("inf")
+
+
+def sustained(baseline: list[float], recent: list[float], *, min_baseline: int = 6) -> Sustained | None:
+    """Pure: whether the newest samples all sit above a threshold set by the oldest ones."""
+    if len(baseline) < min_baseline or len(recent) < SUSTAINED_PERSISTENCE:
+        return None
+    median = statistics.median(baseline)
+    mad = statistics.median(abs(v - median) for v in baseline)
+    threshold = max(median * SUSTAINED_REL, median + SUSTAINED_ABS_MS, median + SUSTAINED_MAD_K * 1.4826 * mad)
+    newest = recent[-SUSTAINED_PERSISTENCE:]
+    if not all(v > threshold for v in newest):
+        return None
+    return Sustained(median, threshold, statistics.median(newest))

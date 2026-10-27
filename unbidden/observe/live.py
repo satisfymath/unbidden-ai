@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import statistics
 import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal
 
@@ -16,7 +18,17 @@ from unbidden.contracts.experiment import Proposal, ProposalStatus
 from unbidden.contracts.guardian import Autonomy, Mandate
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
 from unbidden.contracts.world import Deployment, WorldModel
-from unbidden.observe.impact import CRITERIA, EndpointImpact, Impact, Round, judge_endpoint, overall
+from unbidden.observe.impact import (
+    CRITERIA,
+    SUSTAINED_CRITERIA,
+    SUSTAINED_PERSISTENCE,
+    EndpointImpact,
+    Impact,
+    Round,
+    judge_endpoint,
+    overall,
+    sustained,
+)
 from unbidden.observe.probe import Prober
 from unbidden.operate import ledger
 from unbidden.operate.deploy import OperationRefused, deploy
@@ -27,6 +39,10 @@ from unbidden.world.scope import scope
 Log = Callable[[str], None]
 HEALTH_HINTS = ("health", "healthz", "ping", "status")
 OUTAGE_ROUNDS = 3  # consecutive failing rounds of a health endpoint
+SUSTAINED_WINDOW = timedelta(hours=4)
+SUSTAINED_EVERY_S = 60.0
+SUSTAINED_BASELINE_MINUTES = 30
+SUSTAINED_MIN_MINUTES = 120
 
 
 class DeployVerdict(Contract):
@@ -109,6 +125,7 @@ class LiveWatcher:
     def tick(self) -> None:
         if not self.prober().round():
             return
+        self._sustained()
         history = self.history()
         if len(history) < 2:
             return
@@ -120,6 +137,72 @@ class LiveWatcher:
             return
         if self.store.get("deploy_verdicts", f"{current}:{history[current]}", DeployVerdict) is None:
             self._judge(history, current, baseline)
+
+    def _sustained(self, now: datetime | None = None) -> None:
+        """Once a minute: each endpoint's last minutes against the oldest of the last four hours, across deploys."""
+        now = now or utc_now()
+        last = self.store.get_value("sustained_checked_at")
+        if last and (now - datetime.fromisoformat(last)).total_seconds() < SUSTAINED_EVERY_S:
+            return
+        self.store.set_value("sustained_checked_at", now.isoformat())
+        since = now - SUSTAINED_WINDOW
+        for target in self.store.round_targets():
+            per_minute: dict[str, list[float]] = {}
+            for ts, _, statuses, latencies in self.store.rounds(target):
+                if ts < since:
+                    continue
+                served = [ms for ms, st in zip(latencies, statuses, strict=True) if 200 <= st < 400]
+                per_minute.setdefault(ts.strftime("%Y-%m-%dT%H:%M"), []).extend(served)
+            minutes = [statistics.median(v) for _, v in sorted(per_minute.items()) if v]
+            if len(minutes) < SUSTAINED_MIN_MINUTES:
+                continue  # less than two hours seen: no old baseline yet
+            found = sustained(minutes[:SUSTAINED_BASELINE_MINUTES], minutes[-SUSTAINED_PERSISTENCE:])
+            key = f"sustained_open:{target}"
+            if found is None:
+                self.store.set_value(key, None)
+                continue
+            if self.store.get_value(key):
+                continue
+            self.store.set_value(key, now.isoformat())
+            history = self.history()
+            payload = {
+                "target": target,
+                "baseline_median_ms": round(found.baseline_median, 1),
+                "recent_median_ms": round(found.recent_median, 1),
+                "factor": round(found.factor, 2),
+                "criteria": SUSTAINED_CRITERIA,
+                "deploys_in_window": len(history),
+            }
+            self.store.append_event(
+                Event(type=EventType.IMPACT_JUDGED, actor="observer", entity_id=f"sustained:{target}", payload=payload)
+            )
+            self.log(
+                f"sustained degradation on {target}: median {found.baseline_median:.1f} -> "
+                f"{found.recent_median:.1f} ms against the oldest part of the last "
+                f"{SUSTAINED_WINDOW.total_seconds() / 3600:.0f} h"
+            )
+            first = next((v for ts, v, _, _ in self.store.rounds(target) if ts >= since), None)
+            current = history[-1] if history else None
+            if (
+                first
+                and current
+                and first != current
+                and not first.startswith("unknown")
+                and not current.startswith("unknown")
+            ):
+                from unbidden.contracts.jobs import Job
+
+                self.store.enqueue(
+                    Job(
+                        type="research.investigate",
+                        idempotency_key=f"research.investigate:sustained:{target}:{now:%Y%m%d%H}",
+                        priority=15,
+                        payload={"good": first, "bad": current, "subject": f"sustained {target}",
+                                 "incident": f"{target} sustained slower: {payload}"},
+                    )
+                )  # fmt: skip
+            else:
+                self.log(f"{target}: the same code ran the whole window; the cause is data, load or environment")
 
     def _baseline(self, history: list[str]) -> int:
         """The deploy to compare against: the previous one, or, when it ran too briefly to be judged or was an
