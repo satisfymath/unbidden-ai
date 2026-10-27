@@ -16,6 +16,9 @@ Write the file `.unbidden-lab/workload.py` defining `build(...) -> Callable[[], 
   engines accept it).
 - Call the endpoint as an ordinary user that owns some of the seeded rows, authenticated the same way the
   application's own tests do (shown below).
+- The returned function is called {{calls}} times. If the endpoint consumes what it acts on (a merge or a delete
+  removes a row), prepare {{calls}} separate targets in `build()` and use a new one on each call, so every call
+  does the same work and returns success.
 - Only the standard library, the application's own modules and its installed dependencies. No network.
 - The working directory is `{{cwd}}`, which is on `sys.path`.
 

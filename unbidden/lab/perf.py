@@ -294,13 +294,15 @@ class PerfLab:
         return "\n\n".join(out)[:budget] or "(none found)"
 
     def _test_examples(self, rev: str, endpoint: str = "", table: str = "", budget: int = 9000) -> str:
-        """What a workload needs to fit the repository's own tests, most specific first: an existing test that calls
-        the endpoint (its imports and calls are real), every pytest fixture the suite defines (name, parameters,
-        file), the fixture files about the table, and the conftest."""
+        """What a workload needs to fit the repository's own tests, within what one request may carry: every pytest
+        fixture the suite defines (name, parameters, file) and the classes they are typed with, then an existing test
+        that calls the endpoint (its imports and calls are real), then the fixture files about the table and the
+        conftest."""
         tracked = _git(self.repo, "ls-tree", "-r", "--name-only", rev).splitlines()
         tests = [p for p in tracked if p.endswith(".py") and re.search(r"(^|/)tests?/", p)]
         sources = {p: self._show(rev, p) for p in tests}
         blocks: list[str] = []
+        calling: list[str] = []  # placed after the fixtures and their types, which matter more and are shorter
 
         # 1. A test that calls the endpoint, by its path or by a constant holding it (`foods_merge = "/api/..."`).
         path = endpoint.partition(" ")[2]
@@ -325,14 +327,15 @@ class PerfLab:
                 )
             )
             for caller in callers[:1]:
-                blocks.append(
-                    f"An existing test that calls `{endpoint}`, `{caller}`:\n```python\n{sources[caller][:5000]}```"
+                calling.append(
+                    f"An existing test that calls `{endpoint}`, `{caller}`:\n```python\n{sources[caller][:3500]}```"
                 )
 
         # 2. Every fixture the suite defines.
         fixtures = [
             f"- `{m.group(2)}({m.group(3).strip()})` in `{p}`"
             for p, text in sources.items()
+            if not Path(p).name.startswith("test_")  # a test module's own fixtures are not visible elsewhere
             for m in re.finditer(r"@(?:pytest\.)?fixture[^\n]*\n(?:@[^\n]*\n)*(async\s+)?def\s+(\w+)\(([^)]*)\)", text)
         ]
         if fixtures:
@@ -356,6 +359,8 @@ class PerfLab:
                     end = re.compile(r"^\S", re.M).search(body, body.find("\n") + 1)  # next top-level line
                     definition = body[: end.start()] if end else body
                     blocks.append(f"`{name}` in `{path}`:\n```python\n{definition[:1500]}```")
+
+        blocks += calling
 
         # 3. Fixture files about the table, then the conftest.
         words = {w.removesuffix("s") for w in re.split(r"[_.]", table.lower()) if len(w) > 2}
@@ -538,6 +543,7 @@ class PerfLab:
                     models_file=models_file,
                     models=self._show(rev, models_file)[:8000],
                     related_models=self._related_models(rev, models_file, table),
+                    calls=str(WARMUP + SAMPLES),
                     test_examples=self._test_examples(rev, list_endpoint, table),
                 ),
                 opp,
