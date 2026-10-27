@@ -56,3 +56,26 @@ def evaluate_github(mandate: Mandate, destination: str, payload: str) -> EgressV
     if secrets:
         reasons.append(f"payload contains {len(secrets)} secret(s)")
     return _verdict("github", destination, payload, reasons, [h.kind for h in secrets])
+
+
+def evaluate_screenshots(mandate: Mandate, destination: str, images: list[bytes], text: str) -> EgressVerdict:
+    """Screenshots leave only where a person allowed it for this workspace; the text sent with them is still scanned
+    for secrets. The verdict carries the images' total size and a digest of all of them, never their content."""
+    reasons: list[str] = []
+    if mandate.models.screenshots_to_frontier != "allow":
+        reasons.append("this workspace's mandate does not allow screenshots to leave (models.screenshots_to_frontier)")
+    if destination not in mandate.egress.remote_models.destinations:
+        reasons.append(f"{destination} is not an allowed remote model destination")
+    secrets = secret_hits(scan(text))
+    if secrets:
+        reasons.append(f"the text sent with the images contains {len(secrets)} secret(s)")
+    digest = hashlib.sha256(b"".join(images) + text.encode()).hexdigest()
+    return EgressVerdict(
+        allowed=not reasons,
+        kind="screenshots",
+        destination=destination,
+        reasons=reasons,
+        matched=[h.kind for h in secrets],
+        payload_sha256=digest,
+        payload_bytes=sum(len(i) for i in images) + len(text.encode()),
+    )

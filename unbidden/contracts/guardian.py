@@ -85,6 +85,9 @@ class ModelsPolicy(Contract):
 
     profile: Literal["local", "local-first", "frontier"] = "local-first"
     private_code_to_frontier: Literal["deny", "allow"] = "deny"
+    # Screenshots of the project's own pages may be shown to a remote multimodal model. Images cannot be scanned for
+    # secrets the way text is, so this is a person's explicit choice per workspace, off by default.
+    screenshots_to_frontier: Literal["deny", "allow"] = "deny"
 
 
 class Mandate(Contract):
@@ -132,7 +135,7 @@ class PolicyVerdict(Contract):
         return self.decision is Decision.ALLOW
 
 
-EgressKind = Literal["synthetic_task", "github", "package_registry"]
+EgressKind = Literal["synthetic_task", "github", "package_registry", "screenshots"]
 
 
 class EgressVerdict(Contract):
