@@ -164,3 +164,19 @@ Exposed, and fixed:
 3. Forge's first adapter listed the statuses it had seen (200|403|404) and passed an oracle with no 500 in the
    held-out lines. The oracle now runs metamorphic checks (statuses and methods not in the sample), adapters
    carry the oracle version that judged them, and only those judged by the current one are usable.
+
+## D-016 · 2026-10-27 · Forge escalates through the bridge; the investigator explains the outage
+
+- **Forge, first real build** (backend logs of full-stack-fastapi-template, uvicorn access format). The local
+  model failed five attempts (patterns that did not compile or did not match its own tests). Escalated through
+  the privacy bridge: 7 path segments renamed and addresses replaced; the first escalation was blocked by the
+  egress gate because the tests in the prompt quoted real paths (fixed: renaming now covers the whole text).
+  Muse Spark returned `"(?P<method>[A-Z]+) (?P<path>/\S*) HTTP/[\d.]+" (?P<status>\d{3})`, judged locally by
+  oracle v2: 1,029 / 1,029 unseen real lines, every metamorphic variant read, 1.7 µs per line. An earlier
+  local adapter (`status` limited to 200|403|404) had passed oracle v1 and is no longer usable.
+- **Investigation of the outage drill**, read-only, local model, four tool calls (git log, git diff, service
+  errors, read file): "the health-check endpoint was changed in release 1.6 to raise RuntimeError
+  unconditionally". Correct, citing the commit and line, and not misled by the exception's text about a
+  database pool. Claimed confidence 0.95, capped at 0.60 because nothing was reproduced (L1).
+- Blind spot recorded: `docker compose logs` returns the current container's lines, so errors of a container
+  replaced by a rollback are not readable afterwards.
