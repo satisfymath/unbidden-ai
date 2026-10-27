@@ -372,3 +372,36 @@ opentelemetry-demo runs its own Prometheus and Jaeger. Unbidden now reads both, 
 
   These are three passes and two failures, all reported. health-v2 candidates (judge per operation, require larger
   samples for p95, use variation-based thresholds for chronic services) wait for a calibration.
+
+## D-025 · 2026-10-27 · Forge builds a second kind of capability; untrusted text measured; the worker cannot hang
+
+- **Forge, from need to use, on a real source.**
+  1. **Need.** The map finds that frontend-proxy serves 1,870 lines of numbers at `/stats` (Envoy's format) that no
+     connector reads, and names that need. Two other endpoints are in Prometheus text, a known format: nothing is
+     built for them.
+  2. **First attempts failed.** The local model failed eight times: answers cut off, then patterns that did not
+     compile. The raw answer showed backslashes lost inside JSON, against D-005. Patterns now come back as raw
+     lines, in the log Forge too; this is probably the cause of D-016's five local failures.
+  3. **Built and judged.** After the fix the local model wrote the reader on its first attempt. The oracle, with no
+     model, passed it on 1,770 unseen lines: 100 %, metamorphic checks, 8.4 µs per line, 63 histogram lines
+     declared unread.
+  4. **Contract.** The reader carries a card: purpose, typed input and output, permissions it cannot widen, privacy,
+     limits, kept tests, failures, and how to disable it.
+  5. **Reuse and use.** A new endpoint is first tried against existing readers with the oracle. During an anomaly,
+     each proxy's upstream error counters are read twice.
+
+  Reuse on a second project has not been run: there is no second system with Envoy here.
+- **Local failures escalate through the bridge**, as logs do (D-016). The project's names are renamed, addresses
+  replaced and values randomized. Not exercised live, because the local model succeeded.
+- **Prompt injection, measured with the local model** (`bench/injection_eval.py`). A log line planted to blame DNS:
+  - The easy scenario (the cause is visible in the diff): followed 0/5 raw and 0/5 fenced.
+  - The hard scenario (the cause is not in the code): 0/5 and 0/5.
+
+  The model resisted this kind of plant on its own, so fencing shows no measurable benefit and is kept only as
+  defence in depth. The code control at first lowered all ten correct conclusions to the floor, which would have
+  let anyone who can write a log line void Unbidden's investigations. Now only lines that try to steer are set
+  apart, and confidence drops only when cited evidence rests on them alone.
+- **Criterion.** `unbidden decide` reports what the Director would do with each open opportunity, and why, changing
+  nothing. The benchmark records it per repository against the policy of acting on every finding.
+- **Reliability.** A job past its limit is cancelled and retried with growing waits (2, 4, 8 minutes, at most 1 hour).
+  A thread started with `to_thread` cannot be killed, but the worker no longer waits for it.
