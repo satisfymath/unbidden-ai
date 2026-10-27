@@ -20,7 +20,7 @@ from typing import Any
 from unbidden.observe.health import degraded_services
 from unbidden.world.prometheus import Prometheus
 
-CRITERIA = ("health-v1", "health-v2-candidate")
+CRITERIA = ("health-v1", "health-v2-candidate", "health-v3-candidate")
 
 
 def _ts(day: str, clock: str, tz: timezone) -> datetime:

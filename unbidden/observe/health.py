@@ -10,6 +10,7 @@ about where to look, not a cause, and is recorded as such.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -20,7 +21,7 @@ from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.world import WorldModel
 from unbidden.store import Store
 from unbidden.world.jaeger import Jaeger, JaegerError, origins
-from unbidden.world.prometheus import Prometheus, ServiceHealth, health
+from unbidden.world.prometheus import SPAN_CALLS, Prometheus, ServiceHealth, health
 from unbidden.world.scope import scope
 
 WINDOW, BASELINE, MIN_REQUESTS, MIN_ERRORS = "5m", "30m", 8, 3
@@ -41,6 +42,12 @@ CRITERIA: dict[str, str | float | int] = {
 
 # A candidate, not in use: designed after the faults of D-024 and to be calibrated before it may replace v1.
 V2_MIN_OP_REQUESTS, V2_MIN_LATENCY_REQUESTS, V2_SIGMAS = 10, 50, 4.0
+CRITERIA_V3_CANDIDATE: dict[str, str] = {
+    "criteria_version": "health-v3-candidate",
+    "as": "health-v2-candidate, with per-operation errors judged by a binomial test against their own baseline",
+    "plus": "a service whose callers' gRPC client spans fail (one-sided binomial p < 0.001 against a 1 % failure rate, "
+    "at least 3 failures) while its server spans do not",
+}
 CRITERIA_V2_CANDIDATE: dict[str, str | float | int] = {
     "criteria_version": "health-v2-candidate",
     "window": WINDOW,
@@ -74,6 +81,69 @@ def judge_v2(now: ServiceHealth, baseline: ServiceHealth | None) -> bool:
     return errors or latency
 
 
+def judge_v3(now: ServiceHealth, baseline: ServiceHealth | None) -> bool:
+    """Errors: a one-sided binomial test against the operation's own baseline rate (at least 1 %), plus a practical
+    floor (5 % and twice the baseline). Latency as in v2."""
+    base = baseline.error_ratio if baseline and baseline.requests else 0.0
+    errors = (
+        now.errors >= MIN_ERRORS
+        and now.error_ratio >= max(ERROR_FLOOR, 2 * base)
+        and surprising(round(now.errors), round(now.requests), max(base, V3_BASE_RATE))
+    )
+    latency = judge_v2(ServiceHealth(now.service, now.requests, 0.0, now.p95_ms), baseline)
+    return errors or latency
+
+
+def grpc_callee(span_name: str, services: set[str]) -> str | None:
+    """The service a gRPC client span calls, from its name (`package.PaymentService/Charge` -> `payment`), when a
+    service of the project has that name; None for anything else."""
+    found = re.match(r"^(?:[\w.]+\.)?(\w+?)(?:Service)?/\w+$", span_name)
+    if not found:
+        return None
+    name = re.sub(r"(?<!^)(?=[A-Z])", "-", found.group(1)).lower()
+    return name if name in services else None
+
+
+def unreachable(prom: Prometheus, services: set[str], at: float | None = None) -> set[str]:
+    """Services whose callers' client spans fail while their own server spans show no failure: failing before their
+    server (unreachable, refused, timed out). Judged with the v2 thresholds on the callers' pooled calls."""
+    client = 'span_kind="SPAN_KIND_CLIENT"'
+    rows = prom.query(f"sum by (span_name, status_code) (increase({SPAN_CALLS}{{{client}}}[{WINDOW}]))", at)
+    calls: dict[str, list[float]] = {}
+    for labels, value in rows:
+        callee = grpc_callee(labels.get("span_name", ""), services)
+        if callee is None:
+            continue
+        pair = calls.setdefault(callee, [0.0, 0.0])
+        pair[0] += value
+        pair[1] += value if labels.get("status_code") == "STATUS_CODE_ERROR" else 0.0
+    server = health(prom, WINDOW, at=at)
+    found: set[str] = set()
+    for callee, (total, errors) in calls.items():
+        own = server.get(callee)
+        if (
+            errors >= MIN_ERRORS
+            and surprising(round(errors), round(total))
+            and (own is None or own.errors < MIN_ERRORS)
+        ):
+            found.add(callee)
+    return found
+
+
+V3_ALPHA, V3_BASE_RATE = 0.001, 0.01
+
+
+def surprising(errors: int, total: int, base_rate: float = V3_BASE_RATE) -> bool:
+    """So many failures are very unlikely if calls failed at the usual low rate: a one-sided binomial test, which
+    stays valid with little traffic where fixed request minimums say nothing."""
+    from scipy.stats import binomtest  # pyright: ignore[reportUnknownVariableType]
+
+    if total <= 0 or errors <= 0:
+        return False
+    result: Any = binomtest(min(errors, total), total, base_rate, alternative="greater")
+    return float(result.pvalue) < V3_ALPHA
+
+
 def degraded_services(prom: Prometheus, criteria: str, at: float | None = None) -> set[str]:
     """Services judged degraded at `at` (or now) under criteria v1 or the v2 candidate; for calibrations."""
     if criteria == "health-v1":
@@ -81,7 +151,12 @@ def degraded_services(prom: Prometheus, criteria: str, at: float | None = None) 
         return {name for name, h in now.items() if judge(h, base.get(name)).degraded}
     by = "service_name, span_name"
     now, base = health(prom, WINDOW, at=at, by=by), health(prom, BASELINE, offset=WINDOW, at=at, by=by)
-    return {key.split("/", 1)[0] for key, h in now.items() if judge_v2(h, base.get(key))}
+    judge_op = judge_v3 if criteria == "health-v3-candidate" else judge_v2
+    found = {key.split("/", 1)[0] for key, h in now.items() if judge_op(h, base.get(key))}
+    if criteria == "health-v3-candidate":
+        services = {key.split("/", 1)[0] for key in now} | {key.split("/", 1)[0] for key in base}
+        found |= unreachable(prom, services, at)
+    return found
 
 
 @dataclass(frozen=True)

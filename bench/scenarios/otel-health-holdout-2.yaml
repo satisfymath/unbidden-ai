@@ -1,0 +1,9 @@
+# Second holdout for health criteria, fixed on 2026-10-27 before it was run, after health-v3-candidate was designed
+# on every earlier scenario. v1, v2 and v3 are all judged on it by replaying the same history; none changes after.
+control_minutes: 10
+faults:
+  - {flag: paymentFailure, variant: "50%", expect: payment}
+  - {flag: loadGeneratorFloodHomepage, variant: "on", expect: frontend}
+  - {flag: emailMemoryLeak, variant: 1000x, expect: email}
+pass: the expected service degraded within 5 minutes
+note: emailMemoryLeak grows memory; a detector built on request spans may not see it, and that is part of the test

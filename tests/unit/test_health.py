@@ -151,3 +151,22 @@ def test_unrelated_origins_degrading_together_are_one_common_cause() -> None:
     assert shared is not None and shared.effects == ["ad", "cart", "email"]
     linked = world_with(("cart", "ad", obs), ("checkout", "email", obs), ("x", "y", obs))
     assert common_cause(linked, localize(linked, {"cart", "ad", "email"})) is None  # cart calls ad: two origins
+
+
+def test_grpc_client_spans_name_the_service_they_call() -> None:
+    from unbidden.observe.health import grpc_callee
+
+    services = {"payment", "product-catalog", "cart"}
+    assert grpc_callee("oteldemo.PaymentService/Charge", services) == "payment"
+    assert grpc_callee("oteldemo.ProductCatalogService/GetProduct", services) == "product-catalog"
+    assert grpc_callee("CartService/GetCart", services) == "cart"
+    assert grpc_callee("POST", services) is None
+    assert grpc_callee("oteldemo.EmailService/Send", services) is None  # not a service of this project
+
+
+def test_few_calls_that_nearly_all_fail_are_surprising_and_a_rare_failure_is_not() -> None:
+    from unbidden.observe.health import surprising
+
+    assert surprising(4, 5)
+    assert not surprising(1, 200)
+    assert not surprising(3, 1000)
