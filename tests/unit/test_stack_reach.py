@@ -81,3 +81,30 @@ def test_dotenv_references() -> None:
     env = parse_dotenv('A=1\nB="x${A}y"\n# c\n')
     assert env == {"A": "1", "B": "x1y"}
     assert interpolate("${A:-z}${Q-d}", env, []) == "1d"
+
+
+def test_a_node_library_without_a_lockfile_is_resolved_at_provisioning(tmp_path: Path) -> None:
+    from unbidden.sandbox.provision import node_dockerfile
+
+    repo = commit(tmp_path, {"package.json": '{"name": "lib", "devDependencies": {"typescript": "5"}}'})
+    stack = detect_stack(repo)
+    assert stack.node is not None and stack.node.lockfile is None
+    assert any("without a lockfile" in b for b in stack.blind_spots)
+    dockerfile = node_dockerfile(stack.node)
+    assert "npm install --ignore-scripts" in dockerfile and "npm ci" not in dockerfile
+
+
+def test_languages_not_analyzed_are_named(tmp_path: Path) -> None:
+    repo = commit(tmp_path, {"go.mod": "module x\n", "web/Gemfile": "gem 'rails'\n"})
+    stack = detect_stack(repo)
+    assert stack.languages == []
+    assert any(b.startswith("Go (go.mod) is not analyzed") for b in stack.blind_spots)
+    assert any(b.startswith("Ruby (Gemfile)") for b in stack.blind_spots)
+
+
+def test_versions_from_git_do_not_break_the_dependency_image() -> None:
+    from unbidden.observe.stack import PythonStack
+    from unbidden.sandbox.provision import python_dockerfile
+
+    stack = PythonStack(version="3.12", lockfile=None, manifest="pyproject.toml", ruff=True, pyright=False, pytest=True)
+    assert "SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0" in python_dockerfile(stack)

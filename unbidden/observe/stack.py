@@ -34,7 +34,7 @@ class NodePackage:
 @dataclass(frozen=True)
 class NodeStack:
     manager: NodeManager
-    lockfile: str
+    lockfile: str | None  # None: resolved by npm at provisioning time, said as a blind spot
     major: int
     major_assumed: bool  # true when the repo declares no Node version and we picked one; reported, never hidden
     typescript: bool
@@ -160,14 +160,16 @@ def _detect_node(repo: Path, rev: str, files: set[str], blind: list[str]) -> Nod
     if "package.json" not in files:
         return None
     package = json.loads(_read(repo, rev, "package.json"))
-    lock: tuple[NodeManager, str] | None = None
+    lock: tuple[NodeManager, str | None] | None = None
     for manager, name in (("pnpm", "pnpm-lock.yaml"), ("npm", "package-lock.json"), ("yarn", "yarn.lock")):
         if name in files:
             lock = (manager, name)  # type: ignore[assignment]
             break
     if lock is None:
-        blind.append("package.json has no lockfile; dependencies cannot be installed reproducibly")
-        return None
+        # Many libraries never commit a lockfile. Resolve at provisioning time, as for Python without uv.lock: the
+        # image is kept by the manifest's digest, so runs on this machine share one resolution.
+        blind.append("package.json without a lockfile: dependencies resolved at provisioning time")
+        lock = ("npm", None)
     if lock[0] == "yarn":
         blind.append("yarn projects are not supported yet")
         return None
@@ -341,8 +343,27 @@ def _detect_python(repo: Path, rev: str, files: set[str], blind: list[str]) -> P
 def detect_stack(repo: Path, rev: str = "HEAD") -> Stack:
     files = tracked_files(repo, rev)
     blind: list[str] = []
-    return Stack(
+    stack = Stack(
         node=_detect_node(repo, rev, files, blind),
         python=_detect_python(repo, rev, files, blind),
         blind_spots=blind,
     )
+    for manifest, language in UNANALYZED:
+        if manifest in files or any(f.endswith(f"/{manifest}") for f in files):
+            blind.append(f"{language} ({manifest}) is not analyzed: no checks, probes or experiments for that code")
+    return stack
+
+
+# Languages Unbidden does not analyze yet, found by their manifest so they are named rather than silently skipped.
+UNANALYZED = (
+    ("go.mod", "Go"),
+    ("Cargo.toml", "Rust"),
+    ("Gemfile", "Ruby"),
+    ("pom.xml", "Java"),
+    ("build.gradle", "Java/Kotlin"),
+    ("build.gradle.kts", "Kotlin"),
+    ("composer.json", "PHP"),
+    ("mix.exs", "Elixir"),
+    ("Package.swift", "Swift"),
+    ("pubspec.yaml", "Dart"),
+)

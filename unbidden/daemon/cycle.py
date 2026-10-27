@@ -153,8 +153,14 @@ class Cycle:
         rev, package = j.payload["rev"], j.payload["package"]
         if rev != self.store.get_value("head"):
             return
-        _, images = await asyncio.to_thread(self._env, rev)
+        record: dict[str, object] = {"rev": rev, "package": package, "ran": False}
+        try:
+            _, images = await asyncio.to_thread(self._env, rev)
+        except Exception as exc:
+            self.store.set_value("last_probe", {**record, "why": f"environment: {str(exc)[:300]}"})
+            raise
         if "python" not in images:
+            self.store.set_value("last_probe", {**record, "why": "no Python image could be built"})
             self.log(f"robustness probe of {package}: no Python image could be built")
             return
         probe = RobustnessProbe(self.runtime.workspace.repo, self.store, self.runtime.brain, images["python"])
@@ -169,6 +175,7 @@ class Cycle:
         artifacts.mkdir(exist_ok=True)
         (artifacts / f"robustness-{rev[:12]}.answer.md").write_text(probe.last_answer)
         if outcome is None:
+            self.store.set_value("last_probe", {**record, "why": "no usable tests were written"})
             self.log(f"robustness probe of {package}: no usable tests were written")
             return
         tests, output = outcome
@@ -177,6 +184,12 @@ class Cycle:
         crashes = parse_crashes(output, package)
         opened = probe.record(rev, package, tests, crashes)
         kept = property_violations(output)
+        summary = next((ln for ln in reversed(output.splitlines()) if " passed" in ln or " failed" in ln), None)
+        self.store.set_value(
+            "last_probe",
+            {**record, "ran": summary is not None, "summary": summary or output[-300:], "crashes": len(crashes),
+             "opened": len(opened), "violations": len(kept)},
+        )  # fmt: skip
         self.log(
             f"robustness probe of {package}: {len(crashes)} crash(es), {len(opened)} new; "
             f"{len(kept)} property violation(s) kept for a person (L1)"

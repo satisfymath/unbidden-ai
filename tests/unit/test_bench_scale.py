@@ -33,6 +33,11 @@ def test_outcomes_follow_fixed_rules() -> None:
     assert classify({"steps": {"checkout": {"code": 1}}}) == "checkout failed"
     assert classify(_row(languages=[])) == "unsupported stack"
     assert classify(_row(languages=["python"], analyzers=[{"completeness": "failed"}])) == "bootstrap failed"
+    # A probe that was decided but never ran its tests is not a bootstrap.
+    decided = [{"chosen": "investigate"}]
+    assert classify(_row(languages=["python"], analyzers=[], probe_decisions=decided)) == "bootstrap failed"
+    ran = {"ran": True}
+    assert classify(_row(languages=["python"], analyzers=[], probe=ran, opportunities=[])) == "nothing found"
     complete = [{"completeness": "complete"}]
     assert classify(_row(languages=["python"], analyzers=complete, opportunities=[])) == "nothing found"
     found = [{"level": 2}]

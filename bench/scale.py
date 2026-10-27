@@ -96,6 +96,7 @@ def _cli(argv: list[str], cwd: Path, env: dict[str, str], timeout: float) -> dic
                 os.killpg(proc.pid, signal.SIGKILL)
                 out, err = proc.communicate()
     rss = re.search(r"(\d+)\s+maximum resident set size", err or "")
+    err = re.split(r"^\s+[\d.]+ real\s", err or "", flags=re.MULTILINE)[0]  # drop time's own report
     return {
         "code": proc.returncode,
         "seconds": round(time.monotonic() - started, 1),
@@ -112,7 +113,9 @@ def _docs(db: sqlite3.Connection, collection: str) -> list[dict[str, Any]]:
 
 
 def _events(db: sqlite3.Connection, type_: str) -> list[dict[str, Any]]:
-    return [json.loads(p) for (p,) in db.execute("SELECT payload FROM events WHERE type = ?", (type_,))]
+    return [
+        {**json.loads(p), "ts": ts} for ts, p in db.execute("SELECT ts, payload FROM events WHERE type = ?", (type_,))
+    ]
 
 
 def _count(values: Any) -> dict[str, int]:
@@ -150,6 +153,7 @@ def read_state(workspace: Path) -> dict[str, Any]:
         t["compute_s"] += r["usage"].get("duration_s", 0.0)
     return {
         "head": kv.get("head"),
+        "probe": kv.get("last_probe"),
         "languages": scan.get("languages"),
         "blind_spots": scan.get("blind_spots"),
         "problems": scan.get("problems"),
@@ -195,7 +199,7 @@ def classify(row: dict[str, Any]) -> str:
     if not state.get("languages"):
         return "unsupported stack"
     analyzers = state.get("analyzers") or []
-    probed = any(p.get("chosen") == "investigate" for p in state.get("probe_decisions") or [])
+    probed = bool((state.get("probe") or {}).get("ran"))  # tests that actually ran, not a probe only decided
     if not any(a["completeness"] == "complete" for a in analyzers) and not probed:
         return "bootstrap failed"
     levels = [o["level"] for o in state.get("opportunities") or []]

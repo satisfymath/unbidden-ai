@@ -60,6 +60,8 @@ def node_dockerfile(stack: NodeStack) -> str:
         "npm": "npm ci --ignore-scripts --no-audit --no-fund",
         "pnpm": "corepack enable && pnpm install --frozen-lockfile --ignore-scripts",
     }[stack.manager]
+    if stack.lockfile is None:
+        install = "npm install --ignore-scripts --no-audit --no-fund"
     # Code generation a type check depends on, from trusted tools only (never arbitrary install scripts): Prisma's
     # client is generated from the tracked schema, the one step besides installing that may use the network.
     generate = "".join(
@@ -109,6 +111,9 @@ RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \\
  && pip install --no-cache-dir uv \\
  && uv venv /opt/tools && uv pip install --python /opt/tools/bin/python ruff=={RUFF_VERSION} pytest=={PYTEST_VERSION}
 {build_tools}ENV UV_PROJECT_ENVIRONMENT=/deps/.venv UV_LINK_MODE=copy
+# Projects that take their version from git (setuptools-scm, hatch-vcs) cannot read it here: only manifests are
+# copied, never .git. Their dependencies do not depend on the version.
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
 WORKDIR /deps
 COPY ctx/ /deps/
 RUN {install} \\
@@ -129,7 +134,7 @@ def _manifests(repo: Path, rev: str, stack: NodeStack | PythonStack) -> list[str
     files = tracked_files(repo, rev)
     if isinstance(stack, NodeStack):
         wanted = [f for f in files if f == "package.json" or f.endswith("/package.json")]
-        wanted += [stack.lockfile]
+        wanted += [stack.lockfile] if stack.lockfile else []
         wanted += [f for f in ("pnpm-workspace.yaml", ".npmrc") if f in files]
         wanted += [p.prisma_schema for p in stack.packages if p.prisma_schema]
         # Packages vendored under node_modules are never tracked in sane repos; skip them if they are.

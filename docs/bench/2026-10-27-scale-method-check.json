@@ -1,0 +1,241 @@
+{
+  "run": "method-check-1",
+  "manifest": "bench/repos/scale.yaml",
+  "unbidden_commit": "0356424ab1e0a81381f16a554b21c491be7b408b",
+  "settings": {
+    "split": "pilot",
+    "workers": 1,
+    "minutes": 30.0,
+    "repo_budget": 0.3,
+    "profile": "frontier"
+  },
+  "rows": [
+    {
+      "name": "humanize",
+      "run": "method-check-1",
+      "tag": "bench:method-check-1:humanize",
+      "meta": {
+        "url": "https://github.com/python-humanize/humanize",
+        "commit": "6b817b963dbb091b9ad20a746cb6a26653a93b95",
+        "split": "pilot",
+        "license": "MIT",
+        "language": "Python",
+        "shape": "library",
+        "database": "none",
+        "domain": "text formatting"
+      },
+      "started_at": "2026-10-27T23:11:54.011045+00:00",
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.3,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.2,
+          "timed_out": false,
+          "max_rss_mb": 39.5,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/humanize\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/humanize/.unbidden/mandate.yaml\"\n}",
+          "stderr": "        0.15 real         0.10 user         0.03 sys\n            41418752  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               10316  page reclaims\n                  31  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   1  messages sent\n                   1  messages received\n                   1  signals received\n                  30  voluntary context switches\n                 168  involuntary context switches\n            97937599  instructions retired\n            45110301  cycles elapsed\n            10338832  peak memory footprint\n"
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.2,
+          "timed_out": false,
+          "max_rss_mb": 57.8,
+          "log_tail": "      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"6b817b963dbb091b9ad20a746cb6a26653a93b95\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-27T23:11:56.337681Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-27T23:11:56.337701Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"6b817b963dbb091b9ad20a746cb6a26653a93b95\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:humanize\",\n      \"kind\": \"repo\",\n      \"name\": \"humanize\",\n      \"attributes\": {\n        \"rev\": \"6b817b963dbb091b9ad20a746cb6a26653a93b95\",\n        \"languages\": [\n          \"python\"\n        ]\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-27T23:11:56.251763Z\"\n}",
+          "stderr": "        1.17 real         0.36 user         0.22 sys\n            60653568  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               82322  page reclaims\n                5332  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                  26  messages sent\n                  52  messages received\n                 475  signals received\n                 333  voluntary context switches\n                4878  involuntary context switches\n            98028951  instructions retired\n            42161728  cycles elapsed\n            10322448  peak memory footprint\n"
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 12.5,
+          "timed_out": false,
+          "max_rss_mb": 122.3,
+          "log_tail": "20:11:56 watching /Users/david/unbidden-bench/humanize (ctrl-c to stop, \n`unbidden kill` to freeze)\n20:11:57 HEAD is 6b817b963dbb\n20:11:57 provisioning python dependencies\n20:12:06 scan of 6b817b963dbb: 0 reports, 0 new opportunities\n20:12:07 map of 6b817b963dbb: 1 resources, 2 blind spots\n20:12:07 robustness probe at 6b817b963dbb: investigate (probe src/humanize (15 \npublic functions sampled))\n20:12:09 research.probe failed: dependency image for python failed to build:\nerror: Failed to build `humanize @ file:///deps`\n  cause: The build backend returned an error\n  cause: Call to `hatchling.build.prepare_metadata_for_build_editable` failed \n(exit status: 1)\n         LookupError: Error getting the version from source `vcs`: \nsetuptools-scm was unable to detect version for /deps.\n         No distribution name is known here, so the per-distribution \nSETUPTOOLS_SCM_PRETEND_VERSION_FOR_<DIST> form cannot match; pass a dist name to\nuse it.\nERROR: process \"/bin/sh -c uv sync --no-install-project --all-groups --project \n/deps  && (/deps/.venv/bin/python -c \\\"import pytest\\\" 2>/dev/null      || uv \npip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install\n--python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\"import \nhypothesis\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python \nhypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python \nhypothesis)\" did not complete successfully: exit code: 1\n0.623          No distribution name is known here, so the per-distribution \nSETUPTOOLS_SCM_PRETEND_VERSION_FOR_<DIST> form cannot match; pass a dist name to\nuse it.\n--------------------\nERROR: failed to build: failed to solve: process \"/bin/sh -c uv sync \n--no-install-project --all-groups --project /deps  && (/deps/.venv/bin/python -c\n\\\"import pytest\\\" 2>/dev/null      || uv pip install --python \n/deps/.venv/bin/python pytest==9.1.1      || uv pip install --python \n/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\"import \nhypothesis\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python \nhypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python \nhypothesis)\" did not complete successfully: exit code: 1",
+          "stderr": "       12.53 real         1.22 user         0.88 sys\n           128253952  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n              283040  page reclaims\n               12177  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                 311  messages sent\n                 533  messages received\n                1072  signals received\n                 914  voluntary context switches\n               16524  involuntary context switches\n            98079476  instructions retired\n            44936641  cycles elapsed\n            10322448  peak memory footprint\n"
+        }
+      },
+      "state": {
+        "head": "6b817b963dbb091b9ad20a746cb6a26653a93b95",
+        "languages": [
+          "python"
+        ],
+        "blind_spots": [
+          "pyproject.toml without uv.lock: dependencies resolved at provisioning time"
+        ],
+        "problems": [
+          "dependency image for python failed to build:\nerror: Failed to build `humanize @ file:///deps`\n  cause: The build backend returned an error\n  cause: Call to `hatchling.build.prepare_metadata_for_build_editable` failed (exit status: 1)\n         LookupError: Error getting the version from source `vcs`: setuptools-scm was unable to detect version for /deps.\n         No distribution name is known here, so the per-distribution SETUPTOOLS_SCM_PRETEND_VERSION_FOR_<DIST> form cannot match; pass a dist name to use it.\nERROR: process \"/bin/sh -c uv sync --no-install-project --all-groups --project /deps  && (/deps/.venv/bin/python -c \\\"import pytest\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\"import hypothesis\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\" did not complete successfully: exit code: 1\n0.646          No distribution name is known here, so the per-distribution SETUPTOOLS_SCM_PRETEND_VERSION_FOR_<DIST> form cannot match; pass a dist name to use it.\n--------------------\nERROR: failed to build: failed to solve: process \"/bin/sh -c uv sync --no-install-project --all-groups --project /deps  && (/deps/.venv/bin/python -c \\\"import pytest\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\"import hypothesis\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\" did not complete successfully: exit code: 1"
+        ],
+        "analyzers": [],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [
+          {
+            "chosen": "investigate",
+            "kind": "robustness_probe",
+            "reason": "probe src/humanize (15 public functions sampled)",
+            "rev": "6b817b963dbb091b9ad20a746cb6a26653a93b95",
+            "targets": [
+              [
+                "src/humanize",
+                15
+              ]
+            ]
+          }
+        ],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {},
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-27T23:12:09.197542+00:00",
+      "seconds": 15.2,
+      "outcome": "nothing found"
+    },
+    {
+      "name": "ky",
+      "run": "method-check-1",
+      "tag": "bench:method-check-1:ky",
+      "meta": {
+        "url": "https://github.com/sindresorhus/ky",
+        "commit": "3541888878c4d303a8bc2ad61815f4e048f55a5d",
+        "split": "pilot",
+        "license": "MIT",
+        "language": "TypeScript",
+        "shape": "library",
+        "database": "none",
+        "domain": "HTTP client"
+      },
+      "started_at": "2026-10-27T23:12:09.204826+00:00",
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.3,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.1,
+          "timed_out": false,
+          "max_rss_mb": 39.5,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/ky\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/ky/.unbidden/mandate.yaml\"\n}",
+          "stderr": "        0.14 real         0.10 user         0.03 sys\n            41435136  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               10313  page reclaims\n                  29  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   1  messages sent\n                   1  messages received\n                   1  signals received\n                  34  voluntary context switches\n                 138  involuntary context switches\n           103906427  instructions retired\n            45483259  cycles elapsed\n            10355216  peak memory footprint\n"
+        },
+        "map": {
+          "code": 0,
+          "seconds": 0.9,
+          "timed_out": false,
+          "max_rss_mb": 57.8,
+          "log_tail": "        {\n          \"kind\": \"commit\",\n          \"locator\": \"3541888878c4d303a8bc2ad61815f4e048f55a5d\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-27T23:12:11.419372Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-27T23:12:11.419398Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"3541888878c4d303a8bc2ad61815f4e048f55a5d\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:ky\",\n      \"kind\": \"repo\",\n      \"name\": \"ky\",\n      \"attributes\": {\n        \"rev\": \"3541888878c4d303a8bc2ad61815f4e048f55a5d\",\n        \"languages\": []\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"frontend\",\n      \"why\": \"its JavaScript package was not analyzed\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-27T23:12:11.350709Z\"\n}",
+          "stderr": "        0.88 real         0.29 user         0.14 sys\n            60588032  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               48618  page reclaims\n                5075  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                  26  messages sent\n                  53  messages received\n                 463  signals received\n                 335  voluntary context switches\n                4317  involuntary context switches\n            97784025  instructions retired\n            42223218  cycles elapsed\n            10273296  peak memory footprint\n"
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 1.1,
+          "timed_out": false,
+          "max_rss_mb": 120.0,
+          "log_tail": "20:12:11 watching /Users/david/unbidden-bench/ky (ctrl-c to stop, `unbidden \nkill` to freeze)\n20:12:12 HEAD is 3541888878c4\n20:12:12 scan of 3541888878c4: 0 reports, 0 new opportunities\n20:12:12 map of 3541888878c4: 1 resources, 3 blind spots",
+          "stderr": "        1.10 real         0.70 user         0.33 sys\n           125829120  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n              111620  page reclaims\n                5396  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                  19  messages sent\n                  25  messages received\n                 488  signals received\n                 412  voluntary context switches\n                4950  involuntary context switches\n            97957661  instructions retired\n            40925380  cycles elapsed\n            10306064  peak memory footprint\n"
+        }
+      },
+      "state": {
+        "head": "3541888878c4d303a8bc2ad61815f4e048f55a5d",
+        "languages": [],
+        "blind_spots": [
+          "package.json has no lockfile; dependencies cannot be installed reproducibly"
+        ],
+        "problems": [],
+        "analyzers": [],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {},
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-27T23:12:12.686382+00:00",
+      "seconds": 3.4,
+      "outcome": "unsupported stack"
+    },
+    {
+      "name": "cobra",
+      "run": "method-check-1",
+      "tag": "bench:method-check-1:cobra",
+      "meta": {
+        "url": "https://github.com/spf13/cobra",
+        "commit": "adbc8813901bba65827259daa8e22ff94ec1f30e",
+        "split": "pilot",
+        "license": "Apache-2.0",
+        "language": "Go",
+        "shape": "library",
+        "database": "none",
+        "domain": "CLI framework"
+      },
+      "started_at": "2026-10-27T23:12:12.694017+00:00",
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.2,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.1,
+          "timed_out": false,
+          "max_rss_mb": 39.5,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/cobra\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/cobra/.unbidden/mandate.yaml\"\n}",
+          "stderr": "        0.14 real         0.10 user         0.03 sys\n            41402368  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               10299  page reclaims\n                  29  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   1  messages sent\n                   1  messages received\n                   1  signals received\n                  33  voluntary context switches\n                 131  involuntary context switches\n            98364242  instructions retired\n            44089023  cycles elapsed\n            10338832  peak memory footprint\n"
+        },
+        "map": {
+          "code": 0,
+          "seconds": 0.9,
+          "timed_out": false,
+          "max_rss_mb": 57.6,
+          "log_tail": "    \"repo:cobra\": {\n      \"status\": \"observed\",\n      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"adbc8813901bba65827259daa8e22ff94ec1f30e\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-27T23:12:14.854663Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-27T23:12:14.854687Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"adbc8813901bba65827259daa8e22ff94ec1f30e\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:cobra\",\n      \"kind\": \"repo\",\n      \"name\": \"cobra\",\n      \"attributes\": {\n        \"rev\": \"adbc8813901bba65827259daa8e22ff94ec1f30e\",\n        \"languages\": []\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-27T23:12:14.790809Z\"\n}",
+          "stderr": "        0.90 real         0.28 user         0.14 sys\n            60375040  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               47302  page reclaims\n                5064  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                  26  messages sent\n                  51  messages received\n                 491  signals received\n                 309  voluntary context switches\n                4376  involuntary context switches\n            97969838  instructions retired\n            42090742  cycles elapsed\n            10338832  peak memory footprint\n"
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 1.1,
+          "timed_out": false,
+          "max_rss_mb": 120.0,
+          "log_tail": "20:12:15 watching /Users/david/unbidden-bench/cobra (ctrl-c to stop, `unbidden \nkill` to freeze)\n20:12:15 HEAD is adbc8813901b\n20:12:15 scan of adbc8813901b: 0 reports, 0 new opportunities\n20:12:15 map of adbc8813901b: 1 resources, 2 blind spots",
+          "stderr": "        1.12 real         0.72 user         0.34 sys\n           125845504  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n              113938  page reclaims\n                5422  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                  19  messages sent\n                  24  messages received\n                 483  signals received\n                 426  voluntary context switches\n                4866  involuntary context switches\n            98017191  instructions retired\n            41611735  cycles elapsed\n            10338832  peak memory footprint\n"
+        }
+      },
+      "state": {
+        "head": "adbc8813901bba65827259daa8e22ff94ec1f30e",
+        "languages": [],
+        "blind_spots": [],
+        "problems": [],
+        "analyzers": [],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {},
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-27T23:12:16.136844+00:00",
+      "seconds": 3.3,
+      "outcome": "unsupported stack"
+    }
+  ],
+  "spend": {
+    "by_repo": {},
+    "by_model": {},
+    "by_purpose": {}
+  }
+}
