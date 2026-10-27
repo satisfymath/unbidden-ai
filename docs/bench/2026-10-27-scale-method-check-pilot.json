@@ -1,7 +1,7 @@
 {
   "run": "method-check-pilot",
   "manifest": "bench/repos/scale.yaml",
-  "unbidden_commit": "c50db50cdfa02b33a29e02279be90ee1796b4ffe",
+  "unbidden_commit": "2d8f84ef1fad85119702e8b35531ffb1fcc3ca9c",
   "settings": {
     "split": "pilot",
     "workers": 2,
@@ -217,6 +217,802 @@
       "finished_at": "2026-10-27T23:20:28.540708+00:00",
       "seconds": 20.2,
       "outcome": "nothing found"
+    },
+    {
+      "name": "starlette",
+      "run": "method-check-pilot",
+      "tag": "bench:method-check-pilot:starlette",
+      "meta": {
+        "url": "https://github.com/Kludex/starlette",
+        "commit": "8aa828ceaff764a2e57932fb42fdf105a47c4c83",
+        "split": "pilot",
+        "license": "BSD-3-Clause",
+        "language": "Python",
+        "shape": "web framework",
+        "database": "none",
+        "domain": "ASGI"
+      },
+      "started_at": "2026-10-27T23:20:28.549034+00:00",
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.5,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.1,
+          "timed_out": false,
+          "max_rss_mb": 39.5,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/method-check-pilot/starlette\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/method-check-pilot/starlette/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.4,
+          "timed_out": false,
+          "max_rss_mb": 57.8,
+          "log_tail": "      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"8aa828ceaff764a2e57932fb42fdf105a47c4c83\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-27T23:20:31.025045Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-27T23:20:31.025075Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"8aa828ceaff764a2e57932fb42fdf105a47c4c83\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:starlette\",\n      \"kind\": \"repo\",\n      \"name\": \"starlette\",\n      \"attributes\": {\n        \"rev\": \"8aa828ceaff764a2e57932fb42fdf105a47c4c83\",\n        \"languages\": [\n          \"python\"\n        ]\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-27T23:20:30.937717Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 34.4,
+          "timed_out": false,
+          "max_rss_mb": 137.1,
+          "log_tail": "20:20:31 watching /Users/david/unbidden-bench/method-check-pilot/starlette \n(ctrl-c to stop, `unbidden kill` to freeze)\n20:20:32 HEAD is 8aa828ceaff7\n20:20:32 provisioning python dependencies\n20:20:46 running ruff\n20:20:47 running mypy\n20:20:49 scan of 8aa828ceaff7: 2 reports, 0 new opportunities\n20:20:50 map of 8aa828ceaff7: 1 resources, 2 blind spots\n20:20:50 robustness probe at 8aa828ceaff7: investigate (probe starlette (77 \npublic functions sampled))\n20:20:50 writing property tests for starlette\n20:21:03 running them offline\n20:21:05 robustness probe of starlette: 2 failed, 6 passed in 1.24s; 0 \ncrash(es), 0 new; 0 property violation(s) kept for a person (L1)",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "8aa828ceaff764a2e57932fb42fdf105a47c4c83",
+        "probe": {
+          "rev": "8aa828ceaff764a2e57932fb42fdf105a47c4c83",
+          "package": "starlette",
+          "ran": true,
+          "summary": "2 failed, 6 passed in 1.24s",
+          "crashes": 0,
+          "opened": 0,
+          "violations": 0
+        },
+        "languages": [
+          "python"
+        ],
+        "blind_spots": [],
+        "problems": [],
+        "analyzers": [
+          {
+            "tool": "ruff",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          },
+          {
+            "tool": "mypy",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          }
+        ],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [
+          {
+            "chosen": "investigate",
+            "kind": "robustness_probe",
+            "reason": "probe starlette (77 public functions sampled)",
+            "rev": "8aa828ceaff764a2e57932fb42fdf105a47c4c83",
+            "targets": [
+              [
+                "starlette",
+                77
+              ]
+            ],
+            "ts": "2026-10-27T23:20:50.366070+00:00"
+          }
+        ],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {
+          "code": {
+            "calls": 1,
+            "ok": 1,
+            "tokens_in": 2654,
+            "tokens_out": 3235,
+            "compute_s": 12.549746333970688
+          }
+        },
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-27T23:21:06.028024+00:00",
+      "seconds": 37.4,
+      "outcome": "nothing found"
+    },
+    {
+      "name": "healthchecks",
+      "run": "method-check-pilot",
+      "tag": "bench:method-check-pilot:healthchecks",
+      "meta": {
+        "url": "https://github.com/healthchecks/healthchecks",
+        "commit": "51a503531d845fc11d5ef270d576c59c300e3620",
+        "split": "pilot",
+        "license": "BSD-3-Clause",
+        "language": "Python",
+        "shape": "application",
+        "database": "SQLite/Postgres",
+        "domain": "cron monitoring"
+      },
+      "started_at": "2026-10-27T23:21:06.036538+00:00",
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.8,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.2,
+          "timed_out": false,
+          "max_rss_mb": 40.6,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/method-check-pilot/healthchecks\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/method-check-pilot/healthchecks/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 4.3,
+          "timed_out": false,
+          "max_rss_mb": 57.9,
+          "log_tail": "      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"51a503531d845fc11d5ef270d576c59c300e3620\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-27T23:21:08.807192Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-27T23:21:08.807222Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"51a503531d845fc11d5ef270d576c59c300e3620\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:healthchecks\",\n      \"kind\": \"repo\",\n      \"name\": \"healthchecks\",\n      \"attributes\": {\n        \"rev\": \"51a503531d845fc11d5ef270d576c59c300e3620\",\n        \"languages\": [\n          \"python\"\n        ]\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-27T23:21:08.737687Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 49.7,
+          "timed_out": false,
+          "max_rss_mb": 147.4,
+          "log_tail": "20:21:12 watching /Users/david/unbidden-bench/method-check-pilot/healthchecks \n(ctrl-c to stop, `unbidden kill` to freeze)\n20:21:12 HEAD is 51a503531d84\n20:21:12 provisioning python dependencies\n20:21:31 running ruff-baseline\n20:21:33 scan of 51a503531d84: 1 reports, 0 new opportunities\n20:21:37 map of 51a503531d84: 1 resources, 2 blind spots\n20:21:42 robustness probe at 51a503531d84: investigate (probe hc (80 public \nfunctions sampled))\n20:21:43 writing property tests for hc\n20:22:00 running them offline\n20:22:01 robustness probe of hc: the tests did not run (['1 error in 0.48s'])",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "51a503531d845fc11d5ef270d576c59c300e3620",
+        "probe": {
+          "rev": "51a503531d845fc11d5ef270d576c59c300e3620",
+          "package": "hc",
+          "ran": false,
+          "summary": "igured: Requested setting INSTALLED_APPS, but settings are not configured. You must either define the environment variable DJANGO_SETTINGS_MODULE or call settings.configure() before accessing settings.\n!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!\n1 error in 0.48s\n",
+          "crashes": 0,
+          "opened": 0,
+          "violations": 0
+        },
+        "languages": [
+          "python"
+        ],
+        "blind_spots": [],
+        "problems": [],
+        "analyzers": [
+          {
+            "tool": "ruff-baseline",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          }
+        ],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [
+          {
+            "chosen": "investigate",
+            "kind": "robustness_probe",
+            "reason": "probe hc (80 public functions sampled)",
+            "rev": "51a503531d845fc11d5ef270d576c59c300e3620",
+            "targets": [
+              [
+                "hc",
+                80
+              ]
+            ],
+            "ts": "2026-10-27T23:21:42.781714+00:00"
+          }
+        ],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {
+          "code": {
+            "calls": 1,
+            "ok": 1,
+            "tokens_in": 2593,
+            "tokens_out": 2380,
+            "compute_s": 11.27480979100801
+          }
+        },
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-27T23:22:02.012497+00:00",
+      "seconds": 56.0,
+      "outcome": "nothing found"
+    },
+    {
+      "name": "ky",
+      "run": "method-check-pilot",
+      "tag": "bench:method-check-pilot:ky",
+      "meta": {
+        "url": "https://github.com/sindresorhus/ky",
+        "commit": "3541888878c4d303a8bc2ad61815f4e048f55a5d",
+        "split": "pilot",
+        "license": "MIT",
+        "language": "TypeScript",
+        "shape": "library",
+        "database": "none",
+        "domain": "HTTP client"
+      },
+      "started_at": "2026-10-27T23:22:02.024314+00:00",
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.4,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.3,
+          "timed_out": false,
+          "max_rss_mb": 39.5,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/method-check-pilot/ky\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/method-check-pilot/ky/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.3,
+          "timed_out": false,
+          "max_rss_mb": 57.7,
+          "log_tail": "      \"evidence\": [\n        {\n          \"kind\": \"config\",\n          \"locator\": \".github/workflows/main.yml\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-27T23:22:04.834428Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-27T23:22:04.834464Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"3541888878c4d303a8bc2ad61815f4e048f55a5d\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"ci_job:main.yml#browser\",\n      \"kind\": \"ci_job\",\n      \"name\": \"browser\",\n      \"attributes\": {\n        \"steps\": [\n          \"npx playwright install --with-deps\",\n          \"npm test -- test/browser.ts\"\n        ],\n        \"services\": []\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-27T23:22:04.620835Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 3.2,
+          "timed_out": false,
+          "max_rss_mb": 122.5,
+          "log_tail": "20:22:05 watching /Users/david/unbidden-bench/method-check-pilot/ky (ctrl-c to \nstop, `unbidden kill` to freeze)\n20:22:05 HEAD is 3541888878c4\n20:22:05 provisioning node dependencies\n20:22:05 running tsc\n20:22:07 scan of 3541888878c4: 1 reports, 0 new opportunities\n20:22:07 map of 3541888878c4: 2 resources, 2 blind spots",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "3541888878c4d303a8bc2ad61815f4e048f55a5d",
+        "probe": null,
+        "languages": [
+          "node"
+        ],
+        "blind_spots": [
+          "package.json without a lockfile: dependencies resolved at provisioning time"
+        ],
+        "problems": [],
+        "analyzers": [
+          {
+            "tool": "tsc",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          }
+        ],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {},
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-27T23:22:08.241025+00:00",
+      "seconds": 6.2,
+      "outcome": "nothing found"
+    },
+    {
+      "name": "express",
+      "run": "method-check-pilot",
+      "tag": "bench:method-check-pilot:express",
+      "meta": {
+        "url": "https://github.com/expressjs/express",
+        "commit": "1c6f1b0fe4000977b9a7b4f34097e4d527dd9824",
+        "split": "pilot",
+        "license": "MIT",
+        "language": "JavaScript",
+        "shape": "web framework",
+        "database": "none",
+        "domain": "HTTP server"
+      },
+      "started_at": "2026-10-27T23:22:08.251022+00:00",
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.2,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.2,
+          "timed_out": false,
+          "max_rss_mb": 39.5,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/method-check-pilot/express\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/method-check-pilot/express/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.2,
+          "timed_out": false,
+          "max_rss_mb": 58.0,
+          "log_tail": "        {\n          \"kind\": \"config\",\n          \"locator\": \".github/workflows/ci.yml\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-27T23:22:10.764246Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-27T23:22:10.764303Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"1c6f1b0fe4000977b9a7b4f34097e4d527dd9824\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"ci_job:ci.yml#test\",\n      \"kind\": \"ci_job\",\n      \"name\": \"test\",\n      \"attributes\": {\n        \"steps\": [\n          \"npm config set loglevel error\",\n          \"echo \\\"Node.js version: $(node -v)\\\"\\necho \\\"NPM version: $(npm -v)\\\"\",\n          \"npm run test-ci\"\n        ],\n        \"services\": []\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-27T23:22:10.511511Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 26.1,
+          "timed_out": false,
+          "max_rss_mb": 121.3,
+          "log_tail": "20:22:11 watching /Users/david/unbidden-bench/method-check-pilot/express (ctrl-c\nto stop, `unbidden kill` to freeze)\n20:22:11 HEAD is 1c6f1b0fe400\n20:22:11 provisioning node dependencies\n20:22:34 running eslint\n20:22:35 scan of 1c6f1b0fe400: 1 reports, 0 new opportunities\n20:22:36 map of 1c6f1b0fe400: 2 resources, 2 blind spots",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "1c6f1b0fe4000977b9a7b4f34097e4d527dd9824",
+        "probe": null,
+        "languages": [
+          "node"
+        ],
+        "blind_spots": [
+          "package.json without a lockfile: dependencies resolved at provisioning time"
+        ],
+        "problems": [],
+        "analyzers": [
+          {
+            "tool": "eslint",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          }
+        ],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {},
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-27T23:22:37.033266+00:00",
+      "seconds": 28.7,
+      "outcome": "nothing found"
+    },
+    {
+      "name": "ufo",
+      "run": "method-check-pilot",
+      "tag": "bench:method-check-pilot:ufo",
+      "meta": {
+        "url": "https://github.com/unjs/ufo",
+        "commit": "f06c800d0c59f2a4a1b9ba65eb6cb61a84419be6",
+        "split": "pilot",
+        "license": "MIT",
+        "language": "TypeScript",
+        "shape": "library",
+        "database": "none",
+        "domain": "URL parsing"
+      },
+      "started_at": "2026-10-27T23:22:37.042824+00:00",
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.1,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.2,
+          "timed_out": false,
+          "max_rss_mb": 39.7,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/method-check-pilot/ufo\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/method-check-pilot/ufo/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.2,
+          "timed_out": false,
+          "max_rss_mb": 58.0,
+          "log_tail": "      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"f06c800d0c59f2a4a1b9ba65eb6cb61a84419be6\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-27T23:22:39.272459Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-27T23:22:39.272494Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"f06c800d0c59f2a4a1b9ba65eb6cb61a84419be6\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:ufo\",\n      \"kind\": \"repo\",\n      \"name\": \"ufo\",\n      \"attributes\": {\n        \"rev\": \"f06c800d0c59f2a4a1b9ba65eb6cb61a84419be6\",\n        \"languages\": [\n          \"node\"\n        ]\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-27T23:22:39.162619Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 22.1,
+          "timed_out": false,
+          "max_rss_mb": 121.0,
+          "log_tail": "20:22:39 watching /Users/david/unbidden-bench/method-check-pilot/ufo (ctrl-c to \nstop, `unbidden kill` to freeze)\n20:22:40 HEAD is f06c800d0c59\n20:22:40 provisioning node dependencies\n20:22:57 running tsc\n20:22:59 running eslint\n20:23:00 scan of f06c800d0c59: 2 reports, 0 new opportunities\n20:23:01 map of f06c800d0c59: 1 resources, 2 blind spots",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "f06c800d0c59f2a4a1b9ba65eb6cb61a84419be6",
+        "probe": null,
+        "languages": [
+          "node"
+        ],
+        "blind_spots": [],
+        "problems": [],
+        "analyzers": [
+          {
+            "tool": "tsc",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          },
+          {
+            "tool": "eslint",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          }
+        ],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {},
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-27T23:23:01.644658+00:00",
+      "seconds": 24.6,
+      "outcome": "nothing found"
+    },
+    {
+      "name": "cobra",
+      "run": "method-check-pilot",
+      "tag": "bench:method-check-pilot:cobra",
+      "meta": {
+        "url": "https://github.com/spf13/cobra",
+        "commit": "adbc8813901bba65827259daa8e22ff94ec1f30e",
+        "split": "pilot",
+        "license": "Apache-2.0",
+        "language": "Go",
+        "shape": "library",
+        "database": "none",
+        "domain": "CLI framework"
+      },
+      "started_at": "2026-10-27T23:23:01.653785+00:00",
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.3,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.2,
+          "timed_out": false,
+          "max_rss_mb": 39.5,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/method-check-pilot/cobra\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/method-check-pilot/cobra/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.1,
+          "timed_out": false,
+          "max_rss_mb": 57.6,
+          "log_tail": "    \"repo:cobra\": {\n      \"status\": \"observed\",\n      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"adbc8813901bba65827259daa8e22ff94ec1f30e\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-27T23:23:04.111011Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-27T23:23:04.111043Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"adbc8813901bba65827259daa8e22ff94ec1f30e\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:cobra\",\n      \"kind\": \"repo\",\n      \"name\": \"cobra\",\n      \"attributes\": {\n        \"rev\": \"adbc8813901bba65827259daa8e22ff94ec1f30e\",\n        \"languages\": []\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-27T23:23:03.990830Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 1.5,
+          "timed_out": false,
+          "max_rss_mb": 120.2,
+          "log_tail": "20:23:04 watching /Users/david/unbidden-bench/method-check-pilot/cobra (ctrl-c \nto stop, `unbidden kill` to freeze)\n20:23:04 HEAD is adbc8813901b\n20:23:05 scan of adbc8813901b: 0 reports, 0 new opportunities\n20:23:05 map of adbc8813901b: 1 resources, 2 blind spots",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "adbc8813901bba65827259daa8e22ff94ec1f30e",
+        "probe": null,
+        "languages": [],
+        "blind_spots": [
+          "Go (go.mod) is not analyzed: no checks, probes or experiments for that code"
+        ],
+        "problems": [],
+        "analyzers": [],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {},
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-27T23:23:05.785304+00:00",
+      "seconds": 4.1,
+      "outcome": "unsupported stack"
+    },
+    {
+      "name": "sinatra",
+      "run": "method-check-pilot",
+      "tag": "bench:method-check-pilot:sinatra",
+      "meta": {
+        "url": "https://github.com/sinatra/sinatra",
+        "commit": "cb22afd7902b566b6eaba6c4ea89739494a65d12",
+        "split": "pilot",
+        "license": "MIT",
+        "language": "Ruby",
+        "shape": "web framework",
+        "database": "none",
+        "domain": "HTTP server"
+      },
+      "started_at": "2026-10-27T23:23:05.794830+00:00",
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.3,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.2,
+          "timed_out": false,
+          "max_rss_mb": 39.5,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/method-check-pilot/sinatra\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/method-check-pilot/sinatra/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.0,
+          "timed_out": false,
+          "max_rss_mb": 57.6,
+          "log_tail": "    \"repo:sinatra\": {\n      \"status\": \"observed\",\n      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"cb22afd7902b566b6eaba6c4ea89739494a65d12\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-27T23:23:08.189179Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-27T23:23:08.189200Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"cb22afd7902b566b6eaba6c4ea89739494a65d12\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:sinatra\",\n      \"kind\": \"repo\",\n      \"name\": \"sinatra\",\n      \"attributes\": {\n        \"rev\": \"cb22afd7902b566b6eaba6c4ea89739494a65d12\",\n        \"languages\": []\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-27T23:23:08.112531Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 1.5,
+          "timed_out": false,
+          "max_rss_mb": 120.2,
+          "log_tail": "20:23:08 watching /Users/david/unbidden-bench/method-check-pilot/sinatra (ctrl-c\nto stop, `unbidden kill` to freeze)\n20:23:09 HEAD is cb22afd7902b\n20:23:09 scan of cb22afd7902b: 0 reports, 0 new opportunities\n20:23:09 map of cb22afd7902b: 1 resources, 2 blind spots",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "cb22afd7902b566b6eaba6c4ea89739494a65d12",
+        "probe": null,
+        "languages": [],
+        "blind_spots": [
+          "Ruby (Gemfile) is not analyzed: no checks, probes or experiments for that code"
+        ],
+        "problems": [],
+        "analyzers": [],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {},
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-27T23:23:09.910246+00:00",
+      "seconds": 4.0,
+      "outcome": "unsupported stack"
+    },
+    {
+      "name": "marshmallow",
+      "run": "method-check-pilot",
+      "tag": "bench:method-check-pilot:marshmallow",
+      "meta": {
+        "url": "https://github.com/marshmallow-code/marshmallow",
+        "commit": "b762ea2d59ca52fe5df76b90de14bed7e5ec5607",
+        "split": "pilot",
+        "license": "MIT",
+        "language": "Python",
+        "shape": "library",
+        "database": "none",
+        "domain": "serialization"
+      },
+      "started_at": "2026-10-27T23:20:25.936934+00:00",
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.2,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.2,
+          "timed_out": false,
+          "max_rss_mb": 39.6,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/method-check-pilot/marshmallow\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/method-check-pilot/marshmallow/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.3,
+          "timed_out": false,
+          "max_rss_mb": 57.8,
+          "log_tail": "          \"locator\": \"b762ea2d59ca52fe5df76b90de14bed7e5ec5607\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-27T23:20:28.230995Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-27T23:20:28.231043Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"b762ea2d59ca52fe5df76b90de14bed7e5ec5607\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:marshmallow\",\n      \"kind\": \"repo\",\n      \"name\": \"marshmallow\",\n      \"attributes\": {\n        \"rev\": \"b762ea2d59ca52fe5df76b90de14bed7e5ec5607\",\n        \"languages\": [\n          \"python\"\n        ]\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"frontend\",\n      \"why\": \"its JavaScript package was not analyzed\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-27T23:20:28.138523Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 454.3,
+          "timed_out": false,
+          "max_rss_mb": 130.4,
+          "log_tail": "style is not the team's standard)\n20:20:55 opp_05e2dc8166e84435: run_experiment (reproduce it and measure a \ncandidate offline)\n20:20:55 opp_f0e429a23a214563: run_experiment (reproduce it and measure a \ncandidate offline)\n20:20:55 writing property tests for src/marshmallow\n20:21:06 running them offline\n20:21:09 robustness probe of src/marshmallow: 2 failed, 6 passed in 3.23s; 0 \ncrash(es), 0 new; 0 property violation(s) kept for a person (L1)\n20:21:10 reproducing 1 mypy error in src/marshmallow/fields.py\n20:21:11 running the test suite on the base\n20:21:16 asking the local model for a candidate\n20:21:16 asking the local model for a candidate\n20:21:16 asking Muse Spark through the privacy bridge\n20:21:16 opp_05e2dc8166e84435: no proven fix (bridge: too much code to rewrite \nsafely as a synthetic task)\n20:21:17 opp_05e2dc8166e84435: run_experiment (reproduce it and measure a \ncandidate offline)\n20:21:17 reproducing 2 mypy errors in tests/test_fields.py\n20:21:18 running the test suite on the base\n20:21:23 asking the local model for a candidate\n20:27:49 measuring the model candidate\n20:27:51 running the test suite on the candidate\n20:27:56 opp_f0e429a23a214563: improved, evidence L4\n20:27:56 opp_f0e429a23a214563: propose_change (evidence L4 meets the mandate's \nL4)\n20:27:56 opp_f0e429a23a214563: branch \nunbidden/2-mypy-errors-in-tests-test-fields-py-214563 ready\n20:27:56 opp_f0e429a23a214563: not published: the mandate denies \nopen_pull_requests\n20:27:56 reproducing 1 mypy error in src/marshmallow/fields.py\n20:27:58 running the test suite on the base\n20:28:02 asking the local model for a candidate\n20:28:02 asking the local model for a candidate\n20:28:02 asking Muse Spark through the privacy bridge\n20:28:02 opp_05e2dc8166e84435: no proven fix (bridge: too much code to rewrite \nsafely as a synthetic task)\n20:28:02 opp_05e2dc8166e84435: decline (2 experiments found no proven fix)\n20:28:02 opp_f0e429a23a214563: not published: the mandate denies \nopen_pull_requests",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "b762ea2d59ca52fe5df76b90de14bed7e5ec5607",
+        "probe": {
+          "rev": "b762ea2d59ca52fe5df76b90de14bed7e5ec5607",
+          "package": "src/marshmallow",
+          "ran": true,
+          "summary": "2 failed, 6 passed in 3.23s",
+          "crashes": 0,
+          "opened": 0,
+          "violations": 0
+        },
+        "languages": [
+          "python"
+        ],
+        "blind_spots": [],
+        "problems": [],
+        "analyzers": [
+          {
+            "tool": "ruff",
+            "completeness": "complete",
+            "findings": 2,
+            "error": ""
+          },
+          {
+            "tool": "mypy",
+            "completeness": "complete",
+            "findings": 3,
+            "error": ""
+          }
+        ],
+        "opportunities": [
+          {
+            "id": "opp_d768ce2a4cc24d3e",
+            "source": "ruff",
+            "category": "lint",
+            "status": "declined",
+            "level": 1,
+            "title": "1 ruff ICN001 finding in examples/",
+            "attempts": 0,
+            "decision": "decline",
+            "reason": "the team's CI does not run ruff: its style is not the team's standard",
+            "blocked": null
+          },
+          {
+            "id": "opp_42ae9cec24844568",
+            "source": "ruff",
+            "category": "lint",
+            "status": "declined",
+            "level": 1,
+            "title": "1 ruff ICN001 finding in performance/",
+            "attempts": 0,
+            "decision": "decline",
+            "reason": "the team's CI does not run ruff: its style is not the team's standard",
+            "blocked": null
+          },
+          {
+            "id": "opp_05e2dc8166e84435",
+            "source": "mypy",
+            "category": "types",
+            "status": "declined",
+            "level": 2,
+            "title": "1 mypy error in src/marshmallow/fields.py",
+            "attempts": 2,
+            "decision": "decline",
+            "reason": "2 experiments found no proven fix",
+            "blocked": null
+          },
+          {
+            "id": "opp_f0e429a23a214563",
+            "source": "mypy",
+            "category": "types",
+            "status": "proposed",
+            "level": 4,
+            "title": "2 mypy errors in tests/test_fields.py",
+            "attempts": 0,
+            "decision": "propose_change",
+            "reason": "evidence L4 meets the mandate's L4",
+            "blocked": null
+          }
+        ],
+        "decisions": {
+          "decline": 3,
+          "run_experiment": 3,
+          "propose_change": 1
+        },
+        "probe_decisions": [
+          {
+            "chosen": "investigate",
+            "kind": "robustness_probe",
+            "reason": "probe src/marshmallow (38 public functions sampled)",
+            "rev": "b762ea2d59ca52fe5df76b90de14bed7e5ec5607",
+            "targets": [
+              [
+                "src/marshmallow",
+                38
+              ]
+            ],
+            "ts": "2026-10-27T23:20:55.271914+00:00"
+          }
+        ],
+        "verdicts": [
+          {
+            "caveats": [],
+            "improved": true,
+            "level": 4,
+            "origin": "model",
+            "reasons": [
+              "all targeted findings are gone, none appeared, no test regressed"
+            ],
+            "tests": "passed",
+            "ts": "2026-10-27T23:27:56.074680+00:00"
+          }
+        ],
+        "experiments": 1,
+        "proposals": [
+          {
+            "id": "prop_3e93e0acf75648ed",
+            "opportunity_id": "opp_f0e429a23a214563",
+            "branch": "unbidden/2-mypy-errors-in-tests-test-fields-py-214563",
+            "base_sha": "b762ea2d59ca52fe5df76b90de14bed7e5ec5607",
+            "commit_sha": "296a185f75bcbc703dfbccd9ad1d5747ab441e48",
+            "evidence_level": 4,
+            "status": "ready"
+          }
+        ],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {
+          "code": {
+            "calls": 1,
+            "ok": 1,
+            "tokens_in": 1612,
+            "tokens_out": 2610,
+            "compute_s": 10.269106916966848
+          },
+          "local": {
+            "calls": 1,
+            "ok": 1,
+            "tokens_in": 6542,
+            "tokens_out": 7060,
+            "compute_s": 385.3770754999714
+          }
+        },
+        "policy_denied": {},
+        "egress_blocked": 1
+      },
+      "finished_at": "2026-10-27T23:28:02.935474+00:00",
+      "seconds": 457.0,
+      "outcome": "validated improvement (L4)"
     }
   ],
   "spend": {
@@ -229,27 +1025,63 @@
         "tokens_out": 2945,
         "usd": 0.01354375,
         "unreported": 0
+      },
+      "bench:method-check-pilot:starlette": {
+        "calls": 1,
+        "retries": 0,
+        "failed": 0,
+        "tokens_in": 2654,
+        "tokens_out": 3235,
+        "usd": 0.01706625,
+        "unreported": 0
+      },
+      "bench:method-check-pilot:marshmallow": {
+        "calls": 2,
+        "retries": 0,
+        "failed": 0,
+        "tokens_in": 1612,
+        "tokens_out": 2610,
+        "usd": 0.0131075,
+        "unreported": 0
+      },
+      "bench:method-check-pilot:healthchecks": {
+        "calls": 1,
+        "retries": 0,
+        "failed": 0,
+        "tokens_in": 2593,
+        "tokens_out": 2380,
+        "usd": 0.01335625,
+        "unreported": 0
       }
     },
     "by_model": {
       "muse-spark-1.3": {
-        "calls": 1,
+        "calls": 5,
         "retries": 0,
         "failed": 0,
-        "tokens_in": 822,
-        "tokens_out": 2945,
-        "usd": 0.01354375,
+        "tokens_in": 7681,
+        "tokens_out": 11170,
+        "usd": 0.05707375,
         "unreported": 0
       }
     },
     "by_purpose": {
       "research.robustness": {
+        "calls": 4,
+        "retries": 0,
+        "failed": 0,
+        "tokens_in": 7681,
+        "tokens_out": 11170,
+        "usd": 0.05707375,
+        "unreported": 0
+      },
+      "lab.fix_candidate": {
         "calls": 1,
         "retries": 0,
         "failed": 0,
-        "tokens_in": 822,
-        "tokens_out": 2945,
-        "usd": 0.01354375,
+        "tokens_in": 0,
+        "tokens_out": 0,
+        "usd": 0.0,
         "unreported": 0
       }
     }
