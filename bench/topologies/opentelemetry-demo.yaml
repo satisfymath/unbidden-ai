@@ -1,0 +1,53 @@
+# Reference topology of opentelemetry-demo, written BEFORE Unbidden was run on it.
+# Sources: the official architecture diagram (https://opentelemetry.io/docs/demo/architecture/, fetched
+# 2026-10-27) and the compose files `make start-minimal` loads (compose.yaml, compose.observability.yaml,
+# compose.extras.yaml) at 5c8d404. Nothing here comes from Unbidden's output.
+system: opentelemetry-demo
+commit: 5c8d404
+deployment: make start-minimal  # core + observability + extras; kafka, accounting, fraud-detection, agent, chatbot, mcp are not deployed
+blind: true
+
+# Every service the deployment runs, by its compose name.
+services: [ad, cart, checkout, currency, email, flagd, flagd-ui, frontend, frontend-proxy, image-provider,
+  load-generator, otel-collector, payment, product-catalog, quote, recommendation, shipping, telemetry-docs,
+  grafana, jaeger, opamp-server, opensearch, prometheus]
+datastores: [astronomy-db, valkey-cart]
+
+# The diagram's edges between deployed services, as client -> server (who opens the connection).
+relations:
+  - [ad, flagd]
+  - [checkout, flagd]
+  - [product-catalog, flagd]
+  - [email, flagd]
+  - [shipping, flagd]
+  - [load-generator, flagd]
+  - [checkout, currency]
+  - [checkout, cart]
+  - [cart, valkey-cart]
+  - [cart, flagd]
+  - [checkout, payment]
+  - [checkout, email]
+  - [checkout, product-catalog]
+  - [checkout, shipping]
+  - [shipping, quote]
+  - [frontend, ad]
+  - [frontend, cart]
+  - [frontend, currency]
+  - [frontend, checkout]
+  - [frontend, shipping]
+  - [frontend, product-catalog]
+  - [frontend, recommendation]
+  - [frontend-proxy, flagd]
+  - [frontend-proxy, flagd-ui]
+  - [frontend-proxy, image-provider]
+  - [frontend-proxy, frontend]
+  - [payment, flagd]
+  - [recommendation, product-catalog]
+  - [recommendation, flagd]
+  - [product-catalog, astronomy-db]
+  - [load-generator, frontend-proxy]
+
+# Scoring rules, fixed before scoring:
+# - Claims scored: `calls` and `uses_database` between services (`depends_on` is start order, reported apart).
+# - The diagram leaves out the telemetry plane on purpose; edges to these targets are listed, not scored.
+telemetry_plane: [otel-collector, jaeger, prometheus, grafana, opensearch, opamp-server]

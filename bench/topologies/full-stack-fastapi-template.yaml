@@ -1,0 +1,44 @@
+# Reference topology of full-stack-fastapi-template (satisfymath fork) at 104feb4.
+# Sources: compose.yml, compose.override.yml, deployment.md and backend/app/api/routes/*.py read by a person.
+# NOT blind: written after Unbidden had already mapped this system during the event; scored all the same.
+system: full-stack-fastapi-template
+commit: 104feb428128ba03c99a448f3bbcec9037f71004
+deployment: docker compose up -d --build --wait backend (the mandate's deploy steps); only backend and db run
+blind: false
+
+services: [backend, adminer, proxy]
+datastores: [db]
+relations:
+  - [backend, db]
+  - [adminer, db]
+  - [proxy, backend]   # traefik routes by container labels, not by environment
+  - [proxy, adminer]
+telemetry_plane: []
+
+# Which tables each request touches, from the route handlers (crud.py, SQLModel sessions) and their dependencies:
+# every endpoint that needs a logged-in user reads `user` (deps.get_current_user), whatever the handler does.
+endpoint_tables:
+  GET /api/v1/items/: {reads: [item, user]}
+  POST /api/v1/items/: {reads: [user], writes: [item]}
+  GET /api/v1/items/{id}: {reads: [item, user]}
+  PUT /api/v1/items/{id}: {reads: [item, user], writes: [item]}
+  DELETE /api/v1/items/{id}: {reads: [item, user], writes: [item]}
+  POST /api/v1/login/access-token: {reads: [user]}
+  POST /api/v1/login/test-token: {reads: [user]}
+  POST /api/v1/password-recovery/{email}: {reads: [user]}
+  POST /api/v1/password-recovery-html-content/{email}: {reads: [user]}
+  POST /api/v1/reset-password/: {reads: [user], writes: [user]}
+  POST /api/v1/private/users/: {writes: [user]}
+  GET /api/v1/users/: {reads: [user]}
+  POST /api/v1/users/: {reads: [user], writes: [user]}
+  GET /api/v1/users/me: {reads: [user]}
+  PATCH /api/v1/users/me: {reads: [user], writes: [user]}
+  DELETE /api/v1/users/me: {reads: [user], writes: [user]}
+  PATCH /api/v1/users/me/password: {reads: [user], writes: [user]}
+  POST /api/v1/users/signup: {reads: [user], writes: [user]}
+  GET /api/v1/users/{user_id}: {reads: [user]}
+  PATCH /api/v1/users/{user_id}: {reads: [user], writes: [user]}
+  DELETE /api/v1/users/{user_id}: {reads: [user], writes: [user, item]}
+  GET /api/v1/utils/health-check/: {}
+  POST /api/v1/utils/test-email/: {reads: [user]}
+running_commit: 104feb428128ba03c99a448f3bbcec9037f71004
