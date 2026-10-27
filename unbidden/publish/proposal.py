@@ -21,6 +21,7 @@ AUTHORS = {
     "tool": "the tool's own fixer",
     "model": "a local model (Muse Glimmer), on this machine",
     "bridge": "Muse Spark from a synthetic version of the problem, adapted locally by Muse Glimmer",
+    "frontier": "Muse Spark (Meta Model API), on this public repository's code",
 }
 
 
@@ -66,7 +67,7 @@ def build_perf_body(opp: Opportunity, experiment: Experiment, verdict: Verdict, 
         f"improvement of at least {float(criteria.get('min_median_improvement', 0)):.0%}, {criteria.get('ci')}.",
         f"- {_tests_line(experiment)}",
         f"- Candidate written by: {AUTHORS.get(origin, origin)}. The workload (synthetic data and the request) "
-        f"was written by the same local model and is kept with the experiment (sha256 "
+        f"was written by a model under the same routing and is kept with the experiment (sha256 "
         f"`{(experiment.workload_sha256 or '')[:12]}`).",
         "",
         "### Caveats",
@@ -74,6 +75,38 @@ def build_perf_body(opp: Opportunity, experiment: Experiment, verdict: Verdict, 
         "",
         f"<sub>Proposed by Unbidden. Opportunity `{opp.id}`, experiment `{experiment.id}`. "
         "Nothing was merged or deployed; a person decides.</sub>",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def build_robust_body(opp: Opportunity, experiment: Experiment, verdict: Verdict, origin: str) -> str:
+    """A crash found by a property-based test: the crash, the smallest input, and the test that now guards it."""
+    d = opp.details
+    lines = [
+        f"**{opp.title}**",
+        "",
+        f"L{int(verdict.evidence_level)} · the crash is reproduced by a property-based test, which passes with this "
+        "change; the repository's test suite shows no regression.",
+        "",
+        "### What was found",
+        f"- `{d.get('frame')}` raises `{opp.title.split(' in ')[0]}` on input the function accepts: {opp.summary}",
+        f"- Smallest failing input found by Hypothesis: `{d.get('example', '')[:300]}`",
+        "- How: property-based tests over the package's public functions, written by a model and run offline; nobody "
+        "pointed at this function.",
+        "",
+        "### What was measured",
+        *(f"- {reason}" for reason in verdict.reasons),
+        f"- {_tests_line(experiment)}",
+        f"- Fix written by: {AUTHORS.get(origin, origin)}.",
+        "",
+        "### Included",
+        *(f"- `{path}`" for path in sorted(d.get("candidate", {}).get("files", {}))),
+        "",
+        "### Caveats",
+        *(f"- {c}" for c in (verdict.caveats or ["none recorded"])),
+        "",
+        f"<sub>Proposed by Unbidden. Opportunity `{opp.id}`, experiment `{experiment.id}`. "
+        "Nothing was merged; a person decides.</sub>",
     ]
     return "\n".join(lines) + "\n"
 
@@ -89,6 +122,8 @@ def proposal_title(opp: Opportunity, verdict: Verdict) -> str:
 def build_body(opp: Opportunity, experiment: Experiment, verdict: Verdict, origin: str) -> str:
     if experiment.samples_before_ms:
         return build_perf_body(opp, experiment, verdict, origin)
+    if opp.source == "robustness":
+        return build_robust_body(opp, experiment, verdict, origin)
     findings = opp.details.get("findings", [])[:20]
     lines = [
         f"**{opp.title}**",

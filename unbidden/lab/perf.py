@@ -310,7 +310,9 @@ class PerfLab:
             result.notes.append("the local model gave no schema change that keeps the repository's checks clean")
             return result
         base_dir = snapshot(self.repo, rev)
-        candidate = Candidate("model", candidate_files, unified_patch(base_dir, candidate_files))
+        candidate = Candidate(
+            self.brain.author("lab.perf_candidate"), candidate_files, unified_patch(base_dir, candidate_files)
+        )
         discard(base_dir)
         # Workload, repaired against the base until it runs.
         wl_prompt = load_prompt("perf_workload")
@@ -443,7 +445,7 @@ class PerfLab:
                 **opp.details,
                 "experiment_id": experiment.id,
                 "verdict": verdict.model_dump(mode="json"),
-                "candidate": {"origin": "model", "files": candidate.files},
+                "candidate": {"origin": candidate.origin, "files": candidate.files},
             }
             opp.evidence = [*opp.evidence, EvidenceRef(kind="experiment", locator=experiment.id)]
         else:
