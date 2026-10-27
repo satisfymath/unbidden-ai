@@ -692,7 +692,16 @@ def _forge_stats(runtime: Any, url: str | None) -> int:
     if adapter is None:
         lines = stats_build.fetch(url)
         with console.status(f"forging a stats reader for {url} from {len(lines)} lines"):
-            result = asyncio.run(stats_build.build(runtime.brain, store, url, lines, permissions=["runtime.read"]))
+            private = None
+            if runtime.bridge() is not None:
+                from unbidden.contracts.world import WorldModel
+                from unbidden.world.discover import sensitive_terms
+
+                world = store.get("world", "world", WorldModel)
+                private = set(sensitive_terms(world).terms) if world else None
+            result = asyncio.run(
+                stats_build.build(runtime.brain, store, url, lines, permissions=["runtime.read"], private=private)
+            )
         for note in result.notes:
             console.print(f"  [dim]{note}[/]")
         console.print(f"decision: [bold]{result.decision}[/]")

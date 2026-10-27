@@ -33,6 +33,7 @@ TASKS: dict[str, TaskSpec] = {
     "forge.adapter": TaskSpec("heavy"),
     "forge.adapter.bridge": TaskSpec("heavy", escalate=False),
     "forge.stats": TaskSpec("heavy", escalate=False),
+    "forge.stats.bridge": TaskSpec("heavy", escalate=False),
     "bridge.solve": TaskSpec("heavy", escalate=False),
 }
 
@@ -56,5 +57,6 @@ TYPICAL_SOURCES: dict[str, tuple[Source, ...]] = {
     "forge.adapter": ("runtime",),
     "forge.adapter.bridge": ("synthetic",),
     "forge.stats": ("runtime",),
+    "forge.stats.bridge": ("synthetic",),
     "bridge.solve": ("synthetic",),
 }

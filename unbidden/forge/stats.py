@@ -131,12 +131,19 @@ def read(adapter: StatsAdapter, lines: list[str]) -> list[Reading]:
 
 
 _NUMBER = re.compile(r"(?<![\w.])\d+(\.\d+)?(?![\w.])")
+_SCALAR = re.compile(r"[:=\s]\s*-?\d+(\.\d+)?\s*$")
+
+
+def scalar(line: str) -> bool:
+    """A line whose value is one number at its end. Others (histograms, lists of quantiles) are another shape:
+    an adapter may leave them unread, and says how many it left."""
+    return bool(_SCALAR.search(line.rstrip()))
 
 
 @dataclass(frozen=True)
 class OracleResult:
     passed: bool
-    lines: int
+    lines: int  # held-out lines with one number at their end: what an adapter must read
     parsed: int
     coverage: float
     us_per_line: float
@@ -146,7 +153,7 @@ class OracleResult:
 def oracle(line: str, entity: str | None, heldout: list[str], seed: int = 7) -> OracleResult:
     """Judge a spec with code only, on lines the model never saw and on those lines with other numbers."""
     probe = StatsAdapter(source="oracle", version=0, line=line, entity=entity, card=_ORACLE_CARD)
-    content = [ln for ln in heldout if ln.strip()]
+    content = [ln for ln in heldout if ln.strip() and scalar(ln)]
     problems: list[str] = []
     if len(content) < MIN_HELDOUT:
         problems.append(f"only {len(content)} held-out lines; at least {MIN_HELDOUT} are needed to judge")

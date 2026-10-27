@@ -47,12 +47,6 @@ EXPECT_SCHEMA: dict[str, Any] = {
     "required": ["tests"],
     "additionalProperties": False,
 }
-PATTERN_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "properties": {"pattern": {"type": "string", "maxLength": 300}},
-    "required": ["pattern"],
-    "additionalProperties": False,
-}
 
 
 @dataclass
@@ -118,6 +112,24 @@ class Forge:
         response = await self.brain.complete(request, identifiers=identifiers)
         return parse_json(response.content)
 
+    async def _pattern(
+        self, purpose: str, *, source: Source, identifiers: SensitiveTermIndex | None, **values: str
+    ) -> str:
+        """The pattern comes back as raw text (D-005): inside JSON the local model lost its backslashes."""
+        prompt = load_prompt("forge_pattern")
+        request = LLMRequest(
+            purpose=purpose,
+            tier=Tier.LOCAL,
+            max_tokens=3000,
+            prompt_sha256=prompt.sha256,
+            messages=[Message(role="user", content=prompt.render(**values), source=source)],
+        )
+        response = await self.brain.complete(request, identifiers=identifiers)
+        found = re.search(r"^\s*PATTERN:[ \t]*(.+?)\s*$", response.content, re.MULTILINE)
+        if found is None:
+            raise ValueError("no `PATTERN:` line in the answer")
+        return found.group(1)
+
     async def build_log_adapter(self, source: str, lines: list[str]) -> ForgeResult:
         result = ForgeResult(None)
         shown, heldout = split(lines)
@@ -162,22 +174,19 @@ class Forge:
         tries = self.repairs + 1 if transform is None else 3
         for attempt in range(tries):
             try:
-                proposed = await self._json(
+                pattern = await self._pattern(
                     "forge.adapter" if transform is None else "forge.adapter.bridge",
-                    "forge_pattern",
-                    PATTERN_SCHEMA,
                     source=msg_source,
                     identifiers=identifiers,
                     feedback=feedback,
                     tests=tests_text,
                     lines="\n".join(view(ln) for ln in shown),
                 )
-            except (BrainError, ProviderError) as exc:
+            except (BrainError, ProviderError, ValueError) as exc:
                 result.notes.append(f"{origin} attempt {attempt + 1}: {exc}")
                 if transform is not None:
                     return False
                 continue
-            pattern = proposed["pattern"]
             problems = admit(pattern)
             if not problems:
                 compiled = re.compile(pattern)

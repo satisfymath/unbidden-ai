@@ -5,33 +5,36 @@ The endpoint's text is runtime data: it is shown only to the local model, whatev
 
 from __future__ import annotations
 
-import json
 import random
+import re
 from dataclasses import dataclass, field
-from typing import Any
 
 import httpx
 
 from unbidden.brain.prompts import load_prompt
 from unbidden.brain.providers import ProviderError
-from unbidden.brain.router import Brain, BrainError, parse_json
+from unbidden.brain.router import Brain, BrainError
+from unbidden.bridge.rename import build_map
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.llm import LLMRequest, Message, Tier
-from unbidden.forge.stats import ORACLE_VERSION, CapabilityCard, StatsAdapter, admit, known_format, oracle, read
+from unbidden.forge.build import LogTransform
+from unbidden.forge.stats import (
+    ORACLE_VERSION,
+    CapabilityCard,
+    StatsAdapter,
+    admit,
+    known_format,
+    oracle,
+    read,
+    scalar,
+)
+from unbidden.guardian.scanner import SensitiveTermIndex
 from unbidden.store import Store
 
 COLLECTION = "stats_capabilities"
 SHOWN = 40
 SEED = 13
-SPEC_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "properties": {
-        "line": {"type": "string", "maxLength": 300},
-        "entity": {"type": ["string", "null"], "maxLength": 300},
-    },
-    "required": ["line", "entity"],
-    "additionalProperties": False,
-}
+_LAST_NUMBER = re.compile(r"-?\d+(\.\d+)?(?=\s*$)")
 
 
 @dataclass
@@ -47,6 +50,18 @@ def fetch(url: str, timeout_s: float = 3.0) -> list[str]:
     return response.text.splitlines()
 
 
+_SPEC_LINE = re.compile(r"^\s*(LINE|ENTITY):[ \t]*(.+?)\s*$", re.MULTILINE)
+
+
+def parse_spec(text: str) -> tuple[str, str | None]:
+    """Patterns come back as raw text (D-005: code is never exchanged inside JSON, where escapes get lost)."""
+    found = {key: value for key, value in _SPEC_LINE.findall(text)}
+    if "LINE" not in found:
+        raise ValueError("no `LINE:` in the answer; answer with one fenced block holding LINE: and ENTITY:")
+    entity = found.get("ENTITY")
+    return found["LINE"], None if not entity or entity.lower() in ("none", "null") else entity
+
+
 def split(lines: list[str]) -> tuple[list[str], list[str]]:
     """A seeded sample for the model, spread over the whole text; the rest is held out for the oracle."""
     content = [ln for ln in lines if ln.strip()]
@@ -57,8 +72,54 @@ def split(lines: list[str]) -> tuple[list[str], list[str]]:
     ]
 
 
+def stats_transform(lines: list[str], private: set[str], seed: int = SEED) -> LogTransform:
+    """What a remote model may see of a stats endpoint: the project's own names (services, containers, tables) renamed,
+    addresses replaced, and every value replaced by a random number (values can be business data). What is left is
+    the metric vocabulary of the software that serves them."""
+    rng = random.Random(seed)
+    renamed = build_map({p for p in private if len(p) >= 3}, {}, lines)
+
+    class _Stats(LogTransform):
+        def apply(self, text: str) -> str:
+            out = []
+            for ln in super().apply(text).splitlines():
+                out.append(_LAST_NUMBER.sub(lambda _: str(rng.randint(0, 99_999)), ln) if scalar(ln) else ln)
+            return "\n".join(out)
+
+    return _Stats(renamed, SensitiveTermIndex(private))
+
+
 async def build(
-    brain: Brain, store: Store, source: str, lines: list[str], *, permissions: list[str], tries: int = 4
+    brain: Brain,
+    store: Store,
+    source: str,
+    lines: list[str],
+    *,
+    permissions: list[str],
+    tries: int = 4,
+    private: set[str] | None = None,
+) -> BuildResult:
+    """Local model first. When it fails and `private` is given (the remote model is allowed), the bridge's view of
+    the endpoint is sent to Muse Spark instead; whatever comes back is judged on the real lines, here."""
+    result = await _build(brain, store, source, lines, permissions=permissions, tries=tries, transform=None)
+    if result.decision == "failed" and private is not None:
+        transform = stats_transform(lines, private)
+        result.notes.append(f"bridge: {len(transform.rename.forward)} private names renamed, values randomized")
+        bridged = await _build(brain, store, source, lines, permissions=permissions, tries=3, transform=transform)
+        bridged.notes = [*result.notes, *bridged.notes]
+        return bridged
+    return result
+
+
+async def _build(
+    brain: Brain,
+    store: Store,
+    source: str,
+    lines: list[str],
+    *,
+    permissions: list[str],
+    tries: int,
+    transform: LogTransform | None,
 ) -> BuildResult:
     known = known_format(lines)
     if known is not None:
@@ -71,41 +132,47 @@ async def build(
     shown, heldout = split(lines)
     prompt = load_prompt("forge_stats")
     result = BuildResult(None, "failed")
+    origin = "bridge" if transform else "local"
+    view = transform.apply if transform else (lambda text: text)
     feedback = ""
     for attempt in range(tries):
         try:
             response = await brain.complete(
                 LLMRequest(
-                    purpose="forge.stats",
+                    purpose="forge.stats.bridge" if transform else "forge.stats",
                     tier=Tier.LOCAL,
-                    response_schema=SPEC_SCHEMA,
-                    max_tokens=1500,
+                    max_tokens=4000,  # the local model thinks before answering; 1500 cut its answers off
                     prompt_sha256=prompt.sha256,
                     messages=[
                         Message(
                             role="user",
-                            source="runtime",
+                            # Real stats are runtime data and stay local; the bridge's view is synthetic.
+                            source="synthetic" if transform else "runtime",
                             content=prompt.render(
-                                schema=json.dumps(SPEC_SCHEMA), feedback=feedback, source=source, lines="\n".join(shown)
+                                feedback=view(feedback),
+                                source="a service's text metrics endpoint" if transform else source,
+                                lines=view("\n".join(shown)),
                             ),
                         )
                     ],
-                )
+                ),
+                identifiers=transform.identifiers if transform else None,
             )
-            spec = parse_json(response.content)
+            line, entity = parse_spec(response.content)
         except (BrainError, ProviderError, ValueError) as exc:
-            result.notes.append(f"attempt {attempt + 1}: {exc}")
+            result.notes.append(f"{origin} attempt {attempt + 1}: {exc}")
             continue
-        line, entity = spec["line"], spec.get("entity")
         problems = admit(line, entity)
         if not problems:
             probe = StatsAdapter(source=source, version=0, line=line, entity=entity, card=_card(source, permissions))
-            missed = [ln for ln in shown if not read(probe, [ln])]
+            missed = [ln for ln in shown if scalar(ln) and not read(probe, [ln])]
             if missed:
                 problems.append(f"does not read {len(missed)} of the lines shown, e.g. {missed[0][:100]!r}")
         if problems:
-            feedback = f"Your previous answer was {json.dumps(spec)}. It was refused:\n- " + "\n- ".join(problems[:4])
-            result.notes.append(f"attempt {attempt + 1} refused: {problems[0]}")
+            feedback = f"Your previous answer was LINE: {line} / ENTITY: {entity}. It was refused:\n- " + "\n- ".join(
+                problems[:4]
+            )
+            result.notes.append(f"{origin} attempt {attempt + 1} refused: {view(problems[0])}")
             continue
         judged = oracle(line, entity, heldout)
         version = 1 + len([a for a in store.list(COLLECTION, StatsAdapter) if a.source == source])
@@ -122,10 +189,11 @@ async def build(
                 "heldout_lines": judged.lines,
                 "coverage": round(judged.coverage, 4),
                 "us_per_line": round(judged.us_per_line, 2),
+                "unread_other_shapes": len([ln for ln in lines if ln.strip() and not scalar(ln)]),
                 "problems": judged.problems,
             },
             failures=[{"attempt": str(i + 1), "why": n} for i, n in enumerate(result.notes)],
-            provenance={"origin": "local", "attempts": attempt + 1, "shown_lines": len(shown)},
+            provenance={"origin": origin, "attempts": attempt + 1, "shown_lines": len(shown)},
         )
         store.put(COLLECTION, adapter)
         store.append_event(
@@ -141,10 +209,10 @@ async def build(
         if judged.passed:
             return result
         feedback = (
-            f"Your previous answer was {json.dumps(spec)}. On other lines of the same endpoint:\n- "
+            f"Your previous answer was LINE: {line} / ENTITY: {entity}. On other lines of the same endpoint:\n- "
             + "\n- ".join(judged.problems[:4])
         )
-        result.notes.append(f"attempt {attempt + 1} failed the oracle: {judged.problems[0]}")
+        result.notes.append(f"{origin} attempt {attempt + 1} failed the oracle: {view(judged.problems[0])}")
     return result
 
 
