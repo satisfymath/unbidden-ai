@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import subprocess
+from pathlib import Path
+
 import pytest
 
-from unbidden.research.robustness import parse_crashes
+from unbidden.research.robustness import parse_crashes, public_functions
 
 pytestmark = pytest.mark.unit
 
@@ -79,3 +82,41 @@ def test_every_failure_of_an_exception_group_is_read() -> None:
         ("IndexError", "rich/cells.py:266 in _split_text"),
         ("ZeroDivisionError", "rich/cells.py:256 in _split_text"),
     ]
+
+
+def _commit(repo: Path, files: dict[str, str]) -> str:
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    for path, text in files.items():
+        (repo / path).parent.mkdir(parents=True, exist_ok=True)
+        (repo / path).write_text(text)
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True)
+    subprocess.run(
+        ["git", "-C", str(repo), "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "c"], check=True
+    )
+    return subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+
+
+def test_probe_targets_are_the_packages_users_import(tmp_path: Path) -> None:
+    from unbidden.observe.stack import PythonStack
+    from unbidden.research.robustness import probe_targets
+
+    rev = _commit(
+        tmp_path,
+        {
+            "src/textkit/__init__.py": "",
+            "src/textkit/wrap.py": "def wrap(text: str, width: int) -> str:\n    return text\n\n"
+            "def fill(text: str) -> str:\n    return text\n",
+            "src/helpers/__init__.py": "",
+            "src/helpers/one.py": "def one(n: int) -> int:\n    return n\n",
+            "tests/__init__.py": "",
+            "tests/test_wrap.py": "def test_wrap(): pass\n",
+            "src/empty/__init__.py": "",
+        },
+    )
+    stack = PythonStack(
+        version="3.12", lockfile=None, manifest="pyproject.toml", ruff=False, pyright=False, pytest=True
+    )
+    targets = probe_targets(tmp_path, rev, stack)
+    assert targets == [("src/textkit", 2), ("src/helpers", 1)]
+    # Imported by its own name, not through the source root.
+    assert public_functions(tmp_path, rev, "src/textkit")[0].startswith("from textkit.wrap import wrap")

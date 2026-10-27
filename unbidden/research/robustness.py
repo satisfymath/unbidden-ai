@@ -10,6 +10,7 @@ from __future__ import annotations
 import ast
 import re
 import subprocess
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -21,6 +22,7 @@ from unbidden.contracts.common import EvidenceLevel, EvidenceRef
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.llm import LLMRequest, Message, Tier
 from unbidden.contracts.opportunity import Opportunity
+from unbidden.observe.stack import PythonStack
 from unbidden.sandbox.provision import DependencyImage, link_dependencies, sandbox_spec
 from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
 from unbidden.store import Store
@@ -79,7 +81,9 @@ def public_functions(repo: Path, rev: str, package: str) -> list[str]:
             tree = ast.parse(source)
         except SyntaxError:
             continue
-        module = path.removesuffix(".py").replace("/", ".")
+        # A package under a source root (src/click) is imported by its own name (click).
+        root = str(Path(package).parent)
+        module = path.removeprefix(f"{root}/" if root != "." else "").removesuffix(".py").replace("/", ".")
         for node in tree.body:
             entries: list[tuple[str, ast.FunctionDef]] = []
             if isinstance(node, ast.FunctionDef) and not node.name.startswith("_"):
@@ -300,3 +304,64 @@ class RobustnessProbe:
             )
             opened.append(opp)
         return opened
+
+
+# Directories that hold a package's tests, docs or tooling rather than the code its users import.
+NOT_PRODUCT = {"tests", "test", "testing", "docs", "doc", "examples", "example", "scripts", "benchmarks", "bench",
+               "tools", "migrations", "alembic", "build", "dist", "site-packages", "node_modules"}  # fmt: skip
+
+
+def probe_targets(repo: Path, rev: str, python: PythonStack) -> list[tuple[str, int]]:
+    """The repository's own importable packages (a directory with `__init__.py` directly under a source root), with
+    how many public functions each exposes, most first. Found from the tree, never named by a person."""
+    files = subprocess.run(
+        ["git", "-C", str(repo), "ls-tree", "-r", "--name-only", rev], capture_output=True, text=True, check=False
+    ).stdout.split()
+    roots = [r.strip("./") for r in python.source_roots]
+    packages: set[str] = set()
+    for f in files:
+        parts = f.split("/")
+        if parts[-1] != "__init__.py":
+            continue
+        for root in roots:
+            prefix = root.split("/") if root else []
+            if parts[: len(prefix)] == prefix and len(parts) == len(prefix) + 2:
+                name = parts[len(prefix)]
+                if name not in NOT_PRODUCT and not name.startswith((".", "_")):
+                    packages.add("/".join([*prefix, name]))
+    counted = [(p, len(public_functions(repo, rev, p))) for p in sorted(packages)]
+    return sorted((c for c in counted if c[1] > 0), key=lambda c: -c[1])
+
+
+Progress = Callable[[str], None]
+
+
+async def probe_package(
+    probe: RobustnessProbe,
+    rev: str,
+    package: str,
+    *,
+    count: int = 8,
+    refine: int = 2,
+    run: Callable[[str, str], Awaitable[str]],
+    progress: Progress = lambda _: None,
+) -> tuple[str, str] | None:
+    """Write property tests, run them offline, send assertion failures back to be narrowed (`refine` rounds), and
+    return the final tests with their output. `run` executes tests off the event loop."""
+    progress(f"writing property tests for {package}")
+    tests = await probe.write_tests(rev, package, count)
+    if tests is None:
+        return None
+    progress("running them offline")
+    output = await run(rev, tests)
+    for round_ in range(refine):
+        violations = property_violations(output)
+        if not violations:
+            break
+        progress(f"round {round_ + 1}: {len(violations)} property violation(s) sent back")
+        refined = await probe.refine(tests, output)
+        if refined is None:
+            break
+        tests = refined
+        output = await run(rev, tests)
+    return tests, output

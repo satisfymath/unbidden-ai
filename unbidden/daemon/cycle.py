@@ -35,6 +35,7 @@ PRIORITY = {
     "observe.live": 5,
     "ops.deploy": 8,
     "research.investigate": 15,
+    "research.probe": 65,
     "github.poll": 10,
     "github.publish": 20,
     "proposal.prepare": 30,
@@ -77,6 +78,7 @@ class Cycle:
             "observe.live": self.observe_live,
             "ops.deploy": self.ops_deploy,
             "research.investigate": self.research_investigate,
+            "research.probe": self.research_probe,
         }
 
     def _env(self, rev: str) -> tuple[Stack, dict[str, DependencyImage]]:
@@ -110,7 +112,77 @@ class Cycle:
             self.runtime.workspace.repo, rev, self.store, self.runtime.workspace.mandate(), self.runtime.brain
         )
         self.log(f"map of {rev[:12]}: {len(world.resources)} resources, {len(world.blind_spots)} blind spots")
+        self._plan_probe(rev, result.stack)
         self.store.enqueue(job("director.sweep", f"{rev}:{utc_now():%Y%m%d%H%M}"))
+
+    def _plan_probe(self, rev: str, stack: Stack) -> None:
+        """Whether to look for crashes nobody reported: once per commit, in the package with the most public surface,
+        when the mandate allows experiments. The decision is recorded either way, with its reason."""
+        from unbidden.contracts.guardian import ActionRequest
+        from unbidden.guardian.policy import PolicyEngine
+        from unbidden.research.robustness import probe_targets
+
+        if stack.python is None:
+            return
+        allowed = PolicyEngine(self.runtime.workspace.mandate()).evaluate(
+            ActionRequest(capability="sandbox.run", purpose="robustness probe")
+        )
+        targets = probe_targets(self.runtime.workspace.repo, rev, stack.python)
+        if not allowed.allowed:
+            chosen, reason = "decline", "; ".join(allowed.reasons)
+        elif not targets:
+            chosen, reason = "decline", "no importable package with public functions under the source roots"
+        else:
+            chosen, reason = "investigate", f"probe {targets[0][0]} ({targets[0][1]} public functions sampled)"
+        self.store.append_event(
+            Event(
+                type=EventType.DECISION_MADE,
+                actor="director",
+                payload={"chosen": chosen, "reason": reason, "kind": "robustness_probe", "rev": rev,
+                         "targets": targets[:5]},
+            )
+        )  # fmt: skip
+        self.log(f"robustness probe at {rev[:12]}: {chosen} ({reason})")
+        if chosen == "investigate":
+            package = targets[0][0]
+            self.store.enqueue(job("research.probe", f"{rev}:{package}", {"rev": rev, "package": package}))
+
+    async def research_probe(self, j: Job) -> None:
+        from unbidden.research.robustness import RobustnessProbe, parse_crashes, probe_package, property_violations
+
+        rev, package = j.payload["rev"], j.payload["package"]
+        if rev != self.store.get_value("head"):
+            return
+        _, images = await asyncio.to_thread(self._env, rev)
+        if "python" not in images:
+            self.log(f"robustness probe of {package}: no Python image could be built")
+            return
+        probe = RobustnessProbe(self.runtime.workspace.repo, self.store, self.runtime.brain, images["python"])
+        outcome = await probe_package(
+            probe,
+            rev,
+            package,
+            run=lambda r, tests: asyncio.to_thread(probe.run_tests, r, tests),
+            progress=self.log,
+        )
+        artifacts = self.runtime.workspace.dir / "artifacts"
+        artifacts.mkdir(exist_ok=True)
+        (artifacts / f"robustness-{rev[:12]}.answer.md").write_text(probe.last_answer)
+        if outcome is None:
+            self.log(f"robustness probe of {package}: no usable tests were written")
+            return
+        tests, output = outcome
+        (artifacts / f"robustness-{rev[:12]}.py").write_text(tests)
+        (artifacts / f"robustness-{rev[:12]}.log").write_text(output)
+        crashes = parse_crashes(output, package)
+        opened = probe.record(rev, package, tests, crashes)
+        kept = property_violations(output)
+        self.log(
+            f"robustness probe of {package}: {len(crashes)} crash(es), {len(opened)} new; "
+            f"{len(kept)} property violation(s) kept for a person (L1)"
+        )
+        if opened:
+            self.store.enqueue(job("director.sweep", f"probe:{j.id}"))
 
     async def director_sweep(self, _: Job) -> None:
         mandate = self.runtime.workspace.mandate()
@@ -400,6 +472,7 @@ TIMEOUT_S: dict[str, float] = {
     "proposal.prepare": 1800,
     "ops.deploy": 2400,
     "research.investigate": 900,
+    "research.probe": 3600,
 }
 DEFAULT_TIMEOUT_S = 600.0
 

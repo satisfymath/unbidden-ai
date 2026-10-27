@@ -849,7 +849,7 @@ def cmd_probe(args: argparse.Namespace) -> int:
     """Look for crashes in a package with property-based tests a model writes, run offline."""
     import asyncio
 
-    from unbidden.research.robustness import RobustnessProbe, parse_crashes, property_violations
+    from unbidden.research.robustness import RobustnessProbe, parse_crashes, probe_package, property_violations
     from unbidden.runtime import Runtime
 
     runtime = Runtime.open(Workspace.find())
@@ -864,26 +864,18 @@ def cmd_probe(args: argparse.Namespace) -> int:
 
     async def session() -> tuple[str, str] | None:
         # One event loop for every model call: the HTTP clients belong to it.
-        with console.status(f"writing property tests for {args.package}"):
-            tests = await probe.write_tests(rev, args.package, args.count)
+        with console.status("probing") as status:
+            outcome = await probe_package(
+                probe,
+                rev,
+                args.package,
+                count=args.count,
+                refine=args.refine,
+                run=lambda r, tests: asyncio.to_thread(probe.run_tests, r, tests),
+                progress=lambda m: status.update(m),
+            )
         (artifacts / f"robustness-{rev[:12]}.answer.md").write_text(probe.last_answer)
-        if tests is None:
-            return None
-        with console.status("running them offline"):
-            output = await asyncio.to_thread(probe.run_tests, rev, tests)
-        for round_ in range(args.refine):
-            violations = property_violations(output)
-            if not violations:
-                break
-            console.print(f"[dim]round {round_ + 1}: {len(violations)} property violation(s) sent back[/]")
-            with console.status("refining the properties"):
-                refined = await probe.refine(tests, output)
-            if refined is None:
-                break
-            tests = refined
-            with console.status("running them again"):
-                output = await asyncio.to_thread(probe.run_tests, rev, tests)
-        return tests, output
+        return outcome
 
     outcome = asyncio.run(session())
     if outcome is None:
