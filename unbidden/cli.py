@@ -602,6 +602,41 @@ def cmd_investigate(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_probe(args: argparse.Namespace) -> int:
+    """Look for crashes in a package with property-based tests the local model writes, run offline."""
+    import asyncio
+
+    from unbidden.research.robustness import RobustnessProbe, parse_crashes
+    from unbidden.runtime import Runtime
+
+    runtime = Runtime.open(Workspace.find())
+    rev = head_sha(runtime.workspace.repo)
+    _, images = runtime.stack_and_images(rev)
+    if "python" not in images:
+        err.print("robustness probes need a Python package")
+        return 2
+    probe = RobustnessProbe(runtime.workspace.repo, runtime.store, runtime.brain, images["python"])
+    with console.status(f"writing property tests for {args.package}"):
+        tests = asyncio.run(probe.write_tests(rev, args.package, args.count))
+    if tests is None:
+        err.print("the local model wrote no usable tests")
+        return 1
+    artifacts = runtime.workspace.dir / "artifacts"
+    artifacts.mkdir(exist_ok=True)
+    (artifacts / f"robustness-{rev[:12]}.py").write_text(tests)
+    with console.status("running them offline"):
+        output = probe.run_tests(rev, tests)
+    (artifacts / f"robustness-{rev[:12]}.log").write_text(output)
+    crashes = parse_crashes(output, args.package)
+    opened = probe.record(rev, args.package, tests, crashes)
+    summary = next((ln for ln in reversed(output.splitlines()) if " passed" in ln or " failed" in ln), "no summary")
+    console.print(f"{summary.strip()} · {len(crashes)} crash(es) inside {args.package} · {len(opened)} new")
+    for crash in crashes:
+        console.print(f"  [red]{crash.exception}[/] at {crash.frame}: {crash.message[:120]}")
+        console.print(f"    example: {crash.example[:200]}", markup=False)
+    return 0
+
+
 def cmd_map(args: argparse.Namespace) -> int:
     """Discover the system (repository, running containers, live API, database) and show the World Model."""
     import asyncio
@@ -749,6 +784,9 @@ def build_parser() -> argparse.ArgumentParser:
     hold.add_argument("id", nargs="?")
     hold.add_argument("reason", nargs="?", default="released by a person")
     command("deploys", cmd_deploys, "every deploy seen and its verdict")
+    probe = command("probe", cmd_probe, "look for crashes with property-based tests, run offline", json_out=False)
+    probe.add_argument("package")
+    probe.add_argument("--count", type=int, default=8, help="how many functions to probe")
     inv = command("investigate", cmd_investigate, "explain a failure between two versions, read-only")
     inv.add_argument("good")
     inv.add_argument("bad")
