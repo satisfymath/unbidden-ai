@@ -16,6 +16,7 @@ from __future__ import annotations
 import ast
 import json
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -107,7 +108,7 @@ def _windows(path: str, text: str, lines_of_findings: list[int]) -> list[tuple[i
     return [(s, e, sum(s <= ln <= e for ln in lines_of_findings)) for s, e in merged]
 
 
-def select(base: Path, findings: list[tuple[str, int | None]], budget: int) -> Selection:
+def select(base: Path, findings: Sequence[tuple[str, int | None]], budget: int) -> Selection:
     """Choose what of `base` to show for `findings` ((path, line) pairs) within `budget` payload bytes."""
     paths = sorted({p for p, _ in findings})
     texts = {p: (base / p).read_text(errors="replace") for p in paths}
