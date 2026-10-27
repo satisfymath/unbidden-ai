@@ -33,5 +33,8 @@ The data models (`{{models_file}}`):
 {{models}}
 ```
 
+The tables `{{table}}` references, whose rows you create first (fill their required columns too):
+{{related_models}}
+
 How the application's tests set up a client and authenticate:
 {{test_examples}}

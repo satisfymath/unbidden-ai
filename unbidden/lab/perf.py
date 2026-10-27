@@ -206,7 +206,7 @@ class PerfLab:
         *,
         runner: SandboxRunner | None = None,
         progress: Progress = lambda _: None,
-        repairs: int = 2,
+        repairs: int = 4,
     ) -> None:
         self.repo, self.brain, self.store, self.stack, self.images = repo, brain, store, stack, images
         self.runner = runner or SandboxRunner()
@@ -261,6 +261,37 @@ class PerfLab:
                 if re.search(rf"__tablename__\s*=\s*[\"']{re.escape(table)}[\"']", text):  # SQLAlchemy
                     return path
         return None
+
+    def _related_models(self, rev: str, models_file: str, table: str, budget: int = 6000) -> str:
+        """The classes of the tables `table` references (its foreign keys): a workload has to create those rows
+        first, with their own required columns, and they are often in other files."""
+        source = self._show(rev, models_file)
+        lines = source.splitlines()
+        mapped = next(
+            (i for i, x in enumerate(lines) if re.search(rf"__tablename__\s*=\s*[\"']{re.escape(table)}[\"']", x)), None
+        )
+        block = source
+        if mapped is not None:
+            start = max((i for i in range(mapped) if lines[i].startswith("class ")), default=0)
+            end = next((i for i in range(mapped + 1, len(lines)) if lines[i].startswith("class ")), len(lines))
+            block = "\n".join(lines[start:end])
+        targets = list(dict.fromkeys(re.findall(r"ForeignKey\(\s*[\"'](\w+)\.", block)))
+        out: list[str] = []
+        for target in targets:
+            path = self._models_file(rev, target)
+            if path is None:
+                continue
+            text = self._show(rev, path).splitlines()
+            at = next(
+                (i for i, x in enumerate(text) if re.search(rf"__tablename__\s*=\s*[\"']{re.escape(target)}[\"']", x)),
+                None,
+            )
+            if at is None:
+                continue
+            start = max((i for i in range(at) if text[i].startswith("class ")), default=0)
+            end = next((i for i in range(at + 1, len(text)) if text[i].startswith("class ")), len(text))
+            out.append(f"`{target}` in `{path}`:\n```python\n" + "\n".join(text[start:end])[:2500] + "\n```")
+        return "\n\n".join(out)[:budget] or "(none found)"
 
     def _test_examples(self, rev: str, endpoint: str = "", table: str = "", budget: int = 14000) -> str:
         """What a workload needs to fit the repository's own tests, most specific first: an existing test that calls
@@ -489,6 +520,7 @@ class PerfLab:
                     handler=handler[2],
                     models_file=models_file,
                     models=self._show(rev, models_file)[:8000],
+                    related_models=self._related_models(rev, models_file, table),
                     test_examples=self._test_examples(rev, list_endpoint, table),
                 ),
                 opp,
