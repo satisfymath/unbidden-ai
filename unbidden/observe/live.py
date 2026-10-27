@@ -281,13 +281,15 @@ class LiveWatcher:
             self._bad(history, current, verdict, bad)
 
     def _outcomes(self, history: list[str], current: int, baseline: int, endpoints: list[Any]) -> None:
-        """Level 5 for each merged proposal whose first deploy this is, with what else could explain the change.
-        A proposal already present in any earlier deploy was judged there, or never can be."""
+        """Level 5 for each proposal whose first deploy this is, with what else could explain the change. What counts
+        is that its commit is in the deployed version, merged on GitHub or deployed from its local branch (a proposal
+        that cannot be published yet). A proposal already present in any earlier deploy was judged there."""
         version, previous = history[current], history[baseline]
         by_target = {e.target: e for e in endpoints}
         commits = _git(self.repo, "log", "--format=%h %s", f"{previous}..{version}").splitlines()
         skipped = [history[i][:12] for i in range(baseline + 1, current)]
-        for proposal in self.store.list("proposals", Proposal, status=ProposalStatus.MERGED.value):
+        shippable = (ProposalStatus.MERGED, ProposalStatus.READY, ProposalStatus.PR_OPENED, ProposalStatus.PUBLISHING)
+        for proposal in (p for p in self.store.list("proposals", Proposal) if p.status in shippable):
             shipped = proposal.merge_sha or proposal.commit_sha
             if not contains(self.repo, version, shipped):
                 continue
