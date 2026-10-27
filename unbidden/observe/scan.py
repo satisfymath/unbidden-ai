@@ -88,6 +88,88 @@ def prepare_node(
     return work
 
 
+MANIFESTS = {"package.json", "requirements.txt", "pyproject.toml"}
+LOCKS = {"package-lock.json", "pnpm-lock.yaml", "yarn.lock", "requirements.txt", "uv.lock", "poetry.lock"}
+
+
+def service_dirs(repo: Path, rev: str, stack: Stack) -> list[str]:
+    """Directories a compose service is built from that carry their own manifest and lockfile, and that the root's
+    stacks do not already cover (a workspace package, the root itself): the services of a polyglot repository."""
+    from unbidden.observe.compose import load_compose
+    from unbidden.observe.stack import tracked_files
+
+    compose = load_compose(repo, rev)
+    if compose is None:
+        return []
+    files = tracked_files(repo, rev)
+    covered = {p.path for p in (stack.node.packages if stack.node else ())}
+    found: list[str] = []
+    for service in compose.services.values():
+        context = (service.build_context or "").strip("./")
+        if service.dockerfile and "/" in service.dockerfile:
+            context = context or service.dockerfile.rsplit("/", 1)[0].strip("./")
+        if not context or context in covered or context in found:
+            continue
+        own = {
+            f.removeprefix(f"{context}/")
+            for f in files
+            if f.startswith(f"{context}/") and "/" not in f.removeprefix(f"{context}/")
+        }
+        if own & MANIFESTS and own & LOCKS:
+            found.append(context)
+    return sorted(found)
+
+
+def _isolated(repo: Path, rev: str, directory: str) -> Path:
+    """The service directory at `rev` as a repository of its own (its tracked files only), for a scan."""
+    import tempfile
+
+    target = Path(tempfile.mkdtemp(prefix="unbidden-service-"))
+    archive = subprocess.run(
+        ["git", "-C", str(repo), "archive", "--format=tar", f"{rev}:{directory}"], capture_output=True, check=True
+    )
+    subprocess.run(["tar", "-x", "-C", str(target)], input=archive.stdout, check=True)
+    git = ["git", "-C", str(target), "-c", "user.name=unbidden", "-c", "user.email=unbidden@localhost"]
+    subprocess.run(["git", "init", "-q", str(target)], check=True)
+    subprocess.run([*git, "add", "-A"], check=True)
+    subprocess.run([*git, "commit", "-qm", f"{directory} at {rev[:12]}"], check=True)
+    return target
+
+
+def _scan_services(
+    repo: Path, rev: str, store: Store, stack: Stack, runner: SandboxRunner, result: ScanResult, progress: Progress
+) -> None:
+    """Each service of a polyglot repository, analyzed in isolation with the same trusted tools. Findings are
+    recorded against the repository with their paths prefixed; the lab cannot yet run them inside the repository,
+    and the Director knows it (their tool reads `tool@dir`)."""
+    import shutil
+
+    for directory in service_dirs(repo, rev, stack):
+        sub = _isolated(repo, rev, directory)
+        try:
+            sub_stack = detect_stack(sub, "HEAD")
+            images: dict[str, DependencyImage] = {}
+            for language in sub_stack.languages:
+                try:
+                    progress(f"provisioning {language} dependencies of {directory}")
+                    images[language] = provision(sub, "HEAD", getattr(sub_stack, language))
+                except ProvisionError as exc:
+                    result.problems.append(f"{directory}: {exc}")
+            for tool in tools_for(sub_stack):
+                image = images.get(tool.language)
+                if image is None:
+                    continue
+                progress(f"running {tool.name} in {directory}")
+                report = run_tool(runner, sub, "HEAD", tool, image)
+                findings = [f.model_copy(update={"path": f"{directory}/{f.path}"}) for f in report.findings]
+                report = report.model_copy(update={"tool": f"{report.tool}@{directory}", "findings": findings})
+                result.reports.append(report)
+                result.sweeps.append(record_report(store, report, rev))
+            result.stack.blind_spots.extend(f"{directory}: {b}" for b in sub_stack.blind_spots)
+        finally:
+            shutil.rmtree(sub, ignore_errors=True)
+
+
 def scan(
     repo: Path,
     rev: str,
@@ -135,6 +217,7 @@ def scan(
     finally:
         for work in prepared.values():
             discard(work)
+    _scan_services(repo, rev, store, stack, runner, result, progress)
     store.set_value("last_scan", {"rev": rev, "tools": [r.tool for r in result.reports]})
     if not result.reports:
         store.append_event(

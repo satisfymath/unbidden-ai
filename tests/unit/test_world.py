@@ -289,3 +289,34 @@ def test_traefik_router_labels_become_routes_from_the_proxy(tmp_path: Path) -> N
     discover_static(tmp_path, "HEAD", detect_stack(tmp_path), world)
     routes = {(r.src, r.dst) for r in world.relations if r.predicate == "calls"}
     assert routes == {("service:proxy", "service:backend"), ("service:proxy", "service:adminer")}
+
+
+def test_service_directories_with_their_own_manifest_and_lock_are_found(tmp_path: Path) -> None:
+    from unbidden.observe.scan import service_dirs
+
+    compose = """services:
+  payment:
+    build: {context: ./src/payment}
+  loadgen:
+    build: {context: ., dockerfile: src/load-generator/Dockerfile}
+  go-svc:
+    build: {context: ./src/checkout}
+  db:
+    image: postgres:16
+"""
+    files = {
+        "compose.yaml": compose,
+        "src/payment/package.json": "{}",
+        "src/payment/package-lock.json": "{}",
+        "src/load-generator/requirements.txt": "locust==2.0\n",
+        "src/load-generator/Dockerfile": "FROM python\n",
+        "src/checkout/go.mod": "module x\n",
+    }
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    for path, text in files.items():
+        (tmp_path / path).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / path).write_text(text)
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    assert service_dirs(tmp_path, "HEAD", detect_stack(tmp_path)) == ["src/load-generator", "src/payment"]

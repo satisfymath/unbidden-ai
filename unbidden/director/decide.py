@@ -80,6 +80,10 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
     if value == 0.0:
         add(ActionKind.DECLINE, 1.0, 0.0, 0.0, f"category {opp.category!r} has no value under this mandate")
         return _choose(opp, candidates, ActionKind.DECLINE)
+    if "@" in str(opp.details.get("tool", "")):
+        reason = "found in a service analyzed in isolation: the lab cannot reproduce it inside the repository yet"
+        add(ActionKind.WAIT, 0.0, 0.0, 0.0, reason)
+        return _choose(opp, candidates, ActionKind.WAIT)
     if opp.category in LOW_VALUE and ctx.ci_commands is None:
         add(
             ActionKind.WAIT,
