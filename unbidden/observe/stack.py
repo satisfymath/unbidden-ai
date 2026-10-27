@@ -134,6 +134,18 @@ def _detect_node(repo: Path, rev: str, files: set[str], blind: list[str]) -> Nod
     )
 
 
+def poetry_requirements(lock_text: str) -> tuple[str, ...]:
+    """Exact versions from a poetry.lock, read as data: poetry is never run, the project is never built."""
+    lock = tomllib.loads(lock_text)
+    pins: list[str] = []
+    for package in lock.get("package", []):
+        source = package.get("source", {})
+        if source.get("type") in ("directory", "file", "git", "url"):
+            continue
+        pins.append(f"{package['name']}=={package['version']}")
+    return tuple(sorted(pins))
+
+
 def _setup_requirements(source: str) -> tuple[str, ...] | None:
     """`install_requires` from setup.py, only when it is a literal list. setup.py is parsed, never run."""
     tree = ast.parse(source)
@@ -174,6 +186,19 @@ def _detect_python(repo: Path, rev: str, files: set[str], blind: list[str]) -> P
     version = DEFAULT_PYTHON
     if ".python-version" in files:
         version = _read(repo, rev, ".python-version").strip() or DEFAULT_PYTHON
+    if "pyproject.toml" in files and "poetry.lock" in files:
+        project = tomllib.loads(_read(repo, rev, "pyproject.toml"))
+        if "poetry" in project.get("tool", {}):
+            text = json.dumps(project)
+            return PythonStack(
+                version=version,
+                lockfile="poetry.lock",
+                manifest="poetry.lock",
+                ruff="ruff" in text,
+                pyright="pyright" in text,
+                pytest="pytest" in text or bool(_tests_under(files, (".",))),
+                requirements=poetry_requirements(_read(repo, rev, "poetry.lock")),
+            )
     if "pyproject.toml" in files:
         project = tomllib.loads(_read(repo, rev, "pyproject.toml"))
         members = _workspace_members(repo, rev, project, files)

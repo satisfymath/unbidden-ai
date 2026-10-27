@@ -21,6 +21,7 @@ PYTHON_REGISTRIES = ["pypi.org", "files.pythonhosted.org"]
 PYRIGHT_VERSION = "1.1.414"
 RUFF_VERSION = "0.17.2"
 PYTEST_VERSION = "9.1.1"
+HYPOTHESIS_VERSION = "6.170.12"  # for robustness probes; installed only when the project does not bring it
 
 
 @dataclass(frozen=True)
@@ -65,8 +66,9 @@ def python_dockerfile(stack: PythonStack) -> str:
         install = "uv sync --frozen --no-install-workspace --all-packages --all-groups --project /deps"
     elif stack.lockfile == "uv.lock":
         install = "uv sync --frozen --no-install-project --all-groups --project /deps"
-    elif stack.manifest == "setup.py":
-        # The requirements were read statically from setup.py and written into the build context.
+    elif stack.manifest in ("setup.py", "poetry.lock"):
+        # The requirements were read statically (setup.py's install_requires, poetry.lock's pins) and written
+        # into the build context.
         install = (
             "uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt"
         )
@@ -87,7 +89,9 @@ WORKDIR /deps
 COPY ctx/ /deps/
 RUN {install} \\
  && (/deps/.venv/bin/python -c "import pytest" 2>/dev/null \\
-     || uv pip install --python /deps/.venv/bin/python pytest=={PYTEST_VERSION})
+     || uv pip install --python /deps/.venv/bin/python pytest=={PYTEST_VERSION}) \\
+ && (/deps/.venv/bin/python -c "import hypothesis" 2>/dev/null \\
+     || uv pip install --python /deps/.venv/bin/python hypothesis=={HYPOTHESIS_VERSION})
 """
 
 
@@ -99,7 +103,7 @@ def _manifests(repo: Path, rev: str, stack: NodeStack | PythonStack) -> list[str
         wanted += [f for f in ("pnpm-workspace.yaml", ".npmrc") if f in files]
         # Packages vendored under node_modules are never tracked in sane repos; skip them if they are.
         return sorted({f for f in wanted if "node_modules/" not in f})
-    if stack.manifest == "setup.py":
+    if stack.manifest in ("setup.py", "poetry.lock"):
         return []
     wanted = [stack.manifest] + ([stack.lockfile] if stack.lockfile else [])
     wanted += [f"{m}/pyproject.toml" for m in stack.members]
@@ -111,7 +115,7 @@ def provision(repo: Path, rev: str, stack: NodeStack | PythonStack, *, docker: s
     build = Path(tempfile.mkdtemp(prefix="unbidden-build-"))
     try:
         digest = _copy_from_git(repo, rev, _manifests(repo, rev, stack), build)
-        if isinstance(stack, PythonStack) and stack.manifest == "setup.py":
+        if isinstance(stack, PythonStack) and stack.manifest in ("setup.py", "poetry.lock"):
             generated = "\n".join(stack.requirements) + "\n"
             (build / "ctx").mkdir(parents=True, exist_ok=True)
             (build / "ctx" / "unbidden-requirements.txt").write_text(generated)
