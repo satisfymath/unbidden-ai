@@ -17,6 +17,7 @@ from unbidden.contracts.jobs import Job
 from unbidden.contracts.opportunity import ActionKind, Decision, Opportunity, OpportunityStatus
 from unbidden.director.decide import Context, decide
 from unbidden.lab.fixlab import FixLab
+from unbidden.observe.ci import ci_commands
 from unbidden.observe.scan import scan
 from unbidden.observe.stack import Stack
 from unbidden.publish.github import NeedsApproval, Publisher, PublishError
@@ -115,6 +116,8 @@ class Cycle:
         mandate = self.runtime.workspace.mandate()
         open_prs = len(self.store.list("proposals", Proposal, status=ProposalStatus.PR_OPENED.value))
         checked = self._checked_dirs()
+        head = self.store.get_value("head")
+        commands = ci_commands(self.runtime.workspace.repo, head) if head else ""
         queued = 0
         live = (OpportunityStatus.OPEN, OpportunityStatus.EXPERIMENTING, OpportunityStatus.PROPOSED)
         unpublished = {
@@ -129,7 +132,9 @@ class Cycle:
         for opp in opps:
             attempts = int(opp.details.get("attempts", 0))
             decision = decide(
-                opp, mandate, Context(open_pull_requests=open_prs, attempts=attempts, checked_dirs=checked)
+                opp,
+                mandate,
+                Context(open_pull_requests=open_prs, attempts=attempts, checked_dirs=checked, ci_commands=commands),
             )
             last: dict[str, Any] = opp.details.get("decision", {})
             seen = (last.get("chosen"), last.get("level"), last.get("attempts"))

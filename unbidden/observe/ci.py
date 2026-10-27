@@ -18,6 +18,8 @@ import yaml
 _SKIP = re.compile(
     r"(?ix)\b(docker|compose|pip\s+install|uv\s+sync|uv\s+pip|poetry\s+install|npm\s+(ci|install)|pnpm\s+install"
     r"|yarn\s+install|apt-get|brew|curl|wget|codecov|coverage\s+report|coverage\s+html|smokeshow|git\s+)"
+    # Activating a virtualenv: the dependency image already puts its environment first.
+    r"|^\s*(source|\.)\s+\S*(venv|VENV|activate)\S*\s*$"
 )
 _COMPOSE_UP = re.compile(r"compose\s+up\b(?P<args>[^\n]*)")
 _EXPR = re.compile(r"\$\{\{[^}]*\}\}")
@@ -60,6 +62,15 @@ def _clean(command: str) -> str | None:
     return "\n".join(kept) or None
 
 
+# A Python job tests when it runs a test runner, not when the word "test" appears (`codespell --skip tests`).
+_PY_TESTS = re.compile(
+    r"\bpytest\b|-m (pytest|unittest)\b|\b(make|tox|nox|hatch run|poetry run|uv run)\s+[\w:-]*test"
+    r"|[\w./-]*test[\w-]*\.(sh|py)\b"
+)
+# Jobs that need more than the repository: a browser, a deployed system, another operating system.
+_NEEDS_MORE = re.compile(r"e2e|browser|playwright|cypress|integration|smoke|deploy|release|\bwin|windows|macos")
+
+
 def _job_plan(workflow: str, job_name: str, job: dict[str, Any], language: str) -> CiPlan | None:
     defaults = ((job.get("defaults") or {}).get("run") or {}).get("working-directory", ".")
     steps: list[CiStep] = []
@@ -74,7 +85,7 @@ def _job_plan(workflow: str, job_name: str, job: dict[str, Any], language: str) 
         if command is not None:
             steps.append(CiStep(cwd=str(step.get("working-directory") or defaults), command=command))
     text = " ".join(s.command for s in steps)
-    runs_tests = "pytest" in text or "test" in text if language == "python" else re.search(r"\btest\b", text)
+    runs_tests = _PY_TESTS.search(text) if language == "python" else re.search(r"\btest\b", text)
     if not steps or not runs_tests:
         return None
     return CiPlan(workflow=workflow, job=job_name, steps=tuple(steps), services=tuple(dict.fromkeys(services)))
@@ -87,25 +98,39 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
         for n in _git(repo, "ls-tree", "--name-only", f"{rev}:.github/workflows").split()
         if n.endswith((".yml", ".yaml"))
     ]
-    names.sort(key=lambda n: (0 if "test" in n else 1, n))
+    jobs: list[tuple[str, str, dict[str, Any]]] = []
     for name in names:
         try:
             workflow = yaml.safe_load(_git(repo, "show", f"{rev}:.github/workflows/{name}")) or {}
         except yaml.YAMLError:
             continue
-        for job_name, job in (workflow.get("jobs") or {}).items():
-            if not isinstance(job, dict) or "test" not in f"{name} {job_name}".lower():
-                continue
-            hint = " ".join(
-                str(s.get("run", "")) + str(s.get("uses", "")) for s in job.get("steps") or [] if isinstance(s, dict)
-            )
-            if language == "python" and not re.search(r"python|pytest|uv |poetry", hint):
-                continue
-            if language == "node" and not re.search(r"node|npm|pnpm|yarn|bun", hint):
-                continue
-            plan = _job_plan(name, str(job_name), job, language)
-            if plan is not None:
-                return plan
+        jobs += [(name, str(j), job) for j, job in (workflow.get("jobs") or {}).items() if isinstance(job, dict)]
+
+    # A job is judged by what its steps run, not by its name (rich tests in `pythonpackage.yml`, job `build`); jobs
+    # named for tests are tried first.
+    def rank(item: tuple[str, str, dict[str, Any]]) -> tuple[int, int, int, str, str]:
+        label = f"{item[0]} {item[1]} {item[2].get('runs-on', '')}".lower()
+        canonical = item[0].rsplit(".", 1)[0].lower() in ("test", "tests", "ci", "check", "checks")
+        return (
+            1 if _NEEDS_MORE.search(label) else 0,
+            0 if canonical else 1,
+            0 if "test" in label else 1,
+            item[0],
+            item[1],
+        )
+
+    jobs.sort(key=rank)
+    for name, job_name, job in jobs:
+        hint = " ".join(
+            str(s.get("run", "")) + str(s.get("uses", "")) for s in job.get("steps") or [] if isinstance(s, dict)
+        )
+        if language == "python" and not re.search(r"python|pytest|uv |poetry", hint):
+            continue
+        if language == "node" and not re.search(r"node|npm|pnpm|yarn|bun", hint):
+            continue
+        plan = _job_plan(name, job_name, job, language)
+        if plan is not None:
+            return plan
     return None
 
 
@@ -149,3 +174,34 @@ def ci_lint_packages(repo: Path, rev: str, packages: dict[str, str], root_script
             dirs.add(".")  # a lint run over the whole repository
         dirs.update(packages[n] for n in filtered if n in packages)
     return dirs
+
+
+def ci_commands(repo: Path, rev: str) -> str | None:
+    """Everything the repository's workflows run, lowercased; None when it has no workflow Unbidden can read."""
+    names = [
+        n
+        for n in _git(repo, "ls-tree", "--name-only", f"{rev}:.github/workflows").split()
+        if n.endswith((".yml", ".yaml"))
+    ]
+    runs: list[str] = []
+    for name in names:
+        try:
+            workflow = yaml.safe_load(_git(repo, "show", f"{rev}:.github/workflows/{name}")) or {}
+        except yaml.YAMLError:
+            continue
+        for job in (workflow.get("jobs") or {}).values():
+            for step in (job.get("steps") or []) if isinstance(job, dict) else []:
+                if isinstance(step, dict):
+                    runs.append(f"{step.get('run', '')} {step.get('uses', '')}")
+    if not runs:
+        return None
+    text = "\n".join(runs)
+    # One level of indirection: what the workflows call is part of what they run (`bash scripts/lint.sh` runs ruff).
+    tracked = set(_git(repo, "ls-tree", "-r", "--name-only", rev).split())
+    called = {t.lstrip("./") for t in re.findall(r"[\w./-]+\.(?:sh|py|bash)\b", text)} & tracked
+    if re.search(r"\bmake\b", text):
+        called |= {"Makefile"} & tracked
+    if "pre-commit" in text:
+        called |= {".pre-commit-config.yaml"} & tracked
+    extra = [_git(repo, "show", f"{rev}:{path}")[:20000] for path in sorted(called)]
+    return "\n".join([text, *extra]).lower()

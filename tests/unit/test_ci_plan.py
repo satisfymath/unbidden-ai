@@ -102,3 +102,23 @@ def test_lint_scope_comes_from_the_workflows_commands(tmp_path: Path) -> None:
     subprocess.run([*git, "commit", "-qam", "y"], check=True)
     root = {"lint": "pnpm --filter @shop/web lint && pnpm --filter api lint"}
     assert ci_lint_packages(tmp_path, "HEAD", packages, root) == {"apps/web", "backend/api"}
+
+
+def test_a_test_job_is_found_by_what_it_runs_and_jobs_needing_more_come_last(tmp_path: Path) -> None:
+    workflows = {
+        "e2e.yml": "jobs:\n  e2e-tests:\n    steps:\n      - run: pytest -m e2e\n",
+        "pythonpackage.yml": (
+            "jobs:\n  build:\n    steps:\n      - run: poetry install\n"
+            "      - run: |\n          source $VENV\n          pytest tests -v\n"
+        ),
+    }
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / ".github/workflows").mkdir(parents=True)
+    for name, text in workflows.items():
+        (tmp_path / ".github/workflows" / name).write_text(text)
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    plan = ci_test_plan(tmp_path, "HEAD", "python")
+    assert plan is not None and (plan.workflow, plan.job) == ("pythonpackage.yml", "build")
+    assert [s.command for s in plan.steps] == ["pytest tests -v"]

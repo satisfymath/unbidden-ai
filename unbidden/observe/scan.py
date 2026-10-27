@@ -12,7 +12,7 @@ from unbidden.contracts.guardian import ActionRequest, Mandate
 from unbidden.guardian.policy import PolicyEngine
 from unbidden.observe.analyzers import Sweep, record_report, run_tool
 from unbidden.observe.stack import Stack, detect_stack
-from unbidden.sandbox.provision import DependencyImage, ProvisionError, provision
+from unbidden.sandbox.provision import SYSTEM_REGISTRIES, DependencyImage, ProvisionError, provision
 from unbidden.sandbox.runner import SandboxRunner
 from unbidden.sandbox.tools import tools_for
 from unbidden.store import Store
@@ -60,7 +60,12 @@ def scan(
         try:
             _allow(policy, "sandbox.provision", f"install {language} dependencies", registries)
             progress(f"provisioning {language} dependencies")
-            images[language] = provision(repo, rev, lang_stack)
+            system = policy.evaluate(
+                ActionRequest(
+                    capability="sandbox.provision", purpose="system build tools", destinations=SYSTEM_REGISTRIES
+                )
+            ).allowed
+            images[language] = provision(repo, rev, lang_stack, system_build_tools=system)
         except (ScanDenied, ProvisionError) as exc:
             result.problems.append(str(exc))
     _allow(policy, "analyzer.run", "run the repository's own checks")

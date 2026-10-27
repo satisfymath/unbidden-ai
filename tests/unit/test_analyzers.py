@@ -39,3 +39,22 @@ def test_incomplete_report_resolves_nothing(store: Store) -> None:
     assert sweep.resolved == []
     still = store.get_by_key(COLLECTION, "tsc:a.ts", Opportunity)
     assert still is not None and still.status is OpportunityStatus.OPEN
+
+
+def test_a_build_failure_keeps_the_installers_own_error() -> None:
+    from unbidden.sandbox.provision import NEEDS_COMPILER, build_error
+
+    stderr = "\n".join(
+        [
+            "#8 [4/5] RUN uv sync --frozen",
+            "#8 2.101 Resolved 210 packages in 3ms",
+            "#8 2.133 error: Failed to build `pywatchman==3.0.0`",
+            "#8 2.133          error: [Errno 2] No such file or directory: 'gcc'",
+            "#8 ERROR: process did not complete successfully: exit code: 1",
+            "Dockerfile:12",
+            "  12 | >>> RUN uv sync --frozen",
+            "ERROR: failed to build: failed to solve: exit code: 1",
+        ]
+    )
+    kept = build_error(stderr)
+    assert "pywatchman" in kept and NEEDS_COMPILER.search(kept)

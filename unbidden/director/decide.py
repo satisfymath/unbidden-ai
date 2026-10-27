@@ -41,6 +41,7 @@ class Context:
     open_pull_requests: int
     attempts: int  # experiments already run on this opportunity without an improvement
     checked_dirs: tuple[str, ...] = ()  # where the team's CI works; empty means the whole repository
+    ci_commands: str | None = ""  # what the team's workflows run, lowercased; None when no workflow could be read
 
 
 def outside_checked_scope(opp: Opportunity, checked_dirs: tuple[str, ...]) -> bool:
@@ -76,6 +77,25 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
     add(ActionKind.WAIT, 0.0, 0.0, 0.0, "doing nothing costs nothing")
     if value == 0.0:
         add(ActionKind.DECLINE, 1.0, 0.0, 0.0, f"category {opp.category!r} has no value under this mandate")
+        return _choose(opp, candidates, ActionKind.DECLINE)
+    if opp.category in LOW_VALUE and ctx.ci_commands is None:
+        add(
+            ActionKind.WAIT,
+            0.0,
+            0.0,
+            0.0,
+            "the team's CI is not understood: style findings wait until its checks are known",
+        )
+        return _choose(opp, candidates, ActionKind.WAIT)
+    tool = str(opp.details.get("tool", "")).split(":")[0].removesuffix("-baseline")
+    if opp.category in LOW_VALUE and ctx.ci_commands and tool and tool not in ctx.ci_commands:
+        add(
+            ActionKind.DECLINE,
+            1.0,
+            0.0,
+            0.0,
+            f"the team's CI does not run {tool}: its style is not the team's standard",
+        )
         return _choose(opp, candidates, ActionKind.DECLINE)
     if outside_checked_scope(opp, ctx.checked_dirs):
         reason = f"{opp.category} findings outside what the team's CI checks ({', '.join(ctx.checked_dirs)})"

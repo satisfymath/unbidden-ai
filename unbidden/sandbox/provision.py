@@ -8,6 +8,7 @@ authorised by the mandate's registry allowlist; it is a policy check, not a fire
 from __future__ import annotations
 
 import hashlib
+import re
 import shutil
 import subprocess
 import tempfile
@@ -71,7 +72,7 @@ RUN {install}{generate}
 """
 
 
-def python_dockerfile(stack: PythonStack) -> str:
+def python_dockerfile(stack: PythonStack, *, system_build_tools: bool = False) -> str:
     if stack.lockfile == "uv.lock" and stack.members:
         install = "uv sync --frozen --no-install-workspace --all-packages --all-groups --project /deps"
     elif stack.lockfile == "uv.lock":
@@ -86,6 +87,12 @@ def python_dockerfile(stack: PythonStack) -> str:
         install = "uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python -r /deps/requirements.txt"
     else:
         install = "uv sync --no-install-project --all-groups --project /deps"
+    build_tools = (
+        "RUN apt-get update && apt-get install -y --no-install-recommends build-essential"
+        " && rm -rf /var/lib/apt/lists/*\n"
+        if system_build_tools
+        else ""
+    )
     return f"""FROM node:22-slim AS node
 FROM python:{stack.version}-slim
 COPY --from=node /usr/local/bin/node /usr/local/bin/node
@@ -94,7 +101,7 @@ RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \\
  && npm install -g pyright@{PYRIGHT_VERSION} \\
  && pip install --no-cache-dir uv \\
  && uv venv /opt/tools && uv pip install --python /opt/tools/bin/python ruff=={RUFF_VERSION} pytest=={PYTEST_VERSION}
-ENV UV_PROJECT_ENVIRONMENT=/deps/.venv UV_LINK_MODE=copy
+{build_tools}ENV UV_PROJECT_ENVIRONMENT=/deps/.venv UV_LINK_MODE=copy
 WORKDIR /deps
 COPY ctx/ /deps/
 RUN {install} \\
@@ -121,7 +128,57 @@ def _manifests(repo: Path, rev: str, stack: NodeStack | PythonStack) -> list[str
     return sorted(set(wanted))
 
 
-def provision(repo: Path, rev: str, stack: NodeStack | PythonStack, *, docker: str = "docker") -> DependencyImage:
+def build_error(stderr: str, keep: int = 12) -> str:
+    """The lines that say why a build failed. Docker ends with the Dockerfile excerpt and a summary; the installer's
+    own error (an unsatisfiable lock, a missing system library) comes before them and was being cut off."""
+    lines = stderr.strip().splitlines()
+    cut = next((i for i, ln in enumerate(lines) if ln.startswith("Dockerfile:")), len(lines))
+    # Plain progress prefixes each line with its step and time ("#8 1.234 "); the text after it is the tool's own.
+    cause = [re.sub(r"^#\d+ (\d+\.\d+ )?", "", ln) for ln in lines[:cut] if ln.strip()]
+    cause = [ln for ln in cause if not ln.startswith(("DONE", "CACHED", "[", "sha256:", "naming to", "writing image"))]
+    signal = [ln for ln in cause if any(w in ln.lower() for w in ("error", "err!", "failed", "not found", "cannot"))]
+    picked = (signal or cause)[-keep:]
+    return "\n".join([*picked, *lines[-2:]])
+
+
+NEEDS_COMPILER = re.compile(
+    r"No such file or directory: '(gcc|cc|g\+\+)'|command '(gcc|cc)' failed|unable to execute 'gcc'"
+)
+SYSTEM_REGISTRIES = ["deb.debian.org"]
+
+
+def provision(
+    repo: Path,
+    rev: str,
+    stack: NodeStack | PythonStack,
+    *,
+    docker: str = "docker",
+    system_build_tools: bool = False,
+) -> DependencyImage:
+    """Build (or reuse) the dependency image. `system_build_tools` (the mandate allows Debian's archive) lets a Python
+    install that needs a C compiler retry with one; without it the failure says that is what is missing."""
+    if isinstance(stack, NodeStack) and ".pnpmfile.cjs" in tracked_files(repo, rev):
+        # pnpm runs that file (repository code) during the install, with network access: not done here.
+        raise ProvisionError(
+            "node dependencies were not installed: the lockfile depends on .pnpmfile.cjs, repository code that pnpm "
+            "runs during install with network access; Unbidden does not run repository code outside the sandbox"
+        )
+    try:
+        return _provision(repo, rev, stack, docker=docker, system_build_tools=False)
+    except ProvisionError as exc:
+        if isinstance(stack, PythonStack) and NEEDS_COMPILER.search(str(exc)):
+            if not system_build_tools:
+                raise ProvisionError(
+                    f"{exc}\nA package is built from source and needs a C compiler; system packages come from "
+                    f"{', '.join(SYSTEM_REGISTRIES)}, which the mandate's package registries do not list."
+                ) from exc
+            return _provision(repo, rev, stack, docker=docker, system_build_tools=True)
+        raise
+
+
+def _provision(
+    repo: Path, rev: str, stack: NodeStack | PythonStack, *, docker: str, system_build_tools: bool
+) -> DependencyImage:
     language = "node" if isinstance(stack, NodeStack) else "python"
     build = Path(tempfile.mkdtemp(prefix="unbidden-build-"))
     try:
@@ -131,15 +188,20 @@ def provision(repo: Path, rev: str, stack: NodeStack | PythonStack, *, docker: s
             (build / "ctx").mkdir(parents=True, exist_ok=True)
             (build / "ctx" / "unbidden-requirements.txt").write_text(generated)
             digest = hashlib.sha256((digest + generated).encode()).hexdigest()[:16]
-        dockerfile = node_dockerfile(stack) if isinstance(stack, NodeStack) else python_dockerfile(stack)
+        dockerfile = (
+            node_dockerfile(stack)
+            if isinstance(stack, NodeStack)
+            else python_dockerfile(stack, system_build_tools=system_build_tools)
+        )
         tag = f"unbidden-deps-{language}:{hashlib.sha256((dockerfile + digest).encode()).hexdigest()[:16]}"
         exists = subprocess.run([docker, "image", "inspect", tag], capture_output=True, check=False).returncode == 0
         if not exists:
             (build / "Dockerfile").write_text(dockerfile)
-            result = subprocess.run([docker, "build", "-q", "-t", tag, str(build)], capture_output=True, text=True)
+            result = subprocess.run(
+                [docker, "build", "--progress=plain", "-t", tag, str(build)], capture_output=True, text=True
+            )
             if result.returncode != 0:
-                tail = "\n".join(result.stderr.strip().splitlines()[-15:])
-                raise ProvisionError(f"dependency image for {language} failed to build:\n{tail}")
+                raise ProvisionError(f"dependency image for {language} failed to build:\n{build_error(result.stderr)}")
     finally:
         shutil.rmtree(build, ignore_errors=True)
     if isinstance(stack, NodeStack):

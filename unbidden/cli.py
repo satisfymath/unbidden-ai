@@ -498,6 +498,7 @@ def cmd_decide(args: argparse.Namespace) -> int:
     from unbidden.contracts.experiment import Proposal, ProposalStatus
     from unbidden.daemon.cycle import checked_dirs
     from unbidden.director.decide import Context, decide
+    from unbidden.observe.ci import ci_commands
 
     ws = Workspace.find()
     ws.require()
@@ -505,6 +506,7 @@ def cmd_decide(args: argparse.Namespace) -> int:
     mandate = ws.mandate()
     head = head_sha(ws.repo)
     dirs = checked_dirs(ws.repo, head)
+    commands = ci_commands(ws.repo, head)
     open_prs = len(store.list("proposals", Proposal, status=ProposalStatus.PR_OPENED.value))
     live = (OpportunityStatus.OPEN, OpportunityStatus.EXPERIMENTING, OpportunityStatus.PROPOSED)
     rows = []
@@ -514,7 +516,12 @@ def cmd_decide(args: argparse.Namespace) -> int:
         d = decide(
             opp,
             mandate,
-            Context(open_pull_requests=open_prs, attempts=int(opp.details.get("attempts", 0)), checked_dirs=dirs),
+            Context(
+                open_pull_requests=open_prs,
+                attempts=int(opp.details.get("attempts", 0)),
+                checked_dirs=dirs,
+                ci_commands=commands,
+            ),
         )
         rows.append(
             {

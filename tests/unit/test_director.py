@@ -55,3 +55,21 @@ def test_style_findings_outside_the_ci_scope_are_declined(mandate: Mandate) -> N
     bug = opp(category="bugs")
     bug.details = {"paths": ["scripts/release.py"]}
     assert decide(bug, mandate, Context(0, 0, checked_dirs=("backend",))).chosen is ActionKind.RUN_EXPERIMENT
+
+
+def test_style_from_a_tool_the_ci_does_not_run_is_declined_and_waits_when_the_ci_is_unknown(mandate: Mandate) -> None:
+    opp = Opportunity(
+        source="ruff-baseline",
+        category="lint",
+        title="t",
+        summary="s",
+        dedup_key="k",
+        evidence=[EvidenceRef(kind="file", locator="x")],
+        details={"tool": "ruff-baseline", "paths": ["rich/cells.py"]},
+    )
+    declined = decide(opp, mandate, Context(open_pull_requests=0, attempts=0, ci_commands="make typecheck\npytest"))
+    assert declined.chosen is ActionKind.DECLINE and "does not run ruff" in declined.reason
+    waiting = decide(opp, mandate, Context(open_pull_requests=0, attempts=0, ci_commands=None))
+    assert waiting.chosen is ActionKind.WAIT
+    acted = decide(opp, mandate, Context(open_pull_requests=0, attempts=0, ci_commands="uv run ruff check ."))
+    assert acted.chosen is not ActionKind.DECLINE
