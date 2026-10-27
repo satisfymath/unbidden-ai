@@ -50,3 +50,14 @@ def test_outcomes_follow_fixed_rules() -> None:
     verdicts = [{"improved": False, "level": 4}, {"improved": True, "level": 4}]
     assert classify(_row(languages=["python"], analyzers=complete, verdicts=verdicts[:1])) == "nothing found"
     assert classify(_row(languages=["python"], analyzers=complete, verdicts=verdicts)) == "validated improvement (L4)"
+
+
+def test_with_a_fork_pull_requests_go_to_the_fork_and_never_upstream(tmp_path: Any) -> None:
+    import yaml
+
+    raw = bench_mandate(default_mandate("x", "upstream/x"), profile="frontier", repo_budget_usd=1.0, fork="me/x")
+    path = tmp_path / "mandate.yaml"
+    path.write_text(yaml.safe_dump(raw))
+    mandate = load_mandate(path)
+    assert mandate.egress.github.repository == "me/x"
+    assert mandate.autonomy.open_pull_requests == "allow" and mandate.autonomy.merge_pull_requests == "deny"

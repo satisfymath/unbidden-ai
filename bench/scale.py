@@ -44,8 +44,11 @@ UNBIDDEN = ["uv", "run", "--project", str(PROJECT), "unbidden"]
 MAX_WORKERS = 3
 
 
-def bench_mandate(raw: dict[str, Any], *, profile: str, repo_budget_usd: float) -> dict[str, Any]:
-    """The mandate `init` wrote, set for an unattended run on someone else's repository."""
+def bench_mandate(
+    raw: dict[str, Any], *, profile: str, repo_budget_usd: float, fork: str | None = None
+) -> dict[str, Any]:
+    """The mandate `init` wrote, set for an unattended run on someone else's repository. With `fork` (owner/name, an
+    authorized fork), proposals become pull requests there; the upstream is never written to."""
     m = raw["mandate"]
     m["business_constraints"]["maximum_monthly_spend_usd"] = repo_budget_usd
     m["autonomy"].update(
@@ -65,6 +68,12 @@ def bench_mandate(raw: dict[str, Any], *, profile: str, repo_budget_usd: float) 
     if "deb.debian.org" not in registries:
         registries.append("deb.debian.org")  # C headers and compilers some installs need (D-027)
     m["models"] = {"profile": profile, "private_code_to_frontier": "deny"}
+    if fork is not None:
+        m["egress"]["github"]["repository"] = fork
+        m["autonomy"]["open_pull_requests"] = "allow"
+    elif m["egress"]["github"].get("repository"):
+        # Without a fork the slug is the upstream's: kept only to read its CI, never to publish.
+        m["autonomy"]["open_pull_requests"] = "deny"
     return raw
 
 
@@ -240,7 +249,13 @@ def run_one(repo: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
             raw = yaml.safe_load(mandate_path.read_text())
             mandate_path.write_text(
                 yaml.safe_dump(
-                    bench_mandate(raw, profile=args.profile, repo_budget_usd=args.repo_budget), sort_keys=False
+                    bench_mandate(
+                        raw,
+                        profile=args.profile,
+                        repo_budget_usd=args.repo_budget,
+                        fork=f"{args.fork_owner}/{repo['name']}" if args.fork_owner else None,
+                    ),
+                    sort_keys=False,
                 )
             )
     row["steps"]["map"] = _strip(_cli([*UNBIDDEN, "map", "--json"], target, env, 1800))
@@ -295,6 +310,7 @@ def main() -> None:
     parser.add_argument("--repo-budget", type=float, default=1.0, help="remote spend cap per repository, US$")
     parser.add_argument("--profile", choices=["local", "local-first", "frontier"], default="frontier")
     parser.add_argument("--method-check", action="store_true", help="run without a verified balance (allowance only)")
+    parser.add_argument("--fork-owner", help="publish pull requests to <owner>/<name>, an authorized fork")
     parser.add_argument("--cleanup-images", action="store_true", help="remove dependency images this run created")
     args = parser.parse_args()
     if not 1 <= args.workers <= MAX_WORKERS:

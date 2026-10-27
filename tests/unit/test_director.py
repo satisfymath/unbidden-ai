@@ -136,3 +136,12 @@ def test_a_reopened_opportunity_keeps_its_history_and_gets_new_experiment_keys(t
     assert again.status is OpportunityStatus.OPEN and again.details == {"rev": "abc", "reopened": 1}
     events = [e for e in store.events() if e.entity_id == o.id]
     assert events[-1].payload == {"reopened": 1, "reason": "the lab could not run fixtures (fixed)"}
+
+
+def test_a_forks_shared_commits_are_judged_by_the_parents_ci(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    import unbidden.observe.ci as ci
+
+    monkeypatch.setattr(ci, "ci_status", lambda slug, rev, token=None: "green" if slug == "upstream/lib" else None)  # pyright: ignore[reportUnknownLambdaType]
+    monkeypatch.setattr(ci, "fork_parent", lambda slug, token=None: "upstream/lib" if slug == "me/lib" else None)  # pyright: ignore[reportUnknownLambdaType]
+    assert ci.ci_verdicts(tmp_path, "abc", "me/lib", None, set()) == ("green", {})
+    assert ci.ci_verdicts(tmp_path, "abc", "other/lib", None, set()) == (None, {})

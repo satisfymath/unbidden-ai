@@ -359,6 +359,9 @@ def ci_verdicts(
     Used by the Director wherever it decides, so `unbidden decide` and the autonomous cycle judge alike."""
     status = ci_status(slug, rev, token)
     runs = check_runs(slug, rev, token)
+    if status is None and (parent := fork_parent(slug, token)) is not None:
+        # A fork runs no checks on the commits it shares with its parent; the parent's CI judged them.
+        status, runs = ci_status(parent, rev, token), check_runs(parent, rev, token)
     per_tool = {t: v for t in sorted(tools) if t and (v := tool_status(repo, rev, t, runs)) is not None}
     return status, per_tool
 
@@ -366,3 +369,18 @@ def ci_verdicts(
 def analyzer_tool(details: dict[str, object]) -> str:
     """The tool an analyzer finding came from, without the baseline suffix or a scope after the colon."""
     return str(details.get("tool", "")).split(":")[0].removesuffix("-baseline")
+
+
+def fork_parent(slug: str, token: str | None = None, *, timeout_s: float = 10.0) -> str | None:
+    """owner/name of the repository `slug` was forked from, or None (not a fork, or GitHub cannot be read)."""
+    import httpx
+
+    headers = {"Accept": "application/vnd.github+json", **({"Authorization": f"Bearer {token}"} if token else {})}
+    try:
+        response = httpx.get(f"https://api.github.com/repos/{slug}", headers=headers, timeout=timeout_s)
+    except httpx.HTTPError:
+        return None
+    if response.status_code != 200 or not response.json().get("fork"):
+        return None
+    parent = response.json().get("parent") or {}
+    return str(parent["full_name"]) if parent.get("full_name") else None
