@@ -522,3 +522,20 @@ v4 is v1 plus new container pressure:
 
 v4 replaces v1 in the live watcher and records its criteria with every anomaly. One blind detection is little
 evidence; the detector stays the part of Unbidden most in need of measurement.
+
+## D-032 · 2026-10-27 · A full-table-scan check that reads rates, and why it opens nothing on the fork
+
+**Setup.** With a GitHub token in its workspace (written by David's approval, readable by him only), the fork's
+autonomous watcher can now publish, merge and deploy. An L5 needs a new improvement for it to find.
+
+**Check.** A new World Model check reads Postgres's own per-table statistics (`pg_stat_user_tables`, read-only). It
+flags a table of 10,000 rows or more that was read whole at least 10 times since the previous map, by endpoints that
+read it.
+
+**Why it reads rates.** The fork's `item` shows 264 sequential scans that read 33.6 million rows, but the counter did
+not move in 90 s while index scans grew by 170. Those scans predate the index Unbidden deployed during the event.
+A check on cumulative counters would have proposed a fix for a problem already fixed. The check therefore compares
+each map with the previous one, and on the fork it opens nothing, which is the right answer.
+
+**Status.** No new L5 is claimed. The fork has no measurable improvement left that Unbidden can find. The check
+stays, to catch a regression.

@@ -93,3 +93,23 @@ def test_alembic_head_follows_down_revisions(tmp_path: Path) -> None:
     subprocess.run([*git, "add", "."], check=True)
     subprocess.run([*git, "commit", "-qm", "x"], check=True)
     assert alembic_head(tmp_path, "HEAD") == ("app/alembic/versions", "bbb", "app/alembic/versions/b.py")
+
+
+def test_only_scans_since_the_previous_map_count_as_full_table_scans() -> None:
+    from unbidden.contracts.common import EpistemicStatus, EvidenceRef
+    from unbidden.contracts.world import Relation, Resource, WorldModel
+    from unbidden.world.checks import full_table_scans
+
+    w = WorldModel(rev="r")
+    ev = [EvidenceRef(kind="config", locator="x")]
+    scans = {"seq": 300, "seq_rows": 36_000_000, "idx": 60_000}
+    w.add(Resource(id="table:item", kind="table", name="item", attributes={"rows_estimate": 120_000, "scans": scans},
+                   status=EpistemicStatus.OBSERVED, confidence=1, evidence=ev))  # fmt: skip
+    w.add(Resource(id="endpoint:GET /items/", kind="endpoint", name="GET /items/",
+                   status=EpistemicStatus.OBSERVED, confidence=1, evidence=ev))  # fmt: skip
+    w.relate(Relation(src="endpoint:GET /items/", dst="table:item", predicate="reads",
+                      status=EpistemicStatus.INFERRED, confidence=0.6, evidence=ev))  # fmt: skip
+    history = {"table:item": {"seq": 264, "seq_rows": 33_600_000, "idx": 52_000}}
+    found = full_table_scans(w, history, 600)
+    assert len(found) == 1 and found[0].details["scans"] == 36 and found[0].details["table"] == "item"
+    assert full_table_scans(w, {"table:item": scans}, 600) == []  # nothing new since: history, not a problem

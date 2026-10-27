@@ -43,6 +43,12 @@ WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema NOT IN {_SYSTEM_SCH
 """
 
 
+_PG_SCANS = f"""
+SELECT schemaname, relname, seq_scan, seq_tup_read, COALESCE(idx_scan, 0) FROM pg_stat_user_tables
+WHERE schemaname NOT IN {_SYSTEM_SCHEMAS}
+"""
+
+
 def table_id(database: str, default: str, schema: str, table: str) -> str:
     """`item` for public tables of the default database (as before); qualified names otherwise."""
     if database == default and schema == "public":
@@ -246,6 +252,11 @@ def _postgres(world: WorldModel, service: str, container: str, user: str, defaul
                     source=POSTGRES_READONLY.ref,
                 )
             )
+        for schema, table, seq, seq_rows, idx in psql(container, user, database, _PG_SCANS) or []:
+            resource = world.resources.get(f"table:{table_id(database, default, schema, table)}")
+            if resource is not None:
+                # Cumulative since the server started: only their growth between two maps says what happens now.
+                resource.attributes["scans"] = {"seq": int(seq), "seq_rows": int(seq_rows), "idx": int(idx)}
     if read_any and empty:
         world.blind_spots.append(
             BlindSpot(what=f"tables of {service}", why="no database holds tables yet (migrations not applied?)")
