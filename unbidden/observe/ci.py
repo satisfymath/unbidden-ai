@@ -384,3 +384,59 @@ def fork_parent(slug: str, token: str | None = None, *, timeout_s: float = 10.0)
         return None
     parent = response.json().get("parent") or {}
     return str(parent["full_name"]) if parent.get("full_name") else None
+
+
+_PY = re.compile(r"\b3\.(\d{1,2})\b")
+
+
+def _expand_tox(envlist: str) -> list[str]:
+    """`py{310,311}`, `py3{10-12}`, `py310`, `py3.12` -> minor versions as "3.N". Anything unreadable is skipped."""
+
+    def minor(item: str, short: bool) -> int | None:
+        item = item.strip().removeprefix("3.") if "." in item else item.strip()
+        if not item.isdigit():
+            return None
+        value = (
+            int(item) if short or "." in item else int(item[1:]) if item.startswith("3") and len(item) >= 2 else None
+        )
+        return value if value is not None and 6 <= value <= 30 else None
+
+    out: list[int] = []
+    for three, body in re.findall(r"py(3?)\{([^}]*)\}", envlist):
+        for item in body.split(","):
+            if "-" in item:
+                lo, _, hi = item.partition("-")
+                a, b = minor(lo, bool(three)), minor(hi, bool(three))
+                if a is not None and b is not None and b - a <= 10:
+                    out += list(range(a, b + 1))
+            elif (m := minor(item, bool(three))) is not None:
+                out.append(m)
+    out += [int(m) for m in re.findall(r"\bpy3\.?(\d{1,2})\b", envlist)]
+    return [f"3.{m}" for m in out]
+
+
+def ci_python_versions(repo: Path, rev: str) -> list[str]:
+    """The Python versions the team's CI runs on: setup-python values and matrices in the workflows, tox's envlist,
+    nox sessions and `.python-version`. Read as data; sorted oldest first. Empty when none is named."""
+    found: set[str] = set()
+    tracked = set(_git(repo, "ls-tree", "-r", "--name-only", rev).split())
+    for path in sorted(p for p in tracked if p.startswith(".github/workflows/") and p.endswith((".yml", ".yaml"))):
+        text = _git(repo, "show", f"{rev}:{path}")
+        for line in text.splitlines():
+            if re.search(r"python[-_]version|python:", line, re.IGNORECASE) and "${{" not in line:
+                found |= {f"3.{m}" for m in _PY.findall(line)}
+        # A matrix list on the lines below its key: `python-version:\n  - "3.10"`.
+        for block in re.findall(r"python[-_]version\s*:\s*\n((?:\s+-\s*['\"]?3\.\d+['\"]?\s*\n)+)", text, re.I):
+            found |= {f"3.{m}" for m in _PY.findall(block)}
+    for path in ("tox.ini", "pyproject.toml", "setup.cfg"):
+        if path in tracked:
+            text = _git(repo, "show", f"{rev}:{path}")
+            for envlist in re.findall(r"env_?list\s*=\s*(.+(?:\n[ \t]+.+)*)", text):
+                found |= set(_expand_tox(envlist))
+    if "noxfile.py" in tracked:
+        text = _git(repo, "show", f"{rev}:noxfile.py")
+        for args in re.findall(r"python\s*=\s*\[([^\]]+)\]", text):
+            found |= {f"3.{m}" for m in _PY.findall(args)}
+    if ".python-version" in tracked:
+        found |= {f"3.{m}" for m in _PY.findall(_git(repo, "show", f"{rev}:.python-version"))}
+    return sorted(found, key=lambda v: int(v.split(".")[1]))

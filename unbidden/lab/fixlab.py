@@ -7,11 +7,12 @@ quarantined before anything is measured.
 
 from __future__ import annotations
 
+import asyncio
 import difflib
 import hashlib
 import re
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from unbidden.brain.codeblocks import CodeBlockError, parse_files
@@ -30,8 +31,9 @@ from unbidden.lab.context import render as render_context
 from unbidden.lab.context import select as select_context
 from unbidden.lab.evaluator import CRITERIA, evaluate_fix
 from unbidden.lab.testsuite import TestPlan, run_suite, test_plan
+from unbidden.observe.ci import ci_python_versions
 from unbidden.observe.stack import Stack
-from unbidden.sandbox.provision import DependencyImage, link_dependencies, sandbox_spec
+from unbidden.sandbox.provision import DependencyImage, ProvisionError, link_dependencies, provision, sandbox_spec
 from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
 from unbidden.sandbox.tools import Tool, tool_named, tools_for
 from unbidden.store import Store
@@ -62,6 +64,13 @@ class LabResult:
     verdict: Verdict | None
     candidate: Candidate | None
     notes: list[str] = field(default_factory=list[str])
+
+
+@dataclass(frozen=True)
+class Parity:
+    checked: str | None = None  # the CI's Python under which the candidate was also clean
+    broke: str | None = None  # why the candidate fails the CI's checks there
+    unverified: str | None = None  # why parity could not be checked
 
 
 def unified_patch(base: Path, files: dict[str, str]) -> str:
@@ -359,14 +368,27 @@ class FixLab:
         if incomplete:
             improved = False
             reasons.append(f"incomplete reports on the candidate from {', '.join(incomplete)}")
+        level = judgement.evidence_level
+        caveats = list(judgement.caveats)
+        if improved:
+            parity = await self._parity(rev, candidate, opp.source)
+            if parity.broke:
+                improved = False
+                reasons.append(parity.broke)
+            elif parity.unverified:
+                # Validated means it would pass the team's checks; without the CI's interpreter that is not shown.
+                level = min(level, EvidenceLevel.LAB_IMPROVEMENT)
+                caveats.append(parity.unverified)
+            elif parity.checked:
+                caveats.append(f"CI parity: {opp.source} also clean on the candidate under Python {parity.checked}")
         verdict = Verdict(
             experiment_id=experiment.id,
             improved=improved,
-            evidence_level=judgement.evidence_level if improved else EvidenceLevel.REPRODUCTION,
+            evidence_level=level if improved else EvidenceLevel.REPRODUCTION,
             criteria=CRITERIA,
             tests=judgement.tests,
             reasons=reasons or ["all targeted findings are gone, none appeared, no test regressed"],
-            caveats=judgement.caveats,
+            caveats=caveats,
         )
         self.store.put("experiments", experiment)
         artifacts = self.store.path.parent / "artifacts" if self.store.path else None
@@ -379,6 +401,37 @@ class FixLab:
                            "reasons": verdict.reasons, "caveats": verdict.caveats, "origin": candidate.origin})
         )  # fmt: skip
         return experiment, verdict, candidate
+
+    async def _parity(self, rev: str, candidate: Candidate, tool_name: str) -> Parity:
+        """The targeted tool on base and candidate under the newest Python the team's CI runs, when that is not the one
+        measured. A finding the candidate adds there would turn their CI red, whatever the first environment said."""
+        tool = tool_named(self.stack, tool_name)
+        python = self.stack.python
+        if tool.language != "python" or python is None:
+            return Parity()
+        versions = ci_python_versions(self.repo, rev)
+        newest = versions[-1] if versions else None
+        if newest is None or newest == python.version:
+            return Parity()
+        self.progress(f"checking {tool.name} under Python {newest}, as the team's CI runs it")
+        try:
+            image = await asyncio.to_thread(provision, self.repo, rev, replace(python, version=newest))
+        except ProvisionError as exc:
+            return Parity(unverified=f"CI parity not verified: no image for Python {newest} ({str(exc)[:160]})")
+        base_work, cand_work = self._work(rev, image), self._work(rev, image, candidate.files)
+        try:
+            before = self._run_tools(base_work, [tool], image)
+            after = self._run_tools(cand_work, [tool], image)
+        finally:
+            discard(base_work)
+            discard(cand_work)
+        if not all(r.can_resolve for r in [*before, *after]):
+            return Parity(unverified=f"CI parity not verified: {tool.name} incomplete under Python {newest}")
+        added = sorted(set(_fingerprints(after)) - set(_fingerprints(before)))
+        if added:
+            why = f"under Python {newest}, which the team's CI runs, {tool.name} reports {len(added)} new finding(s)"
+            return Parity(broke=f"{why} on the candidate: {added[0][:160]}")
+        return Parity(checked=newest)
 
     def _finish(self, opp: Opportunity, result: LabResult) -> None:
         if result.verdict is not None and result.verdict.improved:

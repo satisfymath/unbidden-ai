@@ -237,12 +237,14 @@ def parse_mypy(result: SandboxResult, argv: list[str]) -> AnalyzerReport:
     """mypy's `--output json`: one object per line. A run with errors exits 1; anything else unparsed is a failure."""
     findings: list[Finding] = []
     parsed = result.exit_code in (0, 1)
+    notes = 0
     for line in (result.stdout or "").splitlines():
         try:
             d: dict[str, Any] = json.loads(line)
         except ValueError:
             continue
         if d.get("severity") != "error":
+            notes += 1
             continue
         findings.append(
             Finding.build(
@@ -255,8 +257,10 @@ def parse_mypy(result: SandboxResult, argv: list[str]) -> AnalyzerReport:
                 message=str(d.get("message", "")).splitlines()[0],
             )
         )
-    if result.exit_code == 1 and not findings:
-        parsed = False  # it failed without reporting a type error: configuration, plugin or import trouble
+    if result.exit_code == 1 and not findings and not notes:
+        # It failed without reporting anything: configuration, plugin or import trouble. (With --output json some
+        # versions exit 1 on notes alone, such as annotation-unchecked under Python 3.14: that run was clean.)
+        parsed = False
     return _report("mypy", result, argv, findings, parsed=parsed)
 
 

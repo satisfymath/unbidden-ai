@@ -151,6 +151,13 @@ def test_mypy_findings_come_from_its_json_lines_and_a_silent_failure_is_not_a_cl
     assert report.completeness is Completeness.COMPLETE
     broken = parse_mypy(SandboxResult(1, "", "error: plugin not found", False, 1.0, False, False), ["mypy"])
     assert broken.completeness is not Completeness.COMPLETE and not broken.findings
+    # marshmallow under Python 3.14: exit 1 with --output json and nothing but a note; plain mypy said "Success".
+    note = (
+        '{"file": "src/m/validate.py", "line": 102, "message": "By default...", "code": "annotation-unchecked", '
+        '"severity": "note"}'
+    )
+    clean = parse_mypy(SandboxResult(1, note, "", False, 1.0, False, False), ["mypy"])
+    assert clean.completeness is Completeness.COMPLETE and not clean.findings
 
 
 def test_mypy_checks_what_its_config_names_else_the_project_package() -> None:

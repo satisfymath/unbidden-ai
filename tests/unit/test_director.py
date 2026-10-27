@@ -145,3 +145,32 @@ def test_a_forks_shared_commits_are_judged_by_the_parents_ci(monkeypatch: pytest
     monkeypatch.setattr(ci, "fork_parent", lambda slug, token=None: "upstream/lib" if slug == "me/lib" else None)  # pyright: ignore[reportUnknownLambdaType]
     assert ci.ci_verdicts(tmp_path, "abc", "me/lib", None, set()) == ("green", {})
     assert ci.ci_verdicts(tmp_path, "abc", "other/lib", None, set()) == (None, {})
+
+
+def test_the_cis_python_versions_are_read_from_workflows_tox_and_nox(tmp_path: Path) -> None:
+    import subprocess
+
+    from unbidden.observe.ci import ci_python_versions
+
+    workflow = "\n".join(
+        [
+            "jobs:",
+            "  t:",
+            "    strategy:",
+            "      matrix:",
+            '        python-version: ["3.11", "3.13"]',
+            "    steps:",
+            "      - uses: actions/setup-python@v5",
+            "        with:",
+            "          python-version: ${{ matrix.python-version }}",
+        ]
+    )
+    files = {".github/workflows/t.yml": workflow, "tox.ini": "[tox]\nenvlist = lint,mypy,py{310,312},py3{13-14}\n"}
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    for path, text in files.items():
+        (tmp_path / path).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / path).write_text(text)
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    assert ci_python_versions(tmp_path, "HEAD") == ["3.10", "3.11", "3.12", "3.13", "3.14"]
