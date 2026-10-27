@@ -27,7 +27,7 @@ cannot leave a deploy unjudged.
 | `contracts/` | Pydantic models shared by everything: findings, opportunities, experiments, proposals, mandate, events, jobs, LLM requests. `contracts` and `guardian` are pyright-strict |
 | `store/` | SQLite in WAL mode. Events and audit are append-only, enforced by triggers. Also holds the job queue, key-value state and probe rounds tagged by deploy |
 | `observe/` | `stack.py` detects languages, package managers and workspaces. `ci.py` turns GitHub Actions workflows into the test plan and the lint scope. `compose.py` reads services. `analyzers.py` and `scan.py` run the repository's own tools in the sandbox. `probe.py`, `impact.py` and `live.py` handle production |
-| `world/` | A world model of the running system: static facts (models, routes, tables), runtime facts, inferred relations, and generic checks that find opportunities without naming the target |
+| `world/` | A world model of the running system: static facts (models, routes, tables), runtime facts, inferred relations, and generic checks that find opportunities without naming the target. Each fact names its connector (`connectors.py`), when it was seen and the revision or deploy it describes; `reconcile.py` merges each map into the previous one; `scope.py` walks from an anomaly to the components and gaps behind it |
 | `director/` | Picks the next action for each opportunity by expected utility (p_success × value − cost − risk) within the mandate. Declines what lies outside the CI's scope |
 | `lab/` | `FixLab` (fixes for findings), `PerfLab` (migration plus a model-written workload run inside the team's own test command), `RobustLab` (fixes for crashes). `evaluator.py` compares base and candidate. `perfstats.py` provides Mann-Whitney and CIs |
 | `sandbox/` | `runner.py`: `--network none`, read-only root, all capabilities dropped, uid 1000, snapshot at `/work`. `provision.py` builds dependency images, including code generation such as Prisma. `sidecars.py` starts databases on an `--internal` network |
@@ -37,7 +37,7 @@ cannot leave a deploy unjudged.
 | `research/` | `investigate.py` is a read-only tool loop (git log, git diff, service errors, read file). `robustness.py` covers property tests written by a model and parsing their crashes |
 | `forge/` | Capabilities Unbidden builds for itself: today, regex log adapters. Each is judged by a versioned oracle (held-out real lines plus metamorphic variants) before it can be used |
 | `publish/` | Branches, PR bodies with their evidence, and pinned merges through the GitHub API |
-| `operate/` | Deploys and rollbacks using the team's declared steps, and holds |
+| `operate/` | Deploys and rollbacks using the team's declared steps, holds, and the deploy ledger (`ledger.py`): which commit each set of running containers holds, and how that is known |
 | `cli.py` | Every human interaction. `--json` everywhere |
 
 ## Models
@@ -82,8 +82,12 @@ sizes) and an autonomy mode that allows it.
 - **Verdicts.** Each deploy is judged once against the last well-measured deploy. Criteria v2 set the
   effect floor at max(0.2 ms, 3 MADs of the baseline). A 5xx threshold applies, 429 is not counted as
   latency, and without enough samples the result is INSUFFICIENT_EVIDENCE rather than HEALTHY.
-- **Outcomes.** A merged proposal gets its L5 outcome on the first deploy that carries its merge commit,
-  with its confounders listed.
+- **Deploys.** A deploy is a new set of application containers. Its commit is `observed` (image revision label),
+  `verified` (Unbidden's own deploy steps built those images from that commit; a cached build is the same
+  build), `inferred` (the checkout's HEAD when first seen, said as such) or `unknown`.
+- **Outcomes.** A merged proposal gets its outcome on the first deploy that carries its merge commit: positive,
+  negative, inconclusive or invalid, with structured confounders and the version of the criteria applied. Only a
+  positive outcome between two deploys whose commits are verified or observed is level 5.
 - **Bad deploys.** A degraded deploy or an outage leads to a hold, a read-only investigation job, and, when
   the mandate allows rollback, a deploy of the last healthy version.
 
@@ -99,6 +103,12 @@ Guaranteed by code, and covered by tests:
 - **Merges.** Nothing is merged below L4 or while the previous deploy is still being judged.
 - **Holds and the kill switch.** Holds are released only by a person, and the kill switch stops every job.
 - **Sandbox.** Sandboxed code has no network. Sidecar databases sit on an internal network.
+- **Level 5 needs known code.** No level 5 between deploys whose commit was inferred or unknown
+  (`tests/unit/test_live.py`).
+- **Docker scope.** Only containers of the workspace's compose project are read, checked on each container's
+  label as well as by the listing (`tests/unit/test_ledger.py`).
+- **Knowledge ages, it is not erased or kept fresh by default.** A fact its source no longer sees becomes
+  obsolete; a fact whose source could not run keeps its original time (`tests/unit/test_world_reconcile.py`).
 
 Not guaranteed:
 
