@@ -136,7 +136,19 @@ def cmd_try(args: argparse.Namespace) -> int:
         return 1
     with console.status("preparing") as status:
         stack, images = runtime.stack_and_images(opp.details["rev"])
-        if opp.category == "performance":
+        if opp.source == "robustness":
+            from unbidden.lab.robust import RobustLab
+
+            robust = RobustLab(
+                runtime.workspace.repo,
+                runtime.store,
+                runtime.brain,
+                stack,
+                images["python"],
+                progress=lambda m: status.update(m),
+            )
+            result = asyncio.run(robust.run(opp))
+        elif opp.category == "performance":
             from unbidden.lab.perf import PerfLab
 
             perf = PerfLab(

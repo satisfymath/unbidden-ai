@@ -214,7 +214,13 @@ class Cycle:
             # Measured just in time: findings of an older commit are re-observed before any lab run.
             return
         stack, images = await asyncio.to_thread(self._env, opp.details["rev"])
-        if opp.category == "performance":
+        if opp.source == "robustness":
+            from unbidden.lab.robust import RobustLab
+
+            result = await RobustLab(
+                self.runtime.workspace.repo, self.store, self.runtime.brain, stack, images["python"], progress=self.log
+            ).run(opp)
+        elif opp.category == "performance":
             from unbidden.lab.perf import PerfLab
 
             perf = PerfLab(

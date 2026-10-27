@@ -39,3 +39,11 @@ def test_only_crashes_inside_the_package_with_bug_types_count() -> None:
     assert crash.test == "test_wrap_never_crashes"
     assert crash.exception == "IndexError" and crash.frame == "rich/_wrap.py:42 in divide_line"
     assert "\\u200d" in crash.example
+
+
+def test_the_regression_test_keeps_imports_and_one_test() -> None:
+    from unbidden.lab.robust import single_test
+
+    source = "from rich.text import Text\n\ndef test_a(s):\n    Text(s)\n\ndef test_b(s):\n    pass\n"
+    reduced = single_test(source, "test_a")
+    assert "from rich.text import Text" in reduced and "def test_a" in reduced and "test_b" not in reduced
