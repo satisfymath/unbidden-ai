@@ -122,3 +122,21 @@ def test_a_test_job_is_found_by_what_it_runs_and_jobs_needing_more_come_last(tmp
     plan = ci_test_plan(tmp_path, "HEAD", "python")
     assert plan is not None and (plan.workflow, plan.job) == ("pythonpackage.yml", "build")
     assert [s.command for s in plan.steps] == ["pytest tests -v"]
+
+
+def test_a_tool_is_green_when_the_jobs_that_run_it_are_whatever_else_failed(tmp_path: Path) -> None:
+    from unbidden.observe.ci import tool_status
+
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / ".github/workflows").mkdir(parents=True)
+    (tmp_path / ".github/workflows/fe.yml").write_text(
+        "jobs:\n  test:\n    name: frontend\n    steps:\n      - run: pnpm run eslint\n"
+        "  e2e:\n    steps:\n      - run: pnpm e2e\n"
+    )
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    runs = {"frontend (18)": "success", "frontend (20)": "success", "e2e": "failure"}
+    assert tool_status(tmp_path, "HEAD", "eslint", runs) == "green"
+    assert tool_status(tmp_path, "HEAD", "eslint", {**runs, "frontend (20)": "failure"}) == "red"
+    assert tool_status(tmp_path, "HEAD", "ruff", runs) is None

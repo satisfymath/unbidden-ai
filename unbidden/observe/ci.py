@@ -229,3 +229,56 @@ def ci_status(slug: str, sha: str, token: str | None = None, *, timeout_s: float
         return None
     conclusions = {str(r.get("conclusion")) for r in runs}
     return "red" if conclusions & {"failure", "timed_out", "action_required"} else "green"
+
+
+def check_runs(slug: str, sha: str, token: str | None = None, *, timeout_s: float = 10.0) -> dict[str, str]:
+    """name -> conclusion of each finished check run on the commit; empty when GitHub cannot be read."""
+    import httpx
+
+    headers = {"Accept": "application/vnd.github+json", **({"Authorization": f"Bearer {token}"} if token else {})}
+    try:
+        response = httpx.get(
+            f"https://api.github.com/repos/{slug}/commits/{sha}/check-runs",
+            params={"per_page": "100"},
+            headers=headers,
+            timeout=timeout_s,
+        )
+    except httpx.HTTPError:
+        return {}
+    if response.status_code != 200:
+        return {}
+    return {
+        str(r.get("name")): str(r.get("conclusion"))
+        for r in response.json().get("check_runs", [])
+        if r.get("status") == "completed"
+    }
+
+
+def tool_status(repo: Path, rev: str, tool: str, runs: dict[str, str]) -> str | None:
+    """'green' when every job whose steps run `tool` (or a script that does) finished successfully on the commit,
+    'red' when one failed, None when no such job's run is known. A red check elsewhere does not count."""
+    names = [
+        n
+        for n in _git(repo, "ls-tree", "--name-only", f"{rev}:.github/workflows").split()
+        if n.endswith((".yml", ".yaml"))
+    ]
+    tracked = set(_git(repo, "ls-tree", "-r", "--name-only", rev).split())
+    jobs: list[str] = []
+    for name in names:
+        try:
+            workflow = yaml.safe_load(_git(repo, "show", f"{rev}:.github/workflows/{name}")) or {}
+        except yaml.YAMLError:
+            continue
+        for key, job in (workflow.get("jobs") or {}).items():
+            if not isinstance(job, dict):
+                continue
+            text = " ".join(str(s.get("run", "")) for s in job.get("steps") or [] if isinstance(s, dict))
+            called = {t.lstrip("./") for t in re.findall(r"[\w./-]+\.(?:sh|py|bash)\b", text)} & tracked
+            text += " ".join(_git(repo, "show", f"{rev}:{c}")[:20000] for c in sorted(called))
+            if tool in text.lower():
+                jobs.append(str(job.get("name") or key))
+    # A matrix job's runs are named "<job> (<values>)".
+    concluded = [c for job in jobs for run, c in runs.items() if run == job or run.startswith(f"{job} (")]
+    if not concluded:
+        return None
+    return "red" if any(c in ("failure", "timed_out", "action_required") for c in concluded) else "green"

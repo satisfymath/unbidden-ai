@@ -501,7 +501,7 @@ def cmd_decide(args: argparse.Namespace) -> int:
     from unbidden.daemon.cycle import checked_dirs
     from unbidden.director.decide import Context, decide
     from unbidden.guardian.policy import PolicyEngine
-    from unbidden.observe.ci import ci_commands, ci_status
+    from unbidden.observe.ci import check_runs, ci_commands, ci_status, tool_status
 
     ws = Workspace.find()
     ws.require()
@@ -511,9 +511,17 @@ def cmd_decide(args: argparse.Namespace) -> int:
     dirs = checked_dirs(ws.repo, head)
     commands = ci_commands(ws.repo, head)
     status = None
+    per_tool: dict[str, str] = {}
     slug = mandate.egress.github.repository
     if slug and PolicyEngine(mandate).evaluate(ActionRequest(capability="github.read", purpose="CI status")).allowed:
-        status = ci_status(slug, head, broker().get(mandate.egress.github.token_env, "github"))
+        token = broker().get(mandate.egress.github.token_env, "github")
+        status = ci_status(slug, head, token)
+        runs = check_runs(slug, head, token)
+        tools = {
+            str(o.details.get("tool", "")).split(":")[0].removesuffix("-baseline")
+            for o in store.list("opportunities", Opportunity)
+        }
+        per_tool = {t: s for t in tools if t and (s := tool_status(ws.repo, head, t, runs)) is not None}
     open_prs = len(store.list("proposals", Proposal, status=ProposalStatus.PR_OPENED.value))
     live = (OpportunityStatus.OPEN, OpportunityStatus.EXPERIMENTING, OpportunityStatus.PROPOSED)
     rows = []
@@ -529,6 +537,7 @@ def cmd_decide(args: argparse.Namespace) -> int:
                 checked_dirs=dirs,
                 ci_commands=commands,
                 ci_status=status,
+                tool_status=per_tool,
             ),
         )
         rows.append(
@@ -550,6 +559,7 @@ def cmd_decide(args: argparse.Namespace) -> int:
     data = {
         "checked_dirs": list(dirs),
         "ci_status": status,
+        "tool_status": per_tool,
         "open": len(rows),
         "chosen": counts,
         "declined_or_waiting_because": reasons,
