@@ -371,3 +371,23 @@ class Cycle:
 
 
 RETRY = timedelta(minutes=2)
+
+# A job that runs past its limit is cancelled and retried later, so one hung call never stops the worker. Lab work
+# (builds, test rounds on both sides) is long by nature; everything else should be quick.
+TIMEOUT_S: dict[str, float] = {
+    "lab.experiment": 3 * 3600,
+    "observe.scan": 3600,
+    "proposal.prepare": 1800,
+    "ops.deploy": 2400,
+    "research.investigate": 900,
+}
+DEFAULT_TIMEOUT_S = 600.0
+
+
+def timeout_for(job_type: str) -> float:
+    return TIMEOUT_S.get(job_type, DEFAULT_TIMEOUT_S)
+
+
+def retry_after(attempts: int) -> timedelta:
+    """2, 4, 8 ... minutes, at most an hour: a failing dependency is not hammered."""
+    return min(RETRY * (2 ** max(0, attempts - 1)), timedelta(hours=1))

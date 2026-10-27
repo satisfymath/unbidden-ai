@@ -10,7 +10,7 @@ from datetime import timedelta
 from typing import Any
 
 from unbidden.contracts.common import utc_now
-from unbidden.daemon.cycle import RETRY, Cycle, Log, job
+from unbidden.daemon.cycle import Cycle, Log, job, retry_after, timeout_for
 from unbidden.runtime import Runtime
 
 HEALTH_EVERY_S = 60.0
@@ -105,11 +105,16 @@ async def _work(
                 store.finish(claimed, error=f"no handler for {claimed.type}")
                 continue
             try:
-                await handler(claimed)
+                await asyncio.wait_for(handler(claimed), timeout=timeout_for(claimed.type))
+            except TimeoutError:
+                log(f"{claimed.type} ran past {timeout_for(claimed.type):.0f} s and was cancelled")
+                store.finish(claimed, error="timed out", retry_in=retry_after(claimed.attempts))
             except Exception as exc:
                 log(f"{claimed.type} failed: {exc}")
                 store.finish(
-                    claimed, error=f"{type(exc).__name__}: {exc}\n{traceback.format_exc(limit=3)}", retry_in=RETRY
+                    claimed,
+                    error=f"{type(exc).__name__}: {exc}\n{traceback.format_exc(limit=3)}",
+                    retry_in=retry_after(claimed.attempts),
                 )
             else:
                 store.finish(claimed)
