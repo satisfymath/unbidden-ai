@@ -31,8 +31,7 @@ def invoice_total(customer_id: str, lines: list[float]) -> float:
 def test_private_names_cover_definitions_imports_and_paths() -> None:
     names = private_names({"acme/billing/invoice.py": CODE}, extra=("acme-shop",))
     assert {"acme", "billing", "invoice", "ledger", "post_entry", "TAX_RATE", "invoice_total", "acme-shop"} <= names
-    assert "total" not in names  # a local variable says nothing about the owner
-    assert "float" not in names
+    assert "float" not in names and "return" not in names  # the language is not private
 
 
 def test_rename_round_trip_and_unsafe_suggestions() -> None:
@@ -46,10 +45,25 @@ def test_rename_round_trip_and_unsafe_suggestions() -> None:
     assert rename.to_real(synthetic) == CODE
 
 
-def test_imported_names_are_private() -> None:
+def test_local_imports_are_private_and_published_packages_are_not() -> None:
     js = 'import { chargeCard, refund as undo } from "./payments";\nimport Stripe from "stripe";\n'
-    names = private_names({"a.ts": js, "b.py": "from shop.cart import (\n    add_item,\n    drop_item,\n)\n"})
-    assert {"chargeCard", "refund", "undo", "Stripe", "payments", "add_item", "drop_item", "shop", "cart"} <= names
+    py = "from shop.cart import (\n    add_item,\n    drop_item,\n)\nimport json\n"
+    names = private_names({"a.ts": js, "b.py": py}, dependencies={"stripe"})
+    assert {"chargeCard", "refund", "undo", "payments"} <= names
+    assert "Stripe" not in names and "stripe" not in names and "json" not in names  # declared, or stdlib
+    assert {"shop", "cart", "add_item"} <= names  # undeclared: the team's own module, whatever it looks like
+
+
+def test_properties_and_words_in_strings_are_private() -> None:
+    """A property from the team's own API types, or a word in a string, reveals the domain like a function name."""
+    ts = (
+        "import { useQuery } from '@tanstack/react-query'\n"
+        "export function useEvents(range: { memberTier?: string }) {\n"
+        "  return useQuery({ queryKey: ['renewal-events', range.memberTier], type: 'GOLD' })\n}\n"
+    )
+    names = private_names({"apps/web/hooks.ts": ts}, dependencies={"@tanstack/react-query"})
+    assert {"memberTier", "renewal", "events", "GOLD", "useEvents"} <= names
+    assert "useQuery" not in names and "tanstack" not in names and "string" not in names
 
 
 def test_paths_keep_extensions() -> None:
@@ -86,6 +100,7 @@ async def test_only_the_synthetic_task_leaves_and_the_answer_comes_back_real(
         return f"# file: {path}\n```python\n{body.replace('* (1 + ', '* (1.0 + ')}```"
 
     remote.script("bridge.solve", solve)
+    local.script("bridge.review", {"words": ["invoice"]}, {"words": []})
     brain = Brain(config, {"local": local, "remote": remote}, store, mandate)
     finding = Finding.build(
         tool="ruff", rule="F401", severity="error", category="lint", path="billing/invoice.py",
@@ -95,7 +110,7 @@ async def test_only_the_synthetic_task_leaves_and_the_answer_comes_back_real(
 
     (attempt,) = store.list("egress", EgressAttempt)
     assert attempt.status == "allowed_sent"
-    for real in ("invoice_total", "billing", "ledger", "post_entry", "TAX_RATE", "invoice", "acme"):
+    for real in ("invoice_total", "billing", "ledger", "post_entry", "TAX_RATE", "invoice", "acme", "customer_id"):
         assert real not in attempt.payload, real
     assert "compute_amount" in json.loads(attempt.payload)["messages"][0]["content"]
     assert result.files is not None

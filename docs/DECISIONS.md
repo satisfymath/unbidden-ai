@@ -225,3 +225,23 @@ Rich, never told about its open issues (#4238, #4239, #4242):
   at the base and passes with the fix, Rich's suite three rounds per side with no regression (one test,
   `test_console::test_brokenpipeerror`, fails on both sides): L4 in 58 s. The fix also resolves #4239's exact
   reproduction (IndexError at the base, no crash with the fix), checked in the sandbox.
+
+## D-019 · 2026-10-27 · The bridge renames every word that is not the language's or a declared package's
+
+An authorized audit on a private repository sent one real source file through the bridge: no secret left, but
+an object property and a few string literals that come from the team's own API types were not renamed, and one
+of them alone told an outsider which industry the product serves. (Details of that repository are not recorded
+here: this log is public.)
+
+- `private_names` now takes every word of the code (identifiers, properties, words in strings and comments,
+  path parts) and keeps only the language's keywords and builtins and names imported from published packages.
+  A package is published only if a manifest in the repository declares it (every package.json, pyproject.toml,
+  requirements file in the tree) or it is the Python standard library or a Node builtin. An undeclared module is
+  the team's own code, whatever its name looks like.
+- Before anything leaves, the local model reviews the renamed text as an outsider would and lists words that
+  still reveal the owner (domain, customers, people, places); those are renamed too, up to two rounds. The
+  review is local-only in every profile; if it cannot run, nothing is sent.
+- A dry run builds and reviews the payload without sending it. The second audit was a dry run (further sends of
+  that repository's content were refused by the session's permission layer): about 1.5 times as many names
+  renamed, two more domain words flagged and renamed by the review, none of the earlier revealing words left,
+  and the published UI library kept with its real API.
