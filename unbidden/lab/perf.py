@@ -73,7 +73,15 @@ def {DRIVER_TEST}(request):
         status = call()
         latencies.append((time.perf_counter() - started) * 1000)
         assert status == 200, f"sample returned HTTP {{status}}"
-    Path("/work/{LAB_DIR}/result.json").write_text(json.dumps({{"latencies_ms": latencies}}))
+    # The database engine the measurement ran on, from any fixture that holds a session or an engine.
+    engine = None
+    for value in fixtures.values():
+        try:
+            bind = value.get_bind() if hasattr(value, "get_bind") else getattr(value, "bind", None) or value
+            engine = engine or getattr(getattr(bind, "dialect", None), "name", None)
+        except Exception:
+            pass
+    Path("/work/{LAB_DIR}/result.json").write_text(json.dumps({{"latencies_ms": latencies, "engine": engine}}))
 '''
 _REVISION = re.compile(r"^revision\s*(?::\s*str)?\s*=\s*['\"]([^'\"]+)['\"]", re.MULTILINE)
 _DOWN = re.compile(r"^down_revision\s*(?::[^=]+)?=\s*['\"]?([^'\"\n]*)['\"]?", re.MULTILINE)
@@ -213,6 +221,7 @@ class PerfLab:
         self.progress = progress
         self.repairs = repairs
         self.auth_lines: list[str] = []  # how the example test passes credentials
+        self.engine: str | None = None  # the database engine the workload ran on, when the driver could tell
 
     # Model-written artifacts ----------------------------------------------------------------------------
 
@@ -411,10 +420,35 @@ class PerfLab:
                 result = self.runner.run(spec, work)
             out = work / LAB_DIR / "result.json"
             if out.exists():
-                return [float(x) for x in json.loads(out.read_text())["latencies_ms"]], ""
+                data = json.loads(out.read_text())
+                self.engine = data.get("engine") or self.engine
+                return [float(x) for x in data["latencies_ms"]], ""
             return None, failure_excerpt(result.stdout + result.stderr)
         finally:
             discard(work)
+
+    def _engine_caveat(self) -> list[str]:
+        """A speed-up measured on one database engine may not hold on another: planners differ (on mealie, SQLite
+        runs a NOT EXISTS once per row where Postgres hashes it in one pass)."""
+        from unbidden.contracts.world import WorldModel
+
+        world = self.store.get("world", "world", WorldModel)
+        running = sorted(
+            {
+                str(r.attributes.get("engine"))
+                for r in (world.of_kind("database") if world else [])
+                if r.attributes.get("engine")
+            }
+        )
+        measured = {"postgresql": "postgres", "sqlite": "sqlite", "mysql": "mysql"}.get(self.engine or "", self.engine)
+        uses = ", ".join(running) or "an unknown engine"
+        if not measured:
+            return [f"the database engine of the measurement is unknown; the running system uses {uses}"]
+        if running and measured not in running:
+            return [
+                f"measured on {measured}; the running system uses {uses}: observe the effect there, do not assume it"
+            ]
+        return [f"measured on {measured}, the running system's engine"]
 
     def _keep(self, opp: Opportunity, name: str, code: str, output: str) -> None:
         """Failed attempts are evidence too: kept next to the experiments for `unbidden why`."""
@@ -639,6 +673,7 @@ class PerfLab:
             caveats=[
                 f"{SEED_ROWS} synthetic rows over {SEED_OWNERS} owners, measured in-process in a sandbox; "
                 "production effect not yet observed",
+                *self._engine_caveat(),
                 *(n for n in test_notes if tests is not TestOutcome.REGRESSION),
             ],
         )
