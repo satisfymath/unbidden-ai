@@ -292,6 +292,23 @@ class UiCheck:
     def __init__(self, store: Store, world: WorldModel, artifacts: Path, key: str | None) -> None:
         self.store, self.world, self.artifacts, self.key = store, world, artifacts, key
 
+    def page_services(self) -> set[str]:
+        """The service serving the page, and every service it is known to call: an anomaly in any of them may show."""
+        url = web_page(self.world)
+        served = {
+            str(c.attributes.get("service"))
+            for c in self.world.of_kind("container")
+            if c.attributes.get("web_page") == url
+        }
+        reach = set(served)
+        for _ in range(2):  # the page's server and what it calls directly; deeper paths reach every chronic service
+            reach |= {
+                r.dst.split(":", 1)[1]
+                for r in self.world.current_relations()
+                if r.predicate == "calls" and r.src.split(":", 1)[1] in reach
+            }
+        return reach
+
     def refresh_reference(self) -> None:
         from unbidden.lab.ui import capture
 
@@ -417,7 +434,8 @@ class HealthWatcher:
             )
             self.log(f"anomaly over: {name}")
         self.store.set_value("open_anomalies", open_)
-        if not open_ and self.ui is not None:
+        touched = {svc for rec in open_.values() for svc in [rec["suspect"], *rec.get("reasons", {})]}
+        if self.ui is not None and not touched & self.ui.page_services():
             try:
                 self.ui.refresh_reference()
             except Exception as exc:
