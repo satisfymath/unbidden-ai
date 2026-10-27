@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from unbidden.brain.prompts import load_prompt
+from unbidden.brain.providers import ProviderError
 from unbidden.brain.router import Brain, BrainError, parse_json
 from unbidden.bridge.rename import RenameMap, build_map
 from unbidden.contracts.events import Event, EventType
@@ -123,7 +124,7 @@ class Forge:
         numbered = "\n".join(f"{i}: {ln}" for i, ln in enumerate(shown, 1))
         try:
             expected = await self._json("forge.tests", "forge_expectations", EXPECT_SCHEMA, lines=numbered)
-        except BrainError as exc:
+        except (BrainError, ProviderError) as exc:
             return ForgeResult(None, [f"no tests: {exc}"])
         tests = [t for t in expected["tests"] if 1 <= t["line"] <= len(shown)]
         tests = [t for t in tests if all(t[k] in shown[t["line"] - 1] for k in ("method", "path", "status"))]
@@ -170,7 +171,7 @@ class Forge:
                     tests=tests_text,
                     lines="\n".join(view(ln) for ln in shown),
                 )
-            except BrainError as exc:
+            except (BrainError, ProviderError) as exc:
                 result.notes.append(f"{origin} attempt {attempt + 1}: {exc}")
                 if transform is not None:
                     return False

@@ -15,6 +15,7 @@ from pathlib import Path
 
 from unbidden.brain.codeblocks import CodeBlockError, parse_files
 from unbidden.brain.prompts import load_prompt
+from unbidden.brain.providers import ProviderError
 from unbidden.brain.router import Brain, BrainError
 from unbidden.contracts.common import EvidenceLevel, EvidenceRef
 from unbidden.contracts.events import Event, EventType
@@ -133,7 +134,7 @@ class RobustnessProbe:
                 )
             )
             return parse_files(response.content).get(PROBE_FILE)
-        except (BrainError, CodeBlockError):
+        except (BrainError, ProviderError, CodeBlockError):
             return None
 
     def run_tests(self, rev: str, tests: str, *, timeout_s: float = 900) -> str:

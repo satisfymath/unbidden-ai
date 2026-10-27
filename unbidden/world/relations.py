@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from unbidden.brain.prompts import load_prompt
+from unbidden.brain.providers import ProviderError
 from unbidden.brain.router import Brain, BrainError
 from unbidden.contracts.common import EpistemicStatus, EvidenceLevel, EvidenceRef, capped_confidence
 from unbidden.contracts.llm import LLMRequest, Message, Tier
@@ -71,7 +72,7 @@ async def infer_endpoint_tables(repo: Path, rev: str, world: WorldModel, brain: 
                     prompt_sha256=prompt.sha256,
                 )
             )
-        except BrainError:
+        except (BrainError, ProviderError):
             continue
         evidence = [EvidenceRef(kind="file", locator=f"{file}:{line}", note="read by the local model")]
         confidence = capped_confidence(0.9, EvidenceLevel.REASONABLE_SUSPICION)

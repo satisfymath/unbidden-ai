@@ -18,6 +18,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 from unbidden.brain.prompts import load_prompt
+from unbidden.brain.providers import ProviderError
 from unbidden.brain.router import Brain, BrainError
 from unbidden.contracts.common import Contract, EvidenceLevel, capped_confidence, new_id, utc_now
 from unbidden.contracts.events import Event, EventType
@@ -198,7 +199,7 @@ class Investigation:
                         prompt_sha256=prompt.sha256,
                     )
                 )
-            except BrainError as exc:
+            except (BrainError, ProviderError) as exc:
                 self.log(f"investigation stopped: {exc}")
                 return None
             call = response.tool_calls[0]

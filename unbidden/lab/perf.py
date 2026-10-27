@@ -21,6 +21,7 @@ from typing import Any
 
 from unbidden.brain.codeblocks import CodeBlockError, parse_files
 from unbidden.brain.prompts import load_prompt
+from unbidden.brain.providers import ProviderError
 from unbidden.brain.router import Brain, BrainError
 from unbidden.contracts.common import EvidenceLevel, EvidenceRef, utc_now
 from unbidden.contracts.events import Event, EventType
@@ -153,7 +154,7 @@ class PerfLab:
                 )
             )
             return parse_files(response.content)
-        except (BrainError, CodeBlockError):
+        except (BrainError, ProviderError, CodeBlockError):
             return None
 
     def _show(self, rev: str, path: str) -> str:

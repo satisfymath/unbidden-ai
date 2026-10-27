@@ -26,7 +26,7 @@ def _message(m: Message) -> dict[str, Any]:
 class OllamaProvider:
     name = "ollama"
 
-    def __init__(self, host: str, *, num_ctx: int = 32768, keep_alive: str = "30m", timeout_s: float = 600) -> None:
+    def __init__(self, host: str, *, num_ctx: int = 32768, keep_alive: str = "30m", timeout_s: float = 1800) -> None:
         self._client = httpx.AsyncClient(base_url=host.rstrip("/"), timeout=timeout_s)
         self._num_ctx = num_ctx
         self._keep_alive = keep_alive

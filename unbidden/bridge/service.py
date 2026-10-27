@@ -14,6 +14,7 @@ from typing import Any
 
 from unbidden.brain.codeblocks import CodeBlockError, parse_files
 from unbidden.brain.prompts import load_prompt
+from unbidden.brain.providers import ProviderError
 from unbidden.brain.router import Brain, BrainError, EgressBlocked
 from unbidden.bridge.rename import RenameMap, build_map, private_names
 from unbidden.contracts.finding import Finding
@@ -95,7 +96,7 @@ class PrivacyBridge:
                     correlation_id=correlation_id,
                 )
             )
-        except BrainError as exc:
+        except (BrainError, ProviderError) as exc:
             return BridgeResult(None, notes=[f"local rewrite failed: {exc}"])
 
         # 2. Code: rename deterministically. The model's task text is renamed too, in case it slipped.
@@ -126,7 +127,7 @@ class PrivacyBridge:
             )
         except EgressBlocked as exc:
             return BridgeResult(None, rename, [f"the egress gate blocked the synthetic task: {exc}"])
-        except BrainError as exc:
+        except (BrainError, ProviderError) as exc:
             return BridgeResult(None, rename, [f"remote solve failed: {exc}"])
 
         # 4. Code: reverse the names and keep only the files that were shown.

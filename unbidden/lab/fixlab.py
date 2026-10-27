@@ -16,6 +16,7 @@ from pathlib import Path
 
 from unbidden.brain.codeblocks import CodeBlockError, parse_files
 from unbidden.brain.prompts import load_prompt
+from unbidden.brain.providers import ProviderError
 from unbidden.brain.router import Brain, BrainError
 from unbidden.bridge.service import PrivacyBridge
 from unbidden.contracts.common import EvidenceLevel, EvidenceRef, utc_now
@@ -270,7 +271,7 @@ class FixLab:
                 self.progress("asking the local model for a candidate")
                 try:
                     candidate = await self._model_candidate(opp, rev, findings, feedback)
-                except BrainError as exc:
+                except (BrainError, ProviderError) as exc:
                     result.notes.append(f"model: {exc}")
                     break
                 if candidate is None:
