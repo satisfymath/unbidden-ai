@@ -554,6 +554,21 @@ def cmd_forge(args: argparse.Namespace) -> int:
 
     runtime = Runtime.open(Workspace.find())
     store = runtime.store
+    if args.action == "stats":
+        return _forge_stats(runtime, args.target)
+    if args.action == "disable":
+        from unbidden.forge import stats_build
+
+        disabled = stats_build.disable(store, args.target or "", why=f"disabled by person:{getpass.getuser()}")
+        if disabled is None:
+            log_adapter = store.get("capabilities", args.target or "", LogAdapter)
+            if log_adapter is None:
+                err.print(f"no capability {args.target}")
+                return 1
+            log_adapter.status = "disabled"
+            store.put("capabilities", log_adapter)
+        console.print(f"disabled {args.target}: nothing reads through it any more")
+        return 0
     if args.action == "approve":
         adapter = store.get("capabilities", args.target, LogAdapter)
         if adapter is None or adapter.status != "validated":
@@ -586,11 +601,63 @@ def cmd_forge(args: argparse.Namespace) -> int:
         console.print(f"{a.id} {a.source} v{a.version}: [bold]{a.status}[/] · {a.quality}")
         console.print(f"  pattern: {a.pattern}", markup=False)
         return 0
+    from unbidden.forge.stats import StatsAdapter
+
     adapters = store.list("capabilities", LogAdapter)
-    if _emit(args, [a.model_dump(mode="json") for a in adapters]):
+    stats = store.list("stats_capabilities", StatsAdapter)
+    if _emit(args, [a.model_dump(mode="json") for a in [*adapters, *stats]]):
         return 0
     for a in adapters:
-        console.print(f"{a.id}  {a.source} v{a.version}  {a.status:10} coverage {a.quality.get('coverage')}")
+        console.print(f"{a.id}  log    {a.source} v{a.version}  {a.status:10} coverage {a.quality.get('coverage')}")
+    for a in stats:
+        console.print(f"{a.id}  stats  {a.source} v{a.version}  {a.status:10} coverage {a.quality.get('coverage')}")
+    return 0
+
+
+def _forge_stats(runtime: Any, url: str | None) -> int:
+    """Build (or decline to build) a reader for a text metrics endpoint of the project, then read it twice."""
+    import asyncio
+    import time
+
+    from unbidden.contracts.guardian import ActionRequest
+    from unbidden.forge import stats_build
+    from unbidden.forge.stats import deltas, read
+    from unbidden.guardian.policy import PolicyEngine
+
+    if not url or not url.startswith("http://127.0.0.1:"):
+        err.print("give the endpoint as http://127.0.0.1:<published port>/<path> of a container of this project")
+        return 2
+    verdict = PolicyEngine(runtime.workspace.mandate()).evaluate(ActionRequest(capability="runtime.read", purpose=url))
+    if not verdict.allowed:
+        err.print(f"runtime.read: {'; '.join(verdict.reasons)}")
+        return 1
+    store = runtime.store
+    adapter = stats_build.usable(store, url)
+    if adapter is None:
+        lines = stats_build.fetch(url)
+        with console.status(f"forging a stats reader for {url} from {len(lines)} lines"):
+            result = asyncio.run(stats_build.build(runtime.brain, store, url, lines, permissions=["runtime.read"]))
+        for note in result.notes:
+            console.print(f"  [dim]{note}[/]")
+        console.print(f"decision: [bold]{result.decision}[/]")
+        if result.adapter is None or result.decision != "built":
+            return 0 if result.decision.startswith("reuse") else 1
+        adapter = result.adapter
+        console.print(f"{adapter.id} v{adapter.version}: {adapter.status} · {adapter.quality}")
+        console.print(f"  line:   {adapter.line}\n  entity: {adapter.entity}", markup=False)
+    else:
+        console.print(
+            f"reusing {adapter.id} v{adapter.version} ({adapter.status}), built {adapter.created_at:%Y-%m-%d %H:%M}"
+        )
+    before = stats_build.fetch(url)
+    time.sleep(20)
+    after = stats_build.fetch(url)
+    metrics = sorted({r.metric for r in read(adapter, after) if r.metric})
+    console.print(f"{len(read(adapter, after))} readings, {len(metrics)} metric kinds; changes over 20 s:")
+    for metric in [m for m in metrics if "5xx" in m or "rq_total" in m or "error" in m][:6]:
+        moved = {e: d for e, d in deltas(adapter, before, after, metric).items() if d}
+        if moved:
+            console.print(f"  {metric}: {moved}")
     return 0
 
 
@@ -1211,8 +1278,8 @@ def build_parser() -> argparse.ArgumentParser:
     inv.add_argument("bad")
     inv.add_argument("--incident", help="what was observed, in words")
     forge = command("forge", cmd_forge, "capabilities unbidden built for itself: list, build or approve")
-    forge.add_argument("action", nargs="?", choices=["list", "build", "approve"], default="list")
-    forge.add_argument("target", nargs="?", help="service to build for, or capability id to approve")
+    forge.add_argument("action", nargs="?", choices=["list", "build", "stats", "approve", "disable"], default="list")
+    forge.add_argument("target", nargs="?", help="service (build), endpoint URL (stats) or capability id")
     logs = command("logs", cmd_logs, "real traffic of a service, read with a capability forge built")
     logs.add_argument("service", nargs="?", default="backend")
     logs.add_argument("--tail", type=int, default=2000)

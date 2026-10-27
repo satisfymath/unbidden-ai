@@ -78,6 +78,34 @@ def host_ports(container: dict[str, Any]) -> list[int]:
     return sorted(set(ports))
 
 
+TEXT_PATHS = ("/stats", "/metrics", "/stub_status", "/status")
+_NUMBERED = re.compile(r"\d+(\.\d+)?\s*$")
+
+
+def text_metrics(port: int, *, timeout_s: float = 1.0) -> list[dict[str, Any]]:
+    """Plain-text endpoints of a port that serve numbers, one per line: a source no connector may read yet."""
+    from unbidden.forge.stats import known_format
+
+    found: list[dict[str, Any]] = []
+    for path in TEXT_PATHS:
+        try:
+            response = httpx.get(f"http://127.0.0.1:{port}{path}", timeout=timeout_s)
+        except httpx.HTTPError:
+            continue
+        kind = response.headers.get("content-type", "")
+        lines = response.text.splitlines() if response.status_code == 200 and "html" not in kind else []
+        numbered = [ln for ln in lines if _NUMBERED.search(ln)]
+        if len(numbered) >= 5 and len(numbered) >= len([ln for ln in lines if ln.strip()]) * 0.5:
+            found.append(
+                {
+                    "url": f"http://127.0.0.1:{port}{path}",
+                    "lines": len(lines),
+                    "format": known_format(lines) or "unknown",
+                }
+            )
+    return found
+
+
 def fetch_openapi(port: int, *, timeout_s: float = 3.0) -> tuple[str, dict[str, Any]] | None:
     for path in OPENAPI_PATHS:
         try:
@@ -338,6 +366,9 @@ def discover_runtime(repo: Path, world: WorldModel, rev: str = "HEAD", files: li
                     )
         declared = compose.services.get(service) if compose else None
         if published and not described and (declared is None or declared.data_kind is None):
+            for port in published:
+                for found in text_metrics(port):
+                    world.resources[f"container:{name}"].attributes.setdefault("text_endpoints", []).append(found)
             world.blind_spots.append(
                 BlindSpot(
                     what=f"endpoints of {service}",

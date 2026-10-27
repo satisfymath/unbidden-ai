@@ -115,6 +115,27 @@ def add_deployment(world: WorldModel, deployment: Deployment, containers: list[R
         )
 
 
+def _text_needs(world: WorldModel, store: Store) -> None:
+    """Text metrics endpoints nothing reads yet are a need, named with what would fill it."""
+    from unbidden.forge import stats_build
+
+    for container in world.of_kind("container"):
+        for endpoint in container.attributes.get("text_endpoints", []):
+            url, fmt = endpoint["url"], endpoint["format"]
+            if stats_build.usable(store, url) is not None:
+                endpoint["reader"] = "forge"
+                continue
+            why = (
+                f"{endpoint['lines']} lines in {fmt}, a known format: read it through a reader that exists"
+                if fmt != "unknown"
+                else f"{endpoint['lines']} lines of numbers in a format no connector reads; "
+                f"`unbidden forge stats {url}` can build a reader"
+            )
+            world.blind_spots.append(
+                BlindSpot(what=f"metrics at {url} ({container.attributes.get('service')})", why=why)
+            )
+
+
 def _metrics(repo: Path, world: WorldModel) -> set[str]:
     """The project's own Prometheus, when it runs one. Unreachable is a blind spot; what it saw before is kept."""
     url = prometheus.find(world)
@@ -156,6 +177,7 @@ async def discover(repo: Path, rev: str, store: Store, mandate: Mandate, brain: 
         ran |= _metrics(repo, world)
     else:
         world.blind_spots.append(BlindSpot(what="the running system", why="runtime.read is not allowed by the mandate"))
+    _text_needs(world, store)
     if brain is not None:
         await infer_endpoint_tables(repo, rev, world, brain)
         world.stamp(LLM_RELATIONS.ref, valid_for=rev)
