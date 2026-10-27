@@ -6,9 +6,11 @@ import shutil
 import subprocess
 import tempfile
 import time
+import tomllib
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from unbidden.guardian.scanner import scan_many, secret_hits
 
@@ -150,7 +152,40 @@ def snapshot(repo: Path, rev: str, dest: Path | None = None) -> Path:
             path.chmod(0o777)
         else:
             path.chmod(0o666 | (path.stat().st_mode & 0o111))
+    write_version_files(target)
     return target
+
+
+VERSION_STUB = '__version__ = version = "0.0.0"\n__version_tuple__ = version_tuple = (0, 0, 0)\n'
+
+
+def declared_version_files(pyproject: dict[str, Any]) -> list[str]:
+    """Files a build writes from git's version (hatch-vcs, setuptools-scm): never tracked, imported by the package."""
+    tool = pyproject.get("tool", {})
+    hatch = tool.get("hatch", {})
+    candidates = [
+        hatch.get("build", {}).get("hooks", {}).get("vcs", {}).get("version-file"),
+        tool.get("setuptools_scm", {}).get("version_file"),
+        tool.get("setuptools_scm", {}).get("write_to"),
+        tool.get("pdm", {}).get("version", {}).get("write_to"),
+    ]
+    return [c for c in candidates if isinstance(c, str) and c.endswith(".py") and ".." not in Path(c).parts]
+
+
+def write_version_files(work: Path) -> None:
+    """A source checkout lacks the version module its build would generate; the code imports it all the same."""
+    manifest = work / "pyproject.toml"
+    if not manifest.is_file():
+        return
+    try:
+        data = tomllib.loads(manifest.read_text())
+    except (tomllib.TOMLDecodeError, UnicodeDecodeError):
+        return
+    for relative in declared_version_files(data):
+        target = (work / relative).resolve()
+        if target.is_relative_to(work.resolve()) and not target.exists() and target.parent.is_dir():
+            target.write_text(VERSION_STUB)
+            target.chmod(0o666)
 
 
 def discard(work: Path) -> None:

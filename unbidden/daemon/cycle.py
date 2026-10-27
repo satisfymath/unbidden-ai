@@ -190,10 +190,13 @@ class Cycle:
             {**record, "ran": summary is not None, "summary": summary or output[-300:], "crashes": len(crashes),
              "opened": len(opened), "violations": len(kept)},
         )  # fmt: skip
-        self.log(
-            f"robustness probe of {package}: {len(crashes)} crash(es), {len(opened)} new; "
-            f"{len(kept)} property violation(s) kept for a person (L1)"
-        )
+        if summary is None:
+            self.log(f"robustness probe of {package}: the tests did not run ({output.strip().splitlines()[-1:]})")
+        else:
+            self.log(
+                f"robustness probe of {package}: {summary.strip()}; {len(crashes)} crash(es), {len(opened)} new; "
+                f"{len(kept)} property violation(s) kept for a person (L1)"
+            )
         if opened:
             self.store.enqueue(job("director.sweep", f"probe:{j.id}"))
 

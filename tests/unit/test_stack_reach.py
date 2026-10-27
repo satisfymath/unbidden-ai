@@ -126,3 +126,20 @@ def test_documents_a_manifest_declares_go_into_the_build_context(tmp_path: Path)
     stack = detect_stack(repo)
     assert stack.python is not None
     assert _manifests(repo, "HEAD", stack.python) == ["LICENSE", "README.md", "pyproject.toml"]
+
+
+def test_a_version_module_the_build_would_generate_exists_in_the_snapshot(tmp_path: Path) -> None:
+    from unbidden.sandbox.runner import discard, snapshot
+
+    repo = commit(
+        tmp_path / "repo",
+        {
+            "pyproject.toml": '[tool.hatch.build.hooks.vcs]\nversion-file = "src/x/_version.py"\n',
+            "src/x/__init__.py": "from x._version import __version__\n",
+        },
+    )
+    work = snapshot(repo, "HEAD")
+    try:
+        assert '__version__ = version = "0.0.0"' in (work / "src/x/_version.py").read_text()
+    finally:
+        discard(work)
