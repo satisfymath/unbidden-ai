@@ -120,3 +120,40 @@ def test_probe_targets_are_the_packages_users_import(tmp_path: Path) -> None:
     assert targets == [("src/textkit", 2), ("src/helpers", 1)]
     # Imported by its own name, not through the source root.
     assert public_functions(tmp_path, rev, "src/textkit")[0].startswith("from textkit.wrap import wrap")
+
+
+# pytest 9 and Hypothesis 6.17x: frames without `in function`, "Failing test case", and a summary that names an
+# ExceptionGroup from another test right after the last failure.
+NEW_FORMAT = """
+_______________________ test_delta_never_crashes ________________________
+
+value = 0, unit = ''
+
+    def test_delta_never_crashes(value, unit):
+>       delta(value, unit=unit)
+
+tests/test_unbidden_robustness.py:79:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def delta(value, unit="seconds"):
+        units = {"seconds": 1}
+>       return units[unit] * value
+E       KeyError: ''
+E       Failing test case: test_delta_never_crashes(
+E           value=0,
+E           unit='',
+E       )
+
+src/textkit/time.py:142: KeyError
+=========================== short test summary info ============================
+FAILED tests/test_unbidden_robustness.py::test_size - ExceptionGroup: Hypothesis found 3 distinct failures.
+FAILED tests/test_unbidden_robustness.py::test_delta_never_crashes - KeyError: ''
+"""
+
+
+def test_crashes_in_the_newer_pytest_and_hypothesis_formats() -> None:
+    (crash,) = parse_crashes(NEW_FORMAT.replace("src/textkit/time.py:142: KeyError", "src/textkit/time.py:142: "),
+                             "src/textkit")  # fmt: skip
+    assert crash.exception == "KeyError"
+    assert crash.frame == "src/textkit/time.py:142 in delta"
+    assert crash.example.startswith("test_delta_never_crashes(\nvalue=0,")

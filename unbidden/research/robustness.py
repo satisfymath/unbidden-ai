@@ -145,16 +145,28 @@ def _group_crashes(name: str, body: str, package: str) -> list[Crash]:
     return crashes
 
 
+def _enclosing_def(before: str) -> str:
+    """The function whose source pytest printed just above a frame line."""
+    names = re.findall(r"^\s*(?:async\s+)?def (\w+)\(", before.rsplit("_ _ _", 1)[-1], re.MULTILINE)
+    return names[-1] if names else "?"
+
+
 def parse_crashes(output: str, package: str) -> list[Crash]:
     crashes: list[Crash] = []
+    # The summary repeats every failure's one-line reason; left in the last section it would be read as that test's.
+    output = re.split(r"^=+ short test summary info =+$", output, maxsplit=1, flags=re.MULTILINE)[0]
     sections = _FAIL_HEADER.split(output)
     for name, body in zip(sections[1::2], sections[2::2], strict=False):
         if "ExceptionGroup" in body:
             crashes.extend(_group_crashes(name, body, package))
             continue
         exc = re.findall(r"^E\s+(\w+(?:Error|Exception))\b:?\s*(.*)$", body, re.MULTILINE)
-        frames = re.findall(rf"^({re.escape(package)}/[\w/]+\.py):(\d+): in (\w+)", body, re.MULTILINE)
-        example = re.search(r"Falsifying example: (.+?)(?:\n\n|\n[A-Z_]{2,})", body, re.DOTALL)
+        # pytest writes `path:line: in function` or, in newer versions, `path:line:` under the function's source.
+        found = list(re.finditer(rf"^({re.escape(package)}/[\w/]+\.py):(\d+):(?: in (\w+))?", body, re.MULTILINE))
+        frames = [(m.group(1), m.group(2), m.group(3) or _enclosing_def(body[: m.start()])) for m in found]
+        example = re.search(r"Falsifying example: (.+?)(?:\n\n|\n[A-Z_]{2,})", body, re.DOTALL) or re.search(
+            r"Failing test case: (.+?\n)E?\s*\)", body, re.DOTALL
+        )
         if not exc or not frames:
             continue
         exception, message = exc[-1]
@@ -167,7 +179,7 @@ def parse_crashes(output: str, package: str) -> list[Crash]:
                 exception,
                 message.strip()[:300],
                 f"{path}:{line} in {function}",
-                example.group(1).strip()[:600] if example else "",
+                re.sub(r"^E {0,11}", "", example.group(1), flags=re.MULTILINE).strip()[:600] if example else "",
                 body[-2500:],
             )
         )
