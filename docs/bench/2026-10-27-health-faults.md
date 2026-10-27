@@ -44,3 +44,43 @@ as impact v2 was (D-014):
 - judge each operation (`span_name`), not only each service;
 - require a much larger sample for p95 than for error counts;
 - for chronic services, use a threshold from the baseline's own variation rather than a fixed multiple.
+
+## Holdout faults (fixed in a39a6df's successor a67e6c4 before they were run)
+
+Live under health-v1, with traces and proxy counters recorded for each anomaly:
+
+```
+control minutes: 10, with an anomaly open: 6
+| Fault | Expected | First anomaly (min) | Listed (min) | Top-1 (min) | Pass | Other suspects |
+|---|---|---|---|---|---|---|
+| paymentUnreachable on | payment | None | None | None | no | - |
+| recommendationCacheFailure on | recommendation | 5 | 5 | 5 | yes | - |
+| imageSlowLoad 5sec | image-provider | 2 | None | None | no | frontend-proxy |
+```
+
+Replaying the same Prometheus history under both versions (`bench/health_calibration.py`):
+
+| Criteria | Clean minutes with an alarm | paymentUnreachable | recommendationCacheFailure | imageSlowLoad |
+|---|---|---|---|---|
+| health-v1 | 6 / 10 (checkout, payment, quote) | missed | minute 6 | missed (frontend-proxy degraded) |
+| health-v2-candidate | 4 / 10 (frontend, quote) | missed | minute 6 | missed (frontend-proxy, flagd degraded) |
+
+**What failed, and why**
+
+- **Control minute 0: a host-wide slowdown.** checkout's p95 went from 276 to 4,625 ms, and 7 more services slowed at
+  the same moment, just after the local model (35 GB) had built the Forge reader. Unbidden named five independent
+  "origins" (cart, email, payment, shipping, ad). The right answer was one common cause outside the service graph.
+- **quote flaps.** Bursts of errors over a baseline that is sometimes 0 %.
+- **`paymentUnreachable`.** payment never sees the calls, so its server spans stay clean. The failure exists only in
+  checkout's client spans to payment (6.9 of 8 failed in 8 minutes). checkout serves fewer than 8 requests per
+  5 minutes, so it is never judged either.
+- **`imageSlowLoad`.** Envoy injects the delay in frontend-proxy itself, which is where it was found. The
+  pre-registered expectation (image-provider) was probably wrong, but it stands: the trial is counted as failed.
+
+**Decision.** The v2 candidate is not adopted: two fewer false minutes, the same detections, new noise. Neither
+version is reliable outside the faults it was designed on: 1 of 3 holdout faults found, and 40 to 60 % of clean
+minutes alarmed. Next, for a v3 to be calibrated the same way:
+- recognize a common cause when several unrelated roots degrade together (check host and container resources);
+- localize by failing client spans to a peer, not only by server spans;
+- say "not enough traffic to judge" for a service instead of staying silent;
+- treat a flapping chronic service by its variation.

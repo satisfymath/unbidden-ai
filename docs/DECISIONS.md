@@ -405,3 +405,20 @@ opentelemetry-demo runs its own Prometheus and Jaeger. Unbidden now reads both, 
   nothing. The benchmark records it per repository against the policy of acting on every finding.
 - **Reliability.** A job past its limit is cancelled and retried with growing waits (2, 4, 8 minutes, at most 1 hour).
   A thread started with `to_thread` cannot be killed, but the worker no longer waits for it.
+
+## D-026 · 2026-10-27 · The health detector fails its holdout; the v2 candidate is not adopted
+
+Three faults were fixed before they were run: `paymentUnreachable`, `recommendationCacheFailure` and
+`imageSlowLoad`. Under health-v1, live, only recommendation was found (minute 5), and 6 of the 10 clean control
+minutes had an alarm open. Replaying the same history, the v2 candidate (judge per operation, binomial thresholds)
+gives 4 of 10 alarmed minutes and the same single detection, with new noise. It is not adopted.
+
+**Causes** (`docs/bench/2026-10-27-health-faults.md`):
+- A host-wide slowdown, right after the 35 GB local model ran, was read as five independent origins.
+- An unreachable service shows only in its callers' client spans.
+- A caller with fewer than 8 requests per window is never judged.
+- A chronic service flaps.
+
+**Status.** The detector found 3 of 5 designed faults and 1 of 3 holdout faults. Calls seen in traffic, scope,
+traces and proxy counters all work. What does not work yet is deciding when something is wrong. That is the next
+increment's work, calibrated the same way before it is used.
