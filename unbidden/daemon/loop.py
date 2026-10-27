@@ -10,17 +10,27 @@ from datetime import timedelta
 from typing import Any
 
 from unbidden.contracts.common import utc_now
+from unbidden.contracts.llm import Tier
 from unbidden.daemon.cycle import Cycle, Log, job, retry_after, timeout_for
 from unbidden.runtime import Runtime
 
 HEALTH_EVERY_S = 60.0
 
 
+def _model_key(runtime: Runtime) -> str | None:
+    """The remote model's key, read only to send what the mandate allows; never logged or stored."""
+    import os
+
+    route = runtime.config.routing.get(Tier.CODE)
+    provider = runtime.brain.providers.get(route.provider) if route else None
+    return os.environ.get(getattr(provider, "key_env", "")) or None
+
+
 def _probe_forever(runtime: Runtime, log: Log, stop: threading.Event) -> None:
     """Probes run on their own thread with their own connection, so long lab or model work never starves them:
     a deploy that is not observed cannot be judged."""
     from unbidden.contracts.world import WorldModel
-    from unbidden.observe.health import HealthWatcher
+    from unbidden.observe.health import HealthWatcher, UiCheck
     from unbidden.observe.live import LiveWatcher
     from unbidden.world import jaeger, prometheus
 
@@ -40,7 +50,8 @@ def _probe_forever(runtime: Runtime, log: Log, stop: threading.Event) -> None:
             last_health = time.monotonic()
             try:
                 traces = jaeger.find(world)  # type: ignore[arg-type]
-                HealthWatcher(store, world, prometheus.Prometheus(url), log, traces).tick()  # type: ignore[arg-type]
+                ui = UiCheck(store, world, runtime.workspace.dir / "artifacts" / "ui", _model_key(runtime))  # type: ignore[arg-type]
+                HealthWatcher(store, world, prometheus.Prometheus(url), log, traces, ui, mandate).tick()  # type: ignore[arg-type]
             except Exception as exc:
                 log(f"health check failed: {exc}")
         stop.wait(mandate.operations.probe_every_s)

@@ -78,6 +78,15 @@ def host_ports(container: dict[str, Any]) -> list[int]:
     return sorted(set(ports))
 
 
+def web_page(port: int, *, timeout_s: float = 2.0) -> bool:
+    """Whether a published port serves a web page at `/`: what a person using the product would look at."""
+    try:
+        response = httpx.get(f"http://127.0.0.1:{port}/", timeout=timeout_s, follow_redirects=True)
+    except httpx.HTTPError:
+        return False
+    return response.status_code == 200 and "text/html" in response.headers.get("content-type", "")
+
+
 TEXT_PATHS = ("/stats", "/metrics", "/stub_status", "/status")
 _NUMBERED = re.compile(r"\d+(\.\d+)?\s*$")
 
@@ -367,6 +376,8 @@ def discover_runtime(repo: Path, world: WorldModel, rev: str = "HEAD", files: li
         declared = compose.services.get(service) if compose else None
         if published and not described and (declared is None or declared.data_kind is None):
             for port in published:
+                if web_page(port):
+                    world.resources[f"container:{name}"].attributes["web_page"] = f"http://127.0.0.1:{port}/"
                 for found in text_metrics(port):
                     world.resources[f"container:{name}"].attributes.setdefault("text_endpoints", []).append(found)
             world.blind_spots.append(

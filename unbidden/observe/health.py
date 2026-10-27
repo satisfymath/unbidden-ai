@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from unbidden.contracts.common import EpistemicStatus, utc_now
@@ -271,6 +272,65 @@ def proxy_errors(store: Store, world: WorldModel, wait_s: float = 10.0) -> dict[
     return found
 
 
+UI_REFERENCE_EVERY_S = 3600.0
+
+
+def web_page(world: WorldModel) -> str | None:
+    """The project's own web page, preferring a proxy in front of the rest (what users reach)."""
+    pages = [
+        (str(c.attributes.get("service", "")), str(c.attributes["web_page"]))
+        for c in world.of_kind("container")
+        if c.attributes.get("web_page")
+    ]
+    pages.sort(key=lambda sp: (0 if "proxy" in sp[0] else 1, sp[0]))
+    return pages[0][1] if pages else None
+
+
+class UiCheck:
+    """What the product's page looks like during an anomaly, against a reference taken while all was healthy."""
+
+    def __init__(self, store: Store, world: WorldModel, artifacts: Path, key: str | None) -> None:
+        self.store, self.world, self.artifacts, self.key = store, world, artifacts, key
+
+    def refresh_reference(self) -> None:
+        from unbidden.lab.ui import capture
+
+        url = web_page(self.world)
+        last = self.store.get_value("ui_reference")
+        fresh = last and utc_now().timestamp() - float(last.get("ts", 0)) < UI_REFERENCE_EVERY_S
+        if url is None or fresh:
+            return
+        capture(url, self.artifacts / "reference")
+        self.store.set_value("ui_reference", {"url": url, "ts": utc_now().timestamp(), "at": utc_now().isoformat()})
+
+    def judge(self, mandate: Any) -> dict[str, Any]:
+        import json as _json
+
+        from unbidden.lab.ui import Capture, browser_judge, capture, visual_judge
+
+        ref = self.store.get_value("ui_reference")
+        if not ref:
+            return {"note": "no reference capture of the page yet"}
+        ref_dir = self.artifacts / "reference"
+        reference = Capture(
+            ref["url"],
+            (ref_dir / "screenshot.png").read_bytes(),
+            _json.loads((ref_dir / "page.json").read_text()),
+            ref_dir,
+        )
+        now = capture(ref["url"], self.artifacts / f"anomaly-{int(utc_now().timestamp())}")
+        result: dict[str, Any] = {
+            "url": ref["url"],
+            "reference_at": ref["at"],
+            "browser": browser_judge(now.page, reference.page),
+        }
+        if self.key and mandate.models.screenshots_to_frontier == "allow":
+            result["visual"] = visual_judge(now, reference, store=self.store, mandate=mandate, key=self.key)
+        else:
+            result["visual"] = {"note": "screenshots may not leave under this mandate; browser judge only"}
+        return result
+
+
 @dataclass
 class HealthWatcher:
     store: Store
@@ -278,6 +338,8 @@ class HealthWatcher:
     prom: Prometheus
     log: Any = print
     traces: Jaeger | None = None
+    ui: UiCheck | None = None
+    mandate: Any = None
 
     def assess(self, at: datetime | None = None) -> dict[str, Any]:
         now_h = health(self.prom, WINDOW)
@@ -329,6 +391,11 @@ class HealthWatcher:
                     record["traces"] = trace_check(self.traces, suspect)
                 except JaegerError as exc:
                     record["traces"] = {"error": str(exc)}
+            if self.ui is not None and self.mandate is not None:
+                try:
+                    record["ui"] = self.ui.judge(self.mandate)
+                except Exception as exc:  # a failed capture is recorded, never blocks the anomaly
+                    record["ui"] = {"error": str(exc)[:300]}
             try:
                 record["proxies"] = proxy_errors(self.store, self.world)
             except Exception as exc:  # a reader that fails is recorded, never blocks the anomaly
@@ -350,4 +417,9 @@ class HealthWatcher:
             )
             self.log(f"anomaly over: {name}")
         self.store.set_value("open_anomalies", open_)
+        if not open_ and self.ui is not None:
+            try:
+                self.ui.refresh_reference()
+            except Exception as exc:
+                self.log(f"reference capture failed: {exc}")
         return report

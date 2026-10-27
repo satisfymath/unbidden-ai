@@ -1202,7 +1202,15 @@ def cmd_health(args: argparse.Namespace) -> int:
         return 2
     try:
         traces = jaeger.find(world)
-        report = HealthWatcher(store, world, prometheus.Prometheus(url), log=lambda _: None, traces=traces).tick()
+        from unbidden.daemon.loop import _model_key  # pyright: ignore[reportPrivateUsage]
+        from unbidden.observe.health import UiCheck
+        from unbidden.runtime import Runtime
+
+        key = _model_key(Runtime.open(ws))
+        ui = UiCheck(store, world, ws.dir / "artifacts" / "ui", key)
+        report = HealthWatcher(
+            store, world, prometheus.Prometheus(url), log=lambda _: None, traces=traces, ui=ui, mandate=ws.mandate()
+        ).tick()
     except prometheus.PrometheusError as exc:
         err.print(str(exc))
         return 1
