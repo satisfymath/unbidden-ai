@@ -254,7 +254,7 @@ class RobustnessProbe:
             return None
         return parse_files(response.content).get(PROBE_FILE)
 
-    def run_tests(self, rev: str, tests: str, *, timeout_s: float = 900) -> str:
+    def run_tests(self, rev: str, tests: str, *, timeout_s: float = 900, seed: int = 0) -> str:
         work = snapshot(self.repo, rev)
         try:
             (work / PROBE_FILE).parent.mkdir(parents=True, exist_ok=True)
@@ -271,7 +271,7 @@ class RobustnessProbe:
                 "--tb=long",
                 "-o",
                 "addopts=",
-                "--hypothesis-seed=0",
+                f"--hypothesis-seed={seed}",
             ]
             result = self.runner.run(sandbox_spec(self.image, argv, timeout_s=timeout_s), work)
             return result.stdout + result.stderr
