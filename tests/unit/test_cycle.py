@@ -37,3 +37,9 @@ async def test_experiments_beyond_the_cap_are_queued_on_a_later_sweep(store: Sto
     assert len([j for j in store.jobs() if j.type == "lab.experiment"]) == EXPERIMENTS_PER_SWEEP + 1
     decisions = store.list("decisions", Decision)
     assert len(decisions) == EXPERIMENTS_PER_SWEEP + 1  # recorded once each
+
+
+def test_every_handled_job_type_has_a_priority(store: Store, mandate: Mandate) -> None:
+    from unbidden.daemon.cycle import PRIORITY
+
+    assert set(make_cycle(store, mandate).handlers()) <= set(PRIORITY)

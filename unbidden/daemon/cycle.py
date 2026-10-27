@@ -30,6 +30,8 @@ EXPERIMENTS_PER_SWEEP = 3
 
 # Lower runs first: follow-ups on GitHub, then publishing, then observing, then the slow lab.
 PRIORITY = {
+    "observe.live": 5,
+    "ops.deploy": 8,
     "github.poll": 10,
     "github.publish": 20,
     "proposal.prepare": 30,
