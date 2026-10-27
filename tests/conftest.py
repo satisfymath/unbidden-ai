@@ -34,6 +34,14 @@ def spend_home(tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.Mon
     return home
 
 
+@pytest.fixture(autouse=True)
+def no_ci_reads(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Unit tests never ask GitHub for a commit's checks; a test that needs them sets ci_verdicts itself."""
+    import unbidden.observe.ci as ci
+
+    monkeypatch.setattr(ci, "ci_verdicts", lambda *a, **k: (None, {}))  # pyright: ignore[reportUnknownLambdaType]
+
+
 @pytest.fixture
 def store() -> Store:
     return Store(None)

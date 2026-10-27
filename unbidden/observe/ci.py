@@ -350,3 +350,19 @@ def tool_status(repo: Path, rev: str, tool: str, runs: dict[str, str]) -> str | 
     if not concluded:
         return None
     return "red" if any(c in ("failure", "timed_out", "action_required") for c in concluded) else "green"
+
+
+def ci_verdicts(
+    repo: Path, rev: str, slug: str, token: str | None, tools: set[str]
+) -> tuple[str | None, dict[str, str]]:
+    """The team's CI on this commit: the whole commit's status, and per tool the status of the jobs that run it.
+    Used by the Director wherever it decides, so `unbidden decide` and the autonomous cycle judge alike."""
+    status = ci_status(slug, rev, token)
+    runs = check_runs(slug, rev, token)
+    per_tool = {t: v for t in sorted(tools) if t and (v := tool_status(repo, rev, t, runs)) is not None}
+    return status, per_tool
+
+
+def analyzer_tool(details: dict[str, object]) -> str:
+    """The tool an analyzer finding came from, without the baseline suffix or a scope after the colon."""
+    return str(details.get("tool", "")).split(":")[0].removesuffix("-baseline")

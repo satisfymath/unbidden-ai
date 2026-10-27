@@ -143,3 +143,12 @@ def test_a_version_module_the_build_would_generate_exists_in_the_snapshot(tmp_pa
         assert '__version__ = version = "0.0.0"' in (work / "src/x/_version.py").read_text()
     finally:
         discard(work)
+
+
+def test_unbiddens_tools_install_on_the_oldest_python_a_project_supports() -> None:
+    from unbidden.observe.stack import PythonStack
+    from unbidden.sandbox.provision import python_dockerfile
+
+    stack = PythonStack(version="3.9", lockfile=None, manifest="pyproject.toml", ruff=True, pyright=False, pytest=True)
+    # pytest's pinned version needs 3.10; the newest that installs is taken instead of failing the image.
+    assert "|| uv pip install --python /opt/tools/bin/python ruff==" in python_dockerfile(stack)

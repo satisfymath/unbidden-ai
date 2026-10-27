@@ -109,7 +109,9 @@ COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \\
  && npm install -g pyright@{PYRIGHT_VERSION} \\
  && pip install --no-cache-dir uv \\
- && uv venv /opt/tools && uv pip install --python /opt/tools/bin/python ruff=={RUFF_VERSION} pytest=={PYTEST_VERSION}
+ && uv venv /opt/tools \\
+ && (uv pip install --python /opt/tools/bin/python ruff=={RUFF_VERSION} pytest=={PYTEST_VERSION} \\
+     || uv pip install --python /opt/tools/bin/python ruff=={RUFF_VERSION} pytest)
 {build_tools}ENV UV_PROJECT_ENVIRONMENT=/deps/.venv UV_LINK_MODE=copy
 # Projects that take their version from git (setuptools-scm, hatch-vcs) cannot read it here: only manifests are
 # copied, never .git. Their dependencies do not depend on the version.

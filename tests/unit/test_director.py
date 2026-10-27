@@ -95,6 +95,25 @@ def test_style_findings_against_a_green_ci_of_the_same_tool_are_unbiddens_enviro
     assert decide(opp, mandate, red).chosen is not ActionKind.DECLINE
 
 
+def test_type_errors_a_green_job_of_the_same_tool_does_not_report_are_unbiddens_environment(mandate: Mandate) -> None:
+    # marshmallow, pilot method check: mypy in the sandbox called two `type: ignore` unused; the team's mypy job was
+    # green on that commit, so they were needed there. Removing them passed the lab and would have broken their CI.
+    found = Opportunity(
+        source="mypy",
+        category="types",
+        title="2 mypy errors in tests/test_fields.py",
+        summary="unused-ignore",
+        dedup_key="mypy:tests/test_fields.py",
+        evidence=[EvidenceRef(kind="file", locator="tests/test_fields.py")],
+        details={"tool": "mypy", "paths": ["tests/test_fields.py"]},
+    )
+    ctx = Context(open_pull_requests=0, attempts=0, ci_commands="uv run tox -e mypy", tool_status={"mypy": "green"})
+    decided = decide(found, mandate, ctx)
+    assert decided.chosen is ActionKind.DECLINE and "environment" in decided.reason
+    red = Context(open_pull_requests=0, attempts=0, ci_commands="uv run tox -e mypy", tool_status={"mypy": "red"})
+    assert decide(found, mandate, red).chosen is ActionKind.RUN_EXPERIMENT
+
+
 def test_a_lab_that_could_not_run_waits_instead_of_counting_as_a_failed_experiment(mandate: Mandate) -> None:
     blocked = opp(category="performance")
     blocked.details = {"rev": "abc", "blocked": {"rev": "abc", "why": "cannot measure: no a single Alembic head"}}

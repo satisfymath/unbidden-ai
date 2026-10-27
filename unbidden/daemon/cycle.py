@@ -61,6 +61,7 @@ class Cycle:
     runtime: Runtime
     log: Log = print
     _stacks: dict[str, tuple[Stack, dict[str, DependencyImage]]] = field(default_factory=dict)
+    _ci: dict[str, tuple[str | None, dict[str, str], set[str]]] = field(default_factory=dict)
 
     @property
     def store(self):
@@ -206,6 +207,7 @@ class Cycle:
         checked = self._checked_dirs()
         head = self.store.get_value("head")
         commands = ci_commands(self.runtime.workspace.repo, head) if head else ""
+        ci_status, per_tool = self._ci_verdicts(head, mandate)
         queued = 0
         live = (OpportunityStatus.OPEN, OpportunityStatus.EXPERIMENTING, OpportunityStatus.PROPOSED)
         unpublished = {
@@ -222,7 +224,14 @@ class Cycle:
             decision = decide(
                 opp,
                 mandate,
-                Context(open_pull_requests=open_prs, attempts=attempts, checked_dirs=checked, ci_commands=commands),
+                Context(
+                    open_pull_requests=open_prs,
+                    attempts=attempts,
+                    checked_dirs=checked,
+                    ci_commands=commands,
+                    ci_status=ci_status,
+                    tool_status=per_tool,
+                ),
             )
             last: dict[str, Any] = opp.details.get("decision", {})
             seen = (last.get("chosen"), last.get("level"), last.get("attempts"))
@@ -266,6 +275,28 @@ class Cycle:
                     withdrawn.status = ProposalStatus.REJECTED
                     self.store.put("proposals", withdrawn)
                     self.log(f"{opp.id}: proposal withdrawn before publishing ({decision.reason})")
+
+    def _ci_verdicts(self, head: str | None, mandate: Any) -> tuple[str | None, dict[str, str]]:
+        """The team's CI on HEAD, read once per commit (the sweep runs often; GitHub limits unauthenticated reads)."""
+        from unbidden.contracts.guardian import ActionRequest
+        from unbidden.guardian.credentials import broker
+        from unbidden.guardian.policy import PolicyEngine
+        from unbidden.observe.ci import analyzer_tool, ci_verdicts
+
+        slug = mandate.egress.github.repository
+        if not head or not slug:
+            return None, {}
+        if not PolicyEngine(mandate).evaluate(ActionRequest(capability="github.read", purpose="CI status")).allowed:
+            return None, {}
+        tools = {analyzer_tool(o.details) for o in self.store.list("opportunities", Opportunity)}
+        cached = self._ci.get(head)
+        if cached is None or not tools <= cached[2]:
+            token = broker().get(mandate.egress.github.token_env, "github")
+            status, per_tool = ci_verdicts(self.runtime.workspace.repo, head, slug, token, tools)
+            cached = (status, per_tool, tools)
+            if status is not None:  # an unreadable CI is asked again next sweep
+                self._ci[head] = cached
+        return cached[0], cached[1]
 
     def _checked_dirs(self) -> tuple[str, ...]:
         head = self.store.get_value("head")

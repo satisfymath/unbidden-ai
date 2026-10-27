@@ -14,6 +14,7 @@ from unbidden.contracts.common import EvidenceLevel
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import Mandate
 from unbidden.contracts.opportunity import ActionKind, CandidateAction, Decision, Opportunity, OpportunityStatus
+from unbidden.observe.ci import analyzer_tool
 from unbidden.store import Store
 
 CATEGORY_VALUE = {
@@ -95,7 +96,7 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
             "the team's CI is not understood: style findings wait until its checks are known",
         )
         return _choose(opp, candidates, ActionKind.WAIT)
-    tool = str(opp.details.get("tool", "")).split(":")[0].removesuffix("-baseline")
+    tool = analyzer_tool(opp.details)
     if opp.category in LOW_VALUE and ctx.ci_commands and tool and tool not in ctx.ci_commands:
         add(
             ActionKind.DECLINE,
@@ -107,7 +108,9 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
         return _choose(opp, candidates, ActionKind.DECLINE)
     # The jobs that run this very tool, when known; the whole commit otherwise.
     green = (ctx.tool_status or {}).get(tool, ctx.ci_status) == "green"
-    if opp.category in LOW_VALUE and green and tool and ctx.ci_commands and tool in ctx.ci_commands:
+    if green and tool and ctx.ci_commands and tool in ctx.ci_commands:
+        # Whatever the category: a type error the team's own green job does not report is an environment difference
+        # (another version of the tool or of Python), and a fix for it would turn their CI red.
         reason = f"the team's CI runs {tool} and passes on this commit: these findings come from Unbidden's environment"
         add(ActionKind.DECLINE, 1.0, 0.0, 0.0, reason)
         return _choose(opp, candidates, ActionKind.DECLINE)

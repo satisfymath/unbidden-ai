@@ -530,7 +530,7 @@ def cmd_decide(args: argparse.Namespace) -> int:
     from unbidden.daemon.cycle import checked_dirs
     from unbidden.director.decide import Context, decide
     from unbidden.guardian.policy import PolicyEngine
-    from unbidden.observe.ci import check_runs, ci_commands, ci_status, tool_status
+    from unbidden.observe.ci import analyzer_tool, ci_commands, ci_verdicts
 
     ws = Workspace.find()
     ws.require()
@@ -544,13 +544,8 @@ def cmd_decide(args: argparse.Namespace) -> int:
     slug = mandate.egress.github.repository
     if slug and PolicyEngine(mandate).evaluate(ActionRequest(capability="github.read", purpose="CI status")).allowed:
         token = broker().get(mandate.egress.github.token_env, "github")
-        status = ci_status(slug, head, token)
-        runs = check_runs(slug, head, token)
-        tools = {
-            str(o.details.get("tool", "")).split(":")[0].removesuffix("-baseline")
-            for o in store.list("opportunities", Opportunity)
-        }
-        per_tool = {t: s for t in tools if t and (s := tool_status(ws.repo, head, t, runs)) is not None}
+        tools = {analyzer_tool(o.details) for o in store.list("opportunities", Opportunity)}
+        status, per_tool = ci_verdicts(ws.repo, head, slug, token, tools)
     open_prs = len(store.list("proposals", Proposal, status=ProposalStatus.PR_OPENED.value))
     live = (OpportunityStatus.OPEN, OpportunityStatus.EXPERIMENTING, OpportunityStatus.PROPOSED)
     rows = []
