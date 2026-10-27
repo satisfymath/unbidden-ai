@@ -172,7 +172,7 @@ def run_checks(world: WorldModel, store: Store, repo: Path | None = None) -> lis
         existing = store.get_by_key(COLLECTION, opp.dedup_key, Opportunity)
         if existing is not None:
             existing.details = {**existing.details, **opp.details}
-            existing.summary = opp.summary
+            existing.title, existing.summary = opp.title, opp.summary
             store.put(COLLECTION, existing)
             continue
         store.put(COLLECTION, opp, key=opp.dedup_key)
