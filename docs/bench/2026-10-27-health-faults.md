@@ -84,3 +84,24 @@ minutes alarmed. Next, for a v3 to be calibrated the same way:
 - localize by failing client spans to a peer, not only by server spans;
 - say "not enough traffic to judge" for a service instead of staying silent;
 - treat a flapping chronic service by its variation.
+
+## Second holdout (fixed in 12164a5 before it was run)
+
+| Criteria | Clean minutes with an alarm | paymentFailure 50% | loadGeneratorFloodHomepage | emailMemoryLeak 1000x |
+|---|---|---|---|---|
+| health-v1 (live, then replayed) | 7 / 10 (quote) | minute 4 | missed | missed |
+| health-v2-candidate | 8 / 10 (frontend, quote) | minute 4 | missed | missed |
+| health-v3-candidate | 8 / 10 (frontend, quote) | minute 3 | missed | missed |
+
+**Decision.** v3 is not adopted: one minute earlier on payment, the same 1 of 3, and more alarms. health-v1 stays.
+
+**Why each fault was missed**
+- **The flood.** The flood of the home page did not raise frontend's errors or p95 past any version's thresholds.
+- **The memory leak.** The leak grows memory, and every version judges request spans only. Container memory is
+  already read and not yet judged.
+
+**The alarm metric needs splitting.** The clean-minute alarms are mostly quote, which fails in bursts on its own (its
+traces put the origin in quote). "Clean minutes with an alarm" mixes false alarms with real, persistent problems
+nobody injected. The next calibration has to count them apart:
+- alarms whose origin traces confirm;
+- alarms that nothing confirms.

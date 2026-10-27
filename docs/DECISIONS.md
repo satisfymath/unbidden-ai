@@ -472,3 +472,16 @@ the per-commit CI status cannot rule out because that commit's CI is red. Next, 
   index) is deployed, and its verdict stays at L4 under the criteria of its time (D-014). No new L5 is claimed; the
   autonomous watcher keeps looking. What is missing for an L5 in opentelemetry-demo is analysis of its languages
   (Go, .NET, Java, Rust) and deploy steps for a service built from source.
+
+## D-029 · 2026-10-27 · The v3 candidate fails the second holdout too; health-v1 stays
+
+On a second holdout fixed before it was run (`paymentFailure` 50 %, `loadGeneratorFloodHomepage`, `emailMemoryLeak`),
+v1, v2 and v3 each found 1 of 3. v3 was one minute earlier on payment, with more alarms in the clean minutes (8 of
+10 against 7 of 10). Neither candidate is adopted.
+
+**What the evidence says to build next**, each to be calibrated the same way before use:
+- judge container memory and CPU, which Unbidden already reads (the leak was invisible to request spans);
+- separate real persistent failures (quote, confirmed by its traces) from unconfirmed alarms in the metric itself.
+
+The detector has now failed two holdouts. It is reported as the weakest part of Unbidden, not hidden behind the
+faults it was designed on.
