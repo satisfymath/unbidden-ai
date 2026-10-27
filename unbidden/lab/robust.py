@@ -27,8 +27,8 @@ from unbidden.lab.fixlab import Candidate, added_suppressions, unified_patch
 from unbidden.lab.testsuite import run_suite, test_plan
 from unbidden.observe.stack import Stack
 from unbidden.research.robustness import parse_crashes
-from unbidden.sandbox.provision import DependencyImage, link_dependencies
-from unbidden.sandbox.runner import SandboxRunner, SandboxSpec, discard, snapshot
+from unbidden.sandbox.provision import DependencyImage, link_dependencies, sandbox_spec
+from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
 from unbidden.store import Store
 
 Progress = Callable[[str], None]
@@ -99,9 +99,7 @@ class RobustLab:
                 "addopts=",
                 "--hypothesis-seed=0",
             ]
-            result = self.runner.run(
-                SandboxSpec(image=self.image.tag, argv=argv, env=self.image.env, timeout_s=900), work
-            )
+            result = self.runner.run(sandbox_spec(self.image, argv, timeout_s=900), work)
             return result.stdout + result.stderr
         finally:
             discard(work)

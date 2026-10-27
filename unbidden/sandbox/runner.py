@@ -38,6 +38,9 @@ class SandboxSpec:
     # environment interpolated from the tracked .env. Not scanned for secrets; everything else in env is.
     public_env: dict[str, str] = field(default_factory=dict[str, str])
     workdir: str = "/work"
+    # Fixed shell steps unbidden itself writes (never a model): e.g. materialize a workspace package's
+    # node_modules links inside /work before the tool runs.
+    setup: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -73,13 +76,16 @@ def docker_argv(spec: SandboxSpec, work: Path, name: str) -> list[str]:
         "--cpus", str(spec.cpus),
         "--memory", spec.memory, "--memory-swap", spec.memory,
         "--pids-limit", str(spec.pids),
-        "-v", f"{work}:{spec.workdir}:rw",
+        "-v", f"{work}:/work:rw",  # the snapshot is always /work; a package runs in its own directory below it
         "-w", spec.workdir,
         "-e", "HOME=/tmp", "-e", "CI=1",
     ]  # fmt: skip
     for key, value in sorted({**spec.public_env, **spec.env}.items()):
         argv += ["-e", f"{key}={value}"]
-    return [*argv, spec.image, *spec.argv]
+    command = list(spec.argv)
+    if spec.setup:
+        command = ["sh", "-c", " && ".join(spec.setup) + ' && exec "$@"', "sh", *command]
+    return [*argv, spec.image, *command]
 
 
 class SandboxRunner:

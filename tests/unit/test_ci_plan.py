@@ -79,3 +79,26 @@ def test_test_plan_brings_the_services_and_the_app_environment(repo: Path) -> No
     assert plan is not None and plan.source.startswith("CI test-backend.yml")
     assert [s.name for s in plan.services] == ["db", "mailpit"]
     assert plan.env["DATABASE_URL"] == "postgresql://postgres:changethis@db:5432/app"
+
+
+def test_lint_scope_comes_from_the_workflows_commands(tmp_path: Path) -> None:
+    from unbidden.observe.ci import ci_lint_packages
+
+    workflow = (
+        "jobs:\n  check:\n    steps:\n      - run: pnpm install\n      - run: pnpm --filter @shop/web lint\n"
+        "      - run: pnpm typecheck\n"
+    )
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / ".github" / "workflows").mkdir(parents=True)
+    (tmp_path / ".github" / "workflows" / "ci.yml").write_text(workflow)
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    packages = {"@shop/web": "apps/web", "api": "backend/api"}
+    assert ci_lint_packages(tmp_path, "HEAD", packages, {}) == {"apps/web"}
+    (tmp_path / ".github" / "workflows" / "ci.yml").write_text(
+        workflow.replace("pnpm --filter @shop/web lint", "pnpm lint")
+    )
+    subprocess.run([*git, "commit", "-qam", "y"], check=True)
+    root = {"lint": "pnpm --filter @shop/web lint && pnpm --filter api lint"}
+    assert ci_lint_packages(tmp_path, "HEAD", packages, root) == {"apps/web", "backend/api"}

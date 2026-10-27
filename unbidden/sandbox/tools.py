@@ -5,13 +5,14 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 from unbidden.contracts.finding import AnalyzerReport, Completeness, Finding, Severity
 from unbidden.sandbox.runner import SandboxResult
 
 Parser = Callable[[SandboxResult, list[str]], AnalyzerReport]
+MISSING_MODULE_RULES = frozenset({"TS2305", "TS2307", "TS2792"})  # no exported member, cannot find module
 MAX_FINDINGS = 2000
 
 
@@ -23,19 +24,34 @@ class Tool:
     argv: tuple[str, ...]
     parse: Parser
     fix_argv: tuple[str, ...] | None = None  # the tool's own correction, tried before any model is asked
+    cwd: str = "."  # a workspace package's directory; findings are reported relative to the repository
+
+    def in_package(self, path: str, argv: tuple[str, ...] | None = None) -> Tool:
+        return replace(self, name=f"{self.name}:{path}", cwd=path, argv=argv or self.argv)
+
+    def _repo_path(self, path: str) -> str:
+        if self.cwd in (".", "") or path.startswith(f"{self.cwd}/"):
+            return path
+        return f"{self.cwd}/{path}"
 
     def report(self, result: SandboxResult, argv: list[str]) -> AnalyzerReport:
         """Parse, then label every finding with this tool's own name and category."""
         report = self.parse(result, argv)
         findings = [
             Finding.build(
-                tool=self.name, rule=f.rule, severity=f.severity, category=self.category, path=f.path,
-                message=f.message, line=f.line, extra=f.extra,
+                tool=self.name,
+                rule=f.rule,
+                severity=f.severity,
+                category=self.category,
+                path=self._repo_path(f.path),
+                message=f.message,
+                line=f.line,
+                extra=f.extra,
             )
             if f.category != "config"
             else f.model_copy(update={"tool": self.name})
             for f in report.findings
-        ]  # fmt: skip
+        ]
         return report.model_copy(update={"tool": self.name, "findings": findings})
 
 
@@ -81,12 +97,24 @@ def parse_tsc(result: SandboxResult, argv: list[str]) -> AnalyzerReport:
             sev: Severity = "error" if match["sev"] == "error" else "warning"
             findings.append(
                 Finding.build(
-                    tool="tsc", rule=match["rule"], severity=sev, category="types",
-                    path=_rel(match["path"]), line=int(match["line"]), message=match["msg"].strip(),
+                    tool="tsc",
+                    rule=match["rule"],
+                    severity=sev,
+                    category="types",
+                    path=_rel(match["path"]),
+                    line=int(match["line"]),
+                    message=match["msg"].strip(),
                 )
-            )  # fmt: skip
+            )
     # tsc exits 0 when clean and 1 or 2 with diagnostics; anything else, or errors we could not parse, is a failure.
     parsed = result.exit_code == 0 or bool(findings)
+    missing = [f for f in findings if f.rule in MISSING_MODULE_RULES]
+    if len(missing) >= 20 or (findings and len(missing) / len(findings) >= 0.15):
+        # A flood of missing modules or exports means the environment lacks generated or installed code (an
+        # ungenerated ORM client, say): the code's real errors cannot be told apart, so this run says nothing.
+        rules = ", ".join(sorted({f.rule for f in missing}))
+        report = _report("tsc", result, argv, [], parsed=False)
+        return report.model_copy(update={"error": f"environment: {len(missing)} missing modules or exports ({rules})"})
     return _report("tsc", result, argv, findings, parsed)
 
 
@@ -106,13 +134,17 @@ def parse_eslint(result: SandboxResult, argv: list[str]) -> AnalyzerReport:
             rule = "parse-error" if msg.get("fatal") else msg.get("ruleId") or "unknown"
             findings.append(
                 Finding.build(
-                    tool="eslint", rule=rule, severity="error" if msg.get("severity") == 2 else "warning",
+                    tool="eslint",
+                    rule=rule,
+                    severity="error" if msg.get("severity") == 2 else "warning",
                     # A parse error means the tool's configuration is broken, not that the code is: not ours to fix.
-                    category="config" if rule == "parse-error" else "lint", path=_rel(entry.get("filePath", "")),
+                    category="config" if rule == "parse-error" else "lint",
+                    path=_rel(entry.get("filePath", "")),
                     line=msg.get("line"),
-                    message=str(msg.get("message", "")), extra={"fixable": bool(msg.get("fix"))},
+                    message=str(msg.get("message", "")),
+                    extra={"fixable": bool(msg.get("fix"))},
                 )
-            )  # fmt: skip
+            )
     return _report("eslint", result, argv, findings, parsed=True)
 
 
@@ -133,11 +165,14 @@ def parse_biome(result: SandboxResult, argv: list[str]) -> AnalyzerReport:
         category = str(diag.get("category", "unknown"))
         findings.append(
             Finding.build(
-                tool="biome", rule=category, severity="error" if diag.get("severity") == "error" else "warning",
-                category="format" if category.startswith("format") else "lint", path=_rel(str(file or "")),
+                tool="biome",
+                rule=category,
+                severity="error" if diag.get("severity") == "error" else "warning",
+                category="format" if category.startswith("format") else "lint",
+                path=_rel(str(file or "")),
                 message=str(diag.get("description") or diag.get("message") or category),
             )
-        )  # fmt: skip
+        )
     return _report("biome", result, argv, findings, parsed=True)
 
 
@@ -153,12 +188,17 @@ def parse_ruff(result: SandboxResult, argv: list[str]) -> AnalyzerReport:
         return _report("ruff", result, argv, [], parsed=False)
     findings = [
         Finding.build(
-            tool="ruff", rule=str(item.get("code") or "syntax"), severity="error", category="lint",
-            path=_rel(str(item.get("filename", ""))), line=(item.get("location") or {}).get("row"),
-            message=str(item.get("message", "")), extra={"fixable": item.get("fix") is not None},
+            tool="ruff",
+            rule=str(item.get("code") or "syntax"),
+            severity="error",
+            category="lint",
+            path=_rel(str(item.get("filename", ""))),
+            line=(item.get("location") or {}).get("row"),
+            message=str(item.get("message", "")),
+            extra={"fixable": item.get("fix") is not None},
         )
         for item in items
-    ]  # fmt: skip
+    ]
     return _report("ruff", result, argv, findings, parsed=True)
 
 
@@ -173,14 +213,17 @@ def parse_pyright(result: SandboxResult, argv: list[str]) -> AnalyzerReport:
         return _report("pyright", result, argv, [], parsed=False)
     findings = [
         Finding.build(
-            tool="pyright", rule=str(d.get("rule") or "general"),
-            severity="error" if d.get("severity") == "error" else "warning", category="types",
-            path=_rel(str(d.get("file", ""))), line=((d.get("range") or {}).get("start") or {}).get("line", 0) + 1,
+            tool="pyright",
+            rule=str(d.get("rule") or "general"),
+            severity="error" if d.get("severity") == "error" else "warning",
+            category="types",
+            path=_rel(str(d.get("file", ""))),
+            line=((d.get("range") or {}).get("start") or {}).get("line", 0) + 1,
             message=str(d.get("message", "")).splitlines()[0],
         )
         for d in diagnostics
         if d.get("severity") in ("error", "warning")
-    ]  # fmt: skip
+    ]
     return _report("pyright", result, argv, findings, parsed=True)
 
 
@@ -188,31 +231,65 @@ def parse_pyright(result: SandboxResult, argv: list[str]) -> AnalyzerReport:
 # mutable default arguments. Run with Unbidden's own pinned ruff, ignoring the repository's configuration.
 BASELINE_RUFF_RULES = "E9,F63,F7,F82,F811,B006"
 
+# ESLint's JSON repeats each file's whole source; a fixed filter drops it so large projects fit the capture.
+_ESLINT_SLIM = (
+    'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const r=JSON.parse(s);'
+    "for(const f of r){delete f.source;delete f.output}process.stdout.write(JSON.stringify(r))})"
+)
+ESLINT_ARGV = ("sh", "-c", f"eslint . --format json --no-error-on-unmatched-pattern | node -e '{_ESLINT_SLIM}'")
+
 TOOLS: dict[str, Tool] = {
     "tsc": Tool("tsc", "node", "types", ("tsc", "--noEmit", "--pretty", "false"), parse_tsc),
     "eslint": Tool(
-        "eslint", "node", "lint", ("eslint", ".", "--format", "json", "--no-error-on-unmatched-pattern"),
-        parse_eslint, fix_argv=("eslint", ".", "--fix"),
+        "eslint",
+        "node",
+        "lint",
+        ESLINT_ARGV,
+        parse_eslint,
+        fix_argv=("eslint", ".", "--fix"),
     ),
     "biome": Tool(
-        "biome", "node", "lint", ("biome", "check", "--reporter=json", "--max-diagnostics=none", "."),
-        parse_biome, fix_argv=("biome", "check", "--write", "."),
+        "biome",
+        "node",
+        "lint",
+        ("biome", "check", "--reporter=json", "--max-diagnostics=none", "."),
+        parse_biome,
+        fix_argv=("biome", "check", "--write", "."),
     ),
     "ruff": Tool(
-        "ruff", "python", "lint", ("ruff", "check", "--output-format", "json", "--no-cache", "--exit-zero", "."),
-        parse_ruff, fix_argv=("ruff", "check", "--fix", "--no-cache", "."),
+        "ruff",
+        "python",
+        "lint",
+        ("ruff", "check", "--output-format", "json", "--no-cache", "--exit-zero", "."),
+        parse_ruff,
+        fix_argv=("ruff", "check", "--fix", "--no-cache", "."),
     ),
     "ruff-baseline": Tool(
-        "ruff-baseline", "python", "bugs",
-        ("/opt/tools/bin/ruff", "check", "--isolated", "--select", BASELINE_RUFF_RULES, "--output-format", "json",
-         "--no-cache", "--exit-zero", "."),
+        "ruff-baseline",
+        "python",
+        "bugs",
+        (
+            "/opt/tools/bin/ruff",
+            "check",
+            "--isolated",
+            "--select",
+            BASELINE_RUFF_RULES,
+            "--output-format",
+            "json",
+            "--no-cache",
+            "--exit-zero",
+            ".",
+        ),
         parse_ruff,
     ),
     "pyright": Tool(
-        "pyright", "python", "types", ("pyright", "--outputjson", "--pythonpath", "/deps/.venv/bin/python"),
+        "pyright",
+        "python",
+        "types",
+        ("pyright", "--outputjson", "--pythonpath", "/deps/.venv/bin/python"),
         parse_pyright,
     ),
-}  # fmt: skip
+}
 
 
 def tools_for(stack: Any) -> list[Tool]:
@@ -225,6 +302,14 @@ def tools_for(stack: Any) -> list[Tool]:
             selected.append(TOOLS["eslint"])
         if stack.node.biome:
             selected.append(TOOLS["biome"])
+        for package in stack.node.packages:
+            if package.typescript:
+                argv = (*package.typecheck, "--pretty", "false") if package.typecheck else None
+                selected.append(TOOLS["tsc"].in_package(package.path, argv))
+            if package.eslint:
+                selected.append(TOOLS["eslint"].in_package(package.path))
+            if package.biome:
+                selected.append(TOOLS["biome"].in_package(package.path))
     if stack.python is not None:
         if stack.python.ruff:
             selected.append(TOOLS["ruff"])
@@ -234,3 +319,11 @@ def tools_for(stack: Any) -> list[Tool]:
         if stack.python.pyright:
             selected.append(TOOLS["pyright"])
     return selected
+
+
+def tool_named(stack: Any, name: str) -> Tool:
+    """The tool an opportunity came from, including a workspace package's (`tsc:apps/web`)."""
+    for tool in tools_for(stack):
+        if tool.name == name:
+            return tool
+    return TOOLS[name]

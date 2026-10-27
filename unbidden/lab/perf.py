@@ -34,8 +34,8 @@ from unbidden.lab.perfstats import PERF_CRITERIA, judge
 from unbidden.lab.testsuite import TestPlan, run_suite, test_plan
 from unbidden.observe.ci import ci_test_plan
 from unbidden.observe.stack import Stack
-from unbidden.sandbox.provision import DependencyImage, link_dependencies
-from unbidden.sandbox.runner import SandboxRunner, SandboxSpec, discard, snapshot
+from unbidden.sandbox.provision import DependencyImage, link_dependencies, sandbox_spec
+from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
 from unbidden.sandbox.sidecars import data_services
 from unbidden.sandbox.tools import tools_for
 
@@ -211,17 +211,14 @@ class PerfLab:
             link_dependencies(work, image)
             env = {**plan.env, "PYTEST_ADDOPTS": f"-k {DRIVER_TEST} -p no:cacheprovider"}
             with data_services(list(plan.services)) as sidecars:
-                result = self.runner.run(
-                    SandboxSpec(
-                        image=image.tag,
-                        argv=list(plan.argv),
-                        env=image.env,
-                        public_env=env,
-                        network=sidecars.network if sidecars else "none",
-                        timeout_s=900,
-                    ),
-                    work,
+                spec = sandbox_spec(
+                    image,
+                    list(plan.argv),
+                    public_env=env,
+                    timeout_s=900,
+                    network=sidecars.network if sidecars else "none",
                 )
+                result = self.runner.run(spec, work)
             out = work / LAB_DIR / "result.json"
             if out.exists():
                 return [float(x) for x in json.loads(out.read_text())["latencies_ms"]], ""
@@ -251,7 +248,7 @@ class PerfLab:
             for tool in tools_for(self.stack):
                 if tool.language != "python":
                     continue
-                result = self.runner.run(SandboxSpec(image=image.tag, argv=list(tool.argv), env=image.env), work)
+                result = self.runner.run(sandbox_spec(image, list(tool.argv), cwd=tool.cwd), work)
                 for f in tool.report(result, list(tool.argv)).findings:
                     found[f"{f.tool} {f.rule} {f.path}: {f.message}"] += 1
             return found

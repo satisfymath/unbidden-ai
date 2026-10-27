@@ -28,9 +28,9 @@ from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
 from unbidden.lab.evaluator import CRITERIA, evaluate_fix
 from unbidden.lab.testsuite import TestPlan, run_suite, test_plan
 from unbidden.observe.stack import Stack
-from unbidden.sandbox.provision import DependencyImage, link_dependencies
-from unbidden.sandbox.runner import SandboxRunner, SandboxSpec, discard, snapshot
-from unbidden.sandbox.tools import TOOLS, Tool, tools_for
+from unbidden.sandbox.provision import DependencyImage, link_dependencies, sandbox_spec
+from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
+from unbidden.sandbox.tools import Tool, tool_named, tools_for
 from unbidden.store import Store
 
 ACTOR = "lab"
@@ -126,7 +126,7 @@ class FixLab:
     def _run_tools(self, work: Path, tools: list[Tool], image: DependencyImage) -> list[AnalyzerReport]:
         reports: list[AnalyzerReport] = []
         for tool in tools:
-            result = self.runner.run(SandboxSpec(image=image.tag, argv=list(tool.argv), env=image.env), work)
+            result = self.runner.run(sandbox_spec(image, list(tool.argv), cwd=tool.cwd), work)
             reports.append(tool.report(result, list(tool.argv)))
         return reports
 
@@ -138,7 +138,7 @@ class FixLab:
         work = self._work(rev, image)
         base = snapshot(self.repo, rev)
         try:
-            self.runner.run(SandboxSpec(image=image.tag, argv=list(tool.fix_argv), env=image.env), work)
+            self.runner.run(sandbox_spec(image, list(tool.fix_argv), cwd=tool.cwd), work)
             files = {
                 p: (work / p).read_text()
                 for p in paths
@@ -223,10 +223,11 @@ class FixLab:
     # The experiment ------------------------------------------------------------------------------------
 
     async def run(self, opp: Opportunity) -> LabResult:
-        tool = TOOLS[opp.source]
+        tool = tool_named(self.stack, opp.source)
         image = self.images[tool.language]
         rev: str = opp.details["rev"]
-        siblings = [t for t in tools_for(self.stack) if t.language == tool.language]
+        # Every check of the same language in the same package: a fix may not break its neighbours.
+        siblings = [t for t in tools_for(self.stack) if t.language == tool.language and t.cwd == tool.cwd]
         targeted: list[str] = list(opp.details["fingerprints"])
         findings = [Finding.model_validate(f) for f in opp.details["findings"]]
         paths: list[str] = list(opp.details["paths"])

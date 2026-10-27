@@ -11,8 +11,8 @@ from unbidden.contracts.common import EvidenceRef, utc_now
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.finding import AnalyzerReport, Finding
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
-from unbidden.sandbox.provision import DependencyImage, link_dependencies
-from unbidden.sandbox.runner import SandboxRunner, SandboxSpec, discard, snapshot
+from unbidden.sandbox.provision import DependencyImage, link_dependencies, sandbox_spec
+from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
 from unbidden.sandbox.tools import Tool
 from unbidden.store import Store
 
@@ -27,7 +27,7 @@ def run_tool(
     try:
         link_dependencies(work, image)
         argv = list(tool.argv)
-        result = runner.run(SandboxSpec(image=image.tag, argv=argv, env=image.env, timeout_s=timeout_s), work)
+        result = runner.run(sandbox_spec(image, argv, cwd=tool.cwd, timeout_s=timeout_s), work)
         return tool.report(result, argv)
     finally:
         discard(work)
