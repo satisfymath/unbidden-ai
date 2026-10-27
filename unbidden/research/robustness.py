@@ -34,7 +34,8 @@ BUG_EXCEPTIONS = (
     "UnboundLocalError",
     "AttributeError",
 )
-MAX_FUNCTIONS = 60
+MAX_FUNCTIONS = 80
+PER_MODULE = 5
 
 
 @dataclass(frozen=True)
@@ -47,15 +48,29 @@ class Crash:
     excerpt: str
 
 
+_TEXTY = ("text", "markup", "string", "str", "s", "line", "content", "source", "value", "chars", "character")
+
+
+def _texty(args: ast.arguments) -> bool:
+    """Takes user text: a parameter annotated str or named like text."""
+    for arg in [*args.posonlyargs, *args.args, *args.kwonlyargs]:
+        annotation = ast.unparse(arg.annotation) if arg.annotation else ""
+        if "str" in annotation or arg.arg in _TEXTY:
+            return True
+    return False
+
+
 def public_functions(repo: Path, rev: str, package: str) -> list[str]:
-    """Signatures and first docstring lines of the package's public module-level functions and methods."""
+    """Public module-level functions and public methods of public classes, with signature and first docstring line.
+    Those that take user text come first: that is where inputs nobody anticipated arrive."""
     files = subprocess.run(
         ["git", "-C", str(repo), "ls-tree", "-r", "--name-only", rev, package],
         capture_output=True,
         text=True,
         check=False,
     ).stdout.split()
-    found: list[str] = []
+    texty: dict[str, list[str]] = {}
+    other: dict[str, list[str]] = {}
     for path in sorted(f for f in files if f.endswith(".py") and not Path(f).name.startswith("_")):
         source = subprocess.run(
             ["git", "-C", str(repo), "show", f"{rev}:{path}"], capture_output=True, text=True
@@ -66,13 +81,21 @@ def public_functions(repo: Path, rev: str, package: str) -> list[str]:
             continue
         module = path.removesuffix(".py").replace("/", ".")
         for node in tree.body:
+            entries: list[tuple[str, ast.FunctionDef]] = []
             if isinstance(node, ast.FunctionDef) and not node.name.startswith("_"):
-                doc = (ast.get_docstring(node) or "").strip().splitlines()[:1]
-                found.append(
-                    f"from {module} import {node.name}  # def {node.name}({ast.unparse(node.args)})"
-                    + (f" — {doc[0]}" if doc else "")
-                )
-    return found[:MAX_FUNCTIONS]
+                entries.append((f"from {module} import {node.name}  # def {node.name}", node))
+            elif isinstance(node, ast.ClassDef) and not node.name.startswith("_"):
+                for item in node.body:
+                    if isinstance(item, ast.FunctionDef) and not item.name.startswith("_"):
+                        entries.append((f"from {module} import {node.name}  # {node.name}.{item.name}", item))
+            for head, fn in entries:
+                doc = (ast.get_docstring(fn) or "").strip().splitlines()[:1]
+                line = f"{head}({ast.unparse(fn.args)})" + (f" — {doc[0]}" if doc else "")
+                (texty if _texty(fn.args) else other).setdefault(module, []).append(line)
+    # A few per module, in turns, so one large module (a console) does not crowd out the rest.
+    picked = [line for lines in texty.values() for line in lines[:PER_MODULE]]
+    picked += [line for lines in other.values() for line in lines[:2]]
+    return picked[:MAX_FUNCTIONS]
 
 
 _FAIL_HEADER = re.compile(r"^_{3,} (test_\w+) _{3,}$", re.MULTILINE)

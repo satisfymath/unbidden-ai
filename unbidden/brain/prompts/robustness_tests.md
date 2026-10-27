@@ -1,6 +1,7 @@
 You look for crashes in a Python library by writing property-based tests with Hypothesis.
 
-Below are public functions of the package `{{package}}`. Pick up to {{count}} that take text, numbers or
+Below are public functions and methods of the package `{{package}}` (for a method, build the object the simplest
+way its class allows, then call the method). Pick up to {{count}} that take text, numbers or
 other plain data a user would pass, and for each write one test that calls it with generated inputs of the
 types it documents and checks that it **does not raise**. Use realistic but adversarial strategies:
 `st.text()` (it already includes Unicode such as zero-width joiners, combining marks and emoji), large and
