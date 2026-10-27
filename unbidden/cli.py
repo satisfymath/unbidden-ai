@@ -1237,6 +1237,8 @@ def cmd_health(args: argparse.Namespace) -> int:
             console.print(f"    - {step['step']} [{step['source']}: {step['available']}]")
     if report["unmeasured"]:
         console.print(f"\nNo request metrics for: {', '.join(report['unmeasured'])}")
+    if report.get("unjudged"):
+        console.print(f"Too little traffic to judge: {', '.join(report['unjudged'])}")
     return 0
 
 

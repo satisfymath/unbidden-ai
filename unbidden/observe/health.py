@@ -162,9 +162,42 @@ def localize(world: WorldModel, degraded: set[str]) -> list[Suspect]:
     return sorted(roots.values(), key=lambda s: (-len(s.effects), s.via != "observed", s.service))
 
 
+COMMON_CAUSE_MIN = 3
+
+
+def common_cause(world: WorldModel, suspects: list[Suspect]) -> Suspect | None:
+    """Several origins at once, none reaching another through any known link: more likely one cause they share (the
+    host, the network, a shared resource) than as many independent failures."""
+    if len(suspects) < COMMON_CAUSE_MIN:
+        return None
+    names = {s.service for s in suspects}
+    linked = {
+        (r.src.split(":", 1)[1], r.dst.split(":", 1)[1])
+        for r in world.current_relations()
+        if r.predicate in ("calls", "uses_database", "depends_on")
+    }
+    if any((a, b) in linked for a in names for b in names if a != b):
+        return None
+    effects = sorted({e for s in suspects for e in [s.service, *s.effects]})
+    return Suspect("(common cause outside the service graph)", effects, "observed")
+
+
 def plan(world: WorldModel, suspect: Suspect, *, traces: bool = False) -> list[dict[str, str]]:
     """What to look at next, in order, and whether Unbidden can already read it."""
     covered = {f.source for f in [*world.resources.values(), *world.relations]}
+    if suspect.service.startswith("("):
+        return [
+            {
+                "step": f"compare CPU and memory of {', '.join(suspect.effects[:6])} and of the host before and during",
+                "source": "prometheus container metrics",
+                "available": "containers yes; the host only if its own metrics are scraped",
+            },
+            {
+                "step": "look for what else ran on the machine or network at that minute",
+                "source": "host processes, other workloads",
+                "available": "no: outside what this workspace may read",
+            },
+        ]
     container = next(
         (c.name for c in world.of_kind("container") if c.attributes.get("service") == suspect.service), None
     )
@@ -253,6 +286,9 @@ class HealthWatcher:
         verdicts = [judge(h, base_h.get(name)) for name, h in sorted(now_h.items()) if name in services]
         degraded = {v.service for v in verdicts if v.degraded}
         suspects = localize(self.world, degraded)
+        shared = common_cause(self.world, suspects)
+        if shared is not None:
+            suspects = [shared]
         return {
             "at": (at or utc_now()).isoformat(),
             "criteria": CRITERIA,
@@ -261,6 +297,8 @@ class HealthWatcher:
             "chronic": sorted(v.service for v in verdicts if v.chronic),
             "suspects": suspects,
             "unmeasured": sorted(services - set(now_h)),
+            # Too few requests to say anything either way: not "healthy", unjudged.
+            "unjudged": sorted(name for name, h in now_h.items() if name in services and h.requests < MIN_REQUESTS),
         }
 
     def tick(self) -> dict[str, Any]:
@@ -279,11 +317,12 @@ class HealthWatcher:
                 + (f" and reaches {', '.join(suspect.effects)}" if suspect.effects else ""),
                 "via": suspect.via,
                 "reasons": {s: list(verdicts[s].reasons) for s in [name, *suspect.effects] if s in verdicts},
+                "common_cause": name.startswith("("),
                 "criteria": CRITERIA,
                 "started": report["at"],
                 "queries": self.prom.sent[-3:],
                 "plan": plan(self.world, suspect, traces=self.traces is not None),
-                "scope": scope(self.world, f"service:{name}").brief(),
+                "scope": scope(self.world, f"service:{name}").brief() if not name.startswith("(") else {},
             }
             if self.traces is not None:
                 try:

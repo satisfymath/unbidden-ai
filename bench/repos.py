@@ -48,7 +48,9 @@ def checkout(repo: dict[str, str], workdir: Path) -> tuple[Path, dict[str, Any]]
         subprocess.run(["git", "-C", str(target), "remote", "add", "origin", repo["url"]], check=True)
     step = _run(["git", "fetch", "-q", "--depth", "1", "origin", repo["commit"]], target, timeout=1800)
     if step["code"] == 0:
-        step = _run(["git", "checkout", "-q", "--force", "FETCH_HEAD"], target)
+        moved = _run(["git", "checkout", "-q", "--force", "FETCH_HEAD"], target)
+        moved["seconds"] = round(moved["seconds"] + step["seconds"], 1)  # the fetch is part of the checkout's time
+        step = moved
     return target, step
 
 

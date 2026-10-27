@@ -139,3 +139,15 @@ def test_a_failure_starts_in_the_failing_span_whose_children_did_not_fail() -> N
     assert "4111" not in repr(spans)  # attributes never kept
     counts, traces, failing = origins(spans)
     assert dict(counts) == {"payment": 1} and (traces, failing) == (1, 1)
+
+
+def test_unrelated_origins_degrading_together_are_one_common_cause() -> None:
+    from unbidden.observe.health import common_cause
+
+    obs = EpistemicStatus.OBSERVED
+    w = world_with(("frontend", "cart", obs), ("frontend", "ad", obs), ("checkout", "email", obs))
+    suspects = localize(w, {"cart", "ad", "email"})
+    shared = common_cause(w, suspects)
+    assert shared is not None and shared.effects == ["ad", "cart", "email"]
+    linked = world_with(("cart", "ad", obs), ("checkout", "email", obs), ("x", "y", obs))
+    assert common_cause(linked, localize(linked, {"cart", "ad", "email"})) is None  # cart calls ad: two origins
