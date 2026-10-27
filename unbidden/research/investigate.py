@@ -119,6 +119,12 @@ class Investigation:
     log: Callable[[str], None] = print
     steps: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
 
+    def _services(self) -> list[str]:
+        from unbidden.observe.compose import load_compose
+
+        compose = load_compose(self.repo, self.bad)
+        return sorted(compose.services) if compose else []
+
     def _service_errors(self, service: str) -> str:
         out = subprocess.run(
             [
@@ -169,7 +175,13 @@ class Investigation:
         tools = [ToolSpec.from_model(name, desc, model) for name, (model, desc) in TOOLS.items()]
         messages = [
             Message(
-                role="system", content=prompt.render(incident=self.incident, good=self.good[:12], bad=self.bad[:12])
+                role="system",
+                content=prompt.render(
+                    incident=self.incident,
+                    good=self.good[:12],
+                    bad=self.bad[:12],
+                    services=", ".join(self._services()) or "unknown",
+                ),
             ),
             Message(role="user", content="Begin the investigation."),
         ]

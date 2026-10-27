@@ -2,6 +2,7 @@ You investigate an incident in a production system, read-only, and end with one 
 
 What happened: {{incident}}
 Services of this system (for `service_errors`): {{services}}
+Services of this system (for `service_errors`): {{services}}
 The last healthy version is `{{good}}`; the version that failed is `{{bad}}`.
 
 Use the tools to gather evidence: what changed between the two versions, what the service's errors say, and

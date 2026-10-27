@@ -251,8 +251,9 @@ class LogTransform:
     identifiers: SensitiveTermIndex
 
     def apply(self, text: str) -> str:
-        text = _IPV4.sub("192.0.2.1", text)
-        return _PATH.sub(lambda m: m.group(0).replace(m.group(1), self.rename.to_synthetic(m.group(1))), text)
+        # Every occurrence of a private name is replaced, not only inside request lines: tests and feedback quote
+        # paths too (the egress gate caught exactly that on the first real run).
+        return self.rename.to_synthetic(_IPV4.sub("192.0.2.1", text))
 
 
 def log_transform(lines: list[str]) -> LogTransform:

@@ -41,3 +41,5 @@ def test_what_a_remote_model_sees_of_a_log_has_no_real_paths_or_addresses() -> N
     seen = transform.apply(lines[0])
     assert "invoices" not in seen and "ledger" not in seen and "10.1.2.3" not in seen
     assert '"GET /' in seen and "HTTP/1.1" in seen and " 200 " in seen  # the structure survives
+    quoted = transform.apply("expected path=/api/v1/invoices/ledger status=200")
+    assert "invoices" not in quoted and "ledger" not in quoted
