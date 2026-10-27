@@ -144,7 +144,13 @@ class Cycle:
                 self._record_decision(opp, decision)
             if decision.chosen is ActionKind.RUN_EXPERIMENT and queued < EXPERIMENTS_PER_SWEEP:
                 if self.store.enqueue(
-                    job("lab.experiment", f"{opp.id}:{attempts}", {"id": opp.id}, correlation_id=opp.id)
+                    job(
+                        # One experiment per attempt at each commit: a lab blocked at one commit runs again at the next.
+                        "lab.experiment",
+                        f"{opp.id}:{str(opp.details.get('rev', ''))[:12]}:{attempts}",
+                        {"id": opp.id},
+                        correlation_id=opp.id,
+                    )
                 ):
                     queued += 1
             elif decision.chosen is ActionKind.PROPOSE_CHANGE:
