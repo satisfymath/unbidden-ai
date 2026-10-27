@@ -567,3 +567,38 @@ flagged, because a deploy every twenty minutes reset the baseline.
 - From Prometheus, `health` reports a service whose p95 now sits above its own p95 of four hours ago. This is a
   separate signal, not part of the verdict: it is not calibrated on a holdout yet. Its first live reading, checkout
   at 182 ms against about 99 ms, came on a day of heavy load on the host.
+
+## D-034 · 2026-10-27 · Logs as evidence; a third system, mealie, and what it broke
+
+**Logs as evidence (second item of D-033).** Ported as `observe/logs.py`. It reads the compose project's container
+logs every 5 minutes, groups lines by their normalised shape, and reports a shape that is new after a deploy, or an
+error rate that grew. Each signal carries its evidence (shape, counts, first line). It reads and reports. It does not
+change verdicts: like the sustained Prometheus signal, it is not calibrated yet.
+
+**Third system.** mealie (FastAPI, Vue, Postgres; 283 live endpoints, 70 tables) runs locally:
+- branch `unbidden-env`, with a compose override for Postgres and the project name `mealie`;
+- 400 synthetic recipes, foods, units and labels from mealie's own seeders;
+- a dedicated probe user;
+- mandate autonomous, as in the other test environments. GitHub points at `satisfymath/mealie`, never upstream. That
+  fork and its token do not exist yet, so proposals stay as local branches.
+
+**What it broke, fixed:**
+1. *The compose project was found from the repository root.* `docker compose --project-directory <repo>` fails when
+   the compose files live in `docker/`. Containers, investigation logs and Forge logs now name the project: compose's
+   own `name:`, else the directory's name.
+2. *Code locations of endpoints.* 40 of 323 endpoints stayed as guesses beside the live ones:
+   - a file with several routers gave every route the first prefix;
+   - a bare mount became `GET `;
+   - parameter names differ between code and schema;
+   - a router mounted twice (public and private) was ambiguous.
+
+   Worse, the old rule had given `POST /api/auth/oauth/native/token` the code of `POST /token`. Now a route takes its
+   own router's prefix and is matched with parameter names ignored. Among several candidates, the one sharing the
+   most words with the file wins, then the shortest. A tie stays a guess.
+
+   **Result:** 270 of 283 live endpoints carry their code location, and all 270 were checked against the decorator
+   they point to: 0 wrong. Of the 7 guesses left, 5 are validators mounted with `include_in_schema=False`, real
+   routes the schema hides; one is a true tie; one is an image route not seen live. fst: 23 of 23, up from 22.
+
+**Status.** No L5 on mealie yet. The watcher is now probing it. The next step is whether anything measurable is worth
+improving.
