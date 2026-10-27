@@ -18,6 +18,7 @@ from unbidden.contracts.common import EpistemicStatus, utc_now
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.world import WorldModel
 from unbidden.store import Store
+from unbidden.world.jaeger import Jaeger, JaegerError, origins
 from unbidden.world.prometheus import Prometheus, ServiceHealth, health
 from unbidden.world.scope import scope
 
@@ -116,7 +117,7 @@ def localize(world: WorldModel, degraded: set[str]) -> list[Suspect]:
     return sorted(roots.values(), key=lambda s: (-len(s.effects), s.via != "observed", s.service))
 
 
-def plan(world: WorldModel, suspect: Suspect) -> list[dict[str, str]]:
+def plan(world: WorldModel, suspect: Suspect, *, traces: bool = False) -> list[dict[str, str]]:
     """What to look at next, in order, and whether Unbidden can already read it."""
     covered = {f.source for f in [*world.resources.values(), *world.relations]}
     container = next(
@@ -137,7 +138,7 @@ def plan(world: WorldModel, suspect: Suspect) -> list[dict[str, str]]:
             "step": f"follow failing requests from {', '.join(suspect.effects[:3]) or 'callers'} "
             f"into {suspect.service}",
             "source": "traces",
-            "available": "no: no trace connector (Jaeger runs, but Unbidden cannot read it yet)",
+            "available": "yes: done below, from the project's Jaeger" if traces else "no: no trace connector reachable",
         },
         {
             "step": f"check what changed in {suspect.service}: deploy, image, configuration, feature flags",
@@ -148,12 +149,27 @@ def plan(world: WorldModel, suspect: Suspect) -> list[dict[str, str]]:
     return steps
 
 
+def trace_check(traces: Jaeger, suspect: Suspect) -> dict[str, Any]:
+    """Where failing requests through the furthest-upstream affected service actually fail, from their traces."""
+    entry = suspect.effects[0] if suspect.effects else suspect.service
+    counts, seen, failing = origins(traces.spans(entry))
+    top = counts.most_common(1)[0][0] if counts else None
+    return {
+        "through": entry,
+        "traces": seen,
+        "failing_traces": failing,
+        "origins": dict(counts.most_common(5)),
+        "agrees": top == suspect.service if top else None,
+    }
+
+
 @dataclass
 class HealthWatcher:
     store: Store
     world: WorldModel
     prom: Prometheus
     log: Any = print
+    traces: Jaeger | None = None
 
     def assess(self, at: datetime | None = None) -> dict[str, Any]:
         now_h = health(self.prom, WINDOW)
@@ -191,9 +207,14 @@ class HealthWatcher:
                 "criteria": CRITERIA,
                 "started": report["at"],
                 "queries": self.prom.sent[-3:],
-                "plan": plan(self.world, suspect),
+                "plan": plan(self.world, suspect, traces=self.traces is not None),
                 "scope": scope(self.world, f"service:{name}").brief(),
             }
+            if self.traces is not None:
+                try:
+                    record["traces"] = trace_check(self.traces, suspect)
+                except JaegerError as exc:
+                    record["traces"] = {"error": str(exc)}
             open_[name] = record
             self.store.append_event(
                 Event(type=EventType.ANOMALY_DETECTED, actor="observer", entity_id=f"service:{name}", payload=record)

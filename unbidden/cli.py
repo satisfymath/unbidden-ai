@@ -1042,7 +1042,7 @@ def cmd_health(args: argparse.Namespace) -> int:
     """Each service's errors and latency against its own baseline, from the project's metrics; where trouble starts."""
     from unbidden.contracts.world import WorldModel
     from unbidden.observe.health import HealthWatcher
-    from unbidden.world import prometheus
+    from unbidden.world import jaeger, prometheus
 
     ws = Workspace.find()
     ws.require()
@@ -1053,7 +1053,8 @@ def cmd_health(args: argparse.Namespace) -> int:
         err.print("no Prometheus of this project is known; run `unbidden map` while the system runs")
         return 2
     try:
-        report = HealthWatcher(store, world, prometheus.Prometheus(url), log=lambda _: None).tick()
+        traces = jaeger.find(world)
+        report = HealthWatcher(store, world, prometheus.Prometheus(url), log=lambda _: None, traces=traces).tick()
     except prometheus.PrometheusError as exc:
         err.print(str(exc))
         return 1
@@ -1092,6 +1093,13 @@ def cmd_health(args: argparse.Namespace) -> int:
         console.print(f"\n[bold red]Anomaly[/] (hypothesis, via {anomaly['via']} links): {anomaly['statement']}")
         for service, reasons in anomaly["reasons"].items():
             console.print(f"    {service}: {'; '.join(reasons)}")
+        traced = anomaly.get("traces")
+        if traced and "origins" in traced:
+            verdict = {True: "agree", False: "DISAGREE", None: "show no failure"}[traced["agrees"]]
+            console.print(
+                f"  traces through {traced['through']} ({traced['failing_traces']}/{traced['traces']} failing) "
+                f"{verdict}: failures start in {traced['origins']}"
+            )
         console.print("  next:")
         for step in anomaly["plan"]:
             console.print(f"    - {step['step']} [{step['source']}: {step['available']}]")

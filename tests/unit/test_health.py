@@ -106,3 +106,36 @@ def test_other_projects_containers_in_a_host_wide_prometheus_are_never_taken_in(
     observe(Prometheus("http://p", transport=httpx.MockTransport(answer)), w, {})
     assert w.resources["container:cart"].attributes["resources"]["cpu_ratio"] == 0.1
     assert "hosli" not in w.model_dump_json()
+
+
+def test_a_failure_starts_in_the_failing_span_whose_children_did_not_fail() -> None:
+    from unbidden.world.jaeger import origins, parse
+
+    def span(sid: str, parent: str, code: int = 0) -> dict[str, object]:
+        return {
+            "traceId": "t1",
+            "spanId": sid,
+            "parentSpanId": parent,
+            "status": {"code": code},
+            "attributes": [{"key": "card", "value": {"stringValue": "4111"}}],
+        }
+
+    def resource(service: str, *spans: dict[str, object]) -> dict[str, object]:
+        return {
+            "resource": {"attributes": [{"key": "service.name", "value": {"stringValue": service}}]},
+            "scopeSpans": [{"spans": list(spans)}],
+        }
+
+    body = {
+        "result": {
+            "resourceSpans": [
+                resource("frontend", span("a", "", 2)),
+                resource("checkout", span("b", "a", 2), span("c", "a")),
+                resource("payment", span("d", "b", 2)),
+            ]
+        }
+    }
+    spans = parse(body)
+    assert "4111" not in repr(spans)  # attributes never kept
+    counts, traces, failing = origins(spans)
+    assert dict(counts) == {"payment": 1} and (traces, failing) == (1, 1)

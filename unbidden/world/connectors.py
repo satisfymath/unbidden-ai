@@ -76,6 +76,16 @@ PROMETHEUS = ConnectorSpec(
     scope="the project's own Prometheus; only this project's services and containers are taken in",
 )
 
+JAEGER = ConnectorSpec(
+    id="jaeger-traces",
+    version=1,
+    purpose="where failing requests actually fail, to confirm or contradict where metrics say a degradation starts",
+    discovers=["failure origins per service"],
+    capability="runtime.read",
+    cost="local: one trace search per anomaly, at most 100 traces of the last 5 minutes",
+    scope="the project's own Jaeger; only service names, span ids and status codes are kept, attributes dropped",
+)
+
 CONNECTORS: tuple[ConnectorSpec, ...] = (
     GIT_STATIC,
     COMPOSE_DOCKER,
@@ -84,6 +94,7 @@ CONNECTORS: tuple[ConnectorSpec, ...] = (
     LLM_RELATIONS,
     LEDGER,
     PROMETHEUS,
+    JAEGER,
 )
 
 # Sources that, when they did not run, leave the system unobserved rather than empty.

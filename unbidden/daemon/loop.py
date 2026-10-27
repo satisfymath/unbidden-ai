@@ -22,7 +22,7 @@ def _probe_forever(runtime: Runtime, log: Log, stop: threading.Event) -> None:
     from unbidden.contracts.world import WorldModel
     from unbidden.observe.health import HealthWatcher
     from unbidden.observe.live import LiveWatcher
-    from unbidden.world import prometheus
+    from unbidden.world import jaeger, prometheus
 
     store = runtime.workspace.store()
     killswitch = runtime.workspace.killswitch()
@@ -39,7 +39,8 @@ def _probe_forever(runtime: Runtime, log: Log, stop: threading.Event) -> None:
         if url and not killswitch.engaged and time.monotonic() - last_health >= HEALTH_EVERY_S:
             last_health = time.monotonic()
             try:
-                HealthWatcher(store, world, prometheus.Prometheus(url), log).tick()  # type: ignore[arg-type]
+                traces = jaeger.find(world)  # type: ignore[arg-type]
+                HealthWatcher(store, world, prometheus.Prometheus(url), log, traces).tick()  # type: ignore[arg-type]
             except Exception as exc:
                 log(f"health check failed: {exc}")
         stop.wait(mandate.operations.probe_every_s)
