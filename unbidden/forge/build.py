@@ -11,10 +11,12 @@ from pathlib import Path
 from typing import Any
 
 from unbidden.brain.prompts import load_prompt
-from unbidden.brain.router import Brain, BrainError
+from unbidden.brain.router import Brain, BrainError, parse_json
+from unbidden.bridge.rename import RenameMap, build_map
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.llm import LLMRequest, Message, Tier
-from unbidden.forge.adapter import LogAdapter, admit, oracle, parse_line
+from unbidden.forge.adapter import ORACLE_VERSION, LogAdapter, admit, oracle, parse_line
+from unbidden.guardian.scanner import SensitiveTermIndex
 from unbidden.store import Store
 
 COLLECTION = "capabilities"
@@ -79,12 +81,8 @@ def compose_logs(repo: Path, service: str, tail: int = 3000) -> list[str]:
 
 
 def split(lines: list[str]) -> tuple[list[str], list[str]]:
-    """Deduplicated by shape (so probes repeating one request do not flood both sides), then a seeded shuffle."""
-    seen: dict[str, str] = {}
-    for line in lines:
-        shape = re.sub(r"\d+", "0", line)
-        seen.setdefault(shape, line)
-    unique = list(seen.values())
+    """Exact duplicates removed, then a seeded shuffle: the model sees some lines, the oracle judges the rest."""
+    unique = list(dict.fromkeys(ln for ln in lines if ln.strip()))
     random.Random(SEED).shuffle(unique)
     access = [ln for ln in unique if _ACCESS.search(ln)]
     other = [ln for ln in unique if not _ACCESS.search(ln)]
@@ -94,22 +92,30 @@ def split(lines: list[str]) -> tuple[list[str], list[str]]:
 
 
 class Forge:
-    def __init__(self, brain: Brain, store: Store, *, repairs: int = 2) -> None:
-        self.brain, self.store, self.repairs = brain, store, repairs
+    def __init__(self, brain: Brain, store: Store, *, repairs: int = 4, remote: bool = False) -> None:
+        self.brain, self.store, self.repairs, self.remote = brain, store, repairs, remote
 
-    async def _json(self, purpose: str, prompt_name: str, schema: dict[str, Any], **values: str) -> Any:
+    async def _json(
+        self,
+        purpose: str,
+        prompt_name: str,
+        schema: dict[str, Any],
+        *,
+        tier: Tier = Tier.LOCAL,
+        identifiers: SensitiveTermIndex | None = None,
+        **values: str,
+    ) -> Any:
         prompt = load_prompt(prompt_name)
-        value, _ = await self.brain.complete_json(
-            LLMRequest(
-                purpose=purpose,
-                tier=Tier.LOCAL,
-                response_schema=schema,
-                max_tokens=1500,
-                messages=[Message(role="user", content=prompt.render(schema=json.dumps(schema), **values))],
-                prompt_sha256=prompt.sha256,
-            )
+        request = LLMRequest(
+            purpose=purpose,
+            tier=tier,
+            response_schema=schema,
+            max_tokens=3000,
+            prompt_sha256=prompt.sha256,
+            messages=[Message(role="user", content=prompt.render(schema=json.dumps(schema), **values))],
         )
-        return value
+        response = await self.brain.complete(request, identifiers=identifiers)
+        return parse_json(response.content)
 
     async def build_log_adapter(self, source: str, lines: list[str]) -> ForgeResult:
         result = ForgeResult(None)
@@ -123,36 +129,69 @@ class Forge:
         tests = [t for t in tests if all(t[k] in shown[t["line"] - 1] for k in ("method", "path", "status"))]
         if len(tests) < 3:
             return ForgeResult(None, ["the expected values do not appear in their own lines; tests discarded"])
+        if await self._attempts(source, shown, tests, heldout, result, origin="local", transform=None):
+            return result
+        if self.remote:
+            # The local model could not: ask Muse Spark through the privacy bridge. Paths are renamed and addresses
+            # masked before anything leaves; the adapter that comes back is structure, judged on the real lines.
+            transform = log_transform(shown)
+            result.notes.append(f"bridge: {len(transform.rename.forward)} private names and the addresses replaced")
+            await self._attempts(source, shown, tests, heldout, result, origin="bridge", transform=transform)
+        return result
+
+    async def _attempts(
+        self,
+        source: str,
+        shown: list[str],
+        tests: list[dict[str, Any]],
+        heldout: list[str],
+        result: ForgeResult,
+        *,
+        origin: str,
+        transform: LogTransform | None,
+    ) -> bool:
+        view = transform.apply if transform else (lambda text: text)
         tests_text = "\n".join(
-            f"{shown[t['line'] - 1]} → method={t['method']} path={t['path']} status={t['status']}" for t in tests
+            view(f"{shown[t['line'] - 1]} → method={t['method']} path={t['path']} status={t['status']}") for t in tests
         )
+        tier = Tier.LOCAL if transform is None else Tier.CODE
+        identifiers = transform.identifiers if transform else None
         feedback = ""
-        for attempt in range(self.repairs + 1):
+        tries = self.repairs + 1 if transform is None else 3
+        for attempt in range(tries):
             try:
                 proposed = await self._json(
-                    "forge.adapter",
+                    "forge.adapter" if transform is None else "forge.adapter.bridge",
                     "forge_pattern",
                     PATTERN_SCHEMA,
+                    tier=tier,
+                    identifiers=identifiers,
                     feedback=feedback,
                     tests=tests_text,
-                    lines="\n".join(shown),
+                    lines="\n".join(view(ln) for ln in shown),
                 )
             except BrainError as exc:
-                result.notes.append(f"attempt {attempt + 1}: {exc}")
+                result.notes.append(f"{origin} attempt {attempt + 1}: {exc}")
+                if transform is not None:
+                    return False
                 continue
             pattern = proposed["pattern"]
             problems = admit(pattern)
             if not problems:
                 compiled = re.compile(pattern)
-                for t in tests:
+                for t in tests:  # always judged on the real lines and the real expected values
                     got = parse_line(compiled, shown[t["line"] - 1]) or {}
                     if any(got.get(k) != t[k] for k in ("method", "path", "status")):
                         problems.append(
-                            f"line {t['line']}: expected {t['method']} {t['path']} {t['status']}, got {got}"
+                            view(f"line {t['line']}: expected {t['method']} {t['path']} {t['status']}, got {got}")
                         )
             if problems:
-                feedback = "Your previous pattern was refused:\n- " + "\n- ".join(problems[:5]) + "\nFix it."
-                result.notes.append(f"attempt {attempt + 1} refused: {problems[0]}")
+                feedback = (
+                    f"Your previous pattern was `{pattern}`. It was refused:\n- "
+                    + "\n- ".join(problems[:5])
+                    + "\nWrite a corrected pattern."
+                )
+                result.notes.append(f"{origin} attempt {attempt + 1} refused: {problems[0]}")
                 continue
             judged = oracle(pattern, heldout)
             version = 1 + len([a for a in self.store.list(COLLECTION, LogAdapter) if a.source == source])
@@ -162,6 +201,7 @@ class Forge:
                 pattern=pattern,
                 status="validated" if judged.passed else "rejected",
                 quality={
+                    "oracle": ORACLE_VERSION,
                     "heldout_access_lines": judged.access_lines,
                     "parsed": judged.parsed,
                     "coverage": round(judged.coverage, 3),
@@ -170,7 +210,7 @@ class Forge:
                     "tests": len(tests),
                     "shown_lines": len(shown),
                 },
-                provenance={"model": "local", "attempts": attempt + 1},
+                provenance={"model": origin, "attempts": attempt + 1},
             )
             self.store.put(COLLECTION, adapter)
             self.store.append_event(
@@ -178,12 +218,44 @@ class Forge:
                     type=EventType.CAPABILITY_BUILT,
                     actor="forge",
                     entity_id=adapter.id,
-                    payload={"source": source, "version": version, "status": adapter.status, **adapter.quality},
+                    payload={
+                        "source": source,
+                        "version": version,
+                        "status": adapter.status,
+                        "origin": origin,
+                        **adapter.quality,
+                    },
                 )
             )
             result.adapter = adapter
             if judged.passed:
-                return result
-            feedback = "The pattern failed on lines you have not seen:\n- " + "\n- ".join(judged.problems) + "\nFix it."
-            result.notes.append(f"attempt {attempt + 1}: oracle refused ({judged.problems[0]})")
-        return result
+                return True
+            feedback = (
+                f"Your previous pattern was `{pattern}`. On lines you have not seen it failed:\n- "
+                + "\n- ".join(judged.problems)
+                + "\nWrite a corrected pattern."
+            )
+            result.notes.append(f"{origin} attempt {attempt + 1}: oracle refused ({judged.problems[0]})")
+        return False
+
+
+_PATH = re.compile(r'"[A-Z]+ (/[^ "?]*)')
+_IPV4 = re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}\b")
+
+
+@dataclass
+class LogTransform:
+    """What a remote model may see of a log: request paths renamed, addresses replaced by documentation ones."""
+
+    rename: RenameMap
+    identifiers: SensitiveTermIndex
+
+    def apply(self, text: str) -> str:
+        text = _IPV4.sub("192.0.2.1", text)
+        return _PATH.sub(lambda m: m.group(0).replace(m.group(1), self.rename.to_synthetic(m.group(1))), text)
+
+
+def log_transform(lines: list[str]) -> LogTransform:
+    segments = {seg for ln in lines for path in _PATH.findall(ln) for seg in path.split("/") if seg}
+    private = {s for s in segments if len(s) >= 3 and not s.isdigit()}
+    return LogTransform(build_map(private, {}, lines), SensitiveTermIndex(private))

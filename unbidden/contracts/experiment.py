@@ -79,5 +79,6 @@ class Proposal(Contract):
     evidence_level: EvidenceLevel
     status: ProposalStatus = ProposalStatus.READY
     pr: PullRequestRef | None = None
+    merge_sha: Sha | None = None  # the commit the merge created on the base (squash merges rewrite history)
     egress_attempt_ids: list[str] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=utc_now)

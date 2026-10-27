@@ -7,7 +7,7 @@ from collections import Counter
 from dataclasses import dataclass
 
 from unbidden.contracts.guardian import ActionRequest, Mandate
-from unbidden.forge.adapter import LogAdapter, parse_line
+from unbidden.forge.adapter import ORACLE_VERSION, LogAdapter, parse_line
 from unbidden.guardian.policy import PolicyEngine
 from unbidden.store import Store
 
@@ -17,7 +17,13 @@ COLLECTION = "capabilities"
 def usable(store: Store, mandate: Mandate, source: str) -> LogAdapter | None:
     """The newest adapter for a source that passed its oracle and that the mandate (or a person) turned on."""
     candidates = sorted(
-        (a for a in store.list(COLLECTION, LogAdapter) if a.source == source and a.status in ("validated", "approved")),
+        (
+            a
+            for a in store.list(COLLECTION, LogAdapter)
+            if a.source == source
+            and a.status in ("validated", "approved")
+            and a.quality.get("oracle") == ORACLE_VERSION  # judged by the current oracle, or not usable
+        ),
         key=lambda a: a.version,
     )
     if not candidates:

@@ -4,7 +4,7 @@ import random
 
 import pytest
 
-from unbidden.observe.impact import Impact, Round, judge_endpoint, overall
+from unbidden.observe.impact import Impact, Round, judge_endpoint, judge_endpoint_v1, overall
 
 pytestmark = pytest.mark.unit
 
@@ -21,7 +21,10 @@ def test_degradation_and_improvement_are_both_detected() -> None:
 
 def test_same_build_twice_is_healthy_and_small_shifts_are_not_claimed() -> None:
     assert judge_endpoint("GET /x", rounds(20, 15, 1), rounds(20, 17, 2), 15).impact is Impact.HEALTHY
-    assert judge_endpoint("GET /x", rounds(20, 15, 1), rounds(26, 17, 2), 15).impact is Impact.HEALTHY  # < 10 ms
+    # v1's absolute 10 ms floor ignored +6 ms on a 20 ms endpoint; v2 scales the floor to the endpoint's noise.
+    assert judge_endpoint_v1("GET /x", rounds(20, 15, 1), rounds(26, 17, 2), 15).impact is Impact.HEALTHY
+    assert judge_endpoint("GET /x", rounds(20, 15, 1), rounds(26, 17, 2), 15).impact is Impact.DEGRADED
+    assert judge_endpoint("GET /x", rounds(20, 15, 1), rounds(22, 17, 2), 15).impact is Impact.HEALTHY  # +10%
 
 
 def test_not_enough_rounds_is_never_healthy() -> None:

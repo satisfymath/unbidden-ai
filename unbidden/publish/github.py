@@ -245,6 +245,9 @@ class Publisher:
         since = (utc_now() - timedelta(hours=24)).isoformat()
         self.store.set_value("merges", [*(s for s in stamps if s >= since), utc_now().isoformat()])
         proposal.status = ProposalStatus.MERGED
+        merge_sha = merged.get("sha")
+        if isinstance(merge_sha, str) and len(merge_sha) == 40:
+            proposal.merge_sha = merge_sha
         self.store.put("proposals", proposal)
         self.store.append_event(
             Event(

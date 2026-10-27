@@ -519,7 +519,8 @@ def cmd_forge(args: argparse.Namespace) -> int:
         service = args.target or "backend"
         lines = compose_logs(runtime.workspace.repo, service)
         with console.status(f"forging a log adapter for {service} from {len(lines)} lines"):
-            result = asyncio.run(Forge(runtime.brain, store).build_log_adapter(f"compose:{service}", lines))
+            forge = Forge(runtime.brain, store, remote=runtime.bridge() is not None)
+            result = asyncio.run(forge.build_log_adapter(f"compose:{service}", lines))
         for note in result.notes:
             console.print(f"  [dim]{note}[/]")
         if result.adapter is None:

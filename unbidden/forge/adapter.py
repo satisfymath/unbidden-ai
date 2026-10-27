@@ -24,6 +24,7 @@ MAX_GROUPS = 8
 MIN_HELDOUT = 20
 MIN_COVERAGE = 0.80
 MAX_US_PER_LINE = 200.0
+ORACLE_VERSION = 2  # 2: metamorphic checks (statuses and methods not in the sample). Older passes do not count.
 
 
 class LogAdapter(Contract):
@@ -84,6 +85,35 @@ class OracleResult:
     problems: list[str]
 
 
+VARIANT_STATUSES = ("500", "201", "502", "304")
+VARIANT_METHODS = ("POST", "DELETE", "PATCH")
+
+
+def metamorphic(compiled: re.Pattern[str], access: list[str], samples: int = 10) -> list[str]:
+    """An adapter must read values it has not seen: real lines with another status or method must parse to
+    those values. This catches patterns fitted to the sample (a status list of 200|403|404, say)."""
+    problems: list[str] = []
+    for line in access[:samples]:
+        fields = parse_line(compiled, line)
+        if not fields or "status" not in fields or "method" not in fields:
+            continue
+        for status in VARIANT_STATUSES:
+            variant = line.replace(f" {fields['status']} ", f" {status} ", 1)
+            got = parse_line(compiled, variant) or {}
+            if variant != line and got.get("status") != status:
+                problems.append(f"does not read status {status} in a real line with its status changed")
+                break
+        for method in VARIANT_METHODS:
+            variant = line.replace(f'"{fields["method"]} ', f'"{method} ', 1)
+            got = parse_line(compiled, variant) or {}
+            if variant != line and got.get("method") != method:
+                problems.append(f"does not read method {method} in a real line with its method changed")
+                break
+        if problems:
+            break
+    return problems
+
+
 def oracle(pattern: str, heldout: list[str]) -> OracleResult:
     """Judge an adapter with code only, on lines the model never saw."""
     compiled = re.compile(pattern)
@@ -107,6 +137,7 @@ def oracle(pattern: str, heldout: list[str]) -> OracleResult:
         parsed += int(ok)
     elapsed = (time.perf_counter() - started) * 1e6 / max(1, len(access))
     coverage = parsed / len(access) if access else 0.0
+    problems.extend(metamorphic(compiled, access))
     if coverage < MIN_COVERAGE:
         problems.append(f"parsed {coverage:.0%} of held-out access lines correctly; at least {MIN_COVERAGE:.0%} needed")
     if elapsed > MAX_US_PER_LINE:

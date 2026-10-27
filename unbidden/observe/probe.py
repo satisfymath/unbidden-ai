@@ -123,6 +123,7 @@ class Prober:
                     statuses.append(status)
                     if status == 401:
                         self._token = None
-                self.store.add_round(target.label, version, statuses, latencies)
+                deploy = len(self.store.get_value("deploy_sequence", [])) - 1
+                self.store.add_round(target.label, version, statuses, latencies, deploy=deploy)
                 sent += len(statuses)
         return sent

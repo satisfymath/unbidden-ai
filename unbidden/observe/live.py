@@ -40,7 +40,7 @@ def _git(repo: Path, *args: str) -> str:
     return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, check=False).stdout.strip()
 
 
-def _contains(repo: Path, version: str, commit: str) -> bool:
+def contains(repo: Path, version: str, commit: str) -> bool:
     return (
         subprocess.run(
             ["git", "-C", str(repo), "merge-base", "--is-ancestor", commit, version], capture_output=True, check=False
@@ -51,6 +51,9 @@ def _contains(repo: Path, version: str, commit: str) -> bool:
 
 @dataclass
 class LiveWatcher:
+    """Works per deploy (an index in the deploy sequence), not per version: a version deployed again after a
+    rollback starts a window of its own and inherits none of its earlier rounds."""
+
     repo: Path
     store: Store
     mandate: Mandate
@@ -64,102 +67,98 @@ class LiveWatcher:
         """Deployed versions in order; a version appears again when it is deployed again (a rollback)."""
         return list(self.store.get_value("deploy_sequence", []))
 
-    def _rounds(self, target: str, version: str) -> list[Round]:
-        return [Round(v, tuple(s), tuple(ms)) for _, v, s, ms in self.store.rounds(target, version=version)]
+    def _rounds(self, target: str, deploy: int) -> list[Round]:
+        return [Round(v, tuple(s), tuple(ms)) for _, v, s, ms in self.store.rounds(target, deploy=deploy)]
 
     def tick(self) -> None:
-        sent = self.prober().round()
-        if not sent:
+        if not self.prober().round():
             return
         history = self.history()
         if len(history) < 2:
             return
-        current = history[-1]
-        previous = self._baseline(history)
-        deploy_id = f"{len(history) - 1}:{current}"
+        current = len(history) - 1
+        baseline = self._baseline(history)
         if self._outage(current):
-            self._bad(current, previous, Impact.OUTAGE, [])
+            self._bad(history, current, Impact.OUTAGE)
             return
-        if self.store.get("deploy_verdicts", deploy_id, DeployVerdict) is None:
-            self._judge(deploy_id, current, previous)
+        if self.store.get("deploy_verdicts", f"{current}:{history[current]}", DeployVerdict) is None:
+            self._judge(history, current, baseline)
 
-    def _baseline(self, history: list[str]) -> str:
-        """The deploy to compare against: the previous one, or, when it ran too briefly to be judged, the most
-        recent earlier one with enough rounds. What was skipped over is listed as a confounder."""
+    def _baseline(self, history: list[str]) -> int:
+        """The deploy to compare against: the previous one, or, when it ran too briefly to be judged or was an
+        outage, the most recent earlier one with enough rounds. What was skipped over is a confounder."""
         need = self.mandate.operations.guard_samples
         targets = self.store.round_targets()
         for index in range(len(history) - 2, -1, -1):
-            version = history[index]
-            if version == history[-1]:
+            if self.store.get_value(f"outage_deploy:{index}") is not None:
                 continue
-            if any(len(self._rounds(t, version)) >= need for t in targets):
-                return version
-        return history[-2]
+            if any(len(self._rounds(t, index)) >= need for t in targets):
+                return index
+        return len(history) - 2
 
-    def _served(self, target: str, version: str) -> bool:
+    def _served(self, target: str, deploy: int) -> bool:
         """Endpoints the probe user may not read (401/403 throughout) cannot be judged; they are left out."""
-        return any(r.served for r in self._rounds(target, version))
+        return any(r.served for r in self._rounds(target, deploy))
 
-    def _outage(self, version: str) -> bool:
+    def _outage(self, deploy: int) -> bool:
+        if self.store.get_value(f"outage_deploy:{deploy}") is not None:
+            return False
         for target in self.store.round_targets():
             if not any(h in target.lower() for h in HEALTH_HINTS):
                 continue
-            recent = self._rounds(target, version)[-OUTAGE_ROUNDS:]
+            recent = self._rounds(target, deploy)[-OUTAGE_ROUNDS:]
             if len(recent) == OUTAGE_ROUNDS and all(all(s == 0 or s >= 500 for s in r.statuses) for r in recent):
-                return self.store.get_value(f"outage:{version}") is None
+                return True
         return False
 
-    def _judge(self, deploy_id: str, current: str, previous: str) -> None:
+    def _judge(self, history: list[str], current: int, baseline: int) -> None:
         need = self.mandate.operations.guard_samples
-        judgeable = [t for t in self.store.round_targets() if self._served(t, previous)]
-        endpoints = [judge_endpoint(t, self._rounds(t, previous), self._rounds(t, current), need) for t in judgeable]
+        judgeable = [t for t in self.store.round_targets() if self._served(t, baseline)]
+        endpoints = [judge_endpoint(t, self._rounds(t, baseline), self._rounds(t, current), need) for t in judgeable]
         verdict = overall(endpoints)
-        waiting = verdict is Impact.INSUFFICIENT and any(e.rounds_after < need for e in endpoints)
-        if waiting:
-            return  # still filling the window of the new version
+        if verdict is Impact.INSUFFICIENT and any(e.rounds_after < need for e in endpoints):
+            return  # still filling the window of the new deploy
+        version, previous = history[current], history[baseline]
         record = DeployVerdict(
-            id=deploy_id,
+            id=f"{current}:{version}",
             previous=previous,
             impact=verdict,
             endpoints=[e.as_dict() for e in endpoints],
             criteria=CRITERIA,
         )
         self.store.put("deploy_verdicts", record)
-        self.store.set_value(f"verdict_of:{deploy_id.split(':', 1)[0]}", verdict.value)
+        self.store.set_value(f"verdict_of:{current}", verdict.value)
         self.store.append_event(
             Event(
                 type=EventType.IMPACT_JUDGED,
                 actor="observer",
-                entity_id=current,
+                entity_id=record.id,
                 payload={
-                    "previous": previous,
+                    "baseline": f"{baseline}:{previous}",
                     "impact": verdict.value,
                     "endpoints": {e.target: e.impact.value for e in endpoints},
                 },
             )
         )
-        self.log(
-            f"deploy {current[:12]} judged {verdict.value}: "
-            + "; ".join(f"{e.target} {e.reasons[0]}" for e in endpoints if e.impact is not Impact.HEALTHY)[:300]
-        )
-        self._outcomes(record, endpoints, previous)
+        notable = "; ".join(f"{e.target} {e.reasons[0]}" for e in endpoints if e.impact is not Impact.HEALTHY)
+        self.log(f"deploy {current} ({version[:12]}) judged {verdict.value} against deploy {baseline}: {notable[:300]}")
+        self._outcomes(history, current, baseline, endpoints)
         if verdict in (Impact.DEGRADED, Impact.OUTAGE):
-            self._bad(current, previous, verdict, endpoints)
+            self._bad(history, current, verdict)
 
-    def _outcomes(self, record: DeployVerdict, endpoints: list[Any], previous: str) -> None:
-        """Level 5 for every merged proposal this deploy carried, with what else could explain the change."""
+    def _outcomes(self, history: list[str], current: int, baseline: int, endpoints: list[Any]) -> None:
+        """Level 5 for each merged proposal whose first deploy this is, with what else could explain the change.
+        A proposal already present in any earlier deploy was judged there, or never can be."""
+        version, previous = history[current], history[baseline]
         by_target = {e.target: e for e in endpoints}
-        version = record.id.split(":", 1)[1]
         commits = _git(self.repo, "log", "--format=%h %s", f"{previous}..{version}").splitlines()
-        skipped = self.history()[:-1]
-        skipped = skipped[skipped.index(previous) + 1 :] if previous in skipped else []
-        for proposal in self.store.list("proposals", Proposal):
-            if proposal.status not in (ProposalStatus.MERGED, ProposalStatus.PR_OPENED):
+        skipped = [history[i][:12] for i in range(baseline + 1, current)]
+        for proposal in self.store.list("proposals", Proposal, status=ProposalStatus.MERGED.value):
+            shipped = proposal.merge_sha or proposal.commit_sha
+            if not contains(self.repo, version, shipped):
                 continue
-            if not _contains(self.repo, record.id, proposal.commit_sha) or _contains(
-                self.repo, previous, proposal.commit_sha
-            ):
-                continue
+            if any(contains(self.repo, history[i], shipped) for i in range(current)):
+                continue  # not this deploy's change
             opp = self.store.get("opportunities", proposal.opportunity_id, Opportunity)
             if opp is None or opp.details.get("outcome"):
                 continue
@@ -167,22 +166,28 @@ class LiveWatcher:
             confounders = [
                 f"{len(commits)} commit(s) between the two measured versions: " + "; ".join(commits[:5]),
                 *(
-                    [
-                        f"{len(skipped)} intermediate deploy(s) ran too briefly to be judged on their own: "
-                        + ", ".join(v[:12] for v in skipped)
-                    ]
+                    [f"{len(skipped)} intermediate deploy(s) not used as baseline: {', '.join(skipped)}"]
                     if skipped
                     else []
                 ),
                 "traffic is unbidden's own probes, not users",
                 "data volume and cache state differ between the two windows",
             ]
-            outcome = {"deploy": record.id, "impact": [e.as_dict() for e in judged], "confounders": confounders}
+            outcome = {
+                "deploy": f"{current}:{version}",
+                "baseline": f"{baseline}:{previous}",
+                "impact": [e.as_dict() for e in judged],
+                "confounders": confounders,
+                "criteria": CRITERIA,
+            }
             opp.details = {**opp.details, "outcome": outcome}
             if judged and all(e.impact is Impact.IMPROVED for e in judged):
                 opp.evidence_level = EvidenceLevel.OPERATIONAL_RESULT
                 opp.status = OpportunityStatus.VERIFIED
-                opp.evidence = [*opp.evidence, EvidenceRef(kind="config", locator=f"deploy_verdicts/{record.id}")]
+                opp.evidence = [
+                    *opp.evidence,
+                    EvidenceRef(kind="config", locator=f"deploy_verdicts/{current}:{version}"),
+                ]
             self.store.put("opportunities", opp)
             self.store.append_event(
                 Event(
@@ -194,28 +199,27 @@ class LiveWatcher:
                 )
             )
             self.log(
-                f"{opp.id}: real outcome after deploy {record.id[:12]}: "
+                f"{opp.id}: real outcome after deploy {current}: "
                 + ", ".join(f"{e.target} {e.impact.value}" for e in judged)
             )
 
-    def _last_healthy(self, current: str) -> str | None:
+    def _last_healthy(self, history: list[str], current: int) -> str | None:
         """The most recent earlier deploy judged healthy or improved (the first one served before any change)."""
-        history = self.history()
-        for index in range(len(history) - 2, -1, -1):
-            version = history[index]
-            if version == current:
+        for index in range(current - 1, -1, -1):
+            if history[index] == history[current]:
                 continue
-            verdict = self.store.get("deploy_verdicts", f"{index}:{version}", DeployVerdict)
+            verdict = self.store.get("deploy_verdicts", f"{index}:{history[index]}", DeployVerdict)
             if index == 0 or (verdict is not None and verdict.impact in (Impact.HEALTHY, Impact.IMPROVED)):
-                return version
+                return history[index]
         return None
 
-    def _bad(self, current: str, previous: str, impact: Impact, endpoints: list[Any]) -> None:
+    def _bad(self, history: list[str], current: int, impact: Impact) -> None:
         if impact is Impact.OUTAGE:
-            self.store.set_value(f"outage:{current}", utc_now().isoformat())
-        reason = f"deploy {current[:12]} judged {impact.value}"
+            self.store.set_value(f"outage_deploy:{current}", utc_now().isoformat())
+            self.store.set_value(f"verdict_of:{current}", impact.value)
+        reason = f"deploy {current} ({history[current][:12]}) judged {impact.value}"
         place(self.store, reason)
-        target = self._last_healthy(current)
+        target = self._last_healthy(history, current)
         if self.mandate.autonomy.rollback is not Autonomy.ALLOW or target is None:
             self.log(f"{reason}: hold placed; rollback needs a person (`unbidden mode`) or a healthy version")
             return

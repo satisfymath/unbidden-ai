@@ -21,7 +21,7 @@ from unbidden.contracts.events import AuditEntry, Event
 from unbidden.contracts.jobs import Job, JobStatus
 from unbidden.guardian.scanner import redact_json
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS events (
@@ -81,7 +81,8 @@ CREATE TABLE IF NOT EXISTS rounds (
     target TEXT NOT NULL,
     version TEXT NOT NULL,
     statuses TEXT NOT NULL,
-    latencies TEXT NOT NULL
+    latencies TEXT NOT NULL,
+    deploy INTEGER NOT NULL DEFAULT -1
 );
 CREATE INDEX IF NOT EXISTS rounds_target ON rounds(target, ts);
 
@@ -123,6 +124,9 @@ class Store:
         if version > SCHEMA_VERSION:
             raise RuntimeError(f"state was written by a newer unbidden (schema {version} > {SCHEMA_VERSION})")
         self._conn.executescript(_SCHEMA)
+        columns = {row[1] for row in self._conn.execute("PRAGMA table_info(rounds)")}
+        if "deploy" not in columns:  # schema 1 -> 2: rounds belong to a deploy, not only to a version
+            self._conn.execute("ALTER TABLE rounds ADD COLUMN deploy INTEGER NOT NULL DEFAULT -1")
         self._conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
 
     @contextmanager
@@ -281,18 +285,25 @@ class Store:
 
     # Live probe rounds ------------------------------------------------------------------------------------
 
-    def add_round(self, target: str, version: str, statuses: list[int], latencies_ms: list[float]) -> None:
+    def add_round(
+        self, target: str, version: str, statuses: list[int], latencies_ms: list[float], *, deploy: int = -1
+    ) -> None:
         self._conn.execute(
-            "INSERT INTO rounds (ts, target, version, statuses, latencies) VALUES (?, ?, ?, ?, ?)",
-            (_ts(utc_now()), target, version, json.dumps(statuses), json.dumps(latencies_ms)),
+            "INSERT INTO rounds (ts, target, version, statuses, latencies, deploy) VALUES (?, ?, ?, ?, ?, ?)",
+            (_ts(utc_now()), target, version, json.dumps(statuses), json.dumps(latencies_ms), deploy),
         )
 
-    def rounds(self, target: str, *, version: str | None = None) -> list[tuple[datetime, str, list[int], list[float]]]:
+    def rounds(
+        self, target: str, *, version: str | None = None, deploy: int | None = None
+    ) -> list[tuple[datetime, str, list[int], list[float]]]:
         sql = "SELECT ts, version, statuses, latencies FROM rounds WHERE target = ?"
         args: list[Any] = [target]
         if version is not None:
             sql += " AND version = ?"
             args.append(version)
+        if deploy is not None:
+            sql += " AND deploy = ?"
+            args.append(deploy)
         rows = self._conn.execute(sql + " ORDER BY ts", args).fetchall()
         return [(datetime.fromisoformat(r[0]), r[1], json.loads(r[2]), json.loads(r[3])) for r in rows]
 

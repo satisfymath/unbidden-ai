@@ -145,3 +145,22 @@ the opportunity stays at L4. That verdict stands: criteria are not changed after
 Criteria v2 replace the fixed floor with the baseline's own noise (max(0.2 ms, 3 MADs of round medians)),
 calibrated before adoption on rounds not used to choose them (`docs/bench/2026-10-27-impact-calibration.md`:
 A/A 0/15 claims, +30 % caught on 10/15, +50 % on 13/15). v2 applies to deploys judged from now on.
+
+## D-015 · 2026-10-27 · The outage drill, and why deploy windows are per deploy, not per version
+
+A scenario script (declared as such) deployed a release whose health check fails. In `autonomous` mode Unbidden
+judged it an outage 11 s after first seeing it, rolled back to the last healthy deploy (104feb4) in 15 s with
+the team's own steps, and set a hold only a person releases; health returned to 200.
+
+Exposed, and fixed:
+
+1. After the rollback, the redeploy of 104feb4 was judged "improved" against f4bcfab using every round ever
+   taken of that version, including those that had motivated criteria v2. That verdict is invalid and is not
+   used for any claim. Probe rounds now carry the deploy they belong to: a version deployed again starts a
+   window of its own, and an outage deploy is never a baseline.
+2. Level 5 could never have been recorded: proposals are squash-merged, so the branch commit is never an
+   ancestor of what is deployed, and the check also passed a deploy id where a commit was needed. Proposals
+   now keep the merge commit GitHub returns; a proposal gets its outcome only on the first deploy carrying it.
+3. Forge's first adapter listed the statuses it had seen (200|403|404) and passed an oracle with no 500 in the
+   held-out lines. The oracle now runs metamorphic checks (statuses and methods not in the sample), adapters
+   carry the oracle version that judged them, and only those judged by the current one are usable.
