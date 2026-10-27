@@ -776,6 +776,100 @@ def cmd_egress(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_doctor(args: argparse.Namespace) -> int:
+    """Everything unbidden needs here, checked: machine and local model, Ollama, Docker, Meta API, GitHub, mandate."""
+    import os
+    import shutil
+    import subprocess
+
+    import httpx
+
+    from unbidden.brain.hardware import detect, recommend
+    from unbidden.runtime import installed_models
+
+    checks: list[tuple[str, bool, str]] = []
+    ws = Workspace.find()
+    ws.load_env()
+    machine = detect()
+    config = ws.config() if ws.initialized else None
+    ollama_url = config.providers["ollama"].base_url if config else "http://localhost:11434"
+    installed = installed_models(ollama_url)
+    checks.append(
+        ("ollama", bool(installed), f"{len(installed)} model(s) at {ollama_url}" if installed else "not reachable")
+    )
+    rec = recommend(machine, installed)
+    checks.append(
+        ("machine", True, f"{machine.chip}, {machine.total_gb:.0f} GB, {machine.model_budget_gb:.0f} GB for a model")
+    )
+    checks.append(
+        (
+            "local model",
+            rec.installed and rec.fits,
+            f"{rec.model.tag} ({rec.reason})" + ("" if rec.installed else " · not installed: `unbidden doctor --fix`"),
+        )
+    )
+    if rec.profile_hint:
+        checks.append(("profile", True, f"small local capacity: consider `unbidden models {rec.profile_hint}`"))
+    docker = (
+        shutil.which("docker") and subprocess.run(["docker", "info"], capture_output=True, check=False).returncode == 0
+    )
+    checks.append(("docker", bool(docker), "running" if docker else "not running: the sandbox needs Docker"))
+    key = bool(os.environ.get("MODEL_API_KEY"))
+    reachable = False
+    if key:
+        try:
+            reachable = (
+                httpx.get(
+                    "https://api.meta.ai/v1/models",
+                    timeout=8,
+                    headers={"Authorization": f"Bearer {os.environ['MODEL_API_KEY']}"},
+                ).status_code
+                == 200
+            )
+        except httpx.HTTPError:
+            reachable = False
+    checks.append(
+        (
+            "meta api",
+            key and reachable,
+            "key set, API reachable"
+            if key and reachable
+            else "key set, API not reachable"
+            if key
+            else "no MODEL_API_KEY: frontier models are off",
+        )
+    )
+    checks.append(
+        (
+            "github",
+            bool(os.environ.get("GITHUB_TOKEN")),
+            "GITHUB_TOKEN set" if os.environ.get("GITHUB_TOKEN") else "no GITHUB_TOKEN: proposals stay local branches",
+        )
+    )
+    if ws.initialized:
+        try:
+            mandate = ws.mandate()
+            checks.append(
+                ("mandate", True, f"profile {mandate.models.profile}, PRs {mandate.autonomy.open_pull_requests.value}")
+            )
+        except Exception as exc:
+            checks.append(("mandate", False, f"invalid: {exc}"))
+        checks.append(
+            ("repository", True, "public (confirmed)" if ws.repo_public(ws.store()) else "private or unconfirmed")
+        )
+    else:
+        checks.append(("workspace", False, "not initialized: `unbidden init`"))
+    if args.fix and not rec.installed and rec.fits:
+        console.print(f"pulling {rec.model.tag} ...")
+        pulled = subprocess.run(["ollama", "pull", rec.model.tag], check=False).returncode == 0
+        checks.append(("fix", pulled, f"{'pulled' if pulled else 'could not pull'} {rec.model.tag}"))
+    if _emit(args, [{"check": n, "ok": ok, "detail": d} for n, ok, d in checks]):
+        return 0
+    for name, ok, detail in checks:
+        console.print(f"  {'[green]ok[/]' if ok else '[yellow]!![/]'}  {name:12} {detail}")
+    return 0 if all(ok for name, ok, _ in checks if name in ("ollama", "local model", "docker")) else 1
+
+
 def cmd_map(args: argparse.Namespace) -> int:
     """Discover the system (repository, running containers, live API, database) and show the World Model."""
     import asyncio
@@ -923,6 +1017,8 @@ def build_parser() -> argparse.ArgumentParser:
     hold.add_argument("id", nargs="?")
     hold.add_argument("reason", nargs="?", default="released by a person")
     command("deploys", cmd_deploys, "every deploy seen and its verdict")
+    doctor = command("doctor", cmd_doctor, "check the machine, local model, Docker, Meta API, GitHub and mandate")
+    doctor.add_argument("--fix", action="store_true", help="pull the recommended local model if it is missing")
     models = command("models", cmd_models, "show or set the model profile: local, local-first or frontier")
     models.add_argument("profile", nargs="?", choices=["local", "local-first", "frontier"])
     models.add_argument("--private-code", choices=["allow", "deny"], help="private code to frontier models")
