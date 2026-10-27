@@ -439,23 +439,57 @@ def cmd_hold(args: argparse.Namespace) -> int:
 
 
 def cmd_deploys(args: argparse.Namespace) -> int:
-    """Every deploy unbidden has seen, with its verdict."""
-    from unbidden.observe.live import DeployVerdict
+    """Every deploy unbidden has seen: the code it ran, how that is known, and its verdict."""
+    from unbidden.observe.live import DeployVerdict, contains
+    from unbidden.operate import ledger
 
     ws = Workspace.find()
     ws.require()
     store = ws.store()
-    verdicts = store.list("deploy_verdicts", DeployVerdict)
-    if _emit(args, [v.model_dump(mode="json") for v in verdicts]):
+    verdicts = {v.id.split(":")[0]: v for v in store.list("deploy_verdicts", DeployVerdict)}
+    if args.commit:
+        found = ledger.ran_commit(store, args.commit, lambda version, c: contains(ws.repo, version, c))
+        data = [{"deployment": d.model_dump(mode="json"), "relation": why} for d, why in found]
+        if _emit(args, data):
+            return 0
+        if not found:
+            console.print(f"No deploy seen ran {args.commit[:12]} or a descendant of it.")
+        for d, why in found:
+            verdict = verdicts.get(d.id)
+            console.print(
+                f"[bold]deploy {d.id}[/] {why}: {(d.commit or '?')[:12]} {d.commit_status} ({d.commit_reason}); "
+                f"by {d.initiated_by}, seen {d.seen_at:%Y-%m-%d %H:%M}"
+                + (f"; judged {verdict.impact.value}" if verdict else "")
+            )
+            for c in d.containers:
+                console.print(f"    {c.service:14} {c.name:28} image {c.image_id.removeprefix('sha256:')[:12]}")
         return 0
-    for v in verdicts:
+    deployments = ledger.deployments(store)
+    if _emit(
+        args,
+        {
+            "deployments": [d.model_dump(mode="json") for d in deployments],
+            "verdicts": [v.model_dump(mode="json") for v in verdicts.values()],
+        },
+    ):
+        return 0
+    for d in deployments:
+        commit = (d.commit or "?")[:12]
+        verdict = verdicts.get(d.id)
         console.print(
-            f"[bold]{v.id.split(':')[0]}[/] {v.id.split(':', 1)[1][:12]} (after {v.previous[:12]}): {v.impact.value}"
+            f"[bold]{d.id}[/] {commit} {d.commit_status:9} by {d.initiated_by:9} "
+            f"{verdict.impact.value if verdict else 'not judged'}  [dim]{d.commit_reason}[/]"
         )
+    for key, v in verdicts.items():
+        if any(d.id == key for d in deployments):
+            continue
+        console.print(f"[bold]{key}[/] {v.id.split(':', 1)[1][:12]} (before the ledger) {v.impact.value}")
+    for v in verdicts.values():
+        console.print(f"[bold]verdict {v.id.split(':')[0]}[/] after {v.previous[:12]}: {v.impact.value}")
         for e in v.endpoints:
             console.print(f"    {e['target']:36} {e['impact']:22} {'; '.join(e['reasons'])}")
-    if not verdicts:
-        console.print("No deploy judged yet.")
+    if not deployments and not verdicts:
+        console.print("No deploy seen yet.")
     return 0
 
 
@@ -475,6 +509,7 @@ def cmd_why(args: argparse.Namespace) -> int:
         "opportunity": opp.model_dump(mode="json", exclude={"details"}),
         "decision": opp.details.get("decision"),
         "verdict": opp.details.get("verdict"),
+        "outcome": opp.details.get("outcome"),
         "egress": [a.model_dump(mode="json") for a in attempts],
         "events": [e.model_dump(mode="json") for e in events],
     }
@@ -488,6 +523,15 @@ def cmd_why(args: argparse.Namespace) -> int:
         console.print(f"verdict: {'improved' if verdict['improved'] else 'not improved'} · tests {verdict['tests']}")
         for reason in verdict["reasons"] + verdict["caveats"]:
             console.print(f"  - {reason}")
+    outcome = data["outcome"]
+    if outcome:
+        result = outcome.get("result", "recorded before results were classified")
+        console.print(f"outcome after deploy {outcome['deploy']}: {result}")
+        for reason in outcome.get("why", []):
+            console.print(f"  - {reason}")
+        for confounder in outcome.get("confounders", []):
+            detail = confounder["detail"] if isinstance(confounder, dict) else confounder
+            console.print(f"  confounder: {detail}")
     for attempt in attempts:
         state = "[green]sent[/]" if attempt.status == "allowed_sent" else f"[red]{attempt.status}[/]"
         console.print(
@@ -878,9 +922,25 @@ def cmd_map(args: argparse.Namespace) -> int:
     from unbidden.runtime import Runtime
     from unbidden.world.discover import discover
 
+    if args.connectors:
+        from unbidden.world.connectors import CONNECTORS, NOT_COVERED
+
+        if _emit(args, {"connectors": [c.model_dump() for c in CONNECTORS], "not_covered": NOT_COVERED}):
+            return 0
+        for c in CONNECTORS:
+            console.print(f"[bold]{c.ref}[/] ({c.capability}, {'read-only' if c.read_only else 'writes'}) {c.purpose}")
+            console.print(
+                f"    discovers {', '.join(c.discovers)}"
+                + (f"; measures {', '.join(c.measures)}" if c.measures else "")
+            )
+            console.print(f"    cost: {c.cost}\n    scope: {c.scope}")
+        console.print("\n[bold]Not covered[/]")
+        for what, why in NOT_COVERED.items():
+            console.print(f"  - {what}: {why}")
+        return 0
     runtime = Runtime.open(Workspace.find())
     repo = runtime.workspace.repo
-    if args.cached:
+    if args.cached or args.scope:
         world = runtime.store.get("world", "world", WorldModel)
         if world is None:
             err.print("no map yet; run `unbidden map`")
@@ -889,6 +949,34 @@ def cmd_map(args: argparse.Namespace) -> int:
         with console.status("mapping the system"):
             brain = None if args.no_model else runtime.brain
             world = asyncio.run(discover(repo, head_sha(repo), runtime.store, runtime.workspace.mandate(), brain))
+    if args.scope:
+        from unbidden.world.scope import scope
+
+        found = scope(world, args.scope)
+        if _emit(args, found.model_dump(mode="json")):
+            return 0 if found.found else 1
+        if not found.found:
+            err.print(f"{args.scope} is not in the World Model (`unbidden map --json` lists ids)")
+            return 1
+        console.print(f"[bold]{args.scope}[/] · map of {world.updated_at:%Y-%m-%d %H:%M}")
+        for r in found.resources:
+            console.print(
+                f"  {'  ' * r.hops}{r.id:{max(10, 50 - 2 * r.hops)}} {r.status:9} {r.source or '?':24} "
+                f"{r.age_s // 60} min old"
+            )
+            if r.what == "deployment":
+                a = r.attributes
+                console.print(
+                    f"  {'  ' * r.hops}  runs {(a.get('commit') or '?')[:12]} ({a.get('commit_status')}: "
+                    f"{a.get('commit_reason')})"
+                )
+        console.print("\n[bold]Links[/]")
+        for rel in found.relations:
+            console.print(f"  {rel.id:70} {rel.status:9} {rel.source or '?'}")
+        console.print("\n[bold]What I cannot see from here[/]")
+        for spot in found.blind_spots:
+            console.print(f"  - {spot.what}: {spot.why}")
+        return 0
     if _emit(args, world.model_dump(mode="json")):
         return 0
     mark = {"observed": "[green]observed[/]", "inferred": "[yellow]inferred[/]"}
@@ -904,7 +992,11 @@ def cmd_map(args: argparse.Namespace) -> int:
     for svc in world.of_kind("service") + world.of_kind("database"):
         live = containers.get(svc.name)
         state = f"{live.attributes.get('state')} {live.attributes.get('ports') or ''}" if live else "not running"
-        deps = [r.dst.split(":", 1)[1] for r in world.relations if r.src == svc.id and r.predicate == "depends_on"]
+        deps = [
+            f"{r.dst.split(':', 1)[1]}{'' if r.predicate == 'depends_on' else ' (' + r.predicate + ')'}"
+            for r in world.current_relations()
+            if r.src == svc.id and r.predicate in ("depends_on", "calls")
+        ]
         console.print(
             f"  {svc.name:12} {svc.attributes.get('image') or 'built here':28} {state:24} "
             f"{'→ ' + ', '.join(deps) if deps else ''}"
@@ -925,10 +1017,20 @@ def cmd_map(args: argparse.Namespace) -> int:
         for endpoint in endpoints:
             touches = [
                 f"{r.predicate} {r.dst.split(':', 1)[1]}"
-                for r in world.relations
+                for r in world.current_relations()
                 if r.src == endpoint.id and r.predicate in ("reads", "writes")
             ]
             console.print(f"  {endpoint.name:44} {status(endpoint):30} {', '.join(touches)}")
+    deployment = next(iter(world.of_kind("deployment")), None)
+    if deployment is not None:
+        a = deployment.attributes
+        console.print(
+            f"\n[bold]Running[/] {deployment.name}: {(a.get('commit') or '?')[:12]} "
+            f"{a.get('commit_status')} ({a.get('commit_reason')}), by {a.get('initiated_by')}"
+        )
+    obsolete = [r.id for r in world.resources.values() if r.status.value == "obsolete"]
+    if obsolete:
+        console.print(f"\n[bold]No longer seen[/] ({len(obsolete)}): {', '.join(obsolete[:8])}")
     if world.blind_spots:
         console.print("\n[bold]What I cannot see[/]")
         for spot in world.blind_spots:
@@ -994,6 +1096,8 @@ def build_parser() -> argparse.ArgumentParser:
     map_ = command("map", cmd_map, "discover the system and show what is known, how, and what cannot be seen")
     map_.add_argument("--cached", action="store_true", help="show the last map without discovering again")
     map_.add_argument("--no-model", action="store_true", help="skip relations inferred by the local model")
+    map_.add_argument("--scope", metavar="ID", help="what a resource connects to, how each link is known, the gaps")
+    map_.add_argument("--connectors", action="store_true", help="what each connector learns, needs and costs")
     command("status", cmd_status, "what unbidden knows and is doing")
     inbox = command("inbox", cmd_inbox, "opportunities, most proven first")
     inbox.add_argument("--all", action="store_true", help="include closed ones")
@@ -1016,7 +1120,8 @@ def build_parser() -> argparse.ArgumentParser:
     hold.add_argument("action", nargs="?", choices=["list", "release"], default="list")
     hold.add_argument("id", nargs="?")
     hold.add_argument("reason", nargs="?", default="released by a person")
-    command("deploys", cmd_deploys, "every deploy seen and its verdict")
+    deploys = command("deploys", cmd_deploys, "every deploy seen, the code it ran and how that is known")
+    deploys.add_argument("--commit", help="which deploys ran this commit (or a descendant of it)")
     doctor = command("doctor", cmd_doctor, "check the machine, local model, Docker, Meta API, GitHub and mandate")
     doctor.add_argument("--fix", action="store_true", help="pull the recommended local model if it is missing")
     models = command("models", cmd_models, "show or set the model profile: local, local-first or frontier")

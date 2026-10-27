@@ -25,14 +25,22 @@ ERROR_RATE = 0.01
 MIN_REQUESTS_FOR_ERRORS = 100
 MIN_ERRORS = 3
 
-CRITERIA: dict[str, float | int | str] = {
+_SHARED: dict[str, float | int | str] = {
     "test": "one-sided Mann-Whitney U on round medians, each direction",
     "alpha": ALPHA,
     "min_effect": MIN_EFFECT,
-    "min_delta_ms": MIN_DELTA_MS,
     "warmup_rounds_dropped": WARMUP_ROUNDS,
     "error_rate": f"5xx over {ERROR_RATE:.0%} with at least {MIN_REQUESTS_FOR_ERRORS} requests and {MIN_ERRORS} errors",
 }
+CRITERIA_V1: dict[str, float | int | str] = {"criteria_version": "v1", **_SHARED, "min_delta_ms": MIN_DELTA_MS}
+CRITERIA_V2: dict[str, float | int | str] = {
+    "criteria_version": "v2",
+    **_SHARED,
+    "min_delta_ms": f"max({MIN_DELTA_MS_V2} ms, {NOISE_MADS:g} MADs of the baseline's round medians)",
+}
+# What `judge_endpoint` applies by default, and what every verdict records. Verdicts stored before this record
+# `min_delta_ms: 10` without a version, although they were judged under v2 from D-014 on.
+CRITERIA = CRITERIA_V2
 
 
 class Impact(StrEnum):

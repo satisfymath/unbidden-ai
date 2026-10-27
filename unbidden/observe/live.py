@@ -6,7 +6,7 @@ import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import Field
 
@@ -15,12 +15,14 @@ from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.experiment import Proposal, ProposalStatus
 from unbidden.contracts.guardian import Autonomy, Mandate
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
-from unbidden.contracts.world import WorldModel
-from unbidden.observe.impact import CRITERIA, Impact, Round, judge_endpoint, overall
+from unbidden.contracts.world import Deployment, WorldModel
+from unbidden.observe.impact import CRITERIA, EndpointImpact, Impact, Round, judge_endpoint, overall
 from unbidden.observe.probe import Prober
+from unbidden.operate import ledger
 from unbidden.operate.deploy import OperationRefused, deploy
 from unbidden.operate.holds import place
 from unbidden.store import Store
+from unbidden.world.scope import scope
 
 Log = Callable[[str], None]
 HEALTH_HINTS = ("health", "healthz", "ping", "status")
@@ -34,6 +36,40 @@ class DeployVerdict(Contract):
     endpoints: list[dict[str, Any]]
     criteria: dict[str, float | int | str]
     judged_at: str = Field(default_factory=lambda: utc_now().isoformat())
+    commits: dict[str, str] = Field(default_factory=dict)  # deploy -> how its commit is known
+    scope: list[dict[str, Any]] = Field(default_factory=list)  # components behind what went wrong
+
+
+OutcomeResult = Literal["positive", "negative", "inconclusive", "invalid"]
+
+
+def classify_outcome(
+    judged: list[EndpointImpact], baseline: Deployment | None, current: Deployment | None, external: list[str]
+) -> tuple[OutcomeResult, list[str]]:
+    """What a deploy's measurements say about one change, under criteria fixed before the measurement.
+
+    `invalid`: the comparison cannot be credited to the change (a version that is not verified or observed, or
+    a deploy nobody accounts for in between). `negative`: worse. `positive`: every endpoint the change targets
+    improved. `inconclusive`: anything else (no change claimed, too few samples, endpoints not measured).
+    """
+    why: list[str] = []
+    for name, d in (("baseline", baseline), ("candidate", current)):
+        if d is None:
+            why.append(f"the {name} deploy has no ledger record: the code it ran is unknown")
+        elif not ledger.is_attributable(d):
+            why.append(f"the {name} deploy's commit is {d.commit_status}: {d.commit_reason}")
+    if external:
+        why.append("deploys not made by Unbidden between the windows: " + ", ".join(external))
+    if why:
+        return "invalid", why
+    if not judged:
+        return "inconclusive", ["none of the change's endpoints was measured on both sides"]
+    impacts = {e.impact for e in judged}
+    if impacts & {Impact.DEGRADED, Impact.OUTAGE}:
+        return "negative", [f"{e.target}: {e.reasons[0]}" for e in judged if e.reasons]
+    if impacts == {Impact.IMPROVED}:
+        return "positive", [f"{e.target}: {e.reasons[0]}" for e in judged if e.reasons]
+    return "inconclusive", [f"{e.target}: {e.reasons[0]}" for e in judged if e.reasons]
 
 
 def _git(repo: Path, *args: str) -> str:
@@ -79,7 +115,8 @@ class LiveWatcher:
         current = len(history) - 1
         baseline = self._baseline(history)
         if self._outage(current):
-            self._bad(history, current, Impact.OUTAGE)
+            health = [t for t in self.store.round_targets() if any(h in t.lower() for h in HEALTH_HINTS)]
+            self._bad(history, current, Impact.OUTAGE, health)
             return
         if self.store.get("deploy_verdicts", f"{current}:{history[current]}", DeployVerdict) is None:
             self._judge(history, current, baseline)
@@ -95,6 +132,17 @@ class LiveWatcher:
             if any(len(self._rounds(t, index)) >= need for t in targets):
                 return index
         return len(history) - 2
+
+    def _deployment(self, index: int) -> Deployment | None:
+        return self.store.get(ledger.COLLECTION, str(index), Deployment)
+
+    def _commit_status(self, index: int) -> str:
+        d = self._deployment(index)
+        return "no ledger record" if d is None else f"{d.commit_status} ({d.initiated_by})"
+
+    def _scopes(self, targets: list[str]) -> list[dict[str, Any]]:
+        """What lies behind each endpoint that went wrong, from the World Model, with what cannot be seen."""
+        return [scope(self.world, f"endpoint:{t}").brief() for t in targets]
 
     def _served(self, target: str, deploy: int) -> bool:
         """Endpoints the probe user may not read (401/403 throughout) cannot be judged; they are left out."""
@@ -119,12 +167,15 @@ class LiveWatcher:
         if verdict is Impact.INSUFFICIENT and any(e.rounds_after < need for e in endpoints):
             return  # still filling the window of the new deploy
         version, previous = history[current], history[baseline]
+        bad = [e.target for e in endpoints if e.impact in (Impact.DEGRADED, Impact.OUTAGE)]
         record = DeployVerdict(
             id=f"{current}:{version}",
             previous=previous,
             impact=verdict,
             endpoints=[e.as_dict() for e in endpoints],
             criteria=CRITERIA,
+            commits={str(i): self._commit_status(i) for i in (baseline, current)},
+            scope=self._scopes(bad),
         )
         self.store.put("deploy_verdicts", record)
         self.store.set_value(f"verdict_of:{current}", verdict.value)
@@ -144,7 +195,7 @@ class LiveWatcher:
         self.log(f"deploy {current} ({version[:12]}) judged {verdict.value} against deploy {baseline}: {notable[:300]}")
         self._outcomes(history, current, baseline, endpoints)
         if verdict in (Impact.DEGRADED, Impact.OUTAGE):
-            self._bad(history, current, verdict)
+            self._bad(history, current, verdict, bad)
 
     def _outcomes(self, history: list[str], current: int, baseline: int, endpoints: list[Any]) -> None:
         """Level 5 for each merged proposal whose first deploy this is, with what else could explain the change.
@@ -163,25 +214,42 @@ class LiveWatcher:
             if opp is None or opp.details.get("outcome"):
                 continue
             judged = [by_target[e] for e in opp.details.get("endpoints", []) if e in by_target]
-            confounders = [
-                f"{len(commits)} commit(s) between the two measured versions: " + "; ".join(commits[:5]),
+            base_d, cur_d = self._deployment(baseline), self._deployment(current)
+            external = [
+                f"deploy {i}"
+                for i in range(baseline + 1, current + 1)
+                if (d := self._deployment(i)) is not None and d.initiated_by == "external"
+            ]
+            result, why = classify_outcome(judged, base_d, cur_d, external)
+            confounders: list[dict[str, str]] = [
+                {
+                    "kind": "commits_between",
+                    "detail": f"{len(commits)} commit(s) between the two measured versions: " + "; ".join(commits[:5]),
+                },
                 *(
-                    [f"{len(skipped)} intermediate deploy(s) not used as baseline: {', '.join(skipped)}"]
+                    [{"kind": "skipped_deploys", "detail": f"not used as baseline: {', '.join(skipped)}"}]
                     if skipped
                     else []
                 ),
-                "traffic is unbidden's own probes, not users",
-                "data volume and cache state differ between the two windows",
+                *({"kind": "external_deploy", "detail": e} for e in external),
+                {"kind": "synthetic_traffic", "detail": "traffic is unbidden's own probes, not users"},
+                {"kind": "state_drift", "detail": "data volume and cache state differ between the two windows"},
             ]
             outcome = {
                 "deploy": f"{current}:{version}",
                 "baseline": f"{baseline}:{previous}",
+                "result": result,
+                "why": why,
+                "commits": {
+                    "baseline": base_d.commit_status if base_d else "no ledger record",
+                    "candidate": cur_d.commit_status if cur_d else "no ledger record",
+                },
                 "impact": [e.as_dict() for e in judged],
                 "confounders": confounders,
                 "criteria": CRITERIA,
             }
             opp.details = {**opp.details, "outcome": outcome}
-            if judged and all(e.impact is Impact.IMPROVED for e in judged):
+            if result == "positive":
                 opp.evidence_level = EvidenceLevel.OPERATIONAL_RESULT
                 opp.status = OpportunityStatus.VERIFIED
                 opp.evidence = [
@@ -198,10 +266,7 @@ class LiveWatcher:
                     payload=outcome,
                 )
             )
-            self.log(
-                f"{opp.id}: real outcome after deploy {current}: "
-                + ", ".join(f"{e.target} {e.impact.value}" for e in judged)
-            )
+            self.log(f"{opp.id}: outcome after deploy {current} is {result}: {'; '.join(why)[:300]}")
 
     def _last_healthy(self, history: list[str], current: int) -> str | None:
         """The most recent earlier deploy judged healthy or improved (the first one served before any change)."""
@@ -213,7 +278,7 @@ class LiveWatcher:
                 return history[index]
         return None
 
-    def _bad(self, history: list[str], current: int, impact: Impact) -> None:
+    def _bad(self, history: list[str], current: int, impact: Impact, targets: list[str] | None = None) -> None:
         if impact is Impact.OUTAGE:
             self.store.set_value(f"outage_deploy:{current}", utc_now().isoformat())
             self.store.set_value(f"verdict_of:{current}", impact.value)
@@ -234,6 +299,7 @@ class LiveWatcher:
                         "bad": history[current],
                         "incident": reason,
                         "subject": f"deploy {current}",
+                        "scope": self._scopes(targets or []),
                     },
                 )
             )

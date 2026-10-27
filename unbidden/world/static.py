@@ -10,7 +10,7 @@ from pathlib import Path
 from unbidden.contracts.common import EpistemicStatus, EvidenceRef
 from unbidden.contracts.world import BlindSpot, Relation, Resource, WorldModel
 from unbidden.observe.ci import ci_test_plan
-from unbidden.observe.compose import load_compose
+from unbidden.observe.compose import Compose, Service, load_compose
 from unbidden.observe.stack import Stack
 
 OBSERVED, INFERRED = EpistemicStatus.OBSERVED, EpistemicStatus.INFERRED
@@ -36,6 +36,20 @@ def _show(repo: Path, rev: str, path: str) -> str:
 
 def snake(name: str) -> str:
     return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
+
+
+def service_references(compose: Compose, service: Service) -> list[tuple[str, str, str]]:
+    """(key, other service, value) for each environment value that addresses another service of the project:
+    `host:port` or a URL with that host. A bare word is not an address (`SERVICE_NAME=cart` names, not calls)."""
+    found: list[tuple[str, str, str]] = []
+    for key, value in sorted(service.environment.items()):
+        for other in compose.services:
+            if other == service.name:
+                continue
+            name = re.escape(other)
+            if re.search(rf"(?:^|[\s,;=@/])({name}):\d+|://{name}(?:[:/]|$)", value):
+                found.append((key, other, value))
+    return found
 
 
 def discover_static(repo: Path, rev: str, stack: Stack, world: WorldModel) -> None:
@@ -101,6 +115,20 @@ def discover_static(repo: Path, rev: str, stack: Stack, world: WorldModel) -> No
                                 evidence=[_ref("config", f"{compose.path}#services.{service.name}.environment.{key}")],
                             )
                         )
+        for service in compose.services.values():
+            for key, other, value in service_references(compose, service):
+                world.relate(
+                    Relation(
+                        src=f"service:{service.name}",
+                        dst=f"service:{other}",
+                        predicate="uses_database" if compose.services[other].data_kind else "calls",
+                        status=INFERRED,
+                        confidence=0.8,
+                        evidence=[
+                            _ref("config", f"{compose.path}#services.{service.name}.environment.{key}", value[:120])
+                        ],
+                    )
+                )
         if compose.unresolved:
             world.blind_spots.append(
                 BlindSpot(

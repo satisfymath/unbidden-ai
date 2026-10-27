@@ -135,3 +135,37 @@ def test_world_names_are_sensitive(repo: Path) -> None:
     discover_static(repo, "HEAD", detect_stack(repo), world)
     index = sensitive_terms(world)
     assert {"orders", "item", "items"} <= index.terms and "db" not in index.terms  # under four characters: ignored
+
+
+def test_environment_addresses_become_inferred_calls_and_bare_names_do_not(tmp_path: Path) -> None:
+    compose = """services:
+  cart:
+    image: ghcr.io/x/cart
+    environment:
+      VALKEY_ADDR: valkey-cart:6379
+  checkout:
+    image: ghcr.io/x/checkout
+    environment:
+      CART_ADDR: cart:7070
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      SERVICE_NAME: cart
+  otel-collector:
+    image: otel/collector
+  valkey-cart:
+    image: redis:7
+"""
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "compose.yml").write_text(compose)
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    world = WorldModel(rev="HEAD")
+    discover_static(tmp_path, "HEAD", detect_stack(tmp_path), world)
+    links = {(r.src, r.dst, r.predicate): r for r in world.relations}
+    assert ("service:checkout", "service:cart", "calls") in links
+    assert ("service:checkout", "service:otel-collector", "calls") in links
+    assert ("service:cart", "service:valkey-cart", "uses_database") in links
+    assert links[("service:checkout", "service:cart", "calls")].status is EpistemicStatus.INFERRED
+    assert links[("service:checkout", "service:cart", "calls")].evidence[0].locator.endswith("environment.CART_ADDR")
+    # SERVICE_NAME=cart names the service, it does not address it: only CART_ADDR made the link.
+    assert sum(1 for k in links if k[:2] == ("service:checkout", "service:cart")) == 1

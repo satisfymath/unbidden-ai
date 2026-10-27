@@ -1,8 +1,9 @@
 """Probes: the running system observed from outside, the way a user meets it.
 
 Every round sends a few GET requests to each observed endpoint without path parameters and records each
-latency and status with the version that served it. A version is the repository commit the serving container
-was started from, recorded the first time that container is seen. Login, when the live API declares OAuth2
+latency and status with the version that served it. A version is the commit the deploy ledger resolved for the
+serving containers, with how it is known (`operate/ledger.py`); it is no longer assumed to be HEAD. Login,
+when the live API declares OAuth2
 password flow, uses credentials read from unbidden's own environment.
 """
 
@@ -17,7 +18,8 @@ from typing import Any
 import httpx
 
 from unbidden.contracts.guardian import ProbeAuth
-from unbidden.contracts.world import WorldModel
+from unbidden.contracts.world import Deployment, WorldModel
+from unbidden.operate import ledger
 from unbidden.store import Store
 from unbidden.workspace import head_sha
 from unbidden.world.runtime import fetch_openapi, host_ports, running_containers
@@ -45,21 +47,16 @@ class Prober:
         services = {r.attributes.get("service") for r in self.world.of_kind("endpoint")}
         return {c["Service"]: c for c in running_containers(self.repo) if c.get("Service") in services}
 
+    def deployment(self) -> Deployment | None:
+        """The deploy the app containers belong to, recorded in the ledger the first time they are seen."""
+        services = {r.attributes.get("service") for r in self.world.of_kind("endpoint")}
+        containers = [c for c in ledger.snapshot(self.repo) if c.service in services]
+        return ledger.observe(self.store, containers, head_sha(self.repo))
+
     def version(self) -> str | None:
-        """The commit the app containers were started from; None when no app container runs."""
-        containers = self.app_containers()
-        if not containers:
-            return None
-        key = ",".join(sorted(c.get("ID", "") for c in containers.values()))
-        known: dict[str, str] = self.store.get_value("container_versions", {})
-        if key not in known:
-            known[key] = head_sha(self.repo)
-            self.store.set_value("container_versions", known)
-            # Every new set of containers is a deploy, even of a version seen before (a rollback).
-            sequence: list[str] = self.store.get_value("deploy_sequence", [])
-            if not sequence or sequence[-1] != known[key]:
-                self.store.set_value("deploy_sequence", [*sequence, known[key]])
-        return known[key]
+        """The version probe rounds are tagged with; None when no app container runs."""
+        deployment = self.deployment()
+        return ledger.version_of(deployment) if deployment is not None else None
 
     def targets(self) -> list[Target]:
         found: list[Target] = []

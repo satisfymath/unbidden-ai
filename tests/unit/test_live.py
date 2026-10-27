@@ -7,11 +7,11 @@ from typing import Any
 
 import pytest
 
-from unbidden.contracts.common import EvidenceLevel, EvidenceRef
+from unbidden.contracts.common import EpistemicStatus, EvidenceLevel, EvidenceRef
 from unbidden.contracts.experiment import Proposal, ProposalStatus
 from unbidden.contracts.guardian import Autonomy, Mandate
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
-from unbidden.contracts.world import WorldModel
+from unbidden.contracts.world import Deployment, Relation, Resource, WorldModel
 from unbidden.observe import live as live_module
 from unbidden.observe.live import DeployVerdict, LiveWatcher
 from unbidden.operate.deploy import DeployResult
@@ -20,6 +20,7 @@ from unbidden.store import Store
 
 pytestmark = pytest.mark.unit
 A, B, C = "a" * 40, "b" * 40, "c" * 40
+OBS = EpistemicStatus.OBSERVED
 
 
 def add_rounds(
@@ -118,10 +119,23 @@ def history_repo(tmp_path: Path) -> tuple[Path, list[str]]:
     return tmp_path, shas
 
 
-def test_level_5_only_on_the_first_deploy_of_a_merged_change(
-    store: Store, mandate: Mandate, history_repo: tuple[Path, list[str]]
-) -> None:
-    repo, (v0, v1, _v2) = history_repo
+def ledger_entry(store: Store, index: int, commit: str, status: str = "verified", by: str = "unbidden") -> None:
+    store.put(
+        "deployments",
+        Deployment(
+            id=str(index),
+            index=index,
+            environment="local-compose",
+            containers=[],
+            commit=commit,
+            commit_status=status,  # type: ignore[arg-type]
+            commit_reason="test",
+            initiated_by=by,  # type: ignore[arg-type]
+        ),
+    )
+
+
+def merged_change(store: Store, base: str, merge: str) -> Opportunity:
     opp = Opportunity(
         source="world",
         category="performance",
@@ -140,18 +154,104 @@ def test_level_5_only_on_the_first_deploy_of_a_merged_change(
             opportunity_id=opp.id,
             experiment_id="e",
             branch="unbidden/x",
-            base_sha=v0,
+            base_sha=base,
             commit_sha="f" * 40,
-            merge_sha=v1,
+            merge_sha=merge,
             title="t",
             body_md="b",
             evidence_level=EvidenceLevel.FUNCTIONAL_VALIDATION,
             status=ProposalStatus.MERGED,
         ),
     )
+    return opp
+
+
+def outcome_of(store: Store, opp: Opportunity) -> tuple[EvidenceLevel, dict[str, Any]]:
+    stored = store.get("opportunities", opp.id, Opportunity)
+    assert stored is not None
+    return stored.evidence_level, stored.details["outcome"]
+
+
+def test_level_5_only_on_the_first_deploy_of_a_merged_change(
+    store: Store, mandate: Mandate, history_repo: tuple[Path, list[str]]
+) -> None:
+    repo, (v0, v1, _v2) = history_repo
+    opp = merged_change(store, v0, v1)
+    ledger_entry(store, 0, v0)
+    ledger_entry(store, 1, v1)
     add_rounds(store, 0, v0, 20, 20, 1)
     add_rounds(store, 1, v1, 5, 20, 2)
     watcher(store, mandate, repo)._judge([v0, v1], 1, 0)  # pyright: ignore[reportPrivateUsage]
-    stored = store.get("opportunities", opp.id, Opportunity)
-    assert stored is not None and stored.evidence_level is EvidenceLevel.OPERATIONAL_RESULT
-    assert stored.details["outcome"]["baseline"] == f"0:{v0}"
+    level, outcome = outcome_of(store, opp)
+    assert level is EvidenceLevel.OPERATIONAL_RESULT
+    assert outcome["baseline"] == f"0:{v0}" and outcome["result"] == "positive"
+    assert outcome["criteria"]["criteria_version"] == "v2"
+    assert {c["kind"] for c in outcome["confounders"]} >= {"commits_between", "synthetic_traffic"}
+
+
+def test_no_level_5_when_the_running_version_was_only_inferred(
+    store: Store, mandate: Mandate, history_repo: tuple[Path, list[str]]
+) -> None:
+    """The same improvement, but the candidate's commit is HEAD when first seen: nothing proves it ran v1."""
+    repo, (v0, v1, _v2) = history_repo
+    opp = merged_change(store, v0, v1)
+    ledger_entry(store, 0, v0)
+    ledger_entry(store, 1, v1, status="inferred", by="external")
+    add_rounds(store, 0, v0, 20, 20, 1)
+    add_rounds(store, 1, v1, 5, 20, 2)
+    watcher(store, mandate, repo)._judge([v0, v1], 1, 0)  # pyright: ignore[reportPrivateUsage]
+    level, outcome = outcome_of(store, opp)
+    assert level is EvidenceLevel.FUNCTIONAL_VALIDATION
+    assert outcome["result"] == "invalid"
+    assert any("inferred" in w for w in outcome["why"]) and any("not made by Unbidden" in w for w in outcome["why"])
+    assert {"kind": "external_deploy", "detail": "deploy 1"} in outcome["confounders"]
+
+
+def test_no_level_5_for_deploys_recorded_before_the_ledger(
+    store: Store, mandate: Mandate, history_repo: tuple[Path, list[str]]
+) -> None:
+    repo, (v0, v1, _v2) = history_repo
+    opp = merged_change(store, v0, v1)
+    add_rounds(store, 0, v0, 20, 20, 1)
+    add_rounds(store, 1, v1, 5, 20, 2)
+    watcher(store, mandate, repo)._judge([v0, v1], 1, 0)  # pyright: ignore[reportPrivateUsage]
+    level, outcome = outcome_of(store, opp)
+    assert level is EvidenceLevel.FUNCTIONAL_VALIDATION and outcome["result"] == "invalid"
+    judged = verdict(store, f"1:{v1}")
+    assert judged is not None and judged.commits == {"0": "no ledger record", "1": "no ledger record"}
+
+
+def test_an_unchanged_latency_is_inconclusive_not_negative(
+    store: Store, mandate: Mandate, history_repo: tuple[Path, list[str]]
+) -> None:
+    repo, (v0, v1, _v2) = history_repo
+    opp = merged_change(store, v0, v1)
+    ledger_entry(store, 0, v0)
+    ledger_entry(store, 1, v1)
+    add_rounds(store, 0, v0, 20, 20, 1)
+    add_rounds(store, 1, v1, 20, 20, 2)
+    watcher(store, mandate, repo)._judge([v0, v1], 1, 0)  # pyright: ignore[reportPrivateUsage]
+    level, outcome = outcome_of(store, opp)
+    assert level is EvidenceLevel.FUNCTIONAL_VALIDATION and outcome["result"] == "inconclusive"
+
+
+def test_a_degraded_deploy_carries_the_scope_of_what_degraded(store: Store, mandate: Mandate) -> None:
+    world = WorldModel(rev=A)
+    ev = [EvidenceRef(kind="config", locator="x")]
+    world.add(
+        Resource(id="endpoint:GET /items/", kind="endpoint", name="GET /items/", status=OBS, confidence=1, evidence=ev)
+    )
+    world.add(Resource(id="service:api", kind="service", name="api", status=OBS, confidence=1, evidence=ev))
+    world.relate(
+        Relation(
+            src="service:api", dst="endpoint:GET /items/", predicate="serves", status=OBS, confidence=1, evidence=ev
+        )
+    )
+    add_rounds(store, 0, A, 20, 20, 1)
+    add_rounds(store, 1, B, 60, 20, 2)
+    LiveWatcher(Path("."), store, mandate, world, log=lambda _: None)._judge([A, B], 1, 0)  # pyright: ignore[reportPrivateUsage]
+    judged = verdict(store, f"1:{B}")
+    assert judged is not None and judged.impact.value == "degraded"
+    components = [c["id"] for c in judged.scope[0]["components"]]
+    assert components == ["endpoint:GET /items/", "service:api"]
+    assert any(b.startswith("metrics:") for b in judged.scope[0]["blind_spots"])

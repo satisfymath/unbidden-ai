@@ -20,6 +20,7 @@ from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import ActionRequest, Mandate
 from unbidden.guardian.policy import PolicyEngine
 from unbidden.operate.holds import active
+from unbidden.operate.ledger import bind_after_deploy
 from unbidden.store import Store
 
 
@@ -81,7 +82,9 @@ def deploy(
     capability = "deploy.rollback" if rollback else "deploy.run"
     key = "rollbacks" if rollback else "deploys"
     check(store, mandate, capability, reason, rate_key=key, limit=mandate.operations.max_deploys_per_hour + rollback)
+    started = utc_now()
     result = run_steps(repo, mandate, commit, detach=rollback)
+    bound = bind_after_deploy(repo, store, commit, started) if result.ok else {}
     store.set_value(key, [*_recent(store, key, timedelta(hours=24)), utc_now().isoformat()])
     store.append_event(
         Event(
@@ -94,6 +97,7 @@ def deploy(
                 "ok": result.ok,
                 "reason": reason,
                 "log_tail": result.log[-1500:],
+                "images": bound,
             },
         )
     )
@@ -117,11 +121,17 @@ def drill(repo: Path, store: Store, mandate: Mandate, previous: str, health_url:
     """Prove rollback works before autonomy may rely on it: go back one version, check health, come back."""
     current = _git(repo, "rev-parse", "HEAD").stdout.strip()
     branch = _git(repo, "branch", "--show-current").stdout.strip()
+    started = utc_now()
     back = run_steps(repo, mandate, previous, detach=True)
     back_ok = back.ok and healthy(health_url)
+    if back.ok:
+        bind_after_deploy(repo, store, previous, started)
     _git(repo, "checkout", branch or current)
+    started = utc_now()
     forth = run_steps(repo, mandate, current, detach=not branch)
     forth_ok = forth.ok and healthy(health_url)
+    if forth.ok:
+        bind_after_deploy(repo, store, current, started)
     record = {
         "at": utc_now().isoformat(),
         "from": current,

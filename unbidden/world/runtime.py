@@ -17,6 +17,7 @@ import httpx
 from unbidden.contracts.common import EpistemicStatus, EvidenceRef
 from unbidden.contracts.world import BlindSpot, Relation, Resource, WorldModel
 from unbidden.observe.compose import load_compose
+from unbidden.world.connectors import COMPOSE_DOCKER, OPENAPI_HTTP, POSTGRES_READONLY
 
 OBSERVED = EpistemicStatus.OBSERVED
 OPENAPI_PATHS = ("/openapi.json", "/api/openapi.json", "/api/v1/openapi.json", "/v1/openapi.json", "/docs/openapi.json")
@@ -42,6 +43,7 @@ def _ref(kind: str, locator: str, note: str | None = None) -> EvidenceRef:
 
 
 def running_containers(repo: Path) -> list[dict[str, Any]]:
+    """Containers of this repository's compose project only (`--project-directory` scopes the query)."""
     out = subprocess.run(
         ["docker", "compose", "--project-directory", str(repo), "ps", "--format", "json"],
         capture_output=True,
@@ -127,14 +129,17 @@ def _reconcile_endpoint(world: WorldModel, method: str, path: str, live: set[str
     return {}
 
 
-def discover_runtime(repo: Path, world: WorldModel) -> None:
+def discover_runtime(repo: Path, world: WorldModel, rev: str = "HEAD") -> set[str]:
+    """Add what the running system shows. Returns the sources that actually ran, so facts they no longer see can
+    be marked obsolete, and facts of sources that could not run are kept as they were."""
     containers = running_containers(repo)
     if not containers:
         world.blind_spots.append(
             BlindSpot(what="the running system", why="no container of this compose project is running")
         )
-        return
-    compose = load_compose(repo, "HEAD")
+        return set()
+    ran = {COMPOSE_DOCKER.ref}
+    compose = load_compose(repo, rev)
     for container in containers:
         service = container.get("Service", "")
         name = container.get("Name", "")
@@ -153,6 +158,7 @@ def discover_runtime(repo: Path, world: WorldModel) -> None:
                 status=OBSERVED,
                 confidence=1.0,
                 evidence=[_ref("config", f"docker compose ps#{name}")],
+                source=COMPOSE_DOCKER.ref,
             )
         )
         world.relate(
@@ -163,14 +169,19 @@ def discover_runtime(repo: Path, world: WorldModel) -> None:
                 status=OBSERVED,
                 confidence=1.0,
                 evidence=[_ref("config", f"docker compose ps#{name}")],
+                source=COMPOSE_DOCKER.ref,
             )
         )
 
+        published = host_ports(container)
+        described = False
         for port in host_ports(container):
             found = fetch_openapi(port)
             if found is None:
                 continue
             path, spec = found
+            described = True
+            ran.add(OPENAPI_HTTP.ref)
             locator = f"http://127.0.0.1:{port}{path}"
             live = {f"{m.upper()} {r}" for r, ops in spec["paths"].items() for m in METHODS if m in ops}
             world.blind_spots = [b for b in world.blind_spots if b.what != "full endpoint paths"]
@@ -195,6 +206,7 @@ def discover_runtime(repo: Path, world: WorldModel) -> None:
                             status=OBSERVED,
                             confidence=1.0,
                             evidence=[_ref("config", locator)],
+                            source=OPENAPI_HTTP.ref,
                         )
                     )
                     world.relate(
@@ -205,8 +217,18 @@ def discover_runtime(repo: Path, world: WorldModel) -> None:
                             status=OBSERVED,
                             confidence=1.0,
                             evidence=[_ref("config", locator)],
+                            source=OPENAPI_HTTP.ref,
                         )
                     )
+        declared = compose.services.get(service) if compose else None
+        if published and not described and (declared is None or declared.data_kind is None):
+            world.blind_spots.append(
+                BlindSpot(
+                    what=f"endpoints of {service}",
+                    why=f"ports {', '.join(map(str, published))} are published but describe no OpenAPI; "
+                    "its interface (HTTP, gRPC, GraphQL...) is unknown",
+                )
+            )
 
         data = compose.services.get(service) if compose else None
         if data is not None and data.data_kind == "postgres":
@@ -218,6 +240,7 @@ def discover_runtime(repo: Path, world: WorldModel) -> None:
                     BlindSpot(what=f"tables of {service}", why="read-only SQL inside its container failed")
                 )
                 continue
+            ran.add(POSTGRES_READONLY.ref)
             locator = f"psql {service}/{database} (read-only)"
             if not tables:
                 world.blind_spots.append(
@@ -235,6 +258,7 @@ def discover_runtime(repo: Path, world: WorldModel) -> None:
                         status=OBSERVED,
                         confidence=1.0,
                         evidence=[_ref("config", locator)],
+                        source=POSTGRES_READONLY.ref,
                     )
                 )
                 world.relate(
@@ -245,6 +269,7 @@ def discover_runtime(repo: Path, world: WorldModel) -> None:
                         status=OBSERVED,
                         confidence=1.0,
                         evidence=[_ref("config", locator)],
+                        source=POSTGRES_READONLY.ref,
                     )
                 )
             for table, index, definition in psql(name, user, database, _PG_INDEXES) or []:
@@ -264,5 +289,7 @@ def discover_runtime(repo: Path, world: WorldModel) -> None:
                         status=OBSERVED,
                         confidence=1.0,
                         evidence=[_ref("config", locator, f"{table}.{column} -> {target}")],
+                        source=POSTGRES_READONLY.ref,
                     )
                 )
+    return ran

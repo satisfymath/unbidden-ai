@@ -36,6 +36,8 @@ class EventType(StrEnum):
     CAPABILITY_BUILT = "capability.built"
     CAPABILITY_APPROVED = "capability.approved"
     HYPOTHESIS_RECORDED = "hypothesis.recorded"
+    WORLD_CHANGED = "world.changed"
+    DEPLOYMENT_OBSERVED = "deployment.observed"
 
 
 class Event(Contract):

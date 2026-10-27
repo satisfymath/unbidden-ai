@@ -28,7 +28,7 @@ def unindexed_foreign_keys(world: WorldModel) -> list[Opportunity]:
     system rather than with the rows a request needs.
     """
     found: list[Opportunity] = []
-    for relation in world.relations:
+    for relation in world.current_relations():
         if relation.predicate != "references" or relation.src not in world.resources:
             continue
         table = world.resources[relation.src]
@@ -36,7 +36,7 @@ def unindexed_foreign_keys(world: WorldModel) -> list[Opportunity]:
         column = note.split(" -> ")[0].split(".")[-1] if " -> " in note else ""
         if not column or any(cols and cols[0] == column for cols in _indexed_columns(table.attributes)):
             continue
-        readers = sorted(r.src for r in world.relations if r.dst == table.id and r.predicate == "reads")
+        readers = sorted(r.src for r in world.current_relations() if r.dst == table.id and r.predicate == "reads")
         if not readers:
             continue
         endpoints = [world.resources[r].name for r in readers if r in world.resources]
