@@ -320,3 +320,56 @@ def test_service_directories_with_their_own_manifest_and_lock_are_found(tmp_path
     subprocess.run([*git, "add", "."], check=True)
     subprocess.run([*git, "commit", "-qm", "x"], check=True)
     assert service_dirs(tmp_path, "HEAD", detect_stack(tmp_path)) == ["src/load-generator", "src/payment"]
+
+
+def test_routes_take_their_own_routers_prefix_and_bare_mounts_are_skipped(tmp_path: Path) -> None:
+    files = {
+        "requirements.txt": "x\n",
+        "app/routes/shopping.py": (
+            "from fastapi import APIRouter\n"
+            'item_router = APIRouter(prefix="/shopping/items", tags=["a"])\n'
+            'router = UserAPIRouter(prefix="/shopping/lists")\n'
+            '@item_router.get("/{item_id}")\ndef a(): ...\n'
+            '@router.post("/{list_id}/items")\ndef b(): ...\n'
+            '@router.get("")\ndef c(): ...\n'
+        ),
+        "app/routes/plain.py": 'from fastapi import APIRouter\nrouter = APIRouter()\n@router.get("")\ndef d(): ...\n',
+    }
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    for path, text in files.items():
+        (tmp_path / path).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / path).write_text(text)
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    world = WorldModel(rev="HEAD")
+    discover_static(tmp_path, "HEAD", detect_stack(tmp_path), world)
+    names = {r.name for r in world.resources.values() if r.kind == "endpoint"}
+    assert names == {"GET /shopping/items/{item_id}", "POST /shopping/lists/{list_id}/items", "GET /shopping/lists"}
+
+
+def test_reconciling_ignores_parameter_names_and_ranks_twice_mounted_routes_by_their_file() -> None:
+    world = WorldModel(rev="HEAD")
+    for route, file in [
+        ("GET /cookbooks/{item_id}", "app/routes/explore/public_cookbooks.py"),
+        ("GET /households/cookbooks/{item_id}", "app/routes/households/cookbooks.py"),
+        ("GET /tags", "app/routes/tags.py"),
+    ]:
+        world.add(
+            Resource(
+                id=f"endpoint:{route}",
+                kind="endpoint",
+                name=route,
+                attributes={"file": file, "line": 1},
+                status=EpistemicStatus.INFERRED,
+                confidence=0.7,
+                evidence=[EvidenceRef(kind="file", locator=f"{file}:1")],
+            )
+        )
+    public, private = "/api/explore/groups/{slug}/cookbooks/{id}", "/api/households/cookbooks/{id}"
+    tags = ("/api/explore/groups/{slug}/tags", "/api/organizers/tags")
+    live = {f"GET {p}" for p in (public, private, *tags)}
+    assert _reconcile_endpoint(world, "GET", private, live)["file"] == "app/routes/households/cookbooks.py"
+    assert _reconcile_endpoint(world, "GET", public, live)["file"] == "app/routes/explore/public_cookbooks.py"
+    assert _reconcile_endpoint(world, "GET", tags[0], live) == {}  # as close to the file as tags[1], but longer
+    assert _reconcile_endpoint(world, "GET", tags[1], live)["file"] == "app/routes/tags.py"

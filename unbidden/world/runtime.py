@@ -179,21 +179,45 @@ def psql(container: str, user: str, database: str, sql: str) -> list[list[str]] 
     return [line.split("\t") for line in out.stdout.splitlines() if line]
 
 
+_PARAM = re.compile(r"\{[^}]*\}")
+
+
+def _shape(path: str) -> str:
+    """A path with its parameters unnamed: code and schema may name the same parameter differently."""
+    return _PARAM.sub("{}", path.rstrip("/")) or "/"
+
+
+def _overlap(file: str, path: str) -> int:
+    """How many words of the code file's path (directories and name) are words of the URL path, singular or plural
+    (`recipe_crud_routes.py` serves `/recipes`)."""
+    words = {w.removesuffix("s") for w in re.split(r"[/_.\-]+", file.lower()) if len(w) > 2}
+    return len(words & {w.removesuffix("s") for w in re.split(r"[/_\-{}]+", path.lower()) if w})
+
+
 def _reconcile_endpoint(world: WorldModel, method: str, path: str, live: set[str]) -> dict[str, Any]:
     """Attach the code location of the inferred route this live endpoint is, and drop the guess.
 
-    A route matches when the method agrees and the live path ends with the route's path; when several live
-    endpoints could match, the route's file name must also appear in the path.
+    A route matches when the method agrees and the live path ends with the route's path, parameter names aside.
+    When several live endpoints could be that route (a router mounted twice, public and private), the one whose
+    path shares most words with the route's file is it, and of those the shortest: a second mount adds segments in
+    front. A tie leaves the route inferred.
     """
+    shape = _shape(path)
     for rid, resource in list(world.resources.items()):
         if resource.kind != "endpoint" or resource.status is not EpistemicStatus.INFERRED:
             continue
         inferred_method, _, inferred_path = resource.name.partition(" ")
-        if inferred_method != method or not path.endswith(inferred_path or "/"):
+        tail = _shape(inferred_path)
+        if inferred_method != method or not shape.endswith(tail):
             continue
-        rivals = [p for p in live if p.startswith(f"{method} ") and p.endswith(inferred_path or "/")]
-        stem = Path(str(resource.attributes.get("file", ""))).stem
-        if len(rivals) == 1 or (stem and f"/{stem}" in path):
+        rivals = [p for m, _, p in (x.partition(" ") for x in live) if m == method and _shape(p).endswith(tail)]
+        file = str(resource.attributes.get("file", ""))
+
+        def rank(candidate: str, file: str = file) -> tuple[int, int]:
+            return _overlap(file, candidate), -candidate.count("/")
+
+        best = rank(path)
+        if len(rivals) == 1 or (best[0] > 0 and all(rank(r) < best for r in rivals if r != path)):
             del world.resources[rid]
             return {"file": resource.attributes.get("file"), "line": resource.attributes.get("line")}
     return {}

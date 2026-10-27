@@ -19,7 +19,8 @@ _TABLE_CLASS = re.compile(r"^class\s+(\w+)\s*\(([^)]*)\)\s*:", re.MULTILINE)
 _TABLENAME = re.compile(r"__tablename__\s*=\s*[\"'](\w+)[\"']")
 _ROUTE = re.compile(r"@(?P<obj>\w+)\.(?P<method>get|post|put|patch|delete)\(\s*[\"'](?P<path>[^\"']*)[\"']")
 _HOST_KEY = re.compile(r"(?:^|_)(?:HOST|HOSTNAME|SERVER)$", re.IGNORECASE)
-_ROUTER_PREFIX = re.compile(r"APIRouter\([^)]*prefix\s*=\s*[\"'](?P<prefix>[^\"']+)[\"']")
+_ROUTER = re.compile(r"^(?P<obj>\w+)\s*=\s*\w*Router\((?P<args>[^)]*)\)", re.MULTILINE)
+_PREFIX = re.compile(r"prefix\s*=\s*[\"'](?P<prefix>[^\"']+)[\"']")
 
 
 def _ref(kind: str, locator: str, note: str | None = None) -> EvidenceRef:
@@ -197,10 +198,15 @@ def discover_static(
                     )
                 )
         if _ROUTE.search(text):
-            prefix_match = _ROUTER_PREFIX.search(text)
-            prefix = prefix_match.group("prefix") if prefix_match else ""
+            prefixes = {  # each router's own prefix: one file may declare several
+                m.group("obj"): p.group("prefix") if (p := _PREFIX.search(m.group("args"))) else ""
+                for m in _ROUTER.finditer(text)
+            }
             for match in _ROUTE.finditer(text):
-                route = f"{match.group('method').upper()} {prefix}{match.group('path')}"
+                route_path = prefixes.get(match.group("obj"), "") + match.group("path")
+                if not route_path:  # the router's mount point alone: nothing in the file says where that is
+                    continue
+                route = f"{match.group('method').upper()} {route_path}"
                 line = text[: match.start()].count("\n") + 1
                 world.add(
                     Resource(
