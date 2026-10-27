@@ -1,0 +1,886 @@
+[
+  {
+    "name": "full-stack-fastapi-template",
+    "split": "dev",
+    "commit": "104feb428128ba03c99a448f3bbcec9037f71004",
+    "steps": {
+      "checkout": {
+        "code": 0,
+        "seconds": 0.0,
+        "stderr": ""
+      },
+      "init": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "map": {
+        "code": 0,
+        "seconds": 1.3,
+        "stderr": ""
+      },
+      "scan": {
+        "code": 0,
+        "seconds": 24.5,
+        "stderr": ""
+      },
+      "inbox": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "decide": {
+        "code": 0,
+        "seconds": 0.3,
+        "stderr": ""
+      }
+    },
+    "summary": {
+      "languages": [
+        "python"
+      ],
+      "resources": {
+        "repo": 1,
+        "service": 3,
+        "database": 1,
+        "ci_job": 1,
+        "endpoint": 23,
+        "table": 2
+      },
+      "blind_spots": [
+        "full endpoint paths",
+        "frontend",
+        "the running system",
+        "package.json has no lockfile; dependencies cannot be installed reproducibly"
+      ],
+      "ci_understood": true,
+      "reports": [
+        {
+          "tool": "ruff",
+          "completeness": "complete",
+          "findings": 5,
+          "error": null
+        }
+      ],
+      "problems": [],
+      "opportunities": 3,
+      "by_category": {
+        "lint": 3
+      },
+      "by_status": {
+        "open": 3
+      },
+      "director": {
+        "chosen": {
+          "decline": 3
+        },
+        "declined_or_waiting_because": {
+          "lint findings outside what the team's CI checks": 3
+        },
+        "checked_dirs": [
+          "backend"
+        ]
+      },
+      "seconds": 26.3
+    },
+    "outcome": "ran"
+  },
+  {
+    "name": "rich",
+    "split": "dev",
+    "commit": "9d8f9a372cc5916fd4781fec207ced7ddac2f08f",
+    "steps": {
+      "checkout": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "init": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "map": {
+        "code": 0,
+        "seconds": 1.8,
+        "stderr": ""
+      },
+      "scan": {
+        "code": 0,
+        "seconds": 0.6,
+        "stderr": ""
+      },
+      "inbox": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "decide": {
+        "code": 0,
+        "seconds": 0.3,
+        "stderr": ""
+      }
+    },
+    "summary": {
+      "languages": [
+        "python"
+      ],
+      "resources": {
+        "repo": 1
+      },
+      "blind_spots": [
+        "services",
+        "the running system"
+      ],
+      "ci_understood": false,
+      "reports": [
+        {
+          "tool": "ruff-baseline",
+          "completeness": "complete",
+          "findings": 8,
+          "error": null
+        }
+      ],
+      "problems": [],
+      "opportunities": 4,
+      "by_category": {
+        "bugs": 4
+      },
+      "by_status": {
+        "open": 4
+      },
+      "director": {
+        "chosen": {
+          "run_experiment": 4
+        },
+        "declined_or_waiting_because": {},
+        "checked_dirs": []
+      },
+      "seconds": 3.0
+    },
+    "outcome": "ran"
+  },
+  {
+    "name": "opentelemetry-demo",
+    "split": "dev",
+    "commit": "5c8d404a85380226ff45a39dcb4159eda9552c56",
+    "steps": {
+      "checkout": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "init": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "map": {
+        "code": 0,
+        "seconds": 3.2,
+        "stderr": ""
+      },
+      "scan": {
+        "code": 0,
+        "seconds": 2.0,
+        "stderr": ""
+      },
+      "inbox": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "decide": {
+        "code": 0,
+        "seconds": 0.5,
+        "stderr": ""
+      }
+    },
+    "summary": {
+      "languages": [
+        "node"
+      ],
+      "resources": {
+        "repo": 1,
+        "service": 24,
+        "database": 1,
+        "container": 25,
+        "table": 4,
+        "deployment": 1,
+        "image": 16
+      },
+      "blind_spots": [
+        "compose variables _JAVA_OPTIONS",
+        "endpoints of ad",
+        "endpoints of cart",
+        "endpoints of checkout",
+        "endpoints of currency",
+        "endpoints of email",
+        "endpoints of flagd",
+        "endpoints of flagd-ui",
+        "endpoints of frontend",
+        "endpoints of frontend-proxy",
+        "endpoints of grafana",
+        "endpoints of image-provider",
+        "endpoints of jaeger",
+        "endpoints of load-generator",
+        "endpoints of opensearch",
+        "endpoints of otel-collector",
+        "endpoints of payment",
+        "endpoints of product-catalog",
+        "endpoints of prometheus",
+        "endpoints of quote",
+        "endpoints of recommendation",
+        "endpoints of shipping",
+        "endpoints of telemetry-docs",
+        "services grafana, jaeger, opamp-server, opensearch, prometheus",
+        "load-generator calls agent",
+        "metrics at http://127.0.0.1:32856/metrics (ad)",
+        "metrics at http://127.0.0.1:10000/stats (frontend-proxy)",
+        "metrics at http://127.0.0.1:9090/metrics (prometheus)"
+      ],
+      "ci_understood": false,
+      "reports": [],
+      "problems": [],
+      "opportunities": 0,
+      "by_category": {},
+      "by_status": {},
+      "director": {
+        "chosen": {},
+        "declined_or_waiting_because": {},
+        "checked_dirs": []
+      },
+      "seconds": 6.0
+    },
+    "outcome": "ran"
+  },
+  {
+    "name": "lexical",
+    "split": "dev",
+    "commit": "7bc4baaba215b9d2a4edca81493e22c226c50a46",
+    "steps": {
+      "checkout": {
+        "code": 0,
+        "seconds": 0.2,
+        "stderr": ""
+      },
+      "init": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "map": {
+        "code": 0,
+        "seconds": 1.2,
+        "stderr": ""
+      },
+      "scan": {
+        "code": 0,
+        "seconds": 40.6,
+        "stderr": ""
+      },
+      "inbox": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "decide": {
+        "code": 0,
+        "seconds": 0.5,
+        "stderr": ""
+      }
+    },
+    "summary": {
+      "languages": [
+        "node"
+      ],
+      "resources": {
+        "repo": 1,
+        "ci_job": 1
+      },
+      "blind_spots": [
+        "services",
+        "the running system"
+      ],
+      "ci_understood": true,
+      "reports": [
+        {
+          "tool": "tsc",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "of marking, biggest step 0.3 ms, walltime since start of marking 290 ms) (average mu = 0.310, c\nFATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x90e9bc  [node]\n 2: 0x75ab88 node::OOMErrorHandler(char const*, v8::OOMDetails const&) [node]\n 3: 0xc1ee4c  [node]\n 4: 0xc1ef24  [node]\n 5: 0xe9b30c  [node]\n 6: 0xe9b33c  [node]\n 7: 0xe9b694  [node]\n 8: 0xeaae44  [node]\n 9: 0xeaeaa4  [node]\n10: 0x18a50f4  [node]"
+        },
+        {
+          "tool": "eslint",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "s/esm/loader:607:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:276:33)\n    at ModuleJob.link (node:internal/modules/esm/module_job:381:17)\n<anonymous_script>:1\n\n\nSyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at Socket.<anonymous> ([eval]:1:70)\n    at Socket.emit (node:events:526:24)\n    at endReadableNT (node:internal/streams/readable:1783:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)\n\nNode.js v24.22.1"
+        },
+        {
+          "tool": "tsc:packages/lexical-devtools",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "f marking, biggest step 0.1 ms, walltime since start of marking 225 ms) (average mu = 0.173, cu\nFATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x90e9bc  [node]\n 2: 0x75ab88 node::OOMErrorHandler(char const*, v8::OOMDetails const&) [node]\n 3: 0xc1ee4c  [node]\n 4: 0xc1ef24  [node]\n 5: 0xe9b30c  [node]\n 6: 0xe9b33c  [node]\n 7: 0xe9b694  [node]\n 8: 0xeaae44  [node]\n 9: 0xeaeaa4  [node]\n10: 0x18a50f4  [node]"
+        },
+        {
+          "tool": "tsc:packages/lexical-website",
+          "completeness": "complete",
+          "findings": 0,
+          "error": null
+        },
+        {
+          "tool": "tsc:dev-examples/dom-import",
+          "completeness": "complete",
+          "findings": 0,
+          "error": null
+        },
+        {
+          "tool": "tsc:dev-examples/hmr",
+          "completeness": "complete",
+          "findings": 0,
+          "error": null
+        },
+        {
+          "tool": "tsc:dev-examples/mdast-editor",
+          "completeness": "complete",
+          "findings": 0,
+          "error": null
+        }
+      ],
+      "problems": [],
+      "opportunities": 0,
+      "by_category": {},
+      "by_status": {},
+      "director": {
+        "chosen": {},
+        "declined_or_waiting_because": {},
+        "checked_dirs": [
+          "."
+        ]
+      },
+      "seconds": 42.7
+    },
+    "outcome": "ran"
+  },
+  {
+    "name": "docusaurus",
+    "split": "dev",
+    "commit": "4e6fe61666a521d35d328ec0561d84eb96609017",
+    "steps": {
+      "checkout": {
+        "code": 0,
+        "seconds": 0.3,
+        "stderr": ""
+      },
+      "init": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "map": {
+        "code": 0,
+        "seconds": 1.5,
+        "stderr": ""
+      },
+      "scan": {
+        "code": 0,
+        "seconds": 137.9,
+        "stderr": ""
+      },
+      "inbox": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "decide": {
+        "code": 0,
+        "seconds": 0.7,
+        "stderr": ""
+      }
+    },
+    "summary": {
+      "languages": [
+        "node"
+      ],
+      "resources": {
+        "repo": 1,
+        "ci_job": 1
+      },
+      "blind_spots": [
+        "services",
+        "the running system"
+      ],
+      "ci_understood": true,
+      "reports": [
+        {
+          "tool": "eslint",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "es/eslint/lib/cli.js:428:14)\n    at async main (/deps/node_modules/.pnpm/eslint@9.39.5_jiti@2.7.0_supports-color@7.2.0/node_modules/eslint/bin/eslint.js:175:19)\n<anonymous_script>:1\n\n\nSyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at Socket.<anonymous> ([eval]:1:70)\n    at Socket.emit (node:events:526:24)\n    at endReadableNT (node:internal/streams/readable:1783:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)\n\nNode.js v24.22.1"
+        },
+        {
+          "tool": "tsc:packages/create-docusaurus",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 2 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/create-docusaurus/templates/classic-typescript",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 12 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-babel",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 4 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-bundler",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 3 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-fs",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 1 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-glob",
+          "completeness": "complete",
+          "findings": 0,
+          "error": null
+        },
+        {
+          "tool": "tsc:packages/docusaurus-logger",
+          "completeness": "complete",
+          "findings": 0,
+          "error": null
+        },
+        {
+          "tool": "tsc:packages/docusaurus-mdx-loader",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 20 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-plugin-client-redirects",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 10 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-plugin-content-blog",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 27 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-plugin-content-docs",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 41 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-plugin-content-pages",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 12 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-plugin-css-cascade-layers",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 2 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-plugin-debug",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 1 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-plugin-google-gtag",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 1 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-plugin-google-tag-manager",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 1 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-plugin-ideal-image",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 3 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-plugin-pwa",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 5 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-plugin-rsdoctor",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 1 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-plugin-sitemap",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 9 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-plugin-svgr",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 2 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-plugin-vercel-analytics",
+          "completeness": "complete",
+          "findings": 2,
+          "error": null
+        },
+        {
+          "tool": "tsc:packages/docusaurus-preset-classic",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 7 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-remark-plugin-npm2yarn",
+          "completeness": "complete",
+          "findings": 0,
+          "error": null
+        },
+        {
+          "tool": "tsc:packages/docusaurus-theme-classic",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 8 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-theme-common",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 4 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-theme-live-codeblock",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 3 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-theme-mermaid",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 1 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-theme-search-algolia",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 6 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-theme-translations",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 3 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-tsconfig",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "error TS18003: No inputs were found in config file '/work/packages/docusaurus-tsconfig/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[\"${configDir}/.docusaurus\",\"${configDir}/build\"]'."
+        },
+        {
+          "tool": "tsc:packages/docusaurus-utils-common",
+          "completeness": "complete",
+          "findings": 0,
+          "error": null
+        },
+        {
+          "tool": "tsc:packages/docusaurus-utils-validation",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 6 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus-utils",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 10 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/docusaurus",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 6 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/eslint-plugin",
+          "completeness": "complete",
+          "findings": 0,
+          "error": null
+        },
+        {
+          "tool": "tsc:packages/lqip-loader",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 1 missing modules or exports (TS2307)"
+        },
+        {
+          "tool": "tsc:packages/stylelint-copyright",
+          "completeness": "complete",
+          "findings": 0,
+          "error": null
+        },
+        {
+          "tool": "tsc:website",
+          "completeness": "failed",
+          "findings": 0,
+          "error": "environment: 50 missing modules or exports (TS2307)"
+        }
+      ],
+      "problems": [],
+      "opportunities": 1,
+      "by_category": {
+        "types": 1
+      },
+      "by_status": {
+        "open": 1
+      },
+      "director": {
+        "chosen": {
+          "run_experiment": 1
+        },
+        "declined_or_waiting_because": {},
+        "checked_dirs": [
+          "."
+        ]
+      },
+      "seconds": 140.6
+    },
+    "outcome": "ran"
+  },
+  {
+    "name": "saleor",
+    "split": "dev",
+    "commit": "487885d437feed94922cdbdf16a76552c120b550",
+    "steps": {
+      "checkout": {
+        "code": 0,
+        "seconds": 0.3,
+        "stderr": ""
+      },
+      "init": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "map": {
+        "code": 0,
+        "seconds": 16.3,
+        "stderr": ""
+      },
+      "scan": {
+        "code": 0,
+        "seconds": 13.0,
+        "stderr": ""
+      },
+      "inbox": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "decide": {
+        "code": 0,
+        "seconds": 0.4,
+        "stderr": ""
+      }
+    },
+    "summary": {
+      "languages": [
+        "node",
+        "python"
+      ],
+      "resources": {
+        "repo": 1,
+        "ci_job": 1
+      },
+      "blind_spots": [
+        "services",
+        "the running system"
+      ],
+      "ci_understood": true,
+      "reports": [],
+      "problems": [
+        "dependency image for python failed to build:\nDockerfile:12\n--------------------\n  11 |     COPY ctx/ /deps/\n  12 | >>> RUN uv sync --frozen --no-install-project --all-groups --project /deps \\\n  13 | >>>  && (/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null \\\n  14 | >>>      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1) \\\n  15 | >>>  && (/deps/.venv/bin/python -c \"import hypothesis\" 2>/dev/null \\\n  16 | >>>      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12)\n  17 |     \n--------------------\nERROR: failed to build: failed to solve: process \"/bin/sh -c uv sync --frozen --no-install-project --all-groups --project /deps  && (/deps/.venv/bin/python -c \\\"import pytest\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1)  && (/deps/.venv/bin/python -c \\\"import hypothesis\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12)\" did not complete successfully: exit code: 1"
+      ],
+      "opportunities": 0,
+      "by_category": {},
+      "by_status": {},
+      "director": {
+        "chosen": {},
+        "declined_or_waiting_because": {},
+        "checked_dirs": [
+          "."
+        ]
+      },
+      "seconds": 30.2
+    },
+    "outcome": "ran"
+  },
+  {
+    "name": "chatwoot",
+    "split": "dev",
+    "commit": "926da611d9d8609f43e761164683ff463427bca9",
+    "steps": {
+      "checkout": {
+        "code": 0,
+        "seconds": 0.8,
+        "stderr": ""
+      },
+      "init": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "map": {
+        "code": 0,
+        "seconds": 1.1,
+        "stderr": ""
+      },
+      "scan": {
+        "code": 0,
+        "seconds": 76.5,
+        "stderr": ""
+      },
+      "inbox": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "decide": {
+        "code": 0,
+        "seconds": 0.3,
+        "stderr": ""
+      }
+    },
+    "summary": {
+      "languages": [
+        "node"
+      ],
+      "resources": {
+        "repo": 1,
+        "service": 7,
+        "ci_job": 1
+      },
+      "blind_spots": [
+        "the running system"
+      ],
+      "ci_understood": true,
+      "reports": [
+        {
+          "tool": "eslint",
+          "completeness": "truncated",
+          "findings": 0,
+          "error": "output exceeded the capture cap"
+        }
+      ],
+      "problems": [],
+      "opportunities": 0,
+      "by_category": {},
+      "by_status": {},
+      "director": {
+        "chosen": {},
+        "declined_or_waiting_because": {},
+        "checked_dirs": [
+          "."
+        ]
+      },
+      "seconds": 78.9
+    },
+    "outcome": "ran"
+  },
+  {
+    "name": "immich",
+    "split": "dev",
+    "commit": "df50249c03ddac9417a2172cfbbaef848163ed4f",
+    "steps": {
+      "checkout": {
+        "code": 0,
+        "seconds": 0.3,
+        "stderr": ""
+      },
+      "init": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "map": {
+        "code": 0,
+        "seconds": 1.4,
+        "stderr": ""
+      },
+      "scan": {
+        "code": 0,
+        "seconds": 24.5,
+        "stderr": ""
+      },
+      "inbox": {
+        "code": 0,
+        "seconds": 0.1,
+        "stderr": ""
+      },
+      "decide": {
+        "code": 0,
+        "seconds": 0.6,
+        "stderr": ""
+      }
+    },
+    "summary": {
+      "languages": [
+        "node"
+      ],
+      "resources": {
+        "repo": 1,
+        "ci_job": 1,
+        "endpoint": 3
+      },
+      "blind_spots": [
+        "services",
+        "full endpoint paths",
+        "the running system"
+      ],
+      "ci_understood": true,
+      "reports": [],
+      "problems": [
+        "dependency image for node failed to build:\nDockerfile:5\n--------------------\n   3 |     WORKDIR /deps\n   4 |     COPY ctx/ /deps/\n   5 | >>> RUN corepack enable && pnpm install --frozen-lockfile --ignore-scripts\n   6 |     \n--------------------\nERROR: failed to build: failed to solve: process \"/bin/sh -c corepack enable && pnpm install --frozen-lockfile --ignore-scripts\" did not complete successfully: exit code: 1"
+      ],
+      "opportunities": 0,
+      "by_category": {},
+      "by_status": {},
+      "director": {
+        "chosen": {},
+        "declined_or_waiting_because": {},
+        "checked_dirs": [
+          "."
+        ]
+      },
+      "seconds": 27.0
+    },
+    "outcome": "ran"
+  }
+]

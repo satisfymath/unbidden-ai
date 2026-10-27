@@ -422,3 +422,33 @@ gives 4 of 10 alarmed minutes and the same single detection, with new noise. It 
 **Status.** The detector found 3 of 5 designed faults and 1 of 3 holdout faults. Calls seen in traffic, scope,
 traces and proxy counters all work. What does not work yet is deciding when something is wrong. That is the next
 increment's work, calibrated the same way before it is used.
+
+## D-027 · 2026-10-27 · Level A on 12 repositories: what failed, what was fixed, and the blind holdout
+
+The harness (`bench/repos.py`) ran Unbidden on 8 dev repositories and then once on 4 holdout repositories, chosen
+and pinned before any run (`docs/bench/2026-10-27-level-a.md`). The first dev run gave a useful analysis on 2 of 8.
+
+**Causes, all fixed in general rather than per repository:**
+- A dependency build hid the installer's error. Docker's quiet mode is gone, and the cause is now kept.
+- An install that needs a compiler retries with build tools only when the mandate allows Debian's archive.
+- An install that would run repository code with network access (`.pnpmfile.cjs`) is declined, and says so.
+- CI test jobs are found by what they run, not their name. Jobs needing a browser, a deployment or another OS come
+  last, and canonical workflow files come first.
+- Node analyzers get 6 GB of memory (lexical's tsc ran out of heap). Errors keep their message. A title longer than
+  200 characters no longer crashes a scan. The capture cap is 16 MB.
+- The Director declines style findings from a tool the team's CI does not run, and lets them wait while the CI is
+  unreadable. With the new `github.read` (observe, GitHub hosts only), it also declines style findings of a tool the
+  CI runs on a commit where the CI is green.
+
+**Dev set after the fixes.** CI understood in 7 of 8 repositories. Analyzers ran usefully on 5 of 8: the two
+before, plus lexical, docusaurus (7 of 40 packages) and chatwoot.
+
+**Holdout, run once, nothing changed after it:**
+- click: analyzed, CI understood.
+- sqlmodel: analyzed, nothing found, nothing to do.
+- httpx: installs itself from source; not analyzed.
+- fastify: no lockfile; not analyzed.
+
+**Criterion, measured.** Of 108 opportunity groups, 4 were declined, against 0 under the act-on-everything
+policy. 82 of the 104 that would be acted on are chatwoot style findings, likely an environment difference, that
+the per-commit CI status cannot rule out because that commit's CI is red. Next, CI status should be read per job.
