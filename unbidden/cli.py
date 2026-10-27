@@ -618,7 +618,7 @@ def cmd_probe(args: argparse.Namespace) -> int:
     """Look for crashes in a package with property-based tests the local model writes, run offline."""
     import asyncio
 
-    from unbidden.research.robustness import RobustnessProbe, parse_crashes
+    from unbidden.research.robustness import RobustnessProbe, parse_crashes, property_violations
     from unbidden.runtime import Runtime
 
     runtime = Runtime.open(Workspace.find())
@@ -641,11 +641,27 @@ def cmd_probe(args: argparse.Namespace) -> int:
     (artifacts / f"robustness-{rev[:12]}.py").write_text(tests)
     with console.status("running them offline"):
         output = probe.run_tests(rev, tests)
+    for round_ in range(args.refine):
+        violations = property_violations(output)
+        if not violations:
+            break
+        console.print(
+            f"[dim]round {round_ + 1}: {len(violations)} property violation(s) sent back to be narrowed or kept[/]"
+        )
+        with console.status("refining the properties"):
+            refined = asyncio.run(probe.refine(tests, output))
+        if refined is None:
+            break
+        tests = refined
+        with console.status("running them again"):
+            output = probe.run_tests(rev, tests)
     (artifacts / f"robustness-{rev[:12]}.log").write_text(output)
     crashes = parse_crashes(output, args.package)
     opened = probe.record(rev, args.package, tests, crashes)
     summary = next((ln for ln in reversed(output.splitlines()) if " passed" in ln or " failed" in ln), "no summary")
     console.print(f"{summary.strip()} · {len(crashes)} crash(es) inside {args.package} · {len(opened)} new")
+    for test, assertion in property_violations(output):
+        console.print(f"  [yellow]kept after review[/] {test}: {assertion}  (a possible bug; L1, needs a person)")
     for crash in crashes:
         console.print(f"  [red]{crash.exception}[/] at {crash.frame}: {crash.message[:120]}")
         console.print(f"    example: {crash.example[:200]}", markup=False)
@@ -912,6 +928,7 @@ def build_parser() -> argparse.ArgumentParser:
     probe = command("probe", cmd_probe, "look for crashes with property-based tests, run offline", json_out=False)
     probe.add_argument("package")
     probe.add_argument("--count", type=int, default=8, help="how many functions to probe")
+    probe.add_argument("--refine", type=int, default=2, help="rounds of narrowing properties that failed")
     inv = command("investigate", cmd_investigate, "explain a failure between two versions, read-only")
     inv.add_argument("good")
     inv.add_argument("bad")

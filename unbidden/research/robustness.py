@@ -98,6 +98,16 @@ def public_functions(repo: Path, rev: str, package: str) -> list[str]:
     return picked[:MAX_FUNCTIONS]
 
 
+def property_violations(output: str) -> list[tuple[str, str]]:
+    """(test, assertion) for tests that failed on an assertion: a possible bug, or a property stated too strictly."""
+    found: list[tuple[str, str]] = []
+    for line in output.splitlines():
+        match = re.match(r"^FAILED \S+::(test_\w+) - AssertionError: (.*)$", line)
+        if match:
+            found.append((match.group(1), match.group(2)[:300]))
+    return found
+
+
 _FAIL_HEADER = re.compile(r"^_{3,} (test_\w+) _{3,}$", re.MULTILINE)
 
 
@@ -169,6 +179,31 @@ class RobustnessProbe:
             blocks = re.findall(r"```(?:python)?\n(.*?)```", response.content, re.DOTALL)
             tests = [b for b in blocks if "@given" in b]
             return tests[0] if len(tests) == 1 else None
+
+    async def refine(self, tests: str, output: str) -> str | None:
+        """Send assertion failures back: narrow a property that was too strict, keep one that found a bug."""
+        failures = "\n".join(ln for ln in output.splitlines() if ln.startswith(("E ", "FAILED")))[-4000:]
+        prompt = load_prompt("robustness_refine")
+        try:
+            response = await self.brain.complete(
+                LLMRequest(
+                    purpose="research.robustness",
+                    tier=Tier.LOCAL,
+                    max_tokens=5000,
+                    expect_files=True,
+                    prompt_sha256=prompt.sha256,
+                    messages=[
+                        Message(
+                            role="user",
+                            source="repo",
+                            content=prompt.render(path=PROBE_FILE, failures=failures, tests=tests),
+                        )
+                    ],
+                )
+            )
+        except (BrainError, ProviderError):
+            return None
+        return parse_files(response.content).get(PROBE_FILE)
 
     def run_tests(self, rev: str, tests: str, *, timeout_s: float = 900) -> str:
         work = snapshot(self.repo, rev)
