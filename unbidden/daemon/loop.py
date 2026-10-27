@@ -33,11 +33,13 @@ def _probe_forever(runtime: Runtime, log: Log, stop: threading.Event) -> None:
     from unbidden.contracts.world import WorldModel
     from unbidden.observe.health import HealthWatcher, UiCheck
     from unbidden.observe.live import LiveWatcher
+    from unbidden.observe.logs import LOG_EVERY_S, LogWatcher
     from unbidden.world import jaeger, prometheus
 
     store = runtime.workspace.store()
     killswitch = runtime.workspace.killswitch()
     last_health = 0.0
+    last_logs = 0.0
     while not stop.is_set():
         mandate = runtime.workspace.mandate()
         world = store.get("world", "world", WorldModel)
@@ -46,6 +48,12 @@ def _probe_forever(runtime: Runtime, log: Log, stop: threading.Event) -> None:
                 LiveWatcher(runtime.workspace.repo, store, mandate, world, log).tick()
             except Exception as exc:
                 log(f"live probe failed: {exc}")
+        if world is not None and not killswitch.engaged and time.monotonic() - last_logs >= LOG_EVERY_S:
+            last_logs = time.monotonic()
+            try:
+                LogWatcher(store, world, log).tick()
+            except Exception as exc:
+                log(f"log window failed: {exc}")
         url = prometheus.find(world) if world is not None else None
         if url and not killswitch.engaged and time.monotonic() - last_health >= HEALTH_EVERY_S:
             last_health = time.monotonic()

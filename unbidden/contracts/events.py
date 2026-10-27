@@ -40,6 +40,7 @@ class EventType(StrEnum):
     DEPLOYMENT_OBSERVED = "deployment.observed"
     ANOMALY_DETECTED = "anomaly.detected"
     ANOMALY_RESOLVED = "anomaly.resolved"
+    LOG_SIGNAL = "log.signal"
 
 
 class Event(Contract):

@@ -1277,6 +1277,32 @@ def cmd_health(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_errors(args: argparse.Namespace) -> int:
+    """What the project's logs said lately: recurring errors, errors new after a deploy, rises in 5xx."""
+    from unbidden.contracts.world import WorldModel
+    from unbidden.observe.logs import LogWatcher
+
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    world = store.get("world", "world", WorldModel)
+    if world is None:
+        err.print("no map yet; run `unbidden map`")
+        return 2
+    if args.now:
+        LogWatcher(store, world, log=lambda _: None).tick()
+    signals = [e for e in store.events() if e.type is EventType.LOG_SIGNAL][-args.last :]
+    if _emit(args, [e.model_dump(mode="json") for e in signals]):
+        return 0
+    if not signals:
+        console.print("No log signal recorded.")
+    for e in signals:
+        p = e.payload
+        console.print(f"[bold]{e.ts:%H:%M}[/] {e.entity_id} [yellow]{p['kind']}[/]: {p['title']}")
+        console.print(f"    {p['summary']}", markup=False)
+    return 0
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     ws = Workspace.find()
     ws.require()
@@ -1338,6 +1364,9 @@ def build_parser() -> argparse.ArgumentParser:
     map_.add_argument("--scope", metavar="ID", help="what a resource connects to, how each link is known, the gaps")
     map_.add_argument("--connectors", action="store_true", help="what each connector learns, needs and costs")
     command("status", cmd_status, "what unbidden knows and is doing")
+    errors = command("errors", cmd_errors, "what the project's logs said: recurring errors, new after a deploy, 5xx")
+    errors.add_argument("--now", action="store_true", help="read a fresh window of every container first")
+    errors.add_argument("--last", type=int, default=20)
     command("decide", cmd_decide, "what the Director would do with each open opportunity, without doing it")
     command("health", cmd_health, "errors and latency of each service against its baseline, and where trouble starts")
     inbox = command("inbox", cmd_inbox, "opportunities, most proven first")
