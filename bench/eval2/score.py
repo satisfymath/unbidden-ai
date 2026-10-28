@@ -97,6 +97,12 @@ def score_product(scenarios: Path, rows: list[dict[str, Any]]) -> list[dict[str,
                 "valid_results": sum(1 for r in results if r.get("oracle_valid") and r["level"] >= 4),
                 "false_l4": sum(1 for r in results if r["false_l4"]),
                 "model_calls": len(row.get("model_runs", [])),
+                "model_seconds": round(
+                    sum(float((m.get("cost") or {}).get("compute_seconds") or 0) for m in row.get("model_runs", [])), 1
+                ),
+                "usd_remote": round(
+                    sum(float((m.get("cost") or {}).get("usd_remote") or 0) for m in row.get("model_runs", [])), 4
+                ),
                 "seconds": round(
                     sum(s.get("seconds", 0) for s in row["steps"].values())
                     + sum(e.get("seconds", 0) for e in row.get("experiments", [])),
@@ -203,6 +209,8 @@ def main() -> None:
             "valid_results": sum(r["valid_results"] for r in rows),
             "false_l4": sum(r["false_l4"] for r in rows),
             "model_calls": sum(r["model_calls"] for r in rows),
+            "model_seconds": round(sum(r["model_seconds"] for r in rows), 1),
+            "usd_remote": round(sum(r["usd_remote"] for r in rows), 4),
             "seconds": round(sum(r["seconds"] for r in rows), 1),
         }
     Path(f"{args.out}.json").write_text(json.dumps(report, indent=1, default=str))
