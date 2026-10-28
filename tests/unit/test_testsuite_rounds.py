@@ -46,3 +46,16 @@ def test_a_suite_that_never_reports_is_an_infrastructure_failure_after_one_retry
     summary = run_suite(runner, tmp_path, IMAGE, PYTEST, rounds=1)  # type: ignore[arg-type]
     assert runner.calls == 2  # retried once
     assert summary.round_status == ["infra_failed"] and summary.failed_per_round == [["<suite>"]]
+
+
+def test_xdist_starts_as_many_workers_as_the_sandbox_has_cpus(tmp_path: Path) -> None:
+    # mealie (D-035): `pytest -n auto` counted the host's CPUs and the round died at the sandbox's memory limit.
+    seen: list[dict[str, str]] = []
+
+    class Recording(FakeRunner):
+        def run(self, spec: SandboxSpec, work: Path) -> SandboxResult:
+            seen.append({**spec.public_env, **spec.env})
+            return super().run(spec, work)
+
+    run_suite(Recording(tmp_path, [(1, JUNIT)]), tmp_path, IMAGE, PYTEST, rounds=1)  # type: ignore[arg-type]
+    assert seen[0]["PYTEST_XDIST_AUTO_NUM_WORKERS"] == str(int(SandboxSpec.cpus))

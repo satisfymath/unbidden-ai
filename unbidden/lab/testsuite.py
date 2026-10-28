@@ -13,7 +13,7 @@ from unbidden.observe.ci import ci_test_plan
 from unbidden.observe.compose import Service, load_compose
 from unbidden.observe.stack import Stack
 from unbidden.sandbox.provision import DependencyImage, sandbox_spec
-from unbidden.sandbox.runner import SandboxRunner
+from unbidden.sandbox.runner import SandboxRunner, SandboxSpec
 from unbidden.sandbox.sidecars import data_services
 
 
@@ -126,6 +126,9 @@ def _round(
     env = dict(plan.env)
     if plan.pytest:
         env["PYTEST_ADDOPTS"] = f"--junitxml=/work/{JUNIT_DIR}/round-{n}.xml -p no:cacheprovider"
+        # `pytest -n auto` counts the host's CPUs, not the sandbox's: on a large machine it starts more workers than
+        # the sandbox's memory holds, and the round dies of it (mealie, D-035). As many workers as the sandbox has CPUs.
+        env.setdefault("PYTEST_XDIST_AUTO_NUM_WORKERS", str(int(SandboxSpec.cpus)))
     with data_services(list(plan.services)) as sidecars:
         spec = sandbox_spec(
             image,
