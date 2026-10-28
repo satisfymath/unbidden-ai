@@ -540,3 +540,20 @@ Out of this stage: PR13, OAuth, new providers, a web interface; external PRs, me
 Steps 1-6 done in development (RESULTS.md, stage 5; D-043). Step 7: both evaluation sets written (8437b48) and the
 protocol and budget in `docs/bench/stage5-freeze.md`; it runs after a person releases the reserve. Step 8: the test
 timing fixed; the demo is `bench/ecosystem/board_demo.py`.
+
+# Stage 6: consolidation (2026-10-28)
+
+Starting point: `feat/55-send-time-authorization` @ c804aaf, no later work. Budget: D-044 (US$10 from
+2026-10-28T22:44:23Z: dev 3, evaluation 5, demo and contingency 2). The 2793504 trial is closed by amendment 1 of
+`docs/bench/stage5-freeze.md`.
+
+| # | Step | Depends on | Acceptance |
+|---|---|---|---|
+| 1 | Budget recorded, card correction, protocol amendment | — | D-044; amendment 1; ledger starting point |
+| 2 | OpenAPI schemas by declared version (3.0 `nullable`, 3.1 type arrays) for parameters, bodies, responses | — | tests fail on c804aaf; invalid values still rejected; unsupported features refused with a reason |
+| 3 | Invalid page observations are inconclusive, before and after a repair | — | non-JSON, incomplete or schema-invalid answers never give page_ok or page_fixed; bounded retry, then blocked |
+| 4 | Perception metrics separated (alerted, hit one, hit all, false alarms, precision, recall, inconclusive) | — | tests with right, wrong, mixed and absent reports |
+| 5 | Stage 5 summaries recomputed from records | 4 | the 6-vs-8 defective states explained; originals kept |
+| 6 | Development regression on Larder (post-evaluation) and adversarial cases; the visual cycle with agent vs checker apart | 2, 3 | full chain without duplication; adversarial cases end safe |
+| 7 | New frozen evaluation: A (a new service), B (stage 5 states + cases without a healthy version in history) | 2-6 | predeclared repetitions and budget; perception apart from repair; history-aided repairs apart from others |
+| 8 | Reproducible release, branch integration order, demo; PLAN, RESULTS, decisions | all | from a clean checkout |

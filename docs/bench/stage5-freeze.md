@@ -49,3 +49,25 @@ its own US$5.00 cap. Nothing in the evaluation runs before this release.
 
 No code or harness change; failures and invalid runs kept with their cause; a lab problem (a container that did not
 start) invalidates that cell, which is rerun once and both are reported.
+
+## Amendment 1 (2026-10-28, stage 6, before any further run): what is cancelled, why, and what stays unmeasured
+
+The frozen code (2793504), this protocol and the records in `docs/bench/stage5-eval/` are kept as they are.
+
+What ran on 2793504: **question A, local policy, x1**: blocked in all four scenarios (a1-a4) by one deterministic
+cause, OpenAPI 3.0 `nullable` (Larder's `next_cursor: null` rejected as outside its schema; the integration was
+never validated). Before that, a check of **the oracle** on question B's states (harness only: no agent, no model).
+That check is not a run of the agent and says nothing about the agent.
+
+Cancelled, not run on 2793504:
+- **Question A with Spark (x2):** the block happens in the integration oracle before any model choice matters; on
+  2793504 it would repeat the same deterministic failure. Spending on it measures nothing new.
+- **Question B with the agent (perception x2, cycle x1):** cancelled on 2793504, because the stage 6 review found
+  two faults in what B measures: an unreadable or invalid model answer became "page_ok" (a false success), and
+  `score_found` counted "detected" when no row named was a defective one. Running B before fixing them would produce
+  numbers known to be unreliable.
+
+Unmeasured as a result: how 2793504 does on Larder with Spark, and anything about the agent on B's states at
+2793504. No result is attributed to these runs. B's states were never run with the agent and were not adapted to
+any agent answer; they move to the stage 6 protocol (`docs/bench/stage6-freeze.md`) with the corrected code.
+Larder is no longer out of sample once fixed against it: its reruns are post-evaluation regressions.

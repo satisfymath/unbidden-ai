@@ -935,3 +935,24 @@ again on the frozen evaluation before any conclusion.
 
 **Spend.** Development of stage 5 used about US$1.8 (ledger total US$3.14 of the US$5.00 development cap, counted
 conservatively). The US$3.00 reserve is untouched until a person releases it for the frozen evaluation.
+
+## D-044 · 2026-10-28 · Stage 6 budget, and a correction of D-042
+
+**Reported by David from the Meta dashboard, 2026-10-28** (as reported, not read by Unbidden): current balance US$0;
+free credits in use US$144.98; a Visa card is on file; the dashboard warns that content sent while on free credits
+may be used to improve products. "Current balance US$0" is not read as an absence of credits, nor as a guarantee
+that no charge can happen.
+
+**Correction.** D-042 and the stage 4 ledger entry said the account had "credits only, no card". That was wrong: a
+card is on file. The earlier entry stays in `~/.unbidden/budget-history.jsonl` as written; this decision supersedes
+it. Nothing is changed in billing: credits stay on, no recharge, no card charge is authorized, and the billing
+threshold is not used as a spending limit.
+
+**Authorization.** Up to US$10 of free credits from the start of stage 6, the earlier US$3 reserve included (not
+added). The reserve was released with `unbidden spend --release-reserve` on David's written authorization of
+2026-10-28 (the mechanism is a person's command; it was run in this session because he authorized it), then the
+stage cap was entered: `--verified-balance 10 --reserve 0.7`, verified at **2026-10-28T22:44:23Z**, the ledger's
+starting point for these US$10. Split: development US$3 (spendable now), evaluation US$5 and demo and contingency
+US$2 (held as the reserve, released for the frozen evaluation). Every remote call reserves its worst cost before it
+is sent (spend ledger); calls run one at a time (concurrency 1); retries are the router's bounded repairs and the
+action executor's one reconciled retry. Content sent: synthetic lab data and lab code only, through the egress gate.
