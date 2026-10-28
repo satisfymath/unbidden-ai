@@ -78,7 +78,7 @@ def vision(model: str, image: bytes, key: str) -> dict[str, Any]:
     tin, tout = int(usage.get("prompt_tokens") or 0), int(usage.get("completion_tokens") or 0)
     usd = (tin * price_in + tout * price_out) / 1e6 if usage else None
     ledger.settle(rid, usd=usd, tokens_in=tin, tokens_out=tout, usage_reported=bool(usage),
-                  status="ok" if response.status_code == 200 else "failed", note="feasibility")  # fmt: skip
+                  status="settled" if response.status_code == 200 else "failed", note="feasibility")  # fmt: skip
     answer = ((data.get("choices") or [{}])[0].get("message") or {}).get("content")
     return {"model": model, "status": response.status_code, "seconds": round(seconds, 1), "tokens": [tin, tout],
             "usd": usd, "answer": answer if response.status_code == 200 else response.text[:400]}  # fmt: skip
@@ -117,7 +117,7 @@ def sam(prompt: str, image: bytes, key: str) -> dict[str, Any]:
                     text += event.get("delta", "")
     seconds = time.monotonic() - started
     ledger.settle(rid, usd=0.0025 if status == 200 else None, usage_reported=status == 200,
-                  status="ok" if status == 200 else "failed", note=f"feasibility sam: {prompt}")  # fmt: skip
+                  status="settled" if status == 200 else "failed", note=f"feasibility sam: {prompt}")  # fmt: skip
     boxes = []
     for token in text.split("<|box;")[1:]:
         fields: dict[str, str] = {}
@@ -141,7 +141,7 @@ def image(key: str) -> dict[str, Any]:
     ok = response.status_code == 200
     data = response.json() if ok else {}
     n = len(data.get("data") or [])
-    ledger.settle(rid, usd=0.01 * n if ok else None, usage_reported=ok, status="ok" if ok else "failed",
+    ledger.settle(rid, usd=0.01 * n if ok else None, usage_reported=ok, status="settled" if ok else "failed",
                   note="feasibility image")  # fmt: skip
     size = len(base64.b64decode((data.get("data") or [{}])[0].get("b64_json") or "")) if n else 0
     return {"model": "muse-image-1.0", "status": response.status_code, "seconds": round(seconds, 1),
@@ -160,7 +160,7 @@ def voice(wav: bytes, key: str) -> dict[str, Any]:
     seconds = time.monotonic() - started
     ok = response.status_code == 200
     usd = 0.18 * seconds_audio / 3600
-    ledger.settle(rid, usd=usd if ok else None, usage_reported=ok, status="ok" if ok else "failed",
+    ledger.settle(rid, usd=usd if ok else None, usage_reported=ok, status="settled" if ok else "failed",
                   note="feasibility voice")  # fmt: skip
     return {"model": "muse-voice-transcribe-1.0", "status": response.status_code, "seconds": round(seconds, 1),
             "audio_s": round(seconds_audio, 1), "usd": usd,
