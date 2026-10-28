@@ -1,3 +1,51 @@
+# Stage 4: a reliable cycle on a new API, under local and Meta models: development results (2026-10-28)
+
+Plan: `docs/PLAN.md` (stage 4). Decision: D-042. Raw records: `stage4-dev/` (development only, debugged on). Lab:
+Depot (`bench/ecosystem/depot.py`, a bin store with offset/limit/total pagination, idempotent restocks and a
+documented cancel) and its pick history in PostgreSQL; never Dispatch. The Dispatch result below stays historical:
+it is not new out-of-sample evidence. A frozen evaluation on new scenarios comes later; nothing here is one.
+
+## Development runs (Depot, five scenarios, from a reset lab each)
+
+| | s1 write granted, run twice | s2 read-only, then a person grants restocks | s3 writes need approval, then approved | s4 key revoked between cycles | s5 the service hides a page |
+|---|---|---|---|---|---|
+| Expected | act, no repeat | extend, act, no repeat | act after approval, no repeat | act, then stop | refuse: the read cannot be trusted |
+| Local, run 1 (`0e048ad`) | 4 verified; 0 repeated | **nothing done**: the extension was abandoned before the person acted | **nothing done**: same | 4 verified; then "revoked" | refused; the goal said only "waiting" |
+| Local, run 2 (`c11d2cc`) | same | extension validated, 4 verified, 0 repeated | extension validated; **every write refused, the pursuit crashed** | same | refused; the goal names the reason |
+| Local, run 3 (`7c8e749`) | 4 verified; 0 repeated | 4 verified; 0 repeated | 4 verified; 0 repeated | 4 verified; then "revoked" | refused, reason named |
+| Spark (`7c8e749`) | same as local run 3 | same | same | same | same |
+| Wonder (`7c8e749`) | same | same | same | same | same |
+
+Every verified restock was on a truly short bin (16/16 per policy) and read back as one documented change of
+`incoming` by the units sent; false verifications 0; reads complete in every scenario where the integration was
+admitted. In s5 the service lies consistently (its declared total matches what it serves); the executor's own
+reader is fooled, the oracle's second read with another page size is not (7 records vs 9, 6 differ), and the
+integration is rejected.
+
+What development found and fixed, each with a test that fails on the old code:
+1. *A need blocked on a person used up its attempts.* A read-only grant or a missing approval made the extension
+   "blocked"; both attempts ran in the first cycle and the need was abandoned before the person could act. Now a
+   blocked need waits on the condition it was blocked on (the grant's permissions, a valid approval) and is built
+   again when that changes; waiting is not an attempt.
+2. *An abandoned integration left the goal waiting forever.* Now what waited is resumed once, and reports the block.
+3. *The send-time gate ignored the person's approval.* `authorize` saw it; `call`'s own gate evaluated the policy
+   without it and raised, crashing the pursuit. The gate takes the approval, for the write and its undo; a refusal
+   at send time is a refused action.
+
+## Local and hybrid on the same code (`7c8e749`, 5 scenarios, one run each)
+
+| Policy | Goals as expected | Verified (false) | Interventions | Model calls (remote) | Model latency per call | Wall time, 5 scenarios | Spend (ledger) |
+|---|---|---|---|---|---|---|---|
+| local (`muse-glimmer:30b`, Ollama) | 5/5 | 16 (0) | 2 | 24 (0) | 20.2 s | 498 s | US$0 |
+| hybrid Spark (`muse-spark-1.3`) | 5/5 | 16 (0) | 2 | 24 (24), no fallback | 7.1 s | 193 s | US$0.134 |
+| hybrid Wonder (`muse-wonder-1.0`) | 5/5 | 16 (0) | 2 | 24 (24), no fallback | 5.0 s | 142 s | US$0.422 |
+
+Read: on this lab the model policy changes speed and cost, not outcomes. That is by design and expected here: the
+model plans the goal and picks operations; authorization, complete reads, verification by reading back and
+compensation are deterministic and identical under every policy. It does not show the remote models are no better
+at planning; Depot's plan is easy for all three. Spend is the ledger's estimate (list price times reported tokens);
+the provider has no balance API to reconcile against. n = 1 run per scenario per policy.
+
 # Stage 3: the project's ecosystem, results (2026-10-28)
 
 Plan: `docs/PLAN.md` (stage 3). Freeze: `docs/bench/ecosystem-freeze-1.md`. Raw records: `dev/` (debugged on) and

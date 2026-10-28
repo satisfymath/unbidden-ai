@@ -891,3 +891,24 @@ endpoints unchanged. Probe traffic only.
 **What changed in Unbidden.** A positive live result is not promoted on lab evidence below L4 (`observe/live.py`).
 Imported history keeps an old live outcome as past. Tools: `bench/revalidate_perf.py`, `bench/import_history.py`,
 `bench/attach_outcome.py`, `bench/mealie_seed.py`.
+
+## D-042 · 2026-10-28 · Stage 4: Meta credits within a cap, routing by task and content, and what development showed
+
+**Budget.** Using the Meta credits for this stage is authorized; no recharge or other spend. The provider offers no
+balance endpoint (every billing path 404), and the account has credits only, no card. The machine-wide ledger
+(`~/.unbidden/spend.db`) holds a stage cap of US$8 entered as a cap, not a measured balance, with US$3 held back for
+the frozen evaluation and the demo (only a person releases it). Every remote call reserves its worst cost before it
+is sent and is refused if it would not fit. Development spent US$0.56 (Spark 0.134, Wonder 0.422).
+
+**Routing.** Goal planning (`director.goal_plan`) and reading documentation to build an integration
+(`forge.api_client`) are heavy tasks, routed by the workspace's `code` route: local model under profile `local`,
+Spark or Wonder under `local-first` with the local model as recorded fallback. Content leaves only from grants marked
+`content_may_leave` (synthetic lab data); runtime and database content of any other grant never does.
+
+**Model policy.** On Depot development, local, Spark and Wonder reached the same outcomes (5/5, 16 verified, 0 false)
+at 20.2 / 7.1 / 5.0 s per call and US$0 / 0.134 / 0.422. Default for the demo: Spark (same outcomes, a third of
+local's time, a third of Wonder's cost). Whether a remote model plans better on harder goals is open; the frozen
+evaluation measures it on new scenarios.
+
+**Fixed in development** (RESULTS.md, stage 4): needs blocked on a person wait for that person instead of being
+abandoned; an abandoned integration is reported to the goal; the send-time gate honours a person's approval.
