@@ -1,0 +1,57 @@
+opp_8f2cf46bd8864983: outcome after deploy 1 is positive: GET /api/foods/empty: median 11.8 → 2.2 ms (-82%), p = 8.8e-09
+{
+ "opportunity": "opp_8f2cf46bd8864983",
+ "level": 5,
+ "outcome": {
+  "at": "2026-10-28T05:02:40.605830+00:00",
+  "baseline": "0:e31c5fcfd2892670158f4c189acdb06cde3180bf",
+  "commits": {
+   "baseline": "verified",
+   "candidate": "verified"
+  },
+  "confounders": [
+   {
+    "detail": "1 commit(s) between the two measured versions: a351dc2 perf: index shopping_list_items.food_id \u00b7 GET /api/foods/empty: median 14524.4 ms \u2192 7.2 ms (100% faster)",
+    "kind": "commits_between"
+   },
+   {
+    "detail": "traffic is unbidden's own probes, not users",
+    "kind": "synthetic_traffic"
+   },
+   {
+    "detail": "data volume and cache state differ between the two windows",
+    "kind": "state_drift"
+   }
+  ],
+  "criteria": {
+   "alpha": 0.01,
+   "criteria_version": "v2",
+   "error_rate": "5xx over 1% with at least 100 requests and 3 errors",
+   "min_delta_ms": "max(0.2 ms, 3 MADs of the baseline's round medians)",
+   "min_effect": 0.2,
+   "test": "one-sided Mann-Whitney U on round medians, each direction",
+   "warmup_rounds_dropped": 2
+  },
+  "deploy": "1:a351dc216f248ca09f34f2518bf52f8f9a6863d6",
+  "impact": [
+   {
+    "impact": "improved",
+    "p50_after": 2.1595830330625176,
+    "p50_before": 11.827707989141345,
+    "p95_after": 3.106117178685962,
+    "p95_before": 14.437934942543507,
+    "p_value": 8.766909940284332e-09,
+    "reasons": [
+     "median 11.8 \u2192 2.2 ms (-82%), p = 8.8e-09"
+    ],
+    "rounds_after": 17,
+    "rounds_before": 30,
+    "target": "GET /api/foods/empty"
+   }
+  ],
+  "result": "positive",
+  "why": [
+   "GET /api/foods/empty: median 11.8 \u2192 2.2 ms (-82%), p = 8.8e-09"
+  ]
+ }
+}

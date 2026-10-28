@@ -334,7 +334,7 @@ finding reproduced as a test first, then the full unit suite (445), ruff and pyr
 Evaluation: dev v5 (PR1–PR9) paired with v4, reach unchanged, four decisions changed and read
 (`docs/bench/eval/PROGRESS.md`). Validation and holdout untouched. US$0 of API.
 
-Mealie L5 (protocol `docs/bench/2026-10-28-mealie-l5-protocol.md`) not run: mealie's compose file fixes
-`container_name: mealie` and `image: mealie:dev`, which D-036's stopped container and image already hold, so the
-protocol's deploy step as written would fail or touch D-036's resources; and the new workspace holds no opportunity
-or proposal for an outcome to attach to. Both need an amendment to the protocol before the run.
+Mealie L5: run under amendment 1 (D-041, `docs/bench/2026-10-28-mealie-l5-result.md`). D-035's suite failure was
+diagnosed (xdist over the sandbox's memory, fixed in `feat/36-xdist-workers` · 09d0d14); the lab evidence was
+revalidated to L4 with today's evaluator; the live result between two verified deploys is positive (11.8 → 2.2 ms,
+probe traffic only). L6 is not claimed: it needs re-checks over the persistence period.

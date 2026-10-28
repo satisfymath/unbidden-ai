@@ -875,3 +875,19 @@ experiments with a suite on both sides, across every workspace state kept.
 **For the mealie L5 track** (`docs/bench/2026-10-28-mealie-l5-protocol.md`): the change deployed is an L3 lab result.
 A live measurement can still show its effect (L5 speaks to operation, not to the suite), but the suite has to run at
 the base before the change can be called functionally validated.
+
+## D-041 · 2026-10-28 · mealie on SQLite: L4 revalidated, then a positive live result between two known deploys
+
+**Decision.** mealie's index (D-035) is at L5 on SQLite, under amendment 1 of its pre-registered protocol. Details,
+deviations and raw records: `docs/bench/2026-10-28-mealie-l5-result.md`.
+
+**Why D-035's suite never ran.** The CI's `pytest -n auto` counted the host's CPUs, not the sandbox's; the workers
+outgrew 2 GB. Fixed in the lab for every xdist suite (09d0d14). With it, the revalidation ran the suite 3/3 rounds per
+side (3,640 tests, the same 18 environment failures on both sides) and reached L4 under tests-v2.
+
+**Live.** Two `verified` deploys by Unbidden; `GET /api/foods/empty` 11.8 → 2.2 ms (median), the 56 other probed
+endpoints unchanged. Probe traffic only.
+
+**What changed in Unbidden.** A positive live result is not promoted on lab evidence below L4 (`observe/live.py`).
+Imported history keeps an old live outcome as past. Tools: `bench/revalidate_perf.py`, `bench/import_history.py`,
+`bench/attach_outcome.py`, `bench/mealie_seed.py`.
