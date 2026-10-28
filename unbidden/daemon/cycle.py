@@ -447,7 +447,7 @@ class Cycle:
 
     async def ops_deploy(self, j: Job) -> None:
         """Deploy what was merged: fast-forward the deployment checkout to the remote base, then the team's steps."""
-        from unbidden.operate.deploy import OperationRefused, deploy
+        from unbidden.operate.deploy import OperationRefused, deploy, merged_evidence
 
         repo = self.runtime.workspace.repo
         mandate = self.runtime.workspace.mandate()
@@ -457,6 +457,7 @@ class Cycle:
             ["git", "-C", str(repo), "rev-parse", f"origin/{base}"], capture_output=True, text=True, check=False
         ).stdout.strip()
         try:
+            merged_evidence(repo, self.store, j.payload.get("proposal"), target)
             result = await asyncio.to_thread(
                 deploy, repo, self.store, mandate, target, reason=j.payload.get("reason", "merged")
             )
@@ -492,7 +493,9 @@ class Cycle:
                 continue
             self.log(f"merged {merged.pr.url if merged.pr else merged.id}")
             if mandate.autonomy.deploy.value == "allow":
-                self.store.enqueue(job("ops.deploy", merged.id, {"reason": f"merged {merged.title}"}))
+                self.store.enqueue(
+                    job("ops.deploy", merged.id, {"reason": f"merged {merged.title}", "proposal": merged.id})
+                )
 
 
 def checked_dirs(repo: Path, head: str) -> tuple[str, ...]:

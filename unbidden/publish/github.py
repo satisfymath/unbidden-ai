@@ -85,6 +85,20 @@ class GitHubClient:
             self._http.put(f"/repos/{self.slug}/pulls/{number}/merge", json={"sha": sha, "merge_method": method})
         )
 
+    def check_states(self, sha: str) -> list[str]:
+        """The state of every check run on a commit, finished or not, across pages (see `observe.ci.run_state`)."""
+        from unbidden.observe.ci import MAX_PAGES, run_state
+
+        states: list[str] = []
+        for page in range(1, MAX_PAGES + 1):
+            params = {"per_page": 100, "page": page}
+            data = self._check(self._http.get(f"/repos/{self.slug}/commits/{sha}/check-runs", params=params))
+            runs = data.get("check_runs") or []
+            states += [run_state(r) for r in runs]
+            if len(runs) < 100:
+                break
+        return states
+
     def branch_head(self, branch: str) -> str:
         return self._check(self._http.get(f"/repos/{self.slug}/branches/{branch}"))["commit"]["sha"]
 
@@ -242,6 +256,7 @@ class Publisher:
         if len(sequence) >= 2 and self.store.get_value(f"verdict_of:{len(sequence) - 1}") is None:
             # One change at a time: until the last deploy has its verdict, another merge would blur what it did.
             raise PublishError(f"deploy {sequence[-1][:12]} has no verdict yet; merging waits for it")
+        self._require_pr_ci(proposal)
         check(
             self.store,
             self.mandate,
@@ -269,6 +284,35 @@ class Publisher:
             )
         )
         return proposal
+
+    def _require_pr_ci(self, proposal: Proposal) -> None:
+        """The pull request's own CI, on the commit that was measured, must have passed before a merge.
+
+        Pending waits for the next poll; red, cancelled or unknown leaves the merge to a person. A repository that
+        declares no workflow has no CI to wait for: the lab's evidence is all there is, and the proposal says so."""
+        from unbidden.observe.ci import GREEN, PENDING_CI, verdict_of
+
+        assert proposal.pr is not None
+        client = self._client()
+        head = (client.get_pr(proposal.pr.number).get("head") or {}).get("sha")
+        if head != proposal.commit_sha:
+            raise PublishError(
+                f"the pull request's head is {str(head)[:12]}, not the measured {proposal.commit_sha[:12]}"
+            )
+        verdict = verdict_of(client.check_states(proposal.commit_sha))
+        if verdict == GREEN:
+            return
+        if verdict is None:
+            listed = subprocess.run(
+                ["git", "-C", str(self.repo), "ls-tree", "--name-only", f"{proposal.commit_sha}:.github/workflows"],
+                capture_output=True, text=True, check=False,
+            )  # fmt: skip
+            if not listed.stdout.strip():
+                return
+            raise PublishError("the repository declares CI workflows but none has run on the pull request yet")
+        if verdict == PENDING_CI:
+            raise PublishError("the pull request's CI is still running; merging waits for it")
+        raise PublishError(f"the pull request's CI is {verdict}; a person decides this merge")
 
     def poll(self, proposal: Proposal) -> Proposal:
         """Follow an open pull request: merged, closed, or stale because its base moved."""

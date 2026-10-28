@@ -12,6 +12,7 @@ from dataclasses import dataclass
 
 from unbidden.contracts.common import EvidenceLevel
 from unbidden.contracts.events import Event, EventType
+from unbidden.contracts.experiment import VALIDATING
 from unbidden.contracts.guardian import Mandate
 from unbidden.contracts.opportunity import ActionKind, CandidateAction, Decision, Opportunity, OpportunityStatus
 from unbidden.languages import adapter_for_path
@@ -149,9 +150,17 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
         add(ActionKind.DECLINE, 1.0, 0.0, 0.0, reason)
         return _choose(opp, candidates, ActionKind.DECLINE)
 
-    level = opp.evidence_level
+    verdict = opp.details.get("verdict") or {}
+    # The level of the experiment that would be proposed, not the highest one the opportunity ever reached.
+    level = EvidenceLevel(verdict.get("evidence_level", opp.evidence_level))
     minimum = EvidenceLevel(mandate.evaluation.minimum_evidence_for_proposal)
-    proven = opp.details.get("verdict", {}).get("improved") is True
+    proven = verdict.get("improved") is True
+    tests = verdict.get("tests")
+    if proven and tests not in VALIDATING:
+        # Whatever the level asked: a change the team's suite did not validate (a regression, a flakier suite, a
+        # suite that never ran) is not put in front of a person as an improvement.
+        add(ActionKind.DECLINE, 0.0, 0.0, 0.0, f"improved, but the team's suite did not validate it (tests: {tests})")
+        return _choose(opp, candidates, ActionKind.DECLINE)
     if proven and level >= minimum:
         cap = mandate.egress.github.max_open_pull_requests
         if ctx.open_pull_requests >= cap:

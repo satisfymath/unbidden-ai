@@ -12,10 +12,12 @@ from unbidden.director.decide import Context, decide
 pytestmark = pytest.mark.unit
 
 
-def opp(category: str = "types", level: int = 1, improved: bool | None = None, **kw: object) -> Opportunity:
+def opp(
+    category: str = "types", level: int = 1, improved: bool | None = None, tests: str = "passed", **kw: object
+) -> Opportunity:
     details: dict[str, object] = {}
     if improved is not None:
-        details["verdict"] = {"improved": improved}
+        details["verdict"] = {"improved": improved, "evidence_level": level, "tests": tests}
     return Opportunity(
         source="tsc", category=category, title="t", summary="s", dedup_key="k",
         evidence=[EvidenceRef(kind="file", locator="a")], evidence_level=EvidenceLevel(level), details=details,
@@ -37,6 +39,21 @@ def test_proven_l4_is_proposed_unless_the_cap_is_full(mandate: Mandate) -> None:
     assert decide(proven, mandate, Context(0, 0)).chosen is ActionKind.PROPOSE_CHANGE
     capped = decide(proven, mandate, Context(3, 0))
     assert capped.chosen is ActionKind.WAIT and "cap 3" in capped.reason
+
+
+@pytest.mark.parametrize("tests", ["regression", "flakier", "not_run", "infra_failure", "inconclusive", None])
+def test_an_improvement_the_suite_did_not_validate_is_never_proposed(tests: str | None, mandate: Mandate) -> None:
+    # A5: even under a mandate that would accept a lab improvement (L3), and even when the opportunity once reached L4.
+    mandate.evaluation.minimum_evidence_for_proposal = 3
+    proven = opp(level=4, improved=True, tests=tests, status=OpportunityStatus.EXPERIMENTING)  # type: ignore[arg-type]
+    decision = decide(proven, mandate, Context(0, 0))
+    assert decision.chosen is ActionKind.DECLINE and "did not validate" in decision.reason
+
+
+def test_the_level_proposed_is_the_experiments_not_the_highest_ever(mandate: Mandate) -> None:
+    proven = opp(level=4, improved=True, status=OpportunityStatus.EXPERIMENTING)
+    proven.details["verdict"]["evidence_level"] = 3  # type: ignore[index]
+    assert decide(proven, mandate, Context(0, 0)).chosen is ActionKind.DECLINE
 
 
 def test_l3_is_not_enough_for_the_default_mandate(mandate: Mandate) -> None:

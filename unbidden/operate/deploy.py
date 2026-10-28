@@ -57,6 +57,24 @@ def check(store: Store, mandate: Mandate, capability: str, purpose: str, *, rate
         raise OperationRefused(f"{capability}: {limit} already in the last hour")
 
 
+def merged_evidence(repo: Path, store: Store, proposal_id: str | None, target: str) -> None:
+    """An autonomous deploy ships a change Unbidden merged on evidence: the proposal merged at L4 or better, and the
+    commit to deploy contains its merge. Raises when it does not; a person's own deploy is not judged here."""
+    from unbidden.contracts.common import EvidenceLevel
+    from unbidden.contracts.experiment import Proposal, ProposalStatus
+
+    proposal = store.get("proposals", proposal_id, Proposal) if proposal_id else None
+    if proposal is None:
+        raise OperationRefused("no merged proposal names this deploy")
+    if proposal.status is not ProposalStatus.MERGED:
+        raise OperationRefused(f"proposal {proposal.id} is {proposal.status.value}, not merged")
+    if proposal.evidence_level < EvidenceLevel.FUNCTIONAL_VALIDATION:
+        raise OperationRefused(f"proposal {proposal.id} was merged at L{int(proposal.evidence_level)}, below L4")
+    merged = proposal.merge_sha or proposal.commit_sha
+    if _git(repo, "merge-base", "--is-ancestor", merged, target).returncode != 0:
+        raise OperationRefused(f"{target[:12]} does not contain the merge {merged[:12]}")
+
+
 def run_steps(repo: Path, mandate: Mandate, commit: str, *, detach: bool) -> DeployResult:
     steps = mandate.operations.deploy_steps
     if not steps:
