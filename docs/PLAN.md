@@ -534,3 +534,9 @@ measures something; the local model and routing are unchanged. Image and Voice a
 | 8 | Test-timing sensitivity (`test_forge_stats`), docs, decisions, demo | all | functional tests separate from timing measurements; PLAN, RESULTS, objective, decisions updated; a reproducible demo |
 
 Out of this stage: PR13, OAuth, new providers, a web interface; external PRs, merges or deploys.
+
+## Stage 5 status, 2026-10-28
+
+Steps 1-6 done in development (RESULTS.md, stage 5; D-043). Step 7: both evaluation sets written (8437b48) and the
+protocol and budget in `docs/bench/stage5-freeze.md`; it runs after a person releases the reserve. Step 8: the test
+timing fixed; the demo is `bench/ecosystem/board_demo.py`.

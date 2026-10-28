@@ -148,3 +148,12 @@ sufficient for VERIFIED; a disagreement between a model and the checker is kept 
 
 **What the agent may not do.** Satisfy the goal by hiding rows, removing information, changing data (restocking,
 deleting picks) or touching the harness. It may change the board's code and deploy it to the lab's staging only.
+
+## Development results (2026-10-28, after amendment 1; records in `docs/bench/board/dev/`)
+
+Built: the board in the lab app (`bench/ecosystem/board_app`), its own seeded data, the checker
+(`bench/ecosystem/board_check.py`), the agent's page goal (`unbidden/director/presentation.py`), and the measurement
+of the three methods (`bench/ecosystem/board_eval.py`). All four development defects and the healthy control: under
+every method, the cycle ended verified by the checker, with one commit per defect and none on the healthy board.
+The screenshots and SAM added no measured value on these defects (RESULTS.md, stage 5). The evaluation set (other
+data, designs and defects) is written in `board_lab.py` and `board_eval.py` (sets `eval` and `eval-cycle`).

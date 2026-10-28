@@ -1,0 +1,15 @@
+{
+ "mode": "cycle",
+ "set": "dev-cycle",
+ "states": [
+  "healthy",
+  "overlay",
+  "overlay-partial",
+  "formula",
+  "style"
+ ],
+ "methods": "dom,vision,vision_sam",
+ "policy": "spark",
+ "reps": 1,
+ "commit": "8437b48ddd4faba2feaf110157436bb9ddfd724d"
+}

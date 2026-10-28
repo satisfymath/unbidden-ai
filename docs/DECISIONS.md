@@ -912,3 +912,26 @@ evaluation measures it on new scenarios.
 
 **Fixed in development** (RESULTS.md, stage 4): needs blocked on a person wait for that person instead of being
 abandoned; an abandoned integration is reported to the goal; the send-time gate honours a person's approval.
+
+## D-043 · 2026-10-28 · Stage 5: the multimodal cycle in development, and how it is judged
+
+**Writes.** Every mutating request is authorized as it leaves (`forge.api_client.call`), retries included, and
+recorded; writes are never retried inside the client; an uncertain answer is reconciled by reading first. Reproduced
+before the fix: a POST answered 503, the policy turned to DENY, the POST was sent again and applied.
+
+**A page goal.** A goal may be about what a page shows. The data's values are computed as for the API goal; the
+page is scanned in the confined browser; a model compares row by row under a configured perception (dom, + vision,
++ SAM); within `max_changes`, a model proposes a change of tracked files (with their recent history); Unbidden
+applies it in a worktree, runs the declared checks offline, deploys with the declared steps, scans again.
+
+**Acceptance is not the model's.** A change counts only when the harness's checker verifies it: model-free, with its
+own SQL and service reads, its own browser script, pixel colours from the screenshots, and checks that inventory,
+history, rows and the page's other information are unchanged. Disagreements between the agent and the checker are
+kept (two in development).
+
+**Methods.** Spark stays the default; Wonder only as comparison. In development the browser's observations were
+enough (all defects found and fixed under dom); screenshots and SAM stay available and optional, and are measured
+again on the frozen evaluation before any conclusion.
+
+**Spend.** Development of stage 5 used about US$1.8 (ledger total US$3.14 of the US$5.00 development cap, counted
+conservatively). The US$3.00 reserve is untouched until a person releases it for the frozen evaluation.

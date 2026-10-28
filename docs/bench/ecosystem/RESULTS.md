@@ -1,3 +1,61 @@
+# Stage 5: the multimodal cycle, development results (2026-10-28)
+
+Plan: `docs/PLAN.md` (stage 5). Contract: amendment 1 of `docs/bench/2026-10-28-multimodal-objective.md`. Decision:
+D-043. Raw records: `docs/bench/board/dev/` (development only, debugged on). The frozen evaluation (questions A and
+B) is in `docs/bench/stage5-freeze.md` and is reported apart once run.
+
+Status of each capability:
+
+| Capability | Implemented | Tested with mocks / in-process | Lab, real models (development) | Evaluated out of development |
+|---|---|---|---|---|
+| Send-time authorization of every write attempt, retries included | yes | yes (26 cases: DENY, approval expired or gone, revoked, kill switch, budget; oracle, action, undo) | via stage 4 scenarios | — |
+| Screenshots through the router (egress, policy, spend, digest-only records) | yes | yes | yes (Spark) | pending |
+| Page scan: rows, marks, computed style, hit-testing while scrolling, overlays | yes | — | yes | pending |
+| Page goal: compare, find the cause, fix in a worktree, offline checks, lab deploy, re-scan | yes | yes (units) | yes (5 cases x 3 methods) | pending |
+| SAM regions mapped to rows | yes | yes (parser) | yes | pending |
+| Model-free checker independent of the board and the agent | yes | yes (rules) | yes | its own eval cases pending |
+
+**One story, then all development cases** (Spark, `muse-spark-1.3`, profile frontier on synthetic lab code):
+goal (no hint) -> Depot integration built and both sources read whole -> board scanned -> rows shown wrongly ->
+cause from the code and its recent history -> change in a worktree -> the app's tests offline -> deploy to the lab's
+staging -> re-scan -> the checker -> a second cycle that changes nothing.
+
+Full cycle, each method from a reset lab (`cycle-1`, one run per cell, descriptive):
+
+| Case | dom | vision | vision + SAM |
+|---|---|---|---|
+| healthy (must not change) | verified, no commit | verified, no commit | verified, no commit |
+| overlay (fixed bar over the last rows) | verified, 1 commit | verified, 1 commit | verified, 1 commit |
+| overlay, partial (a panel over part of the badges) | verified, 1 commit | verified, 1 commit | verified, 1 commit |
+| formula (supply forgets `reserved`) | verified, 1 commit | verified, 1 commit | verified, 1 commit |
+| style (short badge styled like OK) | verified, 1 commit | verified, 1 commit | verified, 1 commit |
+| false verifications / regressions / lost rows or information / unnecessary changes | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 |
+| model calls, spend, wall time (5 cases) | 38, US$0.32, 457 s | 39, US$0.36, 428 s | 39, US$0.38, 495 s |
+
+Perception alone, the same scan to each method (`perception-1`, 14 states, one run each):
+
+| Method | Detected (8 defective) | Rows: recall / precision | Cause named | False alarms (8 healthy) | Cost | s per call |
+|---|---|---|---|---|---|---|
+| dom | 8/8 | 0.92 / 0.97 | 8/8 | 1 | US$0.17 | 11.6 |
+| vision | 8/8 | 0.92 / 0.97 | 8/8 | 1 | US$0.20 | 9.1 |
+| vision + SAM | 8/8 | 0.89 / 1.00 | 8/8 | 1 | US$0.22 | 13.4 |
+
+The one false alarm is shared: a healthy board whose zone label is a red pill like the alert; all three methods
+called those rows flagged, with that reason. Kept as a result; a less ambiguous red element (red text) drew none.
+Recall below 1 is the formula case: wrong numbers on rows whose flag was right were not all named.
+
+**Read:** in development the browser's own observations were enough: every defect here, including the two overlaps,
+is visible to hit-testing and computed style, and the screenshot and SAM added cost and no measured detection,
+localization or repair. That is a development result on defects of this kind, not a general one.
+
+What development found and fixed (each with a test or a recorded run): the send-time authorization (above); compose
+projects started under another name were invisible to discovery (the page was never offered to the plan); a goal was
+not pursued again after a deploy; the page check's notion of "flagged" was too loose (Spark called a green SHORT badge
+fine); the fix model saw only current files (two runs restyled the alert pale pink, judged fixed by the agent and
+not verified by the checker: kept in `docs/bench/board/dev/style-*-checker-verdict.json`), now it also sees the
+files' recent history; the goal now says "a red SHORT badge"; the stats oracle timed pattern compilation, not
+reading.
+
 # Stage 4: a reliable cycle on a new API, under local and Meta models: development results (2026-10-28)
 
 Plan: `docs/PLAN.md` (stage 4). Decision: D-042. Raw records: `stage4-dev/` (development only, debugged on). Lab:
