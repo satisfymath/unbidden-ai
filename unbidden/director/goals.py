@@ -166,7 +166,16 @@ def _sources(
                     f"{op.id} ({op.effect}{'; record fields: ' + ', '.join(fields) if fields else ''}"
                     f"{'; body: ' + body if body else ''})"
                 )
-            usable.append(f"- {conn.grant} (api {integration.title}, {conn.environment.value}): {'; '.join(ops)}")
+            known = {o.id for o in integration.operations}
+            more = [
+                f"{d['id']} ({d['effect']}: {d['method']} {d['path']}, {d['summary']})"
+                for d in integration.documented
+                if d["id"] not in known
+            ]
+            extra = f"; documented but not integrated yet: {'; '.join(more)}" if more else ""
+            usable.append(
+                f"- {conn.grant} (api {integration.title}, {conn.environment.value}): {'; '.join(ops)}{extra}"
+            )
         else:
             blocked.append(
                 f"- {conn.grant} ({conn.kind}): {conn.state.value}: {conn.blocked or conn.check_detail}"[:200]
@@ -253,6 +262,8 @@ async def pursue(brain: Any, store: Store, mandate: Mandate, goal: Goal, *, wind
     if not act or not short:
         return _finish(store, run, "investigated", f"{len(short)} of {len(rows)} keys short; nothing to change")
     _act(store, mandate, goal, run, short, act, conns, integrations, plan, window)
+    if run.status in ("waiting_extension", "blocked"):
+        return _finish(store, run, run.status, run.notes[-1])
     done = [f for f in short if (f.get("action") or {}).get("status") in ("executed", "verified", "unverified")]
     status = "acted" if done else "investigated"
     return _finish(
@@ -322,7 +333,28 @@ def _act(
     conn, integration = conns[name], integrations[name]
     operation = str(act.get("operation"))
     if operation not in {o.id for o in integration.operations}:
-        run.notes.append(f"the plan's write {operation!r} is not an operation of the integration")
+        if operation not in {d["id"] for d in integration.documented}:
+            run.notes.append(f"the plan's write {operation!r} is not in {conn.id}'s documentation: blocked")
+            run.status = "blocked"
+            return
+        # A documented operation the integration lacks: a specific need, resolved by extending the integration,
+        # after which this goal resumes. One need per connection and operation; its attempts are bounded.
+        from unbidden.forge import needs
+
+        need, buildable = needs.record(
+            store,
+            "api_extension",
+            f"{conn.id}#{operation}",
+            f"goal {goal.id} needs {operation} on {conn.grant}",
+            resume=[{"type": "goal.pursue", "key": goal.id, "payload": {"goal": goal.id}}],
+        )
+        if operation not in need.operations:
+            need.operations = [*need.operations, operation]
+            store.put(needs.COLLECTION, need)
+        run.notes.append(
+            f"needs {operation} added to the integration ({need.status.value}{'' if buildable else ', not retried'})"
+        )
+        run.status = "waiting_extension"
         return
     limit = int(goal.bounds.get("max_actions", 0) or 0)
     cap = int(goal.bounds.get("max_amount_per_action", 0) or 0)

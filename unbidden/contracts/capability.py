@@ -28,7 +28,7 @@ class NeedStatus(StrEnum):
 
 class CapabilityNeed(Contract):
     id: str
-    kind: Literal["log_adapter", "stats_reader", "api_client"]
+    kind: Literal["log_adapter", "stats_reader", "api_client", "api_extension"]
     source: str  # "compose:backend", "http://127.0.0.1:10000/stats"
     why: str
     evidence: list[EvidenceRef] = Field(default_factory=list[EvidenceRef])
@@ -38,6 +38,7 @@ class CapabilityNeed(Contract):
     attempts: int = 0
     notes: list[str] = Field(default_factory=list[str])
     resume: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])  # jobs to queue once it is in use
+    operations: list[str] = Field(default_factory=list[str])  # for an extension: the documented operations needed
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
 

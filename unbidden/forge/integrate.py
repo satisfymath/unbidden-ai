@@ -149,6 +149,7 @@ async def build(
         return None, "failed", [*notes, "no documented read operation was chosen"]
     info = document.get("info") or {}
     integration = ApiIntegration(
+        documented=_documented(operations),
         source=conn.id,
         title=str(info.get("title", "?")),
         api_version=str(info.get("version", "?")),
@@ -187,6 +188,77 @@ async def build(
         f"{k}: {r['observed']} {r['error'] or ''}".strip() for k, r in verdict["operations"].items() if not r["passed"]
     ]
     return (integration if verdict["passed"] else None), "built" if verdict["passed"] else "rejected", [*notes, *failed]
+
+
+def _documented(operations: list[Any]) -> list[dict[str, str]]:
+    return [
+        {"id": o.id, "method": o.method, "path": o.path, "summary": o.summary, "effect": o.effect} for o in operations
+    ]
+
+
+async def extend(
+    store: Store, mandate: Mandate, conn: Connection, wanted: list[str], transport: httpx.BaseTransport | None = None
+) -> tuple[ApiIntegration | None, str, list[str]]:
+    """Add documented, permitted operations to a connection's integration, validated before they are enabled.
+
+    The existing operations are kept and judged again; the new version is enabled only if every operation passes
+    (a write only where its effect could be exercised, which needs authorization to change the service). The
+    previous version stays, marked superseded, so nothing valid is lost if the extension fails. No model call: the
+    operations are named by the plan and taken from the document."""
+    from unbidden.forge.api_client import choose
+
+    current = store.get(COLLECTION, conn.capability_id or "", ApiIntegration) if conn.capability_id else None
+    if current is None or current.status not in ("validated", "approved"):
+        return None, "blocked", [f"{conn.id} has no integration in use to extend"]
+    grant = _grant(mandate, conn)
+    document = read_document(mandate, grant, transport)
+    operations = documented(document)
+    by_id = {o.id: o for o in operations}
+    missing = [w for w in wanted if w not in by_id]
+    if missing:
+        return None, "blocked", [f"not in the documentation of {conn.id}: {', '.join(missing)}"]
+    answer = {
+        "operations": [{"id": o.id, "use": o.effect, "why": "kept"} for o in current.operations]
+        + [{"id": w, "use": by_id[w].effect, "why": "needed by a goal's plan"} for w in wanted]
+    }
+    chosen, notes = choose(answer, operations, grant)
+    refused = [w for w in wanted if w not in {o.id for o in chosen}]
+    if refused:
+        return None, "blocked", [*notes, f"the grant {grant.id} does not allow {', '.join(refused)}"]
+    extended = current.model_copy(
+        update={
+            "id": f"int_{hashlib.sha256((current.id + ','.join(sorted(wanted))).encode()).hexdigest()[:16]}",
+            "version": current.version + 1,
+            "operations": chosen,
+            "documented": _documented(operations),
+            "signature": signature(document, chosen),
+            "status": "validated",
+            "created_at": utc_now(),
+            "document_sha256": hashlib.sha256(json.dumps(document, sort_keys=True).encode()).hexdigest(),
+            "provenance": {
+                **current.provenance,
+                "extends": current.id,
+                "added": wanted,
+                "extended_at": utc_now().isoformat(),
+            },
+        }
+    )
+    verdict = oracle(extended, conn, mandate, store=store, transport=transport)
+    extended.quality = verdict
+    new = {w: verdict["operations"].get(w, {}) for w in wanted}
+    unproven = {w: r.get("observed", "not judged") for w, r in new.items() if not r.get("passed")}
+    if unproven and all(str(v).startswith("not exercised") for v in unproven.values()):
+        # Validating a write changes the service: without that authorization the extension waits, it is not wrong.
+        return None, "blocked", [*notes, "; ".join(f"{k}: {v}" for k, v in unproven.items())]
+    if unproven or not all(r["passed"] for k, r in verdict["operations"].items() if extended.op(k).effect == "read"):
+        extended.status = "rejected"
+        _register(store, extended, "extension")
+        why = "; ".join(f"{k}: {v}" for k, v in unproven.items()) or "an existing read no longer passes"
+        return None, "rejected", [*notes, why]
+    current.status, current.superseded_by = "superseded", extended.id
+    store.put(COLLECTION, current)
+    _register(store, extended, "extension")
+    return extended, f"extended:{current.id}", [*notes, f"added {', '.join(wanted)} to {current.id}"]
 
 
 def _register(store: Store, integration: ApiIntegration, how: str) -> None:

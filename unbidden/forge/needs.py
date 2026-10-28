@@ -83,8 +83,8 @@ def admit(store: Store, mandate: Mandate | None, need: CapabilityNeed) -> Capabi
     if not permitted(status, mandate, need.source):
         return _set(store, need, NeedStatus.AWAITING_APPROVAL, f"built {need.capability_id}; awaiting approval")
     _set(store, need, NeedStatus.IN_USE, f"in use: {need.capability_id}")
-    if need.kind == "api_client" and need.capability_id:
-        _attach(store, need.source, need.capability_id)
+    if need.kind in ("api_client", "api_extension") and need.capability_id:
+        _attach(store, need.source.split("#", 1)[0], need.capability_id)
     from unbidden.daemon.cycle import job
 
     for spec in need.resume:
@@ -116,7 +116,7 @@ def _capability_status(store: Store, need: CapabilityNeed) -> str | None:
 
     if need.capability_id is None:
         return None
-    if need.kind == "api_client":
+    if need.kind in ("api_client", "api_extension"):
         from unbidden.forge.api_client import COLLECTION as INTEGRATIONS
         from unbidden.forge.api_client import ApiIntegration
 

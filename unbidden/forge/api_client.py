@@ -71,7 +71,10 @@ class ApiIntegration(Contract):
     operations: list[Operation]
     limits: dict[str, float] = Field(default_factory=lambda: {"timeout_s": 10.0, "retries": 2.0})
     version: int = 1
-    status: str = "validated"  # validated | rejected | approved | disabled
+    status: str = "validated"  # validated | rejected | approved | disabled | superseded
+    # Every operation the document declares (id, method, path, summary, effect): what an extension may add.
+    documented: list[dict[str, str]] = Field(default_factory=list[dict[str, str]])
+    superseded_by: str | None = None
     approved_by: str | None = None
     quality: dict[str, Any] = Field(default_factory=dict[str, Any])
     provenance: dict[str, Any] = Field(default_factory=dict[str, Any])

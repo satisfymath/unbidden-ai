@@ -533,13 +533,23 @@ class Cycle:
         repo, brain = self.runtime.workspace.repo, self.runtime.brain
 
         def read(kind: str, source: str) -> list[str]:
-            if kind == "api_client":
+            if kind in ("api_client", "api_extension"):
                 return [source]  # an integration is built from the connection's documentation, read by Forge
             if kind == "stats_reader":
                 return stats_build.fetch(source)
             return compose_logs(repo, source.removeprefix("compose:"))
 
         async def forge(n: CapabilityNeed, lines: list[str]) -> tuple[str | None, str, list[str]]:
+            if n.kind == "api_extension":
+                from unbidden.connect.registry import get
+                from unbidden.forge import integrate
+
+                conn = get(self.store, n.source.split("#", 1)[0])
+                if conn is None:
+                    return None, "failed", [f"no connection {n.source}"]
+                mandate = self.runtime.workspace.mandate()
+                extended, decision, notes = await integrate.extend(self.store, mandate, conn, n.operations)
+                return (extended.id if extended else None), decision, notes
             if n.kind == "api_client":
                 from unbidden.connect.registry import get
                 from unbidden.forge import integrate
@@ -563,8 +573,8 @@ class Cycle:
 
         need = await needs.build(self.store, self.runtime.workspace.mandate(), need, read, forge)
         self.log(f"capability need {need.kind} for {need.source}: {need.status.value}")
-        if need.kind == "api_client" and need.capability_id:
-            self._attach(need.source, need.capability_id)
+        if need.kind in ("api_client", "api_extension") and need.capability_id:
+            self._attach(need.source.split("#", 1)[0], need.capability_id)
 
     def _attach(self, connection: str, capability_id: str) -> None:
         """The connection is used through its integration from now on: checked through it, at once."""
