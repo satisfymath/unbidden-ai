@@ -37,9 +37,11 @@ def record(
     *,
     evidence: list[EvidenceRef] | None = None,
     resume: list[dict[str, Any]] | None = None,
+    condition: str | None = None,
 ) -> tuple[CapabilityNeed, bool]:
     """Record a need once per (kind, source); later sightings add what waits for it. Returns it, and whether it is
-    one the cycle should build now (new, or failed with attempts left)."""
+    one the cycle should build now (new, failed with attempts left, or blocked on a condition that has changed).
+    `condition` is what a person controls that the build depends on, as the caller sees it now."""
     key = CapabilityNeed.key(kind, source)
     need = store.get(COLLECTION, key, CapabilityNeed)
     if need is None:
@@ -49,10 +51,18 @@ def record(
     for job in resume or []:
         if job not in need.resume:
             need.resume = [*need.resume, job]
+    if condition is not None:
+        need.condition = condition
     need.updated_at = utc_now()
     store.put(COLLECTION, need)
-    buildable = need.status is NeedStatus.OPEN or (need.status is NeedStatus.FAILED and need.attempts < MAX_ATTEMPTS)
-    return need, buildable
+    if need.status is NeedStatus.BLOCKED and need.condition != need.blocked_on:
+        need.unblocked += 1
+        _set(store, need, NeedStatus.OPEN, "what blocked it changed; built again")
+    return need, buildable(need)
+
+
+def buildable(need: CapabilityNeed) -> bool:
+    return need.status is NeedStatus.OPEN or (need.status is NeedStatus.FAILED and need.attempts < MAX_ATTEMPTS)
 
 
 async def build(store: Store, mandate: Mandate, need: CapabilityNeed, read: Reader, forge: Builder) -> CapabilityNeed:
@@ -69,6 +79,11 @@ async def build(store: Store, mandate: Mandate, need: CapabilityNeed, read: Read
         return _failed(store, need, "the source returned no lines to build from")
     capability_id, decision, notes = await forge(need, lines)
     need.notes = [*need.notes, *notes[-5:]]
+    if capability_id is None and decision == "blocked":
+        # Waiting for a person is not a failed attempt: it is built again when what blocked it changes.
+        need.attempts -= 1
+        need.blocked_on = need.condition
+        return _set(store, need, NeedStatus.BLOCKED, "blocked until a person changes what it depends on")
     if capability_id is None:
         return _failed(store, need, f"no capability built ({decision})")
     need.capability_id = capability_id
@@ -134,7 +149,14 @@ def _capability_status(store: Store, need: CapabilityNeed) -> str | None:
 
 def _failed(store: Store, need: CapabilityNeed, why: str) -> CapabilityNeed:
     status = NeedStatus.ABANDONED if need.attempts >= MAX_ATTEMPTS else NeedStatus.FAILED
-    return _set(store, need, status, why)
+    _set(store, need, status, why)
+    if status is NeedStatus.ABANDONED:
+        # What waited is told, once: it reports the specific block instead of waiting for a capability forever.
+        from unbidden.daemon.cycle import job
+
+        for spec in need.resume:
+            store.enqueue(job(spec["type"], f"{spec.get('key', need.id)}:abandoned:{need.id}", spec.get("payload")))
+    return need
 
 
 def _set(store: Store, need: CapabilityNeed, status: NeedStatus, note: str) -> CapabilityNeed:

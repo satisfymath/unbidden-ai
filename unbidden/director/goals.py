@@ -233,14 +233,20 @@ async def pursue(brain: Any, store: Store, mandate: Mandate, goal: Goal, *, wind
     if unbuilt:
         from unbidden.forge import needs
 
+        given_up: list[str] = []
         for name in unbuilt:
-            needs.record(
+            need, _ = needs.record(
                 store,
                 "api_client",
                 conns[name].id,
                 f"goal {goal.id} needs {name}",
                 resume=[{"type": "goal.pursue", "key": goal.id, "payload": {"goal": goal.id}}],
             )
+            if need.status.value == "abandoned":
+                why = next((n for n in reversed(need.notes) if not n.startswith(("attempt", "no capability"))), "")
+                given_up.append(f"{name}: no integration could be validated ({why})")
+        if given_up:
+            return _finish(store, run, "blocked", "; ".join(given_up))
         return _finish(store, run, "waiting_capability", f"needs an integration for {', '.join(unbuilt)}")
     if missing:
         return _finish(store, run, "blocked", "; ".join(f"{n}: {conns[n].state.value}" for n in missing))
@@ -343,20 +349,29 @@ def _act(
             return
         # A documented operation the integration lacks: a specific need, resolved by extending the integration,
         # after which this goal resumes. One need per connection and operation; its attempts are bounded.
+        from unbidden.connect.effects import WRITE
         from unbidden.forge import needs
+        from unbidden.guardian.approvals import find_valid
 
+        granted = next((g for g in mandate.connections if g.id == conn.grant), None)
+        approval = find_valid(store, WRITE, conn.id)
         need, buildable = needs.record(
             store,
             "api_extension",
             f"{conn.id}#{operation}",
             f"goal {goal.id} needs {operation} on {conn.grant}",
             resume=[{"type": "goal.pursue", "key": goal.id, "payload": {"goal": goal.id}}],
+            condition=f"{sorted(granted.permissions) if granted else []}; approval {approval.id if approval else None}",
         )
         if operation not in need.operations:
             need.operations = [*need.operations, operation]
             store.put(needs.COLLECTION, need)
+        waits = ""
+        if need.status.value == "blocked":
+            waits = ": " + next((n for n in reversed(need.notes) if not n.startswith(("blocked", "attempt"))), "")
         run.notes.append(
-            f"needs {operation} added to the integration ({need.status.value}{'' if buildable else ', not retried'})"
+            f"needs {operation} added to the integration "
+            f"({need.status.value}{'' if buildable or need.status.value == 'blocked' else ', not retried'}{waits})"
         )
         run.status = "waiting_extension"
         return

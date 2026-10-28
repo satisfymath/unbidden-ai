@@ -120,3 +120,33 @@ def test_the_cycle_queues_and_builds_needs_on_its_own(
     asyncio.run(cycle.forge_build(queued_build))
     (need,) = store.list(needs.COLLECTION, CapabilityNeed)
     assert need.status is NeedStatus.IN_USE and queued(store) == ["research.investigate"]
+
+
+def test_a_build_blocked_on_a_person_waits_and_is_built_again_only_once_that_changes(
+    store: Store, mandate: Mandate
+) -> None:
+    async def blocked(n: CapabilityNeed, ls: list[str]) -> tuple[str | None, str, list[str]]:
+        return None, "blocked", ["the grant depot does not allow requestRestock"]
+
+    mandate.autonomy.run_experiments = Autonomy.ALLOW
+    need, _ = needs.record(store, "api_extension", "c#op", "x", resume=[RESUME], condition="['read']")
+    for _ in range(3):  # waiting for a person never uses up the attempts, and is never abandoned
+        need = asyncio.run(needs.build(store, mandate, need, read, blocked))
+        assert need.status is NeedStatus.BLOCKED and need.attempts == 0
+    same, buildable = needs.record(store, "api_extension", "c#op", "x", condition="['read']")
+    assert same.status is NeedStatus.BLOCKED and not buildable
+    widened, buildable = needs.record(store, "api_extension", "c#op", "x", condition="['read', 'write:restocks']")
+    assert widened.status is NeedStatus.OPEN and buildable and widened.unblocked == 1
+    assert queued(store) == []  # blocked is not abandoned: nothing waiting is told to give up
+
+
+def test_an_abandoned_need_tells_what_waited_so_it_reports_the_block(store: Store, mandate: Mandate) -> None:
+    async def rejected(n: CapabilityNeed, ls: list[str]) -> tuple[str | None, str, list[str]]:
+        return None, "rejected", ["listBins: page size 2: 9 records; 6 differ"]
+
+    mandate.autonomy.run_experiments = Autonomy.ALLOW
+    need, _ = needs.record(store, "api_client", "c", "x", resume=[RESUME])
+    need = asyncio.run(needs.build(store, mandate, need, read, rejected))
+    assert need.status is NeedStatus.FAILED and queued(store) == []
+    need = asyncio.run(needs.build(store, mandate, need, read, rejected))
+    assert need.status is NeedStatus.ABANDONED and queued(store) == ["research.investigate"]

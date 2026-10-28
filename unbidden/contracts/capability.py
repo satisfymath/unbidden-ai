@@ -23,6 +23,7 @@ class NeedStatus(StrEnum):
     AWAITING_APPROVAL = "awaiting_approval"  # built and validated; the mandate leaves its use to a person
     IN_USE = "in_use"
     FAILED = "failed"  # the last build failed; built again on the next attempt
+    BLOCKED = "blocked"  # a person's decision is missing (a grant's scope, an approval); built again once it changes
     ABANDONED = "abandoned"  # every attempt failed; reopened only when its source changes
 
 
@@ -39,6 +40,11 @@ class CapabilityNeed(Contract):
     notes: list[str] = Field(default_factory=list[str])
     resume: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])  # jobs to queue once it is in use
     operations: list[str] = Field(default_factory=list[str])  # for an extension: the documented operations needed
+    # What a person controls that the build depends on (a grant's permissions, a valid approval), as seen at the last
+    # sighting; a blocked need is built again only when it differs from what it was blocked on. Not an attempt.
+    condition: str = ""
+    blocked_on: str | None = None
+    unblocked: int = 0
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
 

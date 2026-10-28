@@ -60,3 +60,46 @@ def test_a_goals_bounds_hold_across_its_runs_in_a_window(
     goals._act(store, mandate, goal, second, short, act, {"api": conn}, {"api": integration}, plan, "2026-10-28")  # pyright: ignore[reportPrivateUsage, reportArgumentType]
     assert [b["sku"] for b in sent] == ["S0", "S1", "S2"] and second.actions == []
     assert all(b["units"] == 50 for b in sent)  # capped by the bound
+
+
+def test_a_missing_write_waits_for_the_person_and_resumes_when_the_grant_widens(store: Store, mandate: Mandate) -> None:
+    from unbidden.contracts.capability import CapabilityNeed, NeedStatus
+    from unbidden.contracts.guardian import ConnectionGrant
+    from unbidden.forge import needs
+
+    mandate.connections = [ConnectionGrant(id="api", kind="http_api", location="x", permissions=["read"])]
+    goal = Goal(id="g", statement="s", bounds={"max_actions": 3})
+    conn = Connection(
+        id="http_api:x", project="p", kind="http_api", protocol="http", location="x", grant="api",
+        state=ConnectionState.CONNECTED,
+    )  # fmt: skip
+    integration: Any = type("I", (), {"operations": [], "documented": [{"id": "createReorder"}]})()
+    plan, act = {"key": "sku", "api": {"connection": "api"}}, {"operation": "createReorder"}
+
+    def pursue() -> GoalRun:
+        run = GoalRun(goal="g")
+        goals._act(
+            store,
+            mandate,
+            goal,
+            run,
+            [{"sku": "S0", "shortfall": 9}],
+            act,
+            {"api": conn},
+            {"api": integration},
+            plan,
+            "2026-10-28",
+        )  # pyright: ignore[reportPrivateUsage]
+        return run
+
+    assert pursue().status == "waiting_extension"
+    need = store.list(needs.COLLECTION, CapabilityNeed)[0]
+    need.status, need.blocked_on = NeedStatus.BLOCKED, need.condition  # the extension found the grant read-only
+    need.notes = [*need.notes, "the grant api does not allow createReorder", "blocked until a person changes it"]
+    store.put(needs.COLLECTION, need)
+    again = pursue()
+    assert "blocked: the grant api does not allow createReorder" in again.notes[-1]
+    assert store.list(needs.COLLECTION, CapabilityNeed)[0].status is NeedStatus.BLOCKED
+    mandate.connections[0].permissions = ["read", "write:reorders"]  # a person widens the grant
+    pursue()
+    assert store.list(needs.COLLECTION, CapabilityNeed)[0].status is NeedStatus.OPEN

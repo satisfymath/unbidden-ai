@@ -513,12 +513,12 @@ class Cycle:
 
     def _queue_needs(self) -> None:
         """Each capability need the cycle can still build, once per attempt."""
-        from unbidden.contracts.capability import CapabilityNeed, NeedStatus
-        from unbidden.forge.needs import COLLECTION, MAX_ATTEMPTS
+        from unbidden.contracts.capability import CapabilityNeed
+        from unbidden.forge.needs import COLLECTION, buildable
 
         for need in self.store.list(COLLECTION, CapabilityNeed):
-            if need.status is NeedStatus.OPEN or (need.status is NeedStatus.FAILED and need.attempts < MAX_ATTEMPTS):
-                self.store.enqueue(job("forge.build", f"{need.id}:{need.attempts}", {"id": need.id}))
+            if buildable(need):
+                self.store.enqueue(job("forge.build", f"{need.id}:{need.attempts}:{need.unblocked}", {"id": need.id}))
 
     async def forge_build(self, j: Job) -> None:
         """Fill a capability need: read the source, build with Forge, judge with its oracle, admit by the mandate."""
@@ -625,7 +625,7 @@ class Cycle:
             return
         run = await pursue(self.runtime.brain, self.store, mandate, goal, window=f"{utc_now():%Y-%m-%d}")
         self.log(f"goal {goal.id}: {run.status}: {run.notes[-1] if run.notes else ''}")
-        if run.status == "waiting_capability":
+        if run.status in ("waiting_capability", "waiting_extension"):
             self._queue_needs()
 
     async def ops_deploy(self, j: Job) -> None:
