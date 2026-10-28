@@ -1,0 +1,84 @@
+{
+  "pairs": 40,
+  "metrics": {
+    "stack_supported": {
+      "before": 24,
+      "after": 27,
+      "n": 40,
+      "gained": 3,
+      "lost": 0,
+      "p_mcnemar": 0.25
+    },
+    "dependencies_installed": {
+      "before": 22,
+      "after": 25,
+      "n": 40,
+      "gained": 3,
+      "lost": 0,
+      "p_mcnemar": 0.25
+    },
+    "analyzer_complete": {
+      "before": 20,
+      "after": 25,
+      "n": 40,
+      "gained": 5,
+      "lost": 0,
+      "p_mcnemar": 0.0625
+    },
+    "bootstrapped": {
+      "before": 20,
+      "after": 25,
+      "n": 40,
+      "gained": 5,
+      "lost": 0,
+      "p_mcnemar": 0.0625
+    },
+    "ci_understood": {
+      "before": 36,
+      "after": 36,
+      "n": 40,
+      "gained": 0,
+      "lost": 0,
+      "p_mcnemar": 1.0
+    }
+  },
+  "changes": [
+    {
+      "name": "discobox-ai__discobox",
+      "before": "no_applicable_analyzer",
+      "after": "findings_declined",
+      "direction": 2
+    },
+    {
+      "name": "gohugoio__hugoThemesSiteBuilder",
+      "before": "no_dependency_manifest",
+      "after": "nothing_found",
+      "direction": 9
+    },
+    {
+      "name": "mirceanton__kubectl-switch",
+      "before": "no_dependency_manifest",
+      "after": "nothing_found",
+      "direction": 9
+    },
+    {
+      "name": "moby__moby",
+      "before": "no_dependency_manifest",
+      "after": "nothing_found",
+      "direction": 9
+    },
+    {
+      "name": "dsx-ai-factory__infra-controller",
+      "before": "unsupported_language",
+      "after": "nothing_found",
+      "direction": 10
+    }
+  ],
+  "decisions": [
+    {
+      "name": "firekylin__firekylin",
+      "before": "findings_declined",
+      "after": "actionable"
+    }
+  ]
+}

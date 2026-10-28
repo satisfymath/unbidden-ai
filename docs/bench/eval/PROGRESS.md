@@ -75,3 +75,15 @@ its CI does not show tsc was not investigated: validation is not debugged.
 ## Cost
 
 US$0 of API for the whole program so far (static tier only). Docker images each run created were removed after it.
+
+## v4: the LanguageAdapter contract and Go (tree 0c0879d), paired against v3
+
+| Split | Bootstrapped v3 → v4 | Gained / lost | Exact McNemar p |
+|---|---|---|---|
+| Dev (40) | 20 → 25 | 5 / 0 | 0.0625 |
+| Validation (32, frozen) | 18 → 21 | 3 / 0 | 0.25 |
+
+Python and Node: no repository changed cause (one decision changed on dev, firekylin, with a readable CI both times).
+All gains are Go repositories now analyzed (`go vet` and the compiler, offline). **Coverage, not discovery:** of the 8
+Go repositories gained, 7 found nothing and 1 (discobox) had every finding declined; none adds an opportunity worth
+acting on. On this evidence, more languages wait until discovery and decision improve (`docs/PLAN.md`).

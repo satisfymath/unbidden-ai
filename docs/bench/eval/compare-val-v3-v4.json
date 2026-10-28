@@ -1,0 +1,66 @@
+{
+  "pairs": 32,
+  "metrics": {
+    "stack_supported": {
+      "before": 18,
+      "after": 21,
+      "n": 32,
+      "gained": 3,
+      "lost": 0,
+      "p_mcnemar": 0.25
+    },
+    "dependencies_installed": {
+      "before": 16,
+      "after": 19,
+      "n": 32,
+      "gained": 3,
+      "lost": 0,
+      "p_mcnemar": 0.25
+    },
+    "analyzer_complete": {
+      "before": 18,
+      "after": 21,
+      "n": 32,
+      "gained": 3,
+      "lost": 0,
+      "p_mcnemar": 0.25
+    },
+    "bootstrapped": {
+      "before": 18,
+      "after": 21,
+      "n": 32,
+      "gained": 3,
+      "lost": 0,
+      "p_mcnemar": 0.25
+    },
+    "ci_understood": {
+      "before": 31,
+      "after": 31,
+      "n": 32,
+      "gained": 0,
+      "lost": 0,
+      "p_mcnemar": 1.0
+    }
+  },
+  "changes": [
+    {
+      "name": "allisonhere__tidemail",
+      "before": "no_dependency_manifest",
+      "after": "nothing_found",
+      "direction": 9
+    },
+    {
+      "name": "perkeep__perkeep",
+      "before": "no_dependency_manifest",
+      "after": "nothing_found",
+      "direction": 9
+    },
+    {
+      "name": "sammy-ette__Hilbish",
+      "before": "no_dependency_manifest",
+      "after": "nothing_found",
+      "direction": 9
+    }
+  ],
+  "decisions": []
+}
