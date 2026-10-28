@@ -339,3 +339,19 @@ def test_a_live_result_rolled_back_is_invalidated(
     w._recheck([v0, v1, v0], utc_now() + timedelta(days=2))  # pyright: ignore[reportPrivateUsage]
     level, outcome = outcome_of(store, opp)
     assert level is EvidenceLevel.FUNCTIONAL_VALIDATION and "no longer deployed" in outcome["invalidated"]["why"]
+
+
+def test_a_positive_live_result_on_lab_evidence_below_l4_is_recorded_but_not_promoted(
+    store: Store, mandate: Mandate, history_repo: tuple[Path, list[str]]
+) -> None:
+    repo, (v0, v1, _v2) = history_repo
+    opp = merged_change(store, v0, v1)
+    opp.evidence_level = EvidenceLevel.LAB_IMPROVEMENT
+    store.put("opportunities", opp)
+    ledger_entry(store, 0, v0)
+    ledger_entry(store, 1, v1)
+    add_rounds(store, 0, v0, 20, 20, 1)
+    add_rounds(store, 1, v1, 5, 20, 2)
+    watcher(store, mandate, repo)._judge([v0, v1], 1, 0)  # pyright: ignore[reportPrivateUsage]
+    level, outcome = outcome_of(store, opp)
+    assert level is EvidenceLevel.LAB_IMPROVEMENT and outcome["result"] == "positive" and outcome["promoted"] is False

@@ -338,8 +338,13 @@ class LiveWatcher:
                 "confounders": confounders,
                 "criteria": CRITERIA,
             }
+            if result == "positive" and opp.evidence_level < EvidenceLevel.FUNCTIONAL_VALIDATION:
+                # A live result is level 5 on top of a validated change, never in its place.
+                why = [*why, f"the lab evidence is L{int(opp.evidence_level)}, below L4: no promotion to L5"]
+                outcome["why"] = why
+                outcome["promoted"] = False
             opp.details = {**opp.details, "outcome": outcome}
-            if result == "positive":
+            if result == "positive" and opp.evidence_level >= EvidenceLevel.FUNCTIONAL_VALIDATION:
                 opp.evidence_level = EvidenceLevel.OPERATIONAL_RESULT
                 opp.status = OpportunityStatus.VERIFIED
                 opp.evidence = [
