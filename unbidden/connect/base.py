@@ -60,8 +60,11 @@ def purpose(grant_id: str) -> str:
     return f"connection:{grant_id}"
 
 
-def require(conn: Connection | None, mandate: Mandate, kind: str, operation: str | None, why: str) -> Connection:
-    """The gate every connection read or write passes, at the moment it runs. Raises `Unavailable`."""
+def require(
+    conn: Connection | None, mandate: Mandate, kind: str, operation: str | None, why: str, *, scope: str | None = None
+) -> Connection:
+    """The gate every connection read or write passes, at the moment it runs. Raises `Unavailable`. A write is
+    checked against the grant by what it writes (`scope`, e.g. "reorders"), as grants name it (`write:reorders`)."""
     if conn is None:
         raise Unavailable("no such connection")
     if conn.state not in (ConnectionState.CONNECTED, ConnectionState.DEGRADED):
@@ -72,7 +75,7 @@ def require(conn: Connection | None, mandate: Mandate, kind: str, operation: str
     grant = next((g for g in mandate.connections if g.id == conn.grant), None)
     if grant is None:
         raise Unavailable(f"{conn.id} is not granted by the mandate any more")
-    wanted = "read" if kind in ("read", "measure") else f"write:{operation}" if operation else "write"
+    wanted = "read" if kind in ("read", "measure") else f"write:{scope or operation}" if scope or operation else "write"
     if wanted not in grant.permissions and not (kind == "write" and "write" in grant.permissions):
         raise Unavailable(f"{conn.id}: the mandate grants {grant.permissions}, not {wanted}")
     capability = "connection.read" if kind in ("read", "measure") else "connection.write"

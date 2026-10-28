@@ -249,7 +249,7 @@ def call(
     against the document. Returns (status, body); raises `Unavailable` or `CallFailed`."""
     op = integration.op(op_id)
     if gate:
-        require(conn, mandate, op.effect, op.id, f"{op.id} on {conn.id}")
+        require(conn, mandate, op.effect, op.id, f"{op.id} on {conn.id}", scope=op.scope)
     grant = next((g for g in mandate.connections if g.id == conn.grant), None)
     if grant is None:
         raise Unavailable(f"{conn.id} is not granted")
