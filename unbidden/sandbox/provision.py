@@ -137,7 +137,8 @@ def _copy_from_git(repo: Path, rev: str, paths: list[str], dest: Path) -> str:
 def node_dockerfile(stack: NodeStack) -> str:
     install = {
         "npm": "npm ci --ignore-scripts --no-audit --no-fund",
-        "pnpm": "corepack enable && pnpm install --frozen-lockfile --ignore-scripts",
+        "pnpm": f"corepack enable && corepack prepare pnpm@{stack.manager_version or '9'} --activate "
+        "&& pnpm install --frozen-lockfile --ignore-scripts",
         # bun's binary comes from its official image (below); the project's lifecycle scripts are not run either.
         "bun": "bun install --frozen-lockfile --ignore-scripts",
         # Yarn classic, from npm's registry through corepack, at the declared version when there is one.

@@ -315,9 +315,16 @@ def package_scripts_run(repo: Path, rev: str, text: str, depth: int = 3) -> list
     return found
 
 
-def ci_status(slug: str, sha: str, token: str | None = None, *, timeout_s: float = 10.0) -> str | None:
-    """'green' when every check run of the commit that finished succeeded (or was skipped), 'red' when one failed,
-    None when there are none or GitHub cannot be read. Read-only, one request."""
+UNREADABLE = "unreadable"
+
+
+def completed_runs(
+    slug: str, sha: str, token: str | None = None, *, timeout_s: float = 10.0
+) -> tuple[list[dict[str, Any]] | None, str | None]:
+    """The finished check runs of a commit, or None and why GitHub could not be read. One request.
+
+    "No checks" (an empty list) and "could not ask" (None) are different answers: the Director may act on the first
+    and must not on the second."""
     import httpx
 
     headers = {"Accept": "application/vnd.github+json", **({"Authorization": f"Bearer {token}"} if token else {})}
@@ -328,38 +335,35 @@ def ci_status(slug: str, sha: str, token: str | None = None, *, timeout_s: float
             headers=headers,
             timeout=timeout_s,
         )
-    except httpx.HTTPError:
-        return None
+    except httpx.HTTPError as exc:
+        return None, f"GitHub could not be reached: {type(exc).__name__}"
     if response.status_code != 200:
-        return None
+        why = f"GitHub answered {response.status_code} for {slug}@{sha[:12]}"
+        if response.headers.get("x-ratelimit-remaining") == "0":
+            why += " (rate limit exhausted" + (", no token was used)" if not token else ")")
+        return None, why
     runs = [r for r in response.json().get("check_runs", []) if r.get("status") == "completed"]
+    return runs, None
+
+
+def _verdict(runs: list[dict[str, Any]]) -> str | None:
     if not runs:
         return None
     conclusions = {str(r.get("conclusion")) for r in runs}
     return "red" if conclusions & {"failure", "timed_out", "action_required"} else "green"
 
 
+def ci_status(slug: str, sha: str, token: str | None = None, *, timeout_s: float = 10.0) -> str | None:
+    """'green' when every check run of the commit that finished succeeded (or was skipped), 'red' when one failed,
+    None when there are none or GitHub cannot be read."""
+    runs, _ = completed_runs(slug, sha, token, timeout_s=timeout_s)
+    return _verdict(runs) if runs is not None else None
+
+
 def check_runs(slug: str, sha: str, token: str | None = None, *, timeout_s: float = 10.0) -> dict[str, str]:
     """name -> conclusion of each finished check run on the commit; empty when GitHub cannot be read."""
-    import httpx
-
-    headers = {"Accept": "application/vnd.github+json", **({"Authorization": f"Bearer {token}"} if token else {})}
-    try:
-        response = httpx.get(
-            f"https://api.github.com/repos/{slug}/commits/{sha}/check-runs",
-            params={"per_page": "100"},
-            headers=headers,
-            timeout=timeout_s,
-        )
-    except httpx.HTTPError:
-        return {}
-    if response.status_code != 200:
-        return {}
-    return {
-        str(r.get("name")): str(r.get("conclusion"))
-        for r in response.json().get("check_runs", [])
-        if r.get("status") == "completed"
-    }
+    runs, _ = completed_runs(slug, sha, token, timeout_s=timeout_s)
+    return {str(r.get("name")): str(r.get("conclusion")) for r in runs or []}
 
 
 def tool_status(repo: Path, rev: str, tool: str, runs: dict[str, str]) -> str | None:
@@ -394,16 +398,19 @@ def tool_status(repo: Path, rev: str, tool: str, runs: dict[str, str]) -> str | 
 
 def ci_verdicts(
     repo: Path, rev: str, slug: str, token: str | None, tools: set[str]
-) -> tuple[str | None, dict[str, str]]:
-    """The team's CI on this commit: the whole commit's status, and per tool the status of the jobs that run it.
-    Used by the Director wherever it decides, so `unbidden decide` and the autonomous cycle judge alike."""
-    status = ci_status(slug, rev, token)
-    runs = check_runs(slug, rev, token)
-    if status is None and (parent := fork_parent(slug, token)) is not None:
+) -> tuple[str | None, dict[str, str], str | None]:
+    """The team's CI on this commit: the whole commit's status ('green', 'red', None for no checks, or UNREADABLE),
+    per tool the status of the jobs that run it, and why it could not be read. Used by the Director wherever it
+    decides, so `unbidden decide` and the autonomous cycle judge alike."""
+    runs, problem = completed_runs(slug, rev, token)
+    if not runs and (parent := fork_parent(slug, token)) is not None:
         # A fork runs no checks on the commits it shares with its parent; the parent's CI judged them.
-        status, runs = ci_status(parent, rev, token), check_runs(parent, rev, token)
-    per_tool = {t: v for t in sorted(tools) if t and (v := tool_status(repo, rev, t, runs)) is not None}
-    return status, per_tool
+        runs, problem = completed_runs(parent, rev, token)
+    if runs is None:
+        return UNREADABLE, {}, problem
+    named = {str(r.get("name")): str(r.get("conclusion")) for r in runs}
+    per_tool = {t: v for t in sorted(tools) if t and (v := tool_status(repo, rev, t, named)) is not None}
+    return _verdict(runs), per_tool, None
 
 
 def analyzer_tool(details: dict[str, object]) -> str:

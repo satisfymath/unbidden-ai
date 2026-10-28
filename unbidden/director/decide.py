@@ -14,7 +14,7 @@ from unbidden.contracts.common import EvidenceLevel
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import Mandate
 from unbidden.contracts.opportunity import ActionKind, CandidateAction, Decision, Opportunity, OpportunityStatus
-from unbidden.observe.ci import analyzer_tool
+from unbidden.observe.ci import UNREADABLE, analyzer_tool
 from unbidden.store import Store
 
 CATEGORY_VALUE = {
@@ -47,6 +47,7 @@ class Context:
     ci_commands: str | None = ""  # what the team's workflows run, lowercased; None when no workflow could be read
     ci_status: str | None = None  # "green" / "red": the team's own checks on this commit, when GitHub could be read
     tool_status: dict[str, str] | None = None  # tool -> "green" / "red": the jobs that run that tool, on this commit
+    ci_problem: str | None = None  # why the CI's verdict could not be read, when ci_status is "unreadable"
 
 
 def outside_checked_scope(opp: Opportunity, checked_dirs: tuple[str, ...]) -> bool:
@@ -106,6 +107,12 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
             f"the team's CI does not run {tool}: its style is not the team's standard",
         )
         return _choose(opp, candidates, ActionKind.DECLINE)
+    if ctx.ci_status == UNREADABLE and tool and ctx.ci_commands and tool in ctx.ci_commands:
+        # The team's CI runs this tool but its verdict could not be read: whether these findings are the code's or
+        # Unbidden's environment cannot be told, so nothing is spent on them until it can.
+        reason = f"the team's CI runs {tool} and its verdict on this commit could not be read ({ctx.ci_problem})"
+        add(ActionKind.WAIT, 0.0, 0.0, 0.0, reason)
+        return _choose(opp, candidates, ActionKind.WAIT)
     # The jobs that run this very tool, when known; the whole commit otherwise.
     green = (ctx.tool_status or {}).get(tool, ctx.ci_status) == "green"
     if green and tool and ctx.ci_commands and tool in ctx.ci_commands:

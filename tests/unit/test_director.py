@@ -141,10 +141,33 @@ def test_a_reopened_opportunity_keeps_its_history_and_gets_new_experiment_keys(t
 def test_a_forks_shared_commits_are_judged_by_the_parents_ci(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     import unbidden.observe.ci as ci
 
-    monkeypatch.setattr(ci, "ci_status", lambda slug, rev, token=None: "green" if slug == "upstream/lib" else None)  # pyright: ignore[reportUnknownLambdaType]
+    green = [{"name": "test", "status": "completed", "conclusion": "success"}]
+    monkeypatch.setattr(
+        ci, "completed_runs", lambda slug, rev, token=None: (green, None) if slug == "upstream/lib" else ([], None)
+    )  # pyright: ignore[reportUnknownLambdaType]
     monkeypatch.setattr(ci, "fork_parent", lambda slug, token=None: "upstream/lib" if slug == "me/lib" else None)  # pyright: ignore[reportUnknownLambdaType]
-    assert ci.ci_verdicts(tmp_path, "abc", "me/lib", None, set()) == ("green", {})
-    assert ci.ci_verdicts(tmp_path, "abc", "other/lib", None, set()) == (None, {})
+    assert ci.ci_verdicts(tmp_path, "abc", "me/lib", None, set()) == ("green", {}, None)
+    assert ci.ci_verdicts(tmp_path, "abc", "other/lib", None, set()) == (None, {}, None)
+
+
+def test_an_unreadable_ci_is_not_no_checks_and_the_director_waits_on_it(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, mandate: Mandate
+) -> None:
+    import unbidden.observe.ci as ci
+
+    why = "GitHub answered 403 for acme/lib@abc (rate limit exhausted, no token was used)"
+    monkeypatch.setattr(ci, "completed_runs", lambda *a, **k: (None, why))  # pyright: ignore[reportUnknownLambdaType]
+    assert ci.ci_verdicts(tmp_path, "abc", "acme/lib", None, set()) == (ci.UNREADABLE, {}, why)
+    found = Opportunity(
+        source="tsc", category="types", title="t", summary="s", dedup_key="k",
+        evidence=[EvidenceRef(kind="file", locator="a.ts")], details={"tool": "tsc", "paths": ["a.ts"]},
+    )  # fmt: skip
+    ctx = Context(open_pull_requests=0, attempts=0, ci_commands="pnpm check tsc -b", ci_status=ci.UNREADABLE,
+                  ci_problem=why)  # fmt: skip
+    decided = decide(found, mandate, ctx)
+    assert (
+        decided.chosen is ActionKind.WAIT and "could not be read" in decided.reason and "rate limit" in decided.reason
+    )
 
 
 def test_the_cis_python_versions_are_read_from_workflows_tox_and_nox(tmp_path: Path) -> None:

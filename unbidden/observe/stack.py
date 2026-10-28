@@ -167,6 +167,16 @@ def _yarn_berry(repo: Path, rev: str, files: set[str], package: dict[str, Any]) 
     return "yarn lockfile v1" not in _read(repo, rev, "yarn.lock")[:400]
 
 
+# The newest pnpm major that writes each lockfile format, for projects that do not declare theirs: otherwise corepack takes
+# whatever pnpm is newest the day the image is built.
+PNPM_FOR_LOCKFILE = {"9.0": "10", "6.0": "8", "6.1": "8", "5.4": "7", "5.3": "6"}
+
+
+def _pnpm_for_lockfile(text: str) -> str | None:
+    found = re.search(r"^lockfileVersion:\s*['\"]?([\d.]+)", text[:300], re.MULTILINE)
+    return PNPM_FOR_LOCKFILE.get(found.group(1)) if found else None
+
+
 def _manager_version(package: dict[str, Any], manager: str) -> str | None:
     declared = package.get("packageManager")
     if isinstance(declared, str) and declared.startswith(f"{manager}@"):
@@ -209,7 +219,8 @@ def _detect_node(repo: Path, rev: str, files: set[str], blind: list[str]) -> Nod
                 break
     return NodeStack(
         manager=lock[0],
-        manager_version=_manager_version(package, lock[0]),
+        manager_version=_manager_version(package, lock[0])
+        or (_pnpm_for_lockfile(_read(repo, rev, lock[1])) if lock[0] == "pnpm" and lock[1] else None),
         lockfile=lock[1],
         major=major,
         major_assumed=assumed,

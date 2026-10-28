@@ -314,3 +314,12 @@ def test_ci_commands_follow_the_package_scripts_a_workflow_calls(tmp_path: Path)
     )
     commands = ci_commands(repo, "HEAD")
     assert commands is not None and "tsc -b tsconfig.json" in commands
+
+
+def test_pnpm_comes_from_the_lockfile_when_the_project_declares_none(tmp_path: Path) -> None:
+    from unbidden.sandbox.provision import node_dockerfile
+
+    repo = commit(tmp_path, {"package.json": '{"name": "a"}', "pnpm-lock.yaml": "lockfileVersion: '9.0'\n"})
+    node = detect_stack(repo).node
+    assert node is not None and (node.manager, node.manager_version) == ("pnpm", "10")
+    assert "corepack prepare pnpm@10 --activate" in node_dockerfile(node)

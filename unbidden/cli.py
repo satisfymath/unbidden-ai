@@ -534,18 +534,20 @@ def cmd_decide(args: argparse.Namespace) -> int:
 
     ws = Workspace.find()
     ws.require()
+    ws.load_env()  # the GitHub token, for the CI's verdicts: without it GitHub's anonymous limit decides
     store = ws.store()
     mandate = ws.mandate()
     head = head_sha(ws.repo)
     dirs = checked_dirs(ws.repo, head)
     commands = ci_commands(ws.repo, head)
     status = None
+    ci_problem: str | None = None
     per_tool: dict[str, str] = {}
     slug = mandate.egress.github.repository
     if slug and PolicyEngine(mandate).evaluate(ActionRequest(capability="github.read", purpose="CI status")).allowed:
         token = broker().get(mandate.egress.github.token_env, "github")
         tools = {analyzer_tool(o.details) for o in store.list("opportunities", Opportunity)}
-        status, per_tool = ci_verdicts(ws.repo, head, slug, token, tools)
+        status, per_tool, ci_problem = ci_verdicts(ws.repo, head, slug, token, tools)
     open_prs = len(store.list("proposals", Proposal, status=ProposalStatus.PR_OPENED.value))
     live = (OpportunityStatus.OPEN, OpportunityStatus.EXPERIMENTING, OpportunityStatus.PROPOSED)
     rows = []
@@ -562,6 +564,7 @@ def cmd_decide(args: argparse.Namespace) -> int:
                 ci_commands=commands,
                 ci_status=status,
                 tool_status=per_tool,
+                ci_problem=ci_problem,
             ),
         )
         rows.append(
@@ -583,6 +586,7 @@ def cmd_decide(args: argparse.Namespace) -> int:
     data = {
         "checked_dirs": list(dirs),
         "ci_status": status,
+        "ci_problem": ci_problem,
         "tool_status": per_tool,
         "open": len(rows),
         "chosen": counts,

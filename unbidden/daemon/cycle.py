@@ -207,7 +207,7 @@ class Cycle:
         checked = self._checked_dirs()
         head = self.store.get_value("head")
         commands = ci_commands(self.runtime.workspace.repo, head) if head else ""
-        ci_status, per_tool = self._ci_verdicts(head, mandate)
+        ci_status, per_tool, ci_problem = self._ci_verdicts(head, mandate)
         queued = 0
         live = (OpportunityStatus.OPEN, OpportunityStatus.EXPERIMENTING, OpportunityStatus.PROPOSED)
         unpublished = {
@@ -231,6 +231,7 @@ class Cycle:
                     ci_commands=commands,
                     ci_status=ci_status,
                     tool_status=per_tool,
+                    ci_problem=ci_problem,
                 ),
             )
             last: dict[str, Any] = opp.details.get("decision", {})
@@ -276,27 +277,28 @@ class Cycle:
                     self.store.put("proposals", withdrawn)
                     self.log(f"{opp.id}: proposal withdrawn before publishing ({decision.reason})")
 
-    def _ci_verdicts(self, head: str | None, mandate: Any) -> tuple[str | None, dict[str, str]]:
+    def _ci_verdicts(self, head: str | None, mandate: Any) -> tuple[str | None, dict[str, str], str | None]:
         """The team's CI on HEAD, read once per commit (the sweep runs often; GitHub limits unauthenticated reads)."""
         from unbidden.contracts.guardian import ActionRequest
         from unbidden.guardian.credentials import broker
         from unbidden.guardian.policy import PolicyEngine
-        from unbidden.observe.ci import analyzer_tool, ci_verdicts
+        from unbidden.observe.ci import UNREADABLE, analyzer_tool, ci_verdicts
 
         slug = mandate.egress.github.repository
         if not head or not slug:
-            return None, {}
+            return None, {}, None
         if not PolicyEngine(mandate).evaluate(ActionRequest(capability="github.read", purpose="CI status")).allowed:
-            return None, {}
+            return None, {}, None
         tools = {analyzer_tool(o.details) for o in self.store.list("opportunities", Opportunity)}
         cached = self._ci.get(head)
         if cached is None or not tools <= cached[2]:
             token = broker().get(mandate.egress.github.token_env, "github")
-            status, per_tool = ci_verdicts(self.runtime.workspace.repo, head, slug, token, tools)
+            status, per_tool, problem = ci_verdicts(self.runtime.workspace.repo, head, slug, token, tools)
+            if status == UNREADABLE:
+                return status, per_tool, problem  # asked again next sweep, never cached
             cached = (status, per_tool, tools)
-            if status is not None:  # an unreadable CI is asked again next sweep
-                self._ci[head] = cached
-        return cached[0], cached[1]
+            self._ci[head] = cached
+        return cached[0], cached[1], None
 
     def _checked_dirs(self) -> tuple[str, ...]:
         head = self.store.get_value("head")

@@ -39,8 +39,7 @@ def no_ci_reads(monkeypatch: pytest.MonkeyPatch) -> None:
     """Unit tests never ask GitHub about a commit or a repository; a test that needs an answer sets its own."""
     import unbidden.observe.ci as ci
 
-    monkeypatch.setattr(ci, "ci_status", lambda *a, **k: None)  # pyright: ignore[reportUnknownLambdaType]
-    monkeypatch.setattr(ci, "check_runs", lambda *a, **k: {})  # pyright: ignore[reportUnknownLambdaType]
+    monkeypatch.setattr(ci, "completed_runs", lambda *a, **k: ([], None))  # pyright: ignore[reportUnknownLambdaType]
     monkeypatch.setattr(ci, "fork_parent", lambda *a, **k: None)  # pyright: ignore[reportUnknownLambdaType]
 
 
