@@ -40,6 +40,25 @@ Perception alone, the same scan to each method (`perception-1`, 14 states, one r
 | vision | 8/8 | 0.92 / 0.97 | 8/8 | 1 | US$0.20 | 9.1 |
 | vision + SAM | 8/8 | 0.89 / 1.00 | 8/8 | 1 | US$0.22 | 13.4 |
 
+**Correction (stage 6 review, recomputed from the same records; `perception-1/perception-rescored.json`).** The
+table above says "8 defective" states and gives one "Detected" count. The records hold **6 defective and 8 healthy**
+states: `overlay-reordered` and `overlay-partial-big` did not activate their defect (sorted by shortfall, the fixed
+bar covers only OK rows; with big badges, every badge can be scrolled clear of the panel), and both the checker
+and the agent's own scan, written apart, agree. Not a checker fault; the summary was wrong, and "Detected" mixed
+raising an alert with naming a truly wrong row. Recomputed with the separated metrics (`score_found`, fix C):
+
+| Method | Named >= 1 wrong row (6) | Named all wrong rows (6) | Recall / precision | Rows named not wrong (on defective) | Cause named (6) | False alarms (8 healthy) | Inconclusive |
+|---|---|---|---|---|---|---|---|
+| dom | 6 | 4 | 0.92 / 0.97 | 3 | 6 | 1 | 0 |
+| vision | 6 | 4 | 0.92 / 0.97 | 3 | 6 | 1 | 0 |
+| vision + SAM | 6 | 4 | 0.89 / 1.00 | 0 | 6 | 1 | 0 |
+
+The two partial states are both formula states (rows whose numbers are wrong but whose flag is right were not all
+named; three rows named that the checker does not count wrong: kept as disagreements). No answer in these records
+was unreadable: every clean result carries an explicit cause "none", which only a parsed answer gives; the 42 page
+checks of the full cycles hold no unreadable answer either. The fault fix B removes was real, but it did not touch
+these runs. The full-cycle table (15 of 15 verified) stands as published.
+
 The one false alarm is shared: a healthy board whose zone label is a red pill like the alert; all three methods
 called those rows flagged, with that reason. Kept as a result; a less ambiguous red element (red text) drew none.
 Recall below 1 is the formula case: wrong numbers on rows whose flag was right were not all named.
