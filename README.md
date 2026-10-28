@@ -123,6 +123,8 @@ Every command accepts `--json`.
 
 ## Documentation
 
+- [`docs/EVIDENCE.md`](docs/EVIDENCE.md): every result at the level it reached, the cross-repository benchmark and its
+  frozen holdout, the negatives, and the cost.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): how the pieces fit, and what is guaranteed and what is not.
 - [`docs/DECISIONS.md`](docs/DECISIONS.md): every design decision, with the measurement behind it.
 - [`docs/bench/`](docs/bench): benchmarks and calibrations.

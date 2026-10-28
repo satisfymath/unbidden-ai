@@ -127,15 +127,16 @@ footer { border-top: 1px solid var(--line); margin-top: 64px; padding-top: 24px;
   <p class="sub">Ten development and ten held-out repositories, chosen by written criteria and pinned before any run.
   They include languages Unbidden does not analyze yet, which stay in the denominator.</p>
   <div class="stats">
-    <div class="stat"><div class="n">7 / 10</div><div class="l">bootstrapped without help (pilot 1)</div></div>
-    <div class="stat"><div class="n">1</div><div class="l">L4 in pilot 1, and it was false</div></div>
-    <div class="stat"><div class="n">2</div><div class="l">general fixes that now reject it, unaided</div></div>
-    <div class="stat"><div class="n">US$0.06</div><div class="l">remote spend for the whole pilot</div></div>
+    <div class="stat"><div class="n">7 / 10</div><div class="l">held-out repositories bootstrapped, unaided</div></div>
+    <div class="stat"><div class="n">0</div><div class="l">false L4s on the holdout (pilot 1 had one)</div></div>
+    <div class="stat"><div class="n">5 / 5</div><div class="l">environment findings declined before spending</div></div>
+    <div class="stat"><div class="n">US$0.35</div><div class="l">four benchmark runs: 40 repository runs, 20 distinct repositories</div></div>
   </div>
   <div class="callout"><b>The false positive.</b> Unbidden removed two <code>type: ignore</code> comments its mypy called
   unused. The team's CI was green, under Python versions Unbidden had not used, where those comments are needed. The patch
   would have broken their build. Now the Director reads the CI's verdict in every cycle, and every candidate is
-  re-checked under the CI's newest interpreter. On the real patch, mypy reports 2 new errors, and the patch is rejected.</div>
+  re-checked under the CI's newest interpreter. On the real patch, mypy reports 2 new errors, and the patch is rejected.
+  On the frozen holdout it found no validated improvement in ten mature libraries, and it claimed none.</div>
 </section>
 
 <section>

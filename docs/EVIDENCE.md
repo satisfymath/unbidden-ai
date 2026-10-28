@@ -62,7 +62,26 @@ the patch would have turned their CI red. Two general fixes followed, with no ex
 - **CI parity**: a candidate is checked again under the newest Python the CI uses. On the real candidate: 2 new mypy
   findings under 3.14, rejected.
 
-**Pilot 2**: see `docs/bench/2026-10-28-scale-pilot-2.md`.
+**All runs** (each `docs/bench/2026-10-2*-scale-*.md`; development data except the holdout):
+
+| Run | Bootstrapped | Repos with opportunities | Experiments | L4 | What it showed | US$ |
+|---|---|---|---|---|---|---|
+| Pilot 1 (method check) | 7/10 | 1 | 1 | 1, **false** | the false positive above | 0.06 |
+| Pilot 2 | 7/10 | 1 | 2 | 1, outside the team's checked configuration | the false positive's new candidate **rejected by CI parity**; a 3.10-only typing fix the team does not check | 0.14 |
+| Pilot 3 | 8/10 | 1 | 0 | 0 | marshmallow's environment findings **declined before any experiment** (CI read through tox) | 0.09 |
+| **Holdout, run once, frozen** | **7/10** | **1** | **0** | **0** | markupsafe's 5 pyright groups declined the same way, on a tool and repo never seen | **0.055** |
+
+Holdout, with Wilson 95 % intervals: stack supported 8/10 (49–94 %), bootstrapped 7/10 (40–89 %), an opportunity in 1/7
+(3–51 %), validated improvements 0/7 (0–35 %), false L4s 0. The remote model was the only one called (local fallback
+denied, none attempted). What the holdout exposed and was fixed afterwards on development data: a probe sampler that
+skipped `__init__.py` (markupsafe), and no analyzer for `xo`/mocha projects (node-fetch, open).
+
+**What this answers.** Across unfamiliar repositories Unbidden now bootstraps most Python and JavaScript projects on
+its own, and it stops itself from claiming improvements that the team's own CI would contradict. It has **not** yet
+found a validated improvement in an unseen, mature library: on 20 such repositories, its checks found only what the
+teams' CI already rules out, and its crash probes found nothing beyond one narrow input-validation inconsistency. The
+deeper wins (indexes measured at 3× to 2,000×, crashes in Rich) came from systems with databases, endpoints or open
+bugs, and the benchmark's libraries offer few of those.
 
 ## What a probe finding is worth
 
@@ -73,8 +92,9 @@ is narrow: invalid input raising `KeyError` where the library raises `ValueError
 
 ## Cost
 
-All remote calls went to Muse Spark 1.3 (Standard). US$0.956 at list price in 50 calls, reconciled between the
-machine-wide ledger and every workspace's own record (`docs/bench/2026-10-27-spend-reconcile.md`). No credit balance
+All remote calls went to Muse Spark 1.3 (Standard). US$1.24 at list price in total: US$0.70 before the machine-wide
+ledger existed, US$0.54 since (the reconciliation of the first part is in `docs/bench/2026-10-27-spend-reconcile.md`).
+The four benchmark runs cost US$0.35 together. No credit balance
 has been verified on the dashboard yet, so the spend gate allows only a US$1 allowance; no paid overage is possible.
 
 ## Known limits
