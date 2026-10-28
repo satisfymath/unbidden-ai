@@ -1,0 +1,1114 @@
+{
+  "run": "holdout-1",
+  "manifest": "bench/repos/scale.yaml",
+  "unbidden_commit": "b23e8b0bbaf8c8ca107d2a2c00e007d58ca7e363",
+  "settings": {
+    "split": "holdout",
+    "workers": 2,
+    "minutes": 25.0,
+    "repo_budget": 0.08,
+    "profile": "frontier",
+    "local_fallback": "deny",
+    "fork_owner": "satisfymath"
+  },
+  "rows": [
+    {
+      "name": "markupsafe",
+      "run": "holdout-1",
+      "tag": "bench:holdout-1:markupsafe",
+      "meta": {
+        "url": "https://github.com/pallets/markupsafe",
+        "commit": "4e111271b1494995708a9e878a10829b5e10c7ba",
+        "split": "holdout",
+        "license": "BSD-3-Clause",
+        "language": "Python",
+        "shape": "library",
+        "database": "none",
+        "domain": "text escaping"
+      },
+      "started_at": "2026-10-28T00:09:42.350405+00:00",
+      "unbidden": {
+        "commit": "6dd0b757f7bcaa178d195501e7922dec3bf9585e",
+        "tree": "bca94f907b35f191ecfde1579768dbfc874be7a8",
+        "dirty": false
+      },
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.2,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.9,
+          "timed_out": false,
+          "max_rss_mb": 39.5,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/holdout-1/markupsafe\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/holdout-1/markupsafe/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.1,
+          "timed_out": false,
+          "max_rss_mb": 58.1,
+          "log_tail": "      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"4e111271b1494995708a9e878a10829b5e10c7ba\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-28T00:09:45.390032Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-28T00:09:45.390060Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"4e111271b1494995708a9e878a10829b5e10c7ba\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:markupsafe\",\n      \"kind\": \"repo\",\n      \"name\": \"markupsafe\",\n      \"attributes\": {\n        \"rev\": \"4e111271b1494995708a9e878a10829b5e10c7ba\",\n        \"languages\": [\n          \"python\"\n        ]\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-28T00:09:45.297880Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 27.4,
+          "timed_out": false,
+          "max_rss_mb": 126.5,
+          "log_tail": "21:09:45 watching /Users/david/unbidden-bench/holdout-1/markupsafe (ctrl-c to \nstop, `unbidden kill` to freeze)\n21:09:46 HEAD is 4e111271b149\n21:09:46 provisioning python dependencies\n21:10:05 running ruff\n21:10:06 running pyright\n21:10:07 running mypy\n21:10:08 scan of 4e111271b149: 3 reports, 5 new opportunities\n21:10:08 map of 4e111271b149: 1 resources, 2 blind spots\n21:10:08 robustness probe at 4e111271b149: decline (no importable package with \npublic functions under the source roots)\n21:10:12 opp_a1ee0d4dd30b4743: decline (the team's CI runs pyright and passes on\nthis commit: these findings come from Unbidden's environment)\n21:10:12 opp_0a93c7f1f1cc49df: decline (the team's CI runs pyright and passes on\nthis commit: these findings come from Unbidden's environment)\n21:10:12 opp_e59278570a614651: decline (the team's CI runs pyright and passes on\nthis commit: these findings come from Unbidden's environment)\n21:10:12 opp_f05988f3fe86402f: decline (the team's CI runs pyright and passes on\nthis commit: these findings come from Unbidden's environment)\n21:10:12 opp_56ea7c7551274ac2: decline (the team's CI runs pyright and passes on\nthis commit: these findings come from Unbidden's environment)",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "4e111271b1494995708a9e878a10829b5e10c7ba",
+        "probe": null,
+        "languages": [
+          "python"
+        ],
+        "blind_spots": [],
+        "problems": [],
+        "analyzers": [
+          {
+            "tool": "ruff",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          },
+          {
+            "tool": "pyright",
+            "completeness": "complete",
+            "findings": 15,
+            "error": ""
+          },
+          {
+            "tool": "mypy",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          }
+        ],
+        "opportunities": [
+          {
+            "id": "opp_a1ee0d4dd30b4743",
+            "source": "pyright",
+            "category": "types",
+            "status": "declined",
+            "level": 1,
+            "title": "6 pyright errors in setup.py",
+            "attempts": 0,
+            "decision": "decline",
+            "reason": "the team's CI runs pyright and passes on this commit: these findings come from Unbidden's environment",
+            "blocked": null
+          },
+          {
+            "id": "opp_0a93c7f1f1cc49df",
+            "source": "pyright",
+            "category": "types",
+            "status": "declined",
+            "level": 1,
+            "title": "4 pyright errors in src/markupsafe/__init__.py",
+            "attempts": 0,
+            "decision": "decline",
+            "reason": "the team's CI runs pyright and passes on this commit: these findings come from Unbidden's environment",
+            "blocked": null
+          },
+          {
+            "id": "opp_e59278570a614651",
+            "source": "pyright",
+            "category": "types",
+            "status": "declined",
+            "level": 1,
+            "title": "1 pyright error in tests/conftest.py",
+            "attempts": 0,
+            "decision": "decline",
+            "reason": "the team's CI runs pyright and passes on this commit: these findings come from Unbidden's environment",
+            "blocked": null
+          },
+          {
+            "id": "opp_f05988f3fe86402f",
+            "source": "pyright",
+            "category": "types",
+            "status": "declined",
+            "level": 1,
+            "title": "1 pyright error in tests/test_escape.py",
+            "attempts": 0,
+            "decision": "decline",
+            "reason": "the team's CI runs pyright and passes on this commit: these findings come from Unbidden's environment",
+            "blocked": null
+          },
+          {
+            "id": "opp_56ea7c7551274ac2",
+            "source": "pyright",
+            "category": "types",
+            "status": "declined",
+            "level": 1,
+            "title": "3 pyright errors in tests/test_ext_init.py",
+            "attempts": 0,
+            "decision": "decline",
+            "reason": "the team's CI runs pyright and passes on this commit: these findings come from Unbidden's environment",
+            "blocked": null
+          }
+        ],
+        "decisions": {
+          "decline": 5
+        },
+        "probe_decisions": [
+          {
+            "chosen": "decline",
+            "kind": "robustness_probe",
+            "reason": "no importable package with public functions under the source roots",
+            "rev": "4e111271b1494995708a9e878a10829b5e10c7ba",
+            "targets": [],
+            "ts": "2026-10-28T00:10:08.423275+00:00"
+          }
+        ],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {},
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-28T00:10:13.025154+00:00",
+      "seconds": 30.6,
+      "outcome": "found, not experimented"
+    },
+    {
+      "name": "attrs",
+      "run": "holdout-1",
+      "tag": "bench:holdout-1:attrs",
+      "meta": {
+        "url": "https://github.com/python-attrs/attrs",
+        "commit": "c8bb9bfaa2843e7844b5bb13bed4370b51feec4f",
+        "split": "holdout",
+        "license": "MIT",
+        "language": "Python",
+        "shape": "library",
+        "database": "none",
+        "domain": "data classes"
+      },
+      "started_at": "2026-10-28T00:09:42.350490+00:00",
+      "unbidden": {
+        "commit": "6dd0b757f7bcaa178d195501e7922dec3bf9585e",
+        "tree": "bca94f907b35f191ecfde1579768dbfc874be7a8",
+        "dirty": false
+      },
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.4,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.9,
+          "timed_out": false,
+          "max_rss_mb": 39.6,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/holdout-1/attrs\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/holdout-1/attrs/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.3,
+          "timed_out": false,
+          "max_rss_mb": 57.8,
+          "log_tail": "      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"c8bb9bfaa2843e7844b5bb13bed4370b51feec4f\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-28T00:09:45.544937Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-28T00:09:45.544971Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"c8bb9bfaa2843e7844b5bb13bed4370b51feec4f\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:attrs\",\n      \"kind\": \"repo\",\n      \"name\": \"attrs\",\n      \"attributes\": {\n        \"rev\": \"c8bb9bfaa2843e7844b5bb13bed4370b51feec4f\",\n        \"languages\": [\n          \"python\"\n        ]\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-28T00:09:45.471561Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 42.4,
+          "timed_out": false,
+          "max_rss_mb": 132.5,
+          "log_tail": "21:09:46 watching /Users/david/unbidden-bench/holdout-1/attrs (ctrl-c to stop, \n`unbidden kill` to freeze)\n21:09:46 HEAD is c8bb9bfaa284\n21:09:46 provisioning python dependencies\n21:10:06 running ruff\n21:10:06 running pyright\n21:10:07 running mypy\n21:10:07 scan of c8bb9bfaa284: 3 reports, 0 new opportunities\n21:10:08 map of c8bb9bfaa284: 1 resources, 2 blind spots\n21:10:08 robustness probe at c8bb9bfaa284: investigate (probe src/attr (8 public\nfunctions sampled))\n21:10:12 writing property tests for src/attr\n21:10:25 running them offline\n21:10:28 robustness probe of src/attr: 2 failed, 3 passed in 1.90s; 0 crash(es),\n0 new; 0 property violation(s) kept for a person (L1)",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "c8bb9bfaa2843e7844b5bb13bed4370b51feec4f",
+        "probe": {
+          "rev": "c8bb9bfaa2843e7844b5bb13bed4370b51feec4f",
+          "package": "src/attr",
+          "ran": true,
+          "summary": "2 failed, 3 passed in 1.90s",
+          "crashes": 0,
+          "opened": 0,
+          "violations": 0
+        },
+        "languages": [
+          "python"
+        ],
+        "blind_spots": [],
+        "problems": [],
+        "analyzers": [
+          {
+            "tool": "ruff",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          },
+          {
+            "tool": "pyright",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          },
+          {
+            "tool": "mypy",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          }
+        ],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [
+          {
+            "chosen": "investigate",
+            "kind": "robustness_probe",
+            "reason": "probe src/attr (8 public functions sampled)",
+            "rev": "c8bb9bfaa2843e7844b5bb13bed4370b51feec4f",
+            "targets": [
+              [
+                "src/attr",
+                8
+              ],
+              [
+                "typing_tests",
+                6
+              ]
+            ],
+            "ts": "2026-10-28T00:10:08.495416+00:00"
+          }
+        ],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {
+          "code": {
+            "calls": 1,
+            "ok": 1,
+            "tokens_in": 493,
+            "tokens_out": 3295,
+            "compute_s": 12.775478417053819
+          }
+        },
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-28T00:10:28.331070+00:00",
+      "seconds": 46.0,
+      "outcome": "nothing found"
+    },
+    {
+      "name": "tablib",
+      "run": "holdout-1",
+      "tag": "bench:holdout-1:tablib",
+      "meta": {
+        "url": "https://github.com/jazzband/tablib",
+        "commit": "966876c76a6378557c1951badc1665b4d1375875",
+        "split": "holdout",
+        "license": "MIT",
+        "language": "Python",
+        "shape": "library",
+        "database": "none",
+        "domain": "tabular data"
+      },
+      "started_at": "2026-10-28T00:10:13.031949+00:00",
+      "unbidden": {
+        "commit": "b23e8b0bbaf8c8ca107d2a2c00e007d58ca7e363",
+        "tree": "bca94f907b35f191ecfde1579768dbfc874be7a8",
+        "dirty": false
+      },
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.2,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.9,
+          "timed_out": false,
+          "max_rss_mb": 39.5,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/holdout-1/tablib\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/holdout-1/tablib/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.3,
+          "timed_out": false,
+          "max_rss_mb": 57.7,
+          "log_tail": "      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"966876c76a6378557c1951badc1665b4d1375875\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-28T00:10:16.178856Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-28T00:10:16.178881Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"966876c76a6378557c1951badc1665b4d1375875\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:tablib\",\n      \"kind\": \"repo\",\n      \"name\": \"tablib\",\n      \"attributes\": {\n        \"rev\": \"966876c76a6378557c1951badc1665b4d1375875\",\n        \"languages\": [\n          \"python\"\n        ]\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-28T00:10:16.100128Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 22.3,
+          "timed_out": false,
+          "max_rss_mb": 129.0,
+          "log_tail": "21:10:16 watching /Users/david/unbidden-bench/holdout-1/tablib (ctrl-c to stop, \n`unbidden kill` to freeze)\n21:10:17 HEAD is 966876c76a63\n21:10:17 provisioning python dependencies\n21:10:20 running ruff\n21:10:20 scan of 966876c76a63: 1 reports, 0 new opportunities\n21:10:21 map of 966876c76a63: 1 resources, 2 blind spots\n21:10:21 robustness probe at 966876c76a63: investigate (probe src/tablib (30 \npublic functions sampled))\n21:10:25 writing property tests for src/tablib\n21:10:35 running them offline\n21:10:38 robustness probe of src/tablib: 2 failed, 6 passed in 2.30s; 0 \ncrash(es), 0 new; 0 property violation(s) kept for a person (L1)",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "966876c76a6378557c1951badc1665b4d1375875",
+        "probe": {
+          "rev": "966876c76a6378557c1951badc1665b4d1375875",
+          "package": "src/tablib",
+          "ran": true,
+          "summary": "2 failed, 6 passed in 2.30s",
+          "crashes": 0,
+          "opened": 0,
+          "violations": 0
+        },
+        "languages": [
+          "python"
+        ],
+        "blind_spots": [
+          "pyproject.toml without uv.lock: dependencies resolved at provisioning time"
+        ],
+        "problems": [],
+        "analyzers": [
+          {
+            "tool": "ruff",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          }
+        ],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [
+          {
+            "chosen": "investigate",
+            "kind": "robustness_probe",
+            "reason": "probe src/tablib (30 public functions sampled)",
+            "rev": "966876c76a6378557c1951badc1665b4d1375875",
+            "targets": [
+              [
+                "src/tablib",
+                30
+              ]
+            ],
+            "ts": "2026-10-28T00:10:21.204832+00:00"
+          }
+        ],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {
+          "code": {
+            "calls": 1,
+            "ok": 1,
+            "tokens_in": 1176,
+            "tokens_out": 2885,
+            "compute_s": 10.31322224996984
+          }
+        },
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-28T00:10:38.870967+00:00",
+      "seconds": 25.7,
+      "outcome": "nothing found"
+    },
+    {
+      "name": "datasette",
+      "run": "holdout-1",
+      "tag": "bench:holdout-1:datasette",
+      "meta": {
+        "url": "https://github.com/simonw/datasette",
+        "commit": "a8e13cc489b41f2f9a5aa691f5eb1bedf99a0e0b",
+        "split": "holdout",
+        "license": "Apache-2.0",
+        "language": "Python",
+        "shape": "application",
+        "database": "SQLite",
+        "domain": "data publishing"
+      },
+      "started_at": "2026-10-28T00:10:28.338535+00:00",
+      "unbidden": {
+        "commit": "b23e8b0bbaf8c8ca107d2a2c00e007d58ca7e363",
+        "tree": "bca94f907b35f191ecfde1579768dbfc874be7a8",
+        "dirty": false
+      },
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.6,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 1.0,
+          "timed_out": false,
+          "max_rss_mb": 39.5,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/holdout-1/datasette\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/holdout-1/datasette/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.7,
+          "timed_out": false,
+          "max_rss_mb": 58.2,
+          "log_tail": "          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-28T00:10:32.119114Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-28T00:10:32.119136Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"a8e13cc489b41f2f9a5aa691f5eb1bedf99a0e0b\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"ci_job:test.yml#test\",\n      \"kind\": \"ci_job\",\n      \"name\": \"test\",\n      \"attributes\": {\n        \"steps\": [\n          \"(cd tests && gcc ext.c -fPIC -shared -o ext.so)\",\n          \"pip freeze\",\n          \"if [ \\\"\\\" = \\\"true\\\" ]; then\\nCOV=\\\"--cov=datasette --cov-config=.coveragerc\\\"\\npytest -n auto -m \\\"not serial\\\" $COV --cov-report=\\npytest -m \\\"serial\\\" $COV --cov-append --cov-report xml:coverage.xml --cov-report term\\nelse\\npytest -n auto -m \\\"not serial\\\"\\npytest -m \\\"serial\\\"\\nfi\\ntests/test_datasette_https_server.sh\",\n          \"cog --check docs/*.rst\",\n          \"blacken-docs -l 60 docs/*.rst\",\n          \"tests/test-datasette-load-plugins.sh\"\n        ],\n        \"services\": []\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-28T00:10:31.819339Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 38.5,
+          "timed_out": false,
+          "max_rss_mb": 150.0,
+          "log_tail": "21:10:32 watching /Users/david/unbidden-bench/holdout-1/datasette (ctrl-c to \nstop, `unbidden kill` to freeze)\n21:10:33 HEAD is a8e13cc489b4\n21:10:33 provisioning node dependencies\n21:10:35 provisioning python dependencies\n21:10:54 running ruff\n21:10:55 scan of a8e13cc489b4: 1 reports, 0 new opportunities\n21:10:56 map of a8e13cc489b4: 2 resources, 2 blind spots\n21:10:56 robustness probe at a8e13cc489b4: investigate (probe datasette (80 \npublic functions sampled))\n21:11:01 writing property tests for datasette\n21:11:08 running them offline\n21:11:11 robustness probe of datasette: 8 passed in 1.37s; 0 crash(es), 0 new; 0\nproperty violation(s) kept for a person (L1)",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "a8e13cc489b41f2f9a5aa691f5eb1bedf99a0e0b",
+        "probe": {
+          "rev": "a8e13cc489b41f2f9a5aa691f5eb1bedf99a0e0b",
+          "package": "datasette",
+          "ran": true,
+          "summary": "8 passed in 1.37s",
+          "crashes": 0,
+          "opened": 0,
+          "violations": 0
+        },
+        "languages": [
+          "node",
+          "python"
+        ],
+        "blind_spots": [
+          "pyproject.toml without uv.lock: dependencies resolved at provisioning time"
+        ],
+        "problems": [],
+        "analyzers": [
+          {
+            "tool": "ruff",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          }
+        ],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [
+          {
+            "chosen": "investigate",
+            "kind": "robustness_probe",
+            "reason": "probe datasette (80 public functions sampled)",
+            "rev": "a8e13cc489b41f2f9a5aa691f5eb1bedf99a0e0b",
+            "targets": [
+              [
+                "datasette",
+                80
+              ]
+            ],
+            "ts": "2026-10-28T00:10:56.819818+00:00"
+          }
+        ],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {
+          "code": {
+            "calls": 1,
+            "ok": 1,
+            "tokens_in": 2665,
+            "tokens_out": 1613,
+            "compute_s": 6.68072500010021
+          }
+        },
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-28T00:11:11.122175+00:00",
+      "seconds": 42.8,
+      "outcome": "nothing found"
+    },
+    {
+      "name": "requests",
+      "run": "holdout-1",
+      "tag": "bench:holdout-1:requests",
+      "meta": {
+        "url": "https://github.com/psf/requests",
+        "commit": "3c7baaa05ab4aa49cc819ce3a819d260de19c157",
+        "split": "holdout",
+        "license": "Apache-2.0",
+        "language": "Python",
+        "shape": "library",
+        "database": "none",
+        "domain": "HTTP client"
+      },
+      "started_at": "2026-10-28T00:10:38.878809+00:00",
+      "unbidden": {
+        "commit": "b23e8b0bbaf8c8ca107d2a2c00e007d58ca7e363",
+        "tree": "bca94f907b35f191ecfde1579768dbfc874be7a8",
+        "dirty": false
+      },
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.4,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 1.0,
+          "timed_out": false,
+          "max_rss_mb": 39.5,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/holdout-1/requests\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/holdout-1/requests/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.3,
+          "timed_out": false,
+          "max_rss_mb": 57.7,
+          "log_tail": "      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"3c7baaa05ab4aa49cc819ce3a819d260de19c157\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-28T00:10:42.336075Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-28T00:10:42.336107Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"3c7baaa05ab4aa49cc819ce3a819d260de19c157\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:requests\",\n      \"kind\": \"repo\",\n      \"name\": \"requests\",\n      \"attributes\": {\n        \"rev\": \"3c7baaa05ab4aa49cc819ce3a819d260de19c157\",\n        \"languages\": [\n          \"python\"\n        ]\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-28T00:10:42.266552Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 30.9,
+          "timed_out": false,
+          "max_rss_mb": 143.9,
+          "log_tail": "21:10:42 watching /Users/david/unbidden-bench/holdout-1/requests (ctrl-c to \nstop, `unbidden kill` to freeze)\n21:10:43 HEAD is 3c7baaa05ab4\n21:10:43 provisioning python dependencies\n21:10:49 running ruff\n21:10:50 running pyright\n21:10:51 scan of 3c7baaa05ab4: 2 reports, 0 new opportunities\n21:10:52 map of 3c7baaa05ab4: 1 resources, 2 blind spots\n21:10:52 robustness probe at 3c7baaa05ab4: investigate (probe src/requests (50 \npublic functions sampled))\n21:10:56 writing property tests for src/requests\n21:11:10 running them offline\n21:11:13 robustness probe of src/requests: 9 passed in 2.11s; 0 crash(es), 0 \nnew; 0 property violation(s) kept for a person (L1)",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "3c7baaa05ab4aa49cc819ce3a819d260de19c157",
+        "probe": {
+          "rev": "3c7baaa05ab4aa49cc819ce3a819d260de19c157",
+          "package": "src/requests",
+          "ran": true,
+          "summary": "9 passed in 2.11s",
+          "crashes": 0,
+          "opened": 0,
+          "violations": 0
+        },
+        "languages": [
+          "python"
+        ],
+        "blind_spots": [
+          "pyproject.toml without uv.lock: dependencies resolved at provisioning time"
+        ],
+        "problems": [],
+        "analyzers": [
+          {
+            "tool": "ruff",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          },
+          {
+            "tool": "pyright",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          }
+        ],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [
+          {
+            "chosen": "investigate",
+            "kind": "robustness_probe",
+            "reason": "probe src/requests (50 public functions sampled)",
+            "rev": "3c7baaa05ab4aa49cc819ce3a819d260de19c157",
+            "targets": [
+              [
+                "src/requests",
+                50
+              ]
+            ],
+            "ts": "2026-10-28T00:10:52.214271+00:00"
+          }
+        ],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {
+          "code": {
+            "calls": 1,
+            "ok": 1,
+            "tokens_in": 2234,
+            "tokens_out": 3190,
+            "compute_s": 14.204113207990304
+          }
+        },
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-28T00:11:13.640663+00:00",
+      "seconds": 34.6,
+      "outcome": "nothing found"
+    },
+    {
+      "name": "cookie",
+      "run": "holdout-1",
+      "tag": "bench:holdout-1:cookie",
+      "meta": {
+        "url": "https://github.com/jshttp/cookie",
+        "commit": "51c485421a95ee796de6d8dab53a5ade0a20db8a",
+        "split": "holdout",
+        "license": "MIT",
+        "language": "TypeScript",
+        "shape": "library",
+        "database": "none",
+        "domain": "HTTP cookies"
+      },
+      "started_at": "2026-10-28T00:11:11.130397+00:00",
+      "unbidden": {
+        "commit": "b23e8b0bbaf8c8ca107d2a2c00e007d58ca7e363",
+        "tree": "bca94f907b35f191ecfde1579768dbfc874be7a8",
+        "dirty": false
+      },
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.2,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.9,
+          "timed_out": false,
+          "max_rss_mb": 39.5,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/holdout-1/cookie\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/holdout-1/cookie/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.1,
+          "timed_out": false,
+          "max_rss_mb": 57.9,
+          "log_tail": "      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"config\",\n          \"locator\": \".github/workflows/ci.yml\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-28T00:11:14.219231Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-28T00:11:14.219249Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"51c485421a95ee796de6d8dab53a5ade0a20db8a\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"ci_job:ci.yml#test\",\n      \"kind\": \"ci_job\",\n      \"name\": \"test\",\n      \"attributes\": {\n        \"steps\": [\n          \"npm test\"\n        ],\n        \"services\": []\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-28T00:11:14.073735Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 11.5,
+          "timed_out": false,
+          "max_rss_mb": 126.9,
+          "log_tail": "21:11:14 watching /Users/david/unbidden-bench/holdout-1/cookie (ctrl-c to stop, \n`unbidden kill` to freeze)\n21:11:14 HEAD is 51c485421a95\n21:11:14 provisioning node dependencies\n21:11:19 running tsc\n21:11:20 scan of 51c485421a95: 1 reports, 0 new opportunities\n21:11:20 map of 51c485421a95: 2 resources, 2 blind spots",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "51c485421a95ee796de6d8dab53a5ade0a20db8a",
+        "probe": null,
+        "languages": [
+          "node"
+        ],
+        "blind_spots": [],
+        "problems": [],
+        "analyzers": [
+          {
+            "tool": "tsc",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          }
+        ],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {},
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-28T00:11:25.791971+00:00",
+      "seconds": 14.7,
+      "outcome": "nothing found"
+    },
+    {
+      "name": "fast-json-stringify",
+      "run": "holdout-1",
+      "tag": "bench:holdout-1:fast-json-stringify",
+      "meta": {
+        "url": "https://github.com/fastify/fast-json-stringify",
+        "commit": "968bf202868005077f535129262d7ce094d231aa",
+        "split": "holdout",
+        "license": "MIT",
+        "language": "JavaScript",
+        "shape": "library",
+        "database": "none",
+        "domain": "serialization"
+      },
+      "started_at": "2026-10-28T00:11:25.799072+00:00",
+      "unbidden": {
+        "commit": "b23e8b0bbaf8c8ca107d2a2c00e007d58ca7e363",
+        "tree": "bca94f907b35f191ecfde1579768dbfc874be7a8",
+        "dirty": false
+      },
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.1,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 1.0,
+          "timed_out": false,
+          "max_rss_mb": 39.8,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/holdout-1/fast-json-stringify\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/holdout-1/fast-json-stringify/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.0,
+          "timed_out": false,
+          "max_rss_mb": 57.7,
+          "log_tail": "      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"968bf202868005077f535129262d7ce094d231aa\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-28T00:11:28.751786Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-28T00:11:28.751814Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"968bf202868005077f535129262d7ce094d231aa\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:fast-json-stringify\",\n      \"kind\": \"repo\",\n      \"name\": \"fast-json-stringify\",\n      \"attributes\": {\n        \"rev\": \"968bf202868005077f535129262d7ce094d231aa\",\n        \"languages\": [\n          \"node\"\n        ]\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-28T00:11:28.686655Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 26.2,
+          "timed_out": false,
+          "max_rss_mb": 125.5,
+          "log_tail": "21:11:29 watching /Users/david/unbidden-bench/holdout-1/fast-json-stringify \n(ctrl-c to stop, `unbidden kill` to freeze)\n21:11:29 HEAD is 968bf2028680\n21:11:29 provisioning node dependencies\n21:11:49 running eslint\n21:11:51 scan of 968bf2028680: 1 reports, 0 new opportunities\n21:11:51 map of 968bf2028680: 1 resources, 2 blind spots",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "968bf202868005077f535129262d7ce094d231aa",
+        "probe": null,
+        "languages": [
+          "node"
+        ],
+        "blind_spots": [
+          "package.json without a lockfile: dependencies resolved at provisioning time"
+        ],
+        "problems": [],
+        "analyzers": [
+          {
+            "tool": "eslint",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          }
+        ],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {},
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-28T00:11:55.128510+00:00",
+      "seconds": 29.3,
+      "outcome": "nothing found"
+    },
+    {
+      "name": "anyhow",
+      "run": "holdout-1",
+      "tag": "bench:holdout-1:anyhow",
+      "meta": {
+        "url": "https://github.com/dtolnay/anyhow",
+        "commit": "bb1b0f9af0f645d5fdf1ac63a1fcbf3975ee452c",
+        "split": "holdout",
+        "license": "Apache-2.0",
+        "language": "Rust",
+        "shape": "library",
+        "database": "none",
+        "domain": "errors"
+      },
+      "started_at": "2026-10-28T00:11:55.135883+00:00",
+      "unbidden": {
+        "commit": "b23e8b0bbaf8c8ca107d2a2c00e007d58ca7e363",
+        "tree": "bca94f907b35f191ecfde1579768dbfc874be7a8",
+        "dirty": false
+      },
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.0,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.8,
+          "timed_out": false,
+          "max_rss_mb": 39.6,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/holdout-1/anyhow\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/holdout-1/anyhow/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.0,
+          "timed_out": false,
+          "max_rss_mb": 57.8,
+          "log_tail": "    \"repo:anyhow\": {\n      \"status\": \"observed\",\n      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"bb1b0f9af0f645d5fdf1ac63a1fcbf3975ee452c\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-28T00:11:57.853788Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-28T00:11:57.853813Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"bb1b0f9af0f645d5fdf1ac63a1fcbf3975ee452c\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:anyhow\",\n      \"kind\": \"repo\",\n      \"name\": \"anyhow\",\n      \"attributes\": {\n        \"rev\": \"bb1b0f9af0f645d5fdf1ac63a1fcbf3975ee452c\",\n        \"languages\": []\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-28T00:11:57.796389Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 4.4,
+          "timed_out": false,
+          "max_rss_mb": 125.7,
+          "log_tail": "21:11:58 watching /Users/david/unbidden-bench/holdout-1/anyhow (ctrl-c to stop, \n`unbidden kill` to freeze)\n21:11:58 HEAD is bb1b0f9af0f6\n21:11:58 scan of bb1b0f9af0f6: 0 reports, 0 new opportunities\n21:11:58 map of bb1b0f9af0f6: 1 resources, 2 blind spots",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "bb1b0f9af0f645d5fdf1ac63a1fcbf3975ee452c",
+        "probe": null,
+        "languages": [],
+        "blind_spots": [
+          "Rust (Cargo.toml) is not analyzed: no checks, probes or experiments for that code"
+        ],
+        "problems": [],
+        "analyzers": [],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {},
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-28T00:12:02.427588+00:00",
+      "seconds": 7.2,
+      "outcome": "unsupported stack"
+    },
+    {
+      "name": "node-fetch",
+      "run": "holdout-1",
+      "tag": "bench:holdout-1:node-fetch",
+      "meta": {
+        "url": "https://github.com/node-fetch/node-fetch",
+        "commit": "8b3320d2a7c07bce4afc6b2bf6c3bbddda85b01f",
+        "split": "holdout",
+        "license": "MIT",
+        "language": "JavaScript",
+        "shape": "library",
+        "database": "none",
+        "domain": "HTTP client"
+      },
+      "started_at": "2026-10-28T00:11:13.648682+00:00",
+      "unbidden": {
+        "commit": "b23e8b0bbaf8c8ca107d2a2c00e007d58ca7e363",
+        "tree": "bca94f907b35f191ecfde1579768dbfc874be7a8",
+        "dirty": false
+      },
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.1,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 1.0,
+          "timed_out": false,
+          "max_rss_mb": 39.5,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/holdout-1/node-fetch\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/holdout-1/node-fetch/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.1,
+          "timed_out": false,
+          "max_rss_mb": 57.7,
+          "log_tail": "      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"config\",\n          \"locator\": \".github/workflows/ci.yml\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-28T00:11:16.783226Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-28T00:11:16.783251Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"8b3320d2a7c07bce4afc6b2bf6c3bbddda85b01f\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"ci_job:ci.yml#test\",\n      \"kind\": \"ci_job\",\n      \"name\": \"test\",\n      \"attributes\": {\n        \"steps\": [\n          \"npm test -- --colors\"\n        ],\n        \"services\": []\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-28T00:11:16.632387Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 51.8,
+          "timed_out": false,
+          "max_rss_mb": 126.9,
+          "log_tail": "21:11:17 watching /Users/david/unbidden-bench/holdout-1/node-fetch (ctrl-c to \nstop, `unbidden kill` to freeze)\n21:11:17 HEAD is 8b3320d2a7c0\n21:11:17 provisioning node dependencies\n21:12:02 scan of 8b3320d2a7c0: 0 reports, 0 new opportunities\n21:12:02 map of 8b3320d2a7c0: 2 resources, 2 blind spots",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "8b3320d2a7c07bce4afc6b2bf6c3bbddda85b01f",
+        "probe": null,
+        "languages": [
+          "node"
+        ],
+        "blind_spots": [
+          "package.json without a lockfile: dependencies resolved at provisioning time"
+        ],
+        "problems": [],
+        "analyzers": [],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {},
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-28T00:12:08.715970+00:00",
+      "seconds": 55.0,
+      "outcome": "bootstrap failed"
+    },
+    {
+      "name": "chi",
+      "run": "holdout-1",
+      "tag": "bench:holdout-1:chi",
+      "meta": {
+        "url": "https://github.com/go-chi/chi",
+        "commit": "9f8adb1aabaa8a91180a821111d3f8e668d1c0bf",
+        "split": "holdout",
+        "license": "MIT",
+        "language": "Go",
+        "shape": "library",
+        "database": "none",
+        "domain": "HTTP router"
+      },
+      "started_at": "2026-10-28T00:12:02.435428+00:00",
+      "unbidden": {
+        "commit": "b23e8b0bbaf8c8ca107d2a2c00e007d58ca7e363",
+        "tree": "bca94f907b35f191ecfde1579768dbfc874be7a8",
+        "dirty": false
+      },
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.3,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.9,
+          "timed_out": false,
+          "max_rss_mb": 39.7,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/holdout-1/chi\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/holdout-1/chi/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.0,
+          "timed_out": false,
+          "max_rss_mb": 58.0,
+          "log_tail": "    \"repo:chi\": {\n      \"status\": \"observed\",\n      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"9f8adb1aabaa8a91180a821111d3f8e668d1c0bf\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-28T00:12:05.569206Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-28T00:12:05.569220Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"9f8adb1aabaa8a91180a821111d3f8e668d1c0bf\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:chi\",\n      \"kind\": \"repo\",\n      \"name\": \"chi\",\n      \"attributes\": {\n        \"rev\": \"9f8adb1aabaa8a91180a821111d3f8e668d1c0bf\",\n        \"languages\": []\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-28T00:12:05.496332Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 4.1,
+          "timed_out": false,
+          "max_rss_mb": 125.5,
+          "log_tail": "21:12:05 watching /Users/david/unbidden-bench/holdout-1/chi (ctrl-c to stop, \n`unbidden kill` to freeze)\n21:12:06 HEAD is 9f8adb1aabaa\n21:12:06 scan of 9f8adb1aabaa: 0 reports, 0 new opportunities\n21:12:06 map of 9f8adb1aabaa: 1 resources, 2 blind spots",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "9f8adb1aabaa8a91180a821111d3f8e668d1c0bf",
+        "probe": null,
+        "languages": [],
+        "blind_spots": [
+          "Go (go.mod) is not analyzed: no checks, probes or experiments for that code"
+        ],
+        "problems": [],
+        "analyzers": [],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {},
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-28T00:12:09.777114+00:00",
+      "seconds": 7.3,
+      "outcome": "unsupported stack"
+    }
+  ],
+  "spend": {
+    "by_repo": {
+      "bench:holdout-1:attrs": {
+        "calls": 1,
+        "retries": 0,
+        "failed": 0,
+        "tokens_in": 493,
+        "tokens_out": 3295,
+        "usd": 0.01462,
+        "unreported": 0
+      },
+      "bench:holdout-1:tablib": {
+        "calls": 1,
+        "retries": 0,
+        "failed": 0,
+        "tokens_in": 1176,
+        "tokens_out": 2885,
+        "usd": 0.01373125,
+        "unreported": 0
+      },
+      "bench:holdout-1:requests": {
+        "calls": 1,
+        "retries": 0,
+        "failed": 0,
+        "tokens_in": 2234,
+        "tokens_out": 3190,
+        "usd": 0.01635,
+        "unreported": 0
+      },
+      "bench:holdout-1:datasette": {
+        "calls": 1,
+        "retries": 0,
+        "failed": 0,
+        "tokens_in": 2665,
+        "tokens_out": 1613,
+        "usd": 0.0101865,
+        "unreported": 0
+      }
+    },
+    "by_model": {
+      "muse-spark-1.3": {
+        "calls": 4,
+        "retries": 0,
+        "failed": 0,
+        "tokens_in": 6568,
+        "tokens_out": 10983,
+        "usd": 0.05488775,
+        "unreported": 0
+      }
+    },
+    "by_purpose": {
+      "research.robustness": {
+        "calls": 4,
+        "retries": 0,
+        "failed": 0,
+        "tokens_in": 6568,
+        "tokens_out": 10983,
+        "usd": 0.05488775,
+        "unreported": 0
+      }
+    }
+  }
+}
