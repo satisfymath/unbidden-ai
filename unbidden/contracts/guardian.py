@@ -82,6 +82,8 @@ class EvaluationPolicy(Contract):
     # What resolving one opportunity of a category is worth to this team, in hours of a person's work saved;
     # categories not named keep the Director's defaults. Editable: it is the mandate's statement of value.
     value_hours: dict[str, float] = Field(default_factory=dict[str, float])
+    # A live result (L5) is checked again about once a day; held for this long, it is persistent (L6).
+    persistence_days: float = Field(default=7.0, gt=0)
 
 
 class ModelsPolicy(Contract):

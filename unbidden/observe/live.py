@@ -22,6 +22,7 @@ from unbidden.observe.impact import (
     CRITERIA,
     SUSTAINED_CRITERIA,
     SUSTAINED_PERSISTENCE,
+    WARMUP_ROUNDS,
     EndpointImpact,
     Impact,
     Round,
@@ -35,6 +36,8 @@ from unbidden.operate.deploy import OperationRefused, deploy
 from unbidden.operate.holds import place
 from unbidden.store import Store
 from unbidden.world.scope import scope
+
+RECHECK_EVERY = timedelta(days=1)
 
 Log = Callable[[str], None]
 HEALTH_HINTS = ("health", "healthz", "ping", "status")
@@ -137,6 +140,7 @@ class LiveWatcher:
             return
         if self.store.get("deploy_verdicts", f"{current}:{history[current]}", DeployVerdict) is None:
             self._judge(history, current, baseline)
+        self._recheck(history)
 
     def _sustained(self, now: datetime | None = None) -> None:
         """Once a minute: each endpoint's last minutes against the oldest of the last four hours, across deploys."""
@@ -321,6 +325,7 @@ class LiveWatcher:
                 {"kind": "state_drift", "detail": "data volume and cache state differ between the two windows"},
             ]
             outcome = {
+                "at": utc_now().isoformat(),
                 "deploy": f"{current}:{version}",
                 "baseline": f"{baseline}:{previous}",
                 "result": result,
@@ -352,6 +357,63 @@ class LiveWatcher:
                 )
             )
             self.log(f"{opp.id}: outcome after deploy {current} is {result}: {'; '.join(why)[:300]}")
+
+    def _recheck(self, history: list[str], now: datetime | None = None) -> None:
+        """Each positive live result, checked again about once a day against the same baseline and criteria: it holds,
+        or it is invalidated (the change is no longer deployed, or its effect is gone) and its level goes back to L4.
+        Held through the mandate's persistence period, with at least two checks, it is persistent (L6)."""
+        now = now or utc_now()
+        need = self.mandate.operations.guard_samples
+        current = len(history) - 1
+        for opp in self.store.list("opportunities", Opportunity, status=OpportunityStatus.VERIFIED.value):
+            outcome: dict[str, Any] = opp.details.get("outcome") or {}
+            if outcome.get("result") != "positive" or opp.evidence_level >= EvidenceLevel.PERSISTENCE:
+                continue
+            checks: list[dict[str, Any]] = opp.details.get("rechecks", [])
+            recorded = datetime.fromisoformat(outcome.get("at") or opp.updated_at.isoformat())
+            last = datetime.fromisoformat(checks[-1]["at"]) if checks else recorded
+            if now - last < RECHECK_EVERY:
+                continue
+            proposal = next((p for p in self.store.list("proposals", Proposal) if p.opportunity_id == opp.id), None)
+            shipped = (proposal.merge_sha or proposal.commit_sha) if proposal else None
+            if shipped is None or current < 0 or not contains(self.repo, history[current], shipped):
+                self._invalidate(opp, f"no longer deployed: deploy {current} runs {history[current][:12]}", now)
+                continue
+            baseline = int(str(outcome["baseline"]).split(":")[0])
+            judged = []
+            for target in opp.details.get("endpoints", []):
+                after = self._rounds(target, current)[-(need + WARMUP_ROUNDS) :]  # the judge drops the warm-up
+                judged.append(judge_endpoint(target, self._rounds(target, baseline), after, need))
+            if not judged or any(e.impact is Impact.INSUFFICIENT for e in judged):
+                continue  # not enough recent rounds yet: checked again at the next tick
+            if any(e.impact is not Impact.IMPROVED for e in judged):
+                gone = [f"{e.target}: {e.reasons[0] if e.reasons else e.impact.value}" for e in judged]
+                self._invalidate(opp, "the effect is no longer measured: " + "; ".join(gone), now)
+                continue
+            checks = [*checks, {"at": now.isoformat(), "deploy": f"{current}:{history[current]}", "held": True}]
+            opp.details = {**opp.details, "rechecks": checks}
+            persistent = now - recorded >= timedelta(days=self.mandate.evaluation.persistence_days) and len(checks) >= 2
+            if persistent:
+                opp.evidence_level = EvidenceLevel.PERSISTENCE
+            self.store.put("opportunities", opp)
+            self.store.append_event(
+                Event(type=EventType.OUTCOME_HELD, actor="observer", entity_id=opp.id, correlation_id=opp.id,
+                      payload={"checks": len(checks), "persistent": persistent, "deploy": checks[-1]["deploy"]})
+            )  # fmt: skip
+            self.log(f"{opp.id}: live result held ({len(checks)} check(s)){'; persistent (L6)' if persistent else ''}")
+
+    def _invalidate(self, opp: Opportunity, why: str, now: datetime) -> None:
+        """A live result that no longer holds: back to what the lab showed (L4), the reason kept with the outcome."""
+        outcome = {**opp.details.get("outcome", {}), "invalidated": {"at": now.isoformat(), "why": why}}
+        opp.details = {**opp.details, "outcome": outcome}
+        opp.evidence_level = EvidenceLevel.FUNCTIONAL_VALIDATION
+        opp.status = OpportunityStatus.PROPOSED
+        self.store.put("opportunities", opp)
+        self.store.append_event(
+            Event(type=EventType.OUTCOME_INVALIDATED, actor="observer", entity_id=opp.id, correlation_id=opp.id,
+                  payload={"why": why})
+        )  # fmt: skip
+        self.log(f"{opp.id}: live result invalidated: {why}")
 
     def _last_healthy(self, history: list[str], current: int) -> str | None:
         """The most recent earlier deploy judged healthy or improved (the first one served before any change)."""

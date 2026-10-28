@@ -277,3 +277,65 @@ def test_a_slowdown_spread_over_many_deploys_is_caught_against_the_oldest_rounds
     assert any("sustained degradation on GET /items/" in line for line in logs)
     judged = [e for e in store.events() if e.entity_id == "sustained:GET /items/"]
     assert len(judged) == 1 and judged[0].payload["factor"] > 10
+
+
+def _l5(store: Store, mandate: Mandate, repo: Path, v0: str, v1: str) -> tuple[LiveWatcher, Opportunity]:
+    opp = merged_change(store, v0, v1)
+    ledger_entry(store, 0, v0)
+    ledger_entry(store, 1, v1)
+    add_rounds(store, 0, v0, 20, 20, 1)
+    add_rounds(store, 1, v1, 5, 20, 2)
+    w = watcher(store, mandate, repo)
+    w._judge([v0, v1], 1, 0)  # pyright: ignore[reportPrivateUsage]
+    assert outcome_of(store, opp)[0] is EvidenceLevel.OPERATIONAL_RESULT
+    return w, opp
+
+
+def test_a_live_result_that_holds_through_the_persistence_period_is_l6(
+    store: Store, mandate: Mandate, history_repo: tuple[Path, list[str]]
+) -> None:
+    from datetime import timedelta
+
+    from unbidden.contracts.common import utc_now
+
+    repo, (v0, v1, _v2) = history_repo
+    w, opp = _l5(store, mandate, repo, v0, v1)
+    now = utc_now()
+    w._recheck([v0, v1], now + timedelta(hours=1))  # pyright: ignore[reportPrivateUsage]
+    assert "rechecks" not in store.get("opportunities", opp.id, Opportunity).details  # type: ignore[union-attr]
+    w._recheck([v0, v1], now + timedelta(days=2))  # pyright: ignore[reportPrivateUsage]
+    assert outcome_of(store, opp)[0] is EvidenceLevel.OPERATIONAL_RESULT  # held once, not yet persistent
+    w._recheck([v0, v1], now + timedelta(days=8))  # pyright: ignore[reportPrivateUsage]
+    level, _ = outcome_of(store, opp)
+    assert level is EvidenceLevel.PERSISTENCE
+
+
+def test_a_live_result_whose_effect_is_gone_is_invalidated_and_downgraded(
+    store: Store, mandate: Mandate, history_repo: tuple[Path, list[str]]
+) -> None:
+    from datetime import timedelta
+
+    from unbidden.contracts.common import utc_now
+
+    repo, (v0, v1, _v2) = history_repo
+    w, opp = _l5(store, mandate, repo, v0, v1)
+    add_rounds(store, 1, v1, 21, 20, 3)  # the endpoint is back to the baseline's latency
+    w._recheck([v0, v1], utc_now() + timedelta(days=2))  # pyright: ignore[reportPrivateUsage]
+    level, outcome = outcome_of(store, opp)
+    assert level is EvidenceLevel.FUNCTIONAL_VALIDATION
+    assert "no longer measured" in outcome["invalidated"]["why"]
+    assert any(e.type.value == "outcome.invalidated" for e in store.events())
+
+
+def test_a_live_result_rolled_back_is_invalidated(
+    store: Store, mandate: Mandate, history_repo: tuple[Path, list[str]]
+) -> None:
+    from datetime import timedelta
+
+    from unbidden.contracts.common import utc_now
+
+    repo, (v0, v1, _v2) = history_repo
+    w, opp = _l5(store, mandate, repo, v0, v1)
+    w._recheck([v0, v1, v0], utc_now() + timedelta(days=2))  # pyright: ignore[reportPrivateUsage]
+    level, outcome = outcome_of(store, opp)
+    assert level is EvidenceLevel.FUNCTIONAL_VALIDATION and "no longer deployed" in outcome["invalidated"]["why"]

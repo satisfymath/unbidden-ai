@@ -34,6 +34,8 @@ class EventType(StrEnum):
     MERGED = "operations.merged"
     IMPACT_JUDGED = "impact.judged"
     OUTCOME_RECORDED = "outcome.recorded"
+    OUTCOME_HELD = "outcome.held"
+    OUTCOME_INVALIDATED = "outcome.invalidated"
     CAPABILITY_BUILT = "capability.built"
     CAPABILITY_APPROVED = "capability.approved"
     CAPABILITY_NEEDED = "capability.needed"
