@@ -318,6 +318,9 @@ def reset(lab: Path, case: str, variants: list[str], seed: int = 5_2026, bins: i
     state = {"case": case, "variants": variants, "seed": seed, "kinds": kinds,
              "commit": _git(repo, "rev-parse", "HEAD"), **baseline(lab)}  # fmt: skip
     (lab / "board-baseline.json").write_text(json.dumps(state, indent=1))
+    from bench.ecosystem.board_check import baseline_page
+
+    baseline_page(lab)  # the information the page carries before the agent, for the checker
     return state
 
 

@@ -166,19 +166,36 @@ def capture(out: Path) -> dict[str, Any]:
     return json.loads((out / "check.json").read_text())
 
 
+def information(lines: list[str], bins: set[str]) -> set[str]:
+    """What a person reads on the page besides the bins' rows, digits normalised (a count may change)."""
+    return {re.sub(r"\d+", "#", line) for line in lines if not any(b in line for b in bins)}
+
+
+def baseline_page(lab: Path) -> None:
+    """The page as the case left it, before the agent: what information it carries."""
+    page = capture(lab / "board-baseline-page")
+    (lab / "board-baseline-lines.json").write_text(json.dumps(page["lines"]))
+
+
 def check(lab: Path, out: Path) -> dict[str, Any]:
     before = json.loads((lab / "board-baseline.json").read_text())
     now = board_lab.baseline(lab)
-    preserved = {
+    preserved: dict[str, Any] = {
         "inventory": now["bins"] == before["bins"],
         "history": now["picks"] == before["picks"],
     }
     true = truth(lab)
     page = capture(out)
+    shown_before = lab / "board-baseline-lines.json"
+    if shown_before.exists():
+        lost = information(json.loads(shown_before.read_text()), set(true)) - information(page["lines"], set(true))
+        preserved["information"] = not lost
+        if lost:
+            preserved["lost"] = sorted(lost)
     judged = judge(page, true)
     short = sorted(b for b, t in true.items() if t["shortfall"] > 0)
     verdict = {
-        "verified": not judged["problems"] and all(preserved.values()),
+        "verified": not judged["problems"] and all(v for k, v in preserved.items() if k != "lost"),
         "short": short,
         "flagged": sorted(b for b, j in judged["bins"].items() if j["flagged"]),
         "false_flags": sorted(b for b, j in judged["bins"].items() if j["false_flag"]),

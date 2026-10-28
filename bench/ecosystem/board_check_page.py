@@ -73,6 +73,7 @@ def main() -> None:
         page = browser.new_page(viewport={"width": WIDTH, "height": HEIGHT}, device_scale_factor=1)
         page.goto(url, wait_until="networkidle", timeout=30000)
         rows = page.evaluate(ROWS)
+        lines = page.evaluate("document.body.innerText.split('\\n').map(l => l.trim()).filter(l => l)")
         ids = [s["id"] for r in rows for s in r["states"]]
         total = page.evaluate("document.documentElement.scrollHeight")
         scale = page.evaluate("devicePixelRatio")
@@ -117,6 +118,7 @@ def main() -> None:
                 "steps": steps,
                 "rows": rows,
                 "seen": seen,
+                "lines": lines,
             }
         )
     )

@@ -69,3 +69,13 @@ def test_the_board_lab_data_has_every_kind_and_picks_outside_the_window() -> Non
     bins, picks, kinds = stock(7, 24)
     assert sorted(set(kinds.values())) == ["equal", "fine", "reserved", "short"] and len(bins) == 24
     assert any(days > 7 for _, _, days in picks)
+
+
+def test_information_besides_the_rows_must_stay_on_the_page() -> None:
+    from bench.ecosystem.board_check import information
+
+    before = ["Restock board", "B01", "12 of 24 bins short", "Ask the floor lead before restocking a bin twice."]
+    after_hidden = ["Restock board", "B01", "11 of 24 bins short"]
+    assert information(before, {"B01"}) - information(after_hidden, {"B01"}) == {
+        "Ask the floor lead before restocking a bin twice."
+    }  # a changed count is not lost information; a hidden panel is
