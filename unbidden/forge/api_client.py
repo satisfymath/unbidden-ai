@@ -303,6 +303,27 @@ def call(
     return status, data
 
 
+def read_collection(
+    integration: ApiIntegration,
+    conn: Connection,
+    mandate: Mandate,
+    op_id: str,
+    *,
+    gate: bool = True,
+    transport: httpx.BaseTransport | None = None,
+    page_size: int | None = None,
+) -> Any:
+    """A whole collection through a listing operation, with how complete the read is (`connect/pages.py`)."""
+    from unbidden.connect.pages import read_all
+
+    op = integration.op(op_id)
+    return read_all(
+        lambda params: call(integration, conn, mandate, op_id, params=params, gate=gate, transport=transport)[1],
+        op.parameters,
+        page_size=page_size,
+    )
+
+
 # The oracle -------------------------------------------------------------------------------------------------------
 
 
@@ -342,17 +363,26 @@ def oracle(
         except (CallFailed, Unavailable, jsonschema.ValidationError) as exc:
             return getattr(exc, "status", None), None, str(exc)[:300]
 
+    from unbidden.connect.pages import Completeness, cross_check
+
     for op in listing:
-        status, data, error = run(op)
-        items = _list_items(data)
-        pages = int(data.get("pages", 1)) if isinstance(data, dict) and isinstance(data.get("pages"), int) else 1
-        if error is None and pages > 1 and any(p["name"] == "page" for p in op.parameters):
-            for page in range(2, min(pages, MAX_PAGES) + 1):
-                _, d2, e2 = run(op, params={"page": page})
-                if e2 is not None:
-                    error = f"page {page}: {e2}"
-                    break
-                items += _list_items(d2)
+        error, items, completeness, agrees, why, read_why = None, [], None, False, "", ""
+        try:
+            first = read_collection(integration, conn, mandate, op.id, gate=False, transport=transport)
+            items, completeness, read_why = first.records, first.completeness, first.why
+            # Independent of the reader: the same collection with another page size must hold the same records.
+            agrees, why = cross_check(
+                first,
+                lambda params, op=op: call(
+                    integration, conn, mandate, op.id, params=params, gate=False, transport=transport
+                )[1],
+                op.parameters,
+            )
+        except (CallFailed, Unavailable, jsonschema.ValidationError) as exc:
+            error = str(exc)[:300]
+            status = getattr(exc, "status", None)
+        else:
+            status = 200
         seen += items
         anonymous = None
         try:
@@ -363,8 +393,11 @@ def oracle(
             anonymous = None
         refused = anonymous in (401, 403)
         results[op.id] = {
-            "passed": error is None and status == 200 and refused,
-            "observed": f"{status}, {len(items)} records, {pages} page(s); without the key: {anonymous}",
+            "passed": error is None and completeness is Completeness.COMPLETE and agrees and refused,
+            "observed": (
+                f"{status}, {len(items)} records, read {completeness.value if completeness else 'not at all'} "
+                f"({read_why}); {why}; without the key: {anonymous}"
+            ),
             "error": error,
         }
     for op in keyed:

@@ -30,7 +30,7 @@ from unbidden.contracts.connection import USABLE, Connection, ConnectionState
 from unbidden.contracts.guardian import Goal, Mandate
 from unbidden.contracts.llm import LLMRequest, Message, Tier
 from unbidden.forge.api_client import COLLECTION as INTEGRATIONS
-from unbidden.forge.api_client import ApiIntegration, CallFailed, _list_items, call  # pyright: ignore[reportPrivateUsage]
+from unbidden.forge.api_client import ApiIntegration, CallFailed  # pyright: ignore[reportPrivateUsage]
 from unbidden.operate.actions import idempotency_key, run_api_action
 from unbidden.store import Store
 
@@ -63,6 +63,10 @@ PLAN_SCHEMA: dict[str, Any] = {
         },
     },
 }
+
+
+class Incomplete(RuntimeError):
+    """A source could not be read whole; decisions that need the whole set are not taken."""
 
 
 class GoalRun(Contract):
@@ -229,6 +233,8 @@ async def pursue(brain: Any, store: Store, mandate: Mandate, goal: Goal, *, wind
         return _finish(store, run, "blocked", "; ".join(f"{n}: {conns[n].state.value}" for n in missing))
     try:
         rows = _read(store, mandate, plan, conns, integrations, run)
+    except Incomplete as exc:
+        return _finish(store, run, "blocked_incomplete", f"read incomplete, nothing decided: {exc}")
     except (Unavailable, QueryRefused, CallFailed, KeyError, ValueError) as exc:
         return _finish(store, run, "failed", f"reads: {exc}")
     key, expression = str(plan.get("key")), str(plan.get("shortfall"))
@@ -274,15 +280,16 @@ def _read(
     run.reads.append({"connection": db.id, "query": sql.get("query"), "rows": len(left)})
     op = integration.op(str(api.get("operation")))
     conn = conns[str(api.get("connection"))]
-    right: list[dict[str, Any]] = []
-    page, pages = 1, 1
-    while page <= min(pages, 20):
-        params = {"page": page} if any(p["name"] == "page" for p in op.parameters) else {}
-        _, data = call(integration, conn, mandate, op.id, params=params)
-        right += _list_items(data)
-        pages = int(data.get("pages", 1)) if isinstance(data, dict) and isinstance(data.get("pages"), int) else 1
-        page += 1
-    run.reads.append({"connection": conn.id, "operation": op.id, "records": len(right), "pages": pages})
+    from unbidden.forge.api_client import read_collection
+
+    read = read_collection(integration, conn, mandate, op.id)
+    right = read.records
+    run.reads.append({"connection": conn.id, "operation": op.id, **read.summary()})
+    db_whole = len(left) < 1000
+    run.reads[0]["completeness"] = "complete" if db_whole else "incomplete"
+    if read.completeness.value != "complete" or not db_whole:
+        # A decision over a partial set would be about the part read as if it were the whole: not taken.
+        raise Incomplete(read.why if read.completeness.value != "complete" else "the query reached its row limit")
     by_key = {r.get(key): r for r in right}
     if not left or key not in left[0]:
         raise KeyError(f"the query's rows have no field {key!r}")
