@@ -28,8 +28,9 @@ MODELS = {"spark": "muse-spark-1.3", "wonder": "muse-wonder-1.0"}
 # or not): the statement now says what the contract asks, a red background.
 STATEMENT = (
     "Every bin with a shortfall must be flagged on the restock board with a SHORT badge on a red background (white "
-    "text on red, an alert) that a person can see and read on that bin's own row, and no other bin may carry one: a bin is short when its picks over the last 7 "
-    "days exceed what it can supply (what it holds, less what is reserved, plus what is incoming), and people "
+    "text on red, an alert) that a person can see and read on that bin's own row, and no other bin may carry one: "
+    "a bin is short when its picks over the last 7 days exceed what it can supply (what it holds, less what is "
+    "reserved, plus what is incoming), and people "
     "restock from what the board shows them."
 )
 MANDATE = """mandate:
