@@ -338,3 +338,30 @@ Mealie L5: run under amendment 1 (D-041, `docs/bench/2026-10-28-mealie-l5-result
 diagnosed (xdist over the sandbox's memory, fixed in `feat/36-xdist-workers` · 09d0d14); the lab evidence was
 revalidated to L4 with today's evaluator; the live result between two verified deploys is positive (11.8 → 2.2 ms,
 probe traffic only). L6 is not claimed: it needs re-checks over the persistence period.
+
+## PR12 completed and PR13 clarified (2026-10-28, before the code)
+
+**PR13, as this plan defines it** (G2, §5 table): decisions, hypotheses, experiment measurements and lab notes are
+stored but never read when deciding. PR13 makes that memory change decisions (`director/`, lab notes fed back,
+store queries), accepted only out of sample: fewer wasted experiments at equal discoveries against a no-memory
+ablation. It depends on PR12 (a Director that has somewhere to use what it remembers: PR12's learned success
+chance is the first such use) and on PR16 (the ablation needs scenarios with a known truth and repeated runs).
+So: PR12's actions first, then PR16's scenarios to measure them, then PR13's ablation on those scenarios.
+
+**PR12's three actions**, each routed through a mechanism that already works, no second flow:
+
+| | MEASURE | ACQUIRE_CAPABILITY | INVESTIGATE |
+|---|---|---|---|
+| Resolves | the value of a world opportunity depends on an observation not made yet (a table's rows unknown) | deciding needs a capability that does not exist (traffic per route sits in a log no reader parses) | the cause of a runtime signal is unknown |
+| Evidence it needs | the table's row estimate from the database connector | a validated reader for the service's access log | the incident's good and bad versions and its signal |
+| Mechanism, permissions | `world.refresh` (PR11), `runtime.read`; no model | `forge.build` (PR10): `capability.build` (local model, under `run_experiments`), then the one use gate | `research.investigate` (exists; live.py already queues it for incidents), local model |
+| Budget | at most 3 refreshes per opportunity and commit; no model | Forge's: 2 builds per need, local only | the investigation's own step limit, local only |
+| Ends | rows observed: decided normally; 3 refreshes without them: waits, "cannot be measured", until the commit changes | need in use: what waited resumes; awaiting approval: waits for a person; abandoned: decided without it, saying so | a hypothesis is recorded, or none |
+| Returns | `run_checks` writes the rows into the opportunity | the need's `resume` queues a sweep | the hypothesis, recorded with its subject |
+| Cannot repeat | count per opportunity and commit in `details.measure`; idempotent job keys | one need per (kind, source); attempts capped | one per opportunity and reopening (job key) |
+
+Plus one decision fixed from the dev scenarios: a style finding (lint, format) in files the team's own linter is
+not run on is declined; the scope is the linter's invocation (PR4's argv reading), not where test steps run.
+
+INVESTIGATE has no PR16 scenario yet (its inputs are incidents on a running system); it is wired and unit-tested,
+and reported as not exercised.
