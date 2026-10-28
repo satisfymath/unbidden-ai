@@ -4,7 +4,7 @@ The evaluation set (Dispatch: `bench/ecosystem/carrier.py`, `dispatch_lab.py`, `
 e1–e4 in `evaluate.py`) was committed in b3816c2 before any run of it, and never used to develop or debug. The
 development set (Shopfront, d1–d7) is where everything was fixed.
 
-- **Unbidden:** COMMIT (the stack's head at the freeze; `unbidden/` unchanged after it until the evaluation ran).
+- **Unbidden:** product code of d7bf77d (`unbidden/` tree cea3ee50aaca4bdf66970aa5057fc9f35329f0ec), the same at this freeze commit; harness at this commit.
 - **Model:** `muse-glimmer:30b-mxfp8-dflash` through Ollama (local profile). No remote model; spend cap US$0.
 - **Budget:** one `watch --once` cycle per run (two where the scenario says so); the cycle's own timeouts.
 - **Scoring:** `bench/ecosystem/evaluate.py` at the freeze: connectivity (states against the expected map),
