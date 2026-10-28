@@ -134,6 +134,8 @@ def up(lab: Path) -> None:
     time.sleep(2)
     shopfront_up(lab)
     write_oracle(lab)
+    # The truth when the project is handed over, before anything acts on it.
+    (lab / "oracle-initial.json").write_text((lab / "oracle.json").read_text())
 
 
 def _docker_stdin(sql: str) -> None:

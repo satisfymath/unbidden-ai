@@ -91,8 +91,9 @@ def main() -> None:
     if args.fresh and (repo / ".unbidden").exists():
         shutil.rmtree(repo / ".unbidden")
     if not (repo / ".unbidden").exists():
-        subprocess.run(["uv", "run", "--project", args.worktree, "unbidden", "init"], cwd=repo, check=True,
-                       capture_output=True)
+        subprocess.run(
+            ["uv", "run", "--project", args.worktree, "unbidden", "init"], cwd=repo, check=True, capture_output=True
+        )
     (repo / ".unbidden" / "mandate.yaml").write_text(MANDATE.format(use=args.use_capabilities, writes=args.writes))
     held = dict(line.split("=", 1) for line in (lab / "secrets.env").read_text().splitlines() if "=" in line)
     env = repo / ".unbidden" / ".env"
