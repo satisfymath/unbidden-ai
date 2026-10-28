@@ -61,10 +61,19 @@ def purpose(grant_id: str) -> str:
 
 
 def require(
-    conn: Connection | None, mandate: Mandate, kind: str, operation: str | None, why: str, *, scope: str | None = None
+    conn: Connection | None,
+    mandate: Mandate,
+    kind: str,
+    operation: str | None,
+    why: str,
+    *,
+    scope: str | None = None,
+    approved: bool = False,
 ) -> Connection:
     """The gate every connection read or write passes, at the moment it runs. Raises `Unavailable`. A write is
-    checked against the grant by what it writes (`scope`, e.g. "reorders"), as grants name it (`write:reorders`)."""
+    checked against the grant by what it writes (`scope`, e.g. "reorders"), as grants name it (`write:reorders`).
+    `approved`: a person's valid approval for this connection (`connect.effects.approved`), which the policy's
+    REQUIRE_APPROVAL asks for."""
     if conn is None:
         raise Unavailable("no such connection")
     if conn.state not in (ConnectionState.CONNECTED, ConnectionState.DEGRADED):
@@ -80,7 +89,8 @@ def require(
         raise Unavailable(f"{conn.id}: the mandate grants {grant.permissions}, not {wanted}")
     capability = "connection.read" if kind in ("read", "measure") else "connection.write"
     verdict = PolicyEngine(mandate).evaluate(
-        ActionRequest(capability=capability, purpose=why, destinations=[grant_host(grant.location)])
+        ActionRequest(capability=capability, purpose=why, destinations=[grant_host(grant.location)]),
+        approved=approved and capability == "connection.write",
     )
     if not verdict.allowed:
         raise Unavailable(f"{capability}: {'; '.join(verdict.reasons)}")

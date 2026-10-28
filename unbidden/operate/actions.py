@@ -122,7 +122,7 @@ def run_api_action(
     if failed:
         action.status, action.reason = ActionStatus.REFUSED, "preconditions: " + "; ".join(failed)
         return save(store, action)
-    from unbidden.connect.effects import authorize
+    from unbidden.connect.effects import approved, authorize
 
     if not conn.can("write", action.operation):
         action.status, action.reason = ActionStatus.REFUSED, f"{action.operation} was not observed to work on {conn.id}"
@@ -162,9 +162,13 @@ def run_api_action(
                 params=action.params,
                 body=action.body,
                 idempotency_key=action.idempotency_key,
+                approved=approved(store, conn),
             )
             attempts.append({"attempt": attempt, "status": status})
             break
+        except Unavailable as exc:  # the gate refused at the moment of sending: nothing left
+            action.status, action.reason, action.evidence = ActionStatus.REFUSED, str(exc), attempts
+            return save(store, action)
         except CallFailed as exc:
             attempts.append({"attempt": attempt, "status": exc.status, "error": str(exc)[:200]})
             if exc.status is not None:
@@ -222,7 +226,7 @@ def compensate(store: Store, mandate: Mandate, action: Action, integration: ApiI
     if not action.compensation.available or not action.compensation.operation:
         action.reason = "no compensation was observed for this operation: not attempted"
         return save(store, action)
-    from unbidden.connect.effects import authorize
+    from unbidden.connect.effects import approved, authorize
 
     undo = integration.op(action.compensation.operation)
     names = [p["name"] for p in undo.parameters if p.get("in") == "path"]
@@ -235,7 +239,9 @@ def compensate(store: Store, mandate: Mandate, action: Action, integration: ApiI
         return save(store, action)
     try:
         before, _ = _read_record(integration, conn, mandate, keys)
-        status, data = call(integration, conn, mandate, undo.id, params={names[0]: created})
+        status, data = call(
+            integration, conn, mandate, undo.id, params={names[0]: created}, approved=approved(store, conn)
+        )
         after, _ = _read_record(integration, conn, mandate, keys)
     except (CallFailed, Unavailable) as exc:
         action.reason = f"compensation failed: {exc}"

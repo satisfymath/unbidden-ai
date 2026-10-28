@@ -253,13 +253,14 @@ def call(
     with_key: bool = True,
     transport: httpx.BaseTransport | None = None,
     gate: bool = True,
+    approved: bool = False,
 ) -> tuple[int, Any]:
     """One call of one integration operation. The gate checks the connection, the checked ability, the grant and
     the policy at this moment; the request is built from the document's operation only; the response is validated
     against the document. Returns (status, body); raises `Unavailable` or `CallFailed`."""
     op = integration.op(op_id)
     if gate:
-        require(conn, mandate, op.effect, op.id, f"{op.id} on {conn.id}", scope=op.scope)
+        require(conn, mandate, op.effect, op.id, f"{op.id} on {conn.id}", scope=op.scope, approved=approved)
     grant = next((g for g in mandate.connections if g.id == conn.grant), None)
     if grant is None:
         raise Unavailable(f"{conn.id} is not granted")

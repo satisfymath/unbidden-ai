@@ -183,3 +183,23 @@ def test_a_timeout_after_a_write_is_reconciled_by_reading_and_never_duplicated(
     done = act(store, mandate, integration, conn, depot, monkeypatch, units=7)
     assert done.status is ActionStatus.VERIFIED and depot.bins["B03"]["incoming"] == 7  # applied once, not twice
     assert any("answer was lost" in str(e) for e in done.evidence)
+
+
+def test_under_require_approval_a_persons_approval_lets_the_write_and_its_undo_through(
+    mandate: Mandate, store: Store, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from unbidden.connect.effects import approve_writes
+
+    depot = Depot({KEY})
+    integration, conn, _ = built(mandate, store, depot)
+    mandate.autonomy.act_on_connections = Autonomy.REQUIRE_APPROVAL
+    refused = act(store, mandate, integration, conn, depot, monkeypatch)
+    assert refused.status is ActionStatus.REFUSED and "approve-writes" in refused.reason
+    assert depot.bins["B03"]["incoming"] == 0
+    assert all(r["state"] == "cancelled" for r in depot.restocks.values())  # only the oracle's probes, each undone
+    store.delete("actions", refused.id)
+    approve_writes(store, mandate, "depot", by="a person", hours=1)
+    done = act(store, mandate, integration, conn, depot, monkeypatch)
+    assert done.status is ActionStatus.VERIFIED and depot.bins["B03"]["incoming"] == 5
+    undone = compensate(store, mandate, done, integration, conn)
+    assert undone.status is ActionStatus.COMPENSATED and depot.bins["B03"]["incoming"] == 0

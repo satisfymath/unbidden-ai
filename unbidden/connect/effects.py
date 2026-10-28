@@ -50,6 +50,11 @@ def writes_today(store: Store, conn: Connection) -> int:
     )
 
 
+def approved(store: Store, conn: Connection) -> bool:
+    """Whether a person's approval to change this connection is valid now."""
+    return find_valid(store, WRITE, conn.id) is not None
+
+
 def authorize(store: Store, mandate: Mandate, conn: Connection, scope: str, purpose: str) -> tuple[bool, str]:
     """Whether one more mutating request may be sent to this connection now, and if not, exactly why."""
     from unbidden.connect.registry import get
@@ -67,9 +72,10 @@ def authorize(store: Store, mandate: Mandate, conn: Connection, scope: str, purp
     switch = KillSwitch.of(store)
     if switch is not None and switch.engaged:
         return False, "the kill switch is engaged"
-    approved = find_valid(store, WRITE, conn.id) is not None
+    by_person = approved(store, conn)
     verdict = PolicyEngine(mandate).evaluate(
-        ActionRequest(capability=WRITE, purpose=purpose, destinations=[grant_host(granted.location)]), approved=approved
+        ActionRequest(capability=WRITE, purpose=purpose, destinations=[grant_host(granted.location)]),
+        approved=by_person,
     )
     if not verdict.allowed:
         if verdict.decision.value == "require_approval":
@@ -81,7 +87,7 @@ def authorize(store: Store, mandate: Mandate, conn: Connection, scope: str, purp
     used = writes_today(store, conn)
     if used >= limit:
         return False, f"{conn.id}: {used} writes today, its limit is {limit}"
-    return True, "approved by a person" if approved else verdict.rule
+    return True, "approved by a person" if by_person else verdict.rule
 
 
 def approve_writes(store: Store, mandate: Mandate, grant_id: str, by: str, hours: float) -> Any:
