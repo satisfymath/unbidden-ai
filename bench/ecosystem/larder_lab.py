@@ -92,6 +92,7 @@ def _service(lab: Path) -> None:
     (home / "tokens").write_text(_secrets(lab)["LARDER_TOKEN"] + "\n")
     items, _ = stock()
     (home / "items.json").write_text(json.dumps(items))
+    (home / "faults").write_text("")
     if base._docker("ps", "-aq", "--filter", f"name=^{NAME}$").stdout.strip():  # pyright: ignore[reportPrivateUsage]
         base._docker("rm", "-f", NAME)  # pyright: ignore[reportPrivateUsage]  (a fresh start: no transfers)
     base._docker(  # pyright: ignore[reportPrivateUsage]
@@ -202,9 +203,15 @@ def set_token(lab: Path, valid: bool) -> None:
     (lab / "larder" / "tokens").write_text(token + "\n")
 
 
+def set_faults(lab: Path, faults: list[str]) -> None:
+    (lab / "larder").mkdir(parents=True, exist_ok=True)
+    (lab / "larder" / "faults").write_text("\n".join(faults) + "\n")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=["up", "down", "oracle", "revoke-key", "restore-key"])
+    parser.add_argument("action", choices=["up", "down", "oracle", "revoke-key", "restore-key", "faults"])
+    parser.add_argument("faults", nargs="*")
     parser.add_argument("--dir", default=os.path.expanduser("~/unbidden-lab"))
     args = parser.parse_args()
     lab = Path(args.dir)
@@ -214,6 +221,7 @@ def main() -> None:
         "oracle": oracle,
         "revoke-key": lambda p: set_token(p, False),
         "restore-key": lambda p: set_token(p, True),
+        "faults": lambda p: set_faults(p, args.faults),
     }[args.action](lab)
 
 

@@ -5,7 +5,13 @@ the same handler in-process for tests. Written and frozen before the evaluation 
 
 Cursor pagination (`cursor`, `page_size` up to 10, `next_cursor` until the last page); an `X-Api-Token` header;
 transfers created with an `Idempotency-Key` (a repeat returns the same transfer and applies nothing) and cancelled
-with a documented DELETE that reverts them. Tokens are read at every request, so a revocation takes effect at once.
+with a documented DELETE that reverts them. Tokens and faults are read at every request.
+
+Faults (stage 6, added after the evaluation for development regressions; `faults`, one per line):
+- `bad_page`: the second page carries an item whose `on_hand` is not an integer (outside the document);
+- `timeout_after_write`: the first transfer of 2 or more units is applied, then its answer never comes (the oracle's
+  own probes move 1 unit, so the fault reaches an action, not the probe);
+- `undo_noop`: a cancel answers 200 and reverts nothing.
 """
 
 from __future__ import annotations
@@ -14,6 +20,7 @@ import base64
 import json
 import sys
 import threading
+import time
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -155,8 +162,8 @@ def document() -> dict[str, Any]:
 
 
 class Larder:
-    def __init__(self, tokens: set[str], items: list[dict[str, Any]]) -> None:
-        self.tokens = tokens
+    def __init__(self, tokens: set[str], items: list[dict[str, Any]], faults: set[str] | None = None) -> None:
+        self.tokens, self.faults, self.timed_out = tokens, faults or set(), False
         self.items = {i["code"]: dict(i) for i in items}
         self.transfers: dict[str, dict[str, Any]] = {}
         self.by_key: dict[str, str] = {}
@@ -180,7 +187,10 @@ class Larder:
                 following = start + size
                 more = following < len(codes)
                 token = base64.urlsafe_b64encode(str(following).encode()).decode() if more else None
-                return 200, {"data": [dict(self.items[c]) for c in batch], "next_cursor": token}
+                data = [dict(self.items[c]) for c in batch]
+                if "bad_page" in self.faults and start > 0 and data:
+                    data[0]["on_hand"] = "many"
+                return 200, {"data": data, "next_cursor": token}
             if method == "GET" and path == "/api/v2/shelves":
                 return 200, sorted({i["shelf"] for i in self.items.values()})
             if method == "POST" and path == "/api/v2/transfers":
@@ -199,12 +209,15 @@ class Larder:
                 if key:
                     self.by_key[key] = transfer["transfer_id"]
                 self.items[code]["inbound"] += qty
+                if "timeout_after_write" in self.faults and qty >= 2 and not self.timed_out:
+                    self.timed_out = True
+                    return 201, {**transfer, "_timeout": True}
                 return 201, dict(transfer)
             if method == "DELETE" and path.startswith("/api/v2/transfers/"):
                 transfer = self.transfers.get(path.rsplit("/", 1)[-1])
                 if transfer is None:
                     return 404, {"message": "no such transfer"}
-                if transfer["status"] == "requested":
+                if transfer["status"] == "requested" and "undo_noop" not in self.faults:
                     self.items[transfer["code"]]["inbound"] -= transfer["quantity"]
                 transfer["status"] = "cancelled"
                 return 200, dict(transfer)
@@ -216,6 +229,8 @@ def transport(larder: Larder) -> Any:
 
     def handle(request: httpx.Request) -> httpx.Response:
         status, body = larder.handle(request.method, str(request.url), dict(request.headers), request.content)
+        if isinstance(body, dict) and body.pop("_timeout", False):
+            raise httpx.ReadTimeout("the answer never came", request=request)
         return httpx.Response(status, json=body)
 
     return httpx.MockTransport(handle)
@@ -231,8 +246,11 @@ def main() -> None:
 
         def _serve(self) -> None:
             larder.tokens = set((home / "tokens").read_text().split())
+            larder.faults = set((home / "faults").read_text().split()) if (home / "faults").exists() else set()
             length = int(self.headers.get("Content-Length") or 0)
             status, body = larder.handle(self.command, self.path, dict(self.headers), self.rfile.read(length))
+            if isinstance(body, dict) and body.pop("_timeout", False):
+                time.sleep(60)
             data = json.dumps(body).encode()
             self.send_response(status)
             self.send_header("Content-Type", "application/json")

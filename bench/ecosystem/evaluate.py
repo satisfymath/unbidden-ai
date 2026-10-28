@@ -365,6 +365,29 @@ SCENARIOS = {
         steps=[_revoke_north],
         expect={"acts": True, "revoked": "http_api:http://127.0.0.1:19091"},
     ),
+    # Stage 6, post-evaluation development regressions on Larder (no longer out of sample): faults.
+    "a5": Scenario(
+        "a5",
+        "Larder answers one page outside its document (on_hand not an integer)",
+        flags={"grant": "write"},
+        faults=["bad_page"],
+        expect={"acts": False},
+    ),
+    "a6": Scenario(
+        "a6",
+        "Larder applies a transfer and its answer never comes; a second cycle must not duplicate it",
+        flags={"grant": "write"},
+        faults=["timeout_after_write"],
+        steps=[None],
+        expect={"acts": True},
+    ),
+    "a7": Scenario(
+        "a7",
+        "Larder's cancel answers 200 and reverts nothing: the write cannot be validated",
+        flags={"grant": "write"},
+        faults=["undo_noop"],
+        expect={"acts": False},
+    ),
     # The evaluation set (Dispatch), fixed before it ran.
     "e1": Scenario(
         "e1", "Dispatch: the project, its goal and accesses; writes in staging allowed", expect={"acts": True}
