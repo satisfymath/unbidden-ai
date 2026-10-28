@@ -549,12 +549,32 @@ DEFAULT_CONFIGS = {
 }  # fmt: skip
 
 
+# Packages whose name is not the command they run, as `npx`/`bunx`/`pnpm dlx`/`uvx` name them.
+PACKAGE_TOOLS = {"typescript": "tsc", "@biomejs/biome": "biome"}
+
+
+def _tool_of(token: str, *, via_runner: bool) -> tuple[str, str | None]:
+    """The tool a token runs and the version it pins: `tsc`, `./node_modules/.bin/tsc`, and, through a package
+    runner, `typescript@7.0.2` or `ruff==0.6.0` (a pinned version, possibly not the project's)."""
+    if not via_runner:
+        return PurePosixPath(token).name.removesuffix(".exe"), None
+    name, version = token, None
+    if "==" in token:
+        name, version = token.split("==", 1)
+    elif "@" in token.lstrip("@"):
+        at = token.rindex("@")
+        name, version = token[:at], token[at + 1 :]
+    name = name if name.startswith("@") else PurePosixPath(name).name.removesuffix(".exe")
+    return PACKAGE_TOOLS.get(name, name), version or None
+
+
 @dataclass(frozen=True)
 class Invocation:
     subcommand: str | None
     paths: tuple[str, ...]  # where it runs, relative to the repository; empty: its whole working directory
     config: str | None  # an explicit configuration file
     cwd: str  # from a preceding `cd <dir> &&`
+    version: str | None = None  # pinned by the step itself (`bunx typescript@7.0.2`), not by the project
 
     def scopes(self) -> list[str]:
         base = self.cwd.strip("./")
@@ -581,9 +601,10 @@ def tool_invocations(commands: str, tool: str) -> list[Invocation]:
                 cwd = tokens[1]
                 continue
             for i, token in enumerate(tokens):
-                if PurePosixPath(token).name.removesuffix(".exe") != tool:
-                    continue
                 before = tokens[i - 1] if i else ""
+                named, version = _tool_of(token, via_runner=before in _INVOKERS)
+                if named != tool:
+                    continue
                 runs_it = (
                     i == 0
                     or before in _INVOKERS
@@ -616,7 +637,7 @@ def tool_invocations(commands: str, tool: str) -> list[Invocation]:
                         config = arg  # `tsc -b tsconfig.json`: a project file, not a path to check
                     elif arg not in (".", "./") and ("/" in arg or "." in arg or arg.isidentifier()):
                         paths.append(arg.removeprefix("./").rstrip("/"))
-                found.append(Invocation(subcommand, tuple(paths), config, cwd))
+                found.append(Invocation(subcommand, tuple(paths), config, cwd, version))
     return found
 
 
@@ -654,6 +675,9 @@ def environment_equivalence(
         return UNRELATED, f"the team's CI runs {tool} on {', '.join(scopes)}, not on {paths[0] if paths else 'them'}"
     if source != "project":
         return DIFFERS, f"Unbidden ran its own {tool}, whose version may differ from the CI's"
+    pinned = [i for i in covering if i.version]
+    if len(pinned) == len(covering):
+        return DIFFERS, f"the team's CI runs {tool} {pinned[0].version}, a version it pins itself"
     defaults = [
         i for i in covering if i.config is None or PurePosixPath(i.config).name in DEFAULT_CONFIGS.get(tool, ())
     ]

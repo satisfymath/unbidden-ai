@@ -96,3 +96,17 @@ def test_invocations_are_read_as_argv() -> None:
     assert not runs_tool("tox -e mypy", "mypy")
     assert not runs_tool("[tool.mypy]", "mypy")
     assert not runs_tool("ruff format --check .", "ruff")
+
+
+def test_a_tool_run_by_its_package_name_and_pinned_version_is_recognized_and_differs() -> None:
+    # Found on dev (compass-calendar, v5): `bunx typescript@7.0.2` is tsc, at a version the step pins itself.
+    commands = "bunx typescript@7.0.2 -b tsconfig.typecheck.json --noemit"
+    assert runs_tool(commands, "tsc")
+    relation, why = environment_equivalence(commands, "tsc", ["src/a.ts"], source="project", own_rules=False)
+    assert relation == DIFFERS and "7.0.2" in why
+    assert runs_tool("pnpm dlx @biomejs/biome@1.9.4 check .", "biome")
+    assert (
+        environment_equivalence("uvx ruff==0.6.0 check .", "ruff", ["a.py"], source="project", own_rules=False)[0]
+        == DIFFERS
+    )
+    assert not runs_tool("npm install typescript@5", "tsc")  # installing it is not running it
