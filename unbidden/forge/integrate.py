@@ -134,7 +134,8 @@ async def build(
             Message(
                 role="user",
                 content=prompt.render(**selection_prompt(goals, grant.permissions, operations)),
-                source="runtime",
+                # Documentation of this connection: remote only if its grant says its content may leave.
+                source="synthetic" if grant.content_may_leave else "runtime",
             )
         ],
     )

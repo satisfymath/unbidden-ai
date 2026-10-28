@@ -205,7 +205,11 @@ async def pursue(brain: Any, store: Store, mandate: Mandate, goal: Goal, *, wind
         messages=[
             Message(
                 role="user",
-                source="runtime",
+                # Schemas, records and documentation of the connections: remote only if every granted one lets
+                # its content leave (laboratory data a person declared); otherwise the plan stays local.
+                source="synthetic"
+                if mandate.connections and all(g.content_may_leave for g in mandate.connections)
+                else "runtime",
                 content=prompt.render(
                     goal=goal.statement,
                     bounds=json.dumps(goal.bounds),

@@ -114,6 +114,9 @@ class ConnectionGrant(Contract):
     docs: str | None = None  # where its documentation may be read (an OpenAPI URL, a file in the repository)
     permissions: list[str] = Field(default_factory=lambda: ["read"])  # read, write:<what>
     limits: dict[str, float] = Field(default_factory=dict)  # e.g. max_units, requests_per_minute, timeout_s
+    # Whether what Unbidden reads here (documentation, schema, records) may be sent to a remote model: only for
+    # laboratory or synthetic data a person declares as such. Text is still scanned for secrets and personal data.
+    content_may_leave: bool = False
 
 
 class Goal(Contract):

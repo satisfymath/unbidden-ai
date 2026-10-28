@@ -75,6 +75,8 @@ DEFAULTS: dict[str, Any] = {
     "prices": {
         "models": {
             "muse-spark-1.3": {"input_per_mtok": 1.25, "output_per_mtok": 4.25},
+            # dev.meta.ai/docs/pricing-rate-limits, read 2026-10-28.
+            "muse-wonder-1.0": {"input_per_mtok": 4.00, "output_per_mtok": 20.00},
         }
     },
 }

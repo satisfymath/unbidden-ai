@@ -35,6 +35,10 @@ TASKS: dict[str, TaskSpec] = {
     "forge.stats": TaskSpec("heavy", escalate=False),
     "forge.stats.bridge": TaskSpec("heavy", escalate=False),
     "bridge.solve": TaskSpec("heavy", escalate=False),
+    # Stage 4: reading an API's documentation for a need, and planning a goal over connected systems. Remote first
+    # when every connection involved lets its content leave; the local model otherwise, or as recorded fallback.
+    "forge.api_client": TaskSpec("heavy"),
+    "director.goal_plan": TaskSpec("heavy"),
 }
 
 
