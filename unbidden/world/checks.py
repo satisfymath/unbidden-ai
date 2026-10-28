@@ -8,7 +8,7 @@ from typing import Any
 
 from unbidden.contracts.common import EvidenceRef, utc_now
 from unbidden.contracts.events import Event, EventType
-from unbidden.contracts.opportunity import Opportunity
+from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
 from unbidden.contracts.world import WorldModel
 from unbidden.store import Store
 
@@ -63,6 +63,7 @@ def full_table_scans(world: WorldModel, previous: dict[str, Any], seconds: float
                     "endpoints": endpoints,
                     "rev": world.rev,
                     "scans": scans,
+                    "rows": rows,
                     "rows_read": read,
                     "seconds": round(seconds),
                 },
@@ -141,6 +142,7 @@ def unindexed_foreign_keys(world: WorldModel, repo: Path | None = None) -> list[
                     "table": table.name,
                     "column": column,
                     "cost_path": path,
+                    "rows": rows if isinstance(rows, int) else None,
                     "endpoints": endpoints,
                     "rev": world.rev,
                     "code": [
@@ -157,6 +159,22 @@ def unindexed_foreign_keys(world: WorldModel, repo: Path | None = None) -> list[
     return found
 
 
+GROWTH = 2.0  # the data a declined opportunity was judged on has at least doubled
+
+
+def _reopening(existing: Opportunity, fresh: Opportunity) -> str | None:
+    """Why a check firing again reopens what was closed or declined, or None. A closed one fired again: its cause
+    is back. A declined one reopens when the data it was judged on grew enough to change the judgement."""
+    if existing.status is OpportunityStatus.CLOSED:
+        return "observed again after it was resolved"
+    if existing.status is not OpportunityStatus.DECLINED:
+        return None
+    before, now = existing.details.get("rows_when_declined", existing.details.get("rows")), fresh.details.get("rows")
+    if isinstance(before, int) and isinstance(now, int) and before > 0 and now >= GROWTH * before:
+        return f"the table grew from ~{before} to ~{now} rows since it was declined"
+    return None
+
+
 def run_checks(world: WorldModel, store: Store, repo: Path | None = None) -> list[Opportunity]:
     opened: list[Opportunity] = []
     # Scan counters of the previous map, to judge only what happened since (see full_table_scans).
@@ -171,9 +189,22 @@ def run_checks(world: WorldModel, store: Store, repo: Path | None = None) -> lis
     for opp in candidates:
         existing = store.get_by_key(COLLECTION, opp.dedup_key, Opportunity)
         if existing is not None:
+            why = _reopening(existing, opp)
+            if existing.status is OpportunityStatus.DECLINED and not why:
+                # Growth is measured from what it was declined on, not from the last sighting: slow growth adds up.
+                opp.details["rows_when_declined"] = existing.details.get(
+                    "rows_when_declined", existing.details.get("rows")
+                )
             existing.details = {**existing.details, **opp.details}
+            if why:  # judged again from now on: a later decline sets its own baseline
+                existing.details.pop("rows_when_declined", None)
             existing.title, existing.summary = opp.title, opp.summary
             store.put(COLLECTION, existing)
+            if why:
+                from unbidden.director.decide import reopen
+
+                reopen(store, existing, why, actor="world")
+                opened.append(existing)
             continue
         store.put(COLLECTION, opp, key=opp.dedup_key)
         store.append_event(

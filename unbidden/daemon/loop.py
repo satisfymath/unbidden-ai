@@ -16,6 +16,7 @@ from unbidden.guardian.killswitch import CURRENT, JobScope, TrackingExecutor, ki
 from unbidden.runtime import Runtime
 
 HEALTH_EVERY_S = 60.0
+MAP_EVERY_S = 300.0  # the running system's map, refreshed between commits (no model call)
 
 
 def _model_key(runtime: Runtime) -> str | None:
@@ -160,6 +161,8 @@ async def _work(
             store.enqueue(job("observe.live", str(bucket)))
         store.enqueue(job("director.sweep", f"tick:{bucket}"))
         store.enqueue(job("github.poll", str(int(now.timestamp() // poll_every.total_seconds()))))
+        if not once:
+            store.enqueue(job("world.refresh", str(int(now.timestamp() // MAP_EVERY_S))))
         while True:
             if killswitch.engaged:
                 log("kill switch engaged; waiting")

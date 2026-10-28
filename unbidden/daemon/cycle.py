@@ -48,6 +48,7 @@ PRIORITY = {
     "director.sweep": 60,
     "lab.experiment": 70,
     "forge.build": 55,
+    "world.refresh": 45,
 }
 
 
@@ -86,6 +87,7 @@ class Cycle:
             "research.investigate": self.research_investigate,
             "research.probe": self.research_probe,
             "forge.build": self.forge_build,
+            "world.refresh": self.world_refresh,
         }
 
     def _env(self, rev: str) -> tuple[Stack, dict[str, DependencyImage]]:
@@ -121,6 +123,17 @@ class Cycle:
         self.log(f"map of {rev[:12]}: {len(world.resources)} resources, {len(world.blind_spots)} blind spots")
         self._plan_probe(rev, result.stack)
         self.store.enqueue(job("director.sweep", f"{rev}:{utc_now():%Y%m%d%H%M}"))
+
+    async def world_refresh(self, _: Job) -> None:
+        """The running system, mapped again without waiting for a commit: data grows, a migration is applied, a
+        database comes back. No model call: what the local model inferred is carried until the code changes."""
+        from unbidden.world.discover import discover
+
+        head = self.store.get_value("head")
+        if head is None:
+            return
+        world = await discover(self.runtime.workspace.repo, head, self.store, self.runtime.workspace.mandate(), None)
+        self.log(f"map refreshed: {len(world.resources)} resources, {len(world.blind_spots)} blind spots")
 
     def _plan_probe(self, rev: str, stack: Stack) -> None:
         """Whether to look for crashes nobody reported: once per commit, in the package with the most public surface,

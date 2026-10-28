@@ -113,3 +113,60 @@ def test_only_scans_since_the_previous_map_count_as_full_table_scans() -> None:
     found = full_table_scans(w, history, 600)
     assert len(found) == 1 and found[0].details["scans"] == 36 and found[0].details["table"] == "item"
     assert full_table_scans(w, {"table:item": scans}, 600) == []  # nothing new since: history, not a problem
+
+
+def _sized(rows: int) -> WorldModel:
+    w = world([])
+    w.resources["table:orders"].attributes["rows_estimate"] = rows
+    return w
+
+
+def test_a_declined_check_reopens_when_the_data_it_was_judged_on_has_doubled(store: Store) -> None:
+    # D1: data growth between commits, seen by the map refresh, reaches the opportunity again.
+    from unbidden.contracts.opportunity import OpportunityStatus
+
+    (opp,) = run_checks(_sized(10_000), store)
+    opp.status = OpportunityStatus.DECLINED
+    store.put("opportunities", opp)
+    assert run_checks(_sized(15_000), store) == []  # grew, not enough to change a judgement
+    assert run_checks(_sized(18_000), store) == []  # measured from the decline (10,000), not from the last map
+    (reopened,) = run_checks(_sized(30_000), store)
+    assert reopened.status is OpportunityStatus.OPEN and reopened.details["rows"] == 30_000
+    (event,) = [e for e in store.events() if e.payload.get("reopened")]
+    assert "grew from ~10000 to ~30000" in event.payload["reason"]
+    assert run_checks(_sized(10_000), store) == []  # open now: nothing to reopen
+
+
+def test_a_resolved_check_that_fires_again_is_open_again(store: Store) -> None:
+    from unbidden.contracts.opportunity import OpportunityStatus
+
+    (opp,) = run_checks(world([]), store)
+    opp.status = OpportunityStatus.CLOSED
+    store.put("opportunities", opp)
+    (reopened,) = run_checks(world([]), store)
+    assert reopened.status is OpportunityStatus.OPEN
+
+
+def test_the_map_is_refreshed_between_commits_without_a_model(store: Store, mandate: object, tmp_path: Path) -> None:
+    import asyncio
+    from types import SimpleNamespace
+
+    from unbidden.daemon import cycle as cycle_module
+    from unbidden.world import discover as discover_module
+
+    seen: list[object] = []
+
+    async def fake(repo: Path, rev: str, s: Store, m: object, brain: object) -> WorldModel:
+        seen.append(brain)
+        return world([])
+
+    store.set_value("head", "a" * 40)
+    runtime = SimpleNamespace(store=store, workspace=SimpleNamespace(repo=tmp_path, mandate=lambda: mandate))
+    cycle = cycle_module.Cycle(runtime, log=lambda _: None)  # type: ignore[arg-type]
+    original = discover_module.discover
+    discover_module.discover = fake  # type: ignore[assignment]
+    try:
+        asyncio.run(cycle.world_refresh(cycle_module.job("world.refresh", "1")))
+    finally:
+        discover_module.discover = original
+    assert seen == [None]
