@@ -38,6 +38,10 @@ TASKS: dict[str, TaskSpec] = {
     # Stage 4: reading an API's documentation for a need, and planning a goal over connected systems. Remote first
     # when every connection involved lets its content leave; the local model otherwise, or as recorded fallback.
     "forge.api_client": TaskSpec("heavy"),
+    # Stage 5: comparing what a page shows with the data (text, or with screenshots, only remote), and fixing the
+    # application's code when they differ.
+    "director.page_check": TaskSpec("heavy"),
+    "lab.page_fix": TaskSpec("heavy"),
     "director.goal_plan": TaskSpec("heavy"),
 }
 

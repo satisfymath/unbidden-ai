@@ -75,7 +75,10 @@ LOCAL_PAGE = re.compile(r"^http://(?:127\.0\.0\.1|localhost):(?P<port>\d+)(?P<re
 APP_ALIAS = "app"
 
 
-def capture_argv(network: str, port: int, rest: str, work: Path, wait_ms: int) -> list[str]:
+def capture_argv(
+    network: str, port: int, rest: str, work: Path, wait_ms: int, script: Path = CAPTURE_SCRIPT,
+    extra: tuple[str, ...] = (),
+) -> list[str]:  # fmt: skip
     """The browser's container: on an internal network whose only other member is the forwarder, read-only, not
     root, no capabilities. Whatever the page asks of another host fails, as it would offline."""
     return [
@@ -83,8 +86,9 @@ def capture_argv(network: str, port: int, rest: str, work: Path, wait_ms: int) -
         "--read-only", "--tmpfs", "/tmp:rw,nosuid,size=512m", "-e", "HOME=/tmp", "--user", "1001:1001",
         "--memory", "2g", "--cpus", "2", "--pids-limit", "512", "--cap-drop", "ALL",
         "--security-opt", "no-new-privileges",
-        "-v", f"{CAPTURE_SCRIPT}:/cap/ui_capture.py:ro", "-v", f"{work}:/out",
-        PLAYWRIGHT_IMAGE, "python", "/cap/ui_capture.py", f"http://{APP_ALIAS}:{port}{rest}", str(wait_ms), "/out",
+        "-v", f"{script}:/cap/{script.name}:ro", "-v", f"{work}:/out",
+        PLAYWRIGHT_IMAGE, "python", f"/cap/{script.name}", f"http://{APP_ALIAS}:{port}{rest}", str(wait_ms), "/out",
+        *extra,
     ]  # fmt: skip
 
 
@@ -101,6 +105,56 @@ def forwarder_argv(name: str, port: int) -> list[str]:
 def capture(url: str, out_dir: Path, *, wait_ms: int = 3000, timeout_s: float = 120) -> Capture:
     """Load `url` (a page the project publishes on this machine, `http://127.0.0.1:<port>`) in a container and keep
     what it showed. The browser reaches that port and nothing else: not the internet, not the host's other ports."""
+    work = _contained(url, CAPTURE_SCRIPT, (), wait_ms, timeout_s)
+    try:
+        out_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copy(work / "screenshot.png", out_dir / "screenshot.png")
+        shutil.copy(work / "page.json", out_dir / "page.json")
+        page = json.loads((work / "page.json").read_text())
+        return Capture(url, (work / "screenshot.png").read_bytes(), page, out_dir)
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
+SCAN_SCRIPT = Path(__file__).with_name("ui_scan.py")
+
+
+@dataclass(frozen=True)
+class Scan:
+    """A page scanned top to bottom (`ui_scan.py`): rows, their marks, overlays, and one screenshot per step."""
+
+    url: str
+    page: dict[str, Any]
+    screenshots: list[tuple[int, bytes]]  # (scroll_y, png)
+    kept_at: Path
+
+    def digests(self) -> dict[str, str]:
+        import hashlib
+
+        return {f"step-{i:02d}": hashlib.sha256(png).hexdigest() for i, (_, png) in enumerate(self.screenshots)}
+
+
+def scan(
+    url: str, out_dir: Path, *, wait_ms: int = 1500, viewport: tuple[int, int] = (1280, 800), scale: float = 1.0,
+    timeout_s: float = 300,
+) -> Scan:  # fmt: skip
+    """Scan a page the project publishes on this machine, in the same confined browser as `capture`."""
+    work = _contained(url, SCAN_SCRIPT, (str(viewport[0]), str(viewport[1]), str(scale)), wait_ms, timeout_s)
+    try:
+        out_dir.mkdir(parents=True, exist_ok=True)
+        page = json.loads((work / "scan.json").read_text())
+        shots = []
+        for step in page["steps"]:
+            shutil.copy(work / step["screenshot"], out_dir / step["screenshot"])
+            shots.append((int(step["scroll_y"]), (work / step["screenshot"]).read_bytes()))
+        (out_dir / "scan.json").write_text(json.dumps(page))
+        return Scan(url, page, shots, out_dir)
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
+def _contained(url: str, script: Path, extra: tuple[str, ...], wait_ms: int, timeout_s: float) -> Path:
+    """Run one of Unbidden's page scripts against a local page; returns the directory it wrote."""
     local = LOCAL_PAGE.match(url)
     if local is None:
         raise RuntimeError(f"only a page published on this machine is captured, not {url}")
@@ -111,25 +165,24 @@ def capture(url: str, out_dir: Path, *, wait_ms: int = 3000, timeout_s: float = 
     work = Path(tempfile.mkdtemp(prefix="unbidden-ui-"))
     work.chmod(0o777)  # written by the container's unprivileged user
     docker = ["docker"]
+    done = False
     try:
         _docker(*docker, "network", "create", "--internal", "--label", f"{SANDBOX_LABEL}=1", network)
         _docker(*forwarder_argv(relay, port))
         _docker(*docker, "network", "connect", "--alias", APP_ALIAS, network, relay)
         out = subprocess.run(
-            capture_argv(network, port, rest, work, wait_ms), capture_output=True, text=True, timeout=timeout_s,
-            check=False,
+            capture_argv(network, port, rest, work, wait_ms, script, extra), capture_output=True, text=True,
+            timeout=timeout_s, check=False,
         )  # fmt: skip
         if out.returncode != 0:
             raise RuntimeError(f"capture of {url} failed: {out.stderr.strip()[-400:]}")
-        out_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copy(work / "screenshot.png", out_dir / "screenshot.png")
-        shutil.copy(work / "page.json", out_dir / "page.json")
-        page = json.loads((work / "page.json").read_text())
-        return Capture(url, (work / "screenshot.png").read_bytes(), page, out_dir)
+        done = True
+        return work
     finally:
         subprocess.run(["docker", "kill", relay], capture_output=True, check=False)
         subprocess.run(["docker", "network", "rm", network], capture_output=True, check=False)
-        shutil.rmtree(work, ignore_errors=True)
+        if not done:
+            shutil.rmtree(work, ignore_errors=True)
 
 
 def _docker(*argv: str) -> None:

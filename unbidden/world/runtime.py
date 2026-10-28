@@ -74,20 +74,34 @@ def compose_project(repo: Path) -> str:
     return re.sub(r"[^a-z0-9_-]", "", repo.resolve().name.lower())  # resolved: Path(".").name is empty
 
 
+def started_here(repo: Path) -> list[str]:
+    """Compose projects whose containers were started from this repository, whatever they were named (`-p
+    staging`): compose labels each container with the directory it was started from."""
+    out = subprocess.run(
+        ["docker", "ps", "--filter", f"label=com.docker.compose.project.working_dir={repo.resolve()}",
+         "--format", '{{.Label "com.docker.compose.project"}}'],
+        capture_output=True, text=True, check=False,
+    )  # fmt: skip
+    return sorted({line.strip() for line in out.stdout.splitlines() if line.strip()}) if out.returncode == 0 else []
+
+
 def running_containers(repo: Path) -> list[dict[str, Any]]:
     """Containers of this repository's compose project only. The project is named, not found from a compose file
-    in the repository's root: a project started with `-f docker/compose.yml` has none there."""
-    out = subprocess.run(
-        ["docker", "compose", "-p", compose_project(repo), "ps", "--format", "json"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if out.returncode != 0 or not out.stdout.strip():
-        return []
-    text = out.stdout.strip()
-    rows = json.loads(text) if text.startswith("[") else [json.loads(line) for line in text.splitlines()]
-    return [r for r in rows if isinstance(r, dict)]
+    in the repository's root: a project started with `-f docker/compose.yml` has none there. When the derived name
+    runs nothing, the projects started from this directory under another name are read instead."""
+    rows: list[dict[str, Any]] = []
+    for project in [compose_project(repo), *started_here(repo)]:
+        out = subprocess.run(
+            ["docker", "compose", "-p", project, "ps", "--format", "json"], capture_output=True, text=True, check=False
+        )
+        if out.returncode != 0 or not out.stdout.strip():
+            continue
+        text = out.stdout.strip()
+        found = json.loads(text) if text.startswith("[") else [json.loads(line) for line in text.splitlines()]
+        rows += [r for r in found if isinstance(r, dict) and r not in rows]
+        if rows:
+            break
+    return rows
 
 
 def host_ports(container: dict[str, Any]) -> list[int]:

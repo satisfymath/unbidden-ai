@@ -303,7 +303,7 @@ def reset(lab: Path, case: str, variants: list[str], seed: int = 5_2026, bins: i
         "# Depot board\n\nThe picker's restock board. Checks: `python -m unittest`. Staging: "
         f"`docker compose -p {PROJECT} up -d --build` (port {PORT}).\n"
     )
-    (repo / ".gitignore").write_text(".env\n__pycache__/\n")
+    (repo / ".gitignore").write_text(".env\n__pycache__/\n.unbidden/\n")
     env = repo / ".env"
     env.write_text(_env(lab))
     env.chmod(0o600)

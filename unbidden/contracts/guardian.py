@@ -41,6 +41,10 @@ class OperationsPolicy(Contract):
     """How this system is deployed and watched. Declared by a person; unbidden never invents a deploy."""
 
     deploy_steps: list[list[str]] = Field(default_factory=list[list[str]])  # argv lists, run in the repo
+    # The application's own checks for a change Unbidden makes: argv lists run in `check_image`, offline, on a copy
+    # of the changed tree. None declared: a change is not deployed.
+    check_steps: list[list[str]] = Field(default_factory=list[list[str]])
+    check_image: str | None = None
     probe_every_s: float = Field(default=5.0, gt=0)
     probe_auth: ProbeAuth | None = None
     max_merges_per_hour: int = Field(default=2, ge=0)
@@ -122,7 +126,8 @@ class ConnectionGrant(Contract):
 class Goal(Contract):
     """An objective in a person's words, with the bounds on what may be done for it. Bounds Unbidden enforces:
     `environment` (where it may act), `max_actions` (per goal and day), `max_amount_per_action` (the amount a single
-    write may carry). Without `max_actions`, nothing is changed for the goal."""
+    write may carry), `max_changes` (code changes deployed for the goal per day, for a goal about what a page shows).
+    Without `max_actions` or `max_changes`, nothing is changed for the goal."""
 
     id: str = Field(min_length=1)
     statement: str

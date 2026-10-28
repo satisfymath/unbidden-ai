@@ -48,11 +48,18 @@ class BrainConfig(_Config):
     contributor_models: Literal["deny", "allow"] = "deny"
 
 
+class UiConfig(_Config):
+    # What a model is shown of a page it checks: the browser's observations ("dom"), plus screenshots ("vision"),
+    # plus SAM's regions ("vision_sam"). Each adds to the previous one; everything else stays the same.
+    perception: Literal["dom", "vision", "vision_sam"] = "dom"
+
+
 class Config(_Config):
     providers: dict[str, ProviderConfig]
     routing: dict[Tier, Route]
     prices: Prices = Field(default_factory=Prices)
     brain: BrainConfig = Field(default_factory=BrainConfig)
+    ui: UiConfig = Field(default_factory=UiConfig)
 
 
 DEFAULTS: dict[str, Any] = {

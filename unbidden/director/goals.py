@@ -52,6 +52,7 @@ PLAN_SCHEMA: dict[str, Any] = {
         },
         "key": {"type": "string"},
         "shortfall": {"type": "string"},
+        "page": {"type": "object", "required": ["url"], "properties": {"url": {"type": "string"}}},
         "act": {
             "type": "object",
             "required": ["operation", "key_field", "amount_field"],
@@ -79,6 +80,7 @@ class GoalRun(Contract):
     actions: list[str] = Field(default_factory=list[str])
     notes: list[str] = Field(default_factory=list[str])
     model: dict[str, Any] = Field(default_factory=dict[str, Any])
+    evidence: dict[str, Any] = Field(default_factory=dict[str, Any])  # a page goal: scans, changes, verification
     started_at: datetime = Field(default_factory=utc_now)
     finished_at: datetime | None = None
 
@@ -192,9 +194,26 @@ def _fields(schema: dict[str, Any]) -> list[str]:
     return list(schema.get("properties", {}))
 
 
-async def pursue(brain: Any, store: Store, mandate: Mandate, goal: Goal, *, window: str) -> GoalRun:
+def _pages(store: Store) -> list[str]:
+    """Web pages the project publishes on this machine, as the world model found them."""
+    from unbidden.contracts.world import WorldModel
+
+    world = store.get("world", "world", WorldModel)
+    if world is None:
+        return []
+    return sorted(
+        f"- {r.attributes.get('service') or r.id}: {r.attributes['web_page']}"
+        for r in world.resources.values()
+        if r.attributes.get("web_page")
+    )
+
+
+async def pursue(
+    brain: Any, store: Store, mandate: Mandate, goal: Goal, *, window: str, workspace: Any = None
+) -> GoalRun:
     run = GoalRun(goal=goal.id)
     usable, blocked, conns, integrations = _sources(store, mandate)
+    source = "synthetic" if mandate.connections and all(g.content_may_leave for g in mandate.connections) else "runtime"
     prompt = load_prompt("goal_plan")
     request = LLMRequest(
         purpose="director.goal_plan",
@@ -207,14 +226,13 @@ async def pursue(brain: Any, store: Store, mandate: Mandate, goal: Goal, *, wind
                 role="user",
                 # Schemas, records and documentation of the connections: remote only if every granted one lets
                 # its content leave (laboratory data a person declared); otherwise the plan stays local.
-                source="synthetic"
-                if mandate.connections and all(g.content_may_leave for g in mandate.connections)
-                else "runtime",
+                source=source,
                 content=prompt.render(
                     goal=goal.statement,
                     bounds=json.dumps(goal.bounds),
                     sources="\n".join(usable) or "- nothing",
                     blocked="\n".join(blocked) or "- nothing",
+                    pages="\n".join(_pages(store)) or "- none found",
                     schema=json.dumps(PLAN_SCHEMA),
                 ),
             )
@@ -257,17 +275,22 @@ async def pursue(brain: Any, store: Store, mandate: Mandate, goal: Goal, *, wind
     except (Unavailable, QueryRefused, CallFailed, KeyError, ValueError) as exc:
         return _finish(store, run, "failed", f"reads: {exc}")
     key, expression = str(plan.get("key")), str(plan.get("shortfall"))
-    short = []
+    short, values = [], {}
     for row in rows:
         try:
             amount = evaluate(expression, row)
         except (KeyError, ValueError, ZeroDivisionError) as exc:
             run.notes.append(f"{row.get(key)}: {exc}")
             continue
+        values[str(row[key])] = amount
         if amount > 0:
             short.append({key: row[key], "shortfall": amount, "row": row})
     short.sort(key=lambda r: -r["shortfall"])
     run.findings = short
+    page = plan.get("page") or {}
+    if page.get("url"):
+        return await _pursue_page(brain, store, mandate, goal, run, rows, key, values, str(page["url"]),
+                                  window=window, workspace=workspace, source=source)  # fmt: skip
     act = plan.get("act")
     if not act or not short:
         return _finish(store, run, "investigated", f"{len(short)} of {len(rows)} keys short; nothing to change")
@@ -282,6 +305,31 @@ async def pursue(brain: Any, store: Store, mandate: Mandate, goal: Goal, *, wind
         status,
         f"{len(short)} of {len(rows)} keys short; {len(done)} action(s) taken, {len(run.actions) - len(done)} refused",
     )
+
+
+async def _pursue_page(
+    brain: Any, store: Store, mandate: Mandate, goal: Goal, run: GoalRun, rows: list[dict[str, Any]], key: str,
+    values: dict[str, float], url: str, *, window: str, workspace: Any, source: str,
+) -> GoalRun:  # fmt: skip
+    from unbidden.config import load_config
+    from unbidden.director.presentation import expected, pursue_page
+    from unbidden.lab.ui import LOCAL_PAGE
+
+    if workspace is None:
+        return _finish(store, run, "blocked", "a page goal needs the workspace (its repository and artifacts)")
+    if LOCAL_PAGE.match(url) is None or url.split("/")[2] not in {
+        p.split(": ", 1)[1].split("/")[2] for p in _pages(store)
+    }:
+        return _finish(store, run, "blocked", f"{url} is not a page this project publishes on this machine")
+    want = expected(rows, key, values)
+    perception = load_config(workspace.config_path).ui.perception
+    try:
+        await pursue_page(brain, store, mandate, goal, run, want, url, repo=workspace.repo,
+                          artifacts=workspace.dir / "artifacts", perception=perception, window=window,
+                          source=source)  # fmt: skip
+    except RuntimeError as exc:  # the confined browser could not load the page
+        return _finish(store, run, "failed", f"page: {exc}")
+    return _finish(store, run, run.status, run.notes[-1] if run.notes else run.status)
 
 
 def _read(

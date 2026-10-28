@@ -607,11 +607,15 @@ class Cycle:
         states = ", ".join(f"{c.id} {c.state.value}" for c in found if c.grant)
         self.log(f"connections: {states}")
         # A goal is pursued again each hour, and as soon as what it can use changes (a connection revoked, restored,
-        # given an integration): the same state in the same hour is not pursued twice.
+        # given an integration) or what is deployed changes (a page shows what the deployed commit renders): the
+        # same state in the same hour is not pursued twice.
         import hashlib
+
+        from unbidden.workspace import head_sha
 
         hour = f"{utc_now():%Y%m%d%H}"
         usable = sorted(f"{c.id}={c.state.value}/{c.capability_id}" for c in found if c.grant)
+        usable.append(f"deployed={head_sha(repo)}")
         signature = hashlib.sha256("|".join(usable).encode()).hexdigest()[:8]
         for goal in mandate.goals:
             self.store.enqueue(job("goal.pursue", f"{goal.id}:{hour}:{signature}", {"goal": goal.id}))
@@ -623,7 +627,10 @@ class Cycle:
         goal = next((g for g in mandate.goals if g.id == j.payload["goal"]), None)
         if goal is None:
             return
-        run = await pursue(self.runtime.brain, self.store, mandate, goal, window=f"{utc_now():%Y-%m-%d}")
+        run = await pursue(
+            self.runtime.brain, self.store, mandate, goal, window=f"{utc_now():%Y-%m-%d}",
+            workspace=self.runtime.workspace,
+        )  # fmt: skip
         self.log(f"goal {goal.id}: {run.status}: {run.notes[-1] if run.notes else ''}")
         if run.status in ("waiting_capability", "waiting_extension"):
             self._queue_needs()
