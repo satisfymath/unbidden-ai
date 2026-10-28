@@ -466,7 +466,8 @@ class Cycle:
         need = self.store.get(needs.COLLECTION, j.payload["id"], CapabilityNeed)
         if need is None:
             return
-        repo, brain, remote = self.runtime.workspace.repo, self.runtime.brain, self.runtime.bridge() is not None
+        # Local model only: remote help (the privacy bridge) spends credit, and stays a person's `forge build`.
+        repo, brain = self.runtime.workspace.repo, self.runtime.brain
 
         def read(kind: str, source: str) -> list[str]:
             if kind == "stats_reader":
@@ -477,7 +478,7 @@ class Cycle:
             if n.kind == "stats_reader":
                 built = await stats_build.build(brain, self.store, n.source, lines, permissions=n.permissions)
                 return (built.adapter.id if built.adapter else None), built.decision, built.notes
-            result = await Forge(brain, self.store, remote=remote).build_log_adapter(n.source, lines)
+            result = await Forge(brain, self.store, remote=False).build_log_adapter(n.source, lines)
             return (
                 (result.adapter.id if result.adapter else None),
                 "built" if result.adapter else "failed",

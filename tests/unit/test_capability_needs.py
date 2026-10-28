@@ -110,7 +110,7 @@ def test_the_cycle_queues_and_builds_needs_on_its_own(
     monkeypatch.setattr(forge_build, "compose_logs", lambda *_, **__: ACCESS)
     mandate.autonomy.use_new_capabilities = Autonomy.ALLOW
     runtime = SimpleNamespace(
-        store=store, brain=Brain(), bridge=lambda: None,
+        store=store, brain=Brain(), bridge=lambda: object(),  # a bridge exists: still not used
         workspace=SimpleNamespace(repo=tmp_path, mandate=lambda: mandate),
     )  # fmt: skip
     cycle = Cycle(runtime, log=lambda _: None)  # type: ignore[arg-type]
