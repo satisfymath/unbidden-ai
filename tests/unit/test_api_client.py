@@ -164,31 +164,42 @@ def test_the_choice_keeps_documented_operations_granted_writes_and_their_undo() 
     assert [o.id for o in read_only] == ["listItems"] and any("does not allow" in n for n in notes)
 
 
-def test_a_service_that_does_not_answer_as_documented_is_rejected(mandate: Mandate) -> None:
+def test_a_service_that_does_not_answer_as_documented_is_rejected(mandate: Mandate, store: Any) -> None:
     mandate.connections = [grant(["read"])]
-    verdict = oracle(integration(["listItems"]), connected([]), mandate, transport=service([], honest=False))
+    verdict = oracle(
+        integration(["listItems"]), connected([]), mandate, store=store, transport=service([], honest=False)
+    )
     assert not verdict["passed"] and "schema" in str(verdict["operations"]["listItems"]["error"])
 
 
-def test_a_write_is_enabled_only_once_made_repeated_and_undone(mandate: Mandate) -> None:
+def test_a_write_is_enabled_only_once_made_repeated_and_undone(mandate: Mandate, store: Any) -> None:
     mandate.connections = [grant(["read", "write:reorders"])]
     mandate.autonomy.act_on_connections = Autonomy.ALLOW
     items = [{"sku": "A", "on_hand": 1}]
     verdict = oracle(
-        integration(["listItems", "createReorder", "cancelReorder"]), connected([]), mandate, transport=service(items)
+        integration(["listItems", "createReorder", "cancelReorder"]),
+        connected([]),
+        mandate,
+        store=store,
+        transport=service(items),
     )
     assert verdict["passed"] and verdict["operations"]["createReorder"]["passed"]
-    no_undo = oracle(integration(["listItems", "createReorder"]), connected([]), mandate, transport=service(items))
+    no_undo = oracle(
+        integration(["listItems", "createReorder"]), connected([]), mandate, store=store, transport=service(items)
+    )
     assert not no_undo["operations"]["createReorder"]["passed"]  # no undo observed: never enabled
 
 
-def test_writes_are_not_exercised_where_the_grant_or_the_mandate_does_not_allow_them(mandate: Mandate) -> None:
+def test_writes_are_not_exercised_where_the_grant_or_the_mandate_does_not_allow_them(
+    mandate: Mandate, store: Any
+) -> None:
     mandate.connections = [grant(["read"])]
     mandate.autonomy.act_on_connections = Autonomy.ALLOW
     verdict = oracle(
         integration(["listItems", "createReorder", "cancelReorder"]),
         connected([]),
         mandate,
+        store=store,
         transport=service([{"sku": "A", "on_hand": 1}]),
     )
     assert verdict["passed"] and "not exercised" in verdict["operations"]["createReorder"]["observed"]
@@ -291,3 +302,92 @@ def test_a_documented_error_is_an_error_and_a_refused_key_revokes_an_integrated_
     assert failed.value.status == 401
     result = live_check(integration(["listItems"]), connected(["listItems"]), mandate, transport=refused)
     assert result.state is ConnectionState.NEEDS_AUTHORIZATION and result.failure is not None
+
+
+class Counting:
+    """A service that counts the mutating requests it receives."""
+
+    def __init__(self) -> None:
+        self.mutations = 0
+        self.inner = service([{"sku": "A", "on_hand": 1}])
+
+    def transport(self) -> httpx.MockTransport:
+        def handle(request: httpx.Request) -> httpx.Response:
+            if request.method != "GET":
+                self.mutations += 1
+            return self.inner.handle_request(request)
+
+        return httpx.MockTransport(handle)
+
+
+@pytest.mark.parametrize(
+    ("autonomy", "approve", "mutations"),
+    [
+        (Autonomy.DENY, False, 0),
+        (Autonomy.REQUIRE_APPROVAL, False, 0),
+        (Autonomy.REQUIRE_APPROVAL, True, 3),
+        (Autonomy.ALLOW, False, 3),
+    ],
+)
+def test_the_oracle_writes_only_where_writing_is_authorized(
+    autonomy: Autonomy, approve: bool, mutations: int, mandate: Mandate, store: Any
+) -> None:
+    from unbidden.connect.effects import approve_writes
+    from unbidden.connect.registry import record
+
+    mandate.connections = [grant(["read", "write:reorders"])]
+    mandate.autonomy.act_on_connections = autonomy
+    conn = connected([])
+    record(store, conn, reason="test")
+    if approve:
+        approve_writes(store, mandate, "stock", "david", hours=1)
+    counting = Counting()
+    verdict = oracle(
+        integration(["listItems", "createReorder", "cancelReorder"]),
+        conn,
+        mandate,
+        store=store,
+        transport=counting.transport(),
+    )
+    assert counting.mutations == mutations  # create, repeat, undo: or nothing at all
+    sent = [
+        a
+        for a in store.list("actions", __import__("unbidden.contracts.action", fromlist=["Action"]).Action)
+        if a.kind == "oracle_probe"
+    ]
+    assert len(sent) == mutations  # every probe is in the audit and the budget
+    if not mutations:
+        assert "not exercised" in verdict["operations"]["createReorder"]["observed"]
+
+
+@pytest.mark.parametrize("stop", ["revoked", "kill switch", "budget"])
+def test_no_new_effect_after_revocation_the_kill_switch_or_the_budget(
+    stop: str, mandate: Mandate, tmp_path: Any
+) -> None:
+    from unbidden.connect.effects import authorize
+    from unbidden.connect.registry import record
+    from unbidden.guardian.killswitch import KillSwitch
+    from unbidden.store import Store
+
+    store = Store(tmp_path / "state.db")  # on disk: the kill switch lives beside the workspace's state
+    mandate.connections = [grant(["read", "write:reorders"])]
+    mandate.autonomy.act_on_connections = Autonomy.ALLOW
+    conn = connected([])
+    if stop == "revoked":
+        conn.state = ConnectionState.REVOKED
+    if stop == "budget":
+        mandate.connections[0].limits["max_writes_per_day"] = 0
+    record(store, conn, reason="test")
+    if stop == "kill switch":
+        KillSwitch.of(store).engage("stop")  # type: ignore[union-attr]
+    counting = Counting()
+    oracle(
+        integration(["listItems", "createReorder", "cancelReorder"]),
+        connected([]),
+        mandate,
+        store=store,
+        transport=counting.transport(),
+    )
+    assert counting.mutations == 0
+    ok, why = authorize(store, mandate, conn, "reorders", "test")
+    assert not ok and (stop.split()[0] in why or "limit" in why)

@@ -1468,6 +1468,22 @@ def cmd_connections(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_approve_writes(args: argparse.Namespace) -> int:
+    """A person's time-limited approval for Unbidden to change one granted connection (REQUIRE_APPROVAL)."""
+    from unbidden.connect.effects import approve_writes
+
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    try:
+        approval = approve_writes(store, ws.mandate(), args.grant, f"person:{getpass.getuser()}", args.hours)
+    except ValueError as exc:
+        err.print(str(exc))
+        return 1
+    console.print(f"writes to {args.grant} approved until {approval.expires_at:%Y-%m-%d %H:%M} UTC, within its grant")
+    return 0
+
+
 def cmd_activity(args: argparse.Namespace) -> int:
     """What Unbidden found, decided and why, built, proposed, proved, spent and learned here."""
     from pathlib import Path
@@ -1530,6 +1546,11 @@ def build_parser() -> argparse.ArgumentParser:
         "connections", cmd_connections, "the project's resources: found, granted, connected, and what each allows"
     )
     conns.add_argument("--check", action="store_true", help="reach each granted resource now (default: last checks)")
+    writes = command(
+        "approve-writes", cmd_approve_writes, "let Unbidden change one granted connection for a while", json_out=False
+    )
+    writes.add_argument("grant", help="the connection's grant id in the mandate")
+    writes.add_argument("--hours", type=float, default=4)
     activity = command("activity", cmd_activity, "what was found, decided and why, built, proved, spent and learned")
     activity.add_argument("--html", metavar="PATH", help="also write a self-contained HTML report there")
     errors = command("errors", cmd_errors, "what the project's logs said: recurring errors, new after a deploy, 5xx")

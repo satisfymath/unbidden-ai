@@ -100,7 +100,7 @@ def reuse(
                 "created_at": utc_now(),
             }
         )
-        verdict = oracle(candidate, conn, mandate, transport=transport)
+        verdict = oracle(candidate, conn, mandate, store=store, transport=transport)
         if verdict["passed"]:
             candidate.quality = verdict
             return candidate, [f"reused {existing.id} (signature {existing.signature}); the oracle passed here"]
@@ -165,7 +165,7 @@ async def build(
             "goals": [g.id for g in mandate.goals],
         },
     )
-    verdict = oracle(integration, conn, mandate, transport=transport)
+    verdict = oracle(integration, conn, mandate, store=store, transport=transport)
     refused = [
         k
         for k, r in verdict["operations"].items()

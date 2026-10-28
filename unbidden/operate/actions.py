@@ -18,7 +18,7 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from unbidden.connect.base import Unavailable, require
+from unbidden.connect.base import Unavailable
 from unbidden.contracts.action import Action, ActionStatus, Compensation
 from unbidden.contracts.common import utc_now
 from unbidden.contracts.connection import Connection
@@ -129,17 +129,18 @@ def run_api_action(
     if failed:
         action.status, action.reason = ActionStatus.REFUSED, "preconditions: " + "; ".join(failed)
         return save(store, action)
-    try:
-        require(
-            conn,
-            mandate,
-            "write",
-            action.operation,
-            f"{action.operation} for {action.goal}",
-            scope=integration.op(action.operation).scope,
-        )
-    except Unavailable as exc:
-        action.status, action.reason = ActionStatus.REFUSED, str(exc)
+    from unbidden.connect.effects import authorize
+
+    if not conn.can("write", action.operation):
+        action.status, action.reason = ActionStatus.REFUSED, f"{action.operation} was not observed to work on {conn.id}"
+        return save(store, action)
+    # The same authorization as every effect: grant scope, environment, revocation now, kill switch, policy with a
+    # person's approval, write budget.
+    ok, why = authorize(
+        store, mandate, conn, integration.op(action.operation).scope, f"{action.operation} for {action.goal}"
+    )
+    if not ok:
+        action.status, action.reason = ActionStatus.REFUSED, why
         return save(store, action)
     keys = {k: v for k, v in (action.body or {}).items() if isinstance(v, str)}
     try:

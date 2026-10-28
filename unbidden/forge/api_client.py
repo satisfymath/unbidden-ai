@@ -30,7 +30,7 @@ from pydantic import Field
 
 from unbidden.connect.base import Unavailable, purpose, require
 from unbidden.contracts.common import Contract, new_id, utc_now
-from unbidden.contracts.connection import Ability, Connection, Environment
+from unbidden.contracts.connection import Ability, Connection
 from unbidden.contracts.guardian import ConnectionGrant, Mandate
 from unbidden.guardian.credentials import broker
 
@@ -317,11 +317,18 @@ def _list_items(data: Any) -> list[dict[str, Any]]:
 
 
 def oracle(
-    integration: ApiIntegration, conn: Connection, mandate: Mandate, *, transport: httpx.BaseTransport | None = None
+    integration: ApiIntegration,
+    conn: Connection,
+    mandate: Mandate,
+    *,
+    store: Any,
+    transport: httpx.BaseTransport | None = None,
 ) -> dict[str, Any]:
     """Judge an integration against the live service, without a model. Returns per-operation results; an
-    operation passes only on what was observed."""
-    grant = next(g for g in mandate.connections if g.id == conn.grant)
+    operation passes only on what was observed. Its writes are effects like any other: each mutating request is
+    authorized immediately before it is sent (`connect/effects.py`) and recorded."""
+    from unbidden.connect.effects import authorize
+
     results: dict[str, Any] = {}
     seen: list[dict[str, Any]] = []
     reads = [o for o in integration.operations if o.effect == "read"]
@@ -378,19 +385,14 @@ def oracle(
             "error": error,
         }
     writes = [o for o in integration.operations if o.effect == "write" and o.method == "POST"]
-    environment_allows = Environment(grant.environment) is not Environment.PRODUCTION
-    autonomy_allows = mandate.autonomy.act_on_connections.value != "deny"
-
-    def may_write(op: Operation) -> bool:
-        """Exercised only where this grant allows writing what it writes, outside production, with autonomy."""
-        granted = f"write:{op.scope}" in grant.permissions or "write" in grant.permissions
-        return granted and environment_allows and autonomy_allows
-
+    allowed: dict[str, bool] = {}
     for op in writes:
-        if not may_write(op):
-            results[op.id] = {"passed": False, "observed": "not exercised: writes are not granted here", "error": None}
+        ok, why = authorize(store, mandate, conn, op.scope, f"oracle probe of {op.id} on {conn.id}")
+        allowed[op.id] = ok
+        if not ok:
+            results[op.id] = {"passed": False, "observed": f"not exercised: {why}", "error": None}
             continue
-        results[op.id] = _exercise_write(integration, conn, mandate, op, seen, transport)
+        results[op.id] = _exercise_write(integration, conn, mandate, op, seen, transport, store)
         if op.undo:
             results[op.undo] = {
                 "passed": results[op.id]["passed"],
@@ -401,12 +403,18 @@ def oracle(
         "version": ORACLE_VERSION,
         "at": utc_now().isoformat(),
         "operations": results,
+        # Reads must pass; a write counts only where it was authorized to be exercised (otherwise it stays disabled).
         "passed": all(
             r["passed"]
             for k, r in results.items()
-            if integration.op(k).effect == "read" or may_write(integration.op(k))
+            if integration.op(k).effect == "read" or allowed.get(k) or allowed.get(_undone_by(integration, k), False)
         ),
     }
+
+
+def _undone_by(integration: ApiIntegration, op_id: str) -> str:
+    """The write an undo operation compensates, when it is one."""
+    return next((o.id for o in integration.operations if o.undo == op_id), "")
 
 
 def _exercise_write(
@@ -416,6 +424,7 @@ def _exercise_write(
     op: Operation,
     seen: list[dict[str, Any]],
     transport: httpx.BaseTransport | None,
+    store: Any,
 ) -> dict[str, Any]:
     """Make the smallest valid write, repeat it with the same idempotency key, undo it, and observe each step."""
     schema = op.body_schema or {}
@@ -429,20 +438,55 @@ def _exercise_write(
             body[name] = next(i[name] for i in seen if name in i)
         else:
             return {"passed": False, "observed": f"no value known for {name}", "error": None}
+    from unbidden.connect.effects import authorize, record_effect
+    from unbidden.contracts.action import ActionStatus
+
     key = f"unbidden-oracle-{uuid.uuid4().hex[:12]}"
+
+    def send(operation: Operation, **kw: Any) -> tuple[int, Any]:
+        """One mutating request: authorized now (revocation, kill switch, approval, budget), then recorded."""
+        ok, why = authorize(store, mandate, conn, operation.scope, f"oracle probe of {operation.id}")
+        if not ok:
+            raise Unavailable(why)
+        try:
+            status, data = call(integration, conn, mandate, operation.id, gate=False, transport=transport, **kw)
+        except CallFailed as exc:
+            record_effect(
+                store,
+                conn,
+                operation.id,
+                kw.get("body"),
+                kind="oracle_probe",
+                status=ActionStatus.FAILED,
+                result={"status": exc.status},
+                reason=str(exc)[:200],
+                key=key,
+            )
+            raise
+        record_effect(
+            store,
+            conn,
+            operation.id,
+            kw.get("body"),
+            kind="oracle_probe",
+            status=ActionStatus.EXECUTED,
+            result={"status": status, "body": data},
+            reason=f"oracle probe of {integration.id}",
+            key=key,
+        )
+        return status, data
+
     try:
-        first = call(integration, conn, mandate, op.id, body=body, idempotency_key=key, gate=False, transport=transport)
-        again = call(integration, conn, mandate, op.id, body=body, idempotency_key=key, gate=False, transport=transport)
+        first = send(op, body=body, idempotency_key=key)
+        again = send(op, body=body, idempotency_key=key)
         same = isinstance(first[1], dict) and isinstance(again[1], dict) and first[1].get("id") == again[1].get("id")
         undone = None
         if op.undo and isinstance(first[1], dict) and first[1].get("id"):
             undo = integration.op(op.undo)
             names = [p["name"] for p in undo.parameters if p.get("in") == "path"]
-            undone = call(
-                integration, conn, mandate, undo.id, params={names[0]: first[1]["id"]}, gate=False, transport=transport
-            )
+            undone = send(undo, params={names[0]: first[1]["id"]})
     except (CallFailed, Unavailable, jsonschema.ValidationError) as exc:
-        return {"passed": False, "observed": "write failed", "error": str(exc)[:300]}
+        return {"passed": False, "observed": "write failed or stopped", "error": str(exc)[:300]}
     observed = (
         f"created {first[0]}, repeated with the same key {again[0]} (same record: {same}), "
         f"undone {undone[0] if undone else 'no undo documented'}"
