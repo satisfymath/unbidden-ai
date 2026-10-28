@@ -15,7 +15,8 @@ from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import Mandate
 from unbidden.contracts.opportunity import ActionKind, CandidateAction, Decision, Opportunity, OpportunityStatus
 from unbidden.languages import adapter_for_path
-from unbidden.observe.ci import PENDING_CI, UNREADABLE, analyzer_tool
+from unbidden.observe.ci import DIFFERS, PENDING_CI, SAME, UNREADABLE, analyzer_tool, environment_equivalence, runs_tool
+from unbidden.sandbox.tools import tool_source
 from unbidden.store import Store
 
 CATEGORY_VALUE = {
@@ -99,7 +100,8 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
         )
         return _choose(opp, candidates, ActionKind.WAIT)
     tool = analyzer_tool(opp.details)
-    if opp.category in LOW_VALUE and ctx.ci_commands and tool and tool not in ctx.ci_commands:
+    ran = runs_tool(ctx.ci_commands, tool)  # the CI runs this tool itself, read as argv, not as a substring
+    if opp.category in LOW_VALUE and ctx.ci_commands and tool and not ran:
         add(
             ActionKind.DECLINE,
             1.0,
@@ -109,24 +111,33 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
         )
         return _choose(opp, candidates, ActionKind.DECLINE)
     still_running = (ctx.tool_status or {}).get(tool, ctx.ci_status) == PENDING_CI
-    if still_running and tool and ctx.ci_commands and tool in ctx.ci_commands:
+    if still_running and ran:
         reason = f"the team's CI runs {tool} and is still running on this commit: its verdict comes first"
         add(ActionKind.WAIT, 0.0, 0.0, 0.0, reason)
         return _choose(opp, candidates, ActionKind.WAIT)
-    if ctx.ci_status == UNREADABLE and tool and ctx.ci_commands and tool in ctx.ci_commands:
+    if ctx.ci_status == UNREADABLE and ran:
         # The team's CI runs this tool but its verdict could not be read: whether these findings are the code's or
         # Unbidden's environment cannot be told, so nothing is spent on them until it can.
         reason = f"the team's CI runs {tool} and its verdict on this commit could not be read ({ctx.ci_problem})"
         add(ActionKind.WAIT, 0.0, 0.0, 0.0, reason)
         return _choose(opp, candidates, ActionKind.WAIT)
-    # The jobs that run this very tool, when known; the whole commit otherwise.
+    # The jobs that run this very tool, when known; the whole commit only when every one of its runs succeeded.
     green = (ctx.tool_status or {}).get(tool, ctx.ci_status) == "green"
-    if green and tool and ctx.ci_commands and tool in ctx.ci_commands:
-        # Whatever the category: a type error the team's own green job does not report is an environment difference
-        # (another version of the tool or of Python), and a fix for it would turn their CI red.
-        reason = f"the team's CI runs {tool} and passes on this commit: these findings come from Unbidden's environment"
-        add(ActionKind.DECLINE, 1.0, 0.0, 0.0, reason)
-        return _choose(opp, candidates, ActionKind.DECLINE)
+    if green and ran:
+        source, own_rules = tool_source(str(opp.details.get("tool", "")))
+        paths = [str(p) for p in opp.details.get("paths") or []]
+        relation, why = environment_equivalence(ctx.ci_commands, tool, paths, source=source, own_rules=own_rules)
+        if relation == SAME:
+            # Whatever the category: what the team's own green run of the same tool does not report is an
+            # environment difference (another version of a dependency, of Python), and a fix would turn their CI red.
+            reason = f"the team's CI runs {tool} the same way and passes on this commit: Unbidden's environment"
+            add(ActionKind.DECLINE, 1.0, 0.0, 0.0, reason)
+            return _choose(opp, candidates, ActionKind.DECLINE)
+        if relation == DIFFERS:
+            reason = f"the team's CI runs {tool} and passes, but not as Unbidden did ({why}): investigated first"
+            add(ActionKind.WAIT, 0.0, 0.0, 0.0, reason)
+            return _choose(opp, candidates, ActionKind.WAIT)
+        # UNRELATED: the CI's run says nothing about these findings; they are decided like any other.
     paths = [str(p) for p in opp.details.get("paths") or []]
     language = adapter_for_path(paths[0]) if paths else None
     if language is not None and "fix" not in language.capabilities and opp.source != "robustness":

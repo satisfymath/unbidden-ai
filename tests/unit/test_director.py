@@ -107,10 +107,12 @@ def test_type_errors_a_green_job_of_the_same_tool_does_not_report_are_unbiddens_
         evidence=[EvidenceRef(kind="file", locator="tests/test_fields.py")],
         details={"tool": "mypy", "paths": ["tests/test_fields.py"]},
     )
-    ctx = Context(open_pull_requests=0, attempts=0, ci_commands="uv run tox -e mypy", tool_status={"mypy": "green"})
+    # As ci_commands reads it: the workflow's step, then the tox environment it names.
+    commands = "uv run tox -e mypy\n[testenv:mypy]\ncommands = mypy --show-error-codes"
+    ctx = Context(open_pull_requests=0, attempts=0, ci_commands=commands, tool_status={"mypy": "green"})
     decided = decide(found, mandate, ctx)
     assert decided.chosen is ActionKind.DECLINE and "environment" in decided.reason
-    red = Context(open_pull_requests=0, attempts=0, ci_commands="uv run tox -e mypy", tool_status={"mypy": "red"})
+    red = Context(open_pull_requests=0, attempts=0, ci_commands=commands, tool_status={"mypy": "red"})
     assert decide(found, mandate, red).chosen is ActionKind.RUN_EXPERIMENT
 
 
@@ -166,8 +168,8 @@ def test_an_unreadable_ci_is_not_no_checks_and_the_director_waits_on_it(
         source="tsc", category="types", title="t", summary="s", dedup_key="k",
         evidence=[EvidenceRef(kind="file", locator="a.ts")], details={"tool": "tsc", "paths": ["a.ts"]},
     )  # fmt: skip
-    ctx = Context(open_pull_requests=0, attempts=0, ci_commands="pnpm check tsc -b", ci_status=ci.UNREADABLE,
-                  ci_problem=why)  # fmt: skip
+    commands = "pnpm check\ntsc -b tsconfig.json"  # the step, then the package script it calls
+    ctx = Context(open_pull_requests=0, attempts=0, ci_commands=commands, ci_status=ci.UNREADABLE, ci_problem=why)
     decided = decide(found, mandate, ctx)
     assert (
         decided.chosen is ActionKind.WAIT and "could not be read" in decided.reason and "rate limit" in decided.reason

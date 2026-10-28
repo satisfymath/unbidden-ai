@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import json
 import re
+import shlex
 import subprocess
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 import yaml
@@ -525,3 +526,137 @@ def ci_python_versions(repo: Path, rev: str) -> list[str]:
     if ".python-version" in tracked:
         found |= {f"3.{m}" for m in _PY.findall(_git(repo, "show", f"{rev}:.python-version"))}
     return sorted(found, key=lambda v: int(v.split(".")[1]))
+
+
+# Reading a tool's invocations in the CI's commands as argv, not as a substring: `cp tsconfig.json` does not run tsc,
+# `tox -e mypy` names an environment, `[tool.mypy]` configures a tool something else may or may not run.
+_INVOKERS = {"npx", "pnpm", "yarn", "bunx", "bun", "uv", "uvx", "poetry", "pdm", "hatch", "pipx", "exec", "run", "x",
+            "dlx", "=", "commands"}  # fmt: skip
+_LINTING = {"ruff": {None: True, "check": True, "format": False}, "biome": {"check": True, "lint": True, "ci": True,
+            "format": False}}  # fmt: skip
+CONFIG_FLAGS = {"-c", "--config", "--config-file", "-p", "--project", "--rcfile", "--settings-path", "--config-path"}
+_VALUE_FLAGS = CONFIG_FLAGS | {"-e", "--env", "-k", "--filter", "--format", "--output-format", "--reporter",
+                               "--max-warnings", "--ext", "--target", "-t", "--python-version", "--select", "--ignore",
+                               "--extend-select", "--cache-dir", "--outdir", "--out-dir", "-f"}  # fmt: skip
+DEFAULT_CONFIGS = {
+    "tsc": {"tsconfig.json"},
+    "mypy": {"mypy.ini", ".mypy.ini", "pyproject.toml", "setup.cfg"},
+    "ruff": {"ruff.toml", ".ruff.toml", "pyproject.toml"},
+    "pyright": {"pyrightconfig.json", "pyproject.toml"},
+    "eslint": {"eslint.config.js", "eslint.config.mjs", "eslint.config.cjs", "eslint.config.ts", ".eslintrc",
+               ".eslintrc.json", ".eslintrc.js", ".eslintrc.cjs", ".eslintrc.yml", ".eslintrc.yaml"},
+    "biome": {"biome.json", "biome.jsonc"},
+}  # fmt: skip
+
+
+@dataclass(frozen=True)
+class Invocation:
+    subcommand: str | None
+    paths: tuple[str, ...]  # where it runs, relative to the repository; empty: its whole working directory
+    config: str | None  # an explicit configuration file
+    cwd: str  # from a preceding `cd <dir> &&`
+
+    def scopes(self) -> list[str]:
+        base = self.cwd.strip("./")
+        if not self.paths:
+            return [base]
+        return [str(PurePosixPath(base) / p).strip("./") if base else p for p in self.paths]
+
+
+def _tokens(segment: str) -> list[str]:
+    try:
+        return shlex.split(segment)
+    except ValueError:
+        return segment.split()
+
+
+def tool_invocations(commands: str, tool: str) -> list[Invocation]:
+    """Every step in the CI's commands that runs `tool` itself, with its subcommand, paths, config and directory."""
+    found: list[Invocation] = []
+    for line in commands.splitlines():
+        cwd = ""
+        for segment in re.split(r"&&|\|\||;|\|", line):
+            tokens = _tokens(segment)
+            if len(tokens) >= 2 and tokens[0] == "cd":
+                cwd = tokens[1]
+                continue
+            for i, token in enumerate(tokens):
+                if PurePosixPath(token).name.removesuffix(".exe") != tool:
+                    continue
+                before = tokens[i - 1] if i else ""
+                runs_it = (
+                    i == 0
+                    or before in _INVOKERS
+                    or before.endswith(":")  # a YAML or Makefile-style key
+                    or (before == "-m" and i >= 2 and tokens[i - 2].startswith("python"))
+                )
+                if not runs_it:
+                    continue
+                rest = tokens[i + 1 :]
+                subcommand = (
+                    rest[0] if rest and not rest[0].startswith("-") and rest[0] in _LINTING.get(tool, {}) else None
+                )
+                args = rest[1:] if subcommand else rest
+                paths: list[str] = []
+                config: str | None = None
+                awaiting: str | None = None  # a flag whose value is the next token
+                for arg in args:
+                    if awaiting is not None:
+                        config = arg if awaiting in CONFIG_FLAGS else config
+                        awaiting = None
+                    elif arg in (">", ">>", "2>", "2>&1"):
+                        break
+                    elif arg.startswith("-"):
+                        flag, eq, value = arg.partition("=")
+                        if flag in CONFIG_FLAGS and eq:
+                            config = value
+                        elif flag in _VALUE_FLAGS and not eq:
+                            awaiting = flag
+                    elif tool == "tsc" and arg.endswith(".json"):
+                        config = arg  # `tsc -b tsconfig.json`: a project file, not a path to check
+                    elif arg not in (".", "./") and ("/" in arg or "." in arg or arg.isidentifier()):
+                        paths.append(arg.removeprefix("./").rstrip("/"))
+                found.append(Invocation(subcommand, tuple(paths), config, cwd))
+    return found
+
+
+def runs_tool(commands: str | None, tool: str) -> bool:
+    """Whether the CI's commands run `tool` itself, in a mode that reports what Unbidden's run of it reports."""
+    if not commands or not tool:
+        return False
+    return any(_LINTING.get(tool, {}).get(inv.subcommand, True) for inv in tool_invocations(commands, tool))
+
+
+SAME, UNRELATED, DIFFERS = "same", "unrelated", "differs"
+
+
+def environment_equivalence(
+    commands: str | None, tool: str, paths: list[str], *, source: str, own_rules: bool
+) -> tuple[str, str]:
+    """What a green CI run of `tool` says about these findings, and why:
+    SAME: the same tool and mode, over these paths, with its default configuration, at the project's own version;
+    a finding the CI does not report is then Unbidden's environment. UNRELATED: the CI's run does not cover them
+    (another rule set, other files): it says nothing either way. DIFFERS: it covers them differently (another
+    version or configuration): a discrepancy to investigate, never a reason to decline."""
+    if own_rules:
+        return UNRELATED, f"{tool} ran with Unbidden's own rule set, which the team's CI does not run"
+    invocations = [i for i in tool_invocations(commands or "", tool) if _LINTING.get(tool, {}).get(i.subcommand, True)]
+    if not invocations:
+        return UNRELATED, f"no step of the team's CI runs {tool} itself"
+    wanted = [p.lower() for p in paths]
+
+    def covers(inv: Invocation) -> bool:
+        return all(any(not s or p == s or p.startswith(f"{s}/") for s in inv.scopes()) for p in wanted)
+
+    covering = [i for i in invocations if covers(i)]
+    if not covering:
+        scopes = sorted({s or "." for i in invocations for s in i.scopes()})
+        return UNRELATED, f"the team's CI runs {tool} on {', '.join(scopes)}, not on {paths[0] if paths else 'them'}"
+    if source != "project":
+        return DIFFERS, f"Unbidden ran its own {tool}, whose version may differ from the CI's"
+    defaults = [
+        i for i in covering if i.config is None or PurePosixPath(i.config).name in DEFAULT_CONFIGS.get(tool, ())
+    ]
+    if not defaults:
+        return DIFFERS, f"the team's CI runs {tool} with {covering[0].config}, not the configuration Unbidden used"
+    return SAME, ""

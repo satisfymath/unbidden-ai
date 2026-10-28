@@ -25,6 +25,10 @@ class Tool:
     parse: Parser
     fix_argv: tuple[str, ...] | None = None  # the tool's own correction, tried before any model is asked
     cwd: str = "."  # a workspace package's directory; findings are reported relative to the repository
+    # Whose tool it is: the project's own (its locked version, as its CI installs it) or Unbidden's pinned binary,
+    # whose version may differ from the CI's. `own_rules`: Unbidden's rule set, which no team's CI runs.
+    source: str = "project"
+    own_rules: bool = False
 
     def in_package(self, path: str, argv: tuple[str, ...] | None = None) -> Tool:
         return replace(self, name=f"{self.name}:{path}", cwd=path, argv=argv or self.argv)
@@ -318,6 +322,8 @@ TOOLS: dict[str, Tool] = {
             ".",
         ),
         parse_ruff,
+        source="unbidden",
+        own_rules=True,
     ),
     "pyright": Tool(
         "pyright",
@@ -325,6 +331,7 @@ TOOLS: dict[str, Tool] = {
         "types",
         ("pyright", "--outputjson", "--pythonpath", "/deps/.venv/bin/python"),
         parse_pyright,
+        source="unbidden",
     ),
     # The repository's own mypy, from its environment: its configuration may load plugins installed there.
     "mypy": Tool(
@@ -342,6 +349,16 @@ def tools_for(stack: Any) -> list[Tool]:
     from unbidden.languages import adapter
 
     return [tool for language in stack.languages for tool in adapter(language).tools(stack.part(language))]
+
+
+def tool_source(name: str) -> tuple[str, bool]:
+    """Whose tool an opportunity's finding came from (`tsc:apps/web`, `ruff@services/api` included): the project's or
+    Unbidden's, and whether it ran Unbidden's own rules. An unknown tool is taken as Unbidden's: no equivalence."""
+    from unbidden.languages.golang import GO_VET
+
+    base = name.split(":")[0].split("@")[0]
+    tool = {**TOOLS, GO_VET.name: GO_VET}.get(base)
+    return (tool.source, tool.own_rules) if tool else ("unbidden", False)
 
 
 def tool_named(stack: Any, name: str) -> Tool:
