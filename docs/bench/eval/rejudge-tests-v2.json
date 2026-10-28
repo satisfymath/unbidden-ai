@@ -1,0 +1,281 @@
+{
+  "experiments_with_tests": 24,
+  "l4_eligible_v1": 23,
+  "l4_eligible_v2": 22,
+  "no_longer_l4": [
+    {
+      "experiment": "exp_ec2d1c4e89a94210",
+      "opportunity": "opp_8f2cf46bd8864983",
+      "state": "/Users/david/mealie/.unbidden/state.db",
+      "tests_v1": "pre_existing",
+      "tests_v2": "infra_failure",
+      "l4_under_v1": true,
+      "l4_under_v2": false,
+      "reasons_v2": [
+        "the suite did not run on the baseline (round 1, 2, 3)"
+      ]
+    }
+  ],
+  "outcomes_v2": {
+    "passed": 17,
+    "pre_existing": 5,
+    "infra_failure": 2
+  },
+  "rows": [
+    {
+      "experiment": "exp_b59c9bbb83ce4535",
+      "opportunity": "opp_56f9d3d9ace0468f",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david-unbidden-ai__6444395d-3b2e-4e61-a55c-ea4fd26f7c42__scratchpad__live__fst/.unbidden/state.db",
+      "tests_v1": "passed",
+      "tests_v2": "passed",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": []
+    },
+    {
+      "experiment": "exp_aced0eb0bbda4c89",
+      "opportunity": "opp_da3d4c446054462a",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david-unbidden-ai__6444395d-3b2e-4e61-a55c-ea4fd26f7c42__scratchpad__live__fst/.unbidden/state.db",
+      "tests_v1": "passed",
+      "tests_v2": "passed",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": []
+    },
+    {
+      "experiment": "exp_400ae9bb0a4b4b6d",
+      "opportunity": "opp_5da05aba22484ac3",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david-unbidden-ai__6444395d-3b2e-4e61-a55c-ea4fd26f7c42__scratchpad__live__fst/.unbidden/state.db",
+      "tests_v1": "passed",
+      "tests_v2": "passed",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": []
+    },
+    {
+      "experiment": "exp_87ed674a6a6349ff",
+      "opportunity": "opp_5da05aba22484ac3",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david-unbidden-ai__6444395d-3b2e-4e61-a55c-ea4fd26f7c42__scratchpad__live__fst/.unbidden/state.db",
+      "tests_v1": "passed",
+      "tests_v2": "passed",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": []
+    },
+    {
+      "experiment": "exp_ba6a9ca4e7684540",
+      "opportunity": "opp_5da05aba22484ac3",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david-unbidden-ai__6444395d-3b2e-4e61-a55c-ea4fd26f7c42__scratchpad__live__fst/.unbidden/state.db",
+      "tests_v1": "passed",
+      "tests_v2": "passed",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": []
+    },
+    {
+      "experiment": "exp_008aeb1d4f0544c9",
+      "opportunity": "opp_61d40425181244b3",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david-unbidden-ai__6444395d-3b2e-4e61-a55c-ea4fd26f7c42__scratchpad__live__fst/.unbidden/state.db",
+      "tests_v1": "passed",
+      "tests_v2": "passed",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": []
+    },
+    {
+      "experiment": "exp_e8d4cc9e40ff4025",
+      "opportunity": "opp_5da05aba22484ac3",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david-unbidden-ai__6444395d-3b2e-4e61-a55c-ea4fd26f7c42__scratchpad__live__fst/.unbidden/state.db",
+      "tests_v1": "passed",
+      "tests_v2": "passed",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": []
+    },
+    {
+      "experiment": "exp_483e7872226b4013",
+      "opportunity": "opp_5da05aba22484ac3",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david-unbidden-ai__6444395d-3b2e-4e61-a55c-ea4fd26f7c42__scratchpad__live__fst/.unbidden/state.db",
+      "tests_v1": "passed",
+      "tests_v2": "passed",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": []
+    },
+    {
+      "experiment": "exp_6640051439df4f27",
+      "opportunity": "opp_5da05aba22484ac3",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david-unbidden-ai__6444395d-3b2e-4e61-a55c-ea4fd26f7c42__scratchpad__live__fst/.unbidden/state.db",
+      "tests_v1": "passed",
+      "tests_v2": "passed",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": []
+    },
+    {
+      "experiment": "exp_dbbd30cfacff4f16",
+      "opportunity": "opp_fe655d67220943c5",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david-unbidden-ai__6444395d-3b2e-4e61-a55c-ea4fd26f7c42__scratchpad__live__fst/.unbidden/state.db",
+      "tests_v1": "passed",
+      "tests_v2": "passed",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": []
+    },
+    {
+      "experiment": "exp_e249c000cc6b4a51",
+      "opportunity": "opp_777d43d563f6426f",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david-unbidden-ai__6444395d-3b2e-4e61-a55c-ea4fd26f7c42__scratchpad__live__fst/.unbidden/state.db",
+      "tests_v1": "passed",
+      "tests_v2": "passed",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": []
+    },
+    {
+      "experiment": "exp_0dc1f53d57a04952",
+      "opportunity": "opp_371fea9aee514675",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david__9105310e-135d-4242-9f4d-dfc3033f9c40__scratchpad__bcr/.unbidden/state.db",
+      "tests_v1": "pre_existing",
+      "tests_v2": "pre_existing",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": [
+        "fails before the change too: ::tests.test_bar_charts",
+        "fails before the change too: ::tests.test_plotly"
+      ]
+    },
+    {
+      "experiment": "exp_3d6996b64e574811",
+      "opportunity": "opp_ed59232ba43546dd",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david__9105310e-135d-4242-9f4d-dfc3033f9c40__scratchpad__ledger/.unbidden/state.db",
+      "tests_v1": "inconclusive",
+      "tests_v2": "infra_failure",
+      "l4_under_v1": false,
+      "l4_under_v2": false,
+      "reasons_v2": [
+        "the suite did not run on the candidate (round 3)"
+      ]
+    },
+    {
+      "experiment": "exp_9eb12502a36541eb",
+      "opportunity": "opp_c5fb0f85fa714bad",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david__9105310e-135d-4242-9f4d-dfc3033f9c40__scratchpad__ledger/.unbidden/state.db",
+      "tests_v1": "passed",
+      "tests_v2": "passed",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": []
+    },
+    {
+      "experiment": "exp_d0112260c7d4481a",
+      "opportunity": "opp_fbdcc5b90b7c45df",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david__9105310e-135d-4242-9f4d-dfc3033f9c40__scratchpad__ledger/.unbidden/state.db",
+      "tests_v1": "passed",
+      "tests_v2": "passed",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": []
+    },
+    {
+      "experiment": "exp_6acf802bbf614974",
+      "opportunity": "opp_ea8892c70fc2446d",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david__9105310e-135d-4242-9f4d-dfc3033f9c40__scratchpad__ledger/.unbidden/state.db",
+      "tests_v1": "passed",
+      "tests_v2": "passed",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": []
+    },
+    {
+      "experiment": "exp_d973c0cc62614b51",
+      "opportunity": "opp_096092c0bc4749e6",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david__9105310e-135d-4242-9f4d-dfc3033f9c40__scratchpad__rich/.unbidden/state.db",
+      "tests_v1": "pre_existing",
+      "tests_v2": "pre_existing",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": [
+        "fails before the change too: tests.test_console::test_brokenpipeerror"
+      ]
+    },
+    {
+      "experiment": "exp_9695dd45f2894812",
+      "opportunity": "opp_096092c0bc4749e6",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david__9105310e-135d-4242-9f4d-dfc3033f9c40__scratchpad__rich/.unbidden/state.db",
+      "tests_v1": "pre_existing",
+      "tests_v2": "pre_existing",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": [
+        "fails before the change too: tests.test_console::test_brokenpipeerror"
+      ]
+    },
+    {
+      "experiment": "exp_562a00b63dc04ae9",
+      "opportunity": "opp_096092c0bc4749e6",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david__9105310e-135d-4242-9f4d-dfc3033f9c40__scratchpad__rich/.unbidden/state.db",
+      "tests_v1": "pre_existing",
+      "tests_v2": "pre_existing",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": [
+        "fails before the change too: tests.test_console::test_brokenpipeerror"
+      ]
+    },
+    {
+      "experiment": "exp_a038b77b9d484535",
+      "opportunity": "opp_096092c0bc4749e6",
+      "state": "/Users/david/.unbidden/evidence-archive/2026-10-27/-Users-david__9105310e-135d-4242-9f4d-dfc3033f9c40__scratchpad__rich/.unbidden/state.db",
+      "tests_v1": "pre_existing",
+      "tests_v2": "pre_existing",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": [
+        "fails before the change too: tests.test_console::test_brokenpipeerror"
+      ]
+    },
+    {
+      "experiment": "exp_1c38ce9d361c4fc4",
+      "opportunity": "opp_f0e429a23a214563",
+      "state": "/Users/david/unbidden-bench/method-check-pilot/marshmallow/.unbidden/state.db",
+      "tests_v1": "passed",
+      "tests_v2": "passed",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": []
+    },
+    {
+      "experiment": "exp_d1ed23b4225648dd",
+      "opportunity": "opp_eb00e1507b2a4219",
+      "state": "/Users/david/unbidden-bench/pilot-2/marshmallow/.unbidden/state.db",
+      "tests_v1": "passed",
+      "tests_v2": "passed",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": []
+    },
+    {
+      "experiment": "exp_41493d893acd4c01",
+      "opportunity": "opp_1d7a7d72c3ee43ba",
+      "state": "/Users/david/unbidden-bench/pilot-2/marshmallow/.unbidden/state.db",
+      "tests_v1": "passed",
+      "tests_v2": "passed",
+      "l4_under_v1": true,
+      "l4_under_v2": true,
+      "reasons_v2": []
+    },
+    {
+      "experiment": "exp_ec2d1c4e89a94210",
+      "opportunity": "opp_8f2cf46bd8864983",
+      "state": "/Users/david/mealie/.unbidden/state.db",
+      "tests_v1": "pre_existing",
+      "tests_v2": "infra_failure",
+      "l4_under_v1": true,
+      "l4_under_v2": false,
+      "reasons_v2": [
+        "the suite did not run on the baseline (round 1, 2, 3)"
+      ]
+    }
+  ]
+}

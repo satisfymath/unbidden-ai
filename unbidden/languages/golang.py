@@ -130,6 +130,15 @@ def go_test_failures(output: str) -> list[str] | None:
     return sorted(n for n in failed if not (n.endswith(" (package)") and n.removesuffix(" (package)") in explained))
 
 
+def go_test_count(output: str) -> int:
+    """How many tests (top-level and subtests) `go test -json` reports running."""
+    count = 0
+    for line in output.splitlines():
+        if line.startswith("{") and '"Action":"run"' in line.replace(" ", "") and '"Test"' in line:
+            count += 1
+    return count
+
+
 class GoAdapter:
     name = "go"
     part_type = GoStack

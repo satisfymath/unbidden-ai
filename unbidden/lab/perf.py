@@ -23,12 +23,12 @@ from unbidden.brain.codeblocks import CodeBlockError, parse_files
 from unbidden.brain.prompts import load_prompt
 from unbidden.brain.providers import ProviderError
 from unbidden.brain.router import Brain, BrainError
-from unbidden.contracts.common import EvidenceLevel, EvidenceRef, utc_now
+from unbidden.contracts.common import EvidenceRef, utc_now
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.experiment import Experiment, TestOutcome, Verdict
 from unbidden.contracts.llm import LLMRequest, Message, Tier
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
-from unbidden.lab.evaluator import classify_tests
+from unbidden.lab.evaluator import classify_tests, level_for
 from unbidden.lab.fixlab import Candidate, unified_patch
 from unbidden.lab.perfstats import PERF_CRITERIA, judge
 from unbidden.lab.testsuite import TestPlan, run_suite, test_plan
@@ -639,13 +639,7 @@ class PerfLab:
         tests, test_notes = classify_tests(sides[0], sides[1])
         stats = judge(before, after)
         improved = stats.improved and tests is not TestOutcome.REGRESSION
-        level = (
-            EvidenceLevel.FUNCTIONAL_VALIDATION
-            if improved and tests in (TestOutcome.PASSED, TestOutcome.PRE_EXISTING)
-            else EvidenceLevel.LAB_IMPROVEMENT
-            if improved
-            else EvidenceLevel.REPRODUCTION
-        )
+        level = level_for(improved, tests, suite_ran=True)
         experiment = Experiment(
             opportunity_id=opp.id,
             base_sha=rev,

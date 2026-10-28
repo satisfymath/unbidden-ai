@@ -10,12 +10,24 @@ from unbidden.contracts.common import Contract, Cost, EvidenceLevel, Sha, new_id
 
 
 class TestOutcome(StrEnum):
+    """What a test suite run on both sides says about a change. Only PASSED and PRE_EXISTING validate it (L4)."""
+
     __test__ = False  # not a pytest test class
 
-    PASSED = "passed"
-    REGRESSION = "regression"
-    PRE_EXISTING = "pre_existing"
-    INCONCLUSIVE = "inconclusive"
+    PASSED = "passed"  # nothing fails on either side
+    PRE_EXISTING = "pre_existing"  # failures, none more frequent with the change
+    REGRESSION = "regression"  # a test fails in every candidate round and in no baseline round
+    FLAKIER = "flakier"  # a test fails in more candidate rounds than baseline rounds
+    NOT_RUN = "not_run"  # the suite ran but collected no test
+    INFRA_FAILURE = "infra_failure"  # the suite did not run, or failed on both sides without naming a test
+    INCONCLUSIVE = "inconclusive"  # there was no suite to run on both sides
+
+
+VALIDATING = frozenset({TestOutcome.PASSED, TestOutcome.PRE_EXISTING})
+SUITE = "<suite>"  # a failure the runner could not attribute to a named test
+
+# How each round of a suite went. Records written before these were kept have none; see TestSummary.status.
+RAN, NOT_COLLECTED, INFRA_FAILED = "ran", "not_collected", "infra_failed"
 
 
 class TestSummary(Contract):
@@ -23,6 +35,14 @@ class TestSummary(Contract):
 
     rounds: int
     failed_per_round: list[list[str]]
+    round_status: list[str] = Field(default_factory=list[str])  # RAN, NOT_COLLECTED or INFRA_FAILED per round
+    collected_per_round: list[int | None] = Field(default_factory=list[int | None])  # None: the runner did not say
+
+    def status(self, i: int) -> str:
+        """A round's status; for an older record, an unattributed failure is taken as a suite that did not run."""
+        if i < len(self.round_status):
+            return self.round_status[i]
+        return INFRA_FAILED if self.failed_per_round[i] == [SUITE] else RAN
 
 
 class Experiment(Contract):

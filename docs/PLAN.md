@@ -27,7 +27,7 @@ path, not executed), **RESOLVED**, **INCORRECT**, **DESIGN LIMITATION**, **HYPOT
 
 **What works, shown in real runs.** Index found, written, measured (13.0→4.1 ms, L4), merged and deployed on
 full-stack-fastapi-template (D-010/13); outage drill with rollback in 15 s (D-015); Rich crashes found blind and fixed
-(L4, D-018); mealie index L4 on SQLite (D-035); Forge readers judged by a model-free oracle on unseen real data
+(L4, D-018); mealie index L3 on SQLite (reported as L4 in D-035; re-judged in D-040); Forge readers judged by a model-free oracle on unseen real data
 (D-016, D-025); spend ledger reconciled to the cent; static evaluation reach 13/32 → 18/32 on validation (5 gained,
 0 lost, p = 0.0625) and 8/15 → 13/15 on dev; the Director's CI rules declined thousands of environment findings.
 

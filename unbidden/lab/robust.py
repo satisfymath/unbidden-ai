@@ -22,7 +22,7 @@ from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.experiment import Experiment, TestOutcome, Verdict
 from unbidden.contracts.llm import LLMRequest, Message, Tier
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
-from unbidden.lab.evaluator import classify_tests
+from unbidden.lab.evaluator import classify_tests, level_for
 from unbidden.lab.fixlab import Candidate, added_suppressions, unified_patch
 from unbidden.lab.testsuite import run_suite, test_plan
 from unbidden.observe.stack import Stack
@@ -179,7 +179,7 @@ class RobustLab:
                     discard(work)
             tests, notes = classify_tests(sides[0], sides[1]) if sides else (TestOutcome.INCONCLUSIVE, [])
             improved = tests is not TestOutcome.REGRESSION
-            level = EvidenceLevel.FUNCTIONAL_VALIDATION if improved and sides else EvidenceLevel.LAB_IMPROVEMENT
+            level = level_for(improved, tests, suite_ran=bool(sides))
             files = {**candidate.files, test_file: test}
             candidate = Candidate(
                 candidate.origin, files, candidate.patch + unified_patch(snapshot(self.repo, rev), {test_file: test})

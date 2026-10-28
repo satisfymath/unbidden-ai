@@ -197,3 +197,13 @@ def test_go_vet_and_go_test_output_are_read() -> None:
     )
     assert go_test_failures(events) == ["x/TestA", "x/report (package)"]
     assert go_test_failures("go: cannot find main module") is None
+
+
+def test_go_test_counts_the_tests_it_ran() -> None:
+    from unbidden.languages.golang import go_test_count
+
+    out = (
+        '{"Action":"run","Package":"x","Test":"TestA"}\n{"Action":"run","Package":"x","Test":"TestA/sub"}\n'
+        '{"Action":"output","Package":"x"}\n'
+    )
+    assert go_test_count(out) == 2 and go_test_count("") == 0

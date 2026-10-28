@@ -7,7 +7,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from unbidden.contracts.experiment import TestSummary
+from unbidden.contracts.experiment import INFRA_FAILED, NOT_COLLECTED, RAN, SUITE, TestSummary
 from unbidden.languages import adapter
 from unbidden.observe.ci import ci_test_plan
 from unbidden.observe.compose import Service, load_compose
@@ -64,7 +64,6 @@ def test_plan(repo: Path, rev: str, stack: Stack, language: str) -> TestPlan | N
 
 
 JUNIT_DIR = ".unbidden-junit"
-SUITE = "<suite>"  # name used when a runner cannot tell which test failed
 NETWORK_ERRORS = (
     "Temporary failure in name resolution",
     "Network is unreachable",
@@ -85,20 +84,39 @@ def _default_argv(stack: Stack, language: str) -> list[str] | None:
 
 
 def _junit_failures(path: Path) -> list[str] | None:
+    report = _junit(path)
+    return report[0] if report is not None else None
+
+
+def _junit(path: Path) -> tuple[list[str], int] | None:
+    """Failing test names and how many test cases the report holds, or None without a report."""
     if not path.exists():
         return None
     root = ET.parse(path).getroot()
     failed: list[str] = []
+    cases = 0
     for case in root.iter("testcase"):
+        cases += 1
         if case.find("failure") is not None or case.find("error") is not None:
             failed.append(f"{case.get('classname', '')}::{case.get('name', '')}")
-    return failed
+    return failed, cases
+
+
+@dataclass(frozen=True)
+class Round:
+    failed: list[str] | None  # None: the run said nothing about the code
+    status: str  # RAN, NOT_COLLECTED or INFRA_FAILED
+    collected: int | None  # test cases the runner reported; None when it does not say
+
+    @property
+    def meaningful(self) -> bool:
+        return self.status != INFRA_FAILED
 
 
 def _round(
     runner: SandboxRunner, work: Path, image: DependencyImage, plan: TestPlan, n: int, timeout_s: float
-) -> tuple[list[str] | None, bool]:
-    """One round: failing test names, and whether the result says anything about the code at all.
+) -> Round:
+    """One round: failing test names, whether the suite ran and collected tests, and how many.
 
     Each round gets fresh services, so no round sees what an earlier one wrote.
     """
@@ -118,23 +136,28 @@ def _round(
         )
         result = runner.run(spec, work)
     if plan.report == "go-test-json":
-        from unbidden.languages.golang import go_test_failures
+        from unbidden.languages.golang import go_test_count, go_test_failures
 
         names = go_test_failures(result.stdout)
         if names is None:
-            return None, False  # no test event at all: the run said nothing about the code; retried once
-        return names, True
-    names = _junit_failures(junit)
+            return Round(None, INFRA_FAILED, None)  # no test event at all: retried once, then counted
+        count = go_test_count(result.stdout)
+        return Round(names, RAN if count else NOT_COLLECTED, count)
+    report = _junit(junit)
+    if plan.pytest and result.exit_code == 5:
+        return Round([], NOT_COLLECTED, 0)  # pytest: no tests collected
+    if report is None and plan.pytest and not result.ok:
+        # Nothing reached pytest's report: setup failed or the run crashed. Retried once, then counted.
+        return Round(None, INFRA_FAILED, None)
+    names, collected = (report[0], report[1]) if report is not None else (None, None)
     if names and needs_network(result.stdout + result.stderr):
         names = [f"{n} (needs network)" for n in names]
-    if names is None and plan.pytest and not result.ok:
-        # Nothing reached pytest's report: setup failed or the run crashed. Retried once, then counted.
-        return None, False
     if names is None:
         names = [] if result.ok else [SUITE]
-    elif not names and not result.ok and result.exit_code != 5:  # pytest exit 5: no tests collected
+    elif not names and not result.ok:
         names = [SUITE]
-    return sorted(names), True
+    status = NOT_COLLECTED if collected == 0 else RAN
+    return Round(sorted(names), status, collected)
 
 
 def run_suite(
@@ -147,14 +170,20 @@ def run_suite(
     timeout_s: float = 900,
 ) -> TestSummary:
     failed_per_round: list[list[str]] = []
+    statuses: list[str] = []
+    collected: list[int | None] = []
     n = 0
     for _ in range(rounds):
-        names: list[str] | None = None
+        result = Round(None, INFRA_FAILED, None)
         for _attempt in range(2):  # a round that tells nothing about the code is run once more
             n += 1
-            names, meaningful = _round(runner, work, image, plan, n, timeout_s)
-            if meaningful:
+            result = _round(runner, work, image, plan, n, timeout_s)
+            if result.meaningful:
                 break
-        failed_per_round.append(names if names is not None else [SUITE])
+        failed_per_round.append(result.failed if result.failed is not None else [SUITE])
+        statuses.append(result.status)
+        collected.append(result.collected)
     shutil.rmtree(work / JUNIT_DIR, ignore_errors=True)
-    return TestSummary(rounds=rounds, failed_per_round=failed_per_round)
+    return TestSummary(
+        rounds=rounds, failed_per_round=failed_per_round, round_status=statuses, collected_per_round=collected
+    )

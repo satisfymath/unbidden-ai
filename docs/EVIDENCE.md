@@ -34,7 +34,7 @@ then learned to reject that class of result by itself.
 | same | Outage drill: outage called in 11 s, rolled back in 15 s, hold set | rollback proven | D-015 |
 | same | Read-only investigation named the breaking commit and line | L1 (capped at 0.60) | D-016 |
 | Rich (fork), blind | Two crashes in `rich.cells.split_text` found by property tests Spark wrote, one matching an issue it was never told about; fix measured | **L4** | D-018 |
-| mealie | Unindexed `shopping_list_items.food_id`; `GET /api/foods/empty` 14,524 → 7.2 ms in the lab | **L4 on SQLite** | D-035 |
+| mealie | Unindexed `shopping_list_items.food_id`; `GET /api/foods/empty` 14,524 → 7.2 ms in the lab, on SQLite | **L3** (was reported as L4: the suite did not run at the base, so nothing was functionally validated) | D-035, D-040 |
 | same | Deployed to the local Postgres instance: 5.3 → 5.0 ms median, within noise; the baseline's code was inferred | **invalid L5** | D-036 |
 | opentelemetry-demo | Health detector v1–v3 failed their blind holdouts; v4 adopted after one blind detection | detector, weakest part | D-026, D-029, D-031 |
 | opentelemetry-demo | Forge built a reader for Envoy's `/stats` (no model in the judge): 1,770 unseen lines, 100 % | capability | D-025 |

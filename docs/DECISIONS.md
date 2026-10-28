@@ -837,3 +837,41 @@ a Director that chooses among investigate, measure, acquire, experiment and abst
 and an Activity & Outcomes view (Phase 3). Capabilities are evaluated apart: coverage, discovery, decision, capability
 acquisition, experimentation and operational impact. More languages only when the evaluation shows they limit results.
 First PR: one test-evidence contract and judge for the three labs.
+
+## D-040 · 2026-10-28 · One test-evidence contract for every lab; every recorded experiment judged again
+
+**What was wrong** (`docs/PLAN.md` findings A1–A4, reproduced).
+- A suite that never ran on either side counted as "pre-existing failures" and gave L4.
+- A test failing 1 of 3 rounds before the change and 3 of 3 after it was "pre-existing" too.
+- RobustLab gave L4 to anything that was not a clean regression, inconclusive included.
+- A suite that collected no test counted as passing.
+
+**The contract** (`contracts/experiment.py`, `lab/evaluator.py`, `lab/testsuite.py`).
+- Each round records whether the suite ran, collected nothing, or never got going, and how many tests it collected.
+- One judgement, `classify_tests`, used by FixLab, PerfLab and RobustLab, in this order:
+  - `infra_failure`: the suite did not run, or failed on both sides without naming a test;
+  - `not_run`: it collected nothing;
+  - `regression`;
+  - `flakier`: a test fails in more candidate rounds than baseline rounds;
+  - `pre_existing`: failures, none more frequent with the change;
+  - `passed`.
+- One level rule, `level_for`: L4 only when the suite ran on both sides and the outcome is `passed` or `pre_existing`.
+  Everything else that improved stays at L3, with the reason as a caveat. Criteria are versioned `tests-v2`.
+- Records written before keep what they say. An older summary whose rounds read only `<suite>` is taken as a suite
+  that did not run.
+
+**Every recorded experiment, judged again** (`bench/rejudge.py`, `docs/bench/eval/rejudge-tests-v2.json`): 24
+experiments with a suite on both sides, across every workspace state kept.
+- 23 were L4-eligible under the old rules, 22 under the new.
+- **The one that no longer holds is mealie's index (D-035).** Its suite never ran at the base in any round (D-035 said
+  "the suite already fails in the sandbox before the change"). The measured speed-up stands, but it is a lab result
+  (L3), not a functionally validated one. EVIDENCE.md, the landing page and the plan are corrected; the stored record
+  is not rewritten.
+- full-stack-fastapi-template's index (D-010) and Rich's crash fix (D-018) still hold. For Rich, the same test fails
+  on both sides in every round, as D-018 recorded.
+- The pilot's marshmallow false positive passes the tests under both rules. It was CI parity that rejected it: the
+  two checks are complementary.
+
+**For the mealie L5 track** (`docs/bench/2026-10-28-mealie-l5-protocol.md`): the change deployed is an L3 lab result.
+A live measurement can still show its effect (L5 speaks to operation, not to the suite), but the suite has to run at
+the base before the change can be called functionally validated.

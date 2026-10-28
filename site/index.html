@@ -117,7 +117,7 @@ footer { border-top: 1px solid var(--line); margin-top: 64px; padding-top: 24px;
       <tr><td>same, live</td><td>10.5 → 1.7 ms after deploy, below the floor its criteria had fixed beforehand, so no L5 is claimed</td><td class="lvl mid">L4, not L5</td></tr>
       <tr><td>same, outage drill</td><td>Outage called in 11 s, rolled back in 15 s with the team's steps, hold set for a person</td><td class="lvl ok">rollback</td></tr>
       <tr><td>Rich</td><td>Searched blind: two crashes in <code>split_text</code>, one matching an issue it was never shown; fix measured</td><td class="lvl ok">L4</td></tr>
-      <tr><td>mealie</td><td>Index found and measured: 14.5 s → 7 ms on SQLite. Deployed on Postgres: no change, baseline inferred</td><td class="lvl no">L5 invalid</td></tr>
+      <tr><td>mealie</td><td>Index found and measured: 14.5 s → 7 ms on SQLite, but the test suite never ran at the base, so it is a lab result, not a validated one. Deployed on Postgres: no change, baseline inferred</td><td class="lvl no">L3 · L5 invalid</td></tr>
     </tbody>
   </table></div>
 </section>
