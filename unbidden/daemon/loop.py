@@ -12,6 +12,7 @@ from typing import Any
 from unbidden.contracts.common import utc_now
 from unbidden.contracts.llm import Tier
 from unbidden.daemon.cycle import Cycle, Log, job, retry_after, timeout_for
+from unbidden.guardian.killswitch import CURRENT, JobScope, TrackingExecutor, kill_containers
 from unbidden.runtime import Runtime
 
 HEALTH_EVERY_S = 60.0
@@ -85,6 +86,7 @@ async def watch(
     if requeued:
         log(f"resumed {requeued} interrupted job(s)")
     killswitch = runtime.workspace.killswitch()
+    asyncio.get_running_loop().set_default_executor(TrackingExecutor())
     stop = threading.Event()
     if not once:
         threading.Thread(target=_probe_forever, args=(runtime, log, stop), name="unbidden-probes", daemon=True).start()
@@ -92,6 +94,51 @@ async def watch(
         await _work(runtime, cycle, handlers, store, killswitch, log, interval_s, poll_every, once)
     finally:
         stop.set()
+
+
+class Stopped(Exception):
+    """A job stopped from outside: past its time, or by the kill switch."""
+
+    def __init__(self, why: str, *, drained: bool) -> None:
+        tail = "" if drained else f"; its threads were still working after {DRAIN_S:.0f} s, so it is not retried"
+        super().__init__(why + tail)
+        self.drained = drained
+
+
+DRAIN_S = 30.0
+KILL_POLL_S = 1.0
+
+
+async def run_job(handler: Any, claimed: Any, scope: JobScope, killswitch: Any, timeout_s: float) -> None:
+    """Run one job under its scope. On timeout or kill switch: cancel the scope (its code stops at the next
+    checkpoint), kill the sandbox containers it started, cancel the task, and wait for its threads to end."""
+    token = CURRENT.set(scope)
+    try:
+        task = asyncio.ensure_future(handler(claimed))  # the task copies the context: the scope goes with it
+    finally:
+        CURRENT.reset(token)
+    deadline = time.monotonic() + timeout_s
+    while not task.done():
+        await asyncio.wait({task}, timeout=min(KILL_POLL_S, max(0.0, deadline - time.monotonic())))
+        if task.done():
+            break
+        if killswitch.engaged:
+            scope.cancel("the kill switch was engaged")
+        elif time.monotonic() >= deadline:
+            scope.cancel(f"ran past {timeout_s:g} s")
+        if scope.cancelled.is_set():
+            await asyncio.to_thread(kill_containers, scope.job_id)
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+            raise Stopped(f"stopped: {scope.why}", drained=await _drained(scope))
+    task.result()
+
+
+async def _drained(scope: JobScope) -> bool:
+    end = time.monotonic() + DRAIN_S
+    while scope.active and time.monotonic() < end:
+        await asyncio.sleep(0.2)
+    return scope.active == 0
 
 
 async def _work(
@@ -124,11 +171,14 @@ async def _work(
             if handler is None:
                 store.finish(claimed, error=f"no handler for {claimed.type}")
                 continue
+            scope = JobScope(claimed.id)
             try:
-                await asyncio.wait_for(handler(claimed), timeout=timeout_for(claimed.type))
-            except TimeoutError:
-                log(f"{claimed.type} ran past {timeout_for(claimed.type):.0f} s and was cancelled")
-                store.finish(claimed, error="timed out", retry_in=retry_after(claimed.attempts))
+                await run_job(handler, claimed, scope, killswitch, timeout_for(claimed.type))
+            except Stopped as stop:
+                log(f"{claimed.type}: {stop}")
+                # Retried only once every thread it started has ended: never two copies of a job at once.
+                retry = retry_after(claimed.attempts) if stop.drained else None
+                store.finish(claimed, error=str(stop), retry_in=retry)
             except Exception as exc:
                 log(f"{claimed.type} failed: {exc}")
                 store.finish(

@@ -29,6 +29,7 @@ from unbidden.config import load_config
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import ActionRequest, EgressAttempt, Mandate
 from unbidden.guardian.egress import evaluate_screenshots
+from unbidden.guardian.killswitch import Cancelled, before_effect
 from unbidden.guardian.policy import PolicyEngine
 from unbidden.store import Store
 
@@ -156,6 +157,12 @@ def visual_judge(
     )  # fmt: skip
     if not egress.allowed:
         return {"degraded": None, "what": "not sent: " + "; ".join(egress.reasons)}
+    try:
+        before_effect(store, "remote visual judgement")
+    except Cancelled as exc:
+        attempt.status = "failed"
+        store.put("egress", attempt)
+        return {"degraded": None, "what": f"not sent: {exc}"}
 
     def image(data: bytes) -> dict[str, Any]:
         return {"type": "image_url", "image_url": {"url": "data:image/png;base64," + base64.b64encode(data).decode()}}

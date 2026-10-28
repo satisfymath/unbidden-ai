@@ -18,6 +18,7 @@ import httpx
 from unbidden.contracts.common import utc_now
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import ActionRequest, Mandate
+from unbidden.guardian.killswitch import before_effect
 from unbidden.guardian.policy import PolicyEngine
 from unbidden.operate.holds import active
 from unbidden.operate.ledger import bind_after_deploy, steps_build
@@ -100,6 +101,7 @@ def deploy(
     capability = "deploy.rollback" if rollback else "deploy.run"
     key = "rollbacks" if rollback else "deploys"
     check(store, mandate, capability, reason, rate_key=key, limit=mandate.operations.max_deploys_per_hour + rollback)
+    before_effect(store, f"{capability} of {commit[:12]}")
     started = utc_now()
     result = run_steps(repo, mandate, commit, detach=rollback)
     rebuilt = steps_build(mandate.operations.deploy_steps)

@@ -27,7 +27,7 @@ from unbidden.contracts.guardian import ActionRequest, EgressAttempt, EgressVerd
 from unbidden.contracts.llm import ContentLabel, LLMRequest, LLMResponse, Message, ModelRun, Tier, Usage
 from unbidden.guardian.classify import Classification, classify
 from unbidden.guardian.egress import evaluate_synthetic
-from unbidden.guardian.killswitch import KillSwitch
+from unbidden.guardian.killswitch import KillSwitch, checkpoint
 from unbidden.guardian.policy import PolicyEngine
 from unbidden.guardian.scanner import SensitiveTermIndex, scan_many, secret_hits
 from unbidden.store import Store
@@ -215,6 +215,7 @@ class Brain:
         for attempt in range(1, self.config.brain.max_repairs + 2):
             if self.killswitch is not None and self.killswitch.engaged:
                 raise KillSwitchEngaged("the kill switch is engaged")
+            checkpoint("model call")
             sized = current.model_copy(update={"max_tokens": max_tokens})
             egress_id, spend_id = (
                 self._gate(sized, route, provider, identifiers, classification, attempt)

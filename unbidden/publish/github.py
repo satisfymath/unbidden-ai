@@ -22,6 +22,7 @@ from unbidden.contracts.experiment import Proposal, ProposalStatus, PullRequestR
 from unbidden.contracts.guardian import ActionRequest, Decision, EgressAttempt, Mandate
 from unbidden.guardian.approvals import consume, find_valid
 from unbidden.guardian.egress import evaluate_github
+from unbidden.guardian.killswitch import before_effect
 from unbidden.guardian.policy import GITHUB_HOSTS, PolicyEngine
 from unbidden.store import Store
 
@@ -208,9 +209,11 @@ class Publisher:
             client = self._client()
             existing = client.find_pr(proposal.branch)
             if existing is None:
+                before_effect(self.store, f"push of {proposal.branch}")
                 push_branch(
                     self.repo, client.slug, proposal.branch, proposal.commit_sha, policy.token_env, policy.base_branch
                 )
+                before_effect(self.store, f"pull request for {proposal.branch}")
                 pr = client.create_pr(
                     title=proposal.title, body=proposal.body_md, head=proposal.branch, base=policy.base_branch
                 )
@@ -265,6 +268,7 @@ class Publisher:
             rate_key="merges",
             limit=self.mandate.operations.max_merges_per_hour,
         )
+        before_effect(self.store, f"merge of pull request #{proposal.pr.number}")
         merged = self._client().merge_pr(proposal.pr.number, sha=proposal.commit_sha)
         stamps: list[str] = self.store.get_value("merges", [])
         since = (utc_now() - timedelta(hours=24)).isoformat()

@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from unbidden.guardian.killswitch import checkpoint, labels
 from unbidden.guardian.scanner import scan_many, secret_hits
 
 OUTPUT_CAP = 16_000_000  # bytes kept per stream (a large monorepo's eslint report passed 2 MB); both streams are kept
@@ -108,8 +109,10 @@ class SandboxRunner:
             if inspect.stdout.strip() != "true":
                 raise SandboxError(f"network {spec.network} is not internal; refusing to run")
         name = f"unbidden-{uuid.uuid4().hex[:12]}"
+        checkpoint("sandbox run")
         argv = docker_argv(spec, work, name)
         argv[0] = self.docker
+        argv[2:2] = labels()  # after `docker run`: whose container this is, so a stop can find and kill it
         started = time.monotonic()
         proc = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:

@@ -109,8 +109,19 @@ Guaranteed by code, and covered by tests:
   secret in the prompt and with production data under `frontier` (`tests/unit/test_router.py`). A planted
   secret never reaches stored state either (`tests/e2e/test_secret_plant.py`).
 - **Private code.** Private code leaves only renamed, unless a person sets `private_code_to_frontier: allow`.
-- **Merges.** Nothing is merged below L4 or while the previous deploy is still being judged.
-- **Holds and the kill switch.** Holds are released only by a person, and the kill switch stops every job.
+- **Merges.** Nothing is merged below L4, while the previous deploy is still being judged, or before the pull
+  request's own CI passed on the measured commit; nothing is proposed that the team's suite did not validate; an
+  autonomous deploy ships only a merged L4 proposal (`tests/unit/test_publish.py`, `tests/unit/test_director.py`).
+- **Holds and the kill switch.** Holds are released only by a person. The kill switch stops new jobs and model
+  calls; a running job's sandbox containers are killed (they carry its label) and its code stops at the next
+  checkpoint; pushes, pull requests, merges, deploys, rollbacks and the remote visual judge check it immediately
+  before acting. A job stopped by a timeout or the switch is retried only once its threads have ended
+  (`tests/unit/test_daemon_limits.py`). Not reached: a thread inside a single blocking call, until that call returns.
+- **Provisioning.** Every dependency image is built only when the mandate allows the language's registries:
+  `provision()` takes the policy, so no path can skip it. The build's own network is not yet restricted (PR7b).
+- **Model-written patterns.** Log and stats readers Forge built run on RE2, in time linear in their input, and
+  Unbidden uses one on its own only when a person approved it or the mandate allows `use_new_capabilities`
+  (`tests/unit/test_forge.py`, `tests/unit/test_forge_stats.py`).
 - **Sandbox.** Sandboxed code has no network. Sidecar databases sit on an internal network.
 - **Level 5 needs known code.** No level 5 between deploys whose commit was inferred or unknown
   (`tests/unit/test_live.py`).
