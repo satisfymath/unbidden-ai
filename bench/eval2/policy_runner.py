@@ -36,7 +36,12 @@ def judge_case(case: dict[str, Any]) -> dict[str, Any]:
     from unbidden.lab import evaluator
     from unbidden.lab.perfstats import judge
 
-    base, cand = (TestSummary.model_validate(case[k]) for k in ("baseline_tests", "candidate_tests"))
+    # The same evidence in the fields this version's contract has (older ones did not record round statuses).
+    fields = set(TestSummary.model_fields)
+    base, cand = (
+        TestSummary.model_validate({f: v for f, v in case[k].items() if f in fields})
+        for k in ("baseline_tests", "candidate_tests")
+    )
     tests, _ = evaluator.classify_tests(base, cand)
     stats = judge(case["before_ms"], case["after_ms"])
     improved = stats.improved and tests is not TestOutcome.REGRESSION
