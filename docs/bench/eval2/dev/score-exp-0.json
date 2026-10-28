@@ -1,0 +1,187 @@
+{
+ "policies": {
+  "act-on-everything": {
+   "rows": [
+    {
+     "case": "unmeasured-fk",
+     "kind": "needs_measurement",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "unread-logs",
+     "kind": "missing_capability",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "crash-shadowed-import/opp_813716aecab54c4b",
+     "kind": "planted",
+     "chosen": "run_experiment",
+     "ok": true
+    },
+    {
+     "case": "hidden-duplicate-test/opp_ea1936107b2d4e8d",
+     "kind": "planted",
+     "chosen": "run_experiment",
+     "ok": true
+    },
+    {
+     "case": "low-value-style/opp_fdc681a843f74279",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    }
+   ],
+   "ok": 2,
+   "n": 5,
+   "false_l4": 0
+  }
+ },
+ "products": {
+  "prev": {
+   "rows": [
+    {
+     "scenario": "crash-shadowed-import",
+     "kind": "planted_defect",
+     "version": "prev-exp",
+     "truth": 1,
+     "found": 1,
+     "opportunities": 1,
+     "acted": 1,
+     "acted_true": 1,
+     "abstained": null,
+     "decision_ok": true,
+     "experiments": [
+      {
+       "opportunity": "opp_e264cdd830dd4eda",
+       "ran": true,
+       "level": 4,
+       "improved": true,
+       "notes": [
+        "context: files, whole files fit (681 of 9204 bytes)"
+       ],
+       "oracle_valid": true,
+       "oracle_why": "5 passed",
+       "false_l4": false
+      }
+     ],
+     "valid_results": 1,
+     "false_l4": 0,
+     "model_calls": 1,
+     "seconds": 34.1
+    },
+    {
+     "scenario": "hidden-duplicate-test",
+     "kind": "planted_defect",
+     "version": "prev-exp",
+     "truth": 1,
+     "found": 1,
+     "opportunities": 1,
+     "acted": 1,
+     "acted_true": 1,
+     "abstained": null,
+     "decision_ok": true,
+     "experiments": [
+      {
+       "opportunity": "opp_2fcbb31b245f479c",
+       "ran": true,
+       "level": 4,
+       "improved": true,
+       "notes": [
+        "context: files, whole files fit (751 of 9190 bytes)"
+       ],
+       "oracle_valid": true,
+       "oracle_why": "4 passed",
+       "false_l4": false
+      }
+     ],
+     "valid_results": 1,
+     "false_l4": 0,
+     "model_calls": 1,
+     "seconds": 37.3
+    }
+   ],
+   "discovery_recall": "2/2",
+   "action_precision": "2/2",
+   "decisions_ok": "2/2",
+   "abstentions_due": "0/0",
+   "valid_results": 2,
+   "false_l4": 0,
+   "model_calls": 2,
+   "seconds": 71.4
+  },
+  "cur": {
+   "rows": [
+    {
+     "scenario": "crash-shadowed-import",
+     "kind": "planted_defect",
+     "version": "cur-exp",
+     "truth": 1,
+     "found": 1,
+     "opportunities": 1,
+     "acted": 1,
+     "acted_true": 1,
+     "abstained": null,
+     "decision_ok": true,
+     "experiments": [
+      {
+       "opportunity": "opp_d2c563aff1454748",
+       "ran": true,
+       "level": 4,
+       "improved": true,
+       "notes": [
+        "context: files, whole files fit (681 of 9204 bytes)"
+       ],
+       "oracle_valid": true,
+       "oracle_why": "5 passed",
+       "false_l4": false
+      }
+     ],
+     "valid_results": 1,
+     "false_l4": 0,
+     "model_calls": 1,
+     "seconds": 40.4
+    },
+    {
+     "scenario": "hidden-duplicate-test",
+     "kind": "planted_defect",
+     "version": "cur-exp",
+     "truth": 1,
+     "found": 1,
+     "opportunities": 1,
+     "acted": 1,
+     "acted_true": 1,
+     "abstained": null,
+     "decision_ok": true,
+     "experiments": [
+      {
+       "opportunity": "opp_0ba91042d4d1480d",
+       "ran": true,
+       "level": 4,
+       "improved": true,
+       "notes": [
+        "context: files, whole files fit (751 of 9190 bytes)"
+       ],
+       "oracle_valid": true,
+       "oracle_why": "4 passed",
+       "false_l4": false
+      }
+     ],
+     "valid_results": 1,
+     "false_l4": 0,
+     "model_calls": 1,
+     "seconds": 37.8
+    }
+   ],
+   "discovery_recall": "2/2",
+   "action_precision": "2/2",
+   "decisions_ok": "2/2",
+   "abstentions_due": "0/0",
+   "valid_results": 2,
+   "false_l4": 0,
+   "model_calls": 2,
+   "seconds": 78.2
+  }
+ }
+}

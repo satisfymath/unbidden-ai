@@ -1,0 +1,728 @@
+[
+ {
+  "id": "unmeasured-fk",
+  "kind": "decide",
+  "mandate": {
+   "workspace": "eval2",
+   "priorities": [
+    "correctness"
+   ],
+   "autonomy": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "open_pull_requests": "require_approval",
+    "use_new_capabilities": "require_approval"
+   }
+  },
+  "context": {
+   "open_pull_requests": 0,
+   "attempts": 0
+  },
+  "opportunity": {
+   "source": "world",
+   "category": "performance",
+   "title": "orders.customer_id is a foreign key without an index, filtered by 1 endpoint(s)",
+   "summary": "orders.customer_id is a foreign key without an index, filtered by 1 endpoint(s)",
+   "dedup_key": "orders.customer_id is a foreign key without an index, filtered by 1 endpoint(s)",
+   "evidence": [
+    {
+     "kind": "config",
+     "locator": "psql"
+    }
+   ],
+   "details": {
+    "check": "unindexed_foreign_key",
+    "table": "orders",
+    "column": "customer_id",
+    "cost_path": "filter",
+    "rows": null,
+    "endpoints": [
+     "GET /orders"
+    ]
+   }
+  }
+ },
+ {
+  "id": "unread-logs",
+  "kind": "decide",
+  "mandate": {
+   "workspace": "eval2",
+   "priorities": [
+    "correctness"
+   ],
+   "autonomy": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "open_pull_requests": "require_approval",
+    "use_new_capabilities": "require_approval"
+   }
+  },
+  "context": {
+   "open_pull_requests": 0,
+   "attempts": 0,
+   "capability_needs": {
+    "compose:api": "open"
+   }
+  },
+  "opportunity": {
+   "source": "world",
+   "category": "performance",
+   "title": "GET /orders is slow under Unbidden's probes",
+   "summary": "GET /orders is slow under Unbidden's probes",
+   "dedup_key": "GET /orders is slow under Unbidden's probes",
+   "evidence": [
+    {
+     "kind": "config",
+     "locator": "psql"
+    }
+   ],
+   "details": {
+    "check": "slow_endpoint",
+    "endpoints": [
+     "GET /orders"
+    ],
+    "service": "api",
+    "traffic": "unknown"
+   }
+  }
+ },
+ {
+  "id": "data-growth",
+  "kind": "world",
+  "steps": [
+   {
+    "world": {
+     "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "resources": {
+      "table:orders": {
+       "id": "table:orders",
+       "kind": "table",
+       "name": "orders",
+       "attributes": {
+        "indexes": [],
+        "rows_estimate": 10000
+       },
+       "status": "observed",
+       "confidence": 1.0,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql"
+        }
+       ]
+      },
+      "table:customers": {
+       "id": "table:customers",
+       "kind": "table",
+       "name": "customers",
+       "attributes": {
+        "indexes": []
+       },
+       "status": "observed",
+       "confidence": 1.0,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql"
+        }
+       ]
+      },
+      "endpoint:GET /orders": {
+       "id": "endpoint:GET /orders",
+       "kind": "endpoint",
+       "name": "GET /orders",
+       "attributes": {},
+       "status": "observed",
+       "confidence": 1.0,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql"
+        }
+       ]
+      }
+     },
+     "relations": [
+      {
+       "src": "table:orders",
+       "dst": "table:customers",
+       "predicate": "references",
+       "status": "observed",
+       "confidence": 1.0,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql",
+         "note": "orders.customer_id -> customers"
+        }
+       ]
+      },
+      {
+       "src": "endpoint:GET /orders",
+       "dst": "table:orders",
+       "predicate": "reads",
+       "status": "inferred",
+       "confidence": 0.6,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql"
+        }
+       ]
+      }
+     ]
+    },
+    "then": "decline"
+   },
+   {
+    "world": {
+     "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "resources": {
+      "table:orders": {
+       "id": "table:orders",
+       "kind": "table",
+       "name": "orders",
+       "attributes": {
+        "indexes": [],
+        "rows_estimate": 30000
+       },
+       "status": "observed",
+       "confidence": 1.0,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql"
+        }
+       ]
+      },
+      "table:customers": {
+       "id": "table:customers",
+       "kind": "table",
+       "name": "customers",
+       "attributes": {
+        "indexes": []
+       },
+       "status": "observed",
+       "confidence": 1.0,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql"
+        }
+       ]
+      },
+      "endpoint:GET /orders": {
+       "id": "endpoint:GET /orders",
+       "kind": "endpoint",
+       "name": "GET /orders",
+       "attributes": {},
+       "status": "observed",
+       "confidence": 1.0,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql"
+        }
+       ]
+      }
+     },
+     "relations": [
+      {
+       "src": "table:orders",
+       "dst": "table:customers",
+       "predicate": "references",
+       "status": "observed",
+       "confidence": 1.0,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql",
+         "note": "orders.customer_id -> customers"
+        }
+       ]
+      },
+      {
+       "src": "endpoint:GET /orders",
+       "dst": "table:orders",
+       "predicate": "reads",
+       "status": "inferred",
+       "confidence": 0.6,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql"
+        }
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "id": "flaky-candidate",
+  "kind": "judge",
+  "before_ms": [
+   106.29839242251934,
+   98.90137591632858,
+   98.12671798775598,
+   88.37944636969434,
+   96.95617825213199,
+   98.37005603066544,
+   97.23326961809732,
+   100.01301108666925,
+   99.55261475697858,
+   105.52731095647745,
+   100.98782739547634,
+   109.32326801099072,
+   92.54328028751605,
+   95.59770201496235,
+   100.20565969449751,
+   98.71681333662298,
+   102.02166179812559,
+   97.19256537254529,
+   93.66242146604323,
+   104.17624232318926
+  ],
+  "after_ms": [
+   50.952631994087305,
+   53.21101020517955,
+   45.1105215667929,
+   45.983919493847296,
+   55.00826972775423,
+   47.490972552771055,
+   49.17365703278674,
+   48.198045809781526,
+   56.443005051824905,
+   52.39462408295083,
+   49.00350502303129,
+   51.43285089054758,
+   53.09113898659418,
+   53.809764841367716,
+   48.68053920163496,
+   44.70907298184724,
+   47.79730861940515,
+   50.096976733996094,
+   47.650895581510575,
+   52.05227732075524
+  ],
+  "baseline_tests": {
+   "rounds": 3,
+   "failed_per_round": [
+    [],
+    [],
+    []
+   ],
+   "round_status": [
+    "ran",
+    "ran",
+    "ran"
+   ],
+   "collected_per_round": [
+    12,
+    12,
+    12
+   ]
+  },
+  "candidate_tests": {
+   "rounds": 3,
+   "failed_per_round": [
+    [
+     "t::x"
+    ],
+    [],
+    [
+     "t::x"
+    ]
+   ],
+   "round_status": [
+    "ran",
+    "ran",
+    "ran"
+   ],
+   "collected_per_round": [
+    12,
+    12,
+    12
+   ]
+  }
+ },
+ {
+  "id": "noise-improvement",
+  "kind": "judge",
+  "before_ms": [
+   96.73098091686353,
+   91.76970059842697,
+   100.25293704008647,
+   102.2787778086736,
+   94.84341353103336,
+   100.46230338201299,
+   107.94455065053445,
+   107.1109475724648,
+   110.06002068511015,
+   92.90327431697672,
+   99.08888450649032,
+   102.51446070529956,
+   108.27691132816645,
+   102.90871536596103,
+   101.10561477363154,
+   96.98525038199875,
+   92.8900613411801,
+   109.567250195039,
+   102.40208861874277,
+   100.2051989225944
+  ],
+  "after_ms": [
+   92.17111751630037,
+   105.37562550269568,
+   102.2926806401959,
+   90.27651531286796,
+   92.45882239387896,
+   96.821241276282,
+   96.89011577414573,
+   94.54124459725833,
+   106.00100057793635,
+   89.4733135192505,
+   101.27772363065591,
+   106.88457973923997,
+   101.82189273640718,
+   97.75156504387198,
+   98.24172059739614,
+   102.3030150195728,
+   91.9299395486805,
+   105.94054889694925,
+   104.85588700567665,
+   104.59323149278157
+  ],
+  "baseline_tests": {
+   "rounds": 3,
+   "failed_per_round": [
+    [],
+    [],
+    []
+   ],
+   "round_status": [
+    "ran",
+    "ran",
+    "ran"
+   ],
+   "collected_per_round": [
+    12,
+    12,
+    12
+   ]
+  },
+  "candidate_tests": {
+   "rounds": 3,
+   "failed_per_round": [
+    [],
+    [],
+    []
+   ],
+   "round_status": [
+    "ran",
+    "ran",
+    "ran"
+   ],
+   "collected_per_round": [
+    12,
+    12,
+    12
+   ]
+  }
+ },
+ {
+  "id": "suite-never-ran",
+  "kind": "judge",
+  "before_ms": [
+   106.29839242251934,
+   98.90137591632858,
+   98.12671798775598,
+   88.37944636969434,
+   96.95617825213199,
+   98.37005603066544,
+   97.23326961809732,
+   100.01301108666925,
+   99.55261475697858,
+   105.52731095647745,
+   100.98782739547634,
+   109.32326801099072,
+   92.54328028751605,
+   95.59770201496235,
+   100.20565969449751,
+   98.71681333662298,
+   102.02166179812559,
+   97.19256537254529,
+   93.66242146604323,
+   104.17624232318926
+  ],
+  "after_ms": [
+   50.952631994087305,
+   53.21101020517955,
+   45.1105215667929,
+   45.983919493847296,
+   55.00826972775423,
+   47.490972552771055,
+   49.17365703278674,
+   48.198045809781526,
+   56.443005051824905,
+   52.39462408295083,
+   49.00350502303129,
+   51.43285089054758,
+   53.09113898659418,
+   53.809764841367716,
+   48.68053920163496,
+   44.70907298184724,
+   47.79730861940515,
+   50.096976733996094,
+   47.650895581510575,
+   52.05227732075524
+  ],
+  "baseline_tests": {
+   "rounds": 3,
+   "failed_per_round": [
+    [
+     "<suite>"
+    ],
+    [
+     "<suite>"
+    ],
+    [
+     "<suite>"
+    ]
+   ]
+  },
+  "candidate_tests": {
+   "rounds": 3,
+   "failed_per_round": [
+    [
+     "<suite>"
+    ],
+    [
+     "<suite>"
+    ],
+    [
+     "<suite>"
+    ]
+   ]
+  }
+ },
+ {
+  "id": "crash-shadowed-import/opp_813716aecab54c4b",
+  "kind": "decide",
+  "mandate": {
+   "workspace": "eval2",
+   "priorities": [
+    "correctness"
+   ],
+   "autonomy": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "open_pull_requests": "require_approval",
+    "use_new_capabilities": "require_approval"
+   }
+  },
+  "context": {
+   "open_pull_requests": 0,
+   "attempts": 0,
+   "ci_commands": " actions/checkout@v4\n actions/setup-python@v5\npip install -r requirements.txt ruff \nruff check src tests \npytest \n{}\n",
+   "checked_dirs": [
+    "."
+   ]
+  },
+  "opportunity": {
+   "category": "lint",
+   "created_at": "2026-10-28T05:05:23.253368Z",
+   "dedup_key": "ruff:F823:src/pantry",
+   "details": {
+    "findings": [
+     {
+      "category": "lint",
+      "extra": {
+       "fixable": false
+      },
+      "fingerprint": "024dd66807091a6d",
+      "line": 11,
+      "message": "Local variable `format` referenced before assignment",
+      "path": "src/pantry/handlers.py",
+      "rule": "F823",
+      "severity": "error",
+      "tool": "ruff"
+     }
+    ],
+    "fingerprints": [
+     "024dd66807091a6d"
+    ],
+    "paths": [
+     "src/pantry/handlers.py"
+    ],
+    "rev": "e9e8a2b5cc17a4ff901f6e3fcc0e17e1f3686d9a",
+    "tool": "ruff"
+   },
+   "evidence": [
+    {
+     "captured_at": "2026-10-28T05:05:23.253266Z",
+     "kind": "analyzer_report",
+     "locator": "ruff@e9e8a2b5cc17a4ff901f6e3fcc0e17e1f3686d9a",
+     "note": null,
+     "sha256": "5de85911e57065f2b139d0339768cbe5f3fac94c18ae4d6dc9facb49ffef677e"
+    }
+   ],
+   "evidence_level": 1,
+   "id": "opp_813716aecab54c4b",
+   "priority_score": 0.0,
+   "source": "ruff",
+   "status": "open",
+   "summary": "F823: Local variable `format` referenced before assignment",
+   "title": "1 ruff F823 finding in src/pantry/",
+   "updated_at": "2026-10-28T05:05:23.253368Z"
+  }
+ },
+ {
+  "id": "hidden-duplicate-test/opp_ea1936107b2d4e8d",
+  "kind": "decide",
+  "mandate": {
+   "workspace": "eval2",
+   "priorities": [
+    "correctness"
+   ],
+   "autonomy": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "open_pull_requests": "require_approval",
+    "use_new_capabilities": "require_approval"
+   }
+  },
+  "context": {
+   "open_pull_requests": 0,
+   "attempts": 0,
+   "ci_commands": " actions/checkout@v4\n actions/setup-python@v5\npip install -r requirements.txt ruff \nruff check src tests \npytest \n{}\n",
+   "checked_dirs": [
+    "."
+   ]
+  },
+  "opportunity": {
+   "category": "lint",
+   "created_at": "2026-10-28T05:05:25.039342Z",
+   "dedup_key": "ruff:F811:tests",
+   "details": {
+    "findings": [
+     {
+      "category": "lint",
+      "extra": {
+       "fixable": false
+      },
+      "fingerprint": "ba4e83ba93b32232",
+      "line": 24,
+      "message": "Redefinition of unused `TestInventory` from line 6: `TestInventory` redefined here",
+      "path": "tests/test_pantry.py",
+      "rule": "F811",
+      "severity": "error",
+      "tool": "ruff"
+     }
+    ],
+    "fingerprints": [
+     "ba4e83ba93b32232"
+    ],
+    "paths": [
+     "tests/test_pantry.py"
+    ],
+    "rev": "cc94051d325bcf5524e500113194fc587e3346d1",
+    "tool": "ruff"
+   },
+   "evidence": [
+    {
+     "captured_at": "2026-10-28T05:05:25.039227Z",
+     "kind": "analyzer_report",
+     "locator": "ruff@cc94051d325bcf5524e500113194fc587e3346d1",
+     "note": null,
+     "sha256": "4aef7fdacad775e350e0e20a0c8d9410015550ec396e03263452a1c264729520"
+    }
+   ],
+   "evidence_level": 1,
+   "id": "opp_ea1936107b2d4e8d",
+   "priority_score": 0.0,
+   "source": "ruff",
+   "status": "open",
+   "summary": "F811: Redefinition of unused `TestInventory` from line 6: `TestInventory` redefined here",
+   "title": "1 ruff F811 finding in tests/",
+   "updated_at": "2026-10-28T05:05:25.039343Z"
+  }
+ },
+ {
+  "id": "low-value-style/opp_fdc681a843f74279",
+  "kind": "decide",
+  "mandate": {
+   "workspace": "eval2",
+   "priorities": [
+    "correctness"
+   ],
+   "autonomy": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "open_pull_requests": "require_approval",
+    "use_new_capabilities": "require_approval"
+   }
+  },
+  "context": {
+   "open_pull_requests": 0,
+   "attempts": 0,
+   "ci_commands": " actions/checkout@v4\n actions/setup-python@v5\npip install -r requirements.txt ruff \nruff check src tests \npytest \n{}\n",
+   "checked_dirs": [
+    "."
+   ]
+  },
+  "opportunity": {
+   "category": "lint",
+   "created_at": "2026-10-28T05:05:25.897824Z",
+   "dedup_key": "ruff:E401:scripts",
+   "details": {
+    "findings": [
+     {
+      "category": "lint",
+      "extra": {
+       "fixable": true
+      },
+      "fingerprint": "426f9b03b24d14f1",
+      "line": 1,
+      "message": "Multiple imports on one line",
+      "path": "scripts/count.py",
+      "rule": "E401",
+      "severity": "error",
+      "tool": "ruff"
+     }
+    ],
+    "fingerprints": [
+     "426f9b03b24d14f1"
+    ],
+    "paths": [
+     "scripts/count.py"
+    ],
+    "rev": "2a108139fad67cd1452ab64ce9cf3ef6b6877345",
+    "tool": "ruff"
+   },
+   "evidence": [
+    {
+     "captured_at": "2026-10-28T05:05:25.897692Z",
+     "kind": "analyzer_report",
+     "locator": "ruff@2a108139fad67cd1452ab64ce9cf3ef6b6877345",
+     "note": null,
+     "sha256": "8a1fdcf7b6c4ef9ae1b3dddadce5592ffe55aa6198fb658eb71c66b3e9503968"
+    }
+   ],
+   "evidence_level": 1,
+   "id": "opp_fdc681a843f74279",
+   "priority_score": 0.0,
+   "source": "ruff",
+   "status": "open",
+   "summary": "E401: Multiple imports on one line",
+   "title": "1 ruff E401 finding in scripts/",
+   "updated_at": "2026-10-28T05:05:25.897825Z"
+  }
+ }
+]

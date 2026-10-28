@@ -1,0 +1,328 @@
+[
+ {
+  "scenario": "crash-shadowed-import",
+  "version": "dev1",
+  "commit": "8d732ddd346a2497ddc7df78d0d97e9d2f291bd0",
+  "steps": {
+   "scan": {
+    "exit": 0,
+    "seconds": 0.5
+   },
+   "decide": {
+    "exit": 0,
+    "seconds": 0.3
+   }
+  },
+  "decide": {
+   "checked_dirs": [
+    "."
+   ],
+   "ci_status": null,
+   "ci_problem": null,
+   "tool_status": {},
+   "open": 1,
+   "chosen": {
+    "run_experiment": 1
+   },
+   "declined_or_waiting_because": {},
+   "decisions": [
+    {
+     "id": "opp_f56756d41d844ff3",
+     "category": "lint",
+     "level": 1,
+     "chosen": "run_experiment",
+     "reason": "reproduce it and measure a candidate offline (p 0.60 from the lab's history of this kind)"
+    }
+   ]
+  },
+  "opportunities": [
+   {
+    "category": "lint",
+    "created_at": "2026-10-28T05:10:19.500866Z",
+    "dedup_key": "ruff:F823:src/pantry",
+    "details": {
+     "findings": [
+      {
+       "category": "lint",
+       "extra": {
+        "fixable": false
+       },
+       "fingerprint": "024dd66807091a6d",
+       "line": 11,
+       "message": "Local variable `format` referenced before assignment",
+       "path": "src/pantry/handlers.py",
+       "rule": "F823",
+       "severity": "error",
+       "tool": "ruff"
+      }
+     ],
+     "fingerprints": [
+      "024dd66807091a6d"
+     ],
+     "paths": [
+      "src/pantry/handlers.py"
+     ],
+     "rev": "e9e8a2b5cc17a4ff901f6e3fcc0e17e1f3686d9a",
+     "tool": "ruff"
+    },
+    "evidence": [
+     {
+      "captured_at": "2026-10-28T05:10:19.500757Z",
+      "kind": "analyzer_report",
+      "locator": "ruff@e9e8a2b5cc17a4ff901f6e3fcc0e17e1f3686d9a",
+      "note": null,
+      "sha256": "5de85911e57065f2b139d0339768cbe5f3fac94c18ae4d6dc9facb49ffef677e"
+     }
+    ],
+    "evidence_level": 1,
+    "id": "opp_f56756d41d844ff3",
+    "priority_score": 0.0,
+    "source": "ruff",
+    "status": "open",
+    "summary": "F823: Local variable `format` referenced before assignment",
+    "title": "1 ruff F823 finding in src/pantry/",
+    "updated_at": "2026-10-28T05:10:19.500867Z"
+   }
+  ],
+  "experiments": [],
+  "model_runs": []
+ },
+ {
+  "scenario": "healthy",
+  "version": "dev1",
+  "commit": "8d732ddd346a2497ddc7df78d0d97e9d2f291bd0",
+  "steps": {
+   "scan": {
+    "exit": 0,
+    "seconds": 0.4
+   },
+   "decide": {
+    "exit": 0,
+    "seconds": 0.3
+   }
+  },
+  "decide": {
+   "checked_dirs": [
+    "."
+   ],
+   "ci_status": null,
+   "ci_problem": null,
+   "tool_status": {},
+   "open": 0,
+   "chosen": {},
+   "declined_or_waiting_because": {},
+   "decisions": []
+  },
+  "opportunities": [],
+  "experiments": [],
+  "model_runs": []
+ },
+ {
+  "scenario": "hidden-duplicate-test",
+  "version": "dev1",
+  "commit": "8d732ddd346a2497ddc7df78d0d97e9d2f291bd0",
+  "steps": {
+   "scan": {
+    "exit": 0,
+    "seconds": 0.4
+   },
+   "decide": {
+    "exit": 0,
+    "seconds": 0.3
+   }
+  },
+  "decide": {
+   "checked_dirs": [
+    "."
+   ],
+   "ci_status": null,
+   "ci_problem": null,
+   "tool_status": {},
+   "open": 1,
+   "chosen": {
+    "run_experiment": 1
+   },
+   "declined_or_waiting_because": {},
+   "decisions": [
+    {
+     "id": "opp_4be684bd39d24566",
+     "category": "lint",
+     "level": 1,
+     "chosen": "run_experiment",
+     "reason": "reproduce it and measure a candidate offline (p 0.60 from the lab's history of this kind)"
+    }
+   ]
+  },
+  "opportunities": [
+   {
+    "category": "lint",
+    "created_at": "2026-10-28T05:10:21.265934Z",
+    "dedup_key": "ruff:F811:tests",
+    "details": {
+     "findings": [
+      {
+       "category": "lint",
+       "extra": {
+        "fixable": false
+       },
+       "fingerprint": "ba4e83ba93b32232",
+       "line": 24,
+       "message": "Redefinition of unused `TestInventory` from line 6: `TestInventory` redefined here",
+       "path": "tests/test_pantry.py",
+       "rule": "F811",
+       "severity": "error",
+       "tool": "ruff"
+      }
+     ],
+     "fingerprints": [
+      "ba4e83ba93b32232"
+     ],
+     "paths": [
+      "tests/test_pantry.py"
+     ],
+     "rev": "cc94051d325bcf5524e500113194fc587e3346d1",
+     "tool": "ruff"
+    },
+    "evidence": [
+     {
+      "captured_at": "2026-10-28T05:10:21.265805Z",
+      "kind": "analyzer_report",
+      "locator": "ruff@cc94051d325bcf5524e500113194fc587e3346d1",
+      "note": null,
+      "sha256": "4aef7fdacad775e350e0e20a0c8d9410015550ec396e03263452a1c264729520"
+     }
+    ],
+    "evidence_level": 1,
+    "id": "opp_4be684bd39d24566",
+    "priority_score": 0.0,
+    "source": "ruff",
+    "status": "open",
+    "summary": "F811: Redefinition of unused `TestInventory` from line 6: `TestInventory` redefined here",
+    "title": "1 ruff F811 finding in tests/",
+    "updated_at": "2026-10-28T05:10:21.265935Z"
+   }
+  ],
+  "experiments": [],
+  "model_runs": []
+ },
+ {
+  "scenario": "low-value-style",
+  "version": "dev1",
+  "commit": "8d732ddd346a2497ddc7df78d0d97e9d2f291bd0",
+  "steps": {
+   "scan": {
+    "exit": 0,
+    "seconds": 0.4
+   },
+   "decide": {
+    "exit": 0,
+    "seconds": 0.3
+   }
+  },
+  "decide": {
+   "checked_dirs": [
+    "."
+   ],
+   "ci_status": null,
+   "ci_problem": null,
+   "tool_status": {},
+   "open": 1,
+   "chosen": {
+    "decline": 1
+   },
+   "declined_or_waiting_because": {
+    "style outside what the team lints: the team's CI runs ruff on src, tests, not on scripts/c": 1
+   },
+   "decisions": [
+    {
+     "id": "opp_b13032b465dd4b36",
+     "category": "lint",
+     "level": 1,
+     "chosen": "decline",
+     "reason": "style outside what the team lints: the team's CI runs ruff on src, tests, not on scripts/count.py"
+    }
+   ]
+  },
+  "opportunities": [
+   {
+    "category": "lint",
+    "created_at": "2026-10-28T05:10:22.129916Z",
+    "dedup_key": "ruff:E401:scripts",
+    "details": {
+     "findings": [
+      {
+       "category": "lint",
+       "extra": {
+        "fixable": true
+       },
+       "fingerprint": "426f9b03b24d14f1",
+       "line": 1,
+       "message": "Multiple imports on one line",
+       "path": "scripts/count.py",
+       "rule": "E401",
+       "severity": "error",
+       "tool": "ruff"
+      }
+     ],
+     "fingerprints": [
+      "426f9b03b24d14f1"
+     ],
+     "paths": [
+      "scripts/count.py"
+     ],
+     "rev": "2a108139fad67cd1452ab64ce9cf3ef6b6877345",
+     "tool": "ruff"
+    },
+    "evidence": [
+     {
+      "captured_at": "2026-10-28T05:10:22.129809Z",
+      "kind": "analyzer_report",
+      "locator": "ruff@2a108139fad67cd1452ab64ce9cf3ef6b6877345",
+      "note": null,
+      "sha256": "8a1fdcf7b6c4ef9ae1b3dddadce5592ffe55aa6198fb658eb71c66b3e9503968"
+     }
+    ],
+    "evidence_level": 1,
+    "id": "opp_b13032b465dd4b36",
+    "priority_score": 0.0,
+    "source": "ruff",
+    "status": "open",
+    "summary": "E401: Multiple imports on one line",
+    "title": "1 ruff E401 finding in scripts/",
+    "updated_at": "2026-10-28T05:10:22.129917Z"
+   }
+  ],
+  "experiments": [],
+  "model_runs": []
+ },
+ {
+  "scenario": "vendored-noise",
+  "version": "dev1",
+  "commit": "8d732ddd346a2497ddc7df78d0d97e9d2f291bd0",
+  "steps": {
+   "scan": {
+    "exit": 0,
+    "seconds": 0.4
+   },
+   "decide": {
+    "exit": 0,
+    "seconds": 0.3
+   }
+  },
+  "decide": {
+   "checked_dirs": [
+    "."
+   ],
+   "ci_status": null,
+   "ci_problem": null,
+   "tool_status": {},
+   "open": 0,
+   "chosen": {},
+   "declined_or_waiting_because": {},
+   "decisions": []
+  },
+  "opportunities": [],
+  "experiments": [],
+  "model_runs": []
+ }
+]

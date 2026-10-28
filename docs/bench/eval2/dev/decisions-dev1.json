@@ -1,0 +1,67 @@
+[
+ {
+  "id": "unmeasured-fk",
+  "chosen": "measure",
+  "reason": "its value depends on orders's rows, not observed yet",
+  "ignored_context": []
+ },
+ {
+  "id": "unread-logs",
+  "chosen": "acquire_capability",
+  "reason": "whether users call it is in api's access log: reader open",
+  "ignored_context": []
+ },
+ {
+  "id": "data-growth",
+  "steps": [
+   {
+    "opened": 1,
+    "statuses": [
+     "open"
+    ]
+   },
+   {
+    "opened": 1,
+    "statuses": [
+     "open"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "flaky-candidate",
+  "tests": "flakier",
+  "improved": true,
+  "level": 3
+ },
+ {
+  "id": "noise-improvement",
+  "tests": "passed",
+  "improved": false,
+  "level": 2
+ },
+ {
+  "id": "suite-never-ran",
+  "tests": "infra_failure",
+  "improved": true,
+  "level": 3
+ },
+ {
+  "id": "crash-shadowed-import/opp_813716aecab54c4b",
+  "chosen": "run_experiment",
+  "reason": "reproduce it and measure a candidate offline (p 0.60 from the lab's history of this kind)",
+  "ignored_context": []
+ },
+ {
+  "id": "hidden-duplicate-test/opp_ea1936107b2d4e8d",
+  "chosen": "run_experiment",
+  "reason": "reproduce it and measure a candidate offline (p 0.60 from the lab's history of this kind)",
+  "ignored_context": []
+ },
+ {
+  "id": "low-value-style/opp_fdc681a843f74279",
+  "chosen": "decline",
+  "reason": "style outside what the team lints: the team's CI runs ruff on src, tests, not on scripts/count.py",
+  "ignored_context": []
+ }
+]

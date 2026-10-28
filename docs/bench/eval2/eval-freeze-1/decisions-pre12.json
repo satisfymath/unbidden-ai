@@ -1,0 +1,81 @@
+[
+ {
+  "id": "unmeasured-transfers",
+  "chosen": "run_experiment",
+  "reason": "reproduce it and measure a candidate offline (p 0.60 from the lab's history of this kind)",
+  "ignored_context": []
+ },
+ {
+  "id": "unread-ledger-logs",
+  "chosen": "run_experiment",
+  "reason": "reproduce it and measure a candidate offline (p 0.60 from the lab's history of this kind)",
+  "ignored_context": [
+   "capability_needs"
+  ]
+ },
+ {
+  "id": "transfers-grow",
+  "steps": [
+   {
+    "opened": 1,
+    "statuses": [
+     "open"
+    ]
+   },
+   {
+    "opened": 1,
+    "statuses": [
+     "open"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "flakier-by-two",
+  "tests": "flakier",
+  "improved": true,
+  "level": 3
+ },
+ {
+  "id": "small-noise",
+  "tests": "passed",
+  "improved": false,
+  "level": 2
+ },
+ {
+  "id": "candidate-suite-never-ran",
+  "tests": "infra_failure",
+  "improved": true,
+  "level": 3
+ },
+ {
+  "id": "debit-identity/opp_907a9ff723b94a5f",
+  "chosen": "run_experiment",
+  "reason": "reproduce it and measure a candidate offline (p 0.60 from the lab's history of this kind)",
+  "ignored_context": []
+ },
+ {
+  "id": "example-style/opp_754c6bbcb8294ddc",
+  "chosen": "run_experiment",
+  "reason": "reproduce it and measure a candidate offline (p 0.60 from the lab's history of this kind)",
+  "ignored_context": []
+ },
+ {
+  "id": "example-style/opp_1905a868952b488e",
+  "chosen": "run_experiment",
+  "reason": "reproduce it and measure a candidate offline (p 0.60 from the lab's history of this kind)",
+  "ignored_context": []
+ },
+ {
+  "id": "fixture-injection/opp_08bf05e8901644b0",
+  "chosen": "run_experiment",
+  "reason": "reproduce it and measure a candidate offline (p 0.60 from the lab's history of this kind)",
+  "ignored_context": []
+ },
+ {
+  "id": "fixture-injection/opp_9f43c36da5954256",
+  "chosen": "run_experiment",
+  "reason": "reproduce it and measure a candidate offline (p 0.60 from the lab's history of this kind)",
+  "ignored_context": []
+ }
+]

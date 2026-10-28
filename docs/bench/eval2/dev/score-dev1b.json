@@ -1,0 +1,249 @@
+{
+ "policies": {
+  "prev": {
+   "rows": [
+    {
+     "case": "unmeasured-fk",
+     "kind": "needs_measurement",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "unread-logs",
+     "kind": "missing_capability",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "data-growth",
+     "kind": "world",
+     "final": [
+      "declined"
+     ],
+     "ok": false
+    },
+    {
+     "case": "flaky-candidate",
+     "kind": "evaluator",
+     "level": 3,
+     "tests": "inconclusive",
+     "ok": true,
+     "false_l4": false
+    },
+    {
+     "case": "noise-improvement",
+     "kind": "evaluator",
+     "level": 2,
+     "tests": "passed",
+     "ok": true,
+     "false_l4": false
+    },
+    {
+     "case": "suite-never-ran",
+     "kind": "evaluator",
+     "level": 4,
+     "tests": "pre_existing",
+     "ok": false,
+     "false_l4": true
+    },
+    {
+     "case": "crash-shadowed-import/opp_813716aecab54c4b",
+     "kind": "planted",
+     "chosen": "run_experiment",
+     "ok": true
+    },
+    {
+     "case": "hidden-duplicate-test/opp_ea1936107b2d4e8d",
+     "kind": "planted",
+     "chosen": "run_experiment",
+     "ok": true
+    },
+    {
+     "case": "low-value-style/opp_fdc681a843f74279",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    }
+   ],
+   "ok": 4,
+   "n": 9,
+   "false_l4": 1
+  },
+  "cur": {
+   "rows": [
+    {
+     "case": "unmeasured-fk",
+     "kind": "needs_measurement",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "unread-logs",
+     "kind": "missing_capability",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "data-growth",
+     "kind": "world",
+     "final": [
+      "open"
+     ],
+     "ok": true
+    },
+    {
+     "case": "flaky-candidate",
+     "kind": "evaluator",
+     "level": 3,
+     "tests": "flakier",
+     "ok": true,
+     "false_l4": false
+    },
+    {
+     "case": "noise-improvement",
+     "kind": "evaluator",
+     "level": 2,
+     "tests": "passed",
+     "ok": true,
+     "false_l4": false
+    },
+    {
+     "case": "suite-never-ran",
+     "kind": "evaluator",
+     "level": 3,
+     "tests": "infra_failure",
+     "ok": true,
+     "false_l4": false
+    },
+    {
+     "case": "crash-shadowed-import/opp_813716aecab54c4b",
+     "kind": "planted",
+     "chosen": "run_experiment",
+     "ok": true
+    },
+    {
+     "case": "hidden-duplicate-test/opp_ea1936107b2d4e8d",
+     "kind": "planted",
+     "chosen": "run_experiment",
+     "ok": true
+    },
+    {
+     "case": "low-value-style/opp_fdc681a843f74279",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    }
+   ],
+   "ok": 6,
+   "n": 9,
+   "false_l4": 0
+  },
+  "dev1": {
+   "rows": [
+    {
+     "case": "unmeasured-fk",
+     "kind": "needs_measurement",
+     "chosen": "measure",
+     "ok": true
+    },
+    {
+     "case": "unread-logs",
+     "kind": "missing_capability",
+     "chosen": "acquire_capability",
+     "ok": true
+    },
+    {
+     "case": "data-growth",
+     "kind": "world",
+     "final": [
+      "open"
+     ],
+     "ok": true
+    },
+    {
+     "case": "flaky-candidate",
+     "kind": "evaluator",
+     "level": 3,
+     "tests": "flakier",
+     "ok": true,
+     "false_l4": false
+    },
+    {
+     "case": "noise-improvement",
+     "kind": "evaluator",
+     "level": 2,
+     "tests": "passed",
+     "ok": true,
+     "false_l4": false
+    },
+    {
+     "case": "suite-never-ran",
+     "kind": "evaluator",
+     "level": 3,
+     "tests": "infra_failure",
+     "ok": true,
+     "false_l4": false
+    },
+    {
+     "case": "crash-shadowed-import/opp_813716aecab54c4b",
+     "kind": "planted",
+     "chosen": "run_experiment",
+     "ok": true
+    },
+    {
+     "case": "hidden-duplicate-test/opp_ea1936107b2d4e8d",
+     "kind": "planted",
+     "chosen": "run_experiment",
+     "ok": true
+    },
+    {
+     "case": "low-value-style/opp_fdc681a843f74279",
+     "kind": "not_planted",
+     "chosen": "decline",
+     "ok": true
+    }
+   ],
+   "ok": 9,
+   "n": 9,
+   "false_l4": 0
+  },
+  "act-on-everything": {
+   "rows": [
+    {
+     "case": "unmeasured-fk",
+     "kind": "needs_measurement",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "unread-logs",
+     "kind": "missing_capability",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "crash-shadowed-import/opp_813716aecab54c4b",
+     "kind": "planted",
+     "chosen": "run_experiment",
+     "ok": true
+    },
+    {
+     "case": "hidden-duplicate-test/opp_ea1936107b2d4e8d",
+     "kind": "planted",
+     "chosen": "run_experiment",
+     "ok": true
+    },
+    {
+     "case": "low-value-style/opp_fdc681a843f74279",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    }
+   ],
+   "ok": 2,
+   "n": 5,
+   "false_l4": 0
+  }
+ },
+ "products": {}
+}

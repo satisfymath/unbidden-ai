@@ -1,0 +1,577 @@
+[
+ {
+  "scenario": "debit-identity",
+  "version": "prev",
+  "commit": "d7a53a0d9991a5257ee0d97e5f240b9da5f6e54c",
+  "steps": {
+   "scan": {
+    "exit": 0,
+    "seconds": 2.6
+   },
+   "decide": {
+    "exit": 0,
+    "seconds": 0.3
+   }
+  },
+  "decide": {
+   "checked_dirs": [],
+   "ci_status": null,
+   "ci_problem": null,
+   "tool_status": {},
+   "open": 1,
+   "chosen": {
+    "run_experiment": 1
+   },
+   "declined_or_waiting_because": {},
+   "decisions": [
+    {
+     "id": "opp_721a8bf933b0494e",
+     "category": "lint",
+     "level": 1,
+     "chosen": "run_experiment",
+     "reason": "reproduce it and measure a candidate offline"
+    }
+   ]
+  },
+  "opportunities": [
+   {
+    "category": "lint",
+    "created_at": "2026-10-28T05:13:20.873267Z",
+    "dedup_key": "ruff:F632:src/ledger",
+    "details": {
+     "findings": [
+      {
+       "category": "lint",
+       "extra": {
+        "fixable": true
+       },
+       "fingerprint": "5e5065b53607c7ce",
+       "line": 14,
+       "message": "Use `==` to compare constant literals",
+       "path": "src/ledger/posting.py",
+       "rule": "F632",
+       "severity": "error",
+       "tool": "ruff"
+      }
+     ],
+     "fingerprints": [
+      "5e5065b53607c7ce"
+     ],
+     "paths": [
+      "src/ledger/posting.py"
+     ],
+     "rev": "ad95284b0efc758000b7498e011865eb4141c560",
+     "tool": "ruff"
+    },
+    "evidence": [
+     {
+      "captured_at": "2026-10-28T05:13:20.873158Z",
+      "kind": "analyzer_report",
+      "locator": "ruff@ad95284b0efc758000b7498e011865eb4141c560",
+      "note": null,
+      "sha256": "234452802ef355d1c8cbca0eeef1541c729ab08a011d87c77da8adac41d93737"
+     }
+    ],
+    "evidence_level": 1,
+    "id": "opp_721a8bf933b0494e",
+    "priority_score": 0.0,
+    "source": "ruff",
+    "status": "open",
+    "summary": "F632: Use `==` to compare constant literals",
+    "title": "1 ruff F632 finding in src/ledger/",
+    "updated_at": "2026-10-28T05:13:20.873267Z"
+   }
+  ],
+  "experiments": [
+   {
+    "opportunity": "opp_721a8bf933b0494e",
+    "exit": 0,
+    "seconds": 4.8,
+    "improved": true,
+    "verdict": {
+     "experiment_id": "exp_7c85fed8d46b4744",
+     "improved": true,
+     "evidence_level": 4,
+     "criteria": {
+      "targeted_findings_gone": "all",
+      "new_findings_allowed": 0,
+      "test_rounds_per_side": 3,
+      "regression": "fails in every candidate round and in no baseline round"
+     },
+     "tests": "passed",
+     "reasons": [
+      "all targeted findings are gone, none appeared, no test regressed"
+     ],
+     "caveats": []
+    },
+    "origin": "tool",
+    "patch": "--- a/src/ledger/posting.py\n+++ b/src/ledger/posting.py\n@@ -11,7 +11,7 @@\n     account = accounts.setdefault(name, Account(name))\n     if kind == \"credit\":\n         account.entries.append(cents)\n-    elif kind is \"debit\":\n+    elif kind == \"debit\":\n         account.entries.append(-cents)\n     else:\n         raise ValueError(f\"unknown posting kind {kind!r}\")\n",
+    "notes": []
+   }
+  ],
+  "model_runs": []
+ },
+ {
+  "scenario": "example-style",
+  "version": "prev",
+  "commit": "d7a53a0d9991a5257ee0d97e5f240b9da5f6e54c",
+  "steps": {
+   "scan": {
+    "exit": 0,
+    "seconds": 0.4
+   },
+   "decide": {
+    "exit": 0,
+    "seconds": 0.3
+   }
+  },
+  "decide": {
+   "checked_dirs": [],
+   "ci_status": null,
+   "ci_problem": null,
+   "tool_status": {},
+   "open": 2,
+   "chosen": {
+    "run_experiment": 2
+   },
+   "declined_or_waiting_because": {},
+   "decisions": [
+    {
+     "id": "opp_0a8ac5ca8593404c",
+     "category": "lint",
+     "level": 1,
+     "chosen": "run_experiment",
+     "reason": "reproduce it and measure a candidate offline"
+    },
+    {
+     "id": "opp_ef9e352f8eee4652",
+     "category": "lint",
+     "level": 1,
+     "chosen": "run_experiment",
+     "reason": "reproduce it and measure a candidate offline"
+    }
+   ]
+  },
+  "opportunities": [
+   {
+    "category": "lint",
+    "created_at": "2026-10-28T05:13:26.584600Z",
+    "dedup_key": "ruff:I001:docs/examples",
+    "details": {
+     "findings": [
+      {
+       "category": "lint",
+       "extra": {
+        "fixable": true
+       },
+       "fingerprint": "b313faf102e15dc5",
+       "line": 1,
+       "message": "Import block is un-sorted or un-formatted",
+       "path": "docs/examples/transfer.py",
+       "rule": "I001",
+       "severity": "error",
+       "tool": "ruff"
+      }
+     ],
+     "fingerprints": [
+      "b313faf102e15dc5"
+     ],
+     "paths": [
+      "docs/examples/transfer.py"
+     ],
+     "rev": "9f00a5eea698b018947550929336bcdf8f0a9ca3",
+     "tool": "ruff"
+    },
+    "evidence": [
+     {
+      "captured_at": "2026-10-28T05:13:26.584493Z",
+      "kind": "analyzer_report",
+      "locator": "ruff@9f00a5eea698b018947550929336bcdf8f0a9ca3",
+      "note": null,
+      "sha256": "0d7881e32ea1c9ddab11a1bdfbfd1eeaa67382a266a95955f0e2f792a02faa1f"
+     }
+    ],
+    "evidence_level": 1,
+    "id": "opp_0a8ac5ca8593404c",
+    "priority_score": 0.0,
+    "source": "ruff",
+    "status": "open",
+    "summary": "I001: Import block is un-sorted or un-formatted",
+    "title": "1 ruff I001 finding in docs/examples/",
+    "updated_at": "2026-10-28T05:13:26.584600Z"
+   },
+   {
+    "category": "lint",
+    "created_at": "2026-10-28T05:13:26.585003Z",
+    "dedup_key": "ruff:E702:docs/examples",
+    "details": {
+     "findings": [
+      {
+       "category": "lint",
+       "extra": {
+        "fixable": false
+       },
+       "fingerprint": "1ee5c586a7ad7ca8",
+       "line": 2,
+       "message": "Multiple statements on one line (semicolon)",
+       "path": "docs/examples/transfer.py",
+       "rule": "E702",
+       "severity": "error",
+       "tool": "ruff"
+      },
+      {
+       "category": "lint",
+       "extra": {
+        "fixable": false
+       },
+       "fingerprint": "1ee5c586a7ad7ca8",
+       "line": 3,
+       "message": "Multiple statements on one line (semicolon)",
+       "path": "docs/examples/transfer.py",
+       "rule": "E702",
+       "severity": "error",
+       "tool": "ruff"
+      }
+     ],
+     "fingerprints": [
+      "1ee5c586a7ad7ca8",
+      "1ee5c586a7ad7ca8"
+     ],
+     "paths": [
+      "docs/examples/transfer.py"
+     ],
+     "rev": "9f00a5eea698b018947550929336bcdf8f0a9ca3",
+     "tool": "ruff"
+    },
+    "evidence": [
+     {
+      "captured_at": "2026-10-28T05:13:26.584493Z",
+      "kind": "analyzer_report",
+      "locator": "ruff@9f00a5eea698b018947550929336bcdf8f0a9ca3",
+      "note": null,
+      "sha256": "0d7881e32ea1c9ddab11a1bdfbfd1eeaa67382a266a95955f0e2f792a02faa1f"
+     }
+    ],
+    "evidence_level": 1,
+    "id": "opp_ef9e352f8eee4652",
+    "priority_score": 0.0,
+    "source": "ruff",
+    "status": "open",
+    "summary": "E702: Multiple statements on one line (semicolon)",
+    "title": "2 ruff E702 findings in docs/examples/",
+    "updated_at": "2026-10-28T05:13:26.585004Z"
+   }
+  ],
+  "experiments": [
+   {
+    "opportunity": "opp_0a8ac5ca8593404c",
+    "exit": 0,
+    "seconds": 4.8,
+    "improved": true,
+    "verdict": {
+     "experiment_id": "exp_583ecb09863448f7",
+     "improved": true,
+     "evidence_level": 4,
+     "criteria": {
+      "targeted_findings_gone": "all",
+      "new_findings_allowed": 0,
+      "test_rounds_per_side": 3,
+      "regression": "fails in every candidate round and in no baseline round"
+     },
+     "tests": "passed",
+     "reasons": [
+      "all targeted findings are gone, none appeared, no test regressed"
+     ],
+     "caveats": []
+    },
+    "origin": "tool",
+    "patch": "--- a/docs/examples/transfer.py\n+++ b/docs/examples/transfer.py\n@@ -1,3 +1,4 @@\n-from ledger.accounts import Account,transfer\n+from ledger.accounts import Account, transfer\n+\n a=Account( \"a\",[10] );b=Account(\"b\")\n transfer(a,b,5) ; print(a.balance(),b.balance())\n",
+    "notes": []
+   }
+  ],
+  "model_runs": []
+ },
+ {
+  "scenario": "fixture-injection",
+  "version": "prev",
+  "commit": "d7a53a0d9991a5257ee0d97e5f240b9da5f6e54c",
+  "steps": {
+   "scan": {
+    "exit": 0,
+    "seconds": 0.4
+   },
+   "decide": {
+    "exit": 0,
+    "seconds": 0.3
+   }
+  },
+  "decide": {
+   "checked_dirs": [],
+   "ci_status": null,
+   "ci_problem": null,
+   "tool_status": {},
+   "open": 2,
+   "chosen": {
+    "run_experiment": 2
+   },
+   "declined_or_waiting_because": {},
+   "decisions": [
+    {
+     "id": "opp_aaeebc3321bb4238",
+     "category": "lint",
+     "level": 1,
+     "chosen": "run_experiment",
+     "reason": "reproduce it and measure a candidate offline"
+    },
+    {
+     "id": "opp_d3446d5577a34c98",
+     "category": "lint",
+     "level": 1,
+     "chosen": "run_experiment",
+     "reason": "reproduce it and measure a candidate offline"
+    }
+   ]
+  },
+  "opportunities": [
+   {
+    "category": "lint",
+    "created_at": "2026-10-28T05:13:32.254256Z",
+    "dedup_key": "ruff:F401:tests",
+    "details": {
+     "findings": [
+      {
+       "category": "lint",
+       "extra": {
+        "fixable": true
+       },
+       "fingerprint": "f2b651bed4c737d9",
+       "line": 22,
+       "message": "`tests.helpers.funded` imported but unused",
+       "path": "tests/test_ledger.py",
+       "rule": "F401",
+       "severity": "error",
+       "tool": "ruff"
+      }
+     ],
+     "fingerprints": [
+      "f2b651bed4c737d9"
+     ],
+     "paths": [
+      "tests/test_ledger.py"
+     ],
+     "rev": "96abfcccbd63ebb11b85b94c627cecd8b088bbbe",
+     "tool": "ruff"
+    },
+    "evidence": [
+     {
+      "captured_at": "2026-10-28T05:13:32.254125Z",
+      "kind": "analyzer_report",
+      "locator": "ruff@96abfcccbd63ebb11b85b94c627cecd8b088bbbe",
+      "note": null,
+      "sha256": "04e53ebe3dcc2d826ea23cb27bdb16425cfb8f2d790228bb3622599a639d5eb7"
+     }
+    ],
+    "evidence_level": 1,
+    "id": "opp_aaeebc3321bb4238",
+    "priority_score": 0.0,
+    "source": "ruff",
+    "status": "open",
+    "summary": "F401: `tests.helpers.funded` imported but unused",
+    "title": "1 ruff F401 finding in tests/",
+    "updated_at": "2026-10-28T05:13:32.254256Z"
+   },
+   {
+    "category": "lint",
+    "created_at": "2026-10-28T05:13:32.254673Z",
+    "dedup_key": "ruff:F811:tests",
+    "details": {
+     "findings": [
+      {
+       "category": "lint",
+       "extra": {
+        "fixable": false
+       },
+       "fingerprint": "1bcbca9ae060f27e",
+       "line": 25,
+       "message": "Redefinition of unused `funded` from line 22: `funded` redefined here",
+       "path": "tests/test_ledger.py",
+       "rule": "F811",
+       "severity": "error",
+       "tool": "ruff"
+      }
+     ],
+     "fingerprints": [
+      "1bcbca9ae060f27e"
+     ],
+     "paths": [
+      "tests/test_ledger.py"
+     ],
+     "rev": "96abfcccbd63ebb11b85b94c627cecd8b088bbbe",
+     "tool": "ruff"
+    },
+    "evidence": [
+     {
+      "captured_at": "2026-10-28T05:13:32.254125Z",
+      "kind": "analyzer_report",
+      "locator": "ruff@96abfcccbd63ebb11b85b94c627cecd8b088bbbe",
+      "note": null,
+      "sha256": "04e53ebe3dcc2d826ea23cb27bdb16425cfb8f2d790228bb3622599a639d5eb7"
+     }
+    ],
+    "evidence_level": 1,
+    "id": "opp_d3446d5577a34c98",
+    "priority_score": 0.0,
+    "source": "ruff",
+    "status": "open",
+    "summary": "F811: Redefinition of unused `funded` from line 22: `funded` redefined here",
+    "title": "1 ruff F811 finding in tests/",
+    "updated_at": "2026-10-28T05:13:32.254673Z"
+   }
+  ],
+  "experiments": [
+   {
+    "opportunity": "opp_aaeebc3321bb4238",
+    "exit": 0,
+    "seconds": 70.9,
+    "improved": false,
+    "verdict": {
+     "experiment_id": "exp_97401dd2b4814fa8",
+     "improved": false,
+     "evidence_level": 2,
+     "criteria": {
+      "targeted_findings_gone": "all",
+      "new_findings_allowed": 0,
+      "test_rounds_per_side": 3,
+      "regression": "fails in every candidate round and in no baseline round"
+     },
+     "tests": "regression",
+     "reasons": [
+      "regression: tests.test_ledger::test_funded_account_can_pay"
+     ],
+     "caveats": []
+    },
+    "origin": "model",
+    "patch": "--- a/tests/test_ledger.py\n+++ b/tests/test_ledger.py\n@@ -19,9 +19,6 @@\n     assert post(\"credit 300 cash\", {}) == 300\n \n \n-from tests.helpers import funded  # noqa: E402  (a fixture, injected by name)\n-\n-\n def test_funded_account_can_pay(funded):\n     transfer(funded, Account(\"shop\"), 100)\n     assert funded.balance() == 900\n",
+    "notes": [
+     "tool candidate rejected: regression: tests.test_ledger::test_funded_account_can_pay",
+     "context: files, whole files fit (683 of 9210 bytes)",
+     "model candidate rejected: regression: tests.test_ledger::test_funded_account_can_pay",
+     "context: files, whole files fit (683 of 9210 bytes)",
+     "model candidate rejected: regression: tests.test_ledger::test_funded_account_can_pay"
+    ]
+   }
+  ],
+  "model_runs": [
+   {
+    "attempt": 1,
+    "correlation_id": "opp_aaeebc3321bb4238",
+    "cost": {
+     "compute_seconds": 31.133053500088863,
+     "tokens_in": 419,
+     "tokens_out": 615,
+     "usd_local": 0.004324035208345675,
+     "usd_remote": 0.0
+    },
+    "created_at": "2026-10-28T05:14:08.516640Z",
+    "egress_attempt_id": null,
+    "id": "run_c84c8ca119ca466d",
+    "model": "muse-glimmer:30b-mxfp8-dflash",
+    "ok": true,
+    "problem": null,
+    "prompt_sha256": "a63b781b0c833108fef0320af63d714f24103128f0689ff2df7f3d56093cb108",
+    "provider": "ollama",
+    "purpose": "lab.fix_candidate",
+    "route_reason": "profile local; label private_code",
+    "tier": "local",
+    "usage": {
+     "completion_tokens": 615,
+     "duration_s": 31.133053500088863,
+     "prompt_tokens": 419
+    }
+   },
+   {
+    "attempt": 1,
+    "correlation_id": "opp_aaeebc3321bb4238",
+    "cost": {
+     "compute_seconds": 30.441492542042397,
+     "tokens_in": 419,
+     "tokens_out": 615,
+     "usd_local": 0.0042279850752836665,
+     "usd_remote": 0.0
+    },
+    "created_at": "2026-10-28T05:14:41.161669Z",
+    "egress_attempt_id": null,
+    "id": "run_394040eaad31404c",
+    "model": "muse-glimmer:30b-mxfp8-dflash",
+    "ok": true,
+    "problem": null,
+    "prompt_sha256": "a63b781b0c833108fef0320af63d714f24103128f0689ff2df7f3d56093cb108",
+    "provider": "ollama",
+    "purpose": "lab.fix_candidate",
+    "route_reason": "profile local; label private_code",
+    "tier": "local",
+    "usage": {
+     "completion_tokens": 615,
+     "duration_s": 30.441492542042397,
+     "prompt_tokens": 419
+    }
+   }
+  ]
+ },
+ {
+  "scenario": "healthy-ledger",
+  "version": "prev",
+  "commit": "d7a53a0d9991a5257ee0d97e5f240b9da5f6e54c",
+  "steps": {
+   "scan": {
+    "exit": 0,
+    "seconds": 0.4
+   },
+   "decide": {
+    "exit": 0,
+    "seconds": 0.3
+   }
+  },
+  "decide": {
+   "checked_dirs": [],
+   "ci_status": null,
+   "ci_problem": null,
+   "tool_status": {},
+   "open": 0,
+   "chosen": {},
+   "declined_or_waiting_because": {},
+   "decisions": []
+  },
+  "opportunities": [],
+  "experiments": [],
+  "model_runs": []
+ },
+ {
+  "scenario": "shared-default",
+  "version": "prev",
+  "commit": "d7a53a0d9991a5257ee0d97e5f240b9da5f6e54c",
+  "steps": {
+   "scan": {
+    "exit": 0,
+    "seconds": 0.4
+   },
+   "decide": {
+    "exit": 0,
+    "seconds": 0.3
+   }
+  },
+  "decide": {
+   "checked_dirs": [],
+   "ci_status": null,
+   "ci_problem": null,
+   "tool_status": {},
+   "open": 0,
+   "chosen": {},
+   "declined_or_waiting_because": {},
+   "decisions": []
+  },
+  "opportunities": [],
+  "experiments": [],
+  "model_runs": []
+ }
+]
