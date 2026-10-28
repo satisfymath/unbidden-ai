@@ -1433,6 +1433,37 @@ def cmd_spend(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_connections(args: argparse.Namespace) -> int:
+    """The project's resources: found, granted, connected, and what can be read or changed in each, as checked."""
+    from unbidden.connect.kinds import connectors
+    from unbidden.connect.registry import summary, survey
+    from unbidden.contracts.world import WorldModel
+
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    world = store.get("world", "world", WorldModel)
+    found = survey(ws.repo, store, ws.mandate(), world, connectors(), check=args.check)
+    rows = summary(found)
+    store.close()
+    if _emit(args, rows):
+        return 0
+    table = Table(box=None, header_style="bold")
+    for column in ("connection", "env", "state", "can read", "can change", "blocked / next"):
+        table.add_column(column)
+    for r in rows:
+        table.add_row(
+            r["id"],
+            r["environment"],
+            r["state"],
+            ", ".join(r["read"]) or "-",
+            ", ".join(r["write"]) or "-",
+            (r["next_step"] or r["blocked"] or "")[:90],
+        )
+    console.print(table if rows else "No resource found or granted.")
+    return 0
+
+
 def cmd_activity(args: argparse.Namespace) -> int:
     """What Unbidden found, decided and why, built, proposed, proved, spent and learned here."""
     from pathlib import Path
@@ -1491,6 +1522,10 @@ def build_parser() -> argparse.ArgumentParser:
     map_.add_argument("--scope", metavar="ID", help="what a resource connects to, how each link is known, the gaps")
     map_.add_argument("--connectors", action="store_true", help="what each connector learns, needs and costs")
     command("status", cmd_status, "what unbidden knows and is doing")
+    conns = command(
+        "connections", cmd_connections, "the project's resources: found, granted, connected, and what each allows"
+    )
+    conns.add_argument("--check", action="store_true", help="reach each granted resource now (default: last checks)")
     activity = command("activity", cmd_activity, "what was found, decided and why, built, proved, spent and learned")
     activity.add_argument("--html", metavar="PATH", help="also write a self-contained HTML report there")
     errors = command("errors", cmd_errors, "what the project's logs said: recurring errors, new after a deploy, 5xx")

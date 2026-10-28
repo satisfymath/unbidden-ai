@@ -27,6 +27,7 @@ class AutonomyPolicy(Contract):
     deploy: Autonomy = Autonomy.DENY
     rollback: Autonomy = Autonomy.DENY
     use_new_capabilities: Autonomy = Autonomy.DENY
+    act_on_connections: Autonomy = Autonomy.DENY  # write operations a connection grant permits
 
 
 class ProbeAuth(Contract):
@@ -99,6 +100,30 @@ class ModelsPolicy(Contract):
     local_fallback: Literal["allow", "deny"] = "allow"
 
 
+class ConnectionGrant(Contract):
+    """A resource a person authorizes Unbidden to connect to, and what it may do there. A grant is not a check:
+    what the credential can really do is observed, and only the smaller of the two is used."""
+
+    id: str = Field(min_length=1)  # a name for the resource in this project
+    kind: Literal["postgres", "http_api", "github"]
+    location: str  # host:port/database, a base URL, or owner/name
+    environment: Literal["local", "development", "staging", "production"] = "staging"
+    credential_ref: str | None = None  # a broker name, never a value
+    username: str | None = None  # where the protocol needs one apart from the secret
+    tls: Literal["disable", "prefer", "require", "verify-full"] = "prefer"
+    docs: str | None = None  # where its documentation may be read (an OpenAPI URL, a file in the repository)
+    permissions: list[str] = Field(default_factory=lambda: ["read"])  # read, write:<what>
+    limits: dict[str, float] = Field(default_factory=dict)  # e.g. max_units, requests_per_minute, timeout_s
+
+
+class Goal(Contract):
+    """An objective in a person's words, with the bounds on what may be done for it."""
+
+    id: str = Field(min_length=1)
+    statement: str
+    bounds: dict[str, float | int | str] = Field(default_factory=dict)
+
+
 class Mandate(Contract):
     workspace: str = Field(min_length=1)
     priorities: list[str] = Field(default_factory=list)
@@ -108,6 +133,8 @@ class Mandate(Contract):
     evaluation: EvaluationPolicy = Field(default_factory=EvaluationPolicy)
     operations: OperationsPolicy = Field(default_factory=OperationsPolicy)
     models: ModelsPolicy = Field(default_factory=ModelsPolicy)
+    connections: list[ConnectionGrant] = Field(default_factory=list[ConnectionGrant])
+    goals: list[Goal] = Field(default_factory=list[Goal])
 
 
 class Hold(Contract):

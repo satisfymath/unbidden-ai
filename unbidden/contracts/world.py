@@ -8,7 +8,18 @@ from pydantic import Field
 from unbidden.contracts.common import Contract, EpistemicStatus, EvidenceRef, utc_now
 
 ResourceKind = Literal[
-    "repo", "service", "container", "database", "table", "endpoint", "ci_job", "model", "deployment", "image"
+    "repo",
+    "service",
+    "container",
+    "database",
+    "table",
+    "endpoint",
+    "ci_job",
+    "model",
+    "deployment",
+    "image",
+    "api",
+    "metrics",
 ]
 Predicate = Literal[
     "depends_on",
@@ -23,6 +34,7 @@ Predicate = Literal[
     "calls",
     "deploys",
     "runs_image",
+    "connects_to",  # a service's configuration points at a resource outside its project
 ]
 
 
