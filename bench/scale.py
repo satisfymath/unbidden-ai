@@ -37,7 +37,7 @@ from typing import Any
 
 import yaml
 
-from bench.repos import checkout
+from bench.repos import _json, checkout  # pyright: ignore[reportPrivateUsage]
 
 PROJECT = Path(__file__).resolve().parents[1]
 UNBIDDEN = ["uv", "run", "--project", str(PROJECT), "unbidden"]
@@ -227,9 +227,7 @@ def run_one(repo: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
         "name": repo["name"],
         "run": args.run,
         "tag": tag,
-        "meta": {
-            k: repo.get(k) for k in ("url", "commit", "split", "license", "language", "shape", "database", "domain")
-        },
+        "meta": {k: v for k, v in repo.items() if k != "name"},
         "started_at": datetime.now(UTC).isoformat(),
         # Each repository launches Unbidden from this checkout: the code under test is recorded per row.
         "unbidden": unbidden_version(),
@@ -259,14 +257,59 @@ def run_one(repo: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
                     sort_keys=False,
                 )
             )
-    row["steps"]["map"] = _strip(_cli([*UNBIDDEN, "map", "--json"], target, env, 1800))
-    watch = _cli([*UNBIDDEN, "watch", "--once"], target, env, args.minutes * 60)
-    row["steps"]["watch"] = _strip(watch)
+    row["files"] = file_census(target)
+    if args.tier == "static":
+        # No model at all: the repository's own tools in the sandbox, and what the Director would decide.
+        row["steps"]["map"] = _strip(_cli([*UNBIDDEN, "map", "--no-model", "--json"], target, env, 1800))
+        row["steps"]["scan"] = _strip(_cli([*UNBIDDEN, "scan", "--json"], target, env, args.minutes * 60))
+        decided = _cli([*UNBIDDEN, "decide", "--json"], target, env, 600)
+        row["steps"]["decide"] = _strip(decided)
+        row["decide"] = _json(decided)
+    else:
+        row["steps"]["map"] = _strip(_cli([*UNBIDDEN, "map", "--json"], target, env, 1800))
+        watch = _cli([*UNBIDDEN, "watch", "--once"], target, env, args.minutes * 60)
+        row["steps"]["watch"] = _strip(watch)
+    row["ci"] = ci_understanding(target)
     row["state"] = read_state(target)
     row["finished_at"] = datetime.now(UTC).isoformat()
     row["seconds"] = round(sum(s["seconds"] for s in row["steps"].values()), 1)
     row["outcome"] = classify(row)
+    from bench.causes import root_cause
+
+    row["cause"] = root_cause(row)
     return row
+
+
+CODE_SUFFIXES = {
+    ".py": "Python", ".ts": "TypeScript", ".tsx": "TypeScript", ".js": "JavaScript", ".jsx": "JavaScript",
+    ".mjs": "JavaScript", ".cjs": "JavaScript", ".go": "Go", ".rs": "Rust", ".java": "Java", ".kt": "Kotlin",
+    ".rb": "Ruby", ".php": "PHP", ".cs": "C#", ".c": "C", ".cc": "C++", ".cpp": "C++", ".h": "C", ".swift": "Swift",
+    ".scala": "Scala", ".dart": "Dart", ".vue": "Vue", ".svelte": "Svelte", ".sh": "Shell", ".lua": "Lua",
+}  # fmt: skip
+
+
+def file_census(repo: Path) -> dict[str, Any]:
+    """Tracked files by language: tells a repository with no code from one in a language Unbidden does not read."""
+    files = subprocess.run(["git", "-C", str(repo), "ls-files"], capture_output=True, text=True).stdout.splitlines()
+    by_language: dict[str, int] = {}
+    for f in files:
+        language = CODE_SUFFIXES.get(Path(f).suffix.lower())
+        if language:
+            by_language[language] = by_language.get(language, 0) + 1
+    return {"tracked": len(files), "code": sum(by_language.values()), "by_language": by_language}
+
+
+def ci_understanding(repo: Path) -> dict[str, Any]:
+    """What Unbidden can read of the team's CI at this commit."""
+    from unbidden.observe.ci import ci_commands, ci_python_versions
+
+    rev = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    try:
+        commands = ci_commands(repo, rev)
+        versions = ci_python_versions(repo, rev)
+    except Exception as exc:  # a workflow Unbidden cannot parse is a finding about Unbidden, not a crash of the run
+        return {"commands": False, "error": f"{type(exc).__name__}: {str(exc)[:200]}"}
+    return {"commands": commands is not None, "python_versions": versions}
 
 
 def _strip(step: dict[str, Any]) -> dict[str, Any]:
@@ -303,7 +346,15 @@ def deps_images() -> set[str]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("repos")
-    parser.add_argument("--split", choices=["pilot", "holdout", "all"], default="pilot")
+    parser.add_argument("--split", default="pilot", help="a split named in the manifest, or 'all'")
+    parser.add_argument("--take", type=int, help="the first N repositories of the split, in manifest order")
+    parser.add_argument("--skip", type=int, default=0, help="skip the first N of the split (later batches)")
+    parser.add_argument(
+        "--tier",
+        choices=["static", "full"],
+        default="full",
+        help="static: no model at all (map --no-model, scan, decide); full: watch --once",
+    )
     parser.add_argument("--only", nargs="*", help="names to run")
     parser.add_argument("--run", required=True, help="run name; tags every remote call as bench:<run>:<repo>")
     parser.add_argument("--workdir", required=True)
@@ -331,7 +382,7 @@ def main() -> None:
         raise SystemExit("Unbidden's package has uncommitted changes: a benchmark runs on one commit; commit first")
     status = SpendLedger().status()
     print(f"budget: {status.reason}; available US${status.available_usd:.2f}", flush=True)
-    if args.profile != "local" and not status.verified and not args.method_check:
+    if args.tier != "static" and args.profile != "local" and not status.verified and not args.method_check:
         raise SystemExit(
             "no verified credit balance: record it with `unbidden spend --verified-balance <USD> --source <where>`, "
             "or pass --method-check to run within the unverified allowance only"
@@ -345,6 +396,7 @@ def main() -> None:
         for r in yaml.safe_load(Path(args.repos).read_text())["repos"]
         if (args.split == "all" or r["split"] == args.split) and (not args.only or r["name"] in args.only)
     ]
+    repos = repos[args.skip : args.skip + args.take if args.take else None]
     out_json = Path(f"{args.out}.json")
     rows: list[dict[str, Any]] = json.loads(out_json.read_text())["rows"] if out_json.exists() else []
     done = {r["name"] for r in rows}
@@ -360,7 +412,18 @@ def main() -> None:
             ).stdout.strip(),
             "settings": {
                 k: getattr(args, k)
-                for k in ("split", "workers", "minutes", "repo_budget", "profile", "local_fallback", "fork_owner")
+                for k in (
+                    "split",
+                    "take",
+                    "skip",
+                    "tier",
+                    "workers",
+                    "minutes",
+                    "repo_budget",
+                    "profile",
+                    "local_fallback",
+                    "fork_owner",
+                )
             },
             "rows": rows,
             "spend": spend_by_run(args.run),
