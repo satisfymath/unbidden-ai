@@ -18,6 +18,7 @@ from typing import Any
 
 from unbidden.contracts.common import EpistemicStatus, utc_now
 from unbidden.contracts.events import Event, EventType
+from unbidden.contracts.guardian import Mandate
 from unbidden.contracts.world import WorldModel
 from unbidden.store import Store
 from unbidden.world.jaeger import Jaeger, JaegerError, origins
@@ -387,7 +388,9 @@ def trace_check(traces: Jaeger, suspect: Suspect) -> dict[str, Any]:
     }
 
 
-def proxy_errors(store: Store, world: WorldModel, wait_s: float = 10.0) -> dict[str, dict[str, float]]:
+def proxy_errors(
+    store: Store, world: WorldModel, mandate: Mandate | None, wait_s: float = 10.0
+) -> dict[str, dict[str, float]]:
     """Errors each proxy saw per upstream over a few seconds, through stats readers Forge built: counters are read
     twice and only their growth counts."""
     import time
@@ -396,7 +399,7 @@ def proxy_errors(store: Store, world: WorldModel, wait_s: float = 10.0) -> dict[
     from unbidden.forge.stats import deltas, read
 
     readers = [
-        (str(c.attributes.get("service")), e["url"], stats_build.usable(store, e["url"]))
+        (str(c.attributes.get("service")), e["url"], stats_build.usable(store, mandate, e["url"]))
         for c in world.of_kind("container")
         for e in c.attributes.get("text_endpoints", [])
     ]
@@ -608,7 +611,7 @@ class HealthWatcher:
                 except Exception as exc:  # a failed capture is recorded, never blocks the anomaly
                     record["ui"] = {"error": str(exc)[:300]}
             try:
-                record["proxies"] = proxy_errors(self.store, self.world)
+                record["proxies"] = proxy_errors(self.store, self.world, self.mandate)
             except Exception as exc:  # a reader that fails is recorded, never blocks the anomaly
                 record["proxies"] = {"error": {str(exc)[:200]: 0.0}}
             open_[name] = record

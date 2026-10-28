@@ -43,3 +43,16 @@ def test_what_a_remote_model_sees_of_a_log_has_no_real_paths_or_addresses() -> N
     assert '"GET /' in seen and "HTTP/1.1" in seen and " 200 " in seen  # the structure survives
     quoted = transform.apply("expected path=/api/v1/invoices/ledger status=200")
     assert "invoices" not in quoted and "ledger" not in quoted
+
+
+def test_a_log_adapter_that_slips_past_admission_still_runs_in_linear_time() -> None:
+    import time
+
+    from unbidden.forge.adapter import LogAdapter
+    from unbidden.forge.logs import summarize
+
+    pattern = r"(?P<method>[A-Z]+) (?P<path>(a|a?)+b) (?P<status>\d{3})"
+    assert not any("nests" in p for p in admit(pattern))  # the syntactic rule does not see this form
+    started = time.perf_counter()
+    summarize(LogAdapter(source="s", version=1, pattern=pattern), ["GET " + "a" * 50_000 + " 200"] * 20)
+    assert time.perf_counter() - started < 1.0

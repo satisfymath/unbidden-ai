@@ -122,7 +122,7 @@ def _text_needs(world: WorldModel, store: Store) -> None:
     for container in world.of_kind("container"):
         for endpoint in container.attributes.get("text_endpoints", []):
             url, fmt = endpoint["url"], endpoint["format"]
-            if stats_build.usable(store, url) is not None:
+            if stats_build.latest(store, url) is not None:
                 endpoint["reader"] = "forge"
                 continue
             why = (

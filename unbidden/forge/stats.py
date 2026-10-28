@@ -24,6 +24,7 @@ from pydantic import Field
 
 from unbidden.contracts.common import Contract, new_id, utc_now
 from unbidden.forge.adapter import _BACKREF, _NESTED, MAX_PATTERN  # pyright: ignore[reportPrivateUsage]
+from unbidden.forge.bounded import Unbounded, compile_untrusted
 
 ORACLE_VERSION = 1
 MIN_HELDOUT = 50
@@ -94,9 +95,9 @@ def admit(line: str, entity: str | None) -> list[str]:
         if _NESTED.search(pattern):
             problems.append(f"{label}: nests quantifiers (catastrophic backtracking)")
         try:
-            compiled = re.compile(pattern)
-        except re.error as exc:
-            problems.append(f"{label}: does not compile: {exc}")
+            compiled = compile_untrusted(pattern)
+        except Unbounded as exc:
+            problems.append(f"{label}: {exc}")
             continue
         if set(compiled.groupindex) != groups:
             problems.append(f"{label}: needs exactly the groups {sorted(groups)}, has {sorted(compiled.groupindex)}")
@@ -112,8 +113,8 @@ class Reading:
 
 
 def read(adapter: StatsAdapter, lines: list[str]) -> list[Reading]:
-    line_re = re.compile(adapter.line)
-    entity_re = re.compile(adapter.entity) if adapter.entity else None
+    line_re = compile_untrusted(adapter.line)
+    entity_re = compile_untrusted(adapter.entity) if adapter.entity else None
     found: list[Reading] = []
     for raw in lines:
         match = line_re.fullmatch(raw.strip())

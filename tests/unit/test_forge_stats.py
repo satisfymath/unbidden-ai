@@ -105,3 +105,45 @@ def test_a_reader_built_elsewhere_is_reused_when_it_passes_the_oracle_here(store
     other_project = envoy_like(9)
     assert stats_build.reusable(store, other_project) is not None
     assert stats_build.reusable(store, ["a b c 1", "x y 2"] * 40) is None
+
+
+# F2: patterns the syntactic admission accepts; on `re` each backtracks exponentially (two ran over 5 s on 30 chars).
+CATASTROPHIC = [r"(?P<name>(a|aa)+)$: (?P<value>\d+)", r"(?P<name>(a|a?)+b): (?P<value>\d+)",
+                r"(?P<name>(\w+\s?)*)$(?P<value>\d+)"]  # fmt: skip
+
+
+@pytest.mark.parametrize("line", CATASTROPHIC)
+def test_a_model_written_pattern_runs_in_linear_time_or_not_at_all(line: str) -> None:
+    import time
+
+    adapter = StatsAdapter(source="s", version=1, line=line, card=card())
+    started = time.perf_counter()
+    read(adapter, ["a" * 50_000 + "!", "a" * 39 + "!"] * 20)
+    assert time.perf_counter() - started < 1.0
+
+
+def test_what_re2_cannot_run_is_refused_at_admission() -> None:
+    assert any("RE2" in p for p in admit(r"(?P<name>\w+)(?=:): (?P<value>\d+)", None))
+
+
+def test_a_stats_reader_is_used_on_its_own_only_when_approved_or_allowed(store: object, mandate: object) -> None:
+    # C1: readers Forge built were read autonomously whatever the mandate said.
+    from unbidden.contracts.guardian import Autonomy, Mandate
+    from unbidden.forge import stats_build
+    from unbidden.store import Store
+
+    assert isinstance(store, Store) and isinstance(mandate, Mandate)
+    url = "http://127.0.0.1:10000/stats"
+    built = StatsAdapter(
+        source=url, version=1, line=GOOD_LINE, card=card(), quality={"oracle": stats_build.ORACLE_VERSION}
+    )
+    store.put(stats_build.COLLECTION, built)
+    assert stats_build.latest(store, url) is not None
+    assert stats_build.usable(store, mandate, url) is None  # use_new_capabilities is deny by default
+    assert stats_build.usable(store, None, url) is None
+    mandate.autonomy.use_new_capabilities = Autonomy.ALLOW
+    assert stats_build.usable(store, mandate, url) is not None
+    mandate.autonomy.use_new_capabilities = Autonomy.DENY
+    built.status = "approved"
+    store.put(stats_build.COLLECTION, built)
+    assert stats_build.usable(store, mandate, url) is not None

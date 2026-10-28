@@ -680,12 +680,19 @@ def cmd_forge(args: argparse.Namespace) -> int:
         console.print(f"disabled {args.target}: nothing reads through it any more")
         return 0
     if args.action == "approve":
-        adapter = store.get("capabilities", args.target, LogAdapter)
+        from unbidden.forge.stats import StatsAdapter
+        from unbidden.forge.stats_build import COLLECTION as STATS
+
+        found: LogAdapter | StatsAdapter | None = store.get("capabilities", args.target, LogAdapter)
+        collection = "capabilities"
+        if found is None:
+            found, collection = store.get(STATS, args.target, StatsAdapter), STATS
+        adapter = found
         if adapter is None or adapter.status != "validated":
             err.print("only a validated capability can be approved")
             return 1
         adapter.status, adapter.approved_by = "approved", f"person:{getpass.getuser()}"
-        store.put("capabilities", adapter)
+        store.put(collection, adapter)
         store.append_event(
             Event(
                 type=EventType.CAPABILITY_APPROVED,
@@ -742,7 +749,7 @@ def _forge_stats(runtime: Any, url: str | None) -> int:
         err.print(f"runtime.read: {'; '.join(verdict.reasons)}")
         return 1
     store = runtime.store
-    adapter = stats_build.usable(store, url)
+    adapter = stats_build.latest(store, url)  # a person asked for this read: their command is the approval
     if adapter is None:
         lines = stats_build.fetch(url)
         with console.status(f"forging a stats reader for {url} from {len(lines)} lines"):

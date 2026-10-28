@@ -17,6 +17,7 @@ from unbidden.bridge.rename import RenameMap, build_map
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.llm import LLMRequest, Message, Source, Tier
 from unbidden.forge.adapter import ORACLE_VERSION, LogAdapter, admit, oracle, parse_line
+from unbidden.forge.bounded import compile_untrusted
 from unbidden.guardian.scanner import SensitiveTermIndex
 from unbidden.store import Store
 from unbidden.world.runtime import compose_project
@@ -190,7 +191,7 @@ class Forge:
                 continue
             problems = admit(pattern)
             if not problems:
-                compiled = re.compile(pattern)
+                compiled = compile_untrusted(pattern)
                 for t in tests:  # always judged on the real lines and the real expected values
                     got = parse_line(compiled, shown[t["line"] - 1]) or {}
                     if any(got.get(k) != t[k] for k in ("method", "path", "status")):

@@ -16,6 +16,7 @@ from unbidden.brain.providers import ProviderError
 from unbidden.brain.router import Brain, BrainError
 from unbidden.bridge.rename import build_map
 from unbidden.contracts.events import Event, EventType
+from unbidden.contracts.guardian import Mandate
 from unbidden.contracts.llm import LLMRequest, Message, Tier
 from unbidden.forge.build import LogTransform
 from unbidden.forge.stats import (
@@ -252,14 +253,23 @@ def _card(source: str, permissions: list[str]) -> CapabilityCard:
     )
 
 
-def usable(store: Store, source: str) -> StatsAdapter | None:
-    """The newest adapter for a source that passed the current oracle and is not disabled."""
+def latest(store: Store, source: str) -> StatsAdapter | None:
+    """The newest adapter for a source that passed the current oracle and is not disabled, usable or not."""
     candidates = [
         a
         for a in store.list(COLLECTION, StatsAdapter)
         if a.source == source and a.status in ("validated", "approved") and a.quality.get("oracle") == ORACLE_VERSION
     ]
     return max(candidates, key=lambda a: a.version) if candidates else None
+
+
+def usable(store: Store, mandate: Mandate | None, source: str) -> StatsAdapter | None:
+    """The newest adapter for a source that Unbidden may read through on its own: approved by a person, or the
+    mandate lets it use what it built (the same gate as log adapters)."""
+    from unbidden.forge.logs import permitted
+
+    adapter = latest(store, source)
+    return adapter if adapter is not None and permitted(adapter.status, mandate, source) else None
 
 
 def reusable(store: Store, lines: list[str]) -> StatsAdapter | None:
