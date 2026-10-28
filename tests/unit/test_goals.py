@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 
 from unbidden.contracts.action import Action, ActionStatus
-from unbidden.contracts.connection import Connection, ConnectionState, Environment
+from unbidden.contracts.connection import Ability, Connection, ConnectionState, Environment
 from unbidden.contracts.guardian import Goal, Mandate
 from unbidden.director import goals
 from unbidden.director.goals import GoalRun, evaluate
@@ -48,8 +48,9 @@ def test_a_goals_bounds_hold_across_its_runs_in_a_window(
         grant="api",
         environment=Environment.STAGING,
         state=ConnectionState.CONNECTED,
+        abilities=[Ability(kind="write", operations=["createReorder"], known_by="checked: oracle")],
     )
-    integration = type("I", (), {"operations": [type("O", (), {"id": "createReorder"})()]})()
+    integration = type("I", (), {"operations": [type("O", (), {"id": "createReorder"})()], "documented": []})()
     plan = {"key": "sku", "api": {"connection": "api"}}
     act = {"operation": "createReorder", "key_field": "sku", "amount_field": "units"}
     short = [{"sku": f"S{i}", "shortfall": 100 - i} for i in range(6)]

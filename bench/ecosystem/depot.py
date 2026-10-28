@@ -236,9 +236,9 @@ def transport(depot: Depot) -> Any:
 
 
 def main() -> None:
-    port, data = int(sys.argv[1]), Path(sys.argv[2])
-    keys = set((data / "keys").read_text().split())
-    faults = set((data / "faults").read_text().split()) if (data / "faults").exists() else set()
+    port, home = int(sys.argv[1]), Path(sys.argv[2])
+    keys = set((home / "keys").read_text().split())
+    faults = set((home / "faults").read_text().split()) if (home / "faults").exists() else set()
     depot = Depot(keys, faults)
 
     class Handler(BaseHTTPRequestHandler):
@@ -246,6 +246,10 @@ def main() -> None:
             sys.stdout.write(f"{self.command} {self.path}\n")
 
         def _serve(self) -> None:
+            # Keys and faults are read on every request, so a revocation or a fault takes effect without a restart
+            # (a restart would lose the restocks already made).
+            depot.keys = set((home / "keys").read_text().split())
+            depot.faults = set((home / "faults").read_text().split()) if (home / "faults").exists() else set()
             length = int(self.headers.get("Content-Length") or 0)
             status, body, special = depot.handle(self.command, self.path, dict(self.headers), self.rfile.read(length))
             if special == "timeout":

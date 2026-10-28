@@ -166,13 +166,13 @@ def _sources(
                     f"{op.id} ({op.effect}{'; record fields: ' + ', '.join(fields) if fields else ''}"
                     f"{'; body: ' + body if body else ''})"
                 )
-            known = {o.id for o in integration.operations}
+            usable_ops = {o.id for o in integration.operations if conn.can(o.effect, o.id)}
             more = [
                 f"{d['id']} ({d['effect']}: {d['method']} {d['path']}, {d['summary']})"
                 for d in integration.documented
-                if d["id"] not in known
+                if d["id"] not in usable_ops
             ]
-            extra = f"; documented but not integrated yet: {'; '.join(more)}" if more else ""
+            extra = f"; documented, not usable yet (to integrate or validate): {'; '.join(more)}" if more else ""
             usable.append(
                 f"- {conn.grant} (api {integration.title}, {conn.environment.value}): {'; '.join(ops)}{extra}"
             )
@@ -336,7 +336,7 @@ def _act(
     name = str((plan.get("api") or {}).get("connection"))
     conn, integration = conns[name], integrations[name]
     operation = str(act.get("operation"))
-    if operation not in {o.id for o in integration.operations}:
+    if operation not in {o.id for o in integration.operations} or not conn.can("write", operation):
         if operation not in {d["id"] for d in integration.documented}:
             run.notes.append(f"the plan's write {operation!r} is not in {conn.id}'s documentation: blocked")
             run.status = "blocked"
