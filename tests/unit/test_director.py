@@ -133,7 +133,11 @@ def test_a_reopened_opportunity_keeps_its_history_and_gets_new_experiment_keys(t
     o.status = OpportunityStatus.DECLINED
     store.put("opportunities", o)
     again = reopen(store, o, "the lab could not run fixtures (fixed)")
-    assert again.status is OpportunityStatus.OPEN and again.details == {"rev": "abc", "reopened": 1}
+    assert again.status is OpportunityStatus.OPEN and again.details == {
+        "rev": "abc",
+        "reopened": 1,
+        "attempts_total": 2,
+    }  # the attempts made are kept as a total
     events = [e for e in store.events() if e.entity_id == o.id]
     assert events[-1].payload == {"reopened": 1, "reason": "the lab could not run fixtures (fixed)"}
 

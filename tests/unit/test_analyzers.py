@@ -207,3 +207,47 @@ def test_go_test_counts_the_tests_it_ran() -> None:
         '{"Action":"output","Package":"x"}\n'
     )
     assert go_test_count(out) == 2 and go_test_count("") == 0
+
+
+def _store_with(status: OpportunityStatus, **details: object) -> tuple[Store, Opportunity]:
+    store = Store(None)
+    record_report(store, report([finding("a.ts")]), "r1")
+    (opp,) = store.list(COLLECTION, Opportunity)
+    opp.status = status
+    opp.details = {**opp.details, **details}
+    store.put(COLLECTION, opp)
+    return store, opp
+
+
+def test_a_rescan_of_a_new_commit_keeps_what_happened_to_the_opportunity() -> None:
+    # G1: the scan replaced the whole details, so attempts, verdict and decision vanished at every new commit.
+    verdict = {"improved": True, "level": 4}
+    store, opp = _store_with(OpportunityStatus.EXPERIMENTING, attempts=1, verdict=verdict, decision={"chosen": "x"})
+    record_report(store, report([finding("a.ts")]), "r2")
+    again = store.get(COLLECTION, opp.id, Opportunity)
+    assert again is not None and again.details["rev"] == "r2"
+    assert again.details["attempts"] == 1 and again.details["verdict"] == verdict and "decision" in again.details
+
+
+def test_a_resolved_finding_that_comes_back_is_open_again() -> None:
+    store, opp = _store_with(OpportunityStatus.CLOSED, resolved_at_rev="r1", verdict={"improved": True})
+    sweep = record_report(store, report([finding("a.ts")]), "r3")
+    again = store.get(COLLECTION, opp.id, Opportunity)
+    assert again is not None and again.status is OpportunityStatus.OPEN and sweep.opened == [again]
+    # The verdict was about what it was before: kept as past, so nothing is proposed on it.
+    assert "verdict" not in again.details and again.details["past_verdicts"] == [{"improved": True}]
+
+
+def test_a_declined_opportunity_reopens_only_when_its_findings_change() -> None:
+    store, opp = _store_with(OpportunityStatus.DECLINED, attempts=2)
+    record_report(store, report([finding("a.ts")]), "r2")
+    same = store.get(COLLECTION, opp.id, Opportunity)
+    assert same is not None and same.status is OpportunityStatus.DECLINED and same.details["attempts"] == 2
+    record_report(store, report([finding("a.ts"), finding("a.ts", "TS2322")]), "r3")
+    changed = store.get(COLLECTION, opp.id, Opportunity)
+    assert changed is not None and changed.status is OpportunityStatus.OPEN
+    assert (
+        changed.details["reopened"] == 1
+        and changed.details["attempts_total"] == 2
+        and "attempts" not in changed.details
+    )

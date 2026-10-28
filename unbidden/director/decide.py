@@ -168,11 +168,16 @@ def _choose(opp: Opportunity, candidates: list[CandidateAction], chosen: ActionK
 
 
 def reopen(store: Store, opp: Opportunity, reason: str, actor: str = "operator") -> Opportunity:
-    """Give an opportunity its experiments back, when what consumed them was Unbidden's own fault (a lab bug fixed
-    since). Its history stays: the reopening is counted, recorded with its reason, and keys new experiment jobs."""
+    """Give an opportunity its experiments back: what consumed them was Unbidden's own fault (a lab bug fixed since),
+    or the evidence changed (its findings changed, or it was found again after being resolved). Its history stays:
+    the reopening is counted and recorded with its reason, the attempts made go into a running total, and a verdict
+    about what it was before is kept as past, not as current, so nothing is proposed on it."""
+    past = [*opp.details.get("past_verdicts", []), *([opp.details["verdict"]] if "verdict" in opp.details else [])]
     opp.details = {
-        **{k: v for k, v in opp.details.items() if k not in ("attempts", "decision", "blocked")},
+        **{k: v for k, v in opp.details.items() if k not in ("attempts", "decision", "blocked", "verdict")},
         "reopened": int(opp.details.get("reopened", 0)) + 1,
+        "attempts_total": int(opp.details.get("attempts_total", 0)) + int(opp.details.get("attempts", 0)),
+        **({"past_verdicts": past} if past else {}),
     }
     opp.status = OpportunityStatus.OPEN
     store.put("opportunities", opp)

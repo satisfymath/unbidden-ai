@@ -77,6 +77,13 @@ def _title(tool: str, findings: list[Finding]) -> str:
     return title if len(title) <= TITLE_MAX else f"{title[: TITLE_MAX - 30]}...{title[-27:]}"
 
 
+def _reopen(store: Store, opp: Opportunity, reason: str) -> None:
+    """New evidence about an opportunity that was closed or declined: it is open again, its reopening recorded."""
+    from unbidden.director.decide import reopen
+
+    reopen(store, opp, reason, actor=ACTOR)
+
+
 def record_report(store: Store, report: AnalyzerReport, rev: str) -> Sweep:
     """Open or refresh one opportunity per group. Only a complete report may resolve anything."""
     sha = hashlib.sha256(report.model_dump_json().encode()).hexdigest()
@@ -126,12 +133,23 @@ def record_report(store: Store, report: AnalyzerReport, rev: str) -> Sweep:
             )  # fmt: skip
             sweep.opened.append(opp)
         else:
-            existing.details = details
+            changed = set(existing.details.get("fingerprints") or []) != set(details["fingerprints"])
+            # The scan rewrites what it observes; what happened to the opportunity (attempts, verdicts, decisions,
+            # reopenings) is its history and survives a rescan of a new commit.
+            history = {k: v for k, v in existing.details.items() if k not in details}
+            existing.details = {**history, **details}
             existing.title = _title(report.tool, findings)
             existing.evidence = [*existing.evidence[-4:], evidence]
             existing.updated_at = utc_now()
             store.put(COLLECTION, existing)
-            sweep.updated.append(existing)
+            if existing.status is OpportunityStatus.CLOSED:
+                _reopen(store, existing, f"found again at {rev[:12]} after it was resolved")
+                sweep.opened.append(existing)
+            elif existing.status is OpportunityStatus.DECLINED and changed:
+                _reopen(store, existing, f"its findings changed at {rev[:12]} since it was declined")
+                sweep.opened.append(existing)
+            else:
+                sweep.updated.append(existing)
 
     if not report.can_resolve:
         return sweep
