@@ -21,9 +21,9 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from unbidden.connect.base import CheckResult, Connector, purpose
+from unbidden.connect.base import CheckResult, Connector, Failure, purpose
 from unbidden.contracts.common import utc_now
-from unbidden.contracts.connection import Ability, Connection, ConnectionState, Environment
+from unbidden.contracts.connection import USABLE, Ability, Connection, ConnectionState, Environment
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import ConnectionGrant, Mandate
 from unbidden.contracts.world import WorldModel
@@ -162,7 +162,8 @@ def _from_world(world: WorldModel | None) -> list[tuple[Connection, str]]:
 
 
 def record(store: Store, conn: Connection, *, reason: str) -> Connection:
-    """Store a connection; a change of state is kept in its history and published as an event."""
+    """Store a connection; a change of state is kept in its history and published as an event. A credential
+    refused where it used to work is a revocation (see `survey`)."""
     old = store.get(COLLECTION, conn.id, Connection)
     if old is not None:
         conn.history = old.history
@@ -228,7 +229,12 @@ def survey(
             conn.state, conn.blocked = ConnectionState.NEEDS_CONFIGURATION, "; ".join(problems)
             conn.next_step = "complete the grant in the mandate: " + "; ".join(problems)
         elif check:
-            apply(conn, connector.check(grant))
+            result = connector.check(grant)
+            before = store.get(COLLECTION, conn.id, Connection)
+            if result.failure is Failure.AUTH and before is not None and before.state in USABLE:
+                # It worked and now its credential is refused: revoked, not a configuration that was never right.
+                result.state = ConnectionState.REVOKED
+            apply(conn, result)
         else:
             previous = store.get(COLLECTION, conn.id, Connection)
             if previous is not None:
