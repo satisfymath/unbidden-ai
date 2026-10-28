@@ -5,7 +5,7 @@ board's development set (`docs/bench/ecosystem/RESULTS.md`, stage 5). Dispatch a
 
 ## What is frozen
 
-- **Code and harness:** one commit (filled in at the freeze, below), run from the frozen worktree
+- **Code and harness:** commit 2793504 (frozen 2026-10-28), run from the frozen worktree
   `~/unbidden-ai-eco` checked out detached at it. The harness and the product come from the same tree. No change to
   either during the runs; a fix found from these results makes a new version, reported apart, not this trial.
 - **Models:** `muse-spark-1.3` on the `code` route (think budget 2048), Meta API; the local model as configured
