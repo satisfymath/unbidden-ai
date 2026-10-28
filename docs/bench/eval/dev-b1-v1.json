@@ -1,0 +1,131 @@
+{
+  "run": "eval-dev-b1-v1",
+  "manifest": "bench/repos/corpus-2026-10-28.yaml",
+  "unbidden_commit": "9bef1e6fadcda764ef2bfcc22083905d62b13b4e",
+  "settings": {
+    "split": "dev",
+    "take": 15,
+    "skip": 0,
+    "tier": "static",
+    "workers": 2,
+    "minutes": 20.0,
+    "repo_budget": 1.0,
+    "profile": "frontier",
+    "local_fallback": "deny",
+    "fork_owner": null
+  },
+  "rows": [
+    {
+      "name": "llm-d__llm-d",
+      "run": "eval-dev-b1-v1",
+      "tag": "bench:eval-dev-b1-v1:llm-d__llm-d",
+      "meta": {
+        "url": "https://github.com/llm-d/llm-d",
+        "commit": "9c03a739d9370f3fda00c72a8f02b9f64a5bc1fb",
+        "split": "dev",
+        "stratum": "Python/large",
+        "language": "Python",
+        "stars": 5058,
+        "size_kb": 33615,
+        "license": "Apache-2.0",
+        "default_branch": "main"
+      },
+      "started_at": "2026-10-28T01:38:04.251782+00:00",
+      "unbidden": {
+        "commit": "9bef1e6fadcda764ef2bfcc22083905d62b13b4e",
+        "tree": "166430d62e09ee387051c7205b2eeeb356682f45",
+        "dirty": false
+      },
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 2.2,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 1.0,
+          "timed_out": false,
+          "max_rss_mb": 39.9,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/eval-v1/llm-d__llm-d\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/eval-v1/llm-d__llm-d/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.2,
+          "timed_out": false,
+          "max_rss_mb": 58.4,
+          "log_tail": "    \"repo:llm-d__llm-d\": {\n      \"status\": \"observed\",\n      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"9c03a739d9370f3fda00c72a8f02b9f64a5bc1fb\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-28T01:38:08.443844Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-28T01:38:08.443876Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"9c03a739d9370f3fda00c72a8f02b9f64a5bc1fb\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:llm-d__llm-d\",\n      \"kind\": \"repo\",\n      \"name\": \"llm-d__llm-d\",\n      \"attributes\": {\n        \"rev\": \"9c03a739d9370f3fda00c72a8f02b9f64a5bc1fb\",\n        \"languages\": []\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-28T01:38:08.370298Z\"\n}",
+          "stderr": ""
+        },
+        "scan": {
+          "code": 0,
+          "seconds": 0.1,
+          "timed_out": false,
+          "max_rss_mb": 41.0,
+          "log_tail": "{\n  \"rev\": \"9c03a739d9370f3fda00c72a8f02b9f64a5bc1fb\",\n  \"languages\": [],\n  \"blind_spots\": [],\n  \"problems\": [],\n  \"reports\": [],\n  \"opened\": 0,\n  \"resolved\": 0\n}",
+          "stderr": ""
+        },
+        "decide": {
+          "code": 0,
+          "seconds": 5.5,
+          "timed_out": false,
+          "max_rss_mb": 59.3,
+          "log_tail": "{\n  \"checked_dirs\": [],\n  \"ci_status\": \"red\",\n  \"tool_status\": {},\n  \"open\": 0,\n  \"chosen\": {},\n  \"declined_or_waiting_because\": {},\n  \"decisions\": []\n}",
+          "stderr": ""
+        }
+      },
+      "files": {
+        "tracked": 1524,
+        "code": 110,
+        "by_language": {
+          "Python": 55,
+          "Shell": 54,
+          "JavaScript": 1
+        }
+      },
+      "decide": {
+        "checked_dirs": [],
+        "ci_status": "red",
+        "tool_status": {},
+        "open": 0,
+        "chosen": {},
+        "declined_or_waiting_because": {},
+        "decisions": []
+      },
+      "ci": {
+        "commands": true,
+        "python_versions": [
+          "3.12"
+        ]
+      },
+      "state": {
+        "head": null,
+        "probe": null,
+        "languages": [],
+        "blind_spots": [],
+        "problems": [],
+        "analyzers": [],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {},
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-28T01:38:16.359161+00:00",
+      "seconds": 10.0,
+      "outcome": "unsupported stack",
+      "cause": "no_dependency_manifest"
+    }
+  ],
+  "spend": {
+    "by_repo": {},
+    "by_model": {},
+    "by_purpose": {}
+  }
+}
