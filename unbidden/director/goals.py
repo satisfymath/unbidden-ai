@@ -28,7 +28,7 @@ from unbidden.contracts.action import Action, ActionStatus
 from unbidden.contracts.common import Contract, new_id, utc_now
 from unbidden.contracts.connection import USABLE, Connection, ConnectionState
 from unbidden.contracts.guardian import Goal, Mandate
-from unbidden.contracts.llm import LLMRequest, Message, Tier
+from unbidden.contracts.llm import LLMRequest, Message, Source, Tier
 from unbidden.forge.api_client import COLLECTION as INTEGRATIONS
 from unbidden.forge.api_client import ApiIntegration, CallFailed  # pyright: ignore[reportPrivateUsage]
 from unbidden.operate.actions import idempotency_key, run_api_action
@@ -213,7 +213,9 @@ async def pursue(
 ) -> GoalRun:
     run = GoalRun(goal=goal.id)
     usable, blocked, conns, integrations = _sources(store, mandate)
-    source = "synthetic" if mandate.connections and all(g.content_may_leave for g in mandate.connections) else "runtime"
+    source: Source = (
+        "synthetic" if mandate.connections and all(g.content_may_leave for g in mandate.connections) else "runtime"
+    )
     prompt = load_prompt("goal_plan")
     request = LLMRequest(
         purpose="director.goal_plan",
@@ -309,7 +311,7 @@ async def pursue(
 
 async def _pursue_page(
     brain: Any, store: Store, mandate: Mandate, goal: Goal, run: GoalRun, rows: list[dict[str, Any]], key: str,
-    values: dict[str, float], url: str, *, window: str, workspace: Any, source: str,
+    values: dict[str, float], url: str, *, window: str, workspace: Any, source: Source,
 ) -> GoalRun:  # fmt: skip
     from unbidden.config import load_config
     from unbidden.director.presentation import expected, pursue_page

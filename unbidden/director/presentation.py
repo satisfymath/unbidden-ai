@@ -31,7 +31,7 @@ from unbidden.brain.codeblocks import CodeBlockError, parse_files
 from unbidden.brain.prompts import load_prompt
 from unbidden.contracts.common import utc_now
 from unbidden.contracts.guardian import ActionRequest, Goal, Mandate
-from unbidden.contracts.llm import Image, LLMRequest, Message, Tier
+from unbidden.contracts.llm import Image, LLMRequest, Message, Source, Tier
 from unbidden.guardian.policy import PolicyEngine
 from unbidden.lab.fixlab import unified_patch
 from unbidden.store import Store
@@ -177,7 +177,7 @@ def sam_regions(
 
 async def perceive(
     brain: Any, store: Store, mandate: Mandate, goal: Goal, scan: Any, want: dict[str, dict[str, Any]],
-    perception: str, *, source: str,
+    perception: str, *, source: Source,
 ) -> dict[str, Any]:  # fmt: skip
     """The discrepancies a model finds between the data and the page, under one perception."""
     if perception not in PERCEPTIONS:
@@ -206,24 +206,55 @@ async def perceive(
         extra=extra, schema=json.dumps(CHECK_SCHEMA),
     )  # fmt: skip
     started = time.monotonic()
-    response = await brain.complete(
-        LLMRequest(
-            purpose="director.page_check", tier=Tier.LOCAL, response_schema=CHECK_SCHEMA, max_tokens=3000,
-            prompt_sha256=prompt.sha256, correlation_id=goal.id,
-            messages=[Message(role="user", content=content, source=source, images=images)],  # type: ignore[arg-type]
-        )
-    )  # fmt: skip
-    try:
-        answer = json.loads(response.content)
-    except json.JSONDecodeError:
-        answer = {"discrepancies": [], "cause": "", "unreadable": True}
-    found = [d for d in answer.get("discrepancies", []) if str(d.get("key")) in keys or d.get("kind") == "missing_row"]
+    messages = [Message(role="user", content=content, source=source, images=images)]
+    problems: list[str] = []
+    answer: dict[str, Any] | None = None
+    for _ in range(CHECK_ATTEMPTS):
+        response = await brain.complete(
+            LLMRequest(
+                purpose="director.page_check", tier=Tier.LOCAL, response_schema=CHECK_SCHEMA, max_tokens=3000,
+                prompt_sha256=prompt.sha256, correlation_id=goal.id, messages=messages,  # type: ignore[arg-type]
+            )
+        )  # fmt: skip
+        answer, problem = read_answer(response.content, keys)
+        if problem is None:
+            break
+        problems.append(problem)
+        answer = None
+        messages = [*messages, Message(role="assistant", content=response.content[:4000] or "(nothing)", source=source),
+                    Message(role="user", content=f"That answer cannot be used: {problem}. Answer again, JSON only.",
+                            source="prompt")]  # fmt: skip
     return {
-        "perception": perception, "discrepancies": found, "cause": answer.get("cause", ""),
-        "unreadable": bool(answer.get("unreadable")),
+        "perception": perception,
+        # Inconclusive: no usable answer within the attempts. Never "no discrepancies": nothing was concluded.
+        "conclusive": answer is not None,
+        "discrepancies": answer["discrepancies"] if answer else [],
+        "cause": answer.get("cause", "") if answer else "",
+        "problems": problems,
         "model": served(brain, "director.page_check", started),
         "sam": sam, "screenshots": scan.digests(),
     }  # fmt: skip
+
+
+CHECK_ATTEMPTS = 2
+
+
+def read_answer(text: str, keys: set[str]) -> tuple[dict[str, Any] | None, str | None]:
+    """The page check's answer, or why it cannot be used: not JSON, not the schema, or naming rows the data does not
+    have. Nothing in it is dropped quietly: an answer with one bad entry is not used at all."""
+    from jsonschema import Draft202012Validator
+
+    try:
+        answer = json.loads(text)
+    except json.JSONDecodeError as exc:
+        return None, f"not JSON ({exc.msg})"
+    errors = sorted(Draft202012Validator(CHECK_SCHEMA).iter_errors(answer), key=lambda e: list(e.path))
+    if errors:
+        return None, f"not the schema: {errors[0].message[:160]}"
+    unknown = sorted({str(d["key"]) for d in answer["discrepancies"]} - keys)
+    if unknown:
+        return None, f"names rows the data does not have: {', '.join(unknown[:5])}"
+    return answer, None
 
 
 def app_files(repo: Path) -> dict[str, str]:
@@ -335,7 +366,7 @@ def changes_today(store: Store, goal: Goal, window: str) -> int:
 
 async def pursue_page(
     brain: Any, store: Store, mandate: Mandate, goal: Goal, run: Any, want: dict[str, dict[str, Any]], url: str, *,
-    repo: Path, artifacts: Path, perception: str, window: str, source: str,
+    repo: Path, artifacts: Path, perception: str, window: str, source: Source,
 ) -> None:  # fmt: skip
     """Observe, compare, and within bounds repair and verify. Sets `run.status` and records the evidence."""
     from unbidden.lab.ui import scan as scan_page
@@ -345,6 +376,10 @@ async def pursue_page(
     before = scan_page(url, out / "before")
     found = await perceive(brain, store, mandate, goal, before, want, perception, source=source)
     run.evidence = {"url": url, "perception": perception, "before": {"dir": str(out / "before"), **found}}
+    if not found["conclusive"]:
+        run.status = "page_inconclusive"
+        run.notes.append(f"the page check gave no usable answer: {'; '.join(found['problems'])[:300]}")
+        return
     shown = rows_by_key(before.page, set(want))
     missing = sorted(k for k in want if len(shown.get(k, [])) != 1)
     if not found["discrepancies"] and not missing:
@@ -411,6 +446,13 @@ async def pursue_page(
         after = scan_page(url, out / f"after-{attempt}")
         again = await perceive(brain, store, mandate, goal, after, want, perception, source=source)
         record["after"] = {"dir": str(out / f"after-{attempt}"), **again}
+        if not again["conclusive"]:
+            # A change that cannot be judged is not left deployed, and is not called a fix.
+            record["result"] = "the check after the change gave no usable answer; the previous commit is redeployed"
+            deploy(repo, store, mandate, base, reason=f"goal {goal.id}: a change could not be verified", rollback=True)
+            run.status = "page_inconclusive"
+            run.notes.append(record["result"])
+            return
         rows_now = rows_by_key(after.page, set(want))
         lost = sorted(k for k in want if len(rows_now.get(k, [])) != 1 and len(shown.get(k, [])) == 1)
         if lost:
