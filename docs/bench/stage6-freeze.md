@@ -6,7 +6,7 @@ and Larder, which became development once fixed against) is not used here. The 2
 
 ## What is frozen
 
-- **Code and harness:** commit f334213 (frozen 2026-10-28); run from the worktree `~/unbidden-ai-eval6`
+- **Code and harness:** commit 94765da (frozen 2026-10-28; f334213 was frozen first and replaced before any run, for a lint error in the goal's statement); run from the worktree `~/unbidden-ai-eval6`
   checked out detached at it. The harness and the product come from the same tree; nothing changes during the runs.
   A fix found from these results is a new version, reported apart.
 - **Models:** `muse-spark-1.3` (the `code` route, think budget 2048) for every arm except the declared Wonder arm
