@@ -165,3 +165,36 @@ def test_a_write_scope_is_the_resource_not_the_api_prefix(path: str, scope: str)
     from unbidden.forge.api_client import _scope  # pyright: ignore[reportPrivateUsage]
 
     assert _scope(path) == scope
+
+
+def test_a_listing_read_that_fails_says_why_in_the_verdict(store: object, mandate: object) -> None:
+    """Regression a5 (Larder `bad_page`): the integration was rightly rejected, but its verdict read "read not at all
+    ()", hiding the cause; a person needs the block itself."""
+    from bench.ecosystem.larder import Larder, document, transport
+    from bench.ecosystem.larder_lab import stock
+    from unbidden.contracts.connection import Connection, ConnectionState
+    from unbidden.contracts.guardian import ConnectionGrant, Mandate
+    from unbidden.forge.api_client import ApiIntegration, oracle
+    from unbidden.guardian import credentials
+    from unbidden.store import Store
+
+    assert isinstance(store, Store) and isinstance(mandate, Mandate)
+    held = credentials.reset()
+    held._values["T"] = "tok"  # pyright: ignore[reportPrivateUsage]
+    held.grant("T", "connection:larder")
+    try:
+        mandate.connections = [ConnectionGrant(id="larder", kind="http_api", location="http://larder.test",
+                                               credential_ref="T", permissions=["read"])]  # fmt: skip
+        ops = [o for o in documented(document()) if o.id == "listItems"]
+        integration = ApiIntegration(source="x", title="Larder", api_version="2.1.0", document_url="x",
+                                     document_sha256="x", signature="x", operations=ops,
+                                     auth={"type": "apiKey", "in": "header", "name": "X-Api-Token"})  # fmt: skip
+        conn = Connection(id="http_api:http://larder.test", project="p", kind="http_api", protocol="http",
+                          location="http://larder.test", grant="larder", state=ConnectionState.CONNECTED)  # fmt: skip
+        items, _ = stock()
+        verdict = oracle(integration, conn, mandate, store=store,
+                         transport=transport(Larder({"tok"}, items, {"bad_page"})))  # fmt: skip
+        observed = verdict["operations"]["listItems"]["observed"]
+        assert not verdict["passed"] and observed.startswith("read failed:") and "documented schema" in observed
+    finally:
+        credentials.reset()

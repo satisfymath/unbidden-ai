@@ -176,7 +176,8 @@ async def build(
     refused = [
         k
         for k, r in verdict["operations"].items()
-        if integration.op(k).effect == "read" and str(r.get("observed", "")).startswith(("401", "403"))
+        if integration.op(k).effect == "read"
+        and (r.get("status") in (401, 403) or str(r.get("observed", "")).startswith(("401", "403")))
     ]
     if refused:
         # The service refused the credential itself: nothing is known about the document's truth, and the problem

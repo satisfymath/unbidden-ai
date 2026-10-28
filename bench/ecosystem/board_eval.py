@@ -225,11 +225,11 @@ def _state(repo: Path) -> dict[str, Any]:
     }
 
 
-def cycle(worktree: Path, states: dict[str, Any], methods: list[str], out: Path, policy: str) -> None:
+def cycle(worktree: Path, states: dict[str, Any], methods: list[str], out: Path, policy: str, reps: int = 1) -> None:
     rows = []
     for name, spec in states.items():
-        for method in methods:
-            where = out / f"{name}-{method}"
+        for method, rep in ((m, r) for m in methods for r in range(1, reps + 1)):
+            where = out / f"{name}-{method}-r{rep}"
             where.mkdir(parents=True, exist_ok=True)
             prepared = prepare(name, spec, where)
             repo = workspace(worktree, policy, method)
@@ -256,7 +256,7 @@ def cycle(worktree: Path, states: dict[str, Any], methods: list[str], out: Path,
             )
             regressions = sorted(set(wrong_rows(after)) - set(prepared["wrong"]))
             row = {
-                **prepared, "method": method, "policy": policy, "verified": after["verified"],
+                **prepared, "method": method, "rep": rep, "policy": policy, "verified": after["verified"],
                 "agent_final": final, "agent_says_good": agent_says_good,
                 "false_verification": agent_says_good and not after["verified"],
                 "regressions": regressions, "preserved": after["preserved"],
@@ -270,7 +270,7 @@ def cycle(worktree: Path, states: dict[str, Any], methods: list[str], out: Path,
             (where / "state.json").write_text(json.dumps(state, indent=1, default=str))
             (where / "logs.txt").write_text("\n\n---\n\n".join(logs))
             rows.append(row)
-            shown = ("state", "method", "verified", "agent_final", "false_verification", "unnecessary_change",
+            shown = ("state", "method", "rep", "verified", "agent_final", "false_verification", "unnecessary_change",
                      "model_calls", "usd", "wall_s")  # fmt: skip
             print(json.dumps({k: row[k] for k in shown}), flush=True)
             (out / "cycle.json").write_text(json.dumps(rows, indent=1))
@@ -301,7 +301,7 @@ def main() -> None:
     if args.mode == "perception":
         perception(worktree, states, methods, out, args.reps, args.policy)
     else:
-        cycle(worktree, states, methods, out, args.policy)
+        cycle(worktree, states, methods, out, args.policy, args.reps)
 
 
 if __name__ == "__main__":

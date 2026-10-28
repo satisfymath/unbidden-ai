@@ -444,10 +444,13 @@ def oracle(
         results[op.id] = {
             "passed": error is None and completeness is Completeness.COMPLETE and agrees and refused,
             "observed": (
-                f"{status}, {len(items)} records, read {completeness.value if completeness else 'not at all'} "
+                # A failed read says why first: that is the block a person has to act on.
+                (f"read failed: {error}; " if error else "")
+                + f"{status}, {len(items)} records, read {completeness.value if completeness else 'not at all'} "
                 f"({read_why}); {why}; without the key: {anonymous}"
             ),
             "error": error,
+            "status": status,
         }
     for op in keyed:
         names = [p["name"] for p in op.parameters if p.get("in") == "path"]
