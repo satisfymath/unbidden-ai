@@ -67,7 +67,7 @@ def root_cause(row: dict[str, Any]) -> str:
         # What could not be analyzed is mostly in a language Unbidden does not read; a few scripts in one it does
         # read do not make it a dependency problem.
         return "unsupported_language"
-    if not languages:
+    if not languages and not analyzed:
         if files and files.get("code", 0) < MIN_CODE_FILES:
             return "not_software"
         present = set((files.get("by_language") or {}).keys())

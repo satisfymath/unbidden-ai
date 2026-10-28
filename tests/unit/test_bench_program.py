@@ -46,3 +46,8 @@ def test_every_language_reaches_every_split() -> None:
     assert split_counts(3) == {"dev": 1, "validation": 1, "holdout": 1}
     assert split_counts(30) == {"dev": 12, "validation": 9, "holdout": 9}
     assert sum(split_counts(7).values()) == 7
+
+
+def test_subprojects_analyzed_count_even_when_the_root_has_no_stack() -> None:
+    done = [{"completeness": "complete"}]
+    assert root_cause(row(languages=[], analyzers=done)) == "nothing_found"
