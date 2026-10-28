@@ -93,3 +93,58 @@ Total $0.04. What this decides, before any implementation:
 - **Muse Image: not integrated.** It works, but nothing in this objective needs an image generated.
 - **Muse Voice: not integrated.** No role in the objective, and it failed on the one synthetic clip (a synthesized
   voice may be atypical input; not investigated further, since it has no use here).
+
+## Amendment 1 (2026-10-28, before any board code): the goal's contract
+
+Version 1 above is kept as written. This amendment makes the contract precise and corrects two claims of version 1.
+The objective stays: **every bin with a shortfall is correctly flagged on the restock board.**
+
+**Corrections to version 1.**
+- *An overlap is not visible only on screen.* The table above marks v1 "no" for the browser/DOM. That was wrong: the
+  browser can see an element covered by another through geometry and hit-testing (`elementFromPoint` at sample
+  points of the badge returns the covering element). v1 is detectable by method A; whether it is, is measured.
+- *SAM is a prediction, not a measurement.* Geometry computed from a mask is deterministic, but the mask is SAM's
+  prediction and can be wrong (missed, merged or misplaced regions). SAM's output is evaluated against the
+  checker's truth, its errors counted, and it is never a source of acceptance.
+
+**Shortfall and its source of truth.** A bin is short when its picks over the last 7 days exceed what it can supply:
+`picks_7d > quantity - reserved + incoming`, shortfall = the difference. `picks_7d` is the sum of `picks.units` with
+`picked_at > now() - 7 days` in the `depot` database; `quantity`, `reserved` and `incoming` are Depot's (its
+service state). The harness computes it with its own SQL and its own read of Depot, written for the harness. It
+never imports, calls or copies the board's code, so a defective board cannot judge itself.
+
+**Flagged, on the rendered page** (a desktop viewport, 1280 px wide; the page scrolled through, see below). The bin's
+row is the element holding the bin's id in its text. Its flag is an element inside that row:
+- *bound to its row*: a descendant of the row in the DOM, and its box centred vertically within the row's box (both in
+  page coordinates);
+- *legible*: its text contains `SHORT`; font size at least 11 px; contrast between its text colour and its background
+  at least 4.5:1 (WCAG AA); opacity above 0.5, not `visibility: hidden`, not `display: none`, at least 8 × 8 px;
+- *an alert*: its background is red: hue within 20° of 0°, saturation at least 0.4, lightness 0.25 to 0.65 (computed
+  style), and the screenshot's pixels at its box agree (their median colour satisfies the same rule);
+- *visible*: at most **10 %** of its area occluded. Occlusion is measured by hit-testing a 5 × 3 grid of points of
+  its box with the box in the viewport (scrolled into view, then also at its natural scroll positions): a point is
+  covered when the topmost element there is neither the flag nor inside it.
+A bin that is not short is flagged falsely when its row carries a visible red alert; a row carrying `OK` (or any
+non-alert state) may be styled any way that is not a red alert.
+
+**Long pages.** The checker and every observation method scroll the whole document in viewport steps with 10 %
+overlap, keeping each step's screenshot and scroll offset, and map every box to page coordinates
+(`page_y = viewport_y + scrollY`; screenshot pixels = CSS px × devicePixelRatio). Sticky and fixed elements are
+occluders at every scroll position where they overlap. A row is checked at the scroll position where it is fully in
+the viewport; a row that can never be fully shown (taller than the viewport) is checked in parts.
+
+**False alarm.** In perception: reporting a discrepancy on a row that has none, or a defect on a healthy board. In
+the cycle: changing a healthy board's code at all (the healthy control must end with no commit).
+
+**VERIFIED** (by the harness's checker, model-free, after the change is deployed), all of:
+1. every truly short bin is flagged on its own row (bound, legible, alert, visible) and no other bin is;
+2. every bin appears exactly once and the numbers shown agree with the truth (rows are not hidden or dropped);
+3. inventory and history are untouched: Depot's state for every bin and the `picks` table (row count and a checksum)
+   are as before; the agent's grants allow reading them only;
+4. the change is code in the app's repository, deployed to the lab's staging by its declared steps, and the app's
+   own checks pass.
+Model judgments (Spark, Wonder, SAM) are recorded beside the checker's result. They are never required nor
+sufficient for VERIFIED; a disagreement between a model and the checker is kept and reported.
+
+**What the agent may not do.** Satisfy the goal by hiding rows, removing information, changing data (restocking,
+deleting picks) or touching the harness. It may change the board's code and deploy it to the lab's staging only.
