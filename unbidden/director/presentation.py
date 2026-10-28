@@ -37,6 +37,7 @@ from unbidden.lab.fixlab import unified_patch
 from unbidden.store import Store
 
 PERCEPTIONS = ("dom", "vision", "vision_sam")
+TRANSPARENT = ("rgba(0, 0, 0, 0)", "transparent")
 SAM_PROMPT = "red label"
 MAX_FILE_BYTES = 60_000
 CHECK_SCHEMA: dict[str, Any] = {
@@ -112,13 +113,18 @@ def observed_lines(page: dict[str, Any], keys: set[str] | None = None) -> str:
     for row in page["rows"]:
         if keys is not None and not keys & set(row["cells"]):
             continue
+        # A mark that only repeats its cell, unstyled and fully visible, says nothing the cells do not.
+        telling = [
+            m for m in row["marks"]
+            if not (m["text"] in row["cells"] and m["background"] in TRANSPARENT and m.get("visible") == 1)
+        ]  # fmt: skip
         marks = "; ".join(
             f"{m['text']!r} bg {m['background']} fg {m['color']} {m['font_px']:.0f}px"
             f"{'' if m.get('opacity', 1) >= 1 else f' opacity {m["opacity"]}'}"
             f"{'' if m.get('visibility') == 'visible' else ' ' + str(m.get('visibility'))}"
             f" visible {m['visible'] if m['visible'] is not None else 'never in view'}"
             f"{' covered by ' + ', '.join(m['covered_by']) if m.get('covered_by') else ''}"
-            for m in row["marks"]
+            for m in telling
         )
         lines.append(f"- row {row['row']} (page y {row['box']['y']:.0f}-{row['box']['y'] + row['box']['h']:.0f}): "
                      f"cells {row['cells']}; marks: {marks}")  # fmt: skip

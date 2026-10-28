@@ -102,6 +102,14 @@ VARIANTS: dict[str, list[tuple[str, str, str]]] = {
             ".zone-B { background: #d32f2f; color: #ffffff; padding: 2px 8px; border-radius: 10px; }\n.summary {",
         ),
     ],
+    "red_text": [  # another red element that is not an alert: zone B's name in red text, no badge
+        (
+            "board/app.py",
+            'f\'<td class="zone">Zone {r.zone}</td>',
+            'f\'<td class="zone"><span class="zone-{r.zone}">Zone {r.zone}</span></td>',
+        ),
+        ("board/static/board.css", ".summary {", ".zone-B { color: #c62828; }\n.summary {"),
+    ],
     "by_shortfall": [
         (
             "board/shortage.py",

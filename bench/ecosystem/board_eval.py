@@ -40,6 +40,7 @@ SETS: dict[str, dict[str, tuple[str, list[str], int, int, str]]] = {
         "healthy": ("healthy", [], 5_2026, 24, ""),
         "healthy-dark": ("healthy", ["dark"], 5_2026, 24, ""),
         "healthy-red-zone": ("healthy", ["red_zone"], 5_2026, 24, ""),
+        "healthy-red-text": ("healthy", ["red_text"], 5_2026, 24, ""),
         "healthy-state-first": ("healthy", ["state_first", "big_badges"], 5_2026, 24, ""),
         "healthy-by-shortfall": ("healthy", ["by_shortfall"], 5_2026, 24, ""),
         "overlay": ("overlay", [], 5_2026, 24, r"summary|footer|fixed"),
