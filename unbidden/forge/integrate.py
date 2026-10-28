@@ -166,6 +166,20 @@ async def build(
         },
     )
     verdict = oracle(integration, conn, mandate, transport=transport)
+    refused = [
+        k
+        for k, r in verdict["operations"].items()
+        if integration.op(k).effect == "read" and str(r.get("observed", "")).startswith(("401", "403"))
+    ]
+    if refused:
+        # The service refused the credential itself: nothing is known about the document's truth, and the problem
+        # is access, for a person to fix. The connection says so; the integration is not condemned.
+        from unbidden.connect.registry import record
+
+        conn.state, conn.blocked = ConnectionState.NEEDS_AUTHORIZATION, f"{', '.join(refused)} refused the credential"
+        conn.next_step = f"a person checks the key stored as {grant.credential_ref}: the service refuses it"
+        record(store, conn, reason=conn.blocked)
+        return None, "credential_refused", [*notes, conn.blocked]
     integration.quality = verdict
     integration.status = "validated" if verdict["passed"] else "rejected"
     _register(store, integration, "built")

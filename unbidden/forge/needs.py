@@ -83,11 +83,24 @@ def admit(store: Store, mandate: Mandate | None, need: CapabilityNeed) -> Capabi
     if not permitted(status, mandate, need.source):
         return _set(store, need, NeedStatus.AWAITING_APPROVAL, f"built {need.capability_id}; awaiting approval")
     _set(store, need, NeedStatus.IN_USE, f"in use: {need.capability_id}")
+    if need.kind == "api_client" and need.capability_id:
+        _attach(store, need.source, need.capability_id)
     from unbidden.daemon.cycle import job
 
     for spec in need.resume:
         store.enqueue(job(spec["type"], f"{spec.get('key', need.id)}:{need.capability_id}", spec.get("payload")))
     return need
+
+
+def _attach(store: Store, connection: str, capability_id: str) -> None:
+    """An integration in use is the way its connection is used: recorded on it, whoever admitted it (the mandate in
+    the cycle, or a person's approval). The connection's next check goes through the integration."""
+    from unbidden.connect.registry import get, record
+
+    conn = get(store, connection)
+    if conn is not None and conn.capability_id != capability_id:
+        conn.capability_id = capability_id
+        record(store, conn, reason=f"integration {capability_id} in use")
 
 
 def approved(store: Store, capability_id: str) -> list[CapabilityNeed]:

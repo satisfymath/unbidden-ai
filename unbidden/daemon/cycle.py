@@ -596,9 +596,15 @@ class Cycle:
             self.log(f"deploy procedure found, proposed only: {proposal.operation}")
         states = ", ".join(f"{c.id} {c.state.value}" for c in found if c.grant)
         self.log(f"connections: {states}")
+        # A goal is pursued again each hour, and as soon as what it can use changes (a connection revoked, restored,
+        # given an integration): the same state in the same hour is not pursued twice.
+        import hashlib
+
         hour = f"{utc_now():%Y%m%d%H}"
+        usable = sorted(f"{c.id}={c.state.value}/{c.capability_id}" for c in found if c.grant)
+        signature = hashlib.sha256("|".join(usable).encode()).hexdigest()[:8]
         for goal in mandate.goals:
-            self.store.enqueue(job("goal.pursue", f"{goal.id}:{hour}", {"goal": goal.id}))
+            self.store.enqueue(job("goal.pursue", f"{goal.id}:{hour}:{signature}", {"goal": goal.id}))
 
     async def goal_pursue(self, j: Job) -> None:
         from unbidden.director.goals import pursue

@@ -247,7 +247,14 @@ async def pursue(brain: Any, store: Store, mandate: Mandate, goal: Goal, *, wind
     if not act or not short:
         return _finish(store, run, "investigated", f"{len(short)} of {len(rows)} keys short; nothing to change")
     _act(store, mandate, goal, run, short, act, conns, integrations, plan, window)
-    return _finish(store, run, "acted", f"{len(short)} of {len(rows)} keys short; {len(run.actions)} action(s)")
+    done = [f for f in short if (f.get("action") or {}).get("status") in ("executed", "verified", "unverified")]
+    status = "acted" if done else "investigated"
+    return _finish(
+        store,
+        run,
+        status,
+        f"{len(short)} of {len(rows)} keys short; {len(done)} action(s) taken, {len(run.actions) - len(done)} refused",
+    )
 
 
 def _read(

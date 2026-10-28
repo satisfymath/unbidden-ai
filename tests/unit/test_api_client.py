@@ -212,3 +212,68 @@ def test_every_call_passes_the_gate_and_is_built_from_the_document(mandate: Mand
         )
     with pytest.raises(Unavailable):
         call(integration(["listItems"]), connected(["listItems"]), mandate, "getAnything", transport=transport)
+
+
+def test_a_refused_key_is_an_access_problem_not_a_bad_integration(mandate: Mandate, store: Any) -> None:
+    import asyncio
+
+    from unbidden.connect.registry import get, record
+    from unbidden.forge import integrate
+
+    class Brain:
+        async def complete(self, request: Any) -> Any:
+            return type(
+                "R",
+                (),
+                {
+                    "content": json.dumps({"operations": [{"id": "listItems", "use": "read", "why": "x"}]}),
+                    "model": "test",
+                },
+            )()
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/o":
+            return httpx.Response(200, json=DOC)
+        return httpx.Response(401, json={"error": "key"})
+
+    mandate.connections = [grant(["read"])]
+    conn = connected([])
+    conn.state = ConnectionState.NEEDS_CAPABILITY
+    record(store, conn, reason="test")
+    built, decision, _ = asyncio.run(
+        integrate.build(Brain(), store, mandate, conn, transport=httpx.MockTransport(handle))
+    )
+    stored = get(store, conn.id)
+    assert built is None and decision == "credential_refused"
+    assert (
+        stored is not None
+        and stored.state is ConnectionState.NEEDS_AUTHORIZATION
+        and "STOCK_KEY" in (stored.next_step or "")
+    )
+    assert store.list("integrations", ApiIntegration) == []  # nothing condemned for what the key did
+
+
+def test_a_persons_approval_attaches_the_integration_to_its_connection(store: Any) -> None:
+    from unbidden.connect.registry import get, record
+    from unbidden.contracts.capability import CapabilityNeed, NeedStatus
+    from unbidden.forge import needs
+
+    conn = connected([])
+    conn.state = ConnectionState.NEEDS_CAPABILITY
+    record(store, conn, reason="test")
+    approved = integration(["listItems"]).model_copy(update={"status": "approved"})
+    store.put("integrations", approved)
+    store.put(
+        "needs",
+        CapabilityNeed(
+            id="need_1",
+            kind="api_client",
+            source=conn.id,
+            why="x",
+            status=NeedStatus.AWAITING_APPROVAL,
+            capability_id=approved.id,
+        ),
+    )
+    (need,) = needs.approved(store, approved.id)
+    attached = get(store, conn.id)
+    assert need.status is NeedStatus.IN_USE and attached is not None and attached.capability_id == approved.id

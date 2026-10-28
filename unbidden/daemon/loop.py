@@ -163,7 +163,8 @@ async def _work(
         store.enqueue(job("github.poll", str(int(now.timestamp() // poll_every.total_seconds()))))
         if not once:
             store.enqueue(job("world.refresh", str(int(now.timestamp() // MAP_EVERY_S))))
-        store.enqueue(job("connect.survey", str(int(now.timestamp() // MAP_EVERY_S))))
+        # Every cycle starts by checking its connections: a `--once` run, or a daemon at each map interval.
+        store.enqueue(job("connect.survey", now.isoformat() if once else str(int(now.timestamp() // MAP_EVERY_S))))
         while True:
             if killswitch.engaged:
                 log("kill switch engaged; waiting")

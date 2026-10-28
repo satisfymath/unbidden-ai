@@ -92,6 +92,8 @@ def lab(*args: str) -> None:
 
 def reset() -> None:
     lab("down")
+    for keys in [*LAB.glob("stockroom-*/keys"), *LAB.glob("carrier-*/keys")]:
+        keys.unlink()  # a key revoked by an earlier scenario is regenerated from the lab's secrets
     for state in [*LAB.glob("stockroom-*/state.json"), *LAB.glob("carrier-*/state.json")]:
         state.unlink()
     for flaky in LAB.glob("stockroom-*/flaky"):
