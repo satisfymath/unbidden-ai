@@ -41,7 +41,13 @@ def _opportunity(title: str, details: dict[str, Any], *, category: str = "perfor
     }
 
 
-def _world(rows: int) -> dict[str, Any]:
+def _world(
+    rows: int,
+    table: str = "orders",
+    parent: str = "customers",
+    column: str = "customer_id",
+    endpoint: str = "GET /orders",
+) -> dict[str, Any]:
     def resource(rid: str, kind: str, name: str, attributes: dict[str, Any]) -> dict[str, Any]:
         return {
             "id": rid,
@@ -56,22 +62,22 @@ def _world(rows: int) -> dict[str, Any]:
     return {
         "rev": "a" * 40,
         "resources": {
-            "table:orders": resource("table:orders", "table", "orders", {"indexes": [], "rows_estimate": rows}),
-            "table:customers": resource("table:customers", "table", "customers", {"indexes": []}),
-            "endpoint:GET /orders": resource("endpoint:GET /orders", "endpoint", "GET /orders", {}),
+            f"table:{table}": resource(f"table:{table}", "table", table, {"indexes": [], "rows_estimate": rows}),
+            f"table:{parent}": resource(f"table:{parent}", "table", parent, {"indexes": []}),
+            f"endpoint:{endpoint}": resource(f"endpoint:{endpoint}", "endpoint", endpoint, {}),
         },
         "relations": [
             {
-                "src": "table:orders",
-                "dst": "table:customers",
+                "src": f"table:{table}",
+                "dst": f"table:{parent}",
                 "predicate": "references",
                 "status": "observed",
                 "confidence": 1.0,
-                "evidence": [{"kind": "config", "locator": "psql", "note": "orders.customer_id -> customers"}],
+                "evidence": [{"kind": "config", "locator": "psql", "note": f"{table}.{column} -> {parent}"}],
             },
             {
-                "src": "endpoint:GET /orders",
-                "dst": "table:orders",
+                "src": f"endpoint:{endpoint}",
+                "dst": f"table:{table}",
                 "predicate": "reads",
                 "status": "inferred",
                 "confidence": 0.6,
@@ -177,13 +183,102 @@ def synthetic() -> tuple[list[dict[str, Any]], dict[str, Any]]:
     return cases, oracle
 
 
+def synthetic_eval() -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """The evaluation set's instances: other tables, services, sizes, seeds and evidence than the development set."""
+    rng = random.Random(4_2026)
+    faster = [rng.gauss(40, 2) for _ in range(20)], [rng.gauss(12, 1) for _ in range(20)]
+    same = [rng.gauss(40, 4) for _ in range(20)], [rng.gauss(39.5, 4) for _ in range(20)]
+    never = {
+        "rounds": 3,
+        "failed_per_round": [["<suite>"]] * 3,
+        "round_status": ["infra_failed"] * 3,
+        "collected_per_round": [None] * 3,
+    }
+    cases: list[dict[str, Any]] = [
+        {
+            "id": "unmeasured-transfers",
+            "kind": "decide",
+            "mandate": MANDATE,
+            "context": {"open_pull_requests": 0, "attempts": 0},
+            "opportunity": _opportunity(
+                "transfers.account_id is a foreign key without an index, checked when 2 endpoint(s) delete an account",
+                {
+                    "check": "unindexed_foreign_key",
+                    "table": "transfers",
+                    "column": "account_id",
+                    "cost_path": "parent_delete",
+                    "rows": None,
+                    "endpoints": ["DELETE /accounts/{id}", "POST /accounts/close"],
+                },
+            ),
+        },
+        {
+            "id": "unread-ledger-logs",
+            "kind": "decide",
+            "mandate": MANDATE,
+            "context": {"open_pull_requests": 0, "attempts": 0, "capability_needs": {"compose:ledger-api": "failed"}},
+            "opportunity": _opportunity(
+                "GET /reports/monthly is slow under Unbidden's probes",
+                {
+                    "check": "slow_endpoint",
+                    "endpoints": ["GET /reports/monthly"],
+                    "service": "ledger-api",
+                    "traffic": "unknown",
+                },
+            ),
+        },
+        {
+            "id": "transfers-grow",
+            "kind": "world",
+            "steps": [
+                {"world": _world(20_000, "transfers", "accounts", "account_id", "GET /transfers"), "then": "decline"},
+                {"world": _world(70_000, "transfers", "accounts", "account_id", "GET /transfers")},
+            ],
+        },
+        {
+            "id": "flakier-by-two",
+            "kind": "judge",
+            "before_ms": faster[0],
+            "after_ms": faster[1],
+            "baseline_tests": _summary([["t::a"], ["t::a"], ["t::a"]]),
+            "candidate_tests": _summary([["t::a", "t::b"], ["t::a", "t::b"], ["t::a"]]),
+        },
+        {
+            "id": "small-noise",
+            "kind": "judge",
+            "before_ms": same[0],
+            "after_ms": same[1],
+            "baseline_tests": _summary([[], [], []]),
+            "candidate_tests": _summary([[], [], []]),
+        },
+        {
+            "id": "candidate-suite-never-ran",
+            "kind": "judge",
+            "before_ms": faster[0],
+            "after_ms": faster[1],
+            "baseline_tests": _summary([[], [], []]),
+            "candidate_tests": never,
+        },
+    ]
+    oracle = {
+        "unmeasured-transfers": {"kind": "needs_measurement", "acceptable": ["measure", "investigate", "wait"]},
+        "unread-ledger-logs": {"kind": "missing_capability", "acceptable": ["acquire_capability", "wait"]},
+        "transfers-grow": {"kind": "data_change", "acceptable_final": "open"},
+        "flakier-by-two": {"kind": "apparent_improvement", "max_level": 3},
+        "small-noise": {"kind": "apparent_improvement", "max_level": 2},
+        "candidate-suite-never-ran": {"kind": "apparent_improvement", "max_level": 3},
+    }
+    return cases, oracle
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("out")
     parser.add_argument("--opportunities", help="frozen opportunities of the planted repositories, by scenario")
+    parser.add_argument("--set", choices=["dev", "eval"], default="dev")
     args = parser.parse_args()
     out = Path(args.out).expanduser()
-    cases, oracle = synthetic()
+    cases, oracle = synthetic_eval() if args.set == "eval" else synthetic()
     if args.opportunities:
         from unbidden.daemon.cycle import checked_dirs
         from unbidden.observe.ci import ci_commands

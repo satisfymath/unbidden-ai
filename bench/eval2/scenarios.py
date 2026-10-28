@@ -251,17 +251,23 @@ def _git(repo: Path, *args: str) -> None:
     )
 
 
-def write(out: Path) -> list[str]:
+def write(out: Path, which: str = "dev") -> list[str]:
+    if which == "eval":
+        from bench.eval2 import eval_set
+
+        chosen, base = eval_set.scenarios(), eval_set.BASE
+    else:
+        chosen, base = scenarios(), BASE
     (out / "repos").mkdir(parents=True, exist_ok=True)
     (out / "oracle").mkdir(parents=True, exist_ok=True)
     written = []
-    for s in scenarios():
+    for s in chosen:
         repo = out / "repos" / s.id
         if repo.exists():
             raise SystemExit(f"{repo} exists; scenarios are written once, into an empty directory")
         repo.mkdir()
         _git(repo, "init", "-q", "-b", "main")
-        for path, text in BASE.items():
+        for path, text in base.items():
             (repo / path).parent.mkdir(parents=True, exist_ok=True)
             (repo / path).write_text(text)
         _git(repo, "add", ".")
@@ -282,7 +288,9 @@ def write(out: Path) -> list[str]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("out")
-    print(json.dumps(write(Path(parser.parse_args().out).expanduser())))
+    parser.add_argument("--set", choices=["dev", "eval"], default="dev")
+    args = parser.parse_args()
+    print(json.dumps(write(Path(args.out).expanduser(), args.set)))
 
 
 if __name__ == "__main__":
