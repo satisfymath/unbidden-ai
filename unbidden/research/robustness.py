@@ -258,7 +258,10 @@ class RobustnessProbe:
         work = snapshot(self.repo, rev)
         try:
             (work / PROBE_FILE).parent.mkdir(parents=True, exist_ok=True)
-            (work / PROBE_FILE).write_text(tests)
+            # Environment, not the model's tests: a Django project's modules cannot even be imported before its settings
+            # are configured, so the settings module its own manage.py names is set first. The stored tests are
+            # kept as written.
+            (work / PROBE_FILE).write_text(django_preamble(work) + tests)
             link_dependencies(work, self.image)
             argv = [
                 "python",
@@ -377,3 +380,21 @@ async def probe_package(
         tests = refined
         output = await run(rev, tests)
     return tests, output
+
+
+_DJANGO_SETTINGS = re.compile(r"""os\.environ\.setdefault\(\s*["']DJANGO_SETTINGS_MODULE["']\s*,\s*["']([\w.]+)["']""")
+
+
+def django_preamble(work: Path) -> str:
+    """Lines that configure Django before a test module imports the project, when its manage.py names a settings
+    module (read as text, never run); empty otherwise."""
+    manage = work / "manage.py"
+    if not manage.is_file():
+        return ""
+    found = _DJANGO_SETTINGS.search(manage.read_text(errors="replace"))
+    if found is None:
+        return ""
+    return (
+        f'import os\nos.environ.setdefault("DJANGO_SETTINGS_MODULE", "{found.group(1)}")\n'
+        "import django\ndjango.setup()\n\n"
+    )

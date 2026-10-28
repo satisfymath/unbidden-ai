@@ -157,3 +157,12 @@ def test_crashes_in_the_newer_pytest_and_hypothesis_formats() -> None:
     assert crash.exception == "KeyError"
     assert crash.frame == "src/textkit/time.py:142 in delta"
     assert crash.example.startswith("test_delta_never_crashes(\nvalue=0,")
+
+
+def test_a_django_project_is_configured_before_the_probe_imports_it(tmp_path: Path) -> None:
+    from unbidden.research.robustness import django_preamble
+
+    assert django_preamble(tmp_path) == ""
+    (tmp_path / "manage.py").write_text('import os\nos.environ.setdefault("DJANGO_SETTINGS_MODULE", "hc.settings")\n')
+    preamble = django_preamble(tmp_path)
+    assert 'os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hc.settings")' in preamble and "django.setup()" in preamble
