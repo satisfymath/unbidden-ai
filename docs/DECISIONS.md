@@ -814,3 +814,26 @@ The benchmark identifies the code under test by the `unbidden/` tree and refuses
 
 **Spend reconciled.** US$0.956 in 50 calls before pilot 2 (32 before the ledger, 18 after, plus one refused at the
 gate). Nothing is unaccounted between the ledger and the workspaces.
+
+## D-039 · 2026-10-28 · The next stage: evidence first, then the loop, then value the user can see
+
+An external review of `2c191a6` was verified against `6a70947` (`docs/PLAN.md`, with file and line evidence for each
+finding). Most of it was confirmed by reproduction; it missed two serious defects, and one of its points was worse
+than it said:
+- **L4 can be granted when no test ran** (both sides' suite failing to start), when a test fails more often after the
+  change, and, in RobustLab, with an inconclusive test outcome. Tests not collected count as passed.
+- **A rescan of a new commit erases each opportunity's history** (attempts, verdict, decision): the attempt limit
+  is per commit and a proven L4 can wait forever. Not in the review.
+- **CI-based declines trust a substring and a "green" that includes cancelled and neutral runs**; the cycle also
+  froze "no checks yet" for a commit. Seven false declines were reproduced.
+- **A regex Forge admits can take seconds or hang** on 39 characters, and runs in the probe thread; stats readers are
+  used without the approval the mandate requires. The second was not in the review.
+- Provisioning in the lab and for subprojects skips even the declared registry check; timeouts and the kill switch
+  do not stop work already running.
+
+Decision: fix the meaning of evidence before measuring more (Phase 0: test evidence, opportunity history, CI state and
+equivalence, gates), make declared boundaries effective (Phase 1), then wire self-extension, continuous observation and
+a Director that chooses among investigate, measure, acquire, experiment and abstain (Phase 2), then outcome lifecycle
+and an Activity & Outcomes view (Phase 3). Capabilities are evaluated apart: coverage, discovery, decision, capability
+acquisition, experimentation and operational impact. More languages only when the evaluation shows they limit results.
+First PR: one test-evidence contract and judge for the three labs.

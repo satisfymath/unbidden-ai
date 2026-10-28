@@ -1,0 +1,305 @@
+# Plan: the next stage
+
+Decision D-039. Verified against `feat/20-scale-eval@6a70947` on 2026-10-28.
+
+## Context
+
+The master document (`/Users/david/unbidden/docs/UNBIDDEN_Proyecto_Maestro_2026.md`, "Master") describes a private,
+proactive, self-extending intelligence: it understands an environment, finds opportunities without tickets, decides
+what to investigate, acquires missing capabilities within its permissions, experiments, and proves value (L1–L6).
+An external review of `feat/20-scale-eval@2c191a6` found working components with weak connections, doubtful
+evaluation validity and unproven generalization. This plan verifies that review against the current code
+(`feat/20-scale-eval@6a70947`), corrects it, and turns it into a dependency-ordered sequence of small PRs that keeps
+the ambition while making every claim trustworthy first.
+
+**State verified.** Since `2c191a6`: 3 commits (`8aa0691` LanguageAdapter + Go with real-sandbox conformance;
+`88f8f19` discovery audit; `6a70947` mealie L5 protocol). One untracked file, `docs/bench/eval/dev-all-v4.json`, is the
+output of a v4 benchmark run still in progress (preserved, not interpreted here). No other local changes. Repo has no
+CLAUDE.md/AGENTS.md; conventions come from `docs/ARCHITECTURE.md` and `docs/DECISIONS.md` (append-only, English).
+
+Verification method: code read with file:line evidence; in-memory reproductions (no files written, no containers);
+regex timings in killed subprocesses. Labels: **CONFIRMED** (reproduced), **CONFIRMED-static** (unambiguous code
+path, not executed), **RESOLVED**, **INCORRECT**, **DESIGN LIMITATION**, **HYPOTHESIS**.
+
+---
+
+## 1. Diagnosis
+
+**What works, shown in real runs.** Index found, written, measured (13.0→4.1 ms, L4), merged and deployed on
+full-stack-fastapi-template (D-010/13); outage drill with rollback in 15 s (D-015); Rich crashes found blind and fixed
+(L4, D-018); mealie index L4 on SQLite (D-035); Forge readers judged by a model-free oracle on unseen real data
+(D-016, D-025); spend ledger reconciled to the cent; static evaluation reach 13/32 → 18/32 on validation (5 gained,
+0 lost, p = 0.0625) and 8/15 → 13/15 on dev; the Director's CI rules declined thousands of environment findings.
+
+**What does not yet hold.**
+- *Evidence validity:* L4 can be granted when no test ran (A). Opportunity memory is erased by every rescan of a new
+  commit (G1, new). CI-based declines trust a substring and a green that includes cancelled jobs (B).
+- *Autonomy loop:* self-extension, investigation and continuous mapping exist as parts but are not wired into the
+  autonomous cycle (C, D). The Director is a rule table with fixed constants (E). Memory is stored, mostly not used (G).
+- *Safety boundaries:* several controls are declarative, not effective: build network, regex execution time,
+  cancellation, kill switch reach, capture network, capability approval for stats readers (F, C).
+- *Proof of value:* no valid L5 exists; no L6 logic; claims are never downgraded (J). Discovery precision on what the
+  Director keeps is low: 1 of 7 repositories held a defect worth fixing (`docs/bench/eval/discovery-audit-v3.md`).
+
+**What separates the product from the vision.** Not missing components so much as missing *contracts between them*:
+a shared notion of valid evidence, of a capability need, of source freshness, of opportunity history, and a Director
+that chooses among investigate / measure / acquire / experiment / abstain with real estimates. Coverage grew;
+capability to improve systems has not been shown to grow with it.
+
+---
+
+## 2. Vision – implementation – evidence – gap
+
+| Vision (Master) | Implementation (files) | Evidence | Gap |
+|---|---|---|---|
+| Opportunities without tickets (§6.1 L151–163, §14) | `observe/scan.py`, `world/checks.py`, `research/robustness.py`, `daemon/cycle.py` | Real: fst index, Rich crashes, mealie index; corpus audit 1/7 useful | Discovery precision low; probes are samples (humanize 1/13) |
+| Continuous observation (§6.1 L161, §14.1 L559–565) | `daemon/loop.py:30-66` probes/logs/health; `discover` only after HEAD moves (`cycle.py:92-114`) | Deploys detected per round (real) | Map, checks, needs not refreshed without a commit (D) |
+| Decide what to investigate; VOI (§15.2–15.3 L604–624) | `director/decide.py` fixed table, `p=0.6/(1+attempts)`; ordering by level, age (`cycle.py:221`) | Unit tests only | No VOI, no global budget, no INVESTIGATE/ACQUIRE actions; `research.investigate` never enqueued |
+| Acquire missing capabilities, no new privileges (§9.3 L351–364, §13) | `forge/` (log adapters, stats readers, oracle, cards, reuse) | Real: 1,029/1,029 and 1,770 lines | Builds are CLI-only; stats readers used without approval (C) |
+| Valid experiments (§16.1, §20.4) | `lab/evaluator.py`, `lab/testsuite.py`, three labs | Real L4s | L4 without tests run; inconsistent rules across labs (A) |
+| L5 with confounders, L6 persistence (§16.2 L690–699) | `operate/ledger.py`, `observe/live.py:_outcomes`, `observe/impact.py` | Unit tests; real D-036 outcome = invalid | No valid L5; L6 never assigned; no downgrade; probes ≠ user traffic (J) |
+| Local-first privacy (§11.1, §12, §17.4) | `brain/route_policy.py`, `bridge/`, `guardian/egress.py` | Real routing audits (D-018/19) | Structure and constants leave renamed code (documented); screenshots unscanned (F) |
+| Guardian, effective limits (§17.2 L724–736) | `sandbox/runner.py` (effective), `provision.py` (declarative), `killswitch.py` | Runner limits verified | Build egress, regex time, cancellation, kill switch reach (F) |
+| Memory that improves decisions (§10.3 L393–405) | store collections; Forge reuse; `attempts` | Forge reuse real | Decisions/hypotheses/experiments never read back; G1 erases history |
+| Activity & Outcomes, no chatbot (§6.3 L177–190, §29.1 L1128) | CLI `inbox/why/show/deploys/spend/forge` | — | No aggregated outcomes, learning, held-or-not, cost per outcome (J) |
+| Beyond software (§5.2, §18, Fase 4) | none | — | Out of scope now; keep contracts domain-neutral |
+
+---
+
+## 3. Findings, verified and prioritized
+
+Severity: **S1** corrupts evidence or violates the mandate in autonomous mode; **S2** blocks the vision's loop or makes
+results misleading; **S3** quality/scale. Confidence is about the finding, not the fix.
+
+| # | Finding | Review said | Verdict | Sev. | Evidence | Proposed solution (PR) |
+|---|---|---|---|---|---|---|
+| A1 | Both sides `["<suite>"]` 3/3 → `improved`, L4, `pre_existing` | yes | **CONFIRMED** | S1 | `evaluator.py:28-42,71-77`; `testsuite.py:67,125-158` | Test-evidence contract (PR1) |
+| A2 | Base fails 1/3, candidate 3/3 → `pre_existing`, L4 | yes | **CONFIRMED** (reverse too) | S1 | `evaluator.py:34,40-41` | PR1 (flakiness and per-test deltas) |
+| A3 | RobustLab L4 with `inconclusive` | yes | **CONFIRMED** (real `RobustLab.run` with fakes) | S1 | `robust.py:181-182` | PR1 (one judge for all labs) |
+| A4 | Not collected = passed (pytest exit 5; exit-only runners without report) | — | **CONFIRMED** (new) | S1 | `testsuite.py:133-135` | PR1 |
+| A5 | Propose ignores `verdict.tests`; merge ignores the PR's own CI; merges on first poll; deploy has no evidence check | partly | **CONFIRMED-static** (new detail) | S1 | `decide.py:136-144`; `publish/github.py:239-240,82-86`; `cycle.py:466-488`; `operate/deploy.py:47-56` | PR5 |
+| G1 | Rescan at a new commit replaces `opp.details`: attempts, verdict, decision, reopened lost; L4 opportunity waits forever | — | **CONFIRMED** (new) | S1 | `observe/analyzers.py:129` | PR2 |
+| B1 | `_verdict`: cancelled, neutral, skipped, stale, None → green | yes | **CONFIRMED** | S1 | `ci.py:349-353`, `tool_status` `:396` | PR3 |
+| B2 | Partial state (only completed runs; one page, no pagination) cached per commit without expiry; `None` cached too | yes (only "except unreadable") | **CONFIRMED** (worse: `None` frozen) | S1 | `ci.py:345`; `cycle.py:64,293-301` | PR3 |
+| B3 | Decline needs only `tool in ci_commands` (substring): `tsc`⊂`tsconfig`, `[tool.mypy]` in pyproject via tox, format-check counts as lint; no file/path, rules, config, version equivalence; DECLINED is terminal | yes | **CONFIRMED** (7 false declines reproduced) | S1 | `decide.py:102,111,117-124`; `ci.py:248-285,390,393`; `cycle.py:271-273` | PR4 |
+| F2 | Regex admission misses alternation/optional forms; oracle times after matching, in-process; an accepted pattern takes 3.0 s–>5 s on 39 chars; production reads run in the probe thread | yes | **CONFIRMED** (4 accepted patterns ≥3 s or hung) | S1 | `forge/adapter.py:46-47,117-138`; `forge/stats.py:85-103,153-162`; `health.py:390-417` | PR6 |
+| C1 | Stats readers used autonomously without approval or mandate (`use_new_capabilities` ignored); `forge approve` cannot approve stats | — | **CONFIRMED** (new) | S1 | `forge/stats_build.py:255-262`; `health.py:611`; `cli.py:682-698` | PR6 |
+| F1 | `docker build` has full network; registries are a declared check; `runtime.stack_and_images` and `_scan_services` provision **with no policy check at all** | first half | **CONFIRMED** (bypass reproduced) | S1 | `provision.py:1-5,432-434`; `runtime.py:106-116`; `scan.py:47,184` | PR7a, PR7b |
+| F3 | `wait_for` around `to_thread` leaves the work running; retries can run the same job concurrently | yes | **CONFIRMED** | S2 | `loop.py:128-131`; repro thread alive after timeout | PR8 |
+| F4 | Kill switch blocks new jobs and Brain calls only; not running containers, in-flight handlers, pushes, merges, deploys, `visual_judge` | yes | **CONFIRMED-static** | S1 | `killswitch.py`; `loop.py:117`; `router.py:216`; `publish/*`, `operate/*`, `lab/ui.py:185` | PR8 |
+| F5 | Playwright capture: default bridge network (internet + host gateway), no read-only/user/pids; screenshots kept forever; images not scanned | yes | **CONFIRMED-static** | S2 | `lab/ui.py:40-82`; `health.py:486-512`; `egress.py:67-89` | PR9 |
+| F6 | Renamed code still leaves structure, constants, short names | yes | **DESIGN LIMITATION** (already in ARCHITECTURE "Not guaranteed") | S3 | `bridge/rename.py:321-402` | Keep documented; `local` profile for sensitive shapes |
+| F7 | `discover()` blocks the event loop so `wait_for` cannot fire | — | **HYPOTHESIS** | S3 | `world/discover.py` sync calls | Measure in PR8 |
+| C2 | Need recorded only as a BlindSpot suggesting a CLI command; no job builds, no resume; `research.investigate` never enqueued | yes | **CONFIRMED** | S2 | `discover.py:118-136`; `cycle.py:70-83` | PR10 |
+| D1 | Map, checks and needs refresh only when HEAD moves; table-scan rates use a window = time between commits; topology changes unseen; source recovery waits for next map | yes | **CONFIRMED-static / DESIGN** (deploys are seen: RESOLVED) | S2 | `cycle.py:92-114`; `checks.py:31-71,160-167`; `reconcile.py:62-100` | PR11 |
+| E1 | Fixed category values, constant cost, `p=0.6/(1+n)`; ordering by level then age; no cross-opportunity budget; L3 declined terminally; `reopen()` has no production caller | yes | **CONFIRMED** | S2 | `decide.py:21-37,62-71,145-156,170-188`; `cycle.py:221,243` | PR12 |
+| G2 | decisions, hypotheses, experiment measurements, lab notes never read for decisions | yes | **CONFIRMED** | S2 | per-collection table in investigation notes | PR13 |
+| H1 | Python/Node hard-coding: probes, perf, CI parity, `checked_dirs` ignores Go, FixLab falls back to node syntax; declared `probe`/`perf` capabilities never consulted | yes | **PARTIALLY RESOLVED** by `8aa0691` (contract + Go) | S2 | `cycle.py:126-167,347,507`; `lab/perf.py:402-629`; `fixlab.py:177,410` | PR17 |
+| H2 | Subproject findings always WAIT; lab has no per-subproject environment | yes | **CONFIRMED** | S2 | `decide.py:88-91`; `scan.py:149-199`; `cycle.py:85-88` | PR18 |
+| J1 | No L6; outcome recorded once and never re-checked; no `outcome.invalidated`; levels only rise (`max`) | yes | **CONFIRMED** | S2 | `live.py:299`; `contracts/common.py`; `fixlab.py:439`, `robust.py:223`, `perf.py:707` | PR14 |
+| J2 | Impact from Unbidden's own probes only (5 GETs per round, parameterless endpoints) | yes | **CONFIRMED** (stated as confounder) | S2 | `probe.py:99-128`; `live.py:320` | PR14 (traffic signals via Forge log readers) |
+| I1 | Review's evaluation claims (13→18/32; holdout 0/7 L4; Rich/DB useful; mealie L4 not L5) | yes | **CONFIRMED** with qualifiers: all wins on development systems; program holdout (28) not yet run; EVIDENCE.md "20 repositories" wording imprecise | — | `docs/bench/eval/PROGRESS.md`, `2026-10-28-scale-holdout.md`, D-036 | §6 |
+
+What I could not verify: actual network traffic of a `docker build` (read, not observed); F7; the v4 benchmark result
+(running); Go adapter behavior on the corpus (only the conformance fixture); anything requiring Meta credits.
+
+---
+
+## 4. Target architecture, incremental
+
+**Kept as is:** SQLite store, events/audit append-only, job queue; sandbox runner (its limits are effective); Brain,
+routing, spend ledger; Guardian policy engine; world-model provenance and reconcile; deploy ledger; the three labs'
+mechanics; Forge's data-only capability model and model-free oracle; LanguageAdapter contract.
+
+**Contracts that change or appear (each replaces an implicit convention, none is a framework):**
+
+1. **TestEvidence** (`contracts/experiment.py`, `lab/testsuite.py`, `lab/evaluator.py`). Per round:
+   `status ∈ {ran, not_collected, infra_failed}`, `collected`, `failed` names, `exit`. One judge,
+   `judge_tests(base, cand) → {outcome, reasons}` with outcomes `PASSED`, `PRE_EXISTING_STABLE`, `REGRESSION`,
+   `FLAKIER`, `NOT_RUN`, `INFRA_FAILURE`. Used by all three labs. Level rules: L4 only with `PASSED` or
+   `PRE_EXISTING_STABLE` (identical failing set in every round on both sides) and `collected > 0` on both sides;
+   `FLAKIER`/`NOT_RUN`/`INFRA_FAILURE` cap at L3 and are retried or reported, never proposed. Coverage starts minimal
+   and honest: "no test collected" is insufficient; per-file coverage is later and only if measured to matter.
+2. **Opportunity history** (`contracts/opportunity.py`, `observe/analyzers.py:record_report`). `details` split into
+   `observation` (rewritten by scans) and `history` (attempts per commit and total, verdicts, decisions, reopenings,
+   outcomes: append-only). Fixes G1; is the substrate for memory (G).
+3. **CI evidence** (`observe/ci.py`). States `success, failure, pending, skipped, cancelled, neutral, unknown`;
+   a commit-level summary that is `partial` while any run is pending. Cache only terminal, complete summaries, with
+   TTL. **ToolCheck**: the CI job's invocation parsed into tokens (argv, not substring), its path scope, config file
+   and tool version (from the lockfile). Decline-as-environment only when: job `success`, invocation is the same
+   tool and subcommand, the finding's path is inside its scope, same config file, same locked version. Otherwise a
+   new outcome `CI_DISAGREES` → `INVESTIGATE` (bounded), never terminal DECLINE.
+4. **CapabilityNeed** (new entity, `contracts/capability.py`; job `forge.build`). Fields: kind, source, evidence,
+   requested permissions (must be ⊆ mandate; Forge cannot widen), status `open → reusing | building → validated →
+   approved → in_use → retired | failed | abandoned`, cost so far, utility observed. One use gate,
+   `capabilities.usable(store, mandate, kind, source)`, shared by log and stats readers (closes C1).
+5. **Source freshness** (`world/connectors.py`, new `observe.source:<name>` jobs). Each connector declares interval,
+   cost class and whether it may call a model; the scheduler refreshes stale sources independently of HEAD;
+   reconcile per source; checks re-evaluated on facts that changed; opportunities deduplicated by key and reopened
+   when evidence returns. Model-backed inference (endpoint→tables) cached by content hash, never per interval.
+6. **Director v2** (`director/decide.py`, `daemon/cycle.py`). Actions: `INVESTIGATE, MEASURE, ACQUIRE_CAPABILITY,
+   EXPERIMENT, PROPOSE, WAIT, ABSTAIN` (DECLINE kept as explicit abstention with reason). Utility in one unit (expected
+   net value in human-hours saved, an explicit, editable mandate table) minus total cost (model US$, compute minutes,
+   expected human review minutes). Probabilities from Beta-binomial counts per (source, category, language) over
+   history, with the current constants as priors. Global selection: highest expected net value per unit cost within
+   a per-cycle budget. VOI used only for one decision where it is cheap to compute: whether to MEASURE/INVESTIGATE
+   before EXPERIMENT. No bandits/RL until the history has hundreds of labelled outcomes.
+7. **Execution boundary** (`daemon/loop.py`, `forge/*`, `operate/*`, `publish/*`). Long jobs run in a child process
+   with a lease, killable on timeout and on kill switch; containers labelled per job and killed with it; external
+   effects (push, merge, deploy, remote calls including `visual_judge`) check the kill switch immediately before
+   acting. Untrusted regexes execute only through a bounded executor (RE2 if adopted, otherwise a subprocess with a
+   hard timeout), in the oracle and in production.
+8. **Outcome lifecycle** (`observe/live.py`). Outcomes re-checked on scheduled windows; `outcome.held` → L6 after the
+   mandate's persistence period; `outcome.invalidated` downgrades the opportunity and records why. Traffic-based
+   signals (from Forge log readers) reported beside probe results, never mixed.
+
+**Migrations:** history split migrates existing `details` (copy current keys into `history`, keep raw for audit);
+CI cache is in memory (no migration); verdicts recorded before PR1 keep their level but get a `criteria: v1` tag and
+are re-judged where raw test data exists; nothing deletes evidence.
+
+---
+
+## 5. Roadmap by dependency
+
+Estimates are in working days of implementation plus review, as ranges; they are not dates.
+
+**Phase 0 — evidence you can trust** (blocks every later measurement)
+
+| PR | Goal | Scope / files | Tests | Acceptance | Risk | Est. |
+|---|---|---|---|---|---|---|
+| 1 | One test-evidence contract and judge for all labs | `contracts/experiment.py`, `lab/testsuite.py`, `lab/evaluator.py`, `lab/fixlab.py`, `lab/perf.py`, `lab/robust.py` | A1–A4 reproductions as failing-then-passing unit tests; per-lab tests; JUnit `tests` attribute read | No path grants L4 without tests run on both sides; FLAKIER/NOT_RUN/INFRA cap at L3 | Fewer L4 in benchmarks (intended) | 1.5–3 |
+| 2 | Opportunity history survives rescans | `contracts/opportunity.py`, `observe/analyzers.py`, `director/decide.py`, `daemon/cycle.py`; migration | G1 reproduction; attempts total vs per commit; reopen path | Verdict and attempts persist across HEAD moves; `reopen` reachable by policy | Migration of live workspaces | 1–2 |
+| 3 | CI state model and cache | `observe/ci.py`, `daemon/cycle.py` | each conclusion; pending→partial; pagination; TTL; `None` not frozen | Cancelled/neutral never green; no partial cached | GitHub API shapes | 1–2 |
+| 4 | CI equivalence for environment declines | `observe/ci.py` (ToolCheck), `director/decide.py` | the 7 false declines → not declined; the correct decline still declined; `CI_DISAGREES` → INVESTIGATE | Zero false declines on the fixture suite; dev rerun shows declines only with equivalence | Fewer declines → more noise until PR12 | 2–4 |
+| 5 | Proposal, merge and deploy gates | `director/decide.py`, `publish/github.py`, `daemon/cycle.py`, `operate/deploy.py` | merge waits for PR CI success; tests outcome required for propose; deploy checks evidence of merged proposals | No merge on pending/failed PR CI | Slower autonomy | 1–2 |
+
+**Phase 1 — boundaries that are effective, not declared** (can run in parallel with Phase 0 after PR1)
+
+| PR | Goal | Files | Tests | Acceptance | Risk | Est. |
+|---|---|---|---|---|---|---|
+| 6 | Bounded regex execution + one capability use gate | `forge/adapter.py`, `forge/stats.py`, `forge/stats_build.py`, `forge/logs.py`, `observe/health.py`, `cli.py` | the 4 accepted catastrophic patterns refused or time-bounded; stats use denied under `deny` | No untrusted regex can exceed its bound; stats need approval | RE2 dependency (decision 2) | 1.5–3 |
+| 7a | Policy check on every provisioning path | `runtime.py`, `observe/scan.py` | deny-all mandate → no provision from runtime or subprojects | Bypass closed | none | 0.5–1 |
+| 7b | Build egress actually restricted | `sandbox/provision.py`, new egress proxy on an internal network | a build that reaches an unlisted host fails | Only listed registries reachable from builds | Proxy compatibility with npm/uv/go; spike first | 3–6 |
+| 8 | Cancellation and kill switch with real reach | `daemon/loop.py`, `daemon/cycle.py`, `publish/*`, `operate/*`, `lab/ui.py` | job killed on timeout (no live thread); kill switch stops a running container and blocks push/merge/deploy | Verifiable kill semantics, documented per effect | Process boundary for jobs | 3–5 |
+| 9 | Capture confinement and retention | `lab/ui.py`, `observe/health.py`, mandate field | capture cannot reach the internet; artifacts pruned by mandate retention | Network scoped to the app; retention enforced | Pages needing CDNs render differently (said) | 1–2 |
+
+**Phase 2 — the loop the vision describes**
+
+| PR | Goal | Files | Acceptance | Est. |
+|---|---|---|---|---|
+| 10 | CapabilityNeed + `forge.build` job + resume | `contracts/capability.py`, `world/discover.py`, `forge/*`, `daemon/cycle.py` | A detected need is built, validated by the oracle, approved per mandate, used, and the waiting investigation resumes, with no CLI | 3–5 |
+| 11 | Per-source observation scheduler | `world/connectors.py`, `world/discover.py`, `world/checks.py`, `daemon/*` | Data growth, topology change and source recovery each produce/reopen opportunities without a commit; model calls only on changed content | 3–5 |
+| 12 | Director v2 (simplest evaluable policy) | `director/decide.py`, `daemon/cycle.py`, mandate value table | Global selection under budget; INVESTIGATE/MEASURE/ACQUIRE used; beats current policy and act-on-everything on the decision benchmark (§6) | 3–5 |
+| 13 | Memory that changes decisions | `director/`, `lab/` (lab notes fed back), store queries | Out-of-sample: fewer wasted experiments at equal discoveries vs no-memory ablation | 2–4 |
+
+**Phase 3 — value the user can see**
+
+| PR | Goal | Acceptance | Est. |
+|---|---|---|---|
+| 14 | Outcome lifecycle: re-check, L6, invalidation, traffic signals beside probes | An outcome can hold (L6) or be downgraded, visibly | 2–4 |
+| 15 | Activity & Outcomes (`unbidden activity` + static HTML report, no server) | Shows discovered, investigating, declined and why, built, awaiting approval, improved and held, spent, learned | 2–3 |
+| 16 | Evaluation harness v2 (§6) | Seeded and healthy scenarios, baselines, ablations, local-model cycle | 3–6 |
+
+**Environments (after Phase 0; expand only on measured benefit)**: PR17 consult declared capabilities everywhere
+(probes, perf, CI parity per adapter, `checked_dirs` for all adapters); PR18 subproject lab context (per-directory
+stack/images, `tool@dir`, cwd-aware FixLab/testsuite). Go's measured benefit (v4 run) decides whether Rust/PHP come next.
+
+---
+
+## 6. Evaluation protocol
+
+Separate evaluations, one per capability, never pooled into one score:
+
+| Capability | Dataset / scenario | Metric (denominator) | Baselines |
+|---|---|---|---|
+| Coverage | corpus-2026-10-28 dev/val/holdout (100) | reach per stage (all repos); root causes | prior versions, paired McNemar |
+| Discovery | **Seeded suite**: dev-split repos with evaluator-known defects injected on a branch (crash, unindexed FK under load, duplicated test class, mutation of a guard) + **healthy controls** (unchanged repos with audited zero valuable findings) | recall of seeded defects; precision of kept opportunities (audited); false-alarm rate on healthy | static rules (act on all findings); full Unbidden |
+| Decision | Recorded opportunity sets with audit labels (from discovery audits) | regret vs oracle choice under budget; wasted experiments; abstention correctness on healthy | current policy, act-on-everything, static priority |
+| Capability acquisition | Held-out real log/stats samples of formats never seen; needs from the seeded suite | build success, oracle pass on unseen lines, reuse rate, time-bounded execution | no-Forge ablation (need stays open) |
+| Experimentation | Lab runs on seeded defects; planted invalid evidence (suite not run, flaky test) | false-L4 rate (must be 0 on planted cases); L4 rate on real defects | — |
+| Operational impact | mealie SQLite L5 (pre-registered protocol), fst; later forks | valid L5 count, outcome classes, confounders | — |
+| Local-first | Tier F with profile `local` (Glimmer) on a dev subset | same metrics as remote, cost in compute minutes | remote Spark (only with verified balance) |
+
+Rules: dev for debugging; validation only with frozen versions; the program holdout (28) run once with the final
+candidate. Wilson intervals, exact McNemar for paired binaries, bootstrap for continuous; denominators always stated;
+negative results kept. Budget: static and local tiers first (US$0); remote tiers and the tool-agent baseline only
+after a verified balance, capped per run by the spend ledger. Promotion of a version: no regression on dev reach,
+false-L4 = 0 on planted cases, discovery precision and decision regret not worse on validation, explained per
+repository.
+
+---
+
+## 7. First vertical slice
+
+**Scenario:** mealie on SQLite, in a separate worktree and compose project (protocol already registered:
+`docs/bench/2026-10-28-mealie-l5-protocol.md`), with data seeded to a large household.
+
+1. **Discovery without a commit:** the per-source scheduler (PR11) refreshes the database connector as data grows;
+   the unindexed-FK check re-scores the opportunity by rows and endpoints.
+2. **Missing capability:** no reader exists for mealie's access-log format → a CapabilityNeed (PR10); Forge builds a
+   log adapter, the oracle validates it on unseen lines, the mandate's approval gate admits it (PR6 gate); it is used
+   to count real requests per endpoint.
+3. **Decision:** the Director (PR12) prioritizes the opportunity by observed traffic and chooses MEASURE → EXPERIMENT.
+4. **Valid experiment:** PerfLab measures on SQLite, the engine in use, with TestEvidence (PR1): tests collected and
+   run on both sides.
+5. **Operational result:** two `verified` deploys by Unbidden (baseline `e31c5fc`, change `a351dc2`), live probes,
+   outcome classified per criteria v2, re-checked later (PR14).
+6. **Explainable result:** `unbidden activity` (PR15) shows the chain with costs and evidence level, whatever the
+   outcome (a negative result is a valid demonstration).
+
+Plus an **abstention control**: a healthy repository from the audit where Unbidden must find nothing worth doing and
+say so. Minimum for the slice: PR1, PR2, PR6 (gate part), PR10, PR11 (database + logs sources), PR12 (minimal),
+PR15 (minimal). PR14 is needed only for the re-check step.
+
+---
+
+## 8. Product plan
+
+- **Onboarding:** `unbidden init` → mandate with objectives stated as a value table (hours saved per category, risk
+  appetite) → `doctor` → first discovery report within the first cycle, including what it cannot see. No chat needed.
+- **Daily operation:** `watch` as a background service; the user opens `unbidden activity` (or its HTML report) to
+  approve, release holds, read outcomes; notifications only for approvals and invalidated outcomes.
+- **Visibility of value:** per outcome: evidence level, confounders, cost (US$ + compute + review minutes), and
+  whether it held; an aggregate "verified net value per unit of cost" (Master §28.1) computed only from L5/L6.
+
+---
+
+## 9. Open decisions (each with a default)
+
+1. **Hackathon (Nov 4) vs this sequence.** Default: Phase 0 PRs 1–3 plus PR6's capability gate before the demo; the
+   demo shows real evidence (including the corrected L4 rules) rather than new features. Consequence: the vertical
+   slice lands after the deadline.
+2. **Bounded regex execution:** add `google-re2` (linear-time, but a native dependency and a subset of syntax) vs a
+   subprocess with timeout (no dependency, slower). Default: RE2, with patterns RE2 cannot express refused.
+3. **Build egress (PR7b):** an allowlisting proxy on an internal network vs accepting the documented limitation for
+   now. Default: PR7a now, PR7b after Phase 0.
+4. **Remote spend:** verify the Meta balance to unlock tiers P/F and the tool-agent baseline. Default: run local
+   (Glimmer) tiers first; remote only after verification.
+5. **Interface:** CLI + generated static HTML (consistent with D-001) vs a web app (Master suggests Next.js).
+   Default: CLI + static HTML now.
+
+---
+
+## 10. Next concrete step
+
+**First PR: PR1, the TestEvidence contract and one judge for FixLab, PerfLab and RobustLab.** It changes what every
+later number means, so it goes first.
+
+**Condition to start the next PR:** the A1–A4 reproductions exist as unit tests and pass (no L4 without tests run on
+both sides, no `pre_existing` that hides a worsening, RobustLab follows the same judge), the full suite and pyright
+are green, and the existing L4 records (D-010, D-018, D-035, pilots) are re-judged with the new contract where raw
+data exists, with the results written as D-040 — including any that no longer hold.
+
+**Firm sequence:** PR1 → PR2 → PR3 → PR4 → PR5 (evidence) ‖ PR6 → PR7a → PR8 → PR9 (boundaries) → PR10 → PR11 →
+PR12 → PR13 (loop) → PR14 → PR15 → PR16 (value and evaluation); PR17/18 and new languages only when the evaluation
+shows they are the limiting factor.
+
+---
+
+## Verification of this plan once implemented
+
+Per PR: unit tests that reproduce each finding first (failing on the old code), then the suite, ruff, pyright; for
+PR6–PR9 adversarial local tests (catastrophic regexes, deny-all provisioning, kill during a running container and
+before a push, capture reaching an external host); for PR10–PR12 an end-to-end run of the vertical slice; for every
+phase, a paired static rerun of dev and a frozen validation rerun with `bench/compare.py`, and an updated
+`docs/bench/eval/PROGRESS.md`. This document is `docs/PLAN.md`; its decision is D-039 in `docs/DECISIONS.md`.
