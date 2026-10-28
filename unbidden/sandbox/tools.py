@@ -338,35 +338,10 @@ TOOLS: dict[str, Tool] = {
 
 
 def tools_for(stack: Any) -> list[Tool]:
-    """The tools a detected stack can run: only those the repository itself uses."""
-    selected: list[Tool] = []
-    if stack.node is not None:
-        if stack.node.typescript:
-            selected.append(TOOLS["tsc"])
-        if stack.node.eslint:
-            selected.append(TOOLS["eslint"])
-        if stack.node.biome:
-            selected.append(TOOLS["biome"])
-        for package in stack.node.packages:
-            if package.typescript:
-                argv = (*package.typecheck, "--pretty", "false") if package.typecheck else None
-                selected.append(TOOLS["tsc"].in_package(package.path, argv))
-            if package.eslint:
-                selected.append(TOOLS["eslint"].in_package(package.path))
-            if package.biome:
-                selected.append(TOOLS["biome"].in_package(package.path))
-    if stack.python is not None:
-        if stack.python.ruff:
-            selected.append(TOOLS["ruff"])
-        else:
-            # A repository that declares no linter still deserves a look for plain bugs.
-            selected.append(TOOLS["ruff-baseline"])
-        if stack.python.pyright:
-            selected.append(TOOLS["pyright"])
-        if stack.python.mypy is not None:
-            mypy = TOOLS["mypy"]
-            selected.append(replace(mypy, argv=(*mypy.argv, *stack.python.mypy)))
-    return selected
+    """The tools a detected stack can run: only those the repository itself uses, from each language's adapter."""
+    from unbidden.languages import adapter
+
+    return [tool for language in stack.languages for tool in adapter(language).tools(stack.part(language))]
 
 
 def tool_named(stack: Any, name: str) -> Tool:
@@ -374,4 +349,6 @@ def tool_named(stack: Any, name: str) -> Tool:
     for tool in tools_for(stack):
         if tool.name == name:
             return tool
-    return TOOLS[name]
+    from unbidden.languages.golang import GO_VET
+
+    return {**TOOLS, GO_VET.name: GO_VET}[name]

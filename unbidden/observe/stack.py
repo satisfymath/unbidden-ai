@@ -69,10 +69,17 @@ class Stack:
     node: NodeStack | None = None
     python: PythonStack | None = None
     blind_spots: list[str] = field(default_factory=list[str])
+    others: dict[str, Any] = field(default_factory=dict[str, Any])  # languages added through an adapter (go, ...)
+
+    def part(self, language: str) -> Any:
+        """This language's description, whichever adapter detected it."""
+        return {"node": self.node, "python": self.python}.get(language, self.others.get(language))
 
     @property
     def languages(self) -> list[str]:
-        return [name for name, s in (("node", self.node), ("python", self.python)) if s is not None]
+        from unbidden.languages import adapters
+
+        return [a.name for a in adapters() if self.part(a.name) is not None]
 
 
 def tracked_files(repo: Path, rev: str = "HEAD") -> set[str]:
@@ -167,8 +174,8 @@ def _yarn_berry(repo: Path, rev: str, files: set[str], package: dict[str, Any]) 
     return "yarn lockfile v1" not in _read(repo, rev, "yarn.lock")[:400]
 
 
-# The newest pnpm major that writes each lockfile format, for projects that do not declare theirs: otherwise corepack takes
-# whatever pnpm is newest the day the image is built.
+# The newest pnpm major that writes each lockfile format, for projects that do not declare theirs: otherwise corepack
+# takes whatever pnpm is newest the day the image is built.
 PNPM_FOR_LOCKFILE = {"9.0": "10", "6.0": "8", "6.1": "8", "5.4": "7", "5.3": "6"}
 
 
@@ -419,22 +426,26 @@ def uv_settings(pyproject: dict[str, Any], version: str, files: set[str]) -> dic
 def detect_stack(repo: Path, rev: str = "HEAD") -> Stack:
     files = tracked_files(repo, rev)
     blind: list[str] = []
+    from unbidden.languages import adapters
+
+    parts = {a.name: a.detect(repo, rev, files, blind) for a in adapters()}
     stack = Stack(
-        node=_detect_node(repo, rev, files, blind),
-        python=_detect_python(repo, rev, files, blind),
+        node=parts.pop("node", None),
+        python=parts.pop("python", None),
         blind_spots=blind,
+        others={name: part for name, part in parts.items() if part is not None},
     )
     if stack.node is None and "rush.json" in files:
         blind.append("Rush monorepo (rush.json): not supported; its packages are not analyzed")
     for manifest, language in UNANALYZED:
-        if manifest in files or any(f.endswith(f"/{manifest}") for f in files):
+        if manifest in files or any(f.endswith(f"/{manifest}") for f in files):  # Go has an adapter; nested modules
+            # of a supported language are said by its adapter
             blind.append(f"{language} ({manifest}) is not analyzed: no checks, probes or experiments for that code")
     return stack
 
 
 # Languages Unbidden does not analyze yet, found by their manifest so they are named rather than silently skipped.
 UNANALYZED = (
-    ("go.mod", "Go"),
     ("Cargo.toml", "Rust"),
     ("Gemfile", "Ruby"),
     ("pom.xml", "Java"),

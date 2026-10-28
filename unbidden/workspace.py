@@ -83,7 +83,13 @@ def default_mandate(workspace: str, github_repo: str | None, base_branch: str = 
                 "use_new_capabilities": "require_approval",
             },
             "egress": {
-                "package_registries": ["registry.npmjs.org", "pypi.org", "files.pythonhosted.org"],
+                "package_registries": [
+                    "registry.npmjs.org",
+                    "pypi.org",
+                    "files.pythonhosted.org",
+                    "proxy.golang.org",
+                    "sum.golang.org",
+                ],
                 "remote_models": {"destinations": ["api.meta.ai"], "max_payload_bytes": 20000},
                 "github": {"repository": github_repo, "base_branch": base_branch, "max_open_pull_requests": 3},
             },

@@ -110,7 +110,7 @@ class Runtime:
         stack = detect_stack(self.workspace.repo, rev)
         system = system_tools_allowed(PolicyEngine(self.workspace.mandate()))
         images = {
-            lang: provision(self.workspace.repo, rev, getattr(stack, lang), system_build_tools=system)
+            lang: provision(self.workspace.repo, rev, stack.part(lang), system_build_tools=system)
             for lang in stack.languages
         }
         return stack, images

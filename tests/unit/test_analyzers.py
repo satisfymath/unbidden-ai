@@ -168,3 +168,32 @@ def test_mypy_checks_what_its_config_names_else_the_project_package() -> None:
     assert mypy_targets('[project]\nname = "mealie"\n[tool.mypy]\nstrict = true\n', files, ()) == ("mealie",)
     assert mypy_targets('[project]\nname = "other"\n', files, ("pkg",)) == ("pkg",)
     assert mypy_targets('[project]\nname = "other"\n', files, ()) == (".",)
+
+
+def test_go_vet_and_go_test_output_are_read() -> None:
+    from unbidden.languages.golang import go_test_failures, parse_go_vet
+    from unbidden.sandbox.runner import SandboxResult
+
+    vet = (
+        '# example.com/x/report\n{\n\t"example.com/x/report": {\n\t\t"printf": [\n\t\t\t{\n'
+        '\t\t\t\t"posn": "/work/report/report.go:6:2",\n'
+        '\t\t\t\t"message": "fmt.Printf format %d has arg of wrong type"\n'
+        "\t\t\t}\n\t\t]\n\t}\n}\n"
+    )
+    report = parse_go_vet(SandboxResult(0, "", vet, False, 1.0, False, False), ["go", "vet"])
+    assert [(f.rule, f.path, f.line, f.category) for f in report.findings] == [
+        ("printf", "report/report.go", 6, "bugs")
+    ]
+    broken = "# example.com/x\nvet: ./calc.go:4:9: undefined: missing\n"
+    report = parse_go_vet(SandboxResult(1, "", broken, False, 1.0, False, False), ["go", "vet"])
+    assert [(f.rule, f.path, f.line) for f in report.findings] == [("compile", "calc.go", 4)]
+    events = "\n".join(
+        [
+            '{"Action":"run","Package":"x","Test":"TestA"}',
+            '{"Action":"fail","Package":"x","Test":"TestA"}',
+            '{"Action":"fail","Package":"x"}',
+            '{"Action":"fail","Package":"x/report"}',
+        ]
+    )
+    assert go_test_failures(events) == ["x/TestA", "x/report (package)"]
+    assert go_test_failures("go: cannot find main module") is None

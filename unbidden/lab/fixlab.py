@@ -31,6 +31,7 @@ from unbidden.lab.context import render as render_context
 from unbidden.lab.context import select as select_context
 from unbidden.lab.evaluator import CRITERIA, evaluate_fix
 from unbidden.lab.testsuite import TestPlan, run_suite, test_plan
+from unbidden.languages import adapter, adapter_for_path
 from unbidden.observe.ci import ci_python_versions
 from unbidden.observe.stack import Stack
 from unbidden.provenance import provenance
@@ -173,14 +174,12 @@ class FixLab:
         base = snapshot(self.repo, rev)
         try:
             paths = sorted({f.path for f in findings})
-            language = "Python" if paths[0].endswith(".py") else "TypeScript/JavaScript"
-            comment = "#" if language == "Python" else "//"
+            syntax = (adapter_for_path(paths[0]) or adapter("node")).syntax
+            language, comment = syntax.display, syntax.comment
             listed = "\n".join(f"- {f.path}:{f.line or '?'} {f.rule}: {f.message}" for f in findings[:50])
             fields = {
                 "language": language,
-                "suppressions": "`# type: ignore`, `# noqa`"
-                if language == "Python"
-                else "`@ts-ignore`, `eslint-disable`",
+                "suppressions": syntax.suppressions,
                 "comment": comment,
                 "tool": opp.source,
                 "findings": listed,

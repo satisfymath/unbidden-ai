@@ -20,7 +20,9 @@ def row(**state: Any) -> dict[str, Any]:
 def test_root_causes_follow_the_record_in_order() -> None:
     assert root_cause({"steps": {"checkout": {"code": 128}}}) == "checkout_failed"
     assert root_cause(row(languages=[], files={"code": 2, "by_language": {"Shell": 2}})) == "not_software"
-    assert root_cause(row(languages=[], files={"code": 90, "by_language": {"Go": 90}})) == "unsupported_language"
+    assert root_cause(row(languages=[], files={"code": 90, "by_language": {"Rust": 90}})) == "unsupported_language"
+    # Go has an adapter: Go code with no module Unbidden can read is a missing manifest, not an unsupported language.
+    assert root_cause(row(languages=[], files={"code": 90, "by_language": {"Go": 90}})) == "no_dependency_manifest"
     assert root_cause(row(languages=[])) == "no_dependency_manifest"
     py39 = "dependency image for python failed to build: ... does not satisfy Python>=3.10 ..."
     assert root_cause(row(languages=["python"], problems=[py39], analyzers=[])) == "deps_python_version"

@@ -17,7 +17,7 @@ import tomllib
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import yaml
 
@@ -360,7 +360,7 @@ def missing_packages(error: str) -> list[str]:
 def provision(
     repo: Path,
     rev: str,
-    stack: NodeStack | PythonStack,
+    stack: Any,
     *,
     docker: str = "docker",
     system_build_tools: bool = False,
@@ -407,26 +407,24 @@ def provision(
 def _provision(
     repo: Path,
     rev: str,
-    stack: NodeStack | PythonStack,
+    stack: Any,
     *,
     docker: str,
     system_build_tools: bool,
     headers: tuple[str, ...] = (),
 ) -> DependencyImage:
-    language = "node" if isinstance(stack, NodeStack) else "python"
+    from unbidden.languages import adapter_of
+
+    lang = adapter_of(stack)
+    language = lang.name
     build = Path(tempfile.mkdtemp(prefix="unbidden-build-"))
     try:
-        digest = _copy_from_git(repo, rev, _manifests(repo, rev, stack), build)
-        if isinstance(stack, PythonStack) and stack.manifest in ("setup.py", "poetry.lock"):
-            generated = "\n".join(stack.requirements) + "\n"
+        digest = _copy_from_git(repo, rev, lang.manifests(repo, rev, stack), build)
+        for name, generated in sorted(lang.generated(stack).items()):
             (build / "ctx").mkdir(parents=True, exist_ok=True)
-            (build / "ctx" / "unbidden-requirements.txt").write_text(generated)
+            (build / "ctx" / name).write_text(generated)
             digest = hashlib.sha256((digest + generated).encode()).hexdigest()[:16]
-        dockerfile = (
-            node_dockerfile(stack)
-            if isinstance(stack, NodeStack)
-            else python_dockerfile(stack, system_build_tools=system_build_tools, headers=headers)
-        )
+        dockerfile = lang.dockerfile(stack, system_build_tools=system_build_tools, headers=headers)
         tag = f"unbidden-deps-{language}:{hashlib.sha256((dockerfile + digest).encode()).hexdigest()[:16]}"
         exists = subprocess.run([docker, "image", "inspect", tag], capture_output=True, check=False).returncode == 0
         if not exists:
@@ -438,39 +436,7 @@ def _provision(
                 raise ProvisionError(f"dependency image for {language} failed to build:\n{build_error(result.stderr)}")
     finally:
         shutil.rmtree(build, ignore_errors=True)
-    if isinstance(stack, NodeStack):
-        return DependencyImage(
-            tag=tag,
-            language="node",
-            registries=NODE_REGISTRIES,
-            env={
-                "PATH": "/deps/node_modules/.bin:/usr/local/bin:/usr/bin:/bin",
-                "COREPACK_HOME": "/opt/corepack",
-                "COREPACK_ENABLE_DOWNLOAD_PROMPT": "0",
-                # node_modules is the image's, linked in: installed and verified when the image was built.
-                "npm_config_verify_deps_before_run": "false",
-            },
-            links={"node_modules": "/deps/node_modules"},
-            # A workspace package's node_modules holds relative links into the store and to sibling packages;
-            # copied into /work (links only, cheap) they resolve against the snapshot's real sources.
-            setup=tuple(
-                f"mkdir -p /work/{p.path} && cp -a /deps/{p.path}/node_modules /work/{p.path}/ 2>/dev/null || true"
-                for p in stack.packages
-            ),
-        )
-    return DependencyImage(
-        tag=tag,
-        language="python",
-        registries=PYTHON_REGISTRIES,
-        env={
-            "PATH": "/deps/.venv/bin:/opt/tools/bin:/usr/local/bin:/usr/bin:/bin",
-            "VIRTUAL_ENV": "/deps/.venv",
-            "PYTHONPATH": ":".join("/work" if r == "." else f"/work/{r}" for r in stack.source_roots),
-            "PYTHONDONTWRITEBYTECODE": "1",
-        },
-        links={},
-        notes=_python_notes(tag, stack, docker),
-    )
+    return lang.image(tag, stack, docker)
 
 
 def _python_notes(tag: str, stack: PythonStack, docker: str) -> tuple[str, ...]:

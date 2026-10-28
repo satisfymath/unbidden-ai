@@ -95,11 +95,14 @@ def test_a_node_library_without_a_lockfile_is_resolved_at_provisioning(tmp_path:
 
 
 def test_languages_not_analyzed_are_named(tmp_path: Path) -> None:
-    repo = commit(tmp_path, {"go.mod": "module x\n", "web/Gemfile": "gem 'rails'\n"})
+    repo = commit(tmp_path, {"Cargo.toml": "[package]\n", "web/Gemfile": "gem 'rails'\n"})
     stack = detect_stack(repo)
     assert stack.languages == []
-    assert any(b.startswith("Go (go.mod) is not analyzed") for b in stack.blind_spots)
+    assert any(b.startswith("Rust (Cargo.toml) is not analyzed") for b in stack.blind_spots)
     assert any(b.startswith("Ruby (Gemfile)") for b in stack.blind_spots)
+    # Go has an adapter now: detected, not named as a blind spot.
+    go = detect_stack(commit(tmp_path / "go", {"go.mod": "module x\n\ngo 1.22\n"}))
+    assert go.languages == ["go"] and not any("Go (go.mod)" in b for b in go.blind_spots)
 
 
 def test_versions_from_git_do_not_break_the_dependency_image() -> None:

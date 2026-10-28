@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-SUPPORTED = {"Python", "TypeScript", "JavaScript"}
+SUPPORTED = {"Python", "TypeScript", "JavaScript", "Go"}
 # Files that accompany any project (scripts, headers) and say little about what it is written in.
 INCIDENTAL = {"Shell", "C"}
 

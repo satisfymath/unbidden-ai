@@ -14,6 +14,7 @@ from unbidden.contracts.common import EvidenceLevel
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import Mandate
 from unbidden.contracts.opportunity import ActionKind, CandidateAction, Decision, Opportunity, OpportunityStatus
+from unbidden.languages import adapter_for_path
 from unbidden.observe.ci import UNREADABLE, analyzer_tool
 from unbidden.store import Store
 
@@ -121,6 +122,12 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
         reason = f"the team's CI runs {tool} and passes on this commit: these findings come from Unbidden's environment"
         add(ActionKind.DECLINE, 1.0, 0.0, 0.0, reason)
         return _choose(opp, candidates, ActionKind.DECLINE)
+    paths = [str(p) for p in opp.details.get("paths") or []]
+    language = adapter_for_path(paths[0]) if paths else None
+    if language is not None and "fix" not in language.capabilities and opp.source != "robustness":
+        reason = f"the lab's edit and measurement loop is not shown for {language.syntax.display} yet"
+        add(ActionKind.WAIT, 0.0, 0.0, 0.0, reason)
+        return _choose(opp, candidates, ActionKind.WAIT)
     if outside_checked_scope(opp, ctx.checked_dirs):
         reason = f"{opp.category} findings outside what the team's CI checks ({', '.join(ctx.checked_dirs)})"
         add(ActionKind.DECLINE, 1.0, 0.0, 0.0, reason)

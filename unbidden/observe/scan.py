@@ -13,6 +13,7 @@ from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.finding import AnalyzerReport
 from unbidden.contracts.guardian import ActionRequest, Mandate
 from unbidden.guardian.policy import PolicyEngine
+from unbidden.languages import adapter
 from unbidden.observe.analyzers import Sweep, record_report, run_tool
 from unbidden.observe.stack import NodeStack, Stack, detect_stack
 from unbidden.sandbox.provision import (
@@ -88,9 +89,9 @@ def prepare_node(
     return work
 
 
-MANIFESTS = {"package.json", "requirements.txt", "pyproject.toml"}
+MANIFESTS = {"package.json", "requirements.txt", "pyproject.toml", "go.mod"}
 LOCKS = {"package-lock.json", "pnpm-lock.yaml", "yarn.lock", "bun.lock", "bun.lockb", "requirements.txt", "uv.lock",
-         "poetry.lock"}  # fmt: skip
+         "poetry.lock", "go.sum"}  # fmt: skip
 MAX_SUBPROJECTS = 4
 SUBPROJECT_DEPTH = 4
 NOT_SUBPROJECT = {"test", "tests", "docs", "doc", "examples", "example", "fixtures", "benchmarks", "node_modules",
@@ -182,9 +183,7 @@ def _scan_services(
             for language in sub_stack.languages:
                 try:
                     progress(f"provisioning {language} dependencies of {directory}")
-                    images[language] = provision(
-                        sub, "HEAD", getattr(sub_stack, language), system_build_tools=system_tools
-                    )
+                    images[language] = provision(sub, "HEAD", sub_stack.part(language), system_build_tools=system_tools)
                 except ProvisionError as exc:
                     result.problems.append(f"{directory}: {exc}")
             for tool in tools_for(sub_stack):
@@ -218,8 +217,8 @@ def scan(
     runner = runner or SandboxRunner()
     images: dict[str, DependencyImage] = {}
     for language in stack.languages:
-        lang_stack = getattr(stack, language)
-        registries = ["registry.npmjs.org"] if language == "node" else ["pypi.org", "files.pythonhosted.org"]
+        lang_stack = stack.part(language)
+        registries = list(adapter(language).registries)
         try:
             _allow(policy, "sandbox.provision", f"install {language} dependencies", registries)
             progress(f"provisioning {language} dependencies")

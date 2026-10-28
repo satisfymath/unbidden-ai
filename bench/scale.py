@@ -65,8 +65,9 @@ def bench_mandate(
         }
     )
     registries = m["egress"].setdefault("package_registries", [])
-    if "deb.debian.org" not in registries:
-        registries.append("deb.debian.org")  # C headers and compilers some installs need (D-027)
+    for host in ("deb.debian.org", "proxy.golang.org", "sum.golang.org"):
+        if host not in registries:
+            registries.append(host)  # Debian: C headers and compilers some installs need (D-027); Go's module proxy
     m["models"] = {"profile": profile, "private_code_to_frontier": "deny", "local_fallback": local_fallback}
     if fork is not None:
         m["egress"]["github"]["repository"] = fork

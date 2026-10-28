@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from unbidden.contracts.experiment import TestSummary
+from unbidden.languages import adapter
 from unbidden.observe.ci import ci_test_plan
 from unbidden.observe.compose import Service, load_compose
 from unbidden.observe.stack import Stack
@@ -27,6 +28,7 @@ class TestPlan:
     pytest: bool  # whether a JUnit report is expected (pytest honours PYTEST_ADDOPTS)
     services: tuple[Service, ...] = ()
     env: dict[str, str] = field(default_factory=dict[str, str])
+    report: str = "junit"  # how failures are read: the language adapter's test_report
 
 
 def test_plan(repo: Path, rev: str, stack: Stack, language: str) -> TestPlan | None:
@@ -37,7 +39,10 @@ def test_plan(repo: Path, rev: str, stack: Stack, language: str) -> TestPlan | N
         directory = stack.python.members[0]
     app = compose.app_service_for(directory) if compose is not None else None
     env = {k: v for k, v in app.environment.items() if v} if app is not None else {}
-    ci = ci_test_plan(repo, rev, language)
+    lang = adapter(language)
+    # A language whose own test command names each failure (go test -json) uses it rather than a CI script that
+    # only passes or fails as a whole.
+    ci = ci_test_plan(repo, rev, language) if lang.test_report in ("junit", "exit") else None
     if ci is not None:
         named = [compose.services[n] for n in ci.services if n in compose.services] if compose is not None else []
         services = tuple(s for s in named if s.image and not s.build_context)
@@ -54,7 +59,8 @@ def test_plan(repo: Path, rev: str, stack: Stack, language: str) -> TestPlan | N
     services = ()
     if compose is not None and app is not None:
         services = tuple(s for s in compose.data_services() if s.name in app.depends_on)
-    return TestPlan(argv=tuple(argv), source=" ".join(argv), pytest=language == "python", services=services, env=env)
+    return TestPlan(argv=tuple(argv), source=" ".join(argv), pytest=language == "python", services=services, env=env,
+                    report=lang.test_report)  # fmt: skip
 
 
 JUNIT_DIR = ".unbidden-junit"
@@ -74,11 +80,8 @@ def needs_network(output: str) -> bool:
 
 
 def _default_argv(stack: Stack, language: str) -> list[str] | None:
-    if language == "python" and stack.python is not None and stack.python.pytest:
-        return ["python", "-m", "pytest", "-q", "-p", "no:cacheprovider", *stack.python.test_paths]
-    if language == "node" and stack.node is not None and stack.node.test_script:
-        return [stack.node.manager, "run", stack.node.test_script]
-    return None
+    part = stack.part(language)
+    return adapter(language).test_argv(part) if part is not None else None
 
 
 def _junit_failures(path: Path) -> list[str] | None:
@@ -114,6 +117,13 @@ def _round(
             network=sidecars.network if sidecars else "none",
         )
         result = runner.run(spec, work)
+    if plan.report == "go-test-json":
+        from unbidden.languages.golang import go_test_failures
+
+        names = go_test_failures(result.stdout)
+        if names is None:
+            return None, False  # no test event at all: the run said nothing about the code; retried once
+        return names, True
     names = _junit_failures(junit)
     if names and needs_network(result.stdout + result.stderr):
         names = [f"{n} (needs network)" for n in names]
