@@ -303,3 +303,38 @@ PR6–PR9 adversarial local tests (catastrophic regexes, deny-all provisioning, 
 before a push, capture reaching an external host); for PR10–PR12 an end-to-end run of the vertical slice; for every
 phase, a paired static rerun of dev and a frozen validation rerun with `bench/compare.py`, and an updated
 `docs/bench/eval/PROGRESS.md`. This document is `docs/PLAN.md`; its decision is D-039 in `docs/DECISIONS.md`.
+
+---
+
+## Status, 2026-10-28
+
+One stacked branch per PR on `origin` (satisfymath), each on the one before; no pull request opened. Every PR: the
+finding reproduced as a test first, then the full unit suite (445), ruff and pyright clean.
+
+| PR | Branch · commit | State | Shown beyond unit tests |
+|---|---|---|---|
+| 1 Test evidence | `feat/21-test-evidence` · ad11f06 | done | 24 recorded experiments re-judged (D-040): mealie D-035 is L3, not L4 |
+| 2 Opportunity history | `feat/22-opportunity-history` · 43e84f3 | done | — |
+| 3 CI states | `feat/23-ci-states` · cf660e7 | done | — |
+| 4 CI equivalence | `feat/24-ci-equivalence` · 32f254c, `feat/34-ci-package-runners` · 85c9d03 | done | dev v4 → v5: Cirq's false decline ("copyright") gone; a gap (`bunx typescript@7`) found and fixed |
+| 5 Propose / merge / deploy gates | `feat/25-action-gates` · e6a5afb | done | — |
+| 6 Bounded regex + use gate | `feat/26-bounded-regex` · 8f12735 | done | the accepted patterns hang `re` (two past 5 s on 30 chars); RE2 runs them in < 0.1 ms |
+| 7a Provisioning policy | `feat/27-provision-policy` · 4ffb241 | done | Go conformance e2e passes with the policy |
+| 7b Build egress proxy | — | not started (after Phase 0, as planned) | — |
+| 8 Kill reach | `feat/28-kill-reach` · 2cb49e9 | done | a labelled sandbox container killed in 3 s; 11 other containers untouched |
+| 9 Capture confinement | `feat/29-capture-confinement` · e743e37 | done | a real capture: page loaded through the relay, internet requests failed, nothing left behind |
+| 10 Capability needs | `feat/30-capability-needs` · 4991395, fab9344 | done; the Director does not yet put work on a need | — |
+| 11 Map refresh | `feat/31-source-refresh` · 6b2e9de | done; one interval for all runtime sources | — |
+| 12 Director v2 | `feat/32-director-v2` · 8f2a9ba | partial: learned p, value table, budget by expected value; no INVESTIGATE / MEASURE / ACQUIRE yet | — |
+| 13 Memory in decisions | — | not started; PR12's learned p is its first use; acceptance needs PR16 | — |
+| 14 Outcome lifecycle | `feat/33-outcome-lifecycle` · 7de1479 | done (re-check, L6, invalidation); traffic signals not yet | — |
+| 15 Activity | `feat/35-activity` · 382b1a3 | done (CLI, JSON, static HTML) | on a copy of mealie's state: flags D-035's L4 as not granted today |
+| 16 Evaluation v2 | — | not started | — |
+
+Evaluation: dev v5 (PR1–PR9) paired with v4, reach unchanged, four decisions changed and read
+(`docs/bench/eval/PROGRESS.md`). Validation and holdout untouched. US$0 of API.
+
+Mealie L5 (protocol `docs/bench/2026-10-28-mealie-l5-protocol.md`) not run: mealie's compose file fixes
+`container_name: mealie` and `image: mealie:dev`, which D-036's stopped container and image already hold, so the
+protocol's deploy step as written would fail or touch D-036's resources; and the new workspace holds no opportunity
+or proposal for an outcome to attach to. Both need an amendment to the protocol before the run.
