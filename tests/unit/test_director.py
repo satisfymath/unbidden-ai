@@ -147,7 +147,7 @@ def test_a_forks_shared_commits_are_judged_by_the_parents_ci(monkeypatch: pytest
 
     green = [{"name": "test", "status": "completed", "conclusion": "success"}]
     monkeypatch.setattr(
-        ci, "completed_runs", lambda slug, rev, token=None: (green, None) if slug == "upstream/lib" else ([], None)
+        ci, "fetch_runs", lambda slug, rev, token=None: (green, None) if slug == "upstream/lib" else ([], None)
     )  # pyright: ignore[reportUnknownLambdaType]
     monkeypatch.setattr(ci, "fork_parent", lambda slug, token=None: "upstream/lib" if slug == "me/lib" else None)  # pyright: ignore[reportUnknownLambdaType]
     assert ci.ci_verdicts(tmp_path, "abc", "me/lib", None, set()) == ("green", {}, None)
@@ -160,7 +160,7 @@ def test_an_unreadable_ci_is_not_no_checks_and_the_director_waits_on_it(
     import unbidden.observe.ci as ci
 
     why = "GitHub answered 403 for acme/lib@abc (rate limit exhausted, no token was used)"
-    monkeypatch.setattr(ci, "completed_runs", lambda *a, **k: (None, why))  # pyright: ignore[reportUnknownLambdaType]
+    monkeypatch.setattr(ci, "fetch_runs", lambda *a, **k: (None, why))  # pyright: ignore[reportUnknownLambdaType]
     assert ci.ci_verdicts(tmp_path, "abc", "acme/lib", None, set()) == (ci.UNREADABLE, {}, why)
     found = Opportunity(
         source="tsc", category="types", title="t", summary="s", dedup_key="k",
@@ -230,3 +230,102 @@ def test_a_tool_the_ci_runs_through_tox_and_a_matrix_counts_as_run(tmp_path: Pat
     subprocess.run([*git, "commit", "-qm", "x"], check=True)
     commands = ci_commands(tmp_path, "HEAD")
     assert commands is not None and "mypy --show-error-codes" in commands
+
+
+def test_a_run_that_said_nothing_is_not_green() -> None:
+    from unbidden.observe.ci import run_state, verdict_of
+
+    def runs(*pairs: tuple[str, str | None]) -> list[str]:
+        return [run_state({"status": s, "conclusion": c}) for s, c in pairs]
+
+    done = ("completed", "success")
+    # B1: cancelled, neutral, stale and missing conclusions used to count as green.
+    for conclusion in ("cancelled", "neutral", "stale", None):
+        assert verdict_of(runs(done, ("completed", conclusion))) == "unknown"
+    assert verdict_of(runs(done, ("completed", "skipped"))) == "green"
+    assert verdict_of(runs(("completed", "skipped"))) == "unknown"  # nothing ran
+    assert verdict_of(runs(done, ("completed", "startup_failure"))) == "red"
+    # B2: a picture with runs still going is pending, not the verdict of the runs that finished.
+    assert verdict_of(runs(done, ("in_progress", None))) == "pending"
+    assert verdict_of([]) is None
+
+
+def test_findings_of_a_tool_whose_ci_jobs_are_still_running_wait(mandate: Mandate) -> None:
+    found = opp(category="types")
+    found.details = {**found.details, "tool": "mypy", "paths": ["a.py"]}
+    ctx = Context(open_pull_requests=0, attempts=0, ci_commands="mypy .", tool_status={"mypy": "pending"})
+    decided = decide(found, mandate, ctx)
+    assert decided.chosen is ActionKind.WAIT and "still running" in decided.reason
+
+
+def test_check_runs_are_read_across_pages(monkeypatch: pytest.MonkeyPatch) -> None:
+    import importlib
+
+    import httpx
+
+    import unbidden.observe.ci as stubbed
+
+    ci = importlib.reload(stubbed)  # the real reader, not the network stub every unit test gets
+    pages = {
+        "1": [{"name": f"job{i}", "status": "completed", "conclusion": "success"} for i in range(100)],
+        "2": [{"name": "slow", "status": "in_progress", "conclusion": None}],
+    }
+
+    class Response:
+        status_code = 200
+
+        def __init__(self, page: str) -> None:
+            self.page, self.headers = page, {}
+
+        def json(self) -> dict[str, object]:
+            return {"total_count": 101, "check_runs": pages[self.page]}
+
+    monkeypatch.setattr(httpx, "get", lambda url, params, headers, timeout: Response(params["page"]))  # pyright: ignore[reportUnknownLambdaType]
+    runs, problem = ci.fetch_runs("acme/lib", "abc")
+    assert problem is None and runs is not None and len(runs) == 101
+    # The 101st run, on the second page, is still running: the commit is not green yet.
+    assert ci.verdict_of([ci.run_state(r) for r in runs]) == "pending"
+
+
+def test_the_cycle_reuses_only_a_finished_ci_verdict(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, mandate: Mandate
+) -> None:
+    from types import SimpleNamespace
+
+    import unbidden.observe.ci as ci
+    from unbidden.daemon.cycle import Cycle
+    from unbidden.store import Store
+
+    answers = iter([("pending", {}, None), (None, {}, None), ("green", {}, None), ("red", {}, None)])
+    asked: list[str | None] = []
+
+    def verdicts(*_: object) -> tuple[str | None, dict[str, str], str | None]:
+        answer = next(answers)
+        asked.append(answer[0])
+        return answer
+
+    monkeypatch.setattr(ci, "ci_verdicts", verdicts)
+    cycle = Cycle(runtime=SimpleNamespace(workspace=SimpleNamespace(repo=tmp_path), store=Store(None)))  # type: ignore[arg-type]
+    seen = [cycle._ci_verdicts("abc", mandate)[0] for _ in range(4)]  # pyright: ignore[reportPrivateUsage]
+    # A running CI is asked again at the next sweep; "no checks" is then kept for a while instead of asked every sweep.
+    assert asked == ["pending", None] and seen == ["pending", None, None, None]
+
+
+def test_a_finished_verdict_is_reused_until_it_expires(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, mandate: Mandate
+) -> None:
+    import time
+    from types import SimpleNamespace
+
+    import unbidden.daemon.cycle as cycle_module
+    import unbidden.observe.ci as ci
+    from unbidden.store import Store
+
+    answers = iter([("green", {}, None), ("red", {}, None)])
+    monkeypatch.setattr(ci, "ci_verdicts", lambda *_: next(answers))  # pyright: ignore[reportUnknownLambdaType]
+    cycle = cycle_module.Cycle(runtime=SimpleNamespace(workspace=SimpleNamespace(repo=tmp_path), store=Store(None)))  # type: ignore[arg-type]
+    assert cycle._ci_verdicts("abc", mandate)[0] == "green"  # pyright: ignore[reportPrivateUsage]
+    assert cycle._ci_verdicts("abc", mandate)[0] == "green"  # pyright: ignore[reportPrivateUsage]
+    now = time.monotonic()
+    monkeypatch.setattr(cycle_module.time, "monotonic", lambda: now + cycle_module.CI_TTL_S["green"] + 1)
+    assert cycle._ci_verdicts("abc", mandate)[0] == "red"  # pyright: ignore[reportPrivateUsage]  # a re-run changed it

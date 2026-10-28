@@ -15,7 +15,7 @@ from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import Mandate
 from unbidden.contracts.opportunity import ActionKind, CandidateAction, Decision, Opportunity, OpportunityStatus
 from unbidden.languages import adapter_for_path
-from unbidden.observe.ci import UNREADABLE, analyzer_tool
+from unbidden.observe.ci import PENDING_CI, UNREADABLE, analyzer_tool
 from unbidden.store import Store
 
 CATEGORY_VALUE = {
@@ -108,6 +108,11 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
             f"the team's CI does not run {tool}: its style is not the team's standard",
         )
         return _choose(opp, candidates, ActionKind.DECLINE)
+    still_running = (ctx.tool_status or {}).get(tool, ctx.ci_status) == PENDING_CI
+    if still_running and tool and ctx.ci_commands and tool in ctx.ci_commands:
+        reason = f"the team's CI runs {tool} and is still running on this commit: its verdict comes first"
+        add(ActionKind.WAIT, 0.0, 0.0, 0.0, reason)
+        return _choose(opp, candidates, ActionKind.WAIT)
     if ctx.ci_status == UNREADABLE and tool and ctx.ci_commands and tool in ctx.ci_commands:
         # The team's CI runs this tool but its verdict could not be read: whether these findings are the code's or
         # Unbidden's environment cannot be told, so nothing is spent on them until it can.

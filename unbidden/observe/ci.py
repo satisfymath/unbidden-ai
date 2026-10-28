@@ -318,52 +318,92 @@ def package_scripts_run(repo: Path, rev: str, text: str, depth: int = 3) -> list
 UNREADABLE = "unreadable"
 
 
-def completed_runs(
+MAX_PAGES = 5  # 500 check runs per commit at most; more is a monorepo whose jobs are not all read, said as unknown
+
+# A check run's state, from GitHub's status and conclusion.
+SUCCESS, FAILURE, PENDING, SKIPPED, CANCELLED, NEUTRAL, UNKNOWN = (
+    "success",
+    "failure",
+    "pending",
+    "skipped",
+    "cancelled",
+    "neutral",
+    "unknown",
+)
+_FAILED = {"failure", "timed_out", "action_required", "startup_failure"}
+# A commit's (or a tool's jobs') verdict: GREEN only when everything that ran succeeded and nothing is still running.
+GREEN, RED, PENDING_CI, UNKNOWN_CI = "green", "red", "pending", "unknown"
+
+
+def run_state(run: dict[str, Any]) -> str:
+    if run.get("status") != "completed":
+        return PENDING
+    conclusion = str(run.get("conclusion"))
+    if conclusion in _FAILED:
+        return FAILURE
+    return {"success": SUCCESS, "skipped": SKIPPED, "cancelled": CANCELLED, "neutral": NEUTRAL}.get(conclusion, UNKNOWN)
+
+
+def verdict_of(states: list[str]) -> str | None:
+    """None without runs; RED on any failure; PENDING while any run is not finished (a partial picture); UNKNOWN
+    when a run was cancelled, neutral or of unknown conclusion (it said nothing); GREEN only when at least one run
+    succeeded and every other one succeeded or was skipped."""
+    if not states:
+        return None
+    if FAILURE in states:
+        return RED
+    if PENDING in states:
+        return PENDING_CI
+    if any(s in (CANCELLED, NEUTRAL, UNKNOWN) for s in states):
+        return UNKNOWN_CI
+    return GREEN if SUCCESS in states else UNKNOWN_CI
+
+
+def fetch_runs(
     slug: str, sha: str, token: str | None = None, *, timeout_s: float = 10.0
 ) -> tuple[list[dict[str, Any]] | None, str | None]:
-    """The finished check runs of a commit, or None and why GitHub could not be read. One request.
+    """Every check run of a commit, finished or not, across pages; or None and why GitHub could not be read.
 
     "No checks" (an empty list) and "could not ask" (None) are different answers: the Director may act on the first
     and must not on the second."""
     import httpx
 
     headers = {"Accept": "application/vnd.github+json", **({"Authorization": f"Bearer {token}"} if token else {})}
-    try:
-        response = httpx.get(
-            f"https://api.github.com/repos/{slug}/commits/{sha}/check-runs",
-            params={"per_page": "100"},
-            headers=headers,
-            timeout=timeout_s,
-        )
-    except httpx.HTTPError as exc:
-        return None, f"GitHub could not be reached: {type(exc).__name__}"
-    if response.status_code != 200:
-        why = f"GitHub answered {response.status_code} for {slug}@{sha[:12]}"
-        if response.headers.get("x-ratelimit-remaining") == "0":
-            why += " (rate limit exhausted" + (", no token was used)" if not token else ")")
-        return None, why
-    runs = [r for r in response.json().get("check_runs", []) if r.get("status") == "completed"]
-    return runs, None
-
-
-def _verdict(runs: list[dict[str, Any]]) -> str | None:
-    if not runs:
-        return None
-    conclusions = {str(r.get("conclusion")) for r in runs}
-    return "red" if conclusions & {"failure", "timed_out", "action_required"} else "green"
+    runs: list[dict[str, Any]] = []
+    for page in range(1, MAX_PAGES + 1):
+        try:
+            response = httpx.get(
+                f"https://api.github.com/repos/{slug}/commits/{sha}/check-runs",
+                params={"per_page": "100", "page": str(page)},
+                headers=headers,
+                timeout=timeout_s,
+            )
+        except httpx.HTTPError as exc:
+            return None, f"GitHub could not be reached: {type(exc).__name__}"
+        if response.status_code != 200:
+            why = f"GitHub answered {response.status_code} for {slug}@{sha[:12]}"
+            if response.headers.get("x-ratelimit-remaining") == "0":
+                why += " (rate limit exhausted" + (", no token was used)" if not token else ")")
+            return None, why
+        data = response.json()
+        batch = data.get("check_runs", [])
+        runs += batch
+        if len(runs) >= int(data.get("total_count", 0)) or len(batch) < 100:
+            return runs, None
+    # More runs than were read: what was not read could be anything.
+    return [*runs, {"name": "(unread runs)", "status": "completed", "conclusion": "unknown"}], None
 
 
 def ci_status(slug: str, sha: str, token: str | None = None, *, timeout_s: float = 10.0) -> str | None:
-    """'green' when every check run of the commit that finished succeeded (or was skipped), 'red' when one failed,
-    None when there are none or GitHub cannot be read."""
-    runs, _ = completed_runs(slug, sha, token, timeout_s=timeout_s)
-    return _verdict(runs) if runs is not None else None
+    """The commit's verdict (see verdict_of); None when it has no runs or GitHub cannot be read."""
+    runs, _ = fetch_runs(slug, sha, token, timeout_s=timeout_s)
+    return verdict_of([run_state(r) for r in runs]) if runs is not None else None
 
 
 def check_runs(slug: str, sha: str, token: str | None = None, *, timeout_s: float = 10.0) -> dict[str, str]:
-    """name -> conclusion of each finished check run on the commit; empty when GitHub cannot be read."""
-    runs, _ = completed_runs(slug, sha, token, timeout_s=timeout_s)
-    return {str(r.get("name")): str(r.get("conclusion")) for r in runs or []}
+    """name -> state of each check run on the commit; empty when GitHub cannot be read."""
+    runs, _ = fetch_runs(slug, sha, token, timeout_s=timeout_s)
+    return {str(r.get("name")): run_state(r) for r in runs or []}
 
 
 def tool_status(repo: Path, rev: str, tool: str, runs: dict[str, str]) -> str | None:
@@ -390,10 +430,8 @@ def tool_status(repo: Path, rev: str, tool: str, runs: dict[str, str]) -> str | 
             if tool in text.lower():
                 jobs.append(str(job.get("name") or key))
     # A matrix job's runs are named "<job> (<values>)".
-    concluded = [c for job in jobs for run, c in runs.items() if run == job or run.startswith(f"{job} (")]
-    if not concluded:
-        return None
-    return "red" if any(c in ("failure", "timed_out", "action_required") for c in concluded) else "green"
+    states = [c for job in jobs for run, c in runs.items() if run == job or run.startswith(f"{job} (")]
+    return verdict_of(states)
 
 
 def ci_verdicts(
@@ -402,15 +440,15 @@ def ci_verdicts(
     """The team's CI on this commit: the whole commit's status ('green', 'red', None for no checks, or UNREADABLE),
     per tool the status of the jobs that run it, and why it could not be read. Used by the Director wherever it
     decides, so `unbidden decide` and the autonomous cycle judge alike."""
-    runs, problem = completed_runs(slug, rev, token)
+    runs, problem = fetch_runs(slug, rev, token)
     if not runs and (parent := fork_parent(slug, token)) is not None:
         # A fork runs no checks on the commits it shares with its parent; the parent's CI judged them.
-        runs, problem = completed_runs(parent, rev, token)
+        runs, problem = fetch_runs(parent, rev, token)
     if runs is None:
         return UNREADABLE, {}, problem
-    named = {str(r.get("name")): str(r.get("conclusion")) for r in runs}
+    named = {str(r.get("name")): run_state(r) for r in runs}
     per_tool = {t: v for t in sorted(tools) if t and (v := tool_status(repo, rev, t, named)) is not None}
-    return _verdict(runs), per_tool, None
+    return verdict_of([run_state(r) for r in runs]), per_tool, None
 
 
 def analyzer_tool(details: dict[str, object]) -> str:

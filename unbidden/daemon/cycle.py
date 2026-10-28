@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import subprocess
+import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import timedelta
@@ -29,6 +30,9 @@ from unbidden.workspace import head_sha
 Handler = Callable[[Job], Awaitable[None]]
 Log = Callable[[str], None]
 EXPERIMENTS_PER_SWEEP = 3
+# How long a commit's CI verdict is reused: a finished one for an hour (a re-run can still change it); "no checks" for
+# ten minutes (checks may not have been created yet); anything else not at all.
+CI_TTL_S: dict[str | None, float] = {"green": 3600.0, "red": 3600.0, None: 600.0}
 
 # Lower runs first: follow-ups on GitHub, then publishing, then observing, then the slow lab.
 PRIORITY = {
@@ -61,7 +65,7 @@ class Cycle:
     runtime: Runtime
     log: Log = print
     _stacks: dict[str, tuple[Stack, dict[str, DependencyImage]]] = field(default_factory=dict)
-    _ci: dict[str, tuple[str | None, dict[str, str], set[str]]] = field(default_factory=dict)
+    _ci: dict[str, tuple[str | None, dict[str, str], set[str], float]] = field(default_factory=dict)
 
     @property
     def store(self):
@@ -282,7 +286,7 @@ class Cycle:
         from unbidden.contracts.guardian import ActionRequest
         from unbidden.guardian.credentials import broker
         from unbidden.guardian.policy import PolicyEngine
-        from unbidden.observe.ci import UNREADABLE, analyzer_tool, ci_verdicts
+        from unbidden.observe.ci import analyzer_tool, ci_verdicts
 
         slug = mandate.egress.github.repository
         if not head or not slug:
@@ -291,13 +295,16 @@ class Cycle:
             return None, {}, None
         tools = {analyzer_tool(o.details) for o in self.store.list("opportunities", Opportunity)}
         cached = self._ci.get(head)
-        if cached is None or not tools <= cached[2]:
+        fresh = cached is not None and time.monotonic() < cached[3] and tools <= cached[2]
+        if not fresh:
             token = broker().get(mandate.egress.github.token_env, "github")
             status, per_tool, problem = ci_verdicts(self.runtime.workspace.repo, head, slug, token, tools)
-            if status == UNREADABLE:
-                return status, per_tool, problem  # asked again next sweep, never cached
-            cached = (status, per_tool, tools)
+            ttl = CI_TTL_S.get(status, 0.0)  # a running, unknown or unreadable CI is asked again next sweep
+            if not ttl:
+                return status, per_tool, problem
+            cached = (status, per_tool, tools, time.monotonic() + ttl)
             self._ci[head] = cached
+        assert cached is not None
         return cached[0], cached[1], None
 
     def _checked_dirs(self) -> tuple[str, ...]:
