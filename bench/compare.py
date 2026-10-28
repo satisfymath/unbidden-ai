@@ -22,8 +22,14 @@ FAILED = {"checkout_failed", "not_software", "unsupported_language", "no_depende
 # Causes ordered from "stopped earliest" to "went furthest"; moving right is progress.
 DEPTH = ["checkout_failed", "not_software", "unsupported_language", "no_dependency_manifest", "deps_other",
          "deps_private_or_network", "deps_python_version", "deps_project_metadata", "deps_native_build",
-         "deps_resolution", "no_applicable_analyzer", "analyzer_failed", "nothing_found", "findings_declined",
-         "actionable"]  # fmt: skip
+         "deps_resolution", "no_applicable_analyzer", "analyzer_failed", "analyzed"]  # fmt: skip
+# Once a repository is analyzed, what the Director chose is a decision, not reach: neither direction is progress by
+# itself (declining what a green CI rules out is right; acting on it is a false positive). Listed apart.
+ANALYZED = {"nothing_found", "findings_declined", "actionable"}
+
+
+def _depth(cause: str) -> int:
+    return DEPTH.index("analyzed" if cause in ANALYZED else cause) if (cause in ANALYZED or cause in DEPTH) else 0
 
 
 def mcnemar_exact(lost: int, gained: int) -> float:
@@ -63,14 +69,18 @@ def compare(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
         gained = sum(1 for i, j in zip(x, y, strict=True) if j and not i)
         metrics[key] = {"before": sum(x), "after": sum(y), "n": len(pairs), "gained": gained, "lost": lost,
                         "p_mcnemar": round(mcnemar_exact(lost, gained), 4)}  # fmt: skip
-    changes = []
+    changes, decisions = [], []
     for p, q in pairs:
         cp, cq = root_cause(p), root_cause(q)
-        if cp != cq:
-            direction = DEPTH.index(cq) - DEPTH.index(cp) if cp in DEPTH and cq in DEPTH else 0
-            changes.append({"name": p["name"], "before": cp, "after": cq, "direction": direction})
+        if cp == cq:
+            continue
+        if cp in ANALYZED and cq in ANALYZED:
+            decisions.append({"name": p["name"], "before": cp, "after": cq})
+        else:
+            changes.append({"name": p["name"], "before": cp, "after": cq, "direction": _depth(cq) - _depth(cp)})
     changes.sort(key=lambda c: (c["direction"], c["name"]))
-    return {"pairs": len(pairs), "metrics": metrics, "changes": changes}
+    decisions.sort(key=lambda c: c["name"])
+    return {"pairs": len(pairs), "metrics": metrics, "changes": changes, "decisions": decisions}
 
 
 def as_markdown(result: dict[str, Any], before: str, after: str) -> str:
@@ -85,9 +95,11 @@ def as_markdown(result: dict[str, Any], before: str, after: str) -> str:
     for key, m in result["metrics"].items():
         out.append(f"| {key} | {m['before']}/{m['n']} | {m['after']}/{m['n']} | {m['gained']} | {m['lost']} | "
                    f"{m['p_mcnemar']} |")  # fmt: skip
-    out += ["", "## Repositories whose root cause changed (regressions first)", ""]
+    out += ["", "## Reach: repositories that got further or less far (regressions first)", ""]
     out += [f"- {c['name']}: {c['before']} → {c['after']}" + (" **(regression)**" if c["direction"] < 0 else "")
             for c in result["changes"]] or ["- none"]  # fmt: skip
+    out += ["", "## Decisions: analyzed in both runs, the Director chose differently", ""]
+    out += [f"- {c['name']}: {c['before']} → {c['after']}" for c in result.get("decisions", [])] or ["- none"]
     return "\n".join(out) + "\n"
 
 
