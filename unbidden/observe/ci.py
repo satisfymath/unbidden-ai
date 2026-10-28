@@ -261,6 +261,10 @@ def ci_commands(repo: Path, rev: str) -> str | None:
             for step in (job.get("steps") or []) if isinstance(job, dict) else []:
                 if isinstance(step, dict):
                     runs.append(f"{step.get('run', '')} {step.get('uses', '')}")
+            # `tox -e ${{ matrix.tox }}` runs whatever the matrix names: its values are part of what the job runs.
+            matrix = ((job.get("strategy") or {}).get("matrix") or {}) if isinstance(job, dict) else {}
+            if isinstance(matrix, dict):
+                runs.append(yaml.safe_dump(matrix, default_flow_style=True))
     if not runs:
         return None
     text = "\n".join(runs)
@@ -271,6 +275,10 @@ def ci_commands(repo: Path, rev: str) -> str | None:
         called |= {"Makefile"} & tracked
     if "pre-commit" in text:
         called |= {".pre-commit-config.yaml"} & tracked
+    if re.search(r"\btox\b", text):
+        called |= {"tox.ini", "setup.cfg", "pyproject.toml"} & tracked  # where tox's environments are defined
+    if re.search(r"\bnox\b", text):
+        called |= {"noxfile.py"} & tracked
     extra = [_git(repo, "show", f"{rev}:{path}")[:20000] for path in sorted(called)]
     return "\n".join([text, *extra]).lower()
 

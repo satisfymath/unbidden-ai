@@ -207,7 +207,7 @@ class FixLab:
                     expect_files=True,
                     tier=Tier.LOCAL,
                     messages=messages,
-                    max_tokens=min(8000, 1000 + size // 2),
+                    max_tokens=min(8000, 4000 + size // 2),  # a frontier model's reasoning counts against it
                     prompt_sha256=prompt.sha256,
                     correlation_id=opp.id,
                 )

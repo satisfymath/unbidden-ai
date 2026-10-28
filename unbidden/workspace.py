@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -46,6 +47,17 @@ def default_branch(repo: Path) -> str:
     )
     if out.returncode == 0 and "/" in out.stdout:
         return out.stdout.strip().split("/", 1)[1]
+    # A shallow fetch of one commit sets no origin/HEAD: ask the remote (read-only, no credentials).
+    remote = subprocess.run(
+        ["git", "-C", str(repo), "ls-remote", "--symref", "origin", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=30,
+    )
+    found = re.search(r"^ref: refs/heads/(\S+)\s+HEAD$", remote.stdout, re.MULTILINE)
+    if remote.returncode == 0 and found:
+        return found.group(1)
     current = subprocess.run(
         ["git", "-C", str(repo), "branch", "--show-current"], capture_output=True, text=True, check=False
     ).stdout.strip()

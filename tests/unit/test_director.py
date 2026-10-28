@@ -174,3 +174,32 @@ def test_the_cis_python_versions_are_read_from_workflows_tox_and_nox(tmp_path: P
     subprocess.run([*git, "add", "."], check=True)
     subprocess.run([*git, "commit", "-qm", "x"], check=True)
     assert ci_python_versions(tmp_path, "HEAD") == ["3.10", "3.11", "3.12", "3.13", "3.14"]
+
+
+def test_a_tool_the_ci_runs_through_tox_and_a_matrix_counts_as_run(tmp_path: Path) -> None:
+    import subprocess
+
+    from unbidden.observe.ci import ci_commands
+
+    workflow = "\n".join(
+        [
+            "jobs:",
+            "  tests:",
+            "    strategy:",
+            "      matrix:",
+            "        include:",
+            "          - { name: mypy, tox: mypy }",
+            "    steps:",
+            "      - run: uv run tox -e ${{ matrix.tox }}",
+        ]
+    )
+    files = {".github/workflows/b.yml": workflow, "tox.ini": "[testenv:mypy]\ncommands = mypy --show-error-codes\n"}
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    for path, text in files.items():
+        (tmp_path / path).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / path).write_text(text)
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    commands = ci_commands(tmp_path, "HEAD")
+    assert commands is not None and "mypy --show-error-codes" in commands

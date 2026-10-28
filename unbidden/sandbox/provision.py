@@ -12,6 +12,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -44,10 +45,45 @@ class ProvisionError(RuntimeError):
     pass
 
 
+def static_version(data: bytes) -> bytes:
+    """The build context's copy of a pyproject.toml whose version is computed (from the package's code, a file or git,
+    none of which the context holds) with a fixed version instead: installing the dependencies needs the project's
+    metadata, and they do not depend on its version. The repository is never changed; if the edit does not read back
+    as intended, the original is kept."""
+    try:
+        text = data.decode()
+        project = tomllib.loads(text).get("project", {})
+    except (UnicodeDecodeError, tomllib.TOMLDecodeError):
+        return data
+    if "version" not in project.get("dynamic", []):
+        return data
+    header = re.search(r"^\[project\][ \t]*$", text, re.MULTILINE)
+    dynamic = re.compile(r"^(dynamic\s*=\s*\[)(.*?)(\])", re.MULTILINE | re.DOTALL)
+    if header is None:
+        return data
+    end = re.search(r"^\[", text[header.end() :], re.MULTILINE)
+    table_end = header.end() + (end.start() if end else len(text) - header.end())
+    table = dynamic.sub(
+        lambda m: m.group(1) + re.sub(r"[\"']version[\"']\s*,?\s*", "", m.group(2)) + m.group(3),
+        text[header.end() : table_end],
+        count=1,
+    )
+    edited = text[: header.end()] + '\nversion = "0.0.0"' + table + text[table_end:]
+    try:
+        checked = tomllib.loads(edited).get("project", {})
+    except tomllib.TOMLDecodeError:
+        return data
+    if checked.get("version") != "0.0.0" or "version" in checked.get("dynamic", []):
+        return data
+    return edited.encode()
+
+
 def _copy_from_git(repo: Path, rev: str, paths: list[str], dest: Path) -> str:
     digest = hashlib.sha256()
     for path in sorted(paths):
         data = subprocess.run(["git", "-C", str(repo), "show", f"{rev}:{path}"], capture_output=True, check=True).stdout
+        if path.endswith("pyproject.toml"):
+            data = static_version(data)
         target = dest / "ctx" / path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)

@@ -152,3 +152,31 @@ def test_unbiddens_tools_install_on_the_oldest_python_a_project_supports() -> No
     stack = PythonStack(version="3.9", lockfile=None, manifest="pyproject.toml", ruff=True, pyright=False, pytest=True)
     # pytest's pinned version needs 3.10; the newest that installs is taken instead of failing the image.
     assert "|| uv pip install --python /opt/tools/bin/python ruff==" in python_dockerfile(stack)
+
+
+def test_a_computed_version_becomes_static_in_the_build_contexts_copy_only() -> None:
+    import tomllib
+
+    from unbidden.sandbox.provision import static_version
+
+    original = (
+        b'[project]\nname = "x"\ndynamic = ["version", "readme"]\n\n'
+        b'[tool.setuptools.dynamic]\nversion = {attr = "x.__version__"}\n'
+    )
+    project = tomllib.loads(static_version(original).decode())["project"]
+    assert project["version"] == "0.0.0" and project["dynamic"] == ["readme"]
+    static = b'[project]\nname = "x"\nversion = "1.2"\n'
+    assert static_version(static) == static
+
+
+def test_the_default_branch_comes_from_the_remote_after_a_shallow_fetch(tmp_path: Path) -> None:
+    from unbidden.workspace import default_branch
+
+    upstream = commit(tmp_path / "up", {"a": "1\n"})
+    subprocess.run(["git", "-C", str(upstream), "branch", "-m", "dev"], check=True)
+    clone = tmp_path / "clone"
+    subprocess.run(["git", "init", "-q", str(clone)], check=True)
+    subprocess.run(["git", "-C", str(clone), "remote", "add", "origin", str(upstream)], check=True)
+    subprocess.run(["git", "-C", str(clone), "fetch", "-q", "--depth", "1", "origin", "dev"], check=True)
+    subprocess.run(["git", "-C", str(clone), "checkout", "-q", "FETCH_HEAD"], check=True)
+    assert default_branch(clone) == "dev"

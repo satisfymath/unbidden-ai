@@ -287,8 +287,10 @@ def spend_by_run(run: str) -> dict[str, Any]:
 def unbidden_version() -> dict[str, Any]:
     git = ["git", "-C", str(PROJECT)]
     commit = subprocess.run([*git, "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    # The code's own identity: the same tree under two commits (a docs-only commit) is the same code under test.
+    tree = subprocess.run([*git, "rev-parse", "HEAD:unbidden"], capture_output=True, text=True).stdout.strip()
     dirty = subprocess.run([*git, "status", "--porcelain", "--", "unbidden"], capture_output=True, text=True).stdout
-    return {"commit": commit, "dirty": bool(dirty.strip())}
+    return {"commit": commit, "tree": tree, "dirty": bool(dirty.strip())}
 
 
 def deps_images() -> set[str]:

@@ -49,6 +49,12 @@ def first_improvement_minutes(row: dict[str, Any]) -> float | None:
     return round((min(times) - datetime.fromisoformat(row["started_at"])).total_seconds() / 60, 1)
 
 
+def _code_id(row: dict[str, Any]) -> str:
+    """The unbidden/ tree when recorded (the code itself), else the commit (older records)."""
+    version = row.get("unbidden") or {}
+    return str(version.get("tree") or version.get("commit") or "?")[:12]
+
+
 def report(data: dict[str, Any]) -> str:
     rows = data["rows"]
     n = len(rows)
@@ -79,7 +85,7 @@ def report(data: dict[str, Any]) -> str:
         "Nobody chose an opportunity, an experiment or a fix; no person intervened during the runs.",
         *(
             [f"Code under test differed between rows: {sorted(versions)}."]
-            if len(versions := {(r.get("unbidden") or {}).get("commit", "?")[:12] for r in rows}) > 1
+            if len(versions := {_code_id(r) for r in rows}) > 1
             or any((r.get("unbidden") or {}).get("dirty") for r in rows)
             else []
         ),
