@@ -64,10 +64,9 @@ a failure, but it is told apart from "could not look".
 | `not_software` | no source files of any language Unbidden or the corpus knows |
 | `unsupported_language` | only languages Unbidden does not analyze (named as blind spots) |
 | `no_dependency_manifest` | a supported language without a manifest Unbidden can install from |
-| `deps_python_version`, `deps_native_build`, `deps_resolution`, `deps_private_or_network`, `deps_other` | the dependency image failed, by the installer's own message |
+| `deps_python_version`, `deps_private_or_network`, `deps_project_metadata`, `deps_native_build`, `deps_resolution`, `deps_other` | the dependency image failed, by the installer's own message (metadata: the project's own version or readme could not be built, nothing compiled) |
 | `no_applicable_analyzer` | installed, but none of Unbidden's tools applies (`xo`, a custom linter) |
 | `analyzer_failed` | tools applied and none completed |
-| `ci_not_understood` | analyzed, but no workflow Unbidden can read: findings cannot be checked against the team's CI |
 | `findings_declined` | findings exist and the Director declined all of them, with reasons (environment, scope, style) |
 | `nothing_found` | analyzers complete, no finding |
 | `actionable` | at least one opportunity the Director would act on |
@@ -77,7 +76,8 @@ a failure, but it is told apart from "could not look".
 
 Reported per split and per version, with Wilson 95 % intervals and the eligible denominator stated:
 
-- reach: stack supported, dependencies installed, an analyzer complete, CI understood (all over all repositories);
+- reach: stack supported, dependencies installed, an analyzer complete, CI understood (all over all repositories;
+  CI understood is a measure beside the cause, not a cause: a repository can be analyzed without it);
 - depth: findings, opportunities, the Director's act / decline / wait, decline reasons (over bootstrapped);
 - root-cause distribution;
 - cost: seconds, memory, image disk, remote US$ (tier S: 0);
