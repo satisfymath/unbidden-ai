@@ -45,7 +45,10 @@ def main() -> None:
         improved = bool((opp.details.get("verdict") or {}).get("improved"))
         granted = min(recorded, int(level_for(improved, outcome, suite_ran=True)))
     opp.evidence_level = EvidenceLevel(granted)
-    opp.details = {**opp.details, "imported": {
+    # A live outcome recorded there belongs to that run: kept as past, so this workspace's own runs can record theirs.
+    past = [opp.details["outcome"]] if opp.details.get("outcome") else []
+    opp.details = {k: v for k, v in opp.details.items() if k != "outcome"}
+    opp.details = {**opp.details, **({"past_outcomes": past} if past else {}), "imported": {
         "from": args.source, "decision": args.decision, "recorded_level": recorded, "granted_today": granted,
         "tests_today": tests, "note": "historical record, not a new run",
     }}  # fmt: skip
