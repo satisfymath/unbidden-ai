@@ -8,9 +8,10 @@ The harness prepares and measures; it never tells the agent the case, the culpri
 *Perception*: for each state, the lab is reset to it; the checker (`board_check`, model-free) records which rows a
 person sees wrongly; the agent's scanner scans the page once; that same scan and the same expected values (the
 truth's numbers, as a complete read gives them) go to each method: `dom`, `vision` (+ screenshots), `vision_sam`
-(+ SAM regions). Scored per method: detection, rows named (precision and recall against the checker's rows), cause
-localization (the stated cause names the culprit, by a rubric fixed per case before any run), false alarms on
-healthy states, unreadable answers, latency and cost.
+(+ SAM regions). Scored per method (`score_found`): alerted, at least one wrong row named, all of them, rows
+named that are not wrong, precision and recall against the checker's rows, inconclusive answers, cause localization
+(the stated cause names the culprit, by a rubric fixed per case before any run), false alarms on healthy states,
+latency and cost.
 
 *Cycle*: for each case and method, from a reset lab and a fresh workspace, the real cycle (`unbidden watch --once`)
 twice; then the checker. Scored: goal completed (checker verified), false verification (the agent said fixed or
@@ -108,16 +109,30 @@ def workspace(worktree: Path, policy: str, perception: str) -> Path:
     return board_lab.repo_dir(LAB)
 
 
-def score_found(found: list[dict[str, Any]], wrong: list[str]) -> dict[str, Any]:
+def score_found(found: list[dict[str, Any]], wrong: list[str], *, conclusive: bool = True) -> dict[str, Any]:
+    """One method's report on one state, against the checker's rows. Kept apart, because they answer different
+    questions: did it raise anything (`alerted`), did it name at least one truly wrong row (`hit_any`), all of them
+    (`hit_all`), rows named that are not wrong (`false_rows`), a raise on a healthy state (`false_alarm`), and no
+    usable answer at all (`inconclusive`, which is none of the others)."""
+    if not conclusive:
+        return {"inconclusive": True, "named": [], "true_rows": [], "false_rows": [], "missed_rows": sorted(wrong),
+                "alerted": None, "hit_any": None, "hit_all": None, "false_alarm": None, "precision": None,
+                "recall": None}  # fmt: skip
     named = sorted({str(d["key"]) for d in found})
     hit = sorted(set(named) & set(wrong))
     return {
-        "named": named, "true_rows": hit, "extra_rows": sorted(set(named) - set(wrong)),
-        "missed_rows": sorted(set(wrong) - set(named)), "detected": bool(named) if wrong else None,
+        "inconclusive": False,
+        "named": named,
+        "true_rows": hit,
+        "false_rows": sorted(set(named) - set(wrong)),
+        "missed_rows": sorted(set(wrong) - set(named)),
+        "alerted": bool(named),
+        "hit_any": bool(hit) if wrong else None,
+        "hit_all": set(wrong) <= set(named) if wrong else None,
         "false_alarm": bool(named) if not wrong else None,
         "precision": round(len(hit) / len(named), 3) if named else None,
         "recall": round(len(hit) / len(wrong), 3) if wrong else None,
-    }  # fmt: skip
+    }
 
 
 async def _perceive_all(worktree: Path, methods: list[str], scan_dir: Path, want: dict[str, Any]) -> list[Any]:
@@ -159,7 +174,8 @@ def perception(worktree: Path, states: dict[str, Any], methods: list[str], out: 
             }  # fmt: skip
             digests, results = asyncio.run(_perceive_all(worktree, methods, where / "scan", want))
             for method, found in zip(methods, results, strict=True):
-                scored = score_found(found.get("discrepancies", []), prepared["wrong"])
+                scored = score_found(found.get("discrepancies", []), prepared["wrong"],
+                                     conclusive=found.get("conclusive", False) and not found.get("error"))  # fmt: skip
                 rubric = spec[4]
                 localized = bool(rubric and re.search(rubric, found.get("cause", ""), re.IGNORECASE)) if prepared[
                     "wrong"] else None  # fmt: skip
@@ -167,8 +183,9 @@ def perception(worktree: Path, states: dict[str, Any], methods: list[str], out: 
                        "cause_localized": localized, "error": found.get("error"), "model": found.get("model"),
                        "sam": found.get("sam"), "wall_s": found.get("wall_s"), "screenshots": digests}  # fmt: skip
                 rows.append(row)
-                print(json.dumps({k: row[k] for k in ("state", "rep", "method", "detected", "false_alarm", "precision",
-                                                      "recall", "cause_localized", "wall_s")}), flush=True)  # fmt: skip
+                shown = ("state", "rep", "method", "inconclusive", "hit_any", "hit_all", "false_alarm", "precision",
+                         "recall", "cause_localized", "wall_s")  # fmt: skip
+                print(json.dumps({k: row[k] for k in shown}), flush=True)
             (out / "perception.json").write_text(json.dumps(rows, indent=1))
 
 
