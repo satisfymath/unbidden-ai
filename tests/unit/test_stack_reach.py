@@ -180,3 +180,93 @@ def test_the_default_branch_comes_from_the_remote_after_a_shallow_fetch(tmp_path
     subprocess.run(["git", "-C", str(clone), "fetch", "-q", "--depth", "1", "origin", "dev"], check=True)
     subprocess.run(["git", "-C", str(clone), "checkout", "-q", "FETCH_HEAD"], check=True)
     assert default_branch(clone) == "dev"
+
+
+def test_uv_projects_install_with_their_own_uv_python_groups_and_path_sources(tmp_path: Path) -> None:
+    from unbidden.sandbox.provision import python_dockerfile
+
+    repo = commit(
+        tmp_path,
+        {
+            "pyproject.toml": "\n".join(
+                [
+                    "[project]",
+                    'name = "app"',
+                    'requires-python = ">=3.11"',
+                    "[tool.uv]",
+                    'required-version = "==0.12.6"',
+                    "[tool.uv.dependency-groups]",
+                    'py312 = { requires-python = ">=3.12" }',
+                    "[tool.uv.sources]",
+                    'shim = { path = "src/shim" }',
+                    "",
+                ]
+            ),
+            "uv.lock": "version = 1\n",
+            "src/shim/pyproject.toml": '[project]\nname = "shim"\n',
+        },
+    )
+    python = detect_stack(repo).python
+    assert python is not None
+    assert (python.version, python.uv_version, python.skip_groups) == ("3.11", "==0.12.6", ("py312",))
+    assert python.path_sources == (("shim", "src/shim"),)
+    dockerfile = python_dockerfile(python)
+    assert 'pip install --no-cache-dir "uv==0.12.6"' in dockerfile
+    assert "UV_PYTHON=/usr/local/bin/python3.11 UV_PYTHON_DOWNLOADS=never" in dockerfile
+    assert "--no-group py312" in dockerfile and "--no-install-package shim" in dockerfile
+    # The lockfile first; one out of date is resolved again, and the image says so.
+    assert "uv sync --frozen --no-install-project" in dockerfile and "touch /deps/UNBIDDEN_LOCK_STALE" in dockerfile
+
+
+def test_dependencies_setuptools_reads_from_a_file_become_static_in_the_context() -> None:
+    import tomllib
+
+    from unbidden.sandbox.provision import static_metadata
+
+    original = (
+        b'[project]\nname = "x"\ndynamic = ["version", "dependencies"]\n\n'
+        b'[tool.setuptools.dynamic]\ndependencies = {file = ["requirements.txt"]}\n'
+    )
+    files = {"requirements.txt": "httpx>=0.27  # client\n\npyyaml\n"}
+    project = tomllib.loads(static_metadata(original, files.get).decode())["project"]
+    assert project["dependencies"] == ["httpx>=0.27", "pyyaml"] and project["version"] == "0.0.0"
+    with_options = {"requirements.txt": "-r base.txt\nhttpx\n"}
+    assert "dependencies" in tomllib.loads(static_metadata(original, with_options.get).decode())["project"]["dynamic"]
+
+
+def test_bun_projects_install_from_their_lockfile_with_their_declared_bun(tmp_path: Path) -> None:
+    from unbidden.sandbox.provision import _manifests, node_dockerfile  # pyright: ignore[reportPrivateUsage]
+
+    repo = commit(
+        tmp_path,
+        {
+            "package.json": '{"name": "a", "packageManager": "bun@1.3.14", '
+            '"patchedDependencies": {"left-pad@1.0.0": "patches/left-pad@1.0.0.patch"}}',
+            "bun.lock": "{}\n",
+            "patches/left-pad@1.0.0.patch": "diff\n",
+        },
+    )
+    node = detect_stack(repo).node
+    assert node is not None and (node.manager, node.manager_version, node.lockfile) == ("bun", "1.3.14", "bun.lock")
+    dockerfile = node_dockerfile(node)
+    assert (
+        dockerfile.startswith("FROM oven/bun:1.3.14 AS bun")
+        and "bun install --frozen-lockfile --ignore-scripts" in dockerfile
+    )
+    assert "patches/left-pad@1.0.0.patch" in _manifests(repo, "HEAD", node)
+
+
+def test_a_build_error_keeps_the_installers_explanation() -> None:
+    from unbidden.sandbox.provision import build_error
+
+    stderr = "\n".join(
+        [
+            "#8 0.27 error: No solution found when resolving dependencies",
+            "#8 0.27   cause: Because only shim==0.0.0 is available and shim depends on your project, ...",
+            "#8 0.27 hint: The package `shim` depends on the package `app` but the name is shadowed",
+            "Dockerfile:12",
+            "ERROR: failed to build",
+        ]
+    )
+    text = build_error(stderr)
+    assert "cause: Because only shim==0.0.0" in text and "hint: The package" in text

@@ -201,6 +201,7 @@ def scan(
             _allow(policy, "sandbox.provision", f"install {language} dependencies", registries)
             progress(f"provisioning {language} dependencies")
             images[language] = provision(repo, rev, lang_stack, system_build_tools=system_tools_allowed(policy))
+            result.stack.blind_spots.extend(images[language].notes)
         except (ScanDenied, ProvisionError) as exc:
             result.problems.append(str(exc))
     _allow(policy, "analyzer.run", "run the repository's own checks")

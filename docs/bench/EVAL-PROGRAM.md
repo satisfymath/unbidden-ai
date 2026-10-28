@@ -64,7 +64,7 @@ a failure, but it is told apart from "could not look".
 | `not_software` | no source files of any language Unbidden or the corpus knows |
 | `unsupported_language` | only languages Unbidden does not analyze (named as blind spots) |
 | `no_dependency_manifest` | a supported language without a manifest Unbidden can install from |
-| `deps_python_version`, `deps_private_or_network`, `deps_project_metadata`, `deps_native_build`, `deps_resolution`, `deps_other` | the dependency image failed, by the installer's own message (metadata: the project's own version or readme could not be built, nothing compiled) |
+| `deps_vcs_source`, `deps_python_version`, `deps_tool_version`, `deps_private_or_network`, `deps_project_metadata`, `deps_native_build`, `deps_stale_lockfile`, `deps_resolution`, `deps_missing_file`, `deps_other` | the dependency image failed, by the installer's own message. `deps_vcs_source`: a dependency from a git repository, which needs network access the mandate does not grant; a deliberate limit, not a bug |
 | `no_applicable_analyzer` | installed, but none of Unbidden's tools applies (`xo`, a custom linter) |
 | `analyzer_failed` | tools applied and none completed |
 | `findings_declined` | findings exist and the Director declined all of them, with reasons (environment, scope, style) |

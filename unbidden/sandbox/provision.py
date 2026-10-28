@@ -8,14 +8,18 @@ authorised by the mandate's registry allowlist; it is a policy check, not a fire
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 import shutil
 import subprocess
 import tempfile
 import tomllib
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+import yaml
 
 from unbidden.observe.stack import NodeStack, PythonStack, tracked_files
 from unbidden.sandbox.runner import SandboxSpec
@@ -39,6 +43,7 @@ class DependencyImage:
     env: dict[str, str]
     links: dict[str, str]  # path inside /work -> target inside the image, created as symlinks in each snapshot
     setup: tuple[str, ...] = ()  # shell steps run in the container before each command
+    notes: tuple[str, ...] = ()  # what the install had to do differently from the repository's own instructions
 
 
 class ProvisionError(RuntimeError):
@@ -46,34 +51,64 @@ class ProvisionError(RuntimeError):
 
 
 def static_version(data: bytes) -> bytes:
-    """The build context's copy of a pyproject.toml whose version is computed (from the package's code, a file or git,
-    none of which the context holds) with a fixed version instead: installing the dependencies needs the project's
-    metadata, and they do not depend on its version. The repository is never changed; if the edit does not read back
-    as intended, the original is kept."""
+    """`static_metadata` for the version alone (no file can be read)."""
+    return static_metadata(data, lambda _: None)
+
+
+def static_metadata(data: bytes, read: Callable[[str], str | None]) -> bytes:
+    """The build context's copy of a pyproject.toml whose metadata is computed, made static: installing the
+    dependencies needs the project's metadata, and the context holds no code to compute it from.
+
+    - A computed version (from the package's code, a file or git) becomes "0.0.0": the dependencies do not depend on it.
+    - Dependencies setuptools reads from requirement files (`[tool.setuptools.dynamic] dependencies = {file = [...]}`)
+      are written in, read from those files in git. A file with options (`-r`, `-e`, `--index-url`) is left alone.
+
+    The repository is never changed; if an edit does not read back as intended, the original is kept."""
     try:
         text = data.decode()
-        project = tomllib.loads(text).get("project", {})
+        pyproject = tomllib.loads(text)
     except (UnicodeDecodeError, tomllib.TOMLDecodeError):
         return data
-    if "version" not in project.get("dynamic", []):
+    project = pyproject.get("project", {})
+    dynamic = list(project.get("dynamic", []))
+    static: dict[str, object] = {}
+    if "version" in dynamic:
+        static["version"] = "0.0.0"
+    declared = pyproject.get("tool", {}).get("setuptools", {}).get("dynamic", {}).get("dependencies", {})
+    if "dependencies" in dynamic and isinstance(declared, dict) and declared.get("file"):
+        names = declared["file"] if isinstance(declared["file"], list) else [declared["file"]]
+        requirements: list[str] | None = []
+        for name in names:
+            content = read(str(name))
+            lines = [ln.split("#", 1)[0].strip() for ln in (content or "").splitlines()]
+            if content is None or any(ln.startswith("-") for ln in lines):
+                requirements = None
+                break
+            requirements += [ln for ln in lines if ln]
+        if requirements is not None:
+            static["dependencies"] = requirements
+    if not static:
         return data
     header = re.search(r"^\[project\][ \t]*$", text, re.MULTILINE)
-    dynamic = re.compile(r"^(dynamic\s*=\s*\[)(.*?)(\])", re.MULTILINE | re.DOTALL)
     if header is None:
         return data
     end = re.search(r"^\[", text[header.end() :], re.MULTILINE)
     table_end = header.end() + (end.start() if end else len(text) - header.end())
-    table = dynamic.sub(
-        lambda m: m.group(1) + re.sub(r"[\"']version[\"']\s*,?\s*", "", m.group(2)) + m.group(3),
+    pattern = "|".join(re.escape(k) for k in static)
+    table = re.sub(
+        r"^(dynamic\s*=\s*\[)(.*?)(\])",
+        lambda m: m.group(1) + re.sub(rf"[\"']({pattern})[\"']\s*,?\s*", "", m.group(2)) + m.group(3),
         text[header.end() : table_end],
         count=1,
+        flags=re.MULTILINE | re.DOTALL,
     )
-    edited = text[: header.end()] + '\nversion = "0.0.0"' + table + text[table_end:]
+    added = "".join(f"\n{key} = {json.dumps(value)}" for key, value in static.items())
+    edited = text[: header.end()] + added + table + text[table_end:]
     try:
         checked = tomllib.loads(edited).get("project", {})
     except tomllib.TOMLDecodeError:
         return data
-    if checked.get("version") != "0.0.0" or "version" in checked.get("dynamic", []):
+    if any(checked.get(k) != v or k in checked.get("dynamic", []) for k, v in static.items()):
         return data
     return edited.encode()
 
@@ -83,7 +118,15 @@ def _copy_from_git(repo: Path, rev: str, paths: list[str], dest: Path) -> str:
     for path in sorted(paths):
         data = subprocess.run(["git", "-C", str(repo), "show", f"{rev}:{path}"], capture_output=True, check=True).stdout
         if path.endswith("pyproject.toml"):
-            data = static_version(data)
+            base = path.removesuffix("pyproject.toml")
+
+            def read(name: str, base: str = base) -> str | None:
+                shown = subprocess.run(
+                    ["git", "-C", str(repo), "show", f"{rev}:{base}{name}"], capture_output=True, text=True, check=False
+                )
+                return shown.stdout if shown.returncode == 0 else None
+
+            data = static_metadata(data, read)
         target = dest / "ctx" / path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)
@@ -95,6 +138,8 @@ def node_dockerfile(stack: NodeStack) -> str:
     install = {
         "npm": "npm ci --ignore-scripts --no-audit --no-fund",
         "pnpm": "corepack enable && pnpm install --frozen-lockfile --ignore-scripts",
+        # bun's binary comes from its official image (below); the project's lifecycle scripts are not run either.
+        "bun": "bun install --frozen-lockfile --ignore-scripts",
     }[stack.manager]
     if stack.lockfile is None:
         install = "npm install --ignore-scripts --no-audit --no-fund"
@@ -107,8 +152,10 @@ def node_dockerfile(stack: NodeStack) -> str:
         if p.prisma_schema
     )
     # The package manager corepack fetches here is kept where the sandbox user (uid 1000, no network) can run it.
-    return f"""FROM node:{stack.major}-slim
-ENV CI=1 COREPACK_ENABLE_DOWNLOAD_PROMPT=0 COREPACK_HOME=/opt/corepack
+    bun = f"FROM oven/bun:{stack.manager_version or 'latest'} AS bun\n" if stack.manager == "bun" else ""
+    copy_bun = "COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun\n" if stack.manager == "bun" else ""
+    return f"""{bun}FROM node:{stack.major}-slim
+{copy_bun}ENV CI=1 COREPACK_ENABLE_DOWNLOAD_PROMPT=0 COREPACK_HOME=/opt/corepack
 WORKDIR /deps
 COPY ctx/ /deps/
 RUN {install}{generate} \\
@@ -116,11 +163,23 @@ RUN {install}{generate} \\
 """
 
 
+LOCK_STALE = "/deps/UNBIDDEN_LOCK_STALE"
+
+
+def _uv_sync(stack: PythonStack, scope: str) -> str:
+    """One `uv sync` for the project's groups, minus those that need another Python and the packages installed from a
+    directory of the repository (their code is not in the build context; tests import them from the snapshot)."""
+    flags = "".join(f" --no-group {g}" for g in stack.skip_groups)
+    flags += "".join(f" --no-install-package {name}" for name, _ in stack.path_sources)
+    return f"uv sync {scope} --all-groups{flags} --project /deps"
+
+
 def python_dockerfile(stack: PythonStack, *, system_build_tools: bool = False, headers: tuple[str, ...] = ()) -> str:
-    if stack.lockfile == "uv.lock" and stack.members:
-        install = "uv sync --frozen --no-install-workspace --all-packages --all-groups --project /deps"
-    elif stack.lockfile == "uv.lock":
-        install = "uv sync --frozen --no-install-project --all-groups --project /deps"
+    if stack.lockfile == "uv.lock":
+        scope = "--no-install-workspace --all-packages" if stack.members else "--no-install-project"
+        # The lockfile first, as the team installs; one out of date with pyproject.toml is resolved again, and that is
+        # recorded in the image so the run can say so.
+        install = f"({_uv_sync(stack, '--frozen ' + scope)} || (touch {LOCK_STALE} && {_uv_sync(stack, scope)}))"
     elif stack.manifest in ("setup.py", "poetry.lock"):
         # The requirements were read statically (setup.py's install_requires, poetry.lock's pins) and written
         # into the build context.
@@ -130,7 +189,12 @@ def python_dockerfile(stack: PythonStack, *, system_build_tools: bool = False, h
     elif stack.manifest == "requirements.txt":
         install = "uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python -r /deps/requirements.txt"
     else:
-        install = "uv sync --no-install-project --all-groups --project /deps"
+        install = _uv_sync(stack, "--no-install-project")
+    uv = (
+        f"uv{stack.uv_version if stack.uv_version[0] in '=<>!~' else '==' + stack.uv_version}"
+        if stack.uv_version
+        else "uv"
+    )
     build_tools = (
         "RUN apt-get update && apt-get install -y --no-install-recommends "
         + " ".join(("build-essential", *headers))
@@ -144,11 +208,13 @@ COPY --from=node /usr/local/bin/node /usr/local/bin/node
 COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \\
  && npm install -g pyright@{PYRIGHT_VERSION} \\
- && pip install --no-cache-dir uv \\
+ && pip install --no-cache-dir "{uv}" \\
  && uv venv /opt/tools \\
  && (uv pip install --python /opt/tools/bin/python ruff=={RUFF_VERSION} pytest=={PYTEST_VERSION} \\
      || uv pip install --python /opt/tools/bin/python ruff=={RUFF_VERSION} pytest)
 {build_tools}ENV UV_PROJECT_ENVIRONMENT=/deps/.venv UV_LINK_MODE=copy
+# The interpreter is the one Unbidden chose and records: uv may neither pick another nor download one.
+ENV UV_PYTHON=/usr/local/bin/python{stack.version} UV_PYTHON_DOWNLOADS=never
 # Projects that take their version from git (setuptools-scm, hatch-vcs) cannot read it here: only manifests are
 # copied, never .git. Their dependencies do not depend on the version.
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
@@ -175,6 +241,7 @@ def _manifests(repo: Path, rev: str, stack: NodeStack | PythonStack) -> list[str
         wanted += [stack.lockfile] if stack.lockfile else []
         wanted += [f for f in ("pnpm-workspace.yaml", ".npmrc") if f in files]
         wanted += [p.prisma_schema for p in stack.packages if p.prisma_schema]
+        wanted += [f for f in declared_patches(repo, rev) if f in files]
         # Packages vendored under node_modules are never tracked in sane repos; skip them if they are.
         return sorted({f for f in wanted if "node_modules/" not in f})
     if stack.manifest in ("setup.py", "poetry.lock"):
@@ -183,12 +250,35 @@ def _manifests(repo: Path, rev: str, stack: NodeStack | PythonStack) -> list[str
     wanted += [f"{m}/pyproject.toml" for m in stack.members]
     # Build backends read the documents a manifest declares (hatchling refuses a missing `readme`) even when only the
     # metadata is built. Documents, never code.
-    for directory in ["", *(f"{m}/" for m in stack.members)]:
+    wanted += [f"{d}/{name}" for _, d in stack.path_sources for name in ("pyproject.toml", "setup.cfg")
+               if f"{d}/{name}" in files]  # fmt: skip
+    for directory in ["", *(f"{m}/" for m in stack.members), *(f"{d}/" for _, d in stack.path_sources)]:
         wanted += [f for f in files if f.startswith(directory) and METADATA_DOC.match(f.removeprefix(directory))]
     return sorted(set(wanted))
 
 
 METADATA_DOC = re.compile(r"^(README|LICEN[CS]E|COPYING|NOTICE|AUTHORS|CHANGELOG|CHANGES)[\w.-]*$", re.IGNORECASE)
+
+
+def declared_patches(repo: Path, rev: str) -> list[str]:
+    """Patch files a package manager applies to dependencies (`patchedDependencies` in package.json, at the top level
+    or under `pnpm`, and in pnpm-workspace.yaml): diffs of third-party packages, needed to install, not the project's
+    code."""
+    found: list[str] = []
+    for path in ("package.json", "pnpm-workspace.yaml"):
+        shown = subprocess.run(["git", "-C", str(repo), "show", f"{rev}:{path}"], capture_output=True, text=True)
+        if shown.returncode != 0:
+            continue
+        try:
+            data = json.loads(shown.stdout) if path.endswith(".json") else yaml.safe_load(shown.stdout)
+        except (ValueError, yaml.YAMLError):
+            continue
+        if not isinstance(data, dict):
+            continue
+        for table in (data.get("patchedDependencies"), (data.get("pnpm") or {}).get("patchedDependencies")):
+            if isinstance(table, dict):
+                found += [str(v) for v in table.values() if isinstance(v, str) and ".." not in v]
+    return found
 
 
 def build_error(stderr: str, keep: int = 12) -> str:
@@ -201,7 +291,11 @@ def build_error(stderr: str, keep: int = 12) -> str:
     cause = [ln for ln in cause if not ln.startswith(("DONE", "CACHED", "[", "sha256:", "naming to", "writing image"))]
     signal = [ln for ln in cause if any(w in ln.lower() for w in ("error", "err!", "failed", "not found", "cannot"))]
     picked = (signal or cause)[-keep:]
-    return "\n".join([*picked, *lines[-2:]])
+    # The installer's first error and the lines that explain it (uv's "Because ... depends on ...", hints, npm's code
+    # and reason): without them a failure says what happened but not why.
+    first = next((i for i, ln in enumerate(cause) if re.match(r"\s*(error|npm error|ERR!)", ln, re.I)), None)
+    explained = [ln for ln in cause[first : first + keep]] if first is not None else []
+    return "\n".join(dict.fromkeys([*explained, *picked, *lines[-2:]]))
 
 
 NEEDS_COMPILER = re.compile(
@@ -371,7 +465,22 @@ def _provision(
             "PYTHONDONTWRITEBYTECODE": "1",
         },
         links={},
+        notes=_python_notes(tag, stack, docker),
     )
+
+
+def _python_notes(tag: str, stack: PythonStack, docker: str) -> tuple[str, ...]:
+    notes = [
+        f"dependency group {g} needs another Python than {stack.version}; not installed" for g in stack.skip_groups
+    ]
+    notes += [f"{name} is installed from {path} in the repository; its code comes from the snapshot, not the image"
+              for name, path in stack.path_sources]  # fmt: skip
+    if stack.lockfile == "uv.lock":
+        stale = subprocess.run([docker, "run", "--rm", "--network", "none", tag, "test", "-e", LOCK_STALE],
+                               capture_output=True, check=False).returncode == 0  # fmt: skip
+        if stale:
+            notes.append("uv.lock is out of date with pyproject.toml: dependencies resolved at provisioning time")
+    return tuple(notes)
 
 
 def link_dependencies(work: Path, image: DependencyImage) -> None:

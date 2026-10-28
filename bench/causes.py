@@ -15,8 +15,12 @@ MIN_CODE_FILES = 5
 
 # The installer's own words, most specific first.
 DEPENDENCY_CAUSES: tuple[tuple[str, re.Pattern[str]], ...] = (
+    # A dependency from a git repository: installing it needs network access the mandate does not grant.
+    ("deps_vcs_source", re.compile(r"@ git\+|git\+https?://|git\+ssh://", re.I)),
     ("deps_python_version", re.compile(
-        r"does not satisfy Python|requires-python|Python>=\d|python_requires|current Python version", re.I)),
+        r"does not satisfy Python|requires-python|Python>=\d|python_requires|current Python version|"
+        r"supported environments|resolved to Python", re.I)),
+    ("deps_tool_version", re.compile(r"Required uv version|required-version|packageManager", re.I)),
     ("deps_private_or_network", re.compile(
         r"\b40[134]\b|Could not resolve host|ETIMEDOUT|ECONNRESET|unable to access|Authentication failed|"
         r"private registry|git@", re.I)),
@@ -26,8 +30,10 @@ DEPENDENCY_CAUSES: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("deps_native_build", re.compile(
         r"fatal error: .*\.h|\bgcc\b|g\+\+|clang|command 'cc'|pg_config|Failed building wheel|Rust compiler|"
         r"\bcargo\b|cmake|node-gyp", re.I)),
+    ("deps_stale_lockfile", re.compile(r"lockfile .* needs to be updated|lockfile had changes|frozen-lockfile", re.I)),
     ("deps_resolution", re.compile(
         r"No solution found|ResolutionImpossible|ERESOLVE|conflicting|unsatisfiable|Because .* depends on", re.I)),
+    ("deps_missing_file", re.compile(r"Couldn't find patch file|Distribution not found at|does not exist", re.I)),
 )  # fmt: skip
 
 

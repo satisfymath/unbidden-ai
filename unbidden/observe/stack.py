@@ -15,7 +15,7 @@ from typing import Any, Literal
 DEFAULT_NODE_MAJOR = 22
 DEFAULT_PYTHON = "3.12"
 
-NodeManager = Literal["npm", "pnpm", "yarn"]
+NodeManager = Literal["npm", "pnpm", "yarn", "bun"]
 
 
 @dataclass(frozen=True)
@@ -43,6 +43,7 @@ class NodeStack:
     prettier: bool
     test_script: str | None
     packages: tuple[NodePackage, ...] = ()
+    manager_version: str | None = None  # from package.json's packageManager ("bun@1.3.14" -> "1.3.14")
 
 
 @dataclass(frozen=True)
@@ -58,6 +59,9 @@ class PythonStack:
     source_roots: tuple[str, ...] = ("src", ".")  # directories put on PYTHONPATH, relative to the repository
     test_paths: tuple[str, ...] = ()  # where pytest should look; empty means its own discovery
     mypy: tuple[str, ...] | None = None  # mypy's targets when the repository uses it; empty: its config names them
+    uv_version: str | None = None  # [tool.uv] required-version: the project's uv refuses any other
+    skip_groups: tuple[str, ...] = ()  # dependency groups whose own requires-python excludes `version`
+    path_sources: tuple[tuple[str, str], ...] = ()  # (package, directory) installed from a path in the repository
 
 
 @dataclass(frozen=True)
@@ -156,12 +160,22 @@ def _workspace_packages(repo: Path, rev: str, files: set[str], root: dict[str, A
     return tuple(dict.fromkeys(packages))
 
 
+def _manager_version(package: dict[str, Any], manager: str) -> str | None:
+    declared = package.get("packageManager")
+    if isinstance(declared, str) and declared.startswith(f"{manager}@"):
+        version = declared.split("@", 1)[1].split("+", 1)[0]
+        return version if re.fullmatch(r"[\w.-]+", version) else None
+    return None
+
+
 def _detect_node(repo: Path, rev: str, files: set[str], blind: list[str]) -> NodeStack | None:
     if "package.json" not in files:
         return None
     package = json.loads(_read(repo, rev, "package.json"))
     lock: tuple[NodeManager, str | None] | None = None
-    for manager, name in (("pnpm", "pnpm-lock.yaml"), ("npm", "package-lock.json"), ("yarn", "yarn.lock")):
+    locks = (("pnpm", "pnpm-lock.yaml"), ("bun", "bun.lock"), ("bun", "bun.lockb"), ("npm", "package-lock.json"),
+             ("yarn", "yarn.lock"))  # fmt: skip
+    for manager, name in locks:
         if name in files:
             lock = (manager, name)  # type: ignore[assignment]
             break
@@ -187,6 +201,7 @@ def _detect_node(repo: Path, rev: str, files: set[str], blind: list[str]) -> Nod
                 break
     return NodeStack(
         manager=lock[0],
+        manager_version=_manager_version(package, lock[0]),
         lockfile=lock[1],
         major=major,
         major_assumed=assumed,
@@ -302,6 +317,7 @@ def _detect_python(repo: Path, rev: str, files: set[str], blind: list[str]) -> P
         roots = tuple(dict.fromkeys([*members, "src", "."]))
         tests = _tests_under(files, (*members, "."))
         mypy = mypy_targets(_read(repo, rev, "pyproject.toml"), files, members) if '"mypy' in text else None
+        uv = uv_settings(tomllib.loads(_read(repo, rev, "pyproject.toml")), version, files)
         return PythonStack(
             version=version,
             lockfile=lock,
@@ -313,6 +329,7 @@ def _detect_python(repo: Path, rev: str, files: set[str], blind: list[str]) -> P
             source_roots=roots,
             test_paths=tests if members else (),
             mypy=mypy,
+            **uv,
         )
     if "requirements.txt" in files:
         return PythonStack(
@@ -338,6 +355,46 @@ def _detect_python(repo: Path, rev: str, files: set[str], blind: list[str]) -> P
             requirements=requirements,
         )
     return None
+
+
+def _admits(spec: str, version: str) -> bool:
+    """Whether a requires-python spec (">=3.12", ">=3.10,<3.14") admits a minor version. Unknown forms admit it."""
+    minor = int(version.split(".")[1])
+    for clause in spec.split(","):
+        found = re.match(r"\s*(>=|>|<=|<|==|~=)\s*3\.(\d+)", clause)
+        if not found:
+            continue
+        op, bound = found.group(1), int(found.group(2))
+        ok = {">=": minor >= bound, ">": minor > bound, "<=": minor <= bound, "<": minor < bound,
+              "==": minor == bound, "~=": minor >= bound}[op]  # fmt: skip
+        if not ok:
+            return False
+    return True
+
+
+def uv_settings(pyproject: dict[str, Any], version: str, files: set[str]) -> dict[str, Any]:
+    """What a uv project declares that changes how its dependencies install: a required uv version, groups that need
+    another Python than the one chosen, and packages installed from a directory of the repository."""
+    uv = pyproject.get("tool", {}).get("uv", {})
+    required = uv.get("required-version")
+    groups = uv.get("dependency-groups", {})
+    skip = tuple(
+        sorted(
+            name
+            for name, conf in groups.items()
+            if isinstance(conf, dict) and conf.get("requires-python") and not _admits(conf["requires-python"], version)
+        )
+    )
+    sources = uv.get("sources", {})
+    paths = tuple(
+        sorted(
+            (name, str(conf["path"]).strip("./"))
+            for name, conf in sources.items()
+            if isinstance(conf, dict) and isinstance(conf.get("path"), str) and ".." not in conf["path"]
+            and any(f.startswith(str(conf["path"]).strip("./") + "/") for f in files)
+        )
+    )  # fmt: skip
+    return {"uv_version": required if isinstance(required, str) else None, "skip_groups": skip, "path_sources": paths}
 
 
 def detect_stack(repo: Path, rev: str = "HEAD") -> Stack:
