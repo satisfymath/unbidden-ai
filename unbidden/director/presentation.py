@@ -86,6 +86,31 @@ def expected(rows: list[dict[str, Any]], key: str, values: dict[str, float]) -> 
     return out
 
 
+def colour_name(css: str) -> str:
+    """A computed CSS colour in words, as a person would name it ("very light red (pale pink)", "dark green"), so a
+    goal stated in colours can be compared with what the page shows. Transparent is said so."""
+    import colorsys
+    import re
+
+    m = re.match(r"rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)", css or "")
+    if not m:
+        return "unknown"
+    if m[4] is not None and float(m[4]) < 0.1:
+        return "transparent"
+    h, light, sat = colorsys.rgb_to_hls(float(m[1]) / 255, float(m[2]) / 255, float(m[3]) / 255)
+    if sat < 0.15 or light > 0.97 or light < 0.06:
+        return "white" if light > 0.9 else "black" if light < 0.15 else "light grey" if light > 0.6 else "grey"
+    hue = h * 360
+    name = next(n for limit, n in HUES if hue < limit)
+    shade = "very light " if light > 0.85 else "light " if light > 0.7 else "dark " if light < 0.3 else ""
+    pastel = " (pale pink)" if name == "red" and light > 0.8 else ""
+    return f"{shade}{name}{pastel}"
+
+
+HUES = ((15, "red"), (45, "orange"), (70, "yellow"), (165, "green"), (200, "cyan"), (255, "blue"),
+        (290, "purple"), (345, "pink"), (361, "red"))  # fmt: skip
+
+
 def _num(v: float) -> str:
     return str(int(v)) if float(v).is_integer() else f"{v:.2f}"
 
@@ -119,7 +144,8 @@ def observed_lines(page: dict[str, Any], keys: set[str] | None = None) -> str:
             if not (m["text"] in row["cells"] and m["background"] in TRANSPARENT and m.get("visible") == 1)
         ]  # fmt: skip
         marks = "; ".join(
-            f"{m['text']!r} bg {m['background']} fg {m['color']} {m['font_px']:.0f}px"
+            f"{m['text']!r} bg {m['background']} ({colour_name(m['background'])}) fg {m['color']} "
+            f"({colour_name(m['color'])}) {m['font_px']:.0f}px"
             f"{'' if m.get('opacity', 1) >= 1 else f' opacity {m["opacity"]}'}"
             f"{'' if m.get('visibility') == 'visible' else ' ' + str(m.get('visibility'))}"
             f" visible {m['visible'] if m['visible'] is not None else 'never in view'}"

@@ -115,3 +115,25 @@ def test_read_answer_says_why() -> None:
     assert "not JSON" in (presentation.read_answer("nope", keys)[1] or "")
     assert "schema" in (presentation.read_answer('{"discrepancies": [{"key": "B01"}], "cause": ""}', keys)[1] or "")
     assert "B77" in (presentation.read_answer(ONE.replace("B01", "B77"), keys)[1] or "")
+
+
+@pytest.mark.parametrize(
+    ("css", "name"),
+    [
+        ("rgb(198, 40, 40)", "red"),
+        ("rgb(253, 236, 234)", "very light red (pale pink)"),  # what two repairs called a red badge
+        ("rgb(227, 241, 229)", "very light green"),
+        ("rgb(31, 95, 44)", "dark green"),
+        ("rgba(0, 0, 0, 0)", "transparent"),
+        ("rgb(255, 255, 255)", "white"),
+    ],
+)
+def test_colours_are_named_as_a_person_would(css: str, name: str) -> None:
+    assert presentation.colour_name(css) == name
+
+
+def test_observations_name_each_marks_colours() -> None:
+    page = {"rows": [{"row": 0, "cells": ["B01", "SHORT 4"], "box": {"y": 0, "h": 40}, "marks": [
+        {"text": "SHORT 4", "background": "rgb(253, 236, 234)", "color": "rgb(179, 38, 30)", "font_px": 14,
+         "visible": 1, "covered_by": {}, "visibility": "visible"}]}], "overlays": []}  # fmt: skip
+    assert "bg rgb(253, 236, 234) (very light red (pale pink))" in presentation.observed_lines(page)
