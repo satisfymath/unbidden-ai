@@ -66,7 +66,9 @@ class ApiIntegration(Contract):
     auth: dict[str, str]  # {"type": "apiKey", "in": "header", "name": ...}; the value stays with the broker
     operations: list[Operation]
     limits: dict[str, float] = Field(default_factory=lambda: {"timeout_s": 10.0, "retries": 2.0})
-    status: str = "validated"  # validated | rejected | disabled
+    version: int = 1
+    status: str = "validated"  # validated | rejected | approved | disabled
+    approved_by: str | None = None
     quality: dict[str, Any] = Field(default_factory=dict[str, Any])
     provenance: dict[str, Any] = Field(default_factory=dict[str, Any])
     disable_when: list[str] = Field(

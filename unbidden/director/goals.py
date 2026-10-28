@@ -1,0 +1,368 @@
+"""Pursuing a mandate's goal with the project's connected systems: one investigation pattern, a reconciliation.
+
+The local model plans; Unbidden executes, computes and bounds. The plan names a bounded SQL query on a database
+connection, a read operation of an API connection, the key both share, the shortfall as an arithmetic expression
+over their fields, and, when the goal calls for a change, the write operation and its key and amount fields. Then:
+the reads run through the connection gate (`postgres.query`, the integration's executor), the rows are joined on
+the key, the expression is evaluated by a small arithmetic evaluator (names, numbers, + - * and parentheses only),
+the rows above zero are ranked, cut to the goal's bounds, and each becomes a typed action (`operate/actions.py`)
+with its preconditions; nothing is written unless the mandate, the grant and an observed write ability allow it.
+A source the plan needs that is not usable is recorded as a capability need that resumes this pursuit when filled.
+"""
+
+from __future__ import annotations
+
+import ast
+import json
+import math
+from datetime import datetime
+from typing import Any
+
+from pydantic import Field
+
+from unbidden.brain.prompts import load_prompt
+from unbidden.connect.base import Unavailable
+from unbidden.connect.postgres import QueryRefused, catalog, query
+from unbidden.connect.registry import COLLECTION as CONNECTIONS
+from unbidden.contracts.action import Action, ActionStatus
+from unbidden.contracts.common import Contract, new_id, utc_now
+from unbidden.contracts.connection import USABLE, Connection, ConnectionState
+from unbidden.contracts.guardian import Goal, Mandate
+from unbidden.contracts.llm import LLMRequest, Message, Tier
+from unbidden.forge.api_client import COLLECTION as INTEGRATIONS
+from unbidden.forge.api_client import ApiIntegration, CallFailed, _list_items, call  # pyright: ignore[reportPrivateUsage]
+from unbidden.operate.actions import idempotency_key, run_api_action
+from unbidden.store import Store
+
+COLLECTION = "goal_runs"
+PLAN_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "required": ["needs"],
+    "properties": {
+        "needs": {"type": "array", "items": {"type": "string"}},
+        "sql": {
+            "type": "object",
+            "required": ["connection", "query"],
+            "properties": {"connection": {"type": "string"}, "query": {"type": "string"}},
+        },
+        "api": {
+            "type": "object",
+            "required": ["connection", "operation"],
+            "properties": {"connection": {"type": "string"}, "operation": {"type": "string"}},
+        },
+        "key": {"type": "string"},
+        "shortfall": {"type": "string"},
+        "act": {
+            "type": "object",
+            "required": ["operation", "key_field", "amount_field"],
+            "properties": {
+                "operation": {"type": "string"},
+                "key_field": {"type": "string"},
+                "amount_field": {"type": "string"},
+            },
+        },
+    },
+}
+
+
+class GoalRun(Contract):
+    id: str = Field(default_factory=lambda: new_id("goal"))
+    goal: str
+    status: str = "planning"  # planning | waiting_capability | blocked | investigated | acted | failed
+    plan: dict[str, Any] = Field(default_factory=dict[str, Any])
+    reads: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
+    findings: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
+    actions: list[str] = Field(default_factory=list[str])
+    notes: list[str] = Field(default_factory=list[str])
+    model: dict[str, Any] = Field(default_factory=dict[str, Any])
+    started_at: datetime = Field(default_factory=utc_now)
+    finished_at: datetime | None = None
+
+
+_ALLOWED = (
+    ast.Expression,
+    ast.BinOp,
+    ast.UnaryOp,
+    ast.Add,
+    ast.Sub,
+    ast.Mult,
+    ast.USub,
+    ast.Name,
+    ast.Load,
+    ast.Constant,
+)
+
+
+def evaluate(expression: str, row: dict[str, Any]) -> float:
+    """Arithmetic over a row's fields: names, numbers, + - * and parentheses. Anything else is refused."""
+    tree = ast.parse(expression, mode="eval")
+    for node in ast.walk(tree):
+        if not isinstance(node, _ALLOWED) or (
+            isinstance(node, ast.Constant) and not isinstance(node.value, int | float)
+        ):
+            raise ValueError(f"not allowed in a shortfall: {ast.dump(node)[:60]}")
+
+    def value(node: ast.AST) -> float:
+        if isinstance(node, ast.Expression):
+            return value(node.body)
+        if isinstance(node, ast.Constant):
+            assert isinstance(node.value, int | float)  # checked above
+            return float(node.value)
+        if isinstance(node, ast.Name):
+            found = row.get(node.id)
+            if found is None:
+                raise KeyError(node.id)
+            return float(found)
+        if isinstance(node, ast.UnaryOp):
+            return -value(node.operand)
+        assert isinstance(node, ast.BinOp)
+        left, right = value(node.left), value(node.right)
+        return (
+            left + right
+            if isinstance(node.op, ast.Add)
+            else left - right
+            if isinstance(node.op, ast.Sub)
+            else left * right
+        )
+
+    return value(tree)
+
+
+def _sources(
+    store: Store, mandate: Mandate
+) -> tuple[list[str], list[str], dict[str, Connection], dict[str, ApiIntegration]]:
+    usable, blocked, conns, integrations = [], [], {}, {}
+    for conn in store.list(CONNECTIONS, Connection):
+        if not conn.grant:
+            continue
+        conns[conn.grant] = conn
+        if conn.kind == "postgres" and conn.state in USABLE and conn.can("read"):
+            try:
+                tables = catalog(conn, mandate)
+            except (Unavailable, QueryRefused, Exception) as exc:  # a failed read is a blocked source, said so
+                blocked.append(f"- {conn.grant} ({conn.kind}): read failed: {str(exc)[:120]}")
+                continue
+            listing = "; ".join(
+                f"{t['table']}({', '.join(c['column'] + ' ' + c['type'] for c in t['columns'])}) ~{t['rows']} rows"
+                for t in tables
+            )
+            usable.append(f"- {conn.grant} (postgres, {conn.environment.value}): {listing}")
+        elif conn.kind == "http_api" and conn.state in USABLE and conn.capability_id:
+            integration = store.get(INTEGRATIONS, conn.capability_id, ApiIntegration)
+            if integration is None:
+                continue
+            integrations[conn.grant] = integration
+            ops = []
+            for op in integration.operations:
+                if not conn.can(op.effect, op.id):
+                    continue
+                fields = _fields(op.responses.get("200") or op.responses.get("201") or {})
+                body = ", ".join((op.body_schema or {}).get("properties", {}))
+                ops.append(
+                    f"{op.id} ({op.effect}{'; record fields: ' + ', '.join(fields) if fields else ''}"
+                    f"{'; body: ' + body if body else ''})"
+                )
+            usable.append(f"- {conn.grant} (api {integration.title}, {conn.environment.value}): {'; '.join(ops)}")
+        else:
+            blocked.append(
+                f"- {conn.grant} ({conn.kind}): {conn.state.value}: {conn.blocked or conn.check_detail}"[:200]
+            )
+    return usable, blocked, conns, integrations
+
+
+def _fields(schema: dict[str, Any]) -> list[str]:
+    if schema.get("type") == "array":
+        return list((schema.get("items") or {}).get("properties", {}))
+    for value in (schema.get("properties") or {}).values():
+        if isinstance(value, dict) and value.get("type") == "array":
+            return list((value.get("items") or {}).get("properties", {}))
+    return list(schema.get("properties", {}))
+
+
+async def pursue(brain: Any, store: Store, mandate: Mandate, goal: Goal, *, window: str) -> GoalRun:
+    run = GoalRun(goal=goal.id)
+    usable, blocked, conns, integrations = _sources(store, mandate)
+    prompt = load_prompt("goal_plan")
+    request = LLMRequest(
+        purpose="director.goal_plan",
+        tier=Tier.LOCAL,
+        response_schema=PLAN_SCHEMA,
+        max_tokens=1500,
+        prompt_sha256=prompt.sha256,
+        messages=[
+            Message(
+                role="user",
+                source="runtime",
+                content=prompt.render(
+                    goal=goal.statement,
+                    bounds=json.dumps(goal.bounds),
+                    sources="\n".join(usable) or "- nothing",
+                    blocked="\n".join(blocked) or "- nothing",
+                    schema=json.dumps(PLAN_SCHEMA),
+                ),
+            )
+        ],
+    )
+    started = utc_now()
+    response = await brain.complete(request)
+    run.model = {"model": getattr(response, "model", None), "seconds": (utc_now() - started).total_seconds()}
+    try:
+        plan = json.loads(response.content)
+    except json.JSONDecodeError:
+        return _finish(store, run, "failed", "the plan was not JSON")
+    run.plan = plan
+    missing = [n for n in plan.get("needs") or [] if n in conns and conns[n].state not in USABLE]
+    unbuilt = [n for n in missing if conns[n].state is ConnectionState.NEEDS_CAPABILITY]
+    if unbuilt:
+        from unbidden.forge import needs
+
+        for name in unbuilt:
+            needs.record(
+                store,
+                "api_client",
+                conns[name].id,
+                f"goal {goal.id} needs {name}",
+                resume=[{"type": "goal.pursue", "key": goal.id, "payload": {"goal": goal.id}}],
+            )
+        return _finish(store, run, "waiting_capability", f"needs an integration for {', '.join(unbuilt)}")
+    if missing:
+        return _finish(store, run, "blocked", "; ".join(f"{n}: {conns[n].state.value}" for n in missing))
+    try:
+        rows = _read(store, mandate, plan, conns, integrations, run)
+    except (Unavailable, QueryRefused, CallFailed, KeyError, ValueError) as exc:
+        return _finish(store, run, "failed", f"reads: {exc}")
+    key, expression = str(plan.get("key")), str(plan.get("shortfall"))
+    short = []
+    for row in rows:
+        try:
+            amount = evaluate(expression, row)
+        except (KeyError, ValueError, ZeroDivisionError) as exc:
+            run.notes.append(f"{row.get(key)}: {exc}")
+            continue
+        if amount > 0:
+            short.append({key: row[key], "shortfall": amount, "row": row})
+    short.sort(key=lambda r: -r["shortfall"])
+    run.findings = short
+    act = plan.get("act")
+    if not act or not short:
+        return _finish(store, run, "investigated", f"{len(short)} of {len(rows)} keys short; nothing to change")
+    _act(store, mandate, goal, run, short, act, conns, integrations, plan, window)
+    return _finish(store, run, "acted", f"{len(short)} of {len(rows)} keys short; {len(run.actions)} action(s)")
+
+
+def _read(
+    store: Store,
+    mandate: Mandate,
+    plan: dict[str, Any],
+    conns: dict[str, Connection],
+    integrations: dict[str, ApiIntegration],
+    run: GoalRun,
+) -> list[dict[str, Any]]:
+    sql, api, key = plan.get("sql") or {}, plan.get("api") or {}, str(plan.get("key"))
+    db = conns.get(str(sql.get("connection")))
+    integration = integrations.get(str(api.get("connection")))
+    if db is None or integration is None:
+        raise KeyError("the plan names a connection that cannot be read")
+    left = query(db, mandate, str(sql.get("query")), limit=1000)
+    run.reads.append({"connection": db.id, "query": sql.get("query"), "rows": len(left)})
+    op = integration.op(str(api.get("operation")))
+    conn = conns[str(api.get("connection"))]
+    right: list[dict[str, Any]] = []
+    page, pages = 1, 1
+    while page <= min(pages, 20):
+        params = {"page": page} if any(p["name"] == "page" for p in op.parameters) else {}
+        _, data = call(integration, conn, mandate, op.id, params=params)
+        right += _list_items(data)
+        pages = int(data.get("pages", 1)) if isinstance(data, dict) and isinstance(data.get("pages"), int) else 1
+        page += 1
+    run.reads.append({"connection": conn.id, "operation": op.id, "records": len(right), "pages": pages})
+    by_key = {r.get(key): r for r in right}
+    if not left or key not in left[0]:
+        raise KeyError(f"the query's rows have no field {key!r}")
+    joined = []
+    for row in left:
+        other = by_key.get(row[key])
+        if other is not None:
+            joined.append({**other, **{k: (float(v) if hasattr(v, "as_integer_ratio") else v) for k, v in row.items()}})
+    # Keys with records in the API but no row in the query: nothing was ordered; their demand is zero.
+    for k, other in by_key.items():
+        if k not in {r[key] for r in left}:
+            joined.append({**other, **{c: 0 for c in left[0] if c != key}, key: k})
+    run.reads.append({"joined": len(joined), "key": key})
+    return joined
+
+
+def _act(
+    store: Store,
+    mandate: Mandate,
+    goal: Goal,
+    run: GoalRun,
+    short: list[dict[str, Any]],
+    act: dict[str, Any],
+    conns: dict[str, Connection],
+    integrations: dict[str, ApiIntegration],
+    plan: dict[str, Any],
+    window: str,
+) -> None:
+    name = str((plan.get("api") or {}).get("connection"))
+    conn, integration = conns[name], integrations[name]
+    operation = str(act.get("operation"))
+    if operation not in {o.id for o in integration.operations}:
+        run.notes.append(f"the plan's write {operation!r} is not an operation of the integration")
+        return
+    limit = int(goal.bounds.get("max_reorders", 0) or 0)
+    cap = int(goal.bounds.get("max_units_per_reorder", 0) or 0)
+    environment = str(goal.bounds.get("environment", ""))
+    # The bounds hold for the goal over its window, across every run: a second pursuit the same day (resumed by a
+    # second capability, say) sees what the first did, and acts again on no key it already acted on.
+    acted = [
+        a
+        for a in store.list("actions", Action)
+        if a.goal == goal.id
+        and a.kind == "api_call"
+        and f"{a.created_at:%Y-%m-%d}" == window
+        and a.status in (ActionStatus.EXECUTED, ActionStatus.VERIFIED, ActionStatus.UNVERIFIED)
+    ]
+    keys_done = {str((a.body or {}).get(str(act["key_field"]))) for a in acted}
+    if acted:
+        run.notes.append(f"{len(acted)} action(s) already taken for this goal in {window}")
+    for finding in short:
+        if len(acted) + len(run.actions) >= limit:
+            break
+        if str(finding[str(plan["key"])]) in keys_done:
+            finding["action"] = {"status": "skipped", "why": f"already acted on in {window}"}
+            continue
+        units = min(math.ceil(finding["shortfall"]), cap) if cap else math.ceil(finding["shortfall"])
+        body = {str(act["key_field"]): finding[str(plan["key"])], str(act["amount_field"]): units}
+        action = Action(
+            kind="api_call",
+            goal=goal.id,
+            connection=conn.id,
+            environment=conn.environment.value,
+            operation=operation,
+            body=body,
+            requires="connection.write",
+            idempotency_key=idempotency_key(goal.id, conn.id, operation, body, window),
+        )
+        conditions = [
+            (f"environment is {environment}", conn.environment.value == environment, conn.environment.value),
+            ("not production", conn.environment.value != "production", conn.environment.value),
+            (f"amount within {cap}", not cap or units <= cap, str(units)),
+            (
+                f"at most {limit} actions for this goal in {window}",
+                len(acted) + len(run.actions) < limit,
+                str(len(acted) + len(run.actions)),
+            ),
+        ]
+        done = run_api_action(store, mandate, action, integration, conn, conditions)
+        run.actions.append(done.id)
+        finding["action"] = {"id": done.id, "status": done.status.value, "units": units}
+        if done.status is ActionStatus.REFUSED:
+            run.notes.append(f"{body}: refused: {done.reason}"[:200])
+
+
+def _finish(store: Store, run: GoalRun, status: str, note: str) -> GoalRun:
+    run.status, run.finished_at = status, utc_now()
+    run.notes.append(note)
+    store.put(COLLECTION, run)
+    return run

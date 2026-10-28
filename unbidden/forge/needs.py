@@ -103,6 +103,14 @@ def _capability_status(store: Store, need: CapabilityNeed) -> str | None:
 
     if need.capability_id is None:
         return None
+    if need.kind == "api_client":
+        from unbidden.forge.api_client import COLLECTION as INTEGRATIONS
+        from unbidden.forge.api_client import ApiIntegration
+
+        integration = store.get(INTEGRATIONS, need.capability_id, ApiIntegration)
+        return (
+            integration.status if integration is not None and integration.status in ("validated", "approved") else None
+        )
     found: LogAdapter | StatsAdapter | None = (
         store.get("capabilities", need.capability_id, LogAdapter)
         if need.kind == "log_adapter"

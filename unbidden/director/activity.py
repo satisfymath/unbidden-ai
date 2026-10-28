@@ -113,6 +113,73 @@ def build(store: Store, workspace: str, spend_rows: list[dict[str, Any]] | None 
             "basis": "list price x reported tokens; the provider's dashboard is the bill",
         },
         "learned": learned,
+        **_ecosystem(store),
+    }
+
+
+def _ecosystem(store: Store) -> dict[str, Any]:
+    """Connections, integrations, actions and goal runs: what Unbidden can really do in the project, and did."""
+    from unbidden.connect.registry import COLLECTION as CONNECTIONS
+    from unbidden.connect.registry import summary
+    from unbidden.contracts.action import Action
+    from unbidden.contracts.connection import Connection, ConnectionState
+    from unbidden.director.goals import COLLECTION as GOALS
+    from unbidden.director.goals import GoalRun
+    from unbidden.forge.api_client import COLLECTION as INTEGRATIONS
+    from unbidden.forge.api_client import ApiIntegration
+
+    connections = store.list(CONNECTIONS, Connection)
+    person = {ConnectionState.NEEDS_AUTHORIZATION, ConnectionState.NEEDS_CONFIGURATION, ConnectionState.REVOKED}
+    actions = store.list("actions", Action)
+    return {
+        "connections": summary(connections),
+        "needs_a_person": [
+            {"connection": c.id, "state": c.state.value, "what": c.next_step or c.blocked}
+            for c in connections
+            if c.state in person or (c.grant is None and c.state is ConnectionState.DISCOVERED)
+        ]
+        + [
+            {"proposal": a.operation, "state": "proposed", "what": a.reason}
+            for a in actions
+            if a.kind == "deploy_steps"
+        ],
+        "integrations": [
+            {
+                "id": i.id,
+                "title": i.title,
+                "on": i.source,
+                "status": i.status,
+                "how": "reused from " + str(i.provenance["reused_from"])
+                if i.provenance.get("reused_from")
+                else "built",
+                "operations": {o.id: o.effect for o in i.operations},
+                "oracle": {k: r.get("observed") for k, r in (i.quality.get("operations") or {}).items()},
+            }
+            for i in sorted(store.list(INTEGRATIONS, ApiIntegration), key=lambda i: i.created_at)
+        ],
+        "actions": [
+            {
+                "operation": a.operation,
+                "on": a.connection,
+                "status": a.status.value,
+                "body": a.body,
+                "checked": a.verification.get("how") or a.reason,
+                "undo": a.compensation.operation if a.compensation.available else None,
+            }
+            for a in actions
+            if a.kind == "api_call"
+        ],
+        "goals": [
+            {
+                "goal": r.goal,
+                "status": r.status,
+                "short": len(r.findings),
+                "actions": len(r.actions),
+                "note": r.notes[-1] if r.notes else "",
+                "at": r.started_at.isoformat(),
+            }
+            for r in sorted(store.list(GOALS, GoalRun), key=lambda r: r.started_at)
+        ],
     }
 
 
@@ -147,6 +214,23 @@ def render_text(data: dict[str, Any]) -> list[str]:
     if data["learned"]:
         lines.append("[bold]learned[/] (chance an experiment succeeds; prior 0.6)")
         lines += [f"  {k}: {v['p']} ({v['successes']} won, {v['failures']} lost)" for k, v in data["learned"].items()]
+    if data.get("connections"):
+        lines.append("[bold]connections[/] (what was checked, not what was declared)")
+        for c in data["connections"]:
+            can = f"read {len(c['read'])} op(s)" if c["read"] else "reads nothing"
+            change = f", changes {', '.join(c['write'])}" if c["write"] else ""
+            lines.append(f"  {c['state']:<19} {c['id']} ({c['environment']}): {can}{change}")
+    for i in data.get("integrations", []):
+        lines.append(f"[bold]integration[/] {i['title']} on {i['on']}: {i['status']}, {i['how']}")
+    for a in data.get("actions", []):
+        undo = f"; undo: {a['undo']}" if a["undo"] else "; no observed undo"
+        lines.append(f"[bold]action[/] {a['operation']} {a['body']} on {a['on']}: {a['status']} ({a['checked']}){undo}")
+    for g in data.get("goals", []):
+        lines.append(
+            f"[bold]goal[/] {g['goal']}: {g['status']}, {g['short']} short, {g['actions']} action(s): {g['note']}"
+        )
+    for n in data.get("needs_a_person", []):
+        lines.append(f"[yellow]needs a person[/] {n.get('connection') or n.get('proposal')}: {n['what']}")
     s = data["spent"]
     lines.append(f"[bold]spent[/] US${s['usd']:.4f} in {s['calls']} remote call(s) · {s['basis']}")
     return lines
@@ -215,6 +299,42 @@ def render_html(data: dict[str, Any]) -> str:
             (f"{v['p']:.2f}", f"{k} — {v['successes']} won, {v['failures']} lost (prior {v['prior']})")
             for k, v in data["learned"].items()
         ]))  # fmt: skip
+    if data.get("connections"):
+        parts.append("<h2>Connections (as checked)</h2>")
+        parts.append(
+            rows(
+                [
+                    (
+                        c["state"],
+                        f"{c['id']} ({c['environment']}) — reads: {', '.join(c['read'][:4]) or 'nothing'}"
+                        f"; changes: {', '.join(c['write']) or 'nothing'}",
+                    )
+                    for c in data["connections"]
+                ]
+            )
+        )
+    if data.get("integrations") or data.get("actions") or data.get("goals"):
+        parts.append("<h2>Built, done and checked</h2>")
+        parts.append(
+            rows(
+                [
+                    (i["status"], f"integration {i['title']} on {i['on']}, {i['how']}")
+                    for i in data.get("integrations", [])
+                ]
+                + [(a["status"], f"{a['operation']} {a['body']}: {a['checked']}") for a in data.get("actions", [])]
+                + [(g["status"], f"goal {g['goal']}: {g['note']}") for g in data.get("goals", [])]
+            )
+        )
+    if data.get("needs_a_person"):
+        parts.append("<h2>Needs a person</h2>")
+        parts.append(
+            rows(
+                [
+                    (n["state"], f"{n.get('connection') or n.get('proposal')}: {n['what']}")
+                    for n in data["needs_a_person"]
+                ]
+            )
+        )
     s = data["spent"]
     parts.append("<h2>Spent</h2>")
     parts.append(f"<p>US${s['usd']:.4f} in {s['calls']} remote call(s). <span class=meta>{e(s['basis'])}</span></p>")

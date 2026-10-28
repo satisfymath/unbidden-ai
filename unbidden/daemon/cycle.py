@@ -50,6 +50,8 @@ PRIORITY = {
     "lab.experiment": 70,
     "forge.build": 55,
     "world.refresh": 45,
+    "connect.survey": 42,
+    "goal.pursue": 58,
 }
 
 
@@ -89,6 +91,8 @@ class Cycle:
             "research.probe": self.research_probe,
             "forge.build": self.forge_build,
             "world.refresh": self.world_refresh,
+            "connect.survey": self.connect_survey,
+            "goal.pursue": self.goal_pursue,
         }
 
     def _env(self, rev: str) -> tuple[Stack, dict[str, DependencyImage]]:
@@ -529,11 +533,24 @@ class Cycle:
         repo, brain = self.runtime.workspace.repo, self.runtime.brain
 
         def read(kind: str, source: str) -> list[str]:
+            if kind == "api_client":
+                return [source]  # an integration is built from the connection's documentation, read by Forge
             if kind == "stats_reader":
                 return stats_build.fetch(source)
             return compose_logs(repo, source.removeprefix("compose:"))
 
         async def forge(n: CapabilityNeed, lines: list[str]) -> tuple[str | None, str, list[str]]:
+            if n.kind == "api_client":
+                from unbidden.connect.registry import get
+                from unbidden.forge import integrate
+
+                conn = get(self.store, n.source)
+                if conn is None:
+                    return None, "failed", [f"no connection {n.source}"]
+                built, decision, notes = await integrate.build(
+                    brain, self.store, self.runtime.workspace.mandate(), conn
+                )
+                return (built.id if built else None), decision, notes
             if n.kind == "stats_reader":
                 built = await stats_build.build(brain, self.store, n.source, lines, permissions=n.permissions)
                 return (built.adapter.id if built.adapter else None), built.decision, built.notes
@@ -546,6 +563,54 @@ class Cycle:
 
         need = await needs.build(self.store, self.runtime.workspace.mandate(), need, read, forge)
         self.log(f"capability need {need.kind} for {need.source}: {need.status.value}")
+        if need.kind == "api_client" and need.capability_id:
+            self._attach(need.source, need.capability_id)
+
+    def _attach(self, connection: str, capability_id: str) -> None:
+        """The connection is used through its integration from now on: checked through it, at once."""
+        from unbidden.connect.kinds import connectors
+        from unbidden.connect.registry import get, record, survey
+        from unbidden.contracts.world import WorldModel
+
+        conn = get(self.store, connection)
+        if conn is None:
+            return
+        conn.capability_id = capability_id
+        record(self.store, conn, reason=f"integration {capability_id} attached")
+        world = self.store.get("world", "world", WorldModel)
+        survey(self.runtime.workspace.repo, self.store, self.runtime.workspace.mandate(), world, connectors())
+
+    async def connect_survey(self, _: Job) -> None:
+        """The project's connections checked again; deploy procedures found proposed; each goal pursued."""
+        from unbidden.connect.kinds import connectors
+        from unbidden.connect.mapping import add_to_world
+        from unbidden.connect.registry import survey
+        from unbidden.contracts.world import WorldModel
+        from unbidden.operate.actions import propose_procedure
+
+        repo, mandate = self.runtime.workspace.repo, self.runtime.workspace.mandate()
+        world = self.store.get("world", "world", WorldModel)
+        found = await asyncio.to_thread(survey, repo, self.store, mandate, world, connectors())
+        add_to_world(self.store, repo, found)
+        for proposal in propose_procedure(self.store, repo):
+            self.log(f"deploy procedure found, proposed only: {proposal.operation}")
+        states = ", ".join(f"{c.id} {c.state.value}" for c in found if c.grant)
+        self.log(f"connections: {states}")
+        hour = f"{utc_now():%Y%m%d%H}"
+        for goal in mandate.goals:
+            self.store.enqueue(job("goal.pursue", f"{goal.id}:{hour}", {"goal": goal.id}))
+
+    async def goal_pursue(self, j: Job) -> None:
+        from unbidden.director.goals import pursue
+
+        mandate = self.runtime.workspace.mandate()
+        goal = next((g for g in mandate.goals if g.id == j.payload["goal"]), None)
+        if goal is None:
+            return
+        run = await pursue(self.runtime.brain, self.store, mandate, goal, window=f"{utc_now():%Y-%m-%d}")
+        self.log(f"goal {goal.id}: {run.status}: {run.notes[-1] if run.notes else ''}")
+        if run.status == "waiting_capability":
+            self._queue_needs()
 
     async def ops_deploy(self, j: Job) -> None:
         """Deploy what was merged: fast-forward the deployment checkout to the remote base, then the team's steps."""
@@ -639,6 +704,7 @@ TIMEOUT_S: dict[str, float] = {
     "research.investigate": 900,
     "research.probe": 3600,
     "forge.build": 1800,
+    "goal.pursue": 1800,
 }
 DEFAULT_TIMEOUT_S = 600.0
 

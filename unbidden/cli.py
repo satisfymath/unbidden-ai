@@ -680,13 +680,17 @@ def cmd_forge(args: argparse.Namespace) -> int:
         console.print(f"disabled {args.target}: nothing reads through it any more")
         return 0
     if args.action == "approve":
+        from unbidden.forge.api_client import COLLECTION as INTEGRATIONS
+        from unbidden.forge.api_client import ApiIntegration
         from unbidden.forge.stats import StatsAdapter
         from unbidden.forge.stats_build import COLLECTION as STATS
 
-        found: LogAdapter | StatsAdapter | None = store.get("capabilities", args.target, LogAdapter)
+        found: LogAdapter | StatsAdapter | ApiIntegration | None = store.get("capabilities", args.target, LogAdapter)
         collection = "capabilities"
         if found is None:
             found, collection = store.get(STATS, args.target, StatsAdapter), STATS
+        if found is None:
+            found, collection = store.get(INTEGRATIONS, args.target, ApiIntegration), INTEGRATIONS
         adapter = found
         if adapter is None or adapter.status != "validated":
             err.print("only a validated capability can be approved")
