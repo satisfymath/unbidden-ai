@@ -253,14 +253,27 @@ def call(
     with_key: bool = True,
     transport: httpx.BaseTransport | None = None,
     gate: bool = True,
-    approved: bool = False,
+    store: Any = None,
+    intent: str | None = None,
 ) -> tuple[int, Any]:
     """One call of one integration operation. The gate checks the connection, the checked ability, the grant and
     the policy at this moment; the request is built from the document's operation only; the response is validated
-    against the document. Returns (status, body); raises `Unavailable` or `CallFailed`."""
+    against the document. Returns (status, body); raises `Unavailable` or `CallFailed`.
+
+    A mutating operation is the one place every effect leaves from: it needs the workspace's `store`, is authorized
+    (`connect.effects.authorize`) immediately before it is sent, and recorded once sent, whatever came back. It is
+    sent once: retrying a write is the caller's decision, after reading whether the first one took effect, and goes
+    through this authorization again. `gate=False` (the oracle, before an ability is observed) skips only the
+    connection's checked-ability gate, never this authorization."""
     op = integration.op(op_id)
+    mutating = op.effect != "read"
+    if mutating and store is None:
+        raise Unavailable(f"{op.id} changes {conn.id}: it is sent only with its send-time authorization")
     if gate:
-        require(conn, mandate, op.effect, op.id, f"{op.id} on {conn.id}", scope=op.scope, approved=approved)
+        from unbidden.connect.effects import approved
+
+        by_person = approved(store, conn) if mutating and store is not None else False
+        require(conn, mandate, op.effect, op.id, f"{op.id} on {conn.id}", scope=op.scope, approved=by_person)
     grant = next((g for g in mandate.connections if g.id == conn.grant), None)
     if grant is None:
         raise Unavailable(f"{conn.id} is not granted")
@@ -282,13 +295,30 @@ def call(
     url = conn.location.rstrip("/") + path
     timeout = float(integration.limits.get("timeout_s", 10.0))
     response: httpx.Response | None = None
-    for attempt in range(int(integration.limits.get("retries", 2)) + 1):
+    retries = 0 if mutating else int(integration.limits.get("retries", 2))
+    why = intent or f"{op.id} on {conn.id}"
+    from unbidden.connect.effects import authorize, record_attempt
+
+    for attempt in range(retries + 1):
+        if mutating:
+            assert store is not None
+            ok, refused = authorize(store, mandate, conn, op.scope, why)
+            if not ok:
+                raise Unavailable(refused)
+        sent: int | None = None
+        error = ""
         try:
             with httpx.Client(timeout=timeout, transport=transport) as client:
                 response = client.request(op.method, url, params=query, json=body, headers=headers)
+            sent = response.status_code
         except httpx.HTTPError as exc:
+            error = f"{type(exc).__name__}: {exc}"[:200]
             raise CallFailed(None, f"{op.id}: {exc}") from exc
-        if response.status_code in (429, 503) and attempt < int(integration.limits.get("retries", 2)):
+        finally:
+            if mutating:
+                assert store is not None
+                record_attempt(store, conn, op.id, idempotency_key, why, sent, error)
+        if response.status_code in (429, 503) and attempt < retries:
             time.sleep(min(float(response.headers.get("Retry-After", "1") or 1), 5.0))
             continue
         break
@@ -475,7 +505,7 @@ def _exercise_write(
     Passes only when, read back from the service: exactly one field of the affected record changed, by the amount
     written, and it is the field the documentation describes for this operation; the repeat with the same key
     changed nothing more; the undo restored the record exactly. A success status alone proves none of it."""
-    from unbidden.connect.effects import authorize, record_effect
+    from unbidden.connect.effects import record_effect
     from unbidden.contracts.action import ActionStatus
 
     schema = op.body_schema or {}
@@ -513,12 +543,13 @@ def _exercise_write(
         return found[0] if len(found) == 1 and read.completeness.value == "complete" else None
 
     def send(operation: Operation, **kw: Any) -> tuple[int, Any]:
-        """One mutating request: authorized now (revocation, kill switch, approval, budget), then recorded."""
-        ok, why = authorize(store, mandate, conn, operation.scope, f"oracle probe of {operation.id}")
-        if not ok:
-            raise Unavailable(why)
+        """One mutating request: `call` authorizes it as it leaves (revocation, kill switch, approval, budget) and
+        records the attempt; the probe is kept as an action too."""
         try:
-            status, data = call(integration, conn, mandate, operation.id, gate=False, transport=transport, **kw)
+            status, data = call(
+                integration, conn, mandate, operation.id, gate=False, transport=transport, store=store,
+                intent=f"oracle probe of {operation.id}", **kw,
+            )  # fmt: skip
         except CallFailed as exc:
             record_effect(
                 store,

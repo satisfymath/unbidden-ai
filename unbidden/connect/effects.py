@@ -5,20 +5,25 @@ Three permissions stay apart:
 - adopting it (`capability.use`, or a person's `forge approve`): letting Unbidden read through it;
 - modifying the service (`connection.write`, under `act_on_connections`): any request that changes it, including
   the oracle's own probes, which are effects too.
-`authorize` is called immediately before each mutating request. It refuses, in this order: a grant that does not
-allow writing that scope; a production environment; a connection revoked or gone (as recorded now, not as when the
-caller looked); the kill switch; the policy (DENY, or REQUIRE_APPROVAL without a valid, unexpired approval for this
-connection); the connection's daily write budget (`limits.max_writes_per_day`, 20 by default). `record_effect` keeps
-each request sent as an action, so audit and budget count the oracle's probes like any other write.
+`authorize` is called immediately before each mutating request, by the one place that sends them
+(`forge.api_client.call`), before every attempt, retries included: a condition that changes between two attempts
+stops the second. It refuses, in this order: a grant that does not allow writing that scope; a production
+environment; a connection revoked or gone (as recorded now, not as when the caller looked); the kill switch; the
+policy (DENY, or REQUIRE_APPROVAL without a valid, unexpired approval for this connection); the connection's daily
+write budget (`limits.max_writes_per_day`, 20 by default), counted in attempts sent. `record_attempt` keeps every
+attempt that left (its status, or none when no answer came), so audit and budget count retries and the oracle's
+probes like any other write; `record_effect` keeps the oracle's probes as actions for the activity view.
 """
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
+from pydantic import Field
+
 from unbidden.contracts.action import Action, ActionStatus
-from unbidden.contracts.common import utc_now
+from unbidden.contracts.common import Contract, new_id, utc_now
 from unbidden.contracts.connection import Connection, ConnectionState
 from unbidden.contracts.guardian import ActionRequest, ConnectionGrant, Mandate
 from unbidden.guardian.approvals import find_valid, grant
@@ -41,13 +46,41 @@ def _grant(mandate: Mandate, conn: Connection) -> ConnectionGrant | None:
     return next((g for g in mandate.connections if g.id == conn.grant), None)
 
 
-def writes_today(store: Store, conn: Connection) -> int:
+ATTEMPTS = "effect_attempts"
+
+
+class EffectAttempt(Contract):
+    """One mutating request that left for a connection: its key, and what came back (None: no answer)."""
+
+    id: str = Field(default_factory=lambda: new_id("eff"))
+    connection: str
+    operation: str
+    idempotency_key: str | None = None
+    purpose: str
+    status: int | None = None
+    error: str | None = None
+    created_at: datetime = Field(default_factory=utc_now)
+
+
+def attempts_today(store: Store, conn: Connection) -> int:
     today = f"{utc_now():%Y-%m-%d}"
     return sum(
         1
-        for a in store.list("actions", Action)
-        if a.connection == conn.id and a.status in SENT and f"{a.created_at:%Y-%m-%d}" == today
+        for a in store.list(ATTEMPTS, EffectAttempt)
+        if a.connection == conn.id and f"{a.created_at:%Y-%m-%d}" == today
     )
+
+
+def record_attempt(
+    store: Store, conn: Connection, operation: str, key: str | None, purpose: str, status: int | None, error: str
+) -> None:
+    store.put(
+        ATTEMPTS,
+        EffectAttempt(
+            connection=conn.id, operation=operation, idempotency_key=key, purpose=purpose, status=status,
+            error=error or None,
+        ),
+    )  # fmt: skip
 
 
 def approved(store: Store, conn: Connection) -> bool:
@@ -84,7 +117,7 @@ def authorize(store: Store, mandate: Mandate, conn: Connection, scope: str, purp
             )
         return False, "; ".join(verdict.reasons)
     limit = int(granted.limits.get("max_writes_per_day", DEFAULT_WRITES_PER_DAY))
-    used = writes_today(store, conn)
+    used = attempts_today(store, conn)
     if used >= limit:
         return False, f"{conn.id}: {used} writes today, its limit is {limit}"
     return True, "approved by a person" if by_person else verdict.rule

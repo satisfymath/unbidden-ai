@@ -31,6 +31,9 @@ from unbidden.store import Store
 COLLECTION = "actions"
 
 
+UNCERTAIN = (None, 429, 502, 503, 504)  # answers that do not say whether a write took effect
+
+
 def idempotency_key(goal: str | None, connection: str, operation: str, intent: dict[str, Any], window: str) -> str:
     """The same intent, in the same window, is the same key: a repeated decision cannot act twice."""
     digest = hashlib.sha256(json.dumps([goal, connection, operation, intent, window], sort_keys=True).encode())
@@ -122,7 +125,7 @@ def run_api_action(
     if failed:
         action.status, action.reason = ActionStatus.REFUSED, "preconditions: " + "; ".join(failed)
         return save(store, action)
-    from unbidden.connect.effects import approved, authorize
+    from unbidden.connect.effects import authorize
 
     if not conn.can("write", action.operation):
         action.status, action.reason = ActionStatus.REFUSED, f"{action.operation} was not observed to work on {conn.id}"
@@ -162,7 +165,8 @@ def run_api_action(
                 params=action.params,
                 body=action.body,
                 idempotency_key=action.idempotency_key,
-                approved=approved(store, conn),
+                store=store,
+                intent=f"{action.operation} for {action.goal}",
             )
             attempts.append({"attempt": attempt, "status": status})
             break
@@ -171,10 +175,11 @@ def run_api_action(
             return save(store, action)
         except CallFailed as exc:
             attempts.append({"attempt": attempt, "status": exc.status, "error": str(exc)[:200]})
-            if exc.status is not None:
+            if exc.status not in UNCERTAIN:
                 action.status, action.reason, action.evidence = ActionStatus.FAILED, str(exc), attempts
                 return save(store, action)
-            # No answer: the write may have happened. Look before deciding anything.
+            # No answer, or one that does not say (a gateway's 502/503/504, a 429): the write may have happened. Look
+            # before deciding anything; a retry goes through the send-time authorization again.
             seen, why = _read_record(integration, conn, mandate, keys)
             if seen is None:
                 action.status, action.evidence = ActionStatus.UNVERIFIED, attempts
@@ -226,7 +231,7 @@ def compensate(store: Store, mandate: Mandate, action: Action, integration: ApiI
     if not action.compensation.available or not action.compensation.operation:
         action.reason = "no compensation was observed for this operation: not attempted"
         return save(store, action)
-    from unbidden.connect.effects import approved, authorize
+    from unbidden.connect.effects import authorize
 
     undo = integration.op(action.compensation.operation)
     names = [p["name"] for p in undo.parameters if p.get("in") == "path"]
@@ -240,7 +245,7 @@ def compensate(store: Store, mandate: Mandate, action: Action, integration: ApiI
     try:
         before, _ = _read_record(integration, conn, mandate, keys)
         status, data = call(
-            integration, conn, mandate, undo.id, params={names[0]: created}, approved=approved(store, conn)
+            integration, conn, mandate, undo.id, params={names[0]: created}, store=store, intent=f"undo {action.id}"
         )
         after, _ = _read_record(integration, conn, mandate, keys)
     except (CallFailed, Unavailable) as exc:
