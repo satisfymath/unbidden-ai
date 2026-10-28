@@ -759,3 +759,58 @@ most public surface once per commit. Before, robustness probes ran only when a p
    omits `in function` from frames, Hypothesis says "Failing test case", and the short summary was read as part of
    the last failure. All fixed with a test. The next probe drew different tests and did not hit it: **a probe is a
    sample**, and one probe per commit finds a given crash only sometimes.
+
+## D-038 · 2026-10-28 · The pilot's only L4 was false; CI parity, relevance-based context, and what pilot 2 showed
+
+**The false positive.** Pilot 1's only L4 (marshmallow) removed two `type: ignore` comments that the sandbox's mypy
+called unused. The team's mypy job was green on that commit. Unbidden measures under the oldest Python a project
+supports (3.10); the team's CI also runs 3.11-3.14, where the ignores are needed. The patch would have turned their CI
+red. The lab's L4 criteria (targeted findings gone, no test regressed) cannot see this. The original record is kept as
+produced.
+
+**CI parity** (`lab/fixlab.py`, `observe/ci.py:ci_python_versions`). The Python versions a CI runs are read from
+setup-python values and matrices, tox's envlist (ranges included), nox and `.python-version`. After a candidate
+passes, the targeted tool runs again on base and candidate under the newest of them, with the project's locked
+toolchain. A finding the candidate adds there rejects it. When parity cannot be checked, the evidence stops at L3.
+- On the real candidate: 2 new mypy findings under 3.14, rejected.
+- Pilot 2, unaided: Muse Spark's new candidate for the same opportunity was rejected the same way, then declined after
+  two experiments.
+- No rule names marshmallow.
+
+**The Director reads the CI in the autonomous cycle.** The rule that declines findings a green CI of the same tool
+does not report covered only style, and only `unbidden decide` read the CI; the cycle decided without it. One helper
+now feeds both, read once per commit. It covers every category, and a fork's shared commits are judged by its parent's
+CI. Pilot 2 showed the rule still could not fire on marshmallow: its CI runs mypy through `tox -e ${{ matrix.tox }}`.
+`ci_commands` now follows tox and nox to where their environments are defined, and reads matrix values.
+
+**Context within the egress cap** (`lab/context.py`). The fix request sent `tests/test_fields.py` whole (31 KB).
+Guardian's 20 KB cap blocked it, and the router silently handed the task to Glimmer (33 GB, 6 minutes).
+- The cap is unchanged.
+- Whole files are sent when they fit; otherwise excerpts: each finding's enclosing function (AST) or a window, merged,
+  plus the import header, measured in JSON-escaped bytes against half of what the cap leaves (a repair repeats the
+  answer).
+- If every finding cannot be shown, nothing is sent and the lab says so.
+- The model answers excerpts by line range; code splices them back and refuses lines it was not shown.
+- On the real file: 30,012 bytes become 1,010.
+- Every tier fallback is a `model.fallback` event with its cause. `models.local_fallback: deny` refuses the local one
+  (the benchmark's setting; the product default stays `allow`). Pilot 2: two fallbacks refused, none taken.
+
+**Provenance.** Every experiment records Unbidden's version, commit and whether its package was dirty, each tier's
+model and thinking, the profile and fallback policy, the images, and what the lab knows (interpreter, seed, engine).
+The benchmark identifies the code under test by the `unbidden/` tree and refuses to start on uncommitted code.
+
+**Pilot 2** (`docs/bench/2026-10-28-scale-pilot-2.md`, forks only, US$0.14).
+- Bootstrapped 7/10; one opportunity set (marshmallow).
+- The false positive was rejected.
+- One L4 lies outside the team's checked configuration: `try/except ImportError` became a `sys.version_info` check
+  so mypy under 3.10 sees `Unpack`. Clean under both versions and behavior-preserving, but the team does not
+  type-check under 3.10. It is not counted as an improvement.
+- Its pull request to the fork failed with 422: `init` assumed `main` after a shallow fetch, and the fork's base is
+  `dev`. The default branch now comes from the remote.
+- pyjwt's computed version broke its dependency image. The build context's copy of `pyproject.toml` now gets a static
+  version.
+
+**humanize's KeyError** is real (direct, 10/10 seeds), found by 0 of 10 fresh probes (1 of 13 overall). Kept at L2.
+
+**Spend reconciled.** US$0.956 in 50 calls before pilot 2 (32 before the ledger, 18 after, plus one refused at the
+gate). Nothing is unaccounted between the ledger and the workspaces.
