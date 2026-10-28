@@ -244,3 +244,51 @@ async def test_every_fallback_is_recorded_and_a_mandate_can_refuse_the_local_one
     assert len(local.requests) == calls  # the local model was never asked
     refused = [e for e in store.events() if e.type is EventType.MODEL_FALLBACK][-1]
     assert refused.payload["taken"] is False
+
+
+def _with_screenshot(text: str = "which rows show a red badge?") -> LLMRequest:
+    from unbidden.contracts.llm import Image
+
+    message = Message(role="user", content=text, source="synthetic", images=[Image.of(b"\x89PNG fake screenshot")])
+    return LLMRequest(purpose="bridge.solve", tier=Tier.FRONTIER, messages=[message])
+
+
+async def test_a_screenshot_leaves_only_where_the_mandate_lets_screenshots_leave(
+    store: Store, mandate: Mandate
+) -> None:
+    brain, _, remote = make_brain(store, mandate)
+    remote.script("bridge.solve", "ok", repeat=True)
+    mandate.models.screenshots_to_frontier = "deny"
+    with pytest.raises(EgressBlocked):
+        await brain.complete(_with_screenshot())
+    assert remote.requests == []
+    mandate.models.screenshots_to_frontier = "allow"
+    await brain.complete(_with_screenshot())
+    (sent,) = remote.requests
+    assert sent.messages[0].images[0].data() == b"\x89PNG fake screenshot"
+    attempts = store.list("egress", EgressAttempt)
+    assert {a.verdict.kind for a in attempts} == {"screenshots"}
+    # Recorded by digest only: the picture's bytes are in no record.
+    assert all("data_b64" not in a.payload and "ZmFrZ" not in a.payload for a in attempts)
+    assert sent.messages[0].images[0].sha256 in next(a.payload for a in attempts if a.status == "allowed_sent")
+
+
+async def test_the_local_route_is_never_given_a_screenshot(store: Store, mandate: Mandate) -> None:
+    from unbidden.contracts.llm import Image
+
+    brain, local, _ = make_brain(store, mandate)
+    local.script("test.decide", "ok", repeat=True)
+    message = Message(role="user", content="look", images=[Image.of(b"png")])
+    with pytest.raises(ModelFailed):
+        await brain.complete(LLMRequest(purpose="test.decide", tier=Tier.LOCAL, messages=[message]))
+    assert local.requests == []
+
+
+def test_the_openai_compatible_provider_sends_pictures_as_image_parts() -> None:
+    from unbidden.brain.providers.openai_compat import _message  # pyright: ignore[reportPrivateUsage]
+    from unbidden.contracts.llm import Image
+
+    sent = _message(Message(role="user", content="look", images=[Image.of(b"png-bytes")]))
+    assert sent["content"][0] == {"type": "text", "text": "look"}
+    assert sent["content"][1]["image_url"]["url"].startswith("data:image/png;base64,cG5n")
+    assert _message(Message(role="user", content="plain"))["content"] == "plain"

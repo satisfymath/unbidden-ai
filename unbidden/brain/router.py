@@ -26,7 +26,7 @@ from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import ActionRequest, EgressAttempt, EgressVerdict, Mandate
 from unbidden.contracts.llm import ContentLabel, LLMRequest, LLMResponse, Message, ModelRun, Tier, Usage
 from unbidden.guardian.classify import Classification, classify
-from unbidden.guardian.egress import evaluate_synthetic
+from unbidden.guardian.egress import evaluate_screenshots, evaluate_synthetic
 from unbidden.guardian.killswitch import KillSwitch, checkpoint
 from unbidden.guardian.policy import PolicyEngine
 from unbidden.guardian.scanner import SensitiveTermIndex, scan_many, secret_hits
@@ -104,6 +104,11 @@ def check_output(request: LLMRequest, response: LLMResponse) -> str | None:
             where = "/".join(str(p) for p in errors[0].absolute_path) or "the root"
             return f"your JSON does not match the schema at {where}: {errors[0].message}"
     return None
+
+
+# What one picture may cost at worst, in input tokens. Measured on Meta: a 800 x 480 screenshot and its prompt, 559
+# tokens (docs/bench/multimodal/feasibility-1.json); a full viewport stays well under this.
+IMAGE_TOKENS_WORST = 4000
 
 
 def _payload(request: LLMRequest) -> str:
@@ -286,6 +291,8 @@ class Brain:
     def _check_local(self, request: LLMRequest) -> None:
         if request.tier.remote:
             return
+        if any(m.images for m in request.messages):
+            raise ModelFailed(request.purpose, "the local route reads no images")
         verdict = self.policy.evaluate(ActionRequest(capability="model.local", purpose=request.purpose))
         if not verdict.allowed:
             raise PolicyDenied("; ".join(verdict.reasons))
@@ -327,7 +334,13 @@ class Brain:
         price = self.config.prices.models.get(route.model)
         if price is None:
             self._deny(request, "spend", f"no price is known for {route.model}, so its cost cannot be bounded")
-        est = worst_cost(len(payload.encode()), request.max_tokens, price.input_per_mtok, price.output_per_mtok)
+        images = [i for m in request.messages for i in m.images]
+        est = worst_cost(
+            len(payload.encode()) + IMAGE_TOKENS_WORST * len(images),
+            request.max_tokens,
+            price.input_per_mtok,
+            price.output_per_mtok,
+        )
         try:
             spend_id = self.spend.reserve(
                 est_usd=est,
@@ -348,6 +361,17 @@ class Brain:
         # carry none. Secrets and production data are refused here again, whatever the route decided.
         names = index if label in (ContentLabel.SYNTHETIC, ContentLabel.INSTRUCTIONS) else SensitiveTermIndex()
         egress = evaluate_synthetic(self.mandate, host, payload, names)
+        if images:
+            # Pictures leave only where a person let screenshots leave, under the policy's own rule for them.
+            shots = evaluate_screenshots(self.mandate, host, [i.data() for i in images], payload)
+            rule = self.policy.evaluate(
+                ActionRequest(capability="model.remote.screenshot", purpose=request.purpose, destinations=[host])
+            )
+            reasons = [*egress.reasons, *shots.reasons, *([] if rule.allowed else rule.reasons)]
+            egress = egress.model_copy(
+                update={"allowed": not reasons, "reasons": reasons, "kind": "screenshots",
+                        "payload_bytes": egress.payload_bytes + sum(len(i.data()) for i in images)}
+            )  # fmt: skip
         if label in NEVER_REMOTE:
             reasons = [*egress.reasons, f"{label.value} never leaves this machine"]
             egress = egress.model_copy(update={"allowed": False, "reasons": reasons})

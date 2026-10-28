@@ -19,6 +19,14 @@ from unbidden.guardian.credentials import broker
 
 def _message(m: Message) -> dict[str, Any]:
     out: dict[str, Any] = {"role": m.role, "content": m.content}
+    if m.images:
+        out["content"] = [
+            {"type": "text", "text": m.content},
+            *(
+                {"type": "image_url", "image_url": {"url": f"data:{i.media_type};base64,{i.data_b64}"}}
+                for i in m.images
+            ),
+        ]
     if m.tool_calls:
         out["tool_calls"] = [
             {"id": c.id, "type": "function", "function": {"name": c.name, "arguments": json.dumps(c.arguments)}}
