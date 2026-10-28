@@ -469,3 +469,20 @@ it); SDK and MCP integration kinds (OpenAPI first: the lab's service publishes o
 multi-tenant projects; remote models (no budget authorized). PR13 (memory) stays as defined: it needs repeated runs
 of PR16's harness, independent of this stage, and will gain inputs from it (connection checks and capability use
 are history it can learn from).
+
+## Stage 3 status, 2026-10-28
+
+Branches: `feat/40-ecosystem-plan` → `41-connections` → `42-postgres-network` → `43-forge-api-client` →
+`44-typed-actions` → `45-ecosystem-loop` → `46-ecosystem-eval` → `47-ecosystem-dev-fixes` (head). No PR, merge or
+external deploy. Results and the implemented / tested / shown / pending / out-of-scope matrix:
+`docs/bench/ecosystem/RESULTS.md`.
+
+| Stage | Ran | Evidence shows | Cannot conclude | Next condition |
+|---|---|---|---|---|
+| PR41–45 | unit + e2e (lab DB) + development d1–d7 ×3 with the local model | the full chain on Shopfront: map, need, integration built and validated, reuse, goal, bounded verified actions, revocation and denial handled | behaviour on real, remote or production systems | — |
+| PR46 evaluation | Dispatch e1–e4, frozen, once | map, connections, an unseen API's read integration and safety generalized | that pagination styles or writes generalize: they did not (3/6 found, 0 bookings) | dev hypotheses below fixed on development scenarios, then a new frozen set |
+
+Development hypotheses from the evaluation (not fixed from it): offset/limit/total pagination in the executor and
+the oracle; an integration extended (a new need, a re-selection) when a plan needs an operation it lacks.
+PR13 stays as defined (memory, ablation on repeated runs); stage 3 gives it new history to learn from (connection
+checks, integration outcomes, goal runs).
