@@ -24,9 +24,11 @@ MODELS = {"spark": "muse-spark-1.3", "wonder": "muse-wonder-1.0"}
 # The person's goal carries what the contract asks a person to see (a red SHORT alert, legible, on the bin's own row,
 # not covered); never what may be wrong. Development runs style-1 and style-2 showed why: with "flagged", then "a red
 # alert", the agent restyled it pale pink with red text, its own check accepted it, the checker (a red badge) did not.
+# Stage 6, without history: "a red SHORT badge" still gave pale pink with red text (Spark and Wonder, colours named
+# or not): the statement now says what the contract asks, a red background.
 STATEMENT = (
-    "Every bin with a shortfall must be flagged on the restock board with a red SHORT badge that a person can see "
-    "and read on that bin's own row, and no other bin may carry one: a bin is short when its picks over the last 7 "
+    "Every bin with a shortfall must be flagged on the restock board with a SHORT badge on a red background (white "
+    "text on red, an alert) that a person can see and read on that bin's own row, and no other bin may carry one: a bin is short when its picks over the last 7 "
     "days exceed what it can supply (what it holds, less what is reserved, plus what is incoming), and people "
     "restock from what the board shows them."
 )
