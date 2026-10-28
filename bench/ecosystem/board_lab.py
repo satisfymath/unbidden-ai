@@ -386,7 +386,11 @@ def baseline(lab: Path) -> dict[str, Any]:
     return {"bins": bins, "picks": {"rows": int(count), "md5": checksum}}
 
 
-def reset(lab: Path, case: str, variants: list[str], seed: int = 5_2026, bins: int = 24) -> dict[str, Any]:
+def reset(
+    lab: Path, case: str, variants: list[str], seed: int = 5_2026, bins: int = 24, history: bool = True
+) -> dict[str, Any]:
+    """`history=False`: the defect is in the repository's first commit, so no healthy version of the board exists in
+    its history to recover; the case's commit is then a harmless one."""
     repo = repo_dir(lab)
     kinds = _data(lab, seed, bins)
     if repo.exists():
@@ -404,13 +408,15 @@ def reset(lab: Path, case: str, variants: list[str], seed: int = 5_2026, bins: i
     env.chmod(0o600)
     for v in variants:
         _apply(repo, VARIANTS[v])
+    if not history:
+        _apply(repo, DEFECTS[case])
     subprocess.run(["git", "init", "-q", "-b", "main", str(repo)], check=True)
     _git(repo, "add", ".")
     _git(repo, "commit", "-qm", "restock board")
-    _apply(repo, DEFECTS[case])
+    _apply(repo, DEFECTS[case] if history else DEFECTS["healthy"])
     _git(repo, "commit", "-qam", NEUTRAL)
     deploy(repo)
-    state = {"case": case, "variants": variants, "seed": seed, "kinds": kinds,
+    state = {"case": case, "variants": variants, "seed": seed, "kinds": kinds, "history": history,
              "commit": _git(repo, "rev-parse", "HEAD"), **baseline(lab)}  # fmt: skip
     (lab / "board-baseline.json").write_text(json.dumps(state, indent=1))
     from bench.ecosystem.board_check import baseline_page

@@ -156,7 +156,8 @@ def items_now(lab: Path) -> dict[str, dict[str, Any]] | None:
 
 
 def effects(lab: Path) -> dict[str, int] | None:
-    """`inbound` per item now, minus at the start: what was applied, from the service itself."""
+    """`inbound` per item now, minus at the start: what was applied, from the service itself (faults off)."""
+    set_faults(lab, [])
     now = items_now(lab)
     if now is None:
         return None
@@ -165,6 +166,17 @@ def effects(lab: Path) -> dict[str, int] | None:
 
 
 def oracle(lab: Path) -> dict[str, Any]:
+    """The truth, read with the service's faults off (a fault changes answers, not the service's state)."""
+    faults = lab / "larder" / "faults"
+    held = faults.read_text() if faults.exists() else ""
+    faults.write_text("")
+    try:
+        return _oracle(lab)
+    finally:
+        faults.write_text(held)
+
+
+def _oracle(lab: Path) -> dict[str, Any]:
     rows = base._docker(  # pyright: ignore[reportPrivateUsage]
         "exec", base.PG, "psql", "-U", "postgres", "-d", "larder", "-At", "-c",
         "SELECT code, sum(qty) FROM distributions WHERE handed_out_at > now() - interval '14 days' GROUP BY code",

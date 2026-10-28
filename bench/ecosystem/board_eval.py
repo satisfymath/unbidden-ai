@@ -35,8 +35,9 @@ from bench.ecosystem import board_check, board_lab
 
 LAB = Path.home() / "unbidden-lab"
 FIELDS = ("quantity", "reserved", "incoming")
-# name: (case, variants, seed, bins, cause rubric: a regex the stated cause must match to localize the culprit)
-SETS: dict[str, dict[str, tuple[str, list[str], int, int, str]]] = {
+# name: (case, variants, seed, bins, cause rubric: a regex the stated cause must match to localize the culprit[,
+# history: False when no healthy version is in the repository's history])
+SETS: dict[str, dict[str, tuple[Any, ...]]] = {
     "dev": {
         "healthy": ("healthy", [], 5_2026, 24, ""),
         "healthy-dark": ("healthy", ["dark"], 5_2026, 24, ""),
@@ -73,6 +74,16 @@ SETS: dict[str, dict[str, tuple[str, list[str], int, int, str]]] = {
         "e-banner": ("banner", [], 9_3131, 36, r"notice|banner|absolute|stocktake"),
         "e-window": ("window", [], 9_3131, 36, r"30|window|interval|days"),
     },
+    # Stage 6: cases whose repository history holds no healthy version (the defect is in the first commit).
+    # Kept apart from the history-aided repairs in every report. Fixed before the evaluation ran.
+    "eval6-nohistory": {
+        "n-faded": ("faded", ["brand"], 9_3131, 36, r"opacity|transparen|fade", False),
+        "n-window": ("window", [], 9_3131, 36, r"30|window|interval|days", False),
+        "n-banner": ("banner", ["grid"], 9_3131, 36, r"notice|banner|absolute|stocktake", False),
+    },
+    "dev-nohistory": {
+        "style-nohistory": ("style", [], 5_2026, 24, r"badge|short|colou?r|green|style", False),
+    },
     "dev-cycle": {
         "healthy": ("healthy", [], 5_2026, 24, ""),
         "overlay": ("overlay", [], 5_2026, 24, r"summary|footer|fixed"),
@@ -92,11 +103,12 @@ def wrong_rows(verdict: dict[str, Any]) -> list[str]:
     return sorted(out)
 
 
-def prepare(name: str, spec: tuple[str, list[str], int, int, str], out: Path) -> dict[str, Any]:
-    case, variants, seed, bins, _ = spec
-    board_lab.reset(LAB, case, variants, seed, bins)
+def prepare(name: str, spec: tuple[Any, ...], out: Path) -> dict[str, Any]:
+    case, variants, seed, bins = spec[:4]
+    history = spec[5] if len(spec) > 5 else True
+    board_lab.reset(LAB, case, variants, seed, bins, history)
     verdict = board_check.check(LAB, out / "checker-before")
-    return {"state": name, "case": case, "variants": variants, "wrong": wrong_rows(verdict),
+    return {"state": name, "case": case, "variants": variants, "history": history, "wrong": wrong_rows(verdict),
             "healthy": verdict["verified"]}  # fmt: skip
 
 

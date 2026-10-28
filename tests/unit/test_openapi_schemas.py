@@ -148,3 +148,20 @@ def test_larder_reads_whole_through_the_real_client() -> None:
                                     gate=False)[1], ops[0].parameters)  # fmt: skip
     finally:
         credentials.reset()
+
+
+@pytest.mark.parametrize(
+    ("path", "scope"),
+    [
+        ("/api/v2/transfers", "transfers"),  # Larder: read as "api" on c804aaf, so `write:transfers` never matched
+        ("/v1/restocks/{restock_id}", "restocks"),
+        ("/v3/deliveries", "deliveries"),
+        ("/rest/v1.1/orders", "orders"),
+        ("/reorders", "reorders"),
+        ("/", "root"),
+    ],
+)
+def test_a_write_scope_is_the_resource_not_the_api_prefix(path: str, scope: str) -> None:
+    from unbidden.forge.api_client import _scope  # pyright: ignore[reportPrivateUsage]
+
+    assert _scope(path) == scope

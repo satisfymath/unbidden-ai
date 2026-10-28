@@ -95,8 +95,17 @@ class ApiIntegration(Contract):
         return found
 
 
+# Leading path segments that name where an API lives, not what it changes: `/api/v2/transfers` writes transfers.
+API_PREFIXES = {"api", "apis", "rest", "public"}
+
+
 def _scope(path: str) -> str:
-    parts = [p for p in path.split("/") if p and not p.startswith("{") and not re.fullmatch(r"v\d+", p)]
+    """The resource an operation changes, as grants name it (`write:<scope>`): the first segment of its path that
+    is not a parameter, a version (`v2`, `v1.1`) or a conventional API prefix (`api`, `rest`)."""
+    parts = [
+        p for p in path.split("/")
+        if p and not p.startswith("{") and not re.fullmatch(r"v\d+(\.\d+)*", p) and p.lower() not in API_PREFIXES
+    ]  # fmt: skip
     return parts[0] if parts else "root"
 
 
