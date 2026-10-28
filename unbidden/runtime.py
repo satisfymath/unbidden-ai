@@ -105,12 +105,10 @@ class Runtime:
 
     def stack_and_images(self, rev: str) -> tuple[Stack, dict[str, DependencyImage]]:
         from unbidden.guardian.policy import PolicyEngine
-        from unbidden.sandbox.provision import system_tools_allowed
 
         stack = detect_stack(self.workspace.repo, rev)
-        system = system_tools_allowed(PolicyEngine(self.workspace.mandate()))
+        policy = PolicyEngine(self.workspace.mandate())
         images = {
-            lang: provision(self.workspace.repo, rev, stack.part(lang), system_build_tools=system)
-            for lang in stack.languages
+            lang: provision(self.workspace.repo, rev, stack.part(lang), policy=policy) for lang in stack.languages
         }
         return stack, images

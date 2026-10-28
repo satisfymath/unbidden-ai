@@ -50,6 +50,10 @@ class ProvisionError(RuntimeError):
     pass
 
 
+class ProvisionDenied(ProvisionError):
+    """The mandate does not allow this install."""
+
+
 def static_version(data: bytes) -> bytes:
     """`static_metadata` for the version alone (no file can be read)."""
     return static_metadata(data, lambda _: None)
@@ -362,12 +366,26 @@ def provision(
     rev: str,
     stack: Any,
     *,
+    policy: PolicyEngine,
     docker: str = "docker",
-    system_build_tools: bool = False,
 ) -> DependencyImage:
-    """Build (or reuse) the dependency image. `system_build_tools` (the mandate allows Debian's archive) lets a Python
-    install that needs a C compiler retry with one, then with the Debian packages of the C headers the build names
-    (`lber.h` is `libldap2-dev`); without it the failure says that is what is missing."""
+    """Build (or reuse) the dependency image, once the mandate allows installing from the language's registries:
+    every path that provisions (scans, subprojects, the lab's images) passes here, so none can skip that check.
+
+    When the mandate also allows Debian's archive, a Python install that needs a C compiler retries with one, then
+    with the Debian packages of the C headers the build names (`lber.h` is `libldap2-dev`); without it the failure
+    says that is what is missing."""
+    from unbidden.contracts.guardian import ActionRequest
+    from unbidden.languages import adapter_of
+
+    lang = adapter_of(stack)
+    request = ActionRequest(
+        capability="sandbox.provision", purpose=f"install {lang.name} dependencies", destinations=list(lang.registries)
+    )
+    verdict = policy.evaluate(request)
+    if not verdict.allowed:
+        raise ProvisionDenied(f"sandbox.provision: {'; '.join(verdict.reasons)}")
+    system_build_tools = system_tools_allowed(policy)
     if isinstance(stack, NodeStack) and ".pnpmfile.cjs" in tracked_files(repo, rev):
         # pnpm runs that file (repository code) during the install, with network access: not done here.
         raise ProvisionError(

@@ -5,11 +5,27 @@ from pathlib import Path
 import pytest
 
 from unbidden.contracts.finding import AnalyzerReport, Completeness, Finding
+from unbidden.contracts.guardian import Mandate
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
 from unbidden.observe.analyzers import COLLECTION, group_key, record_report
 from unbidden.store import Store
 
 pytestmark = pytest.mark.unit
+
+
+class _Allowed:
+    allowed = True
+    reasons: tuple[str, ...] = ()
+
+
+class _AllowAll:
+    """A policy that allows everything, for tests of what provisioning does once allowed."""
+
+    def evaluate(self, _: object) -> _Allowed:
+        return _Allowed()
+
+
+ALLOW_ALL = _AllowAll()
 
 
 def finding(path: str, rule: str = "TS2345", category: str = "types", tool: str = "tsc") -> Finding:
@@ -103,7 +119,7 @@ def test_a_build_that_names_a_missing_header_retries_with_its_debian_package(
     stack = PythonStack(
         version="3.12", lockfile="uv.lock", manifest="pyproject.toml", ruff=True, pyright=False, pytest=True
     )
-    assert prov.provision(tmp_path, "HEAD", stack, system_build_tools=True) == "image"  # pyright: ignore[reportArgumentType]
+    assert prov.provision(tmp_path, "HEAD", stack, policy=ALLOW_ALL) == "image"  # pyright: ignore[reportArgumentType]
     assert attempts == [(False, ()), (True, ()), (True, ("libldap2-dev",)), (True, ("libldap2-dev", "libsasl2-dev"))]
     assert "build-essential a &&" in prov.python_dockerfile(stack, system_build_tools=True, headers=("a",))
 
@@ -122,7 +138,7 @@ def test_an_unknown_header_is_named_rather_than_retried(monkeypatch: pytest.Monk
         version="3.12", lockfile="uv.lock", manifest="pyproject.toml", ruff=True, pyright=False, pytest=True
     )
     with pytest.raises(prov.ProvisionError, match=r"does not know a Debian package for: frobnicate\.h"):
-        prov.provision(tmp_path, "HEAD", stack, system_build_tools=True)
+        prov.provision(tmp_path, "HEAD", stack, policy=ALLOW_ALL)  # pyright: ignore[reportArgumentType]
 
 
 def test_the_python_version_comes_from_requires_python_when_no_file_pins_it() -> None:
@@ -251,3 +267,30 @@ def test_a_declined_opportunity_reopens_only_when_its_findings_change() -> None:
         and changed.details["attempts_total"] == 2
         and "attempts" not in changed.details
     )
+
+
+def test_no_path_provisions_what_the_mandate_does_not_allow(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, mandate: Mandate
+) -> None:
+    # F1: the lab's images and each subproject's were built with no policy check at all.
+    from unbidden.contracts.guardian import Autonomy
+    from unbidden.guardian.policy import PolicyEngine
+    from unbidden.languages import adapter
+    from unbidden.observe.stack import PythonStack
+    from unbidden.sandbox import provision as prov
+
+    built: list[object] = []
+    monkeypatch.setattr(prov, "_provision", lambda *a, **k: built.append(a) or "image")
+    stack = PythonStack(
+        version="3.12", lockfile="uv.lock", manifest="pyproject.toml", ruff=True, pyright=False, pytest=True
+    )
+    mandate.autonomy.provision_dependencies = Autonomy.DENY
+    with pytest.raises(prov.ProvisionDenied):
+        prov.provision(tmp_path, "HEAD", stack, policy=PolicyEngine(mandate))
+    mandate.autonomy.provision_dependencies = Autonomy.ALLOW
+    mandate.egress.package_registries = ["registry.npmjs.org"]  # not PyPI
+    with pytest.raises(prov.ProvisionDenied):
+        prov.provision(tmp_path, "HEAD", stack, policy=PolicyEngine(mandate))
+    assert built == []
+    mandate.egress.package_registries = list(adapter("python").registries)
+    assert prov.provision(tmp_path, "HEAD", stack, policy=PolicyEngine(mandate)) == "image"  # pyright: ignore[reportArgumentType]

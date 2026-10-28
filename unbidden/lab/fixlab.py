@@ -26,6 +26,7 @@ from unbidden.contracts.experiment import Experiment, TestSummary, Verdict
 from unbidden.contracts.finding import AnalyzerReport, Finding
 from unbidden.contracts.llm import LLMRequest, Message, Tier
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
+from unbidden.guardian.policy import PolicyEngine
 from unbidden.lab.context import SpliceError, payload_bytes, splice
 from unbidden.lab.context import render as render_context
 from unbidden.lab.context import select as select_context
@@ -414,9 +415,12 @@ class FixLab:
         newest = versions[-1] if versions else None
         if newest is None or newest == python.version:
             return Parity()
+        if self.brain is None:
+            return Parity(unverified=f"CI parity not verified: no mandate here to provision Python {newest}")
         self.progress(f"checking {tool.name} under Python {newest}, as the team's CI runs it")
         try:
-            image = await asyncio.to_thread(provision, self.repo, rev, replace(python, version=newest))
+            policy = PolicyEngine(self.brain.mandate)
+            image = await asyncio.to_thread(provision, self.repo, rev, replace(python, version=newest), policy=policy)
         except ProvisionError as exc:
             return Parity(unverified=f"CI parity not verified: no image for Python {newest} ({str(exc)[:160]})")
         base_work, cand_work = self._work(rev, image), self._work(rev, image, candidate.files)

@@ -14,8 +14,11 @@ from pathlib import Path
 
 import pytest
 
+from unbidden.contracts.guardian import Mandate
+from unbidden.guardian.policy import PolicyEngine
 from unbidden.lab.testsuite import run_suite
 from unbidden.lab.testsuite import test_plan as plan_tests
+from unbidden.languages import adapter
 from unbidden.observe.analyzers import run_tool
 from unbidden.observe.stack import detect_stack
 from unbidden.sandbox.provision import provision
@@ -48,14 +51,15 @@ def _commit(repo: Path, files: dict[str, str]) -> None:
     subprocess.run([*git, "commit", "-qm", "fixture"], check=True)
 
 
-def test_go_adapter_detects_provisions_analyzes_and_tests_offline(tmp_path: Path) -> None:
+def test_go_adapter_detects_provisions_analyzes_and_tests_offline(tmp_path: Path, mandate: Mandate) -> None:
     _commit(tmp_path, GO_FIXTURE)
     stack = detect_stack(tmp_path, "HEAD")
     assert stack.languages == ["go"]
     go = stack.part("go")
     assert go.version == "1.22" and go.has_tests
 
-    image = provision(tmp_path, "HEAD", go)
+    mandate.egress.package_registries = [*mandate.egress.package_registries, *adapter("go").registries]
+    image = provision(tmp_path, "HEAD", go, policy=PolicyEngine(mandate))
     assert image.language == "go" and image.env["GOPROXY"] == "off"
 
     runner = SandboxRunner()
