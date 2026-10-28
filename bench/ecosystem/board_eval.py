@@ -52,6 +52,26 @@ SETS: dict[str, dict[str, tuple[str, list[str], int, int, str]]] = {
         "style": ("style", [], 5_2026, 24, r"badge|short|colou?r|green|style"),
         "style-red-zone": ("style", ["red_zone"], 5_2026, 24, r"badge|short|colou?r|green|style"),
     },
+    # Evaluation B (stage 5): other data (seed, 36 bins), other designs, other defects. Fixed before it ran.
+    "eval": {
+        "e-healthy-grid": ("healthy", ["grid"], 9_3131, 36, ""),
+        "e-healthy-brand": ("healthy", ["brand"], 9_3131, 36, ""),
+        "e-healthy-compact": ("healthy", ["compact", "by_shortfall"], 9_3131, 36, ""),
+        "e-shifted": ("shifted", [], 9_3131, 36, r"top|position|relative|offset|shift"),
+        "e-shifted-grid": ("shifted", ["grid"], 9_3131, 36, r"top|position|relative|offset|shift"),
+        "e-faded": ("faded", ["brand"], 9_3131, 36, r"opacity|transparen|fade"),
+        "e-banner": ("banner", [], 9_3131, 36, r"notice|banner|absolute|stocktake"),
+        "e-banner-compact": ("banner", ["compact"], 9_3131, 36, r"notice|banner|absolute|stocktake"),
+        "e-window": ("window", [], 9_3131, 36, r"30|window|interval|days"),
+        "e-wording": ("wording", ["grid"], 9_3131, 36, r"SHORT|text|label|word"),
+    },
+    "eval-cycle": {
+        "e-healthy-brand": ("healthy", ["brand"], 9_3131, 36, ""),
+        "e-shifted-grid": ("shifted", ["grid"], 9_3131, 36, r"top|position|relative|offset|shift"),
+        "e-faded": ("faded", ["brand"], 9_3131, 36, r"opacity|transparen|fade"),
+        "e-banner": ("banner", [], 9_3131, 36, r"notice|banner|absolute|stocktake"),
+        "e-window": ("window", [], 9_3131, 36, r"30|window|interval|days"),
+    },
     "dev-cycle": {
         "healthy": ("healthy", [], 5_2026, 24, ""),
         "overlay": ("overlay", [], 5_2026, 24, r"summary|footer|fixed"),

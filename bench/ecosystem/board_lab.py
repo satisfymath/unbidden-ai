@@ -119,6 +119,52 @@ VARIANTS: dict[str, list[tuple[str, str, str]]] = {
     ],
 }
 
+# Evaluation B (stage 5): designs never used in development, fixed before the evaluation ran.
+VARIANTS |= {
+    "grid": [  # rows as ARIA rows of a CSS grid, not a table
+        ("board/app.py", 'ALL:<td class="', '<div role="cell" class="'),
+        ("board/app.py", "ALL:</td>", "</div>"),
+        ("board/app.py", '<tr class="row"', '<div role="row" class="row"'),
+        ("board/app.py", "</tr>'", "</div>'"),
+        (
+            "board/templates/board.html",
+            '<table class="board">\n<thead><tr><th>Bin</th><th>Zone</th><th>Supply</th><th>Picks (7 d)</th>'
+            "<th>State</th></tr></thead>\n<tbody>",
+            '<div class="board" role="table">\n<div class="head" role="row"><div role="columnheader">Bin</div>'
+            '<div role="columnheader">Zone</div><div role="columnheader">Supply</div>'
+            '<div role="columnheader">Picks (7 d)</div><div role="columnheader">State</div></div>',
+        ),
+        ("board/templates/board.html", "</tbody>\n</table>", "</div>"),
+        (
+            "board/static/board.css",
+            ".summary {",
+            ".board .row, .board .head { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1.3fr; }\n"
+            ".board [role=cell], .board [role=columnheader] { padding: 12px; border-bottom: 1px solid #e3e7eb; }\n"
+            ".board .head { font-weight: 700; }\n.summary {",
+        ),
+    ],
+    "brand": [  # a red brand bar on top (red, not an alert) and a sticky header
+        ("board/static/board.css", ".top { background: #22303c;", ".top { background: #b71c1c;"),
+        (
+            "board/static/board.css",
+            ".top .sub { margin: 6px 0 0; color: #c9d3dc; }",
+            ".top .sub { margin: 6px 0 0; color: #ffe3e3; }\n.top { position: sticky; top: 0; z-index: 2; }",
+        ),
+    ],
+    "compact": [  # a denser board: smaller type and padding
+        (
+            "board/static/board.css",
+            ".board { width: 100%; border-collapse: collapse; font-size: 16px; }",
+            ".board { width: 100%; border-collapse: collapse; font-size: 13px; }",
+        ),
+        (
+            "board/static/board.css",
+            "font-weight: 600; font-size: 14px; }",
+            "font-weight: 600; font-size: 12px; padding: 2px 6px; }",
+        ),
+    ],
+}
+
 # Seeded defects (development). Each is the case's one commit.
 DEFECTS: dict[str, list[tuple[str, str, str]]] = {
     "overlay": [  # a fixed summary bar over the end of the table; nothing reserves room for it
@@ -156,6 +202,44 @@ DEFECTS: dict[str, list[tuple[str, str, str]]] = {
             ".badge.short { background: #e3f1e5; color: #1f5f2c; }",
         ),
     ],
+    # Evaluation B (stage 5), fixed before the evaluation ran.
+    "shifted": [  # the short badge drawn on the row above its own
+        (
+            "board/static/board.css",
+            ".badge.short { background: #c62828; color: #ffffff; }",
+            ".badge.short { background: #c62828; color: #ffffff; position: relative; top: -46px; }",
+        ),
+    ],
+    "faded": [  # the short badge nearly transparent
+        (
+            "board/static/board.css",
+            ".badge.short { background: #c62828; color: #ffffff; }",
+            ".badge.short { background: #c62828; color: #ffffff; opacity: 0.3; }",
+        ),
+    ],
+    "banner": [  # a notice placed over the middle of the board, moving with the page
+        (
+            "board/templates/board.html",
+            "<main>",
+            '<main>\n<div class="notice">Stocktake on Friday: count every bin before noon.</div>',
+        ),
+        (
+            "board/static/board.css",
+            ".summary {",
+            ".notice { position: absolute; left: 0; right: 0; top: 520px; height: 150px; padding: 24px 32px; "
+            "background: #e8eef5; font-size: 18px; }\n.summary {",
+        ),
+    ],
+    "window": [  # picks counted over thirty days
+        ("board/sources.py", "interval '7 days'", "interval '30 days'"),
+    ],
+    "wording": [  # the alert no longer says what it is
+        (
+            "board/app.py",
+            "return f'<span class=\"badge short\">SHORT {r.shortfall}</span>'",
+            "return f'<span class=\"badge short\">-{r.shortfall}</span>'",
+        ),
+    ],
     "healthy": [  # the control: a harmless change, so its history looks like the others'
         (
             "board/templates/board.html",
@@ -175,12 +259,15 @@ def _git(repo: Path, *args: str) -> str:
 
 
 def _apply(repo: Path, edits: list[tuple[str, str, str]]) -> None:
+    """Each edit replaces its text once; a text starting with `ALL:` is replaced everywhere."""
     for path, old, new in edits:
         target = repo / path
         text = target.read_text()
+        every = old.startswith("ALL:")
+        old = old.removeprefix("ALL:")
         if old not in text:
             raise SystemExit(f"{path}: the text to replace is not there: {old[:60]!r}")
-        target.write_text(text.replace(old, new, 1))
+        target.write_text(text.replace(old, new) if every else text.replace(old, new, 1))
 
 
 def repo_dir(lab: Path) -> Path:
