@@ -50,7 +50,7 @@ asyncio_mode = "auto"
 markers = [
     "unit: fast, no external services",
     "e2e: full cycle with the mock model",
-    "slow: real model or real sandbox",
+    "slow: real model, real sandbox, or a timing measurement that depends on the machine",
 ]
 addopts = "-m 'not slow'"
 

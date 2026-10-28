@@ -158,9 +158,8 @@ def oracle(line: str, entity: str | None, heldout: list[str], seed: int = 7) -> 
     problems: list[str] = []
     if len(content) < MIN_HELDOUT:
         problems.append(f"only {len(content)} held-out lines; at least {MIN_HELDOUT} are needed to judge")
-    started = time.perf_counter()
     per_line = [(ln, read(probe, [ln])) for ln in content]
-    elapsed = (time.perf_counter() - started) * 1e6 / max(1, len(content))
+    elapsed = _us_per_line(probe, content)
     readings = [r for _, got in per_line for r in got]
     coverage = len(readings) / len(content) if content else 0.0
     if coverage < MIN_COVERAGE:
@@ -188,6 +187,18 @@ def oracle(line: str, entity: str | None, heldout: list[str], seed: int = 7) -> 
     if elapsed > MAX_US_PER_LINE:
         problems.append(f"{elapsed:.0f} µs per line; at most {MAX_US_PER_LINE:.0f}")
     return OracleResult(not problems, len(content), len(readings), coverage, elapsed, problems)
+
+
+def _us_per_line(probe: StatsAdapter, content: list[str], passes: int = 3) -> float:
+    """What reading costs per line, as a reader runs: one batch, its pattern compiled once. The best of a few
+    passes, so another process's load on the machine is not charged to the pattern. (Timing `read` line by line
+    measured compiling the pattern once per line: 12 µs here, over the bound on a slower or busy machine.)"""
+    best = float("inf")
+    for _ in range(passes):
+        started = time.perf_counter()
+        read(probe, content)
+        best = min(best, time.perf_counter() - started)
+    return best * 1e6 / max(1, len(content))
 
 
 def _value_text(raw: str) -> str:

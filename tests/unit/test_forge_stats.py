@@ -147,3 +147,35 @@ def test_a_stats_reader_is_used_on_its_own_only_when_approved_or_allowed(store: 
     built.status = "approved"
     store.put(stats_build.COLLECTION, built)
     assert stats_build.usable(store, mandate, url) is not None
+
+
+def test_the_time_bound_rejects_a_reader_slower_than_it(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Functional: the bound is applied, whatever machine runs the test (the time itself is measured below, apart).
+    from unbidden.forge import stats
+
+    monkeypatch.setattr(stats, "_us_per_line", lambda *_: stats.MAX_US_PER_LINE + 1)
+    result = oracle(GOOD_LINE, GOOD_ENTITY, envoy_like(2))
+    assert not result.passed and any("µs per line" in p for p in result.problems)
+
+
+def test_reading_time_is_measured_as_a_reader_runs_with_its_pattern_compiled_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The review's failures: timing `read` line by line charged one compilation per line to the pattern.
+    from unbidden.forge import stats
+
+    compiled: list[str] = []
+    real = stats.compile_untrusted
+    monkeypatch.setattr(stats, "compile_untrusted", lambda p: compiled.append(p) or real(p))
+    probe = StatsAdapter(source="t", version=0, line=GOOD_LINE, entity=None, card=card())
+    stats._us_per_line(probe, envoy_like(2), passes=3)  # pyright: ignore[reportPrivateUsage]
+    assert len(compiled) == 3  # once per pass, not once per line
+
+
+@pytest.mark.slow
+def test_a_structural_reader_runs_well_inside_the_bound_on_this_machine() -> None:
+    # A measurement, not a functional test: run on demand (`pytest -m slow`), on an idle machine.
+    from unbidden.forge import stats
+
+    result = oracle(GOOD_LINE, GOOD_ENTITY, envoy_like(2, n=3000))
+    assert result.us_per_line < stats.MAX_US_PER_LINE / 4, result.us_per_line
