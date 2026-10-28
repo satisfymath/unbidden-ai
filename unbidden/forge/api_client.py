@@ -32,6 +32,7 @@ from unbidden.connect.base import Unavailable, purpose, require
 from unbidden.contracts.common import Contract, new_id, utc_now
 from unbidden.contracts.connection import Ability, Connection
 from unbidden.contracts.guardian import ConnectionGrant, Mandate
+from unbidden.forge.oas_schema import validate
 from unbidden.guardian.credentials import broker
 
 COLLECTION = "integrations"
@@ -94,27 +95,25 @@ class ApiIntegration(Contract):
         return found
 
 
-def _resolve(document: dict[str, Any], schema: Any) -> Any:
-    """Inline local `$ref`s so each schema stands alone."""
-    if isinstance(schema, dict):
-        if "$ref" in schema and str(schema["$ref"]).startswith("#/"):
-            target: Any = document
-            for part in str(schema["$ref"])[2:].split("/"):
-                target = target[part]
-            return _resolve(document, target)
-        return {k: _resolve(document, v) for k, v in schema.items()}
-    if isinstance(schema, list):
-        return [_resolve(document, v) for v in schema]
-    return schema
-
-
 def _scope(path: str) -> str:
     parts = [p for p in path.split("/") if p and not p.startswith("{") and not re.fullmatch(r"v\d+", p)]
     return parts[0] if parts else "root"
 
 
 def documented(document: dict[str, Any]) -> list[Operation]:
-    """Every operation the document declares, typed from it."""
+    """Every operation the document declares, typed from it. Schemas are read by the document's OpenAPI version and
+    kept as JSON Schema 2020-12 (`oas_schema`); a document or schema that cannot be read faithfully raises
+    `UnsupportedSchema` with why."""
+    from unbidden.forge import oas_schema
+
+    v = oas_schema.version(document)
+
+    def parameter(p: Any) -> dict[str, Any]:
+        param = oas_schema.resolve(document, p, v)
+        if isinstance(param, dict) and "schema" in param:
+            param = {**param, "schema": oas_schema.read(document, param["schema"], "request")}
+        return param
+
     found = []
     for path, item in (document.get("paths") or {}).items():
         for method in METHODS:
@@ -123,7 +122,9 @@ def documented(document: dict[str, Any]) -> list[Operation]:
                 continue
             body = (((spec.get("requestBody") or {}).get("content") or {}).get("application/json") or {}).get("schema")
             responses = {
-                code: _resolve(document, ((r.get("content") or {}).get("application/json") or {}).get("schema"))
+                code: oas_schema.read(
+                    document, ((r.get("content") or {}).get("application/json") or {}).get("schema"), "response"
+                )
                 for code, r in (spec.get("responses") or {}).items()
             }
             found.append(
@@ -135,8 +136,8 @@ def documented(document: dict[str, Any]) -> list[Operation]:
                     description=spec.get("description", ""),
                     effect="read" if method == "get" else "write",
                     scope=_scope(path),
-                    parameters=[_resolve(document, p) for p in spec.get("parameters") or []],
-                    body_schema=_resolve(document, body) if body else None,
+                    parameters=[parameter(p) for p in spec.get("parameters") or []],
+                    body_schema=oas_schema.read(document, body, "request") if body else None,
                     responses=responses,
                 )
             )
@@ -238,7 +239,7 @@ def _validate_params(op: Operation, params: dict[str, Any]) -> None:
             if p.get("required") and p.get("in") != "header":
                 raise CallFailed(None, f"{op.id} needs {name}")
             continue
-        jsonschema.validate(params[name], p.get("schema") or {})
+        validate(params[name], p.get("schema") or {})
 
 
 def call(
@@ -280,7 +281,7 @@ def call(
     params = dict(params or {})
     _validate_params(op, params)
     if op.body_schema is not None:
-        jsonschema.validate(body, op.body_schema)
+        validate(body, op.body_schema)
     path = op.path
     query: dict[str, Any] = {}
     headers = _headers(integration, grant, with_key=with_key)
@@ -333,7 +334,7 @@ def call(
         raise CallFailed(status, f"{op.id} answered {status}, which its document does not declare")
     if schema is not None:
         try:
-            jsonschema.validate(data, schema)
+            validate(data, schema)
         except jsonschema.ValidationError as exc:
             raise CallFailed(status, f"{op.id} answered {status} outside its documented schema: {exc.message}") from exc
     if status >= 400:

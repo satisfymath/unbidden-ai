@@ -35,6 +35,7 @@ from unbidden.forge.api_client import (
     selection_prompt,
     signature,
 )
+from unbidden.forge.oas_schema import UnsupportedSchema
 from unbidden.guardian.policy import PolicyEngine, grant_host
 from unbidden.store import Store
 
@@ -117,6 +118,10 @@ async def build(
     """Reuse, else build; record what was decided and why. Returns (integration or None, decision, notes)."""
     grant = _grant(mandate, conn)
     document = read_document(mandate, grant, transport)
+    try:
+        documented(document)
+    except UnsupportedSchema as exc:  # a document this reader does not interpret: said, not guessed
+        return None, "unsupported", [f"{conn.id}'s documentation: {exc}"]
     adopted, notes = reuse(store, mandate, conn, document, transport)
     if adopted is not None:
         _register(store, adopted, "reuse")
@@ -213,7 +218,10 @@ async def extend(
         return None, "blocked", [f"{conn.id} has no integration in use to extend"]
     grant = _grant(mandate, conn)
     document = read_document(mandate, grant, transport)
-    operations = documented(document)
+    try:
+        operations = documented(document)
+    except UnsupportedSchema as exc:
+        return None, "blocked", [f"{conn.id}'s documentation: {exc}"]
     by_id = {o.id: o for o in operations}
     missing = [w for w in wanted if w not in by_id]
     if missing:
