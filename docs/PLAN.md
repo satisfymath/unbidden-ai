@@ -380,3 +380,92 @@ Branches continue the stack: `feat/36-xdist-workers` → `feat/37-mealie-l5-amen
 
 Dev hypotheses from the evaluation set (to fix on dev, then re-test on a new frozen set): B006 not reported by
 ruff-baseline where the project configures ruff; pytest fixtures injected by name read as F811.
+
+---
+
+# Stage 3: the project's ecosystem, connected and extended (2026-10-28)
+
+Goal (Master §9, §10, §13): given a project, its objectives and authorized accesses, Unbidden finds the systems it is
+made of, tells what it merely knows from what it can connect to, read and change, names what is missing, reuses or
+builds the integration it lacks within its permissions, uses it to resume useful work, acts within the mandate,
+checks the effect, and keeps that knowledge current.
+
+## Diagnosis against the goal (verified at c5b37a2)
+
+| Ability | Today | Gap |
+|---|---|---|
+| Find the systems | compose-scoped: `world/runtime.py` reads containers, published ports, OpenAPI, Postgres **inside its container** (`docker exec … psql`), Prometheus, Jaeger; `ConnectorSpec` describes each | nothing outside the observed compose project; GitHub known only through the mandate |
+| Known vs connected vs changeable | `ConnectorSpec.read_only`, `modifies` are descriptions; no per-resource state | no record of a resource's connection, effective permissions, last check, block reason |
+| Missing access named | blind spots (text) | no "what access, for what" a person can act on; nothing stops dependent actions when access goes |
+| Reuse a connector | Forge reuse for log/stats readers only | no general lookup of capabilities by kind and compatibility |
+| Build a missing integration | Forge: `log_adapter`, `stats_reader` only (`contracts/capability.py`) | no API or database integration kind; no contract tests against a live service |
+| Resume work with it | needs' `resume` jobs (PR10) | only a sweep; no task that combines sources |
+| Act and verify | deploy/rollback = `mandate.operations.deploy_steps` (argv a person declared); merges; holds; kill switch | no typed action with preconditions, idempotency, verification, verified compensation |
+| Keep it current | `world.refresh` (PR11), reconcile by source | access changes (revocation) not modelled |
+
+Credentials: `guardian/credentials.py` hands values out per purpose and audits it; policy: `guardian/policy.py`,
+deny by default, network allowlists. Both are reused, not replaced.
+
+## What is reused
+
+Connectors' discovery code (`world/runtime.py`, `world/prometheus.py`, `world/jaeger.py`, GitHub client),
+`ConnectorSpec`, the World Model and reconcile, the credential broker, the policy engine and Guardian's egress gate,
+Forge's need lifecycle (`forge/needs.py`) and its data-only, oracle-judged capabilities, the deploy executor, holds,
+the kill switch, the live watcher.
+
+## Contracts that change or appear
+
+1. **Connection** (`contracts/connection.py`, store collection `connections`): resource id, project, environment
+   (local / development / staging / production), service kind and protocol, location, discovery provenance,
+   credential **reference** (a broker name, never a value), permissions requested and effective, capabilities
+   (read / measure / write, each with how it is known), state (`discovered`, `needs_configuration`,
+   `needs_authorization`, `connected`, `degraded`, `revoked`, `gone`), last check, limits, network scope, relations,
+   block reason and next step. Effective permissions are only ever what a check observed.
+2. **Connector protocol** (`connect/base.py`): `validate(config)`, `check()` → identity, reachability, effective
+   permissions; `discover()` → World Model facts; `read(op)` / typed `actions()`; `verify(action, result)`; errors
+   classified (auth, permission, unreachable, rate-limited, invalid). Common: states, checks, evidence, limits,
+   timeouts, retries. Provider-specific: what identity and permission mean (a database role's grants, a token's
+   repository permissions, an API key's scope) and every operation.
+3. **Integration capability** (Forge kind `api_client`): an OpenAPI document reduced to the operations a need
+   requires, each typed (parameters, request and response schemas), marked read or write, with destinations,
+   credential reference, limits, contract tests, version and provenance. Data, not code: one fixed executor runs it,
+   and the policy and the broker are applied there, at execution. The local model selects operations and drafts the
+   contract; acceptance is a model-free oracle against the live service (responses validated against the
+   document's own schemas, list/get consistency, errors as documented), never the model's own expectations.
+4. **Typed action** (`contracts/action.py`, `operate/actions.py`): target connection and environment, typed
+   parameters, preconditions, required capability, idempotency key, timeout, evidence, post-check, compensation
+   (declared available only once verified). The deploy-steps executor becomes one action kind; proposing, validating
+   and executing a procedure stay distinct (a found script or workflow is a proposal, never an authorization).
+5. **Mandate**: `connections` (what a person authorizes: location, environment, credential reference, permissions
+   granted per connection) and `goals` (objectives in words, with bounds on actions).
+
+## First vertical slice (local lab, isolated)
+
+`bench/ecosystem/`: an application repository with a staging compose project; a PostgreSQL reachable over the
+network outside that project (its own container and network, a read-only role); **Stockroom**, a synthetic but real
+HTTP service with an OpenAPI document and an API key, unknown to Unbidden, in two compatible instances (A, B);
+GitHub through the existing client, read only. Goal given in the mandate: keep staging orders from failing for lack
+of stock, with reorders bounded. The agent gets the mandate and the accesses, not steps. It must map, find the
+missing integration, build and validate it, observe through it, resume the investigation (which SKUs will run out:
+orders from the database × stock from the API), place a bounded reorder in staging if allowed, verify it, and reuse
+the integration on instance B. Also: access denied, revocation, a partial failure, a repeated action.
+
+## PRs, by dependency
+
+| PR | Scope | Acceptance |
+|---|---|---|
+| 40 | this plan | — |
+| 41 | Connection contract, store, states; connector protocol; existing connectors (compose, Postgres-in-container, OpenAPI, GitHub) report checks | `unbidden connections` shows each with state and effective permissions; nothing "connected" before a check |
+| 42 | Network PostgreSQL connector: config, broker reference, TLS mode, least privilege, bounded read-only queries, real permission check; missing / invalid / revoked credentials | against a live lab Postgres: grants observed, a write refused, revocation moves the connection and stops dependents |
+| 43 | Forge `api_client`: need → search existing → fetch the authorized document → local model selects and specifies → oracle on the live service → register → enable by mandate | built with the real local model; oracle passes on instance A; reused on B without a rebuild; refuses a spec that does not match the service |
+| 44 | Typed actions and their executor; deploy steps as one kind; verified compensation only | idempotent repeat, timeout, post-check, compensation verified before declared |
+| 45 | Ecosystem map: connections and their relations in the World Model, project grouping; `activity`, `map`, `doctor` show connected / readable / writable / missing / building / needs a person | discovered never shown as connected; read-only never shown as control |
+| 46 | Vertical slice and its evaluation: dev scenarios, a new frozen evaluation set, connectivity / comprehension / self-extension / usefulness scored apart | the run with the real local model, end to end, recorded with its limits |
+
+## Out of this stage
+
+OAuth flows and token refresh (designed in the Connection contract as a credential kind, built when a case needs
+it); SDK and MCP integration kinds (OpenAPI first: the lab's service publishes one); Kubernetes, cloud accounts;
+multi-tenant projects; remote models (no budget authorized). PR13 (memory) stays as defined: it needs repeated runs
+of PR16's harness, independent of this stage, and will gain inputs from it (connection checks and capability use
+are history it can learn from).
