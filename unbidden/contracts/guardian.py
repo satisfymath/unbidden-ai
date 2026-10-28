@@ -45,6 +45,7 @@ class OperationsPolicy(Contract):
     max_merges_per_hour: int = Field(default=2, ge=0)
     max_deploys_per_hour: int = Field(default=2, ge=0)
     guard_samples: int = Field(default=15, ge=5)  # per side, per endpoint, before judging a deploy
+    ui_capture_retention_days: float = Field(default=14.0, ge=0)  # screenshots of anomalies, kept locally
 
 
 class BusinessConstraints(Contract):

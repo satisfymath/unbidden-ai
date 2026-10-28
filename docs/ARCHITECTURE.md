@@ -117,6 +117,10 @@ Guaranteed by code, and covered by tests:
   checkpoint; pushes, pull requests, merges, deploys, rollbacks and the remote visual judge check it immediately
   before acting. A job stopped by a timeout or the switch is retried only once its threads have ended
   (`tests/unit/test_daemon_limits.py`). Not reached: a thread inside a single blocking call, until that call returns.
+- **Page captures.** The browser runs on an internal network whose only other member is a relay to the project's
+  published port: no internet, no other host port; read-only, not root. Anomaly screenshots are removed after the
+  mandate's `ui_capture_retention_days` (`tests/unit/test_ui_confinement.py`). Pages that load from a CDN render
+  without it.
 - **Provisioning.** Every dependency image is built only when the mandate allows the language's registries:
   `provision()` takes the policy, so no path can skip it. The build's own network is not yet restricted (PR7b).
 - **Model-written patterns.** Log and stats readers Forge built run on RE2, in time linear in their input, and

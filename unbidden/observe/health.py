@@ -500,8 +500,9 @@ class UiCheck:
     def judge(self, mandate: Any) -> dict[str, Any]:
         import json as _json
 
-        from unbidden.lab.ui import Capture, browser_judge, capture, visual_judge
+        from unbidden.lab.ui import Capture, browser_judge, capture, prune, visual_judge
 
+        prune(self.artifacts, mandate.operations.ui_capture_retention_days)
         ref = self.store.get_value("ui_reference")
         if not ref:
             return {"note": "no reference capture of the page yet"}

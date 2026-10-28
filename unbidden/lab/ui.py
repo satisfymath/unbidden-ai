@@ -7,7 +7,8 @@ Two judges answer "is this page healthy, and if not, what is wrong with it":
   mandate allows it (`models.screenshots_to_frontier`) and the egress gate records each send with its digest; the
   images themselves are kept locally under `.unbidden/artifacts/ui/` for audit.
 
-The capture runs in a pinned Playwright container, never on the host.
+The capture runs in a pinned Playwright container, never on the host, on an internal network that reaches the
+project's published page and nothing else. Anomaly captures are kept for the mandate's retention, then removed.
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -29,7 +31,7 @@ from unbidden.config import load_config
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import ActionRequest, EgressAttempt, Mandate
 from unbidden.guardian.egress import evaluate_screenshots
-from unbidden.guardian.killswitch import Cancelled, before_effect
+from unbidden.guardian.killswitch import SANDBOX_LABEL, Cancelled, before_effect, labels
 from unbidden.guardian.policy import PolicyEngine
 from unbidden.store import Store
 
@@ -68,20 +70,55 @@ class Capture:
     kept_at: Path
 
 
+FORWARD_SCRIPT = Path(__file__).with_name("ui_forward.py")
+LOCAL_PAGE = re.compile(r"^http://(?:127\.0\.0\.1|localhost):(?P<port>\d+)(?P<rest>/.*)?$")
+APP_ALIAS = "app"
+
+
+def capture_argv(network: str, port: int, rest: str, work: Path, wait_ms: int) -> list[str]:
+    """The browser's container: on an internal network whose only other member is the forwarder, read-only, not
+    root, no capabilities. Whatever the page asks of another host fails, as it would offline."""
+    return [
+        "docker", "run", "--rm", *labels(), "--network", network,
+        "--read-only", "--tmpfs", "/tmp:rw,nosuid,size=512m", "-e", "HOME=/tmp", "--user", "1001:1001",
+        "--memory", "2g", "--cpus", "2", "--pids-limit", "512", "--cap-drop", "ALL",
+        "--security-opt", "no-new-privileges",
+        "-v", f"{CAPTURE_SCRIPT}:/cap/ui_capture.py:ro", "-v", f"{work}:/out",
+        PLAYWRIGHT_IMAGE, "python", "/cap/ui_capture.py", f"http://{APP_ALIAS}:{port}{rest}", str(wait_ms), "/out",
+    ]  # fmt: skip
+
+
+def forwarder_argv(name: str, port: int) -> list[str]:
+    """The relay: Unbidden's fixed code on the same pinned image, reaching the host's published port only."""
+    return [
+        "docker", "run", "-d", "--rm", "--name", name, *labels(), "--add-host", "host.docker.internal:host-gateway",
+        "--read-only", "--user", "1001:1001", "--memory", "64m", "--pids-limit", "64", "--cap-drop", "ALL",
+        "--security-opt", "no-new-privileges", "-v", f"{FORWARD_SCRIPT}:/cap/ui_forward.py:ro",
+        PLAYWRIGHT_IMAGE, "python", "/cap/ui_forward.py", str(port),
+    ]  # fmt: skip
+
+
 def capture(url: str, out_dir: Path, *, wait_ms: int = 3000, timeout_s: float = 120) -> Capture:
-    """Load `url` (a page the project publishes on this machine) in a container and keep what it showed.
-    `http://127.0.0.1:<port>` is reached from the container as the host's published port."""
+    """Load `url` (a page the project publishes on this machine, `http://127.0.0.1:<port>`) in a container and keep
+    what it showed. The browser reaches that port and nothing else: not the internet, not the host's other ports."""
+    local = LOCAL_PAGE.match(url)
+    if local is None:
+        raise RuntimeError(f"only a page published on this machine is captured, not {url}")
+    port, rest = int(local["port"]), local["rest"] or "/"
     ensure_image()
-    target = re.sub(r"^http://(127\.0\.0\.1|localhost)", "http://host.docker.internal", url)
+    tag = uuid.uuid4().hex[:12]
+    network, relay = f"unbidden-int-ui-{tag}", f"unbidden-ui-relay-{tag}"
     work = Path(tempfile.mkdtemp(prefix="unbidden-ui-"))
+    work.chmod(0o777)  # written by the container's unprivileged user
+    docker = ["docker"]
     try:
-        argv = [
-            "docker", "run", "--rm", "--add-host", "host.docker.internal:host-gateway",
-            "--memory", "2g", "--cpus", "2", "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
-            "-v", f"{CAPTURE_SCRIPT}:/cap/ui_capture.py:ro", "-v", f"{work}:/out",
-            PLAYWRIGHT_IMAGE, "python", "/cap/ui_capture.py", target, str(wait_ms), "/out",
-        ]  # fmt: skip
-        out = subprocess.run(argv, capture_output=True, text=True, timeout=timeout_s, check=False)
+        _docker(*docker, "network", "create", "--internal", "--label", f"{SANDBOX_LABEL}=1", network)
+        _docker(*forwarder_argv(relay, port))
+        _docker(*docker, "network", "connect", "--alias", APP_ALIAS, network, relay)
+        out = subprocess.run(
+            capture_argv(network, port, rest, work, wait_ms), capture_output=True, text=True, timeout=timeout_s,
+            check=False,
+        )  # fmt: skip
         if out.returncode != 0:
             raise RuntimeError(f"capture of {url} failed: {out.stderr.strip()[-400:]}")
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -90,7 +127,30 @@ def capture(url: str, out_dir: Path, *, wait_ms: int = 3000, timeout_s: float = 
         page = json.loads((work / "page.json").read_text())
         return Capture(url, (work / "screenshot.png").read_bytes(), page, out_dir)
     finally:
+        subprocess.run(["docker", "kill", relay], capture_output=True, check=False)
+        subprocess.run(["docker", "network", "rm", network], capture_output=True, check=False)
         shutil.rmtree(work, ignore_errors=True)
+
+
+def _docker(*argv: str) -> None:
+    out = subprocess.run(list(argv), capture_output=True, text=True, check=False)
+    if out.returncode != 0:
+        raise RuntimeError(f"{' '.join(argv[:3])} failed: {out.stderr.strip()[-300:]}")
+
+
+def prune(artifacts: Path, keep_days: float, *, now: float | None = None) -> list[str]:
+    """Remove anomaly captures older than the mandate's retention; the reference is kept (it is replaced instead).
+    Returns what was removed."""
+    import time
+
+    cutoff = (now if now is not None else time.time()) - keep_days * 86400
+    removed = []
+    for path in sorted(artifacts.glob("anomaly-*")):
+        stamp = path.name.removeprefix("anomaly-")
+        if path.is_dir() and stamp.isdigit() and int(stamp) < cutoff:
+            shutil.rmtree(path, ignore_errors=True)
+            removed.append(path.name)
+    return removed
 
 
 def _failed_paths(page: dict[str, Any]) -> set[str]:
