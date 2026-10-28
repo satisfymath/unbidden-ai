@@ -1,0 +1,68 @@
+{
+  "pairs": 40,
+  "metrics": {
+    "stack_supported": {
+      "before": 27,
+      "after": 27,
+      "n": 40,
+      "gained": 0,
+      "lost": 0,
+      "p_mcnemar": 1.0
+    },
+    "dependencies_installed": {
+      "before": 25,
+      "after": 25,
+      "n": 40,
+      "gained": 0,
+      "lost": 0,
+      "p_mcnemar": 1.0
+    },
+    "analyzer_complete": {
+      "before": 25,
+      "after": 25,
+      "n": 40,
+      "gained": 0,
+      "lost": 0,
+      "p_mcnemar": 1.0
+    },
+    "bootstrapped": {
+      "before": 25,
+      "after": 25,
+      "n": 40,
+      "gained": 0,
+      "lost": 0,
+      "p_mcnemar": 1.0
+    },
+    "ci_understood": {
+      "before": 36,
+      "after": 36,
+      "n": 40,
+      "gained": 0,
+      "lost": 0,
+      "p_mcnemar": 1.0
+    }
+  },
+  "changes": [],
+  "decisions": [
+    {
+      "name": "KeepSoftwareSimple__compass-calendar",
+      "before": "findings_declined",
+      "after": "actionable"
+    },
+    {
+      "name": "jdillon__vscode-beads",
+      "before": "findings_declined",
+      "after": "actionable"
+    },
+    {
+      "name": "quantumlib__Cirq",
+      "before": "findings_declined",
+      "after": "actionable"
+    },
+    {
+      "name": "vllm-project__tpu-inference",
+      "before": "findings_declined",
+      "after": "actionable"
+    }
+  ]
+}

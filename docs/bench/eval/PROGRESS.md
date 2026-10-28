@@ -87,3 +87,30 @@ Python and Node: no repository changed cause (one decision changed on dev, firek
 All gains are Go repositories now analyzed (`go vet` and the compiler, offline). **Coverage, not discovery:** of the 8
 Go repositories gained, 7 found nothing and 1 (discobox) had every finding declined; none adds an opportunity worth
 acting on. On this evidence, more languages wait until discovery and decision improve (`docs/PLAN.md`).
+
+## v5: Phase 0 and 1 of the plan (PR1–PR9, commit e743e37), paired against v4 on dev
+
+Record `dev-all-v5.json`, comparison `compare-dev-all-v4-v5.md`. Same 40 repositories and commits, same settings
+(static tier, 2 workers, 20 minutes), run from a frozen worktree.
+
+| Outcome (dev, 40) | v4 | v5 | Gained / lost |
+|---|---|---|---|
+| Bootstrapped | 25 | 25 | 0 / 0 |
+| Dependencies installed | 25 | 25 | 0 / 0 |
+| CI understood | 36 | 36 | 0 / 0 |
+
+Reach unchanged, as expected: these PRs change what evidence counts and what may act, not what can be analyzed.
+Four repositories changed decision, all from "findings declined" to "actionable", because the CI equivalence (PR4)
+no longer reads a tool's name as a substring. Each was read:
+
+| Repository | What v5 would act on | Why v4 declined it | Verdict |
+|---|---|---|---|
+| quantumlib/Cirq | Unbidden's pyright, 250 type findings | "pyright" inside "copyright": the CI runs mypy, never pyright | v4's decline was false; whether pyright findings on a mypy-clean project are worth it is the Director's question (PR12 learns it from outcomes) |
+| vllm-project/tpu-inference | ruff-baseline B006 (mutable defaults), 5 groups | the CI runs ruff (pre-commit) with the team's rules | by design: Unbidden's own rules are not the team's; real but trivial findings |
+| jdillon/vscode-beads | eslint `no-undef` for `module` in `jest.config.js` | the CI runs eslint, on `src` only | the relation is right (the CI does not lint that file); the finding is environment noise (a CommonJS config file) |
+| KeepSoftwareSimple/compass-calendar | 152 tsc findings | the CI runs `bunx typescript@7.0.2 -b tsconfig.typecheck.json` | **a gap in PR4**: that step is tsc, at a version and with a config of its own; it should wait, not experiment. Fixed after the run (`85c9d03`), checked on this checkout |
+
+So: one false decline removed (Cirq), one gap found and fixed (compass-calendar), two by design with low-value
+findings. Discovery precision did not improve, and was not expected to: that is the Director's work (PR12) and the
+discovery causes listed in `discovery-audit-v3.md`. Validation is not re-run for v5: nothing here changes reach, and
+the next validation run waits for a candidate worth freezing.
