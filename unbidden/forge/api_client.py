@@ -297,6 +297,9 @@ def call(
             jsonschema.validate(data, schema)
         except jsonschema.ValidationError as exc:
             raise CallFailed(status, f"{op.id} answered {status} outside its documented schema: {exc.message}") from exc
+    if status >= 400:
+        # Documented or not, an error is not data: a refused key read as an empty answer would look like nothing to do.
+        raise CallFailed(status, f"{op.id} answered {status}: {str(data)[:200]}")
     return status, data
 
 

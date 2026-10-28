@@ -306,7 +306,7 @@ def _integration(store: Store, before: Connection | None) -> Any:
     from unbidden.forge.api_client import ApiIntegration
 
     found = store.get(INTEGRATIONS, before.capability_id, ApiIntegration)
-    return found if found is not None and found.status == "validated" else None
+    return found if found is not None and found.status in ("validated", "approved") else None
 
 
 def get(store: Store, connection: str) -> Connection | None:

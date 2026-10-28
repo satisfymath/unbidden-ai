@@ -383,20 +383,24 @@ def score(
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("worktree")
-    parser.add_argument("--scenarios", default=",".join(SCENARIOS))
+    parser.add_argument("--scenarios", help="default: the project's own (d* for shopfront, e* for dispatch)")
     parser.add_argument("--out", required=True)
     parser.add_argument("--label", default="run")
     parser.add_argument("--project", choices=sorted(PROJECTS), default="shopfront")
     args = parser.parse_args()
     global P, REPO
     P, REPO = PROJECTS[args.project], PROJECTS[args.project]["repo"]
+    prefix = "d" if args.project == "shopfront" else "e"
+    chosen = args.scenarios.split(",") if args.scenarios else [k for k in SCENARIOS if k.startswith(prefix)]
+    if any(not k.startswith(prefix) for k in chosen):
+        parser.error(f"scenarios of {args.project} start with {prefix}")
     worktree, out = Path(args.worktree).expanduser(), Path(args.out).expanduser()
     out.mkdir(parents=True, exist_ok=True)
     commit = subprocess.run(
         ["git", "-C", str(worktree), "rev-parse", "HEAD"], capture_output=True, text=True
     ).stdout.strip()
     results = []
-    for sid in args.scenarios.split(","):
+    for sid in chosen:
         s = SCENARIOS[sid]
         reset()
         workspace(worktree, **s.flags)

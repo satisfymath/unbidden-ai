@@ -277,3 +277,17 @@ def test_a_persons_approval_attaches_the_integration_to_its_connection(store: An
     (need,) = needs.approved(store, approved.id)
     attached = get(store, conn.id)
     assert need.status is NeedStatus.IN_USE and attached is not None and attached.capability_id == approved.id
+
+
+def test_a_documented_error_is_an_error_and_a_refused_key_revokes_an_integrated_connection(mandate: Mandate) -> None:
+    # Found on dev (d5): a 401 the document declares was taken as an answer; the goal read "0 of 0 short".
+    from unbidden.forge.api_client import CallFailed
+    from unbidden.forge.integrate import live_check
+
+    mandate.connections = [grant(["read"])]
+    refused = httpx.MockTransport(lambda r: httpx.Response(401, json={"error": "key"}))
+    with pytest.raises(CallFailed) as failed:
+        call(integration(["listItems"]), connected(["listItems"]), mandate, "listItems", transport=refused)
+    assert failed.value.status == 401
+    result = live_check(integration(["listItems"]), connected(["listItems"]), mandate, transport=refused)
+    assert result.state is ConnectionState.NEEDS_AUTHORIZATION and result.failure is not None
