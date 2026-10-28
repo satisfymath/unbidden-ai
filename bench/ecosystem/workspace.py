@@ -73,8 +73,8 @@ MANDATE = """mandate:
         what its warehouse can still supply should be restocked from that warehouse.
       bounds:
         environment: staging
-        max_reorders: 5
-        max_units_per_reorder: 50
+        max_actions: 5
+        max_amount_per_action: 50
 """
 
 

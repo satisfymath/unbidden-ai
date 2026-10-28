@@ -39,7 +39,7 @@ def test_a_goals_bounds_hold_across_its_runs_in_a_window(
 
     monkeypatch.setattr(goals, "run_api_action", fake_run)
     goal = Goal(
-        id="g", statement="s", bounds={"environment": "staging", "max_reorders": 3, "max_units_per_reorder": 50}
+        id="g", statement="s", bounds={"environment": "staging", "max_actions": 3, "max_amount_per_action": 50}
     )
     conn = Connection(
         id="http_api:x",

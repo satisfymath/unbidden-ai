@@ -310,8 +310,8 @@ def _act(
     if operation not in {o.id for o in integration.operations}:
         run.notes.append(f"the plan's write {operation!r} is not an operation of the integration")
         return
-    limit = int(goal.bounds.get("max_reorders", 0) or 0)
-    cap = int(goal.bounds.get("max_units_per_reorder", 0) or 0)
+    limit = int(goal.bounds.get("max_actions", 0) or 0)
+    cap = int(goal.bounds.get("max_amount_per_action", 0) or 0)
     environment = str(goal.bounds.get("environment", ""))
     # The bounds hold for the goal over its window, across every run: a second pursuit the same day (resumed by a
     # second capability, say) sees what the first did, and acts again on no key it already acted on.

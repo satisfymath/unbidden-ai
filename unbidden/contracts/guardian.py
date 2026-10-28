@@ -117,7 +117,9 @@ class ConnectionGrant(Contract):
 
 
 class Goal(Contract):
-    """An objective in a person's words, with the bounds on what may be done for it."""
+    """An objective in a person's words, with the bounds on what may be done for it. Bounds Unbidden enforces:
+    `environment` (where it may act), `max_actions` (per goal and day), `max_amount_per_action` (the amount a single
+    write may carry). Without `max_actions`, nothing is changed for the goal."""
 
     id: str = Field(min_length=1)
     statement: str
