@@ -41,6 +41,9 @@ class ActionKind(StrEnum):
     PROPOSE_CHANGE = "propose_change"
     REQUEST_APPROVAL = "request_approval"
     DECLINE = "decline"
+    MEASURE = "measure"  # observe what the opportunity's value depends on before spending on it
+    ACQUIRE_CAPABILITY = "acquire_capability"  # build or reuse the capability the decision needs
+    INVESTIGATE = "investigate"  # look for the cause of a runtime signal
 
 
 class CandidateAction(Contract):

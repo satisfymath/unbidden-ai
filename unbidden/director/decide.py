@@ -16,7 +16,16 @@ from unbidden.contracts.experiment import VALIDATING
 from unbidden.contracts.guardian import Mandate
 from unbidden.contracts.opportunity import ActionKind, CandidateAction, Decision, Opportunity, OpportunityStatus
 from unbidden.languages import adapter_for_path
-from unbidden.observe.ci import DIFFERS, PENDING_CI, SAME, UNREADABLE, analyzer_tool, environment_equivalence, runs_tool
+from unbidden.observe.ci import (
+    DIFFERS,
+    PENDING_CI,
+    SAME,
+    UNREADABLE,
+    UNRELATED,
+    analyzer_tool,
+    environment_equivalence,
+    runs_tool,
+)
 from unbidden.sandbox.tools import tool_source
 from unbidden.store import Store
 
@@ -52,6 +61,7 @@ class Context:
     tool_status: dict[str, str] | None = None  # tool -> "green" / "red": the jobs that run that tool, on this commit
     ci_problem: str | None = None  # why the CI's verdict could not be read, when ci_status is "unreadable"
     p_experiment: float = 0.6  # chance an experiment on this kind of opportunity succeeds, from the lab's history
+    capability_needs: dict[str, str] | None = None  # need source -> status (forge/needs.py), for this workspace
 
 
 def outside_checked_scope(opp: Opportunity, checked_dirs: tuple[str, ...]) -> bool:
@@ -112,6 +122,13 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
             f"the team's CI does not run {tool}: its style is not the team's standard",
         )
         return _choose(opp, candidates, ActionKind.DECLINE)
+    if opp.category in LOW_VALUE and ran and not own_rules_of(opp):
+        relation, why = environment_equivalence(
+            ctx.ci_commands, tool, [str(p) for p in opp.details.get("paths") or []], source="project", own_rules=False
+        )
+        if relation == UNRELATED:
+            add(ActionKind.DECLINE, 1.0, 0.0, 0.0, f"style outside what the team lints: {why}")
+            return _choose(opp, candidates, ActionKind.DECLINE)
     still_running = (ctx.tool_status or {}).get(tool, ctx.ci_status) == PENDING_CI
     if still_running and ran:
         reason = f"the team's CI runs {tool} and is still running on this commit: its verdict comes first"
@@ -178,12 +195,46 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
     elif ctx.attempts >= MAX_LAB_ATTEMPTS:
         add(ActionKind.DECLINE, 0.0, 0.0, 0.0, f"{ctx.attempts} experiments found no proven fix")
         return _choose(opp, candidates, ActionKind.DECLINE)
+    elif (action := _before_experiment(opp, ctx)) is not None:
+        kind, reason = action
+        add(kind, 0.0, 0.0, 0.0, reason)
+        return _choose(opp, candidates, kind)
     elif opp.status is OpportunityStatus.OPEN:
         p = ctx.p_experiment / (1 + ctx.attempts)
         reason = f"reproduce it and measure a candidate offline (p {p:.2f} from the lab's history of this kind)"
         add(ActionKind.RUN_EXPERIMENT, p, EXPERIMENT_COST_USD, 0.0, reason)
     best = max(candidates, key=lambda c: c.utility)
     return _choose(opp, candidates, best.kind)
+
+
+MAX_MEASURES = 3
+
+
+def own_rules_of(opp: Opportunity) -> bool:
+    return tool_source(str(opp.details.get("tool", "")))[1]
+
+
+def _before_experiment(opp: Opportunity, ctx: Context) -> tuple[ActionKind, str] | None:
+    """What must be known before an experiment is worth its cost: an observation (MEASURE), a capability
+    (ACQUIRE_CAPABILITY), or a cause (INVESTIGATE). None when nothing is missing. Each is bounded (PLAN.md, PR12)."""
+    details = opp.details
+    unexplained = details.get("incident") and not details.get("hypothesis")
+    if unexplained and int(details.get("investigations", 0)) < 1:
+        return ActionKind.INVESTIGATE, "a runtime signal whose cause is not known: investigated before acting"
+    service = details.get("service")
+    if details.get("traffic") == "unknown" and service:
+        status = (ctx.capability_needs or {}).get(f"compose:{service}")
+        if status in ("open", "building", "failed"):
+            return ActionKind.ACQUIRE_CAPABILITY, f"whether users call it is in {service}'s access log: reader {status}"
+        if status == "awaiting_approval":
+            return ActionKind.WAIT, f"a reader for {service}'s access log is built and awaits a person's approval"
+    if opp.source == "world" and "rows" in details and details.get("rows") is None:
+        measure = details.get("measure") or {}
+        asked = int(measure.get("asked", 0)) if measure.get("rev") == details.get("rev") else 0
+        if asked < MAX_MEASURES:
+            return ActionKind.MEASURE, f"its value depends on {details.get('table')}'s rows, not observed yet"
+        return ActionKind.WAIT, f"cannot be measured: {MAX_MEASURES} map refreshes did not observe the table's rows"
+    return None
 
 
 def _choose(opp: Opportunity, candidates: list[CandidateAction], chosen: ActionKind) -> Decision:

@@ -241,6 +241,10 @@ class Cycle:
         ]
         opps.sort(key=lambda o: (-o.evidence_level, o.created_at))
         learned = beliefs(self.store)
+        from unbidden.contracts.capability import CapabilityNeed
+        from unbidden.forge.needs import COLLECTION as NEEDS
+
+        needs = {n.source: n.status.value for n in self.store.list(NEEDS, CapabilityNeed)}
         decided: list[tuple[Opportunity, Decision, int]] = []
         for opp in opps:
             attempts = int(opp.details.get("attempts", 0))
@@ -256,6 +260,7 @@ class Cycle:
                     tool_status=per_tool,
                     ci_problem=ci_problem,
                     p_experiment=learned.get(kind_of(opp), Belief(0, 0)).mean,
+                    capability_needs=needs,
                 ),
             )
             if decision.chosen is ActionKind.PROPOSE_CHANGE:
@@ -297,6 +302,8 @@ class Cycle:
                             correlation_id=opp.id,
                         )
                     )
+            elif decision.chosen in (ActionKind.MEASURE, ActionKind.ACQUIRE_CAPABILITY, ActionKind.INVESTIGATE):
+                self._before_experiment(opp, decision.chosen)
             elif decision.chosen is ActionKind.DECLINE:
                 opp.status = OpportunityStatus.DECLINED
                 self.store.put("opportunities", opp)
@@ -305,6 +312,36 @@ class Cycle:
                     withdrawn.status = ProposalStatus.REJECTED
                     self.store.put("proposals", withdrawn)
                     self.log(f"{opp.id}: proposal withdrawn before publishing ({decision.reason})")
+
+    def _before_experiment(self, opp: Opportunity, kind: ActionKind) -> None:
+        """Carry out MEASURE, ACQUIRE_CAPABILITY or INVESTIGATE through the jobs that already do each (PLAN.md, PR12):
+        a map refresh, a Forge build, an investigation. Each is counted on the opportunity so it cannot repeat."""
+        rev = str(opp.details.get("rev", ""))
+        if kind is ActionKind.MEASURE:
+            measure = opp.details.get("measure") or {}
+            asked = int(measure.get("asked", 0)) if measure.get("rev") == rev else 0
+            if self.store.enqueue(job("world.refresh", f"measure:{opp.id}:{rev[:12]}:{asked}")):
+                opp.details = {**opp.details, "measure": {"rev": rev, "asked": asked + 1}}
+                self.store.put("opportunities", opp)
+        elif kind is ActionKind.ACQUIRE_CAPABILITY:
+            from unbidden.contracts.capability import CapabilityNeed
+            from unbidden.forge.needs import COLLECTION as NEEDS
+
+            source = f"compose:{opp.details.get('service')}"
+            for need in self.store.list(NEEDS, CapabilityNeed):
+                wake = {"type": "director.sweep", "key": f"need:{opp.id}"}
+                if need.source == source and wake not in need.resume:
+                    need.resume = [*need.resume, wake]  # in use, the need queues the sweep that decides this again
+                    self.store.put(NEEDS, need)
+            self._queue_needs()
+        elif kind is ActionKind.INVESTIGATE:
+            incident = opp.details.get("incident") or {}
+            reopened = int(opp.details.get("reopened", 0))
+            if self.store.enqueue(
+                job("research.investigate", f"{opp.id}:r{reopened}", incident, correlation_id=opp.id)
+            ):
+                opp.details = {**opp.details, "investigations": int(opp.details.get("investigations", 0)) + 1}
+                self.store.put("opportunities", opp)
 
     def _ci_verdicts(self, head: str | None, mandate: Any) -> tuple[str | None, dict[str, str], str | None]:
         """The team's CI on HEAD, read once per commit (the sweep runs often; GitHub limits unauthenticated reads)."""
