@@ -270,3 +270,47 @@ def test_a_build_error_keeps_the_installers_explanation() -> None:
     )
     text = build_error(stderr)
     assert "cause: Because only shim==0.0.0" in text and "hint: The package" in text
+
+
+def test_independent_subprojects_are_found_when_the_root_offers_nothing_to_check() -> None:
+    from unbidden.observe.scan import subprojects
+    from unbidden.observe.stack import Stack
+
+    files = {
+        "package.json", "README.md",
+        "server/package.json", "server/yarn.lock", "server/index.js", "server/a.js",
+        "frontend/package.json", "frontend/yarn.lock", "frontend/src/app.js",
+        "tests/fixture/package.json", "tests/fixture/package-lock.json",
+        "services/api/requirements.txt", "services/api/main.py",
+        "server/plugins/x/package.json", "server/plugins/x/yarn.lock",
+    }  # fmt: skip
+    assert subprojects(files, Stack()) == ["frontend", "server", "services/api"]
+    assert subprojects({*files, "rush.json"}, Stack()) == []
+
+
+def test_yarn_classic_installs_and_berry_is_named(tmp_path: Path) -> None:
+    from unbidden.sandbox.provision import node_dockerfile
+
+    classic = commit(tmp_path / "c", {"package.json": '{"name": "a"}', "yarn.lock": "# yarn lockfile v1\n\n"})
+    node = detect_stack(classic).node
+    assert node is not None and node.manager == "yarn"
+    assert "yarn install --frozen-lockfile --ignore-scripts" in node_dockerfile(node)
+    berry = commit(
+        tmp_path / "b", {"package.json": '{"name": "a", "packageManager": "yarn@4.1.0"}', "yarn.lock": "x\n"}
+    )
+    stack = detect_stack(berry)
+    assert stack.node is None and any("Berry" in b for b in stack.blind_spots)
+
+
+def test_ci_commands_follow_the_package_scripts_a_workflow_calls(tmp_path: Path) -> None:
+    from unbidden.observe.ci import ci_commands
+
+    repo = commit(
+        tmp_path,
+        {
+            ".github/workflows/ci.yml": "jobs:\n  c:\n    steps:\n      - run: pnpm check\n",
+            "package.json": '{"scripts": {"check": "pnpm run types", "types": "tsc -b tsconfig.json"}}',
+        },
+    )
+    commands = ci_commands(repo, "HEAD")
+    assert commands is not None and "tsc -b tsconfig.json" in commands

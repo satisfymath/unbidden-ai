@@ -11,6 +11,15 @@ import re
 from typing import Any
 
 SUPPORTED = {"Python", "TypeScript", "JavaScript"}
+# Files that accompany any project (scripts, headers) and say little about what it is written in.
+INCIDENTAL = {"Shell", "C"}
+
+
+def dominant_language(files: dict[str, Any]) -> str | None:
+    counts = {k: v for k, v in (files.get("by_language") or {}).items() if k not in INCIDENTAL}
+    return max(counts, key=lambda k: counts[k]) if counts else None
+
+
 MIN_CODE_FILES = 5
 
 # The installer's own words, most specific first.
@@ -20,7 +29,7 @@ DEPENDENCY_CAUSES: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("deps_python_version", re.compile(
         r"does not satisfy Python|requires-python|Python>=\d|python_requires|current Python version|"
         r"supported environments|resolved to Python", re.I)),
-    ("deps_tool_version", re.compile(r"Required uv version|required-version|packageManager", re.I)),
+    ("deps_tool_version", re.compile(r"Required uv version|required-version|packageManager|corepack", re.I)),
     ("deps_private_or_network", re.compile(
         r"\b40[134]\b|Could not resolve host|ETIMEDOUT|ECONNRESET|unable to access|Authentication failed|"
         r"private registry|git@", re.I)),
@@ -30,7 +39,9 @@ DEPENDENCY_CAUSES: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("deps_native_build", re.compile(
         r"fatal error: .*\.h|\bgcc\b|g\+\+|clang|command 'cc'|pg_config|Failed building wheel|Rust compiler|"
         r"\bcargo\b|cmake|node-gyp", re.I)),
-    ("deps_stale_lockfile", re.compile(r"lockfile .* needs to be updated|lockfile had changes|frozen-lockfile", re.I)),
+    ("deps_stale_lockfile", re.compile(
+        r"lockfile .* needs to be updated|lockfile had changes|ERR_PNPM_OUTDATED_LOCKFILE|lockfile is not up to date",
+        re.I)),
     ("deps_resolution", re.compile(
         r"No solution found|ResolutionImpossible|ERESOLVE|conflicting|unsatisfiable|Because .* depends on", re.I)),
     ("deps_missing_file", re.compile(r"Couldn't find patch file|Distribution not found at|does not exist", re.I)),
@@ -50,6 +61,12 @@ def root_cause(row: dict[str, Any]) -> str:
     state = row.get("state") or {}
     files = row.get("files") or {}
     languages = state.get("languages") or []
+    analyzed = any(a["completeness"] == "complete" for a in state.get("analyzers") or [])
+    dominant = dominant_language(files)
+    if not analyzed and dominant is not None and dominant not in SUPPORTED and files.get("code", 0) >= MIN_CODE_FILES:
+        # What could not be analyzed is mostly in a language Unbidden does not read; a few scripts in one it does
+        # read do not make it a dependency problem.
+        return "unsupported_language"
     if not languages:
         if files and files.get("code", 0) < MIN_CODE_FILES:
             return "not_software"

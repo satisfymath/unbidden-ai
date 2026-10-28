@@ -89,7 +89,12 @@ def prepare_node(
 
 
 MANIFESTS = {"package.json", "requirements.txt", "pyproject.toml"}
-LOCKS = {"package-lock.json", "pnpm-lock.yaml", "yarn.lock", "requirements.txt", "uv.lock", "poetry.lock"}
+LOCKS = {"package-lock.json", "pnpm-lock.yaml", "yarn.lock", "bun.lock", "bun.lockb", "requirements.txt", "uv.lock",
+         "poetry.lock"}  # fmt: skip
+MAX_SUBPROJECTS = 4
+SUBPROJECT_DEPTH = 4
+NOT_SUBPROJECT = {"test", "tests", "docs", "doc", "examples", "example", "fixtures", "benchmarks", "node_modules",
+                  "vendor", "third_party", ".github"}  # fmt: skip
 
 
 def service_dirs(repo: Path, rev: str, stack: Stack) -> list[str]:
@@ -99,9 +104,9 @@ def service_dirs(repo: Path, rev: str, stack: Stack) -> list[str]:
     from unbidden.observe.stack import tracked_files
 
     compose = load_compose(repo, rev)
-    if compose is None:
-        return []
     files = tracked_files(repo, rev)
+    if compose is None:
+        return subprojects(files, stack)
     covered = {p.path for p in (stack.node.packages if stack.node else ())}
     found: list[str] = []
     for service in compose.services.values():
@@ -118,6 +123,24 @@ def service_dirs(repo: Path, rev: str, stack: Stack) -> list[str]:
         if own & MANIFESTS and own & LOCKS:
             found.append(context)
     return sorted(found)
+
+
+def subprojects(files: set[str], stack: Stack) -> list[str]:
+    """When the root offers nothing Unbidden can check, the directories that are projects of their own (a manifest and
+    a lockfile side by side, up to four levels down), largest first, at most four: a repository of independent
+    subprojects (server/, frontend/, collector/) with no workspace tying them together."""
+    if tools_for(stack) or "rush.json" in files:
+        return []  # a root with checks covers itself; a Rush monorepo is named as unsupported, not half-analyzed
+    by_dir: dict[str, set[str]] = {}
+    for f in files:
+        parts = f.split("/")
+        if 2 <= len(parts) <= SUBPROJECT_DEPTH + 1 and not NOT_SUBPROJECT & set(parts[:-1]):
+            by_dir.setdefault("/".join(parts[:-1]), set()).add(parts[-1])
+    candidates = [d for d, names in by_dir.items() if names & MANIFESTS and names & LOCKS]
+    # A subproject inside another is covered by it.
+    outer = [d for d in candidates if not any(d.startswith(f"{o}/") for o in candidates if o != d)]
+    size = {d: sum(1 for f in files if f.startswith(f"{d}/")) for d in outer}
+    return sorted(sorted(outer, key=lambda d: (-size[d], d))[:MAX_SUBPROJECTS])
 
 
 def _isolated(repo: Path, rev: str, directory: str) -> Path:

@@ -7,6 +7,7 @@ are dropped; the sandbox provides dependencies and services itself.
 
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 from dataclasses import dataclass
@@ -280,7 +281,38 @@ def ci_commands(repo: Path, rev: str) -> str | None:
     if re.search(r"\bnox\b", text):
         called |= {"noxfile.py"} & tracked
     extra = [_git(repo, "show", f"{rev}:{path}")[:20000] for path in sorted(called)]
-    return "\n".join([text, *extra]).lower()
+    scripts = package_scripts_run(repo, rev, "\n".join([text, *extra]))
+    return "\n".join([text, *extra, *scripts]).lower()
+
+
+_PACKAGE_SCRIPT_CALL = re.compile(
+    r"\b(?:(?:pnpm|yarn|bun)(?:\s+-\S+)*(?:\s+run)?|npm(?:\s+-\S+)*\s+run(?:-script)?)\s+([@\w:.-]+)"
+    r"|\bnpm\s+(test|start)\b"
+)
+
+
+def package_scripts_run(repo: Path, rev: str, text: str, depth: int = 3) -> list[str]:
+    """The package.json scripts a CI's commands call (`pnpm check`, `npm run lint`, `yarn test`), and the scripts those
+    call in turn, as their command lines: `pnpm check` that runs `tsc -b` is a CI that runs tsc."""
+    shown = subprocess.run(["git", "-C", str(repo), "show", f"{rev}:package.json"], capture_output=True, text=True)
+    try:
+        scripts = json.loads(shown.stdout).get("scripts", {}) if shown.returncode == 0 else {}
+    except ValueError:
+        return []
+    if not isinstance(scripts, dict):
+        return []
+    found: list[str] = []
+    seen: set[str] = set()
+    frontier = text
+    for _ in range(depth):
+        names = {a or b for a, b in _PACKAGE_SCRIPT_CALL.findall(frontier)} - seen
+        commands = [str(scripts[n]) for n in sorted(names) if isinstance(scripts.get(n), str)]
+        seen |= names
+        if not commands:
+            break
+        found += commands
+        frontier = "\n".join(commands)
+    return found
 
 
 def ci_status(slug: str, sha: str, token: str | None = None, *, timeout_s: float = 10.0) -> str | None:

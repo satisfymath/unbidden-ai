@@ -140,6 +140,9 @@ def node_dockerfile(stack: NodeStack) -> str:
         "pnpm": "corepack enable && pnpm install --frozen-lockfile --ignore-scripts",
         # bun's binary comes from its official image (below); the project's lifecycle scripts are not run either.
         "bun": "bun install --frozen-lockfile --ignore-scripts",
+        # Yarn classic, from npm's registry through corepack, at the declared version when there is one.
+        "yarn": f"corepack enable && corepack prepare yarn@{stack.manager_version or '1.22.22'} --activate "
+        "&& yarn install --frozen-lockfile --ignore-scripts --non-interactive",
     }[stack.manager]
     if stack.lockfile is None:
         install = "npm install --ignore-scripts --no-audit --no-fund"

@@ -160,6 +160,13 @@ def _workspace_packages(repo: Path, rev: str, files: set[str], root: dict[str, A
     return tuple(dict.fromkeys(packages))
 
 
+def _yarn_berry(repo: Path, rev: str, files: set[str], package: dict[str, Any]) -> bool:
+    declared = str(package.get("packageManager") or "")
+    if re.match(r"yarn@[2-9]", declared) or ".yarnrc.yml" in files:
+        return True
+    return "yarn lockfile v1" not in _read(repo, rev, "yarn.lock")[:400]
+
+
 def _manager_version(package: dict[str, Any], manager: str) -> str | None:
     declared = package.get("packageManager")
     if isinstance(declared, str) and declared.startswith(f"{manager}@"):
@@ -184,8 +191,9 @@ def _detect_node(repo: Path, rev: str, files: set[str], blind: list[str]) -> Nod
         # image is kept by the manifest's digest, so runs on this machine share one resolution.
         blind.append("package.json without a lockfile: dependencies resolved at provisioning time")
         lock = ("npm", None)
-    if lock[0] == "yarn":
-        blind.append("yarn projects are not supported yet")
+    if lock[0] == "yarn" and _yarn_berry(repo, rev, files, package):
+        # Berry's own binary comes from repo.yarnpkg.com, which is not among the registries an install may reach.
+        blind.append("yarn 2+ (Berry) projects are not supported: yarn itself would come from repo.yarnpkg.com")
         return None
     packages = _workspace_packages(repo, rev, files, package)
     deps = _deps(package)
@@ -405,6 +413,8 @@ def detect_stack(repo: Path, rev: str = "HEAD") -> Stack:
         python=_detect_python(repo, rev, files, blind),
         blind_spots=blind,
     )
+    if stack.node is None and "rush.json" in files:
+        blind.append("Rush monorepo (rush.json): not supported; its packages are not analyzed")
     for manifest, language in UNANALYZED:
         if manifest in files or any(f.endswith(f"/{manifest}") for f in files):
             blind.append(f"{language} ({manifest}) is not analyzed: no checks, probes or experiments for that code")

@@ -37,7 +37,7 @@ def mcnemar_exact(lost: int, gained: int) -> float:
 
 
 def outcomes(row: dict[str, Any]) -> dict[str, bool]:
-    cause = row.get("cause") or root_cause(row)
+    cause = root_cause(row)  # one classifier for both runs, recomputed from each record
     state = row.get("state") or {}
     analyzers = state.get("analyzers") or []
     return {
@@ -65,7 +65,7 @@ def compare(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
                         "p_mcnemar": round(mcnemar_exact(lost, gained), 4)}  # fmt: skip
     changes = []
     for p, q in pairs:
-        cp, cq = p.get("cause") or root_cause(p), q.get("cause") or root_cause(q)
+        cp, cq = root_cause(p), root_cause(q)
         if cp != cq:
             direction = DEPTH.index(cq) - DEPTH.index(cp) if cp in DEPTH and cq in DEPTH else 0
             changes.append({"name": p["name"], "before": cp, "after": cq, "direction": direction})
