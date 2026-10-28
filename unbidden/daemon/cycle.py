@@ -17,6 +17,7 @@ from unbidden.contracts.experiment import Experiment, Proposal, ProposalStatus, 
 from unbidden.contracts.jobs import Job
 from unbidden.contracts.opportunity import ActionKind, Decision, Opportunity, OpportunityStatus
 from unbidden.director.decide import Context, decide
+from unbidden.director.learn import Belief, beliefs, kind_of
 from unbidden.lab.fixlab import FixLab
 from unbidden.observe.ci import ci_commands
 from unbidden.observe.scan import scan
@@ -239,6 +240,8 @@ class Cycle:
             if o.status in live and (o.status is not OpportunityStatus.PROPOSED or o.id in unpublished)
         ]
         opps.sort(key=lambda o: (-o.evidence_level, o.created_at))
+        learned = beliefs(self.store)
+        decided: list[tuple[Opportunity, Decision, int]] = []
         for opp in opps:
             attempts = int(opp.details.get("attempts", 0))
             decision = decide(
@@ -252,8 +255,15 @@ class Cycle:
                     ci_status=ci_status,
                     tool_status=per_tool,
                     ci_problem=ci_problem,
+                    p_experiment=learned.get(kind_of(opp), Belief(0, 0)).mean,
                 ),
             )
+            if decision.chosen is ActionKind.PROPOSE_CHANGE:
+                open_prs += 1  # the next opportunity sees the pull request this one will open
+            decided.append((opp, decision, attempts))
+        # One budget for the whole sweep: experiments go to the highest expected net value first, not the oldest.
+        decided.sort(key=lambda d: -_chosen_utility(d[1]) if d[1].chosen is ActionKind.RUN_EXPERIMENT else 0.0)
+        for opp, decision, attempts in decided:
             last: dict[str, Any] = opp.details.get("decision", {})
             seen = (last.get("chosen"), last.get("level"), last.get("attempts"))
             if seen != (decision.chosen.value, int(opp.evidence_level), attempts):
@@ -287,7 +297,6 @@ class Cycle:
                             correlation_id=opp.id,
                         )
                     )
-                open_prs += 1
             elif decision.chosen is ActionKind.DECLINE:
                 opp.status = OpportunityStatus.DECLINED
                 self.store.put("opportunities", opp)
@@ -552,6 +561,10 @@ class Cycle:
                 self.store.enqueue(
                     job("ops.deploy", merged.id, {"reason": f"merged {merged.title}", "proposal": merged.id})
                 )
+
+
+def _chosen_utility(decision: Decision) -> float:
+    return max((c.utility for c in decision.candidates if c.kind is decision.chosen), default=0.0)
 
 
 def checked_dirs(repo: Path, head: str) -> tuple[str, ...]:

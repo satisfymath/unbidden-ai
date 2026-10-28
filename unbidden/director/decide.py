@@ -51,6 +51,7 @@ class Context:
     ci_status: str | None = None  # "green" / "red": the team's own checks on this commit, when GitHub could be read
     tool_status: dict[str, str] | None = None  # tool -> "green" / "red": the jobs that run that tool, on this commit
     ci_problem: str | None = None  # why the CI's verdict could not be read, when ci_status is "unreadable"
+    p_experiment: float = 0.6  # chance an experiment on this kind of opportunity succeeds, from the lab's history
 
 
 def outside_checked_scope(opp: Opportunity, checked_dirs: tuple[str, ...]) -> bool:
@@ -62,7 +63,7 @@ def outside_checked_scope(opp: Opportunity, checked_dirs: tuple[str, ...]) -> bo
 
 
 def category_value(category: str, mandate: Mandate) -> float:
-    base = CATEGORY_VALUE.get(category)
+    base = mandate.evaluation.value_hours.get(category, CATEGORY_VALUE.get(category))
     if base is None:
         return 0.0
     boosted = any(category in PRIORITY_BOOST.get(p, set()) for p in mandate.priorities)
@@ -178,8 +179,9 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
         add(ActionKind.DECLINE, 0.0, 0.0, 0.0, f"{ctx.attempts} experiments found no proven fix")
         return _choose(opp, candidates, ActionKind.DECLINE)
     elif opp.status is OpportunityStatus.OPEN:
-        p = 0.6 / (1 + ctx.attempts)
-        add(ActionKind.RUN_EXPERIMENT, p, EXPERIMENT_COST_USD, 0.0, "reproduce it and measure a candidate offline")
+        p = ctx.p_experiment / (1 + ctx.attempts)
+        reason = f"reproduce it and measure a candidate offline (p {p:.2f} from the lab's history of this kind)"
+        add(ActionKind.RUN_EXPERIMENT, p, EXPERIMENT_COST_USD, 0.0, reason)
     best = max(candidates, key=lambda c: c.utility)
     return _choose(opp, candidates, best.kind)
 

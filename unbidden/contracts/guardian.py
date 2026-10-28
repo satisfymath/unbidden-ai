@@ -79,6 +79,9 @@ class EvaluationPolicy(Contract):
     minimum_evidence_for_proposal: int = Field(default=4, ge=1, le=6)
     alpha: float = Field(default=0.01, gt=0.0, lt=1.0)
     min_relative_effect: float = Field(default=0.20, gt=0.0)
+    # What resolving one opportunity of a category is worth to this team, in hours of a person's work saved;
+    # categories not named keep the Director's defaults. Editable: it is the mandate's statement of value.
+    value_hours: dict[str, float] = Field(default_factory=dict[str, float])
 
 
 class ModelsPolicy(Contract):
