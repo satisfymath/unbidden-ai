@@ -185,15 +185,21 @@ def main() -> None:
     out = Path(args.out).expanduser()
     cases, oracle = synthetic()
     if args.opportunities:
+        from unbidden.daemon.cycle import checked_dirs
+        from unbidden.observe.ci import ci_commands
+
         planted: dict[str, list[dict[str, Any]]] = json.loads(Path(args.opportunities).read_text())
         for scenario, opps in sorted(planted.items()):
+            # What the Director saw in that repository, read once, given to every policy alike.
+            repo = out / "repos" / scenario
+            ci = {"ci_commands": ci_commands(repo, "HEAD"), "checked_dirs": list(checked_dirs(repo, "HEAD"))}
             for opp in opps:
                 cases.append(
                     {
                         "id": f"{scenario}/{opp['id']}",
                         "kind": "decide",
                         "mandate": MANDATE,
-                        "context": {"open_pull_requests": 0, "attempts": 0},
+                        "context": {"open_pull_requests": 0, "attempts": 0, **ci},
                         "opportunity": opp,
                     }
                 )
