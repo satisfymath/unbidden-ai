@@ -486,3 +486,32 @@ Development hypotheses from the evaluation (not fixed from it): offset/limit/tot
 the oracle; an integration extended (a new need, a re-selection) when a plan needs an operation it lacks.
 PR13 stays as defined (memory, ablation on repeated runs); stage 3 gives it new history to learn from (connection
 checks, integration outcomes, goal runs).
+
+---
+
+# Stage 4: a reliable cycle on a new API, with Meta's models, then multimodal (2026-10-28)
+
+Starting point verified: `feat/47-ecosystem-dev-fixes` @ 3eb43d9 is the latest branch; no later work. The Dispatch
+evaluation (stage 3) stays as recorded; its failures (offset pagination, the missing write) now inform development
+and are not a new out-of-sample result.
+
+**Meta, as found** (D-006 updated by a check today): the key lists `muse-spark-1.1/1.2/1.3` (+ contributor),
+`muse-wonder-1.0`, `muse-image-1.0`, `muse-voice-transcribe-1.0`, `sam-3.1`. The API has no balance or usage
+endpoint (404); official pricing (dev.meta.ai): Spark $1.25/$4.25 per M tokens, Wonder $4/$20, Image $0.01 per image,
+SAM $2.50 per 1,000 images, Voice $0.18 per hour; whether billing continues after credits is not documented. The
+ledger therefore stays unverified until a person enters the balance read on the dashboard (`unbidden spend
+--verified-balance`), and no paid call beyond the existing allowance is made before that.
+
+| Block | PR | Depends on | Acceptance |
+|---|---|---|---|
+| 1.1 Oracle authorization | 48 | — | DENY and REQUIRE_APPROVAL without a valid approval send no mutating request in build, reuse or extension; ALLOW or an approval: effects only in scope; oracle effects audited and counted against the connection's write budget; revocation and kill switch checked before each effect |
+| 1.2 Postconditions and compensation | 49 | 48 | an action is VERIFIED only when the named field of the named record changed as expected and nothing else did; COMPENSATED only when re-read back; adversarial fixtures (wrong field, success without effect, undo without reversal, repeat that duplicates, timeout after a write) all end UNVERIFIED or reconciled, never verified falsely, never duplicated |
+| 1.3 Complete reads | 50 | — | page, offset/limit/total and cursor pagination; completeness complete / incomplete / unknown; truncation, repeated pages, no progress detected; an independent oracle check (another page size, the declared total) catches a service that skips a page; a decision needing completeness is blocked or narrowed |
+| 1.4 Integration extension | 51 | 48, 50 | a plan needing an absent operation records a specific need, re-reads the document, adds documented and permitted operations, validates them before enabling, keeps existing ones, resumes the goal; bounded attempts; a specific block when permission, documentation or a verifiable operation is missing |
+| 2.5 Routing by task | 52 | — | planning, documentation reading and integration building go through the router by task, modality, data class, cost and latency; local kept where context must stay local; model, version, reason, fallback, latency and cost recorded per call |
+| 2.6 Budget | with 52 | balance from a person | a stage budget within the confirmed balance, a reserve for evaluation and demo, concurrency 1, retries bounded, enforced by the existing ledger |
+| 2.7 Local vs hybrid in development | — | 48–52 | the same corrected code under both model policies on the development scenarios (new fixtures, not Dispatch), measured: goals completed, correct effects, read coverage, interventions, false verifications, latency, spend |
+| 3.8–3.9 Multimodal | 53+ | 2.7 | an objective documented before implementation that needs visual evidence plus code/API/data, solved and verified functionally and visually; reuse the visual judge; SAM / Image / Voice only where they add measured utility |
+| 10 New evaluation | — | all above | frozen code, model configuration, harness, oracles, scenarios, metrics, budget and repetitions; questions A (APIs) and B (multimodal) reported apart |
+
+Out of this stage: PR13, OAuth, additional cloud providers, web interface.
