@@ -229,8 +229,15 @@ def survey(
             conn.state, conn.blocked = ConnectionState.NEEDS_CONFIGURATION, "; ".join(problems)
             conn.next_step = "complete the grant in the mandate: " + "; ".join(problems)
         elif check:
-            result = connector.check(grant)
             before = store.get(COLLECTION, conn.id, Connection)
+            result = connector.check(grant)
+            integrated = _integration(store, before)
+            if integrated is not None and result.state is ConnectionState.NEEDS_CAPABILITY:
+                # Reached and documented; with a validated integration, an authenticated read decides the state.
+                from unbidden.forge.integrate import live_check
+
+                conn.capability_id = integrated.id
+                result = live_check(integrated, conn, mandate)
             if result.failure is Failure.AUTH and before is not None and before.state in USABLE:
                 # It worked and now its credential is refused: revoked, not a configuration that was never right.
                 result.state = ConnectionState.REVOKED
@@ -289,6 +296,17 @@ def survey(
             lost.state, lost.blocked = ConnectionState.GONE, "not found where it was any more"
         seen[old.id] = lost
     return [record(store, c, reason=c.blocked or c.check_detail or "checked") for c in seen.values()]
+
+
+def _integration(store: Store, before: Connection | None) -> Any:
+    """The validated integration a connection is used through, if it has one."""
+    if before is None or not before.capability_id:
+        return None
+    from unbidden.forge.api_client import COLLECTION as INTEGRATIONS
+    from unbidden.forge.api_client import ApiIntegration
+
+    found = store.get(INTEGRATIONS, before.capability_id, ApiIntegration)
+    return found if found is not None and found.status == "validated" else None
 
 
 def get(store: Store, connection: str) -> Connection | None:

@@ -28,7 +28,7 @@ class NeedStatus(StrEnum):
 
 class CapabilityNeed(Contract):
     id: str
-    kind: Literal["log_adapter", "stats_reader"]
+    kind: Literal["log_adapter", "stats_reader", "api_client"]
     source: str  # "compose:backend", "http://127.0.0.1:10000/stats"
     why: str
     evidence: list[EvidenceRef] = Field(default_factory=list[EvidenceRef])

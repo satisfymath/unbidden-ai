@@ -224,3 +224,8 @@ class Workspace:
             if probe is not None:
                 held.grant(probe.username_env, "probe")
                 held.grant(probe.password_env, "probe")
+            from unbidden.connect.base import purpose
+
+            for grant in mandate.connections:  # each credential to its own connection, and to nothing else
+                if grant.credential_ref:
+                    held.grant(grant.credential_ref, purpose(grant.id))
