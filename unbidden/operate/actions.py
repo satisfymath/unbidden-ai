@@ -47,16 +47,12 @@ def compensation_for(integration: ApiIntegration, operation: str) -> Compensatio
     return Compensation()
 
 
-def _record_of(data: Any, keys: dict[str, Any]) -> dict[str, Any] | None:
-    from unbidden.forge.api_client import _list_items  # pyright: ignore[reportPrivateUsage]
-
-    return next((r for r in _list_items(data) if all(r.get(k) == v for k, v in keys.items())), None)
-
-
 def _read_record(
     integration: ApiIntegration, conn: Connection, mandate: Mandate, keys: dict[str, Any]
-) -> dict[str, Any] | None:
-    """The affected record, through the integration's listing read (all pages)."""
+) -> tuple[dict[str, Any] | None, str]:
+    """The affected record, from a whole read of the integration's listing; (None, why) when it cannot be said."""
+    from unbidden.forge.api_client import read_collection
+
     listing = next(
         (
             o
@@ -66,17 +62,14 @@ def _read_record(
         None,
     )
     if listing is None:
-        return None
-    page, pages = 1, 1
-    while page <= min(pages, 10):
-        params = {"page": page} if any(p["name"] == "page" for p in listing.parameters) else {}
-        _, data = call(integration, conn, mandate, listing.id, params=params)
-        found = _record_of(data, keys)
-        if found is not None:
-            return found
-        pages = int(data.get("pages", 1)) if isinstance(data, dict) and isinstance(data.get("pages"), int) else 1
-        page += 1
-    return None
+        return None, "no listing operation to read the record with"
+    read = read_collection(integration, conn, mandate, listing.id)
+    found = [r for r in read.records if all(r.get(k) == v for k, v in keys.items())]
+    if len(found) == 1:
+        return found[0], read.completeness.value
+    if read.completeness.value != "complete":
+        return None, f"read {read.completeness.value} ({read.why}): the record may be on a page not read"
+    return None, f"{len(found)} records match {keys}"
 
 
 def save(store: Store, action: Action) -> Action:
@@ -142,51 +135,86 @@ def run_api_action(
     if not ok:
         action.status, action.reason = ActionStatus.REFUSED, why
         return save(store, action)
-    keys = {k: v for k, v in (action.body or {}).items() if isinstance(v, str)}
-    try:
-        before = _read_record(integration, conn, mandate, keys) if keys else None
-        status, data = call(
-            integration,
-            conn,
-            mandate,
-            action.operation,
-            params=action.params,
-            body=action.body,
-            idempotency_key=action.idempotency_key,
-        )
-        after = _read_record(integration, conn, mandate, keys) if keys else None
-    except (CallFailed, Unavailable) as exc:
-        action.status, action.reason = ActionStatus.FAILED, str(exc)
+    op = integration.op(action.operation)
+    effect = op.observed_effect
+    if not effect:
+        action.status, action.reason = ActionStatus.REFUSED, f"{op.id} has no observed effect to verify it against"
         return save(store, action)
-    action.result = {"status": status, "body": data}
-    action.evidence = [
-        {"read": "before", "record": before},
-        {"call": action.operation, "status": status, "response": data},
-        {"read": "after", "record": after},
-    ]
-    action.verification = _verify(action, before, after)
+    keys = {k: (action.body or {}).get(k) for k in effect["match"]}
+    expected = (action.body or {}).get(effect["amount_from"])
+    try:
+        before, read_why = _read_record(integration, conn, mandate, keys)
+    except (CallFailed, Unavailable) as exc:
+        action.status, action.reason = ActionStatus.REFUSED, f"the record could not be read before acting: {exc}"
+        return save(store, action)
+    if before is None:
+        action.status, action.reason = ActionStatus.REFUSED, f"the record could not be read before acting: {read_why}"
+        return save(store, action)
+    attempts: list[dict[str, Any]] = []
+    status, data = None, None
+    for attempt in (1, 2):
+        try:
+            status, data = call(
+                integration,
+                conn,
+                mandate,
+                op.id,
+                params=action.params,
+                body=action.body,
+                idempotency_key=action.idempotency_key,
+            )
+            attempts.append({"attempt": attempt, "status": status})
+            break
+        except CallFailed as exc:
+            attempts.append({"attempt": attempt, "status": exc.status, "error": str(exc)[:200]})
+            if exc.status is not None:
+                action.status, action.reason, action.evidence = ActionStatus.FAILED, str(exc), attempts
+                return save(store, action)
+            # No answer: the write may have happened. Look before deciding anything.
+            seen, why = _read_record(integration, conn, mandate, keys)
+            if seen is None:
+                action.status, action.evidence = ActionStatus.UNVERIFIED, attempts
+                action.reason = f"no answer, and the record cannot be read ({why}): not retried, outcome unknown"
+                return save(store, action)
+            if _delta(before, seen, effect["field"]) == expected:
+                attempts.append({"reconciled": "the effect is there: the answer was lost, nothing is sent again"})
+                break
+            if _delta(before, seen, effect["field"]) != 0:
+                action.status, action.evidence = ActionStatus.UNVERIFIED, attempts
+                action.reason = f"no answer, and {effect['field']} changed by an unexpected amount: not retried"
+                return save(store, action)
+            attempts.append({"reconciled": "no effect seen: retried once with the same idempotency key"})
+    else:
+        action.status, action.reason, action.evidence = ActionStatus.FAILED, "no answer twice", attempts
+        return save(store, action)
+    after, _ = _read_record(integration, conn, mandate, keys)
+    action.result = {"status": status, "body": data, "attempts": attempts}
+    action.evidence = [{"read": "before", "record": before}, *attempts, {"read": "after", "record": after}]
+    action.verification = _verify(effect, expected, before, after)
     action.status = ActionStatus.VERIFIED if action.verification["verified"] else ActionStatus.UNVERIFIED
     action.reason = action.verification["how"]
     return save(store, action)
 
 
-def _verify(action: Action, before: dict[str, Any] | None, after: dict[str, Any] | None) -> dict[str, Any]:
-    """The record read back after the write differs from before by what was written (a numeric field grown by the
-    written amount); anything else is not verified, and says what was seen."""
-    amounts = [v for v in (action.body or {}).values() if isinstance(v, int) and not isinstance(v, bool)]
+def _delta(before: dict[str, Any], after: dict[str, Any], field: str) -> Any:
+    b, a = before.get(field), after.get(field)
+    return a - b if isinstance(a, int) and isinstance(b, int) else None
+
+
+def _verify(
+    effect: dict[str, Any], expected: Any, before: dict[str, Any] | None, after: dict[str, Any] | None
+) -> dict[str, Any]:
+    """The postcondition the oracle observed for this operation: on the record matched, its field changed by the
+    amount written, and no other field changed. Anything else is not verified, and says what was seen."""
     if before is None or after is None:
         return {"verified": False, "how": "the affected record could not be read back"}
-    changed = {k: (before.get(k), after.get(k)) for k in after if before.get(k) != after.get(k)}
-    grown = [k for k, (b, a) in changed.items() if isinstance(b, int) and isinstance(a, int) and a - b in amounts]
-    if grown:
-        return {
-            "verified": True,
-            "how": f"read back: {', '.join(f'{k} {changed[k][0]} → {changed[k][1]}' for k in grown)}",
-        }
-    return {
-        "verified": False,
-        "how": f"read back: no field grew by the written amount ({changed or 'nothing changed'})",
-    }
+    changed = {k: (before.get(k), after.get(k)) for k in set(before) | set(after) if before.get(k) != after.get(k)}
+    field = effect["field"]
+    grew = _delta(before, after, field)
+    others = {k: v for k, v in changed.items() if k != field}
+    if grew == expected and not others:
+        return {"verified": True, "how": f"read back: {field} {before.get(field)} → {after.get(field)} (+{expected})"}
+    return {"verified": False, "how": f"read back: expected {field} +{expected}, saw {changed or 'no change'}"}
 
 
 def compensate(store: Store, mandate: Mandate, action: Action, integration: ApiIntegration, conn: Connection) -> Action:
@@ -194,16 +222,37 @@ def compensate(store: Store, mandate: Mandate, action: Action, integration: ApiI
     if not action.compensation.available or not action.compensation.operation:
         action.reason = "no compensation was observed for this operation: not attempted"
         return save(store, action)
+    from unbidden.connect.effects import authorize
+
     undo = integration.op(action.compensation.operation)
     names = [p["name"] for p in undo.parameters if p.get("in") == "path"]
-    created = (action.result.get("body") or {}).get("id")
+    created = (action.result.get("body") or {}).get(names[0]) if names else None
+    effect = integration.op(action.operation).observed_effect or {}
+    keys = {k: (action.body or {}).get(k) for k in effect.get("match", [])}
+    ok, why = authorize(store, mandate, conn, undo.scope, f"undo {action.id}")
+    if created is None or not ok:
+        action.reason = f"compensation not sent: {why if not ok else 'the created record has no ' + str(names)}"
+        return save(store, action)
     try:
+        before, _ = _read_record(integration, conn, mandate, keys)
         status, data = call(integration, conn, mandate, undo.id, params={names[0]: created})
+        after, _ = _read_record(integration, conn, mandate, keys)
     except (CallFailed, Unavailable) as exc:
         action.reason = f"compensation failed: {exc}"
         return save(store, action)
-    action.status, action.reason = ActionStatus.COMPENSATED, f"{undo.id} answered {status}"
-    action.evidence = [*action.evidence, {"call": undo.id, "status": status, "response": data}]
+    action.evidence = [
+        *action.evidence,
+        {"call": undo.id, "status": status, "response": data},
+        {"read": "after undo", "record": after},
+    ]
+    amount = (action.body or {}).get(effect.get("amount_from", ""))
+    field = effect.get("field", "")
+    reverted = before is not None and after is not None and _delta(before, after, field) == -(amount or 0)
+    if reverted:
+        action.status, action.reason = ActionStatus.COMPENSATED, f"read back: {field} {before[field]} → {after[field]}"  # type: ignore[index]
+    else:
+        was, now = (before or {}).get(field), (after or {}).get(field)
+        action.reason = f"{undo.id} answered {status}, but the record was not restored ({field}: {was} → {now})"
     return save(store, action)
 
 

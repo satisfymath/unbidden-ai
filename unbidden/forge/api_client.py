@@ -35,7 +35,7 @@ from unbidden.contracts.guardian import ConnectionGrant, Mandate
 from unbidden.guardian.credentials import broker
 
 COLLECTION = "integrations"
-ORACLE_VERSION = 1
+ORACLE_VERSION = 2  # 2: complete reads cross-checked; writes judged by observed, documented effects
 MAX_PAGES = 10
 METHODS = ("get", "post", "put", "patch", "delete")
 
@@ -45,12 +45,16 @@ class Operation(Contract):
     method: str
     path: str
     summary: str = ""
+    description: str = ""
     effect: str  # read | write
     scope: str  # the resource it acts on ("reorders"), what a grant's `write:<scope>` names
     parameters: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
     body_schema: dict[str, Any] | None = None
     responses: dict[str, dict[str, Any] | None] = Field(default_factory=dict[str, dict[str, Any] | None])
     undo: str | None = None  # the operation that compensates this write, when one was observed to
+    # What a write was observed to do, by the oracle: the record it changes (matched on body fields), the field and
+    # the body field whose amount it adds. The postcondition of every later call of this operation.
+    observed_effect: dict[str, Any] | None = None
     why: str = ""
 
 
@@ -125,6 +129,7 @@ def documented(document: dict[str, Any]) -> list[Operation]:
                     method=method.upper(),
                     path=path,
                     summary=spec.get("summary", ""),
+                    description=spec.get("description", ""),
                     effect="read" if method == "get" else "write",
                     scope=_scope(path),
                     parameters=[_resolve(document, p) for p in spec.get("parameters") or []],
@@ -426,6 +431,8 @@ def oracle(
             results[op.id] = {"passed": False, "observed": f"not exercised: {why}", "error": None}
             continue
         results[op.id] = _exercise_write(integration, conn, mandate, op, seen, transport, store)
+        if results[op.id].get("effect"):
+            op.observed_effect = results[op.id]["effect"]  # the postcondition of every later call
         if op.undo:
             results[op.undo] = {
                 "passed": results[op.id]["passed"],
@@ -459,7 +466,14 @@ def _exercise_write(
     transport: httpx.BaseTransport | None,
     store: Any,
 ) -> dict[str, Any]:
-    """Make the smallest valid write, repeat it with the same idempotency key, undo it, and observe each step."""
+    """Make the smallest valid write and observe what it did, then repeat it and undo it, observing each step.
+
+    Passes only when, read back from the service: exactly one field of the affected record changed, by the amount
+    written, and it is the field the documentation describes for this operation; the repeat with the same key
+    changed nothing more; the undo restored the record exactly. A success status alone proves none of it."""
+    from unbidden.connect.effects import authorize, record_effect
+    from unbidden.contracts.action import ActionStatus
+
     schema = op.body_schema or {}
     properties = schema.get("properties") or {}
     body: dict[str, Any] = {}
@@ -471,10 +485,28 @@ def _exercise_write(
             body[name] = next(i[name] for i in seen if name in i)
         else:
             return {"passed": False, "observed": f"no value known for {name}", "error": None}
-    from unbidden.connect.effects import authorize, record_effect
-    from unbidden.contracts.action import ActionStatus
-
+    match = {k: v for k, v in body.items() if isinstance(v, str)}
+    amounts = {k: v for k, v in body.items() if isinstance(v, int) and not isinstance(v, bool)}
+    listing = next(
+        (
+            o
+            for o in integration.operations
+            if o.effect == "read" and not any(p.get("in") == "path" for p in o.parameters)
+        ),
+        None,
+    )
+    if listing is None or not match or len(amounts) != 1:
+        return {
+            "passed": False,
+            "observed": "its effect cannot be observed: no listing read, or no single amount",
+            "error": None,
+        }
     key = f"unbidden-oracle-{uuid.uuid4().hex[:12]}"
+
+    def look() -> dict[str, Any] | None:
+        read = read_collection(integration, conn, mandate, listing.id, gate=False, transport=transport)
+        found = [r for r in read.records if all(r.get(k) == v for k, v in match.items())]
+        return found[0] if len(found) == 1 and read.completeness.value == "complete" else None
 
     def send(operation: Operation, **kw: Any) -> tuple[int, Any]:
         """One mutating request: authorized now (revocation, kill switch, approval, budget), then recorded."""
@@ -509,27 +541,82 @@ def _exercise_write(
         )
         return status, data
 
+    ((amount_field, amount),) = amounts.items()
     try:
+        before = look()
         first = send(op, body=body, idempotency_key=key)
+        after = look()
         again = send(op, body=body, idempotency_key=key)
-        same = isinstance(first[1], dict) and isinstance(again[1], dict) and first[1].get("id") == again[1].get("id")
-        undone = None
-        if op.undo and isinstance(first[1], dict) and first[1].get("id"):
+        after_repeat = look()
+        undone, restored = None, None
+        if op.undo:
             undo = integration.op(op.undo)
             names = [p["name"] for p in undo.parameters if p.get("in") == "path"]
-            undone = send(undo, params={names[0]: first[1]["id"]})
+            created = first[1].get(names[0]) if isinstance(first[1], dict) and names else None
+            if created is not None:
+                undone = send(undo, params={names[0]: created})
+                restored = look()
     except (CallFailed, Unavailable, jsonschema.ValidationError) as exc:
         return {"passed": False, "observed": "write failed or stopped", "error": str(exc)[:300]}
+    if before is None or after is None:
+        return {
+            "passed": False,
+            "observed": "the affected record could not be read whole before and after",
+            "error": None,
+        }
+    changed = {k: (before.get(k), after.get(k)) for k in set(before) | set(after) if before.get(k) != after.get(k)}
+    grown = [k for k, (b, a) in changed.items() if isinstance(a, int) and isinstance(b, int) and a - b == amount]
+    effect_field = grown[0] if len(changed) == 1 and len(grown) == 1 else None
+    documented_field = effect_field is not None and _documents(op, effect_field, integration)
+    ids = [k for k in (first[1] or {}) if k == "id" or k.endswith("_id")] if isinstance(first[1], dict) else []
+    same_record = bool(ids) and isinstance(again[1], dict) and all(first[1].get(k) == again[1].get(k) for k in ids)
+    repeated_safely = after_repeat == after and same_record
+    reverted = restored == before
     observed = (
-        f"created {first[0]}, repeated with the same key {again[0]} (same record: {same}), "
-        f"undone {undone[0] if undone else 'no undo documented'}"
+        f"changed {changed or 'nothing'}; documented: {documented_field}; repeat applied again: "
+        f"{after_repeat != after}, same record returned: {same_record}; "
+        f"undo {undone[0] if undone else 'not sent'}, restored: {reverted}"
     )
-    return {
-        "passed": first[0] in (200, 201) and same and undone is not None and undone[0] == 200,
-        "observed": observed,
-        "error": None,
-        "body": body,
-    }
+    passed = documented_field and repeated_safely and reverted and first[0] in (200, 201)
+    result: dict[str, Any] = {"passed": passed, "observed": observed, "error": None, "body": body}
+    if passed:
+        result["effect"] = {
+            "field": effect_field,
+            "amount_from": amount_field,
+            "match": sorted(match),
+            "observed": f"{effect_field} +{amount} on the record matched by {sorted(match)}",
+        }
+    return result
+
+
+def _documents(op: Operation, field: str, integration: ApiIntegration) -> bool:
+    """Whether the operation's documentation describes this field as what it changes: the field's name (or a word
+    of it) in the operation's summary or description, or the field's own description naming what the operation
+    writes. An observed change the documentation does not describe is not accepted as the operation's effect."""
+    text = f"{op.summary} {op.description}".lower()
+    words = [w for w in re.split(r"[^a-z]+", field.lower()) if len(w) >= 4]
+    if field.lower() in text or any(w in text for w in words):
+        return True
+    for other in integration.operations:
+        for schema in other.responses.values():
+            described = _field_description(schema or {}, field).lower()
+            if described and (op.scope.lower() in described or op.scope.rstrip("s").lower() in described):
+                return True
+    return False
+
+
+def _field_description(schema: dict[str, Any], field: str) -> str:
+    if not isinstance(schema, dict):
+        return ""
+    properties = schema.get("properties") or {}
+    if field in properties and isinstance(properties[field], dict):
+        return str(properties[field].get("description", ""))
+    nested = [*properties.values(), *([schema["items"]] if isinstance(schema.get("items"), dict) else [])]
+    for value in nested:
+        found = _field_description(value, field) if isinstance(value, dict) and value else ""
+        if found:
+            return found
+    return ""
 
 
 def abilities(integration: ApiIntegration, verdict: dict[str, Any]) -> list[Ability]:

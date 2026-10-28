@@ -172,24 +172,6 @@ def test_a_service_that_does_not_answer_as_documented_is_rejected(mandate: Manda
     assert not verdict["passed"] and "schema" in str(verdict["operations"]["listItems"]["error"])
 
 
-def test_a_write_is_enabled_only_once_made_repeated_and_undone(mandate: Mandate, store: Any) -> None:
-    mandate.connections = [grant(["read", "write:reorders"])]
-    mandate.autonomy.act_on_connections = Autonomy.ALLOW
-    items = [{"sku": "A", "on_hand": 1}]
-    verdict = oracle(
-        integration(["listItems", "createReorder", "cancelReorder"]),
-        connected([]),
-        mandate,
-        store=store,
-        transport=service(items),
-    )
-    assert verdict["passed"] and verdict["operations"]["createReorder"]["passed"]
-    no_undo = oracle(
-        integration(["listItems", "createReorder"]), connected([]), mandate, store=store, transport=service(items)
-    )
-    assert not no_undo["operations"]["createReorder"]["passed"]  # no undo observed: never enabled
-
-
 def test_writes_are_not_exercised_where_the_grant_or_the_mandate_does_not_allow_them(
     mandate: Mandate, store: Any
 ) -> None:

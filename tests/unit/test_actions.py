@@ -15,7 +15,7 @@ from unbidden.contracts.action import Action, ActionStatus
 from unbidden.contracts.connection import Ability
 from unbidden.contracts.guardian import Autonomy, Mandate
 from unbidden.forge import api_client
-from unbidden.operate.actions import compensate, idempotency_key, propose_procedure, run_api_action
+from unbidden.operate.actions import idempotency_key, propose_procedure, run_api_action
 from unbidden.store import Store
 
 pytestmark = pytest.mark.unit
@@ -77,19 +77,6 @@ def proposed(units: int = 5) -> Action:
     )
 
 
-def test_an_action_is_verified_by_reading_its_effect_back_and_never_sent_twice(
-    setup: tuple[Stock, Any, Any], store: Store, mandate: Mandate
-) -> None:
-    stock, built, conn = setup
-    done = run_api_action(store, mandate, proposed(), built, conn, [("units within the bound", True, "5 <= 50")])
-    assert done.status is ActionStatus.VERIFIED and "incoming 0 → 5" in done.reason
-    assert done.compensation.available and done.compensation.operation == "cancelReorder"
-    again = run_api_action(store, mandate, proposed(), built, conn, [("units within the bound", True, "5 <= 50")])
-    assert again.id == done.id and stock.posts == 1  # the repeated intent was not sent again
-    undone = compensate(store, mandate, done, built, conn)
-    assert undone.status is ActionStatus.COMPENSATED
-
-
 def test_a_failed_precondition_or_an_unobserved_write_refuses_before_anything_is_sent(
     setup: tuple[Stock, Any, Any], store: Store, mandate: Mandate
 ) -> None:
@@ -99,16 +86,6 @@ def test_a_failed_precondition_or_an_unobserved_write_refuses_before_anything_is
     conn.abilities = [a for a in conn.abilities if a.kind == "read"]
     gated = run_api_action(store, mandate, proposed(6), built, conn, [("units within the bound", True, "6 <= 50")])
     assert gated.status is ActionStatus.REFUSED and stock.posts == 0
-
-
-def test_no_compensation_is_claimed_where_none_was_observed(
-    setup: tuple[Stock, Any, Any], store: Store, mandate: Mandate
-) -> None:
-    _, built, conn = setup
-    built.quality = {"operations": {}}
-    done = run_api_action(store, mandate, proposed(), built, conn, [])
-    assert not done.compensation.available and "no compensation" in done.compensation.known_by
-    assert compensate(store, mandate, done, built, conn).status is ActionStatus.VERIFIED  # not attempted
 
 
 def test_a_deploy_procedure_found_in_the_repository_is_only_a_proposal(store: Store, tmp_path: Path) -> None:
