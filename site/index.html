@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unbidden</title>
+<meta name="description" content="A proactive engineering agent on Meta models: it finds improvements it can prove, measures them, and says honestly whether the system got better.">
+<style>
+:root {
+  --bg: #fbfaf7; --surface: #ffffff; --ink: #1b1d22; --muted: #5d6270; --line: #e4e1da;
+  --accent: #2d5bd7; --accent-ink: #ffffff; --good: #1f7a4d; --warn: #9a5b00; --bad: #b3261e;
+  --code-bg: #f2f0ea; --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111317; --surface: #181b21; --ink: #ecedf0; --muted: #a2a7b3; --line: #2a2e37;
+    --accent: #7b9cff; --accent-ink: #0d1020; --good: #5bc48f; --warn: #e3a64a; --bad: #f07a72; --code-bg: #1f232b;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111317; --surface: #181b21; --ink: #ecedf0; --muted: #a2a7b3; --line: #2a2e37;
+  --accent: #7b9cff; --accent-ink: #0d1020; --good: #5bc48f; --warn: #e3a64a; --bad: #f07a72; --code-bg: #1f232b;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.6 var(--sans); }
+main { max-width: 980px; margin: 0 auto; padding: 0 16px 96px; }
+a { color: var(--accent); }
+header.hero { padding: 88px 0 56px; border-bottom: 1px solid var(--line); }
+.kicker { font: 600 13px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-size: clamp(36px, 6vw, 60px); line-height: 1.05; margin: 18px 0 20px; letter-spacing: -0.02em; }
+.lede { font-size: 20px; color: var(--muted); max-width: 700px; margin: 0; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+.btn { display: inline-block; padding: 11px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); }
+.btn.ghost { border: 1px solid var(--line); color: var(--ink); }
+section { padding: 56px 0 8px; }
+h2 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.01em; }
+.sub { color: var(--muted); margin: 0 0 28px; max-width: 720px; }
+.loop { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+.step b { display: block; font-family: var(--mono); font-size: 14px; }
+.step span { color: var(--muted); font-size: 14px; }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+.lvl { font: 600 13px var(--mono); white-space: nowrap; }
+.ok { color: var(--good); } .mid { color: var(--warn); } .no { color: var(--bad); }
+.callout { border-left: 3px solid var(--warn); background: var(--surface); padding: 16px 20px; border-radius: 0 10px 10px 0;
+  border-top: 1px solid var(--line); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; }
+.card h3 { margin: 0 0 6px; font-size: 17px; }
+.card p { margin: 0; color: var(--muted); font-size: 15px; }
+pre { background: var(--code-bg); border-radius: 10px; padding: 16px 18px; overflow-x: auto; font: 14px/1.55 var(--mono); }
+code { font-family: var(--mono); font-size: .92em; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.stat .n { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+.stat .l { color: var(--muted); font-size: 13px; }
+footer { border-top: 1px solid var(--line); margin-top: 64px; padding-top: 24px; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+<header class="hero">
+  <div class="kicker">Meta Global AI Developer Hackathon · 2026</div>
+  <h1>Intelligence that doesn't wait for instructions.</h1>
+  <p class="lede">Unbidden is an engineering agent you install like a CLI. It enters a repository it has never seen,
+  runs the team's own checks in an offline sandbox, decides what is worth improving, makes the change, and measures
+  whether the system actually got better. Then it says so at the level of evidence it reached, and not one level higher.</p>
+  <div class="cta">
+    <a class="btn primary" href="https://github.com/satisfymath/unbidden-ai">Source</a>
+    <a class="btn ghost" href="https://github.com/satisfymath/unbidden-ai/blob/feat/20-scale-eval/docs/EVIDENCE.md">Evidence</a>
+    <a class="btn ghost" href="https://github.com/satisfymath/unbidden-ai/blob/feat/20-scale-eval/docs/ARCHITECTURE.md">Architecture</a>
+  </div>
+</header>
+
+<section>
+  <h2>The loop, with no one steering</h2>
+  <p class="sub">Each step is a job in a local queue. Each decision is recorded with its reason, and every byte that
+  leaves the machine is kept.</p>
+  <div class="loop">
+    <div class="step"><b>observe</b><span>stack, CI, services, metrics, logs, a world model with provenance</span></div>
+    <div class="step"><b>decide</b><span>expected value per opportunity; declines what the team's CI already rules out</span></div>
+    <div class="step"><b>investigate</b><span>property-based probes, read-only investigations</span></div>
+    <div class="step"><b>forge</b><span>builds missing readers, judged by an oracle with no model</span></div>
+    <div class="step"><b>lab</b><span>candidate vs base, the team's tests, CI parity, statistics</span></div>
+    <div class="step"><b>propose · operate</b><span>PRs with evidence; deploy, judge, roll back under a mandate</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>Meta models, each where it belongs</h2>
+  <div class="grid2">
+    <div class="card"><h3>Muse Spark 1.3 · remote</h3><p>Heavy work on content allowed to leave: property tests,
+    fixes, workloads, adapters. Private code reaches it only after the privacy bridge renames every non-public word.</p></div>
+    <div class="card"><h3>Muse Glimmer · local</h3><p>The only model that sees secrets, logs or production data. Chosen to fit
+    the machine, from 30B 8-bit down to Llama 3.2 3B. Falling back to it is recorded, and a mandate can forbid it.</p></div>
+    <div class="card"><h3>Guardian, deny by default</h3><p>Pure Python; no model is its own control. Each payload is labeled,
+    scanned and capped at 20 KB, then recorded byte for byte before it leaves.</p></div>
+    <div class="card"><h3>A spend gate that cannot overrun</h3><p>One ledger for the machine. Each call's worst cost is reserved
+    before sending against a balance a person verified, with 20 % held back. US$0.96 spent so far, reconciled to the cent.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>What it has shown</h2>
+  <p class="sub">L4 is validated in the lab with the team's own checks. L5 is a measured effect in a running system, between
+  deploys whose code is known. Negative results stay on the record.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>System</th><th>What Unbidden did on its own</th><th>Level</th></tr></thead>
+    <tbody>
+      <tr><td>full-stack-fastapi-template</td><td>Found an unindexed foreign key nobody had reported; <code>GET /items</code> 13.0 → 4.1 ms (p = 3.4e-08); merged and deployed it</td><td class="lvl ok">L4</td></tr>
+      <tr><td>same, live</td><td>10.5 → 1.7 ms after deploy, below the floor its criteria had fixed beforehand, so no L5 is claimed</td><td class="lvl mid">L4, not L5</td></tr>
+      <tr><td>same, outage drill</td><td>Outage called in 11 s, rolled back in 15 s with the team's steps, hold set for a person</td><td class="lvl ok">rollback</td></tr>
+      <tr><td>Rich</td><td>Searched blind: two crashes in <code>split_text</code>, one matching an issue it was never shown; fix measured</td><td class="lvl ok">L4</td></tr>
+      <tr><td>mealie</td><td>Index found and measured: 14.5 s → 7 ms on SQLite. Deployed on Postgres: no change, baseline inferred</td><td class="lvl no">L5 invalid</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>Across repositories it had never seen</h2>
+  <p class="sub">Ten development and ten held-out repositories, chosen by written criteria and pinned before any run.
+  They include languages Unbidden does not analyze yet, which stay in the denominator.</p>
+  <div class="stats">
+    <div class="stat"><div class="n">7 / 10</div><div class="l">bootstrapped without help (pilot 1)</div></div>
+    <div class="stat"><div class="n">1</div><div class="l">L4 in pilot 1, and it was false</div></div>
+    <div class="stat"><div class="n">2</div><div class="l">general fixes that now reject it, unaided</div></div>
+    <div class="stat"><div class="n">US$0.06</div><div class="l">remote spend for the whole pilot</div></div>
+  </div>
+  <div class="callout"><b>The false positive.</b> Unbidden removed two <code>type: ignore</code> comments its mypy called
+  unused. The team's CI was green, under Python versions Unbidden had not used, where those comments are needed. The patch
+  would have broken their build. Now the Director reads the CI's verdict in every cycle, and every candidate is
+  re-checked under the CI's newest interpreter. On the real patch, mypy reports 2 new errors, and the patch is rejected.</div>
+</section>
+
+<section>
+  <h2>Try it</h2>
+<pre>uv tool install git+https://github.com/satisfymath/unbidden-ai
+echo 'MODEL_API_KEY=...' &gt;&gt; ~/.unbidden/.env
+cd your-repo
+unbidden init && unbidden doctor --fix
+unbidden watch --once     # observe, decide, probe, experiment, propose
+unbidden inbox            # what it found, most proven first
+unbidden why &lt;id&gt;         # every decision and outbound payload behind it
+unbidden spend            # what it cost, against the verified balance</pre>
+</section>
+
+<footer>Apache-2.0 · Built during the Meta Global AI Developer Hackathon, Oct 26 – Nov 4, 2026 · Every number on this page
+is in the repository's decision log and benchmark files.</footer>
+</main>
+</body>
+</html>
