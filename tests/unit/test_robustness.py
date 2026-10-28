@@ -166,3 +166,21 @@ def test_a_django_project_is_configured_before_the_probe_imports_it(tmp_path: Pa
     (tmp_path / "manage.py").write_text('import os\nos.environ.setdefault("DJANGO_SETTINGS_MODULE", "hc.settings")\n')
     preamble = django_preamble(tmp_path)
     assert 'os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hc.settings")' in preamble and "django.setup()" in preamble
+
+
+def test_a_package_whose_api_lives_in_its_init_is_probed(tmp_path: Path) -> None:
+    from unbidden.observe.stack import PythonStack
+    from unbidden.research.robustness import probe_targets
+
+    rev = _commit(
+        tmp_path,
+        {
+            "src/esc/__init__.py": "def escape(s: str) -> str:\n    return s\n",
+            "src/esc/_native.py": "def _escape_inner(s: str) -> str:\n    return s\n",
+        },
+    )
+    stack = PythonStack(
+        version="3.12", lockfile=None, manifest="pyproject.toml", ruff=False, pyright=False, pytest=True
+    )
+    assert probe_targets(tmp_path, rev, stack) == [("src/esc", 1)]
+    assert public_functions(tmp_path, rev, "src/esc")[0].startswith("from esc import escape")

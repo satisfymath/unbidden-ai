@@ -73,7 +73,11 @@ def public_functions(repo: Path, rev: str, package: str) -> list[str]:
     ).stdout.split()
     texty: dict[str, list[str]] = {}
     other: dict[str, list[str]] = {}
-    for path in sorted(f for f in files if f.endswith(".py") and not Path(f).name.startswith("_")):
+    # Private modules (`_native.py`) are skipped; a package's `__init__.py` is where many define their public API.
+    public = (
+        f for f in files if f.endswith(".py") and (Path(f).name == "__init__.py" or not Path(f).name.startswith("_"))
+    )
+    for path in sorted(public):
         source = subprocess.run(
             ["git", "-C", str(repo), "show", f"{rev}:{path}"], capture_output=True, text=True
         ).stdout
@@ -84,6 +88,7 @@ def public_functions(repo: Path, rev: str, package: str) -> list[str]:
         # A package under a source root (src/click) is imported by its own name (click).
         root = str(Path(package).parent)
         module = path.removeprefix(f"{root}/" if root != "." else "").removesuffix(".py").replace("/", ".")
+        module = module.removesuffix(".__init__")
         for node in tree.body:
             entries: list[tuple[str, ast.FunctionDef]] = []
             if isinstance(node, ast.FunctionDef) and not node.name.startswith("_"):
