@@ -6,7 +6,7 @@ resources only (labelled `unbidden.lab=ecosystem`, 127.0.0.1 only); no pull requ
 
 ## What ran
 
-- **Deterministic:** 476 unit tests, ruff and pyright at each commit; the network PostgreSQL connector end to end
+- **Deterministic:** 475 unit tests, ruff and pyright at each commit; the network PostgreSQL connector end to end
   against the lab database (`tests/e2e/test_postgres_network.py`: least privilege, over-privilege reported, wrong
   password, revocation and restoration).
 - **With the real local model, from the initial state** (`unbidden watch --once` in a fresh workspace given only
