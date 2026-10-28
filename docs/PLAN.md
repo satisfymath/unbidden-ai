@@ -365,3 +365,18 @@ not run on is declined; the scope is the linter's invocation (PR4's argv reading
 
 INVESTIGATE has no PR16 scenario yet (its inputs are incidents on a running system); it is wired and unit-tested,
 and reported as not exercised.
+
+## Status, 2026-10-28 (second stage)
+
+Branches continue the stack: `feat/36-xdist-workers` → `feat/37-mealie-l5-amendment` → `feat/38-eval-v2` →
+`feat/39-director-actions` (head 285964f). No pull request, merge or external deploy.
+
+| Stage | Ran | Changed | Evidence shows | Cannot conclude | Blocked / next condition |
+|---|---|---|---|---|---|
+| Mealie L5 (D-041) | amendment committed first; isolated project; lab revalidation; two verified deploys; probes | xdist workers = sandbox CPUs; no L5 on lab evidence below L4; imported outcomes kept as past | L4 revalidated (suite 3/3 per side); live 11.8 → 2.2 ms on SQLite | effect on users (probes only), Postgres, typical sizes, persistence | L6 needs PR14's re-checks over 7 days on a running deployment |
+| PR16 evaluation v2 | dev set (debugged), frozen evaluation set (once), real local model | scenarios, oracle, policy runner, product runner, scorer | candidate Director 9/11 vs 4/11 (prev) on the same inputs, no false L4 | product-level gain beyond decisions; discovery 1/2 unchanged; small n; acceptable actions defined by us | more scenarios and repeated runs before any claim of significance |
+| PR12 completed | MEASURE / ACQUIRE_CAPABILITY / INVESTIGATE through existing jobs; linter-scope decline | `director/decide.py`, `daemon/cycle.py` | each fires where defined, bounded, in unit tests and both scenario sets | that they are the best policy for a real team | INVESTIGATE not exercised by a scenario |
+| PR13 memory | not started | — | — | — | ablation on dev scenarios with repeated runs (needs PR16's harness: done) |
+
+Dev hypotheses from the evaluation set (to fix on dev, then re-test on a new frozen set): B006 not reported by
+ruff-baseline where the project configures ruff; pytest fixtures injected by name read as F811.
