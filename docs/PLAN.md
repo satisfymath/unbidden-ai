@@ -515,3 +515,22 @@ ledger therefore stays unverified until a person enters the balance read on the 
 | 10 New evaluation | — | all above | frozen code, model configuration, harness, oracles, scenarios, metrics, budget and repetitions; questions A (APIs) and B (multimodal) reported apart |
 
 Out of this stage: PR13, OAuth, additional cloud providers, web interface.
+
+# Stage 5: the multimodal cycle, then two evaluations apart (2026-10-28)
+
+Starting point: `feat/54-blocked-needs` @ 6bdd2a8 (no later commits). The block 3 objective and feasibility stand
+(`docs/bench/2026-10-28-multimodal-objective.md`); Spark is the default model, Wonder the comparison, SAM where it
+measures something; the local model and routing are unchanged. Image and Voice are not integrated.
+
+| # | Step | Depends on | Acceptance |
+|---|---|---|---|
+| 1 | Send-time authorization for every mutating attempt | — | done (`ddae5b0`): 503 → DENY → no second write; same for an expired or deleted approval, revocation, kill switch, budget; oracle, action and undo; every attempt recorded and counted |
+| 2 | The visual goal's contract (amendment 1 to the objective) | — | written before any board code: shortage and its source of truth, visible / legible / bound to its row, occlusion tolerated, scrolling, false alarm, what VERIFIED needs, what the agent may not do; truth computed independently of the board |
+| 3 | The board and the cycle, one defect and the healthy control | 2 | goal (no hint) → data → board observed → discrepancy → cause in code → fix in a worktree → checks → lab deploy → functional and visual verification by an independent checker → a second cycle that changes nothing |
+| 4 | The other development defects and variants | 3 | occlusion, wrong formula, wrong style, healthy control; badge size/position, partial and total occlusion, red elements that are not alerts, reordered rows, healthy pages styled differently |
+| 5 | Three cumulative observation methods | 3 | A browser/DOM (text, rows, computed style, geometry, scroll, `elementFromPoint`), B = A + Spark on screenshots, C = B + SAM; same tools and information otherwise; regions bound to row ids with viewport/scroll/scale mapped |
+| 6 | Perception and full cycle measured apart | 4, 5 | perception: same states and captures for every method; full cycle: each method from a clean copy; independent verifier; evidence with hashes |
+| 7 | Frozen evaluations A (APIs, a new service) and B (multimodal, a new board) | 1–6 | code, harness, oracles, configuration, metrics, budget and repetitions frozen before running; no change during runs; failures kept |
+| 8 | Test-timing sensitivity (`test_forge_stats`), docs, decisions, demo | all | functional tests separate from timing measurements; PLAN, RESULTS, objective, decisions updated; a reproducible demo |
+
+Out of this stage: PR13, OAuth, new providers, a web interface; external PRs, merges or deploys.
