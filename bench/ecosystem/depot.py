@@ -3,6 +3,7 @@ in-process for tests. Offset/limit/total pagination; restocks with an `Idempoten
 
     python depot.py <port> <data dir>          (data dir: `keys`, `faults`, `state.json`)
 
+`bins.json`, when present, replaces the default eleven bins (another lab's stock).
 `faults` (one per line) makes it misbehave in ways a client must not be fooled by:
 - `skip_page`: the second batch skips ahead (the total stays true);
 - `repeat_page`: the second batch repeats the first;
@@ -240,6 +241,8 @@ def main() -> None:
     keys = set((home / "keys").read_text().split())
     faults = set((home / "faults").read_text().split()) if (home / "faults").exists() else set()
     depot = Depot(keys, faults)
+    if (home / "bins.json").exists():  # another lab's stock (the board lab), instead of the default eleven bins
+        depot.bins = {b["bin"]: dict(b) for b in json.loads((home / "bins.json").read_text())}
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, format: str, *args: object) -> None:
