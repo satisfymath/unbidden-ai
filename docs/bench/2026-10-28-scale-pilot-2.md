@@ -97,4 +97,7 @@ error: Failed to build `pyjwt @ file:///deps`
   fetch has no `origin/HEAD`, so `init` assumed `main`.
 - **pyjwt** did not bootstrap: its version is dynamic from `jwt.__version__`, and the build context holds only
   manifests.
-- **Spend.** US$0.141, Muse Spark only; the local model was never called (local fallback denied, 0 fallbacks).
+- **Spend and fallbacks.** US$0.141, Muse Spark only; the local model was never called. Two fallbacks to it were
+  refused, both on marshmallow, both recorded: one answer cut off at the token limit (the answer budget still scaled
+  with the size of the code sent, which excerpts made small: a regression of the context change), and one call refused
+  at the repository's US$0.08 cap.
