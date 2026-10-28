@@ -702,6 +702,10 @@ def cmd_forge(args: argparse.Namespace) -> int:
             )
         )
         console.print(f"approved {adapter.id} ({adapter.source} v{adapter.version})")
+        from unbidden.forge.needs import approved
+
+        for need in approved(store, adapter.id):
+            console.print(f"  need {need.kind} for {need.source}: {need.status.value}")
         return 0
     if args.action == "build":
         service = args.target or "backend"

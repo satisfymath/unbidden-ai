@@ -47,6 +47,7 @@ PRIORITY = {
     "observe.scan": 50,
     "director.sweep": 60,
     "lab.experiment": 70,
+    "forge.build": 55,
 }
 
 
@@ -84,6 +85,7 @@ class Cycle:
             "ops.deploy": self.ops_deploy,
             "research.investigate": self.research_investigate,
             "research.probe": self.research_probe,
+            "forge.build": self.forge_build,
         }
 
     def _env(self, rev: str) -> tuple[Stack, dict[str, DependencyImage]]:
@@ -206,6 +208,7 @@ class Cycle:
             self.store.enqueue(job("director.sweep", f"probe:{j.id}"))
 
     async def director_sweep(self, _: Job) -> None:
+        self._queue_needs()
         mandate = self.runtime.workspace.mandate()
         open_prs = len(self.store.list("proposals", Proposal, status=ProposalStatus.PR_OPENED.value))
         checked = self._checked_dirs()
@@ -445,6 +448,45 @@ class Cycle:
                 f"hypothesis ({hypothesis.mechanism}, confidence {hypothesis.confidence:.2f}): {hypothesis.statement}"
             )
 
+    def _queue_needs(self) -> None:
+        """Each capability need the cycle can still build, once per attempt."""
+        from unbidden.contracts.capability import CapabilityNeed, NeedStatus
+        from unbidden.forge.needs import COLLECTION, MAX_ATTEMPTS
+
+        for need in self.store.list(COLLECTION, CapabilityNeed):
+            if need.status is NeedStatus.OPEN or (need.status is NeedStatus.FAILED and need.attempts < MAX_ATTEMPTS):
+                self.store.enqueue(job("forge.build", f"{need.id}:{need.attempts}", {"id": need.id}))
+
+    async def forge_build(self, j: Job) -> None:
+        """Fill a capability need: read the source, build with Forge, judge with its oracle, admit by the mandate."""
+        from unbidden.contracts.capability import CapabilityNeed
+        from unbidden.forge import needs, stats_build
+        from unbidden.forge.build import Forge, compose_logs
+
+        need = self.store.get(needs.COLLECTION, j.payload["id"], CapabilityNeed)
+        if need is None:
+            return
+        repo, brain, remote = self.runtime.workspace.repo, self.runtime.brain, self.runtime.bridge() is not None
+
+        def read(kind: str, source: str) -> list[str]:
+            if kind == "stats_reader":
+                return stats_build.fetch(source)
+            return compose_logs(repo, source.removeprefix("compose:"))
+
+        async def forge(n: CapabilityNeed, lines: list[str]) -> tuple[str | None, str, list[str]]:
+            if n.kind == "stats_reader":
+                built = await stats_build.build(brain, self.store, n.source, lines, permissions=n.permissions)
+                return (built.adapter.id if built.adapter else None), built.decision, built.notes
+            result = await Forge(brain, self.store, remote=remote).build_log_adapter(n.source, lines)
+            return (
+                (result.adapter.id if result.adapter else None),
+                "built" if result.adapter else "failed",
+                result.notes,
+            )
+
+        need = await needs.build(self.store, self.runtime.workspace.mandate(), need, read, forge)
+        self.log(f"capability need {need.kind} for {need.source}: {need.status.value}")
+
     async def ops_deploy(self, j: Job) -> None:
         """Deploy what was merged: fast-forward the deployment checkout to the remote base, then the team's steps."""
         from unbidden.operate.deploy import OperationRefused, deploy, merged_evidence
@@ -532,6 +574,7 @@ TIMEOUT_S: dict[str, float] = {
     "ops.deploy": 2400,
     "research.investigate": 900,
     "research.probe": 3600,
+    "forge.build": 1800,
 }
 DEFAULT_TIMEOUT_S = 600.0
 

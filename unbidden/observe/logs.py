@@ -25,6 +25,8 @@ HISTORY_WINDOWS = 48
 MIN_COUNT = 3  # errors in a window to be recurring
 RECURRING_WINDOWS = 2
 NOISE_WINDOWS, NOISE_SHARE = 12, 0.9  # an error in nearly every window for long is steady noise
+ACCESS_LINE = re.compile(r'"[A-Z]+ /\S* HTTP/[\d.]+"')  # the shape Forge's log adapters read
+MIN_ACCESS_LINES = 20
 MIN_REQUESTS, RATE_WINDOWS, RATE_FACTOR, RATE_FLOOR = 50, 6, 2.0, 0.02
 
 ISO = re.compile(r"(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:[.,]\d+)?)(Z|[+-]\d{2}:?\d{2})?")
@@ -317,6 +319,19 @@ class LogWatcher:
         last = deployments[-1]
         return last.seen_at, (last.commit or "?")[:12]
 
+    def _access_need(self, source: str, lines: Sequence[str]) -> None:
+        """A service writing an access log nothing parses: requests per route are there, unread."""
+        from unbidden.forge import needs
+        from unbidden.forge.adapter import LogAdapter
+
+        access = sum(1 for ln in lines if ACCESS_LINE.search(ln))
+        if access < MIN_ACCESS_LINES:
+            return
+        built = [a for a in self.store.list("capabilities", LogAdapter) if a.source == f"compose:{source}"]
+        if any(a.status in ("validated", "approved") for a in built):
+            return
+        needs.record(self.store, "log_adapter", f"compose:{source}", f"{access} access lines in a window, unparsed")
+
     def tick(self, now: datetime | None = None) -> list[Signal]:
         from unbidden.contracts.events import Event, EventType
 
@@ -325,7 +340,9 @@ class LogWatcher:
         found: list[Signal] = []
         for container in self.world.of_kind("container"):
             source = str(container.attributes.get("service") or container.name)
-            window = summarize_window(source, read_container(str(container.name), LOG_EVERY_S), received=now)
+            lines = read_container(str(container.name), LOG_EVERY_S)
+            self._access_need(source, lines)
+            window = summarize_window(source, lines, received=now)
             if window["groups"]:
                 ranked = sorted(window["groups"].items(), key=lambda kv: -int(kv[1]["count"]))
                 window["groups"] = dict(ranked[:MAX_GROUPS])

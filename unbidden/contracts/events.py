@@ -36,6 +36,8 @@ class EventType(StrEnum):
     OUTCOME_RECORDED = "outcome.recorded"
     CAPABILITY_BUILT = "capability.built"
     CAPABILITY_APPROVED = "capability.approved"
+    CAPABILITY_NEEDED = "capability.needed"
+    CAPABILITY_NEED_CHANGED = "capability.need_changed"
     HYPOTHESIS_RECORDED = "hypothesis.recorded"
     WORLD_CHANGED = "world.changed"
     DEPLOYMENT_OBSERVED = "deployment.observed"

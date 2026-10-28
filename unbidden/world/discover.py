@@ -129,11 +129,15 @@ def _text_needs(world: WorldModel, store: Store) -> None:
                 f"{endpoint['lines']} lines in {fmt}, a known format: read it through a reader that exists"
                 if fmt != "unknown"
                 else f"{endpoint['lines']} lines of numbers in a format no connector reads; "
-                f"`unbidden forge stats {url}` can build a reader"
+                f"Forge builds a reader for it in the cycle"
             )
             world.blind_spots.append(
                 BlindSpot(what=f"metrics at {url} ({container.attributes.get('service')})", why=why)
             )
+            if fmt == "unknown":
+                from unbidden.forge import needs
+
+                needs.record(store, "stats_reader", url, f"{endpoint['lines']} lines of numbers nothing reads")
 
 
 def _metrics(repo: Path, world: WorldModel) -> set[str]:
