@@ -1433,6 +1433,28 @@ def cmd_spend(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_activity(args: argparse.Namespace) -> int:
+    """What Unbidden found, decided and why, built, proposed, proved, spent and learned here."""
+    from pathlib import Path
+
+    from unbidden.brain.spend import SpendLedger
+    from unbidden.director.activity import build, render_html, render_text
+
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    data = build(store, ws.mandate().workspace, SpendLedger().rows())
+    store.close()
+    if args.html:
+        Path(args.html).write_text(render_html(data))
+        err.print(f"wrote {args.html}")
+    if _emit(args, data):
+        return 0
+    for line in render_text(data):
+        console.print(line)
+    return 0
+
+
 def cmd_kill(args: argparse.Namespace) -> int:
     ws = Workspace.find()
     ws.require()
@@ -1469,6 +1491,8 @@ def build_parser() -> argparse.ArgumentParser:
     map_.add_argument("--scope", metavar="ID", help="what a resource connects to, how each link is known, the gaps")
     map_.add_argument("--connectors", action="store_true", help="what each connector learns, needs and costs")
     command("status", cmd_status, "what unbidden knows and is doing")
+    activity = command("activity", cmd_activity, "what was found, decided and why, built, proved, spent and learned")
+    activity.add_argument("--html", metavar="PATH", help="also write a self-contained HTML report there")
     errors = command("errors", cmd_errors, "what the project's logs said: recurring errors, new after a deploy, 5xx")
     errors.add_argument("--now", action="store_true", help="read a fresh window of every container first")
     errors.add_argument("--last", type=int, default=20)
