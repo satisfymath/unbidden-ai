@@ -1,0 +1,217 @@
+{
+ "truth": {
+  "red_rows": [
+   2,
+   4,
+   6
+  ],
+  "partly_hidden": [
+   6
+  ]
+ },
+ "results": [
+  {
+   "model": "muse-spark-1.3",
+   "status": 200,
+   "seconds": 5.8,
+   "tokens": [
+    559,
+    1012
+   ],
+   "usd": 0.00499975,
+   "answer": "{\"rows\": [{\"row\": 1, \"badge\": \"green\", \"fully_visible\": true}, {\"row\": 2, \"badge\": \"red\", \"fully_visible\": true}, {\"row\": 3, \"badge\": \"green\", \"fully_visible\": true}, {\"row\": 4, \"badge\": \"red\", \"fully_visible\": true}, {\"row\": 5, \"badge\": \"green\", \"fully_visible\": true}, {\"row\": 6, \"badge\": \"red\", \"fully_visible\": false}]}"
+  },
+  {
+   "model": "muse-wonder-1.0",
+   "status": 200,
+   "seconds": 5.2,
+   "tokens": [
+    559,
+    694
+   ],
+   "usd": 0.016116,
+   "answer": "{\"rows\": [{\"row\": 1, \"badge\": \"green\", \"fully_visible\": true}, {\"row\": 2, \"badge\": \"red\", \"fully_visible\": true}, {\"row\": 3, \"badge\": \"green\", \"fully_visible\": true}, {\"row\": 4, \"badge\": \"red\", \"fully_visible\": true}, {\"row\": 5, \"badge\": \"green\", \"fully_visible\": true}, {\"row\": 6, \"badge\": \"red\", \"fully_visible\": false}]}"
+  },
+  {
+   "model": "sam-3.1",
+   "prompt": "red rectangle",
+   "status": 200,
+   "seconds": 1.0,
+   "usd": 0.0025,
+   "boxes": [
+    {
+     "x1": 620,
+     "y1": 330,
+     "x2": 739,
+     "y2": 349,
+     "w": 800,
+     "h": 480,
+     "c": 0.9298245906829834
+    },
+    {
+     "x1": 620,
+     "y1": 130,
+     "x2": 739,
+     "y2": 159,
+     "w": 800,
+     "h": 480,
+     "c": 0.941605806350708
+    },
+    {
+     "x1": 620,
+     "y1": 230,
+     "x2": 739,
+     "y2": 259,
+     "w": 800,
+     "h": 480,
+     "c": 0.9375000596046448
+    }
+   ],
+   "raw": "<0f>0<|box;x1=620;y1=330;x2=739;y2=349;w=800;h=480;c=0.9298245906829834|><|mask;x=0;y=0;c=0.9298245906829834;data=20,120,~!!!#J!8eM$mq[uL*KKP'nAr@/&80Su6ksEB0e[e]W*prJHv$:9v]lX8v9*+e!n*5*F9ANL!#5`WUky]1_^r(NfL*?^.vr)9Seq/!`9p6/Q4zBhTdhsx3Yd[SSbxn=Se#+0!U^JI&5n:L0g&`66e8O]&w*gJ!!|>,1<|box;x1=620;y1=1"
+  },
+  {
+   "model": "sam-3.1",
+   "prompt": "rectangle",
+   "status": 200,
+   "seconds": 1.2,
+   "usd": 0.0025,
+   "boxes": [
+    {
+     "x1": 620,
+     "y1": 280,
+     "x2": 739,
+     "y2": 309,
+     "w": 800,
+     "h": 480,
+     "c": 0.941605806350708
+    },
+    {
+     "x1": 620,
+     "y1": 80,
+     "x2": 739,
+     "y2": 109,
+     "w": 800,
+     "h": 480,
+     "c": 0.9375000596046448
+    },
+    {
+     "x1": 40,
+     "y1": 80,
+     "x2": 339,
+     "y2": 109,
+     "w": 800,
+     "h": 480,
+     "c": 0.941605806350708
+    },
+    {
+     "x1": 40,
+     "y1": 280,
+     "x2": 339,
+     "y2": 309,
+     "w": 800,
+     "h": 480,
+     "c": 0.941605806350708
+    },
+    {
+     "x1": 620,
+     "y1": 330,
+     "x2": 739,
+     "y2": 349,
+     "w": 800,
+     "h": 480,
+     "c": 0.9259259104728699
+    },
+    {
+     "x1": 40,
+     "y1": 230,
+     "x2": 339,
+     "y2": 259,
+     "w": 800,
+     "h": 480,
+     "c": 0.941605806350708
+    },
+    {
+     "x1": 40,
+     "y1": 130,
+     "x2": 339,
+     "y2": 159,
+     "w": 800,
+     "h": 480,
+     "c": 0.941605806350708
+    },
+    {
+     "x1": 620,
+     "y1": 130,
+     "x2": 739,
+     "y2": 159,
+     "w": 800,
+     "h": 480,
+     "c": 0.941605806350708
+    },
+    {
+     "x1": 620,
+     "y1": 180,
+     "x2": 739,
+     "y2": 209,
+     "w": 800,
+     "h": 480,
+     "c": 0.9336099624633789
+    },
+    {
+     "x1": 20,
+     "y1": 20,
+     "x2": 779,
+     "y2": 59,
+     "w": 800,
+     "h": 480,
+     "c": 0.9298245906829834
+    },
+    {
+     "x1": 40,
+     "y1": 180,
+     "x2": 339,
+     "y2": 209,
+     "w": 800,
+     "h": 480,
+     "c": 0.9375000596046448
+    },
+    {
+     "x1": 40,
+     "y1": 330,
+     "x2": 339,
+     "y2": 349,
+     "w": 800,
+     "h": 480,
+     "c": 0.9298245906829834
+    },
+    {
+     "x1": 620,
+     "y1": 230,
+     "x2": 739,
+     "y2": 259,
+     "w": 800,
+     "h": 480,
+     "c": 0.9375000596046448
+    }
+   ],
+   "raw": "<0f>0<|box;x1=620;y1=280;x2=739;y2=309;w=800;h=480;c=0.941605806350708|><|mask;x=0;y=0;c=0.941605806350708;data=30,120,~!!!&D!@.2-Tc_cP3yW^9h127V2nBx?YaB9wMrua{Nrhc2PAc]'i2Z4_`('m2Dj&c-Tbc9MY$4{#1[m!#nA't!ty:Qa35+b8P`99mU7Ksp1_w_4hALo!HRMo:@'5PFKJ'N!Pcm)TXPF(NFt.zqEIa'x4FwA9(aJo3$eIg=7I]S7ba]M(D#[?="
+  },
+  {
+   "model": "muse-image-1.0",
+   "status": 200,
+   "seconds": 8.2,
+   "usd": 0.01,
+   "images": 1,
+   "bytes": 1680523,
+   "error": null
+  },
+  {
+   "model": "muse-voice-transcribe-1.0",
+   "status": 200,
+   "seconds": 2.0,
+   "audio_s": 2.4,
+   "usd": 0.000117740625,
+   "transcript": "groovy British to the people happy for"
+  }
+ ]
+}

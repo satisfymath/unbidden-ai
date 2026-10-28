@@ -69,3 +69,27 @@ only the app. The stage budget (D-042) applies; this block's share is capped at 
 ## Out of this block
 
 Real user-facing applications, accessibility audits in general, any visual check outside the lab.
+
+## Feasibility results (2026-10-28, after the objective above was written)
+
+One call each on a synthetic board (`docs/bench/multimodal/board.png`: six rows, red badges on rows 2, 4 and 6, the
+sixth 20 of its 30 px visible under a footer), through the spend ledger. Records: `docs/bench/multimodal/`.
+
+| Model | Asked | Result | Latency | Cost |
+|---|---|---|---|---|
+| Spark 1.3 (image in chat) | colour and visibility of each row's badge | 6/6 rows right, row 6 "not fully visible" | 5.8 s | $0.0050 |
+| Wonder 1.0 (image in chat) | same | 6/6 right, same | 5.2 s | $0.0161 |
+| SAM 3.1, "red rectangle" | segment | exactly the 3 red badges, conf. 0.93–0.94; row 6's box ends at y=349, the visible part (its element spans 330–360) | 1.0 s | $0.0025 |
+| SAM 3.1, "rectangle" | segment | every rectangle, badges and labels | 1.2 s | $0.0025 |
+| Muse Image 1.0 | generate a table image | works (1 image, 1.7 MB) | 8.2 s | $0.01 |
+| Muse Voice Transcribe 1.0 | a 2.4 s synthesized sentence, WAV 16 kHz then 24 kHz | wrong both times ("groovy British to the people happy for") | 2.0 s | <$0.001 |
+
+Total $0.04. What this decides, before any implementation:
+- **Vision (Spark) is the visual arm's default**: right on colour and on partial occlusion, at a third of Wonder's
+  cost. Wonder is kept as the comparison only.
+- **SAM is worth its arm.** It returns pixel geometry, not a description: a badge's segmented box compared with its
+  DOM bounding box measures occlusion exactly (v1) and needs no language model's reading of the image. It is the
+  arm most likely to make the visual verification deterministic.
+- **Muse Image: not integrated.** It works, but nothing in this objective needs an image generated.
+- **Muse Voice: not integrated.** No role in the objective, and it failed on the one synthetic clip (a synthesized
+  voice may be atypical input; not investigated further, since it has no use here).
