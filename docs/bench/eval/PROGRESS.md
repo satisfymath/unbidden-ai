@@ -60,9 +60,11 @@ The same direction and size as on dev (5 gained, 0 lost on 15), on repositories 
 With n = 32 the exact test is not below 0.05; pooled with dev batch 1 (10 gained, 0 lost on 47 pairs) it is
 p = 0.002, an estimate across two splits, not a pre-registered test.
 
-v3's Director read the CI on 28 of 32 (25 green, 3 red; 4 without checks), declined 203 groups as its environment,
-and would act on 5 repositories: Unbidden's own bug rules where the CI does not run them (2), a red CI (2), and one
-TypeScript monorepo with a green CI whose findings come from a package the CI does not type-check (chronoframe).
+v3's Director read the CI on 28 of 32 (25 green, 3 red; 4 without checks), declined 208 opportunity groups and left
+145 waiting (findings in subprojects the lab cannot reproduce yet, or a CI it could not read), and would act on 5
+repositories: Unbidden's own bug rules where the CI does not run them (2), a red CI (2), and chronoframe, whose CI is
+green but whose commands, as Unbidden reads them, do not run tsc, so 2 type findings stay open to experiment on. Why
+its CI does not show tsc was not investigated: validation is not debugged.
 
 **What validation suggests, as hypotheses for dev** (not fixed from validation):
 - uv projects that declare mutually incompatible groups (`[tool.uv] conflicts`) cannot install `--all-groups`
