@@ -1,6 +1,6 @@
 # Stage 7: the transfer, frozen (written before the runs)
 
-- **Product and harness:** commit filled in below at the freeze; run from `~/unbidden-ai-eval7` detached at it
+- **Product and harness:** commit 9ef6a60 (frozen 2026-10-29); run from `~/unbidden-ai-eval7` detached at it
   (`uv run python -m bench.ecosystem.conduit_eval ~/unbidden-ai-eval7 --out ~/unbidden-lab/eval7`).
 - **Application:** Conduit at 029eb7781c60d5f563ee8990a0cbfb79b244538c, prepared as `stage7-transfer-prep.md` says.
 - **Order and isolation:** B-1 (proactive, no goal), then A-1 and A-2 (the goal). Before each: the repository reset
