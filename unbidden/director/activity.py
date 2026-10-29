@@ -17,6 +17,7 @@ from unbidden.contracts.common import EvidenceLevel, utc_now
 from unbidden.contracts.experiment import Proposal, ProposalStatus
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
 from unbidden.director.learn import PRIOR_MEAN, beliefs
+from unbidden.lab.revoke import pending
 from unbidden.store import Store
 
 LEVELS = {1: "suspicion", 2: "reproduced", 3: "lab", 4: "validated", 5: "operational", 6: "persistent"}
@@ -86,8 +87,18 @@ def build(store: Store, workspace: str, spend_rows: list[dict[str, Any]] | None 
                 "outcome": (o.details.get("outcome") or {}).get("result"),
                 "held_checks": len(o.details.get("rechecks", [])),
                 "current_rules": _rejudged(store, o),
+                "pending_revalidation": pending(o),
             }
             for o in proven[:TOP]
+        ],
+        "revoked": [
+            {
+                **_brief(o),
+                "why": o.details["revocations"][-1]["why"],
+                "was": o.details["revocations"][-1]["previous_level"],
+            }
+            for o in opps
+            if o.details.get("revocations")
         ],
         "invalidated": [
             {**_brief(o), "why": (o.details.get("outcome") or {}).get("invalidated", {}).get("why")}

@@ -18,6 +18,7 @@ class EventType(StrEnum):
     DECISION_MADE = "decision.made"
     EXPERIMENT_STARTED = "experiment.started"
     VERDICT_RECORDED = "verdict.recorded"
+    VERDICT_REVOKED = "verdict.revoked"
     PROPOSAL_READY = "proposal.ready"
     PROPOSAL_PUBLISHED = "proposal.published"
     PROPOSAL_STALE = "proposal.stale"
