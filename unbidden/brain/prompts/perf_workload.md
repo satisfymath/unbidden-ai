@@ -20,6 +20,8 @@ Write the file `.unbidden-lab/workload.py` defining `build(...) -> Callable[[], 
 - Only the standard library, the application's own modules and its installed dependencies. No network.
 - The working directory is `{{cwd}}`, which is on `sys.path`.
 
+{{async_rule}}
+
 Reply with only the file, in one fenced block whose first line is `# file: .unbidden-lab/workload.py`.
 
 {{feedback}}

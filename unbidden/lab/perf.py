@@ -85,6 +85,72 @@ def {DRIVER_TEST}(request):
             pass
     Path("/work/{LAB_DIR}/result.json").write_text(json.dumps({{"latencies_ms": latencies, "engine": engine}}))
 '''
+
+
+def async_driver(workload: str, marker: str) -> str | None:
+    """The driver for an asynchronous suite (stage 8 regression on Conduit: every workload failed on event loops,
+    because a synchronous test cannot use the suite's async fixtures). The fixtures `build` names become the test's
+    own parameters, so the suite's plugin resolves them on its loop; `build` and the function it returns may be
+    coroutines, and are awaited. Fixed code, generated from the workload's signature; None if it has no `build`."""
+    import ast
+
+    try:
+        tree = ast.parse(workload)
+    except SyntaxError:
+        return None
+    build = next((n for n in tree.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == "build"),
+                 None)  # fmt: skip
+    if build is None:
+        return None
+    names = [a.arg for a in build.args.args]
+    params = ", ".join(names)
+    passed = ", ".join(f"{n}={n}" for n in names)
+    return f'''"""Unbidden's measurement driver for an asynchronous suite: fixed code, never written by a model."""
+import importlib.util, inspect, json, time
+from pathlib import Path
+
+import pytest
+
+
+@pytest.mark.{marker}
+async def {DRIVER_TEST}({params}):
+    spec = importlib.util.spec_from_file_location("unbidden_workload", "/work/{LAB_DIR}/workload.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    call = module.build({passed})
+    if inspect.isawaitable(call):
+        call = await call
+
+    async def once():
+        status = call()
+        return await status if inspect.isawaitable(status) else status
+
+    for _ in range({WARMUP}):
+        status = await once()
+        assert status == 200, f"warm-up returned HTTP {{status}}"
+    latencies = []
+    for _ in range({SAMPLES}):
+        started = time.perf_counter()
+        status = await once()
+        latencies.append((time.perf_counter() - started) * 1000)
+        assert status == 200, f"sample returned HTTP {{status}}"
+    Path("/work/{LAB_DIR}/result.json").write_text(json.dumps({{"latencies_ms": latencies, "engine": None}}))
+'''
+
+
+def async_suite(read: Callable[[str], str], files: list[str]) -> str | None:
+    """The pytest marker of an asynchronous suite, when its fixtures are coroutines: `asyncio` (pytest-asyncio) or
+    `anyio`; None for a synchronous one."""
+    conftests = [f for f in files if f.endswith("conftest.py")]
+    if not any(re.search(r"^\s*async def \w+\(", read(f), re.M) for f in conftests):
+        return None
+    declared = " ".join(read(f) for f in ("pyproject.toml", "requirements.txt", "setup.cfg", "poetry.lock")
+                        if f in files)  # fmt: skip
+    if "pytest-asyncio" in declared or "pytest_asyncio" in declared:
+        return "asyncio"
+    return "anyio" if "anyio" in declared else None
+
+
 _REVISION = re.compile(r"^revision\s*(?::\s*str)?\s*=\s*['\"]([^'\"]+)['\"]", re.MULTILINE)
 _DOWN = re.compile(r"^down_revision\s*(?::[^=]+)?=\s*['\"]?([^'\"\n]*)['\"]?", re.MULTILINE)
 
@@ -149,6 +215,12 @@ _ORM_INSERT = (
     "Insert them with SQLAlchemy Core in bulk, one statement per table with a list of dicts "
     "(`session.execute(insert(Model), rows)`), never one ORM object per row and never database-specific SQL: the "
     "tests may run on SQLite or on Postgres."
+)
+_ASYNC_RULE = (
+    "The application's tests are asynchronous: their fixtures are coroutines. Write `async def build(...)`, await "
+    "the fixtures' own async calls, and return an `async def` function that performs the request with the suite's "
+    "async client and returns the status code. Never create, get or run an event loop yourself: the test runs on "
+    "the suite's loop."
 )
 _SQL_INSERT = (
     "The application keeps no ORM model of these tables: they are created by the migration shown below, and its "
@@ -255,6 +327,7 @@ class PerfLab:
         self.runner = runner or SandboxRunner()
         self.progress = progress
         self.repairs = repairs
+        self.marker: str | None = None  # the suite's async marker, when its fixtures are coroutines
         self.auth_lines: list[str] = []  # how the example test passes credentials
         self.engine: str | None = None  # the database engine the workload ran on, when the driver could tell
 
@@ -461,7 +534,10 @@ class PerfLab:
         image = self.images["python"]
         work = snapshot(self.repo, rev)
         try:
-            for path, content in {**files, f"{test_dir}/{DRIVER_TEST}.py": DRIVER}.items():
+            driver = DRIVER
+            if self.marker is not None:
+                driver = async_driver(files.get(f"{LAB_DIR}/workload.py", ""), self.marker) or DRIVER
+            for path, content in {**files, f"{test_dir}/{DRIVER_TEST}.py": driver}.items():
                 target = work / path
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text(content)
@@ -548,6 +624,9 @@ class PerfLab:
         plan = test_plan(self.repo, rev, self.stack, "python")
         ci = ci_test_plan(self.repo, rev, "python")
         head = alembic_head(self.repo, rev)
+        self.marker = async_suite(
+            lambda path: self._show(rev, path), _git(self.repo, "ls-tree", "-r", "--name-only", rev).splitlines()
+        )
         schema = self._schema_file(rev, table)
         models_file, has_model = schema if schema else (None, False)
         handlers = self._handlers(opp, rev)
@@ -641,6 +720,7 @@ class PerfLab:
                 "lab.workload",
                 wl_prompt.render(
                     framework="FastAPI",
+                    async_rule=_ASYNC_RULE if self.marker else "",
                     endpoint=list_endpoint,
                     rows=str(SEED_ROWS),
                     owners=str(SEED_OWNERS),
