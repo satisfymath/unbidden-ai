@@ -1,4 +1,5 @@
-"""`unbidden doctor` tells a refused key from an unreachable API (stage 7: a 401 was reported as "not reachable")."""
+"""`unbidden doctor` tells a refused key from an unreachable API (stage 7: a 401 on the model listing was reported as
+"not reachable", while calls with the same key worked)."""
 
 from __future__ import annotations
 
@@ -20,7 +21,7 @@ def test_each_cause_is_said_as_it_is() -> None:
     assert meta_api_status(False) == (False, "no MODEL_API_KEY: frontier models are off")
     assert meta_api_status(True, answering(200)) == (True, "key set, API reachable")
     ok, why = meta_api_status(True, answering(401))
-    assert not ok and "refuses the key (401)" in why and "replace MODEL_API_KEY" in why
+    assert not ok and "listing refuses the key (401)" in why and "replace" not in why
 
     def down(*a: Any, **k: Any) -> Any:
         raise httpx.ConnectError("no route")

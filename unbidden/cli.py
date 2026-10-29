@@ -1339,8 +1339,8 @@ def cmd_status(args: argparse.Namespace) -> int:
 
 
 def meta_api_status(key: bool, get: Any = None) -> tuple[bool, str]:
-    """Whether the Meta API answers this machine's key, and if not, which of the three it is: no key, a key the API
-    refuses (401/403: replace it), or no answer (network)."""
+    """Whether the Meta API answers this machine's key on its model listing, and if not, which it is: no key, a
+    listing that refuses the key (401/403), or no answer (network)."""
     import httpx
 
     if not key:
@@ -1357,7 +1357,9 @@ def meta_api_status(key: bool, get: Any = None) -> tuple[bool, str]:
     if status == 200:
         return True, "key set, API reachable"
     if status in (401, 403):
-        return False, f"the API refuses the key ({status}): replace MODEL_API_KEY in ~/.unbidden/.env"
+        # Observed 2026-10-29: the model listing answered 401 while chat completions with the same key worked. Say
+        # what was seen; do not tell a person to replace a key that may still serve calls.
+        return False, f"the model listing refuses the key ({status}); calls may still work (see `unbidden spend`)"
     return False, f"key set, the API answered {status}"
 
 
