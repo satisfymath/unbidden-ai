@@ -13,3 +13,4 @@ Measured: whether the project is reproduced (its checks run at the base); what i
 what is found and how it is explained; whether an experiment runs and what it shows (an improvement measured with the
 checks green on both sides, or a discard with evidence); what is asked of a person; the second cycle's repeats;
 calls, models, latency, spend.
+regression version: adb803d
