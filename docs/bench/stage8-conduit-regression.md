@@ -54,3 +54,4 @@ at the base, `commentaries.article_id`), then the candidate broke at import: the
 (asyncpg task lifecycles, unique keys reused across attempts). A-6 as A-5, and its proactive part as B-5. US$0.34
 for both. Fixed generally (853309d): the migration template carries no annotations. Runs `B-6` then `A-7` from a
 worktree at the commit named below.
+regression version 5: 995afd8
