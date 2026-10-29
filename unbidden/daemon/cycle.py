@@ -449,7 +449,10 @@ class Cycle:
         else:
             opp.details = {**opp.details, "attempts": int(opp.details.get("attempts", 0)) + 1}
             self.store.put("opportunities", opp)
-            self.log(f"{opp.id}: no proven fix ({'; '.join(result.notes[-1:])})")
+            # The verdict's own reasons when one was reached (stage 8, B-7: a measured "no effect" was logged with
+            # the last note, a masking notice, as if that were why).
+            why = result.verdict.reasons[:2] if result.verdict is not None and result.verdict.reasons else []
+            self.log(f"{opp.id}: no proven fix ({'; '.join(why or result.notes[-1:])})")
         self.store.enqueue(job("director.sweep", f"after:{j.id}"))
 
     async def proposal_prepare(self, j: Job) -> None:
