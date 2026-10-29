@@ -1,0 +1,10 @@
+--- a/board/static/board.css
++++ b/board/static/board.css
+@@ -8,6 +8,6 @@
+ .board td { padding: 12px; border-bottom: 1px solid #e3e7eb; }
+ .board .num { font-variant-numeric: tabular-nums; }
+ .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 14px; }
+-.badge.short { background: #e3f1e5; color: #1f5f2c; }
++.badge.short { background: #c62828; color: #ffffff; }
+ .badge.ok { background: #e3f1e5; color: #1f5f2c; }
+ .summary { padding: 16px 32px; background: #f2f4f6; border-top: 1px solid #d8dde2; }

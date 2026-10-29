@@ -557,3 +557,11 @@ Starting point: `feat/55-send-time-authorization` @ c804aaf, no later work. Budg
 | 6 | Development regression on Larder (post-evaluation) and adversarial cases; the visual cycle with agent vs checker apart | 2, 3 | full chain without duplication; adversarial cases end safe |
 | 7 | New frozen evaluation: A (a new service), B (stage 5 states + cases without a healthy version in history) | 2-6 | predeclared repetitions and budget; perception apart from repair; history-aided repairs apart from others |
 | 8 | Reproducible release, branch integration order, demo; PLAN, RESULTS, decisions | all | from a clean checkout |
+
+## Stage 6 status, 2026-10-29
+
+Done: steps 1-8. Fixes with tests (D-045); stage 5 summaries recomputed; Larder regression (7 scenarios); the frozen
+evaluation at 94765da (A: Linen 12/12; B: perception per method, 30/30 repairs verified); the demo recorded
+(`docs/bench/stage6-demo.md`); the release and the integration order (`docs/RELEASE.md`). Spend: US$5.94 of US$10
+before the demo, US$0.07 the demo. Pending, by evidence: the checker's next version counts visible false flags;
+PR13, OAuth, other cloud providers and an interface stay for after consolidation; no PR or merge was made.

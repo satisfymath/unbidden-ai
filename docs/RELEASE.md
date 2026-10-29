@@ -9,8 +9,9 @@ systems were not exercised.
 
 ## The exact point
 
-- Code: branch `feat/56-consolidation`, commit given in `docs/bench/stage6-freeze.md` (the frozen evaluation) and in
-  the demo record. `uv.lock` pins every Python dependency (Python 3.12).
+- Code: commit **94765da** on branch `feat/56-consolidation`: the frozen stage 6 evaluation and the recorded demo ran
+  on it (`docs/bench/stage6-freeze.md`, `docs/bench/stage6-demo.md`); later commits on the branch are documents.
+  `uv.lock` pins every Python dependency (Python 3.12).
 - Tools: `uv`, Docker (Docker Desktop on macOS used here), git; for the local model, Ollama with a Meta model
   (used here: `muse-glimmer:30b-mxfp8-dflash`); for the remote models, a Meta API key.
 - Remote models: `muse-spark-1.3` on the `code` route (default), `muse-wonder-1.0` only as a declared comparison;
@@ -20,7 +21,7 @@ systems were not exercised.
 
 ```sh
 git clone git@github.com:satisfymath/unbidden-ai.git && cd unbidden-ai
-git checkout feat/56-consolidation
+git checkout 94765da
 uv sync                      # dependencies from uv.lock
 make check                   # ruff, pyright, unit tests (about 570, under a minute)
 echo 'MODEL_API_KEY=...' >> ~/.unbidden/.env && chmod 600 ~/.unbidden/.env   # never in the repository
