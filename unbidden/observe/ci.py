@@ -40,6 +40,9 @@ class CiPlan:
     job: str
     steps: tuple[CiStep, ...]
     services: tuple[str, ...]  # compose services the job starts before testing
+    # The job's own service containers (GitHub Actions `services:`): name, image, environment, container ports.
+    containers: tuple[tuple[str, str, tuple[tuple[str, str], ...], tuple[int, ...]], ...] = ()
+    env: tuple[tuple[str, str], ...] = ()  # the job's and its test steps' environment, as the team wrote it
 
     def script(self) -> str:
         lines = ["set -e"]
@@ -132,9 +135,14 @@ def _parses(command: str) -> bool:
 _NEEDS_MORE = re.compile(r"e2e|browser|playwright|cypress|integration|smoke|deploy|release|\bwin|windows|macos")
 
 
+_RUNNER_CALL = re.compile(r"\bpytest\b|-m (pytest|unittest)\b|\bgo test\b|\b(vitest|jest|mocha)\b")
+_HTTP_TESTS = re.compile(r"\b(newman|postman)\b", re.I)
+
+
 def _job_plan(
-    workflow: str, job_name: str, job: dict[str, Any], language: str, tasks: dict[str, list[str]] | None = None
-) -> CiPlan | None:
+    workflow: str, job_name: str, job: dict[str, Any], language: str, tasks: dict[str, list[str]] | None = None,
+    scripts: dict[str, str] | None = None,
+) -> CiPlan | None:  # fmt: skip
     defaults = ((job.get("defaults") or {}).get("run") or {}).get("working-directory", ".")
     steps: list[CiStep] = []
     services: list[str] = []
@@ -152,11 +160,22 @@ def _job_plan(
             command = "\n".join(line for line in command.splitlines() if not _CHECK_RUN.search(line))
         if command and _parses(command):
             steps.append(CiStep(cwd=str(step.get("working-directory") or defaults), command=command))
-    text = " ".join(s.command for s in steps)
+    text = " ".join(s.command for s in steps) + " " + " ".join((scripts or {}).values())
     runs_tests = _PY_TESTS.search(text) if language == "python" else re.search(r"\btest\b", text)
     if not steps or not runs_tests:
         return None
-    return CiPlan(workflow=workflow, job=job_name, steps=tuple(steps), services=tuple(dict.fromkeys(services)))
+    containers = []
+    for name, spec in (job.get("services") or {}).items():
+        if not isinstance(spec, dict) or not spec.get("image"):
+            continue
+        own = tuple(sorted((str(k), str(v)) for k, v in (spec.get("env") or {}).items() if not _EXPR.search(str(v))))
+        ports = tuple(int(str(p).split(":")[-1]) for p in spec.get("ports") or [] if str(p).split(":")[-1].isdigit())
+        containers.append((str(name), str(spec["image"]), own, ports))
+    env: dict[str, str] = {str(k): str(v) for k, v in (job.get("env") or {}).items() if not _EXPR.search(str(v))}
+    for step in runs:
+        env |= {str(k): str(v) for k, v in (step.get("env") or {}).items() if not _EXPR.search(str(v))}
+    return CiPlan(workflow=workflow, job=job_name, steps=tuple(steps), services=tuple(dict.fromkeys(services)),
+                  containers=tuple(containers), env=tuple(sorted(env.items())))  # fmt: skip
 
 
 def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
@@ -187,8 +206,32 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
             item[1],
         )
 
-    jobs.sort(key=rank)
     tasks = taskfile_tasks(repo, rev)
+
+    def scripts_of(job: dict[str, Any]) -> dict[str, str]:
+        """Repository scripts the job's steps run (`./scripts/test`), so a job is judged by what they execute."""
+        found: dict[str, str] = {}
+        for step in job.get("steps") or []:
+            for line in str(step.get("run", "") if isinstance(step, dict) else "").splitlines():
+                head = _RUNNERS.sub("", line.strip()).split(" ")[0]
+                if head.startswith("./") or (("/" in head) and not head.startswith(("/", "$", "-"))):
+                    text = _git(repo, "show", f"{rev}:{head.removeprefix('./')}")
+                    if text:
+                        found[head] = text
+        return found
+
+    def executes(job: dict[str, Any]) -> str:
+        runs = " ".join(str(s.get("run", "")) for s in job.get("steps") or [] if isinstance(s, dict))
+        return runs + " " + " ".join(scripts_of(job).values())
+
+    def runner(item: tuple[str, str, dict[str, Any]]) -> tuple[int, int]:
+        text = executes(item[2])
+        explicit = _RUNNER_CALL.search(text) is not None
+        # A job that starts the app in the background and tests it over HTTP needs ports and often the network.
+        served = bool(re.search(r"&\s*$", text, re.M)) or bool(_HTTP_TESTS.search(text))
+        return (0 if explicit else 1, 1 if served else 0)
+
+    jobs.sort(key=lambda item: (*runner(item), *rank(item)))
     for name, job_name, job in jobs:
         hint = " ".join(
             str(s.get("run", "")) + str(s.get("uses", "")) for s in job.get("steps") or [] if isinstance(s, dict)
@@ -198,7 +241,7 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
             continue
         if language == "node" and not re.search(r"node|npm|pnpm|yarn|bun", hint):
             continue
-        plan = _job_plan(name, job_name, job, language, tasks)
+        plan = _job_plan(name, job_name, job, language, tasks, scripts_of(job))
         if plan is not None:
             return plan
     return None

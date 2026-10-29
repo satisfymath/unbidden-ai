@@ -182,6 +182,23 @@ def _uv_sync(stack: PythonStack, scope: str) -> str:
     return f"uv sync {scope} --all-groups{flags} --project /deps"
 
 
+def seeded(stack: PythonStack) -> bool:
+    """Before Python 3.12, a virtual environment always carried setuptools (`pkg_resources`), and projects of that
+    time import it without declaring it; uv's environments omit it unless seeded. Seeded the way that era did."""
+    return stack.manifest in ("setup.py", "poetry.lock", "requirements.txt") and int(stack.version.split(".")[1]) < 12
+
+
+def _seed(stack: PythonStack) -> str:
+    """pip and setuptools as they were when the project's lockfile was committed (uv's `--exclude-newer`): today's
+    setuptools has no `pkg_resources` (81) or warns on importing it (67.3), which an old suite may treat as an error.
+    Without a date, the newest setuptools that still ships `pkg_resources`."""
+    if not seeded(stack):
+        return ""
+    era = f" --exclude-newer {stack.lock_date}" if stack.lock_date else ""
+    tools = "setuptools pip" if stack.lock_date else '"setuptools<81" pip'
+    return f" && uv pip install --python /deps/.venv/bin/python{era} {tools}"
+
+
 def python_dockerfile(stack: PythonStack, *, system_build_tools: bool = False, headers: tuple[str, ...] = ()) -> str:
     if stack.lockfile == "uv.lock":
         scope = "--no-install-workspace --all-packages" if stack.members else "--no-install-project"
@@ -192,10 +209,14 @@ def python_dockerfile(stack: PythonStack, *, system_build_tools: bool = False, h
         # The requirements were read statically (setup.py's install_requires, poetry.lock's pins) and written
         # into the build context.
         install = (
-            "uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt"
+            f"uv venv /deps/.venv{_seed(stack)} && uv pip install --python /deps/.venv/bin/python "
+            "-r /deps/unbidden-requirements.txt"
         )
     elif stack.manifest == "requirements.txt":
-        install = "uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python -r /deps/requirements.txt"
+        install = (
+            f"uv venv /deps/.venv{_seed(stack)} && uv pip install --python /deps/.venv/bin/python "
+            "-r /deps/requirements.txt"
+        )
     else:
         install = _uv_sync(stack, "--no-install-project")
     uv = (
@@ -306,6 +327,12 @@ def build_error(stderr: str, keep: int = 12) -> str:
     return "\n".join(dict.fromkeys([*explained, *picked, *lines[-2:]]))
 
 
+def needs_system_build(error: str) -> bool:
+    """A package built from source that needs something from the system: a C compiler, a config tool (pg_config),
+    or C headers. Each is what the retry with build tools can provide."""
+    return bool(NEEDS_COMPILER.search(error) or MISSING_TOOL.search(error) or MISSING_HEADER.search(error))
+
+
 NEEDS_COMPILER = re.compile(
     r"No such file or directory: '(gcc|cc|g\+\+)'|command '(gcc|cc)' failed|unable to execute 'gcc'"
 )
@@ -395,7 +422,7 @@ def provision(
     try:
         return _provision(repo, rev, stack, docker=docker, system_build_tools=False)
     except ProvisionError as exc:
-        if isinstance(stack, PythonStack) and NEEDS_COMPILER.search(str(exc)):
+        if isinstance(stack, PythonStack) and needs_system_build(str(exc)):
             if not system_build_tools:
                 raise ProvisionError(
                     f"{exc}\nA package is built from source and needs a C compiler; system packages come from "
@@ -404,7 +431,14 @@ def provision(
             headers: tuple[str, ...] = ()
             for _ in range(MAX_SYSTEM_RETRIES):
                 try:
-                    return _provision(repo, rev, stack, docker=docker, system_build_tools=True, headers=headers)
+                    built = _provision(repo, rev, stack, docker=docker, system_build_tools=True, headers=headers)
+                    if not isinstance(built, DependencyImage):
+                        return built
+                    from dataclasses import replace
+
+                    why = "build-essential" + (f", {', '.join(headers)}" if headers else "")
+                    note = f"a package is built from source: system build tools installed from Debian ({why})"
+                    return replace(built, notes=(*built.notes, note))
                 except ProvisionError as again:
                     more = [p for p in missing_packages(str(again)) if p not in headers]
                     if not more:
@@ -458,7 +492,17 @@ def _provision(
 
 
 def _python_notes(tag: str, stack: PythonStack, docker: str) -> tuple[str, ...]:
-    notes = [
+    # The environment, recorded so base and candidate can be shown to run under the same one: the interpreter and why,
+    # the image's architecture, what was installed from the system.
+    arch = subprocess.run([docker, "image", "inspect", "--format", "{{.Os}}/{{.Architecture}}", tag],
+                          capture_output=True, text=True, check=False).stdout.strip()  # fmt: skip
+    notes = [*stack.version_notes, f"image {tag} on {arch or 'an unknown platform'}"]
+    if seeded(stack):
+        notes.append(
+            f"the environment is seeded with pip and setuptools as of {stack.lock_date or 'before setuptools 81'} "
+            f"(the lockfile's era), as virtualenvs on Python {stack.version} were"
+        )
+    notes += [
         f"dependency group {g} needs another Python than {stack.version}; not installed" for g in stack.skip_groups
     ]
     notes += [f"{name} is installed from {path} in the repository; its code comes from the snapshot, not the image"

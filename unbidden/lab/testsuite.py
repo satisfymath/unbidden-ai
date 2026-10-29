@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
@@ -46,11 +47,24 @@ def test_plan(repo: Path, rev: str, stack: Stack, language: str) -> TestPlan | N
     if ci is not None:
         named = [compose.services[n] for n in ci.services if n in compose.services] if compose is not None else []
         services = tuple(s for s in named if s.image and not s.build_context)
+        # The job's own service containers, as the CI starts them; there they are reached at localhost on their
+        # ports, here by their name on the sidecars' network: the job's environment is pointed at them.
+        own = tuple(
+            Service(name=n, image=image, build_context=None, dockerfile=None, environment=dict(e), depends_on=(),
+                    ports=tuple(str(p) for p in ports))
+            for n, image, e, ports in ci.containers
+        )  # fmt: skip
+        own = tuple(s for s in own if s.data_kind)
+        ci_env = dict(ci.env)
+        if own:
+            ci_env = {k: _to_sidecars(v, own) for k, v in ci_env.items()}
+            env = {**env, **ci_env}
         return TestPlan(
             argv=("bash", "-c", ci.script()),
-            source=f"CI {ci.workflow} > {ci.job}",
+            source=f"CI {ci.workflow} > {ci.job}"
+            + (f" (its services: {', '.join(s.name for s in own)})" if own else ""),
             pytest=language == "python",
-            services=services,
+            services=(*services, *own),
             env=env,
         )
     argv = _default_argv(stack, language)
@@ -61,6 +75,19 @@ def test_plan(repo: Path, rev: str, stack: Stack, language: str) -> TestPlan | N
         services = tuple(s for s in compose.data_services() if s.name in app.depends_on)
     return TestPlan(argv=tuple(argv), source=" ".join(argv), pytest=language == "python", services=services, env=env,
                     report=lang.test_report)  # fmt: skip
+
+
+def _to_sidecars(value: str, services: tuple[Service, ...]) -> str:
+    """`localhost` (or 127.0.0.1) in a CI value, where the job reached its service containers, becomes the name of
+    the service that listens on that port (or the only one, when no port is written)."""
+
+    def host(match: re.Match[str]) -> str:
+        port = match.group("port")
+        named = [s for s in services if port and port.lstrip(":") in s.ports]
+        target = named[0].name if named else (services[0].name if len(services) == 1 else match.group("host"))
+        return target + (port or "")
+
+    return re.sub(r"(?P<host>localhost|127\.0\.0\.1)(?P<port>:\d+)?", host, value)
 
 
 JUNIT_DIR = ".unbidden-junit"

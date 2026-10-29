@@ -62,6 +62,8 @@ class PythonStack:
     uv_version: str | None = None  # [tool.uv] required-version: the project's uv refuses any other
     skip_groups: tuple[str, ...] = ()  # dependency groups whose own requires-python excludes `version`
     path_sources: tuple[tuple[str, str], ...] = ()  # (package, directory) installed from a path in the repository
+    version_notes: tuple[str, ...] = ()  # why this interpreter: the rule, the project's declarations, conflicts
+    lock_date: str | None = None  # when the lockfile (or manifest) was last committed: the environment's era
 
 
 @dataclass(frozen=True)
@@ -312,11 +314,24 @@ def requires_python(pyproject: str) -> str | None:
 
 
 def _detect_python(repo: Path, rev: str, files: set[str], blind: list[str]) -> PythonStack | None:
-    version = DEFAULT_PYTHON
-    if ".python-version" in files:
-        version = _read(repo, rev, ".python-version").strip() or DEFAULT_PYTHON
-    elif "pyproject.toml" in files:
-        version = requires_python(_read(repo, rev, "pyproject.toml")) or DEFAULT_PYTHON
+    """The project's Python stack, on the interpreter its declarations choose (`observe/python_version.py`)."""
+    from dataclasses import replace
+
+    from unbidden.observe.python_version import choose
+
+    if not files & {"pyproject.toml", "requirements.txt", "setup.py"}:
+        return None
+    choice = choose(lambda path: _read(repo, rev, path), files)
+    found = _detect_python_parts(repo, rev, files, blind, choice.version)
+    if found is None:
+        return None
+    dated = found.lockfile if found.lockfile in files else found.manifest
+    when = subprocess.run(["git", "-C", str(repo), "log", "-1", "--format=%cI", rev, "--", dated], capture_output=True,
+                          text=True, check=False).stdout.strip() or None  # fmt: skip
+    return replace(found, version_notes=choice.notes(), lock_date=when)
+
+
+def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str], version: str) -> PythonStack | None:
     if "pyproject.toml" in files and "poetry.lock" in files:
         project = tomllib.loads(_read(repo, rev, "pyproject.toml"))
         if "poetry" in project.get("tool", {}):
