@@ -1018,8 +1018,6 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     import shutil
     import subprocess
 
-    import httpx
-
     from unbidden.brain.hardware import detect, recommend
     from unbidden.runtime import installed_models
 
@@ -1051,30 +1049,7 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     )
     checks.append(("docker", bool(docker), "running" if docker else "not running: the sandbox needs Docker"))
     key = broker().has("MODEL_API_KEY")
-    reachable = False
-    if key:
-        try:
-            reachable = (
-                httpx.get(
-                    "https://api.meta.ai/v1/models",
-                    timeout=8,
-                    headers={"Authorization": f"Bearer {broker().get('MODEL_API_KEY', 'model.remote')}"},
-                ).status_code
-                == 200
-            )
-        except httpx.HTTPError:
-            reachable = False
-    checks.append(
-        (
-            "meta api",
-            key and reachable,
-            "key set, API reachable"
-            if key and reachable
-            else "key set, API not reachable"
-            if key
-            else "no MODEL_API_KEY: frontier models are off",
-        )
-    )
+    checks.append(("meta api", *meta_api_status(key)))
     checks.append(
         (
             "github",
@@ -1361,6 +1336,29 @@ def cmd_status(args: argparse.Namespace) -> int:
     console.print(f"opportunities: {counts or 'none yet'}")
     store.close()
     return 0
+
+
+def meta_api_status(key: bool, get: Any = None) -> tuple[bool, str]:
+    """Whether the Meta API answers this machine's key, and if not, which of the three it is: no key, a key the API
+    refuses (401/403: replace it), or no answer (network)."""
+    import httpx
+
+    if not key:
+        return False, "no MODEL_API_KEY: frontier models are off"
+    fetch = get or httpx.get
+    try:
+        status = fetch(
+            "https://api.meta.ai/v1/models",
+            timeout=8,
+            headers={"Authorization": f"Bearer {broker().get('MODEL_API_KEY', 'model.remote')}"},
+        ).status_code
+    except httpx.HTTPError as exc:
+        return False, f"key set, API not reachable ({type(exc).__name__})"
+    if status == 200:
+        return True, "key set, API reachable"
+    if status in (401, 403):
+        return False, f"the API refuses the key ({status}): replace MODEL_API_KEY in ~/.unbidden/.env"
+    return False, f"key set, the API answered {status}"
 
 
 def cmd_spend(args: argparse.Namespace) -> int:
