@@ -14,6 +14,11 @@ shared by every workspace on the machine (`~/.unbidden/spend.db`) and is checked
   a verified balance, only a small allowance is spent, enough to check the remote path works.
 
 Costs are list prices times reported tokens: an estimate of what is billed, recorded as such.
+
+**Envelopes** (stage 9): an authorization may be split into named envelopes (development, evaluation, demo), each
+with its own cap. Once envelopes are defined, every call names one (`UNBIDDEN_ENVELOPE`) and is refused, before it
+leaves, if it does not name a known envelope or would not fit in it; the overall cap still applies. A cap is raised
+without moving the point from which spend is counted (`--amend-cap`), so earlier spend keeps counting.
 """
 
 from __future__ import annotations
@@ -45,6 +50,11 @@ def run_tag() -> str | None:
     return os.environ.get("UNBIDDEN_RUN") or None
 
 
+def envelope_tag() -> str | None:
+    """The envelope this process spends from, when the authorization is split into envelopes."""
+    return os.environ.get("UNBIDDEN_ENVELOPE") or None
+
+
 class SpendRefused(RuntimeError):
     pass
 
@@ -59,6 +69,9 @@ class Budget(BaseModel):
     reserve_fraction: float = Field(default=0.2, ge=0, lt=1)
     reserve_released: bool = False  # set by a person, for final validation and the demo
     unverified_allowance_usd: float = Field(default=1.0, ge=0)
+    envelopes: dict[str, float] = Field(default_factory=dict)  # name -> cap in US$, counted from `envelopes_since`
+    envelopes_total_usd: float | None = None  # what the envelopes may add up to (the authorization they split)
+    envelopes_since: datetime | None = None
 
     @property
     def verified(self) -> bool:
@@ -98,7 +111,8 @@ CREATE TABLE IF NOT EXISTS requests (
     tokens_in INTEGER NOT NULL DEFAULT 0,
     tokens_out INTEGER NOT NULL DEFAULT 0,
     usage_reported INTEGER NOT NULL DEFAULT 0,
-    note TEXT
+    note TEXT,
+    envelope TEXT
 );
 CREATE INDEX IF NOT EXISTS requests_created ON requests(created_at);
 CREATE INDEX IF NOT EXISTS requests_run ON requests(run);
@@ -120,6 +134,9 @@ class SpendLedger:
         self.budget_path = self.dir / "budget.yaml"
         with closing(self._connect()) as db:
             db.executescript(SCHEMA)
+            columns = {row[1] for row in db.execute("PRAGMA table_info(requests)")}
+            if "envelope" not in columns:  # ledgers from before envelopes: their rows keep no envelope
+                db.execute("ALTER TABLE requests ADD COLUMN envelope TEXT")
 
     def _connect(self) -> sqlite3.Connection:
         db = sqlite3.connect(self.path, timeout=30, isolation_level=None)
@@ -195,10 +212,11 @@ class SpendLedger:
                         f"is left of US${status.permitted_usd:.2f} permitted ({status.reason}; reserve "
                         f"US${status.reserve_usd:.2f} held back)"
                     )
+                envelope = self._check_envelope(est_usd, db)
                 rid = new_id("spend")
                 db.execute(
                     "INSERT INTO requests (id, created_at, workspace, run, purpose, correlation_id, provider, model,"
-                    " attempt, status, est_usd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'reserved', ?)",
+                    " attempt, status, est_usd, envelope) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'reserved', ?, ?)",
                     (
                         rid,
                         _iso(utc_now()),
@@ -210,6 +228,7 @@ class SpendLedger:
                         model,
                         attempt,
                         est_usd,
+                        envelope,
                     ),
                 )
                 db.execute("COMMIT")
@@ -217,6 +236,37 @@ class SpendLedger:
             except BaseException:
                 db.execute("ROLLBACK")
                 raise
+
+    def _check_envelope(self, est_usd: float, db: sqlite3.Connection) -> str | None:
+        budget = self.budget()
+        if not budget.envelopes:
+            return None
+        name = envelope_tag()
+        if name not in budget.envelopes:
+            raise SpendRefused(
+                f"refused: spend is split into envelopes ({', '.join(sorted(budget.envelopes))}) and this call names "
+                f"{'none' if name is None else repr(name)}: set UNBIDDEN_ENVELOPE"
+            )
+        spent = self.envelope_spent(name, db)
+        cap = budget.envelopes[name]
+        if spent + est_usd > cap:
+            raise SpendRefused(
+                f"refused: this call may cost up to US${est_usd:.4f} and envelope {name!r} has "
+                f"US${max(0.0, cap - spent):.4f} left of US${cap:.2f}"
+            )
+        return name
+
+    def envelope_spent(self, name: str, db: sqlite3.Connection | None = None) -> float:
+        budget = self.budget()
+        query = f"SELECT COALESCE(SUM({CHARGED}), 0) FROM requests WHERE envelope = ?"
+        params: tuple[Any, ...] = (name,)
+        if budget.envelopes_since is not None:
+            query += " AND created_at >= ?"
+            params = (name, _iso(budget.envelopes_since))
+        if db is not None:
+            return float(db.execute(query, params).fetchone()[0])
+        with closing(self._connect()) as own:
+            return float(own.execute(query, params).fetchone()[0])
 
     def settle(
         self,

@@ -1074,3 +1074,27 @@ independence, the evaluation showed no useful cycle.
 **Decided:** the candidate (36e1a59) is called experimental, with the exit criteria and their evidence in
 `docs/PLAN.md`; nothing is published, released or merged; the integration proposal is prepared for review only. The
 false L4 is the first thing to fix: an evidence level that a measurement artifact can reach is not one to build on.
+
+## D-052 · 2026-10-29 · Stage 9 budget: US$30 more, split into enforced envelopes; Meta API only for this stage
+
+David authorized up to **US$30 additional** Meta API spend for stage 9, replacing the US$10 cap. Verified before
+spending: the ledger (`~/.unbidden/spend.db`, counted from the stage 6 verification, 2026-10-28T22:44Z) reads
+**US$7.2945**, as recorded at the end of stage 8, so the new cumulative cap is **US$37.2945**. Dashboard as reported by
+David: "Free credits in use: US$137.96", balance US$0, a card on file. A zero balance is not read as "nothing can be
+billed". Difference recorded: from US$144.98 (2026-10-28) to US$137.96 the dashboard moved US$7.02; the ledger
+counts US$7.29 (list prices, worst cost where usage is unknown), US$0.27 more; the ledger's figure is the one used.
+No billing, card, recharge or credit setting is changed.
+
+**Enforced by the program, not by intention:** the ledger's cap is amended without moving its verification point
+(earlier spend keeps counting; `unbidden spend --amend-cap`), and the US$30 are split into envelopes, each refused
+before a call leaves if it does not fit: `dev` US$12 (development and regressions), `eval` US$12 (the frozen
+evaluation), `demo` US$6 (the demo, the install walk, contingencies). Every call must name its envelope
+(`UNBIDDEN_ENVELOPE`). The worst cost is reserved before each call and settled to the observed cost after. Unspent
+funds may be moved between envelopes by recording the decision first; the envelopes never add up to more than
+US$30.
+
+**Models:** every model call of this stage goes to Meta's API: `muse-spark-1.3` by default; `muse-wonder-1.0` only
+for a concrete difficulty that justifies a comparison, with a stated limit of attempts and cost; vision or SAM only
+when a case needs that evidence. No local model and no silent local fallback in this stage's runs (their mandates
+say `profile: frontier`, `local_fallback: deny`); the product's local support stays as it is. Guardian, permissions
+and egress controls are unchanged; only public projects and synthetic data are sent.

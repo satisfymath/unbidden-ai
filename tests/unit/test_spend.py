@@ -172,3 +172,41 @@ async def test_a_remote_model_without_a_price_is_refused(store: Store, mandate: 
             Tier.FRONTIER, request(Tier.FRONTIER, text="hello"), None, *brain.decide(request(Tier.FRONTIER))
         )
     assert remote.requests == []
+
+
+def test_envelopes_refuse_a_call_that_names_none_or_would_not_fit_and_amending_keeps_earlier_spend(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Stage 9: US$30 more split into development, evaluation and demo envelopes, enforced before each call; the
+    cap amended without moving the verification, so what was spent before still counts."""
+    from datetime import UTC, datetime, timedelta
+
+    from unbidden.brain.spend import Budget, SpendLedger, SpendRefused
+
+    ledger = SpendLedger(tmp_path)
+    ledger.set_budget(Budget(remaining_usd=10.0, verified_at=datetime.now(UTC) - timedelta(days=1), source="s",
+                             reserve_fraction=0.0))  # fmt: skip
+    monkeypatch.delenv("UNBIDDEN_ENVELOPE", raising=False)
+    earlier = ledger.reserve(est_usd=7.0, workspace="w", purpose="p", provider="meta", model="m", attempt=1)
+    ledger.settle(earlier, usd=7.0, usage_reported=True)
+    amended = ledger.budget().model_copy(
+        update={
+            "remaining_usd": 37.0,
+            "envelopes": {"dev": 2.0, "eval": 1.0},
+            "envelopes_total_usd": 30.0,
+            "envelopes_since": datetime.now(UTC),
+        }
+    )
+    ledger.set_budget(amended)
+    assert round(ledger.status().spent_usd, 4) == 7.0  # earlier spend still counts against the cumulative cap
+    with pytest.raises(SpendRefused, match="UNBIDDEN_ENVELOPE"):
+        ledger.reserve(est_usd=0.1, workspace="w", purpose="p", provider="meta", model="m", attempt=1)
+    monkeypatch.setenv("UNBIDDEN_ENVELOPE", "eval")
+    first = ledger.reserve(est_usd=0.8, workspace="w", purpose="p", provider="meta", model="m", attempt=1)
+    with pytest.raises(SpendRefused, match="envelope 'eval'"):
+        ledger.reserve(est_usd=0.3, workspace="w", purpose="p", provider="meta", model="m", attempt=1)
+    ledger.settle(first, usd=0.5, usage_reported=True)  # reconciled to the observed cost: room again
+    ledger.reserve(est_usd=0.3, workspace="w", purpose="p", provider="meta", model="m", attempt=1)
+    monkeypatch.setenv("UNBIDDEN_ENVELOPE", "dev")
+    ledger.reserve(est_usd=1.9, workspace="w", purpose="p", provider="meta", model="m", attempt=1)
+    assert round(ledger.envelope_spent("eval"), 4) == 0.8 and round(ledger.envelope_spent("dev"), 4) == 1.9

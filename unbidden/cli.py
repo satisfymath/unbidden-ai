@@ -1387,6 +1387,34 @@ def cmd_spend(args: argparse.Namespace) -> int:
         ledger.set_budget(budget)
         with (ledger.dir / "budget-history.jsonl").open("a") as history:
             history.write(budget.model_dump_json() + "\n")
+    elif args.amend_cap is not None or args.envelopes is not None:
+        # A new authorization on top of the verified one: the cap moves, the point spend is counted from does not,
+        # so everything spent since keeps counting. Envelopes split what was added, each refused past its own cap.
+        if not args.source:
+            err.print("say who authorized it and where it is recorded (--source)")
+            return 2
+        budget = ledger.budget()
+        if not budget.verified:
+            err.print("there is no verified budget to amend; enter one with --verified-balance")
+            return 2
+        update: dict[str, Any] = {"source": f"{budget.source} | {args.source} (entered by {getpass.getuser()})"}
+        if args.amend_cap is not None:
+            update["remaining_usd"] = args.amend_cap
+        if args.envelopes is not None:
+            caps = {k.strip(): float(v) for k, v in (pair.split("=", 1) for pair in args.envelopes.split(",") if pair)}
+            total = args.envelopes_total if args.envelopes_total is not None else budget.envelopes_total_usd
+            if total is not None and sum(caps.values()) > total + 1e-9:
+                err.print(
+                    f"the envelopes add up to US${sum(caps.values()):.2f}, more than the US${total:.2f} authorized"
+                )
+                return 2
+            update |= {"envelopes": caps, "envelopes_total_usd": total,
+                       "envelopes_since": budget.envelopes_since or datetime.now(UTC)}  # fmt: skip
+        budget = budget.model_copy(update=update)
+        ledger.set_budget(budget)
+        with (ledger.dir / "budget-history.jsonl").open("a") as history:
+            history.write(json.dumps({"amended_by": getpass.getuser(), "at": datetime.now(UTC).isoformat(),
+                                      "budget": budget.model_dump(mode="json")}) + "\n")  # fmt: skip
     elif args.release_reserve:
         budget = ledger.budget()
         if not budget.verified:
@@ -1405,6 +1433,10 @@ def cmd_spend(args: argparse.Namespace) -> int:
         "spent_since_verification_usd": round(status.spent_usd, 4),
         "available_usd": round(status.available_usd, 4),
         "reserve_usd": round(status.reserve_usd, 4),
+        "envelopes": {
+            name: {"cap_usd": cap, "spent_usd": round(ledger.envelope_spent(name), 4)}
+            for name, cap in ledger.budget().envelopes.items()
+        },
         "expired": status.expired,
         "basis": "list price x reported tokens; worst cost where usage is unknown. Not a billing statement.",
         "by_model": summarize(rows, "model"),
@@ -1597,6 +1629,14 @@ def build_parser() -> argparse.ArgumentParser:
     spend.add_argument("--expires", metavar="ISO", help="when the credits expire, e.g. 2026-11-04T21:00:00-05:00")
     spend.add_argument("--reserve", type=float, help="share held back for validation and the demo (default 0.2)")
     spend.add_argument("--release-reserve", action="store_true", help="allow spending the reserve (people only)")
+    spend.add_argument(
+        "--amend-cap",
+        type=float,
+        metavar="USD",
+        help="a new cumulative cap since the verification; earlier spend keeps counting (people only)",
+    )
+    spend.add_argument("--envelopes", metavar="NAME=USD,...", help="split the authorization into capped envelopes")
+    spend.add_argument("--envelopes-total", type=float, metavar="USD", help="what the envelopes may add up to")
     egress = command("egress", cmd_egress, "everything that left this machine, with the exact payloads")
     egress.add_argument("--payload", action="store_true")
     egress.add_argument("--last", type=int, default=30)
