@@ -1,3 +1,33 @@
+# Stage 7: checker v2 on the stage 6 records (2026-10-29; no model call, no new capture)
+
+Rules: objective amendment 2 (written before the code). Code: `bench/ecosystem/board_check.py` (`judge_v2`, beside
+v1), `bench/ecosystem/board_rescore.py`. Records: `docs/bench/stage7-checker-v2/`. The stage 6 results above are the
+original, unmodified reading (v1). Stated precisely: B is 30 repair runs (27 on seeded defects, 3 on healthy
+controls) over a small set of states, not 30 independent problems; A is 12 runs on one service.
+
+The 80 recorded checks hold what v2 needs (row and flag boxes, hit-tests at every scroll step and scrolled into view,
+pixel colours), so nothing was captured again. v2 takes v1's record of which bins were short and v1's numbers rule.
+
+| | v1 (original) | v2 |
+|---|---|---|
+| Repair runs verified | 30/30 | 30/30 |
+| States whose wrong rows change | — | e-shifted, e-shifted-grid: 18 -> 27 (the 9 rows the misplaced badges are drawn over) |
+| Perception, named >= 1 wrong row (14 defective), dom / vision / vision + SAM | 10 / 10 / 13 | 14 / 14 / 14 |
+| Perception, named all wrong rows | 9 / 9 / 12 | 9 / 9 / 12 |
+| Recall | 0.70 / 0.70 / 0.86 | 0.80 / 0.80 / 0.91 |
+| Precision | 0.71 / 0.71 / 0.82 | 1.00 / 1.00 / 1.00 |
+| False alarms (6 healthy) | 0 / 0 / 0 | 0 / 0 / 0 |
+
+On the shifted states, v1 scored the rows each method named as wrong guesses; v2 scores them as the false flags they
+are. What still holds: every repair verified; no false alarm on a healthy state; dom alone sufficed to repair; SAM
+remains the one method that named every wrong row on the shifted grid (both repetitions). What changes: the methods
+were not guessing on the shifted states, they saw the false flags and missed the rows left unflagged; precision was
+never the weak point. One badge, pushed above the first row, straddles and signals no row (reported, as amendment 2
+asks). What cannot be determined from the records: alerts outside every row of the page's structure (never collected
+as flags), and whether a person reads a flag as belonging to the row it is on. A defect in v2 itself was caught while
+re-reading: the first v2 count of wrong rows dropped rows with wrong numbers (the window state read 28 -> 9); fixed
+with a test before this table.
+
 # Stage 6: the frozen evaluation (code 94765da, run 2026-10-28 23:26 to 2026-10-29 01:28 UTC)
 
 Protocol: `docs/bench/stage6-freeze.md`, written before the runs. Records: `docs/bench/stage6-eval/`. Every run

@@ -142,6 +142,97 @@ def judge(page: dict[str, Any], true: dict[str, dict[str, int]]) -> dict[str, An
     return {"bins": bins, "problems": problems}
 
 
+SIGNAL_SHARE, TOUCH_SHARE = 0.5, 0.25
+
+
+def shares(flag: dict[str, float], rows: list[dict[str, Any]]) -> dict[int, float]:
+    """For each row, the share of the flag's painted height that lies on it (amendment 2): vertical overlap over the
+    flag's height, only where the flag lies within the row's horizontal extent."""
+    out: dict[int, float] = {}
+    if flag["h"] <= 0:
+        return out
+    left, right = flag["x"], flag["x"] + flag["w"]
+    for row in rows:
+        box = row["box"]
+        if right <= box["x"] or left >= box["x"] + box["w"]:
+            continue
+        overlap = min(flag["y"] + flag["h"], box["y"] + box["h"]) - max(flag["y"], box["y"])
+        if overlap > 0:
+            out[row["index"]] = round(overlap / flag["h"], 3)
+    return out
+
+
+def judge_v2(page: dict[str, Any], true: dict[str, dict[str, int]], v1: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Checker v2 (amendment 2): a flag is judged on the row that owns it and on the row it is painted on.
+    Amendment 1's other rules (each bin once, the numbers shown) are v1's, unchanged: `v1` is v1's judgement
+    (`bins` and `problems`), recomputed here unless a recorded one is given (re-reading a record)."""
+    rows = page["rows"]
+    bin_of: dict[int, str] = {}
+    for row in rows:
+        names = [b for b in true if b in row["cells"]]
+        if len(names) == 1:
+            bin_of[row["index"]] = names[0]
+    flags: list[dict[str, Any]] = []
+    for row in rows:
+        for state in row["states"]:
+            judged = judge_flag(state, row, page["seen"].get(state["id"], []))
+            share = shares(state["box"], rows)
+            signals = [r for r, v in share.items() if v >= SIGNAL_SHARE]
+            flags.append({
+                "id": state["id"], "text": state["text"], "owner": row["index"], "owner_bin": bin_of.get(row["index"]),
+                "short_text": "SHORT" in state["text"], "shares": share, "signals": signals,
+                "touched": [r for r, v in share.items() if TOUCH_SHARE <= v < SIGNAL_SHARE],
+                "straddling": not signals, "visible_alert": judged["red_alert_visible"] and judged["legible"],
+                "flag_ok": judged["flagged"] and bool(judged["legible"]),
+            })  # fmt: skip
+    v1 = v1 if v1 is not None else judge(page, true)
+    bins: dict[str, Any] = {}
+    problems: list[str] = []
+    for name, t in sorted(true.items()):
+        row_idx = next((r for r, b in bin_of.items() if b == name), None)
+        on_row = [f for f in flags if row_idx is not None and row_idx in f["signals"]]
+        own = [f for f in on_row if f["owner"] == row_idx and f["short_text"] and f["visible_alert"]]
+        others = [f for f in on_row if f["owner"] != row_idx and f["short_text"] and f["visible_alert"]]
+        alerts = [f for f in on_row if f["visible_alert"]]
+        is_short = t["shortfall"] > 0
+        before = (v1.get("bins") or {}).get(name, {})
+        out = {
+            "numbers_right": before.get("numbers_right", True) and before.get("amount_right", True)
+            and before.get("rows", 1) == 1,
+            "short": is_short,
+            "flagged": bool(own),
+            "borrowed_signal": bool(others) and not own,
+            "unsignalled": is_short and not own and not others,
+            "false_signal": (not is_short) and bool(alerts),
+            "signalled_by": sorted({str(f["owner_bin"]) for f in alerts}),
+            "own_flags": [{k: f[k] for k in ("text", "shares", "signals", "straddling", "visible_alert")}
+                          for f in flags if f["owner"] == row_idx],
+        }  # fmt: skip
+        bins[name] = out
+        if is_short and not out["flagged"]:
+            problems.append(f"{name}: short, " + ("signalled only by another row's flag" if out["borrowed_signal"]
+                                                   else "no visible SHORT flag on its row"))  # fmt: skip
+        if out["false_signal"]:
+            problems.append(f"{name}: not short, a red alert is drawn on its row (owned by {out['signalled_by']})")
+        if not is_short and out["borrowed_signal"]:
+            problems.append(f"{name}: not short, carries another row's SHORT flag")
+    # amendment 1's other conditions, as v1 judged them: each bin once, numbers right
+    for p in v1["problems"]:
+        if "shown" in p or "numbers" in p or "differs" in p:
+            problems.append(p)
+    return {"bins": bins, "flags": flags, "problems": problems,
+            "straddling": sorted(f["id"] for f in flags if f["straddling"] and f["visible_alert"])}  # fmt: skip
+
+
+def wrong_rows_v2(judged: dict[str, Any]) -> list[str]:
+    """Rows a person sees wrongly, by v2: a short row not flagged, a false or borrowed signal, or wrong numbers."""
+    return sorted(
+        b for b, j in judged["bins"].items()
+        if (j["short"] and not j["flagged"]) or j["false_signal"] or (not j["short"] and j["borrowed_signal"])
+        or not j["numbers_right"]
+    )  # fmt: skip
+
+
 def ensure_image() -> None:
     from unbidden.lab.ui import PLAYWRIGHT_IMAGE, ensure_image
 
@@ -193,6 +284,7 @@ def check(lab: Path, out: Path) -> dict[str, Any]:
         if lost:
             preserved["lost"] = sorted(lost)
     judged = judge(page, true)
+    judged2 = judge_v2(page, true, judged)
     short = sorted(b for b, t in true.items() if t["shortfall"] > 0)
     verdict = {
         "verified": not judged["problems"] and all(v for k, v in preserved.items() if k != "lost"),
@@ -203,6 +295,14 @@ def check(lab: Path, out: Path) -> dict[str, Any]:
         "preserved": preserved,
         "problems": judged["problems"],
         "bins": judged["bins"],
+        # Checker v2 (amendment 2), beside v1: owner vs painted-on rows.
+        "v2": {
+            "verified": not judged2["problems"] and all(v for k, v in preserved.items() if k != "lost"),
+            "problems": judged2["problems"],
+            "wrong": wrong_rows_v2(judged2),
+            "straddling": judged2["straddling"],
+            "bins": judged2["bins"],
+        },
         "screenshots": {
             s["screenshot"]: hashlib.sha256((out / s["screenshot"]).read_bytes()).hexdigest() for s in page["steps"]
         },
