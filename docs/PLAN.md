@@ -601,3 +601,24 @@ sandbox's interpreter and toolchain; the goal blocked by the app's inaccurate Op
 Spend: US$6.12 of US$10 (stage 7: US$0.11); US$3.88 left. Next version (D-047): the project's interpreter and a
 toolchain in experiments; documented-vs-observed deviations as evidence; reads in the endpoint map. Then a second
 application for out-of-sample evidence. Unchanged: PR13, OAuth, other cloud providers and an interface are later.
+
+# Stage 8: reproduce the project, controlled API compatibility, findings tied to real queries; a 1.0 candidate (2026-10-29)
+
+Starting point: `feat/57-transfer` @ 800422e, no later work. The Conduit evaluation frozen at 9ef6a60 stays as it is:
+two natural candidates found, no improvement demonstrated. Conduit is now development and regression for this
+stage. The `articlesCount` defect was seen by Claude, not by Unbidden; it stays so attributed, and it is never given
+to the agent as a hint in a proactive run.
+
+**Budget:** no new authorization. The ledger (checked now) reads US$6.12 spent of US$10, US$3.88 left. Split:
+development and Conduit regression up to US$1.30; the independent test US$1.80; contingency US$0.78.
+
+| # | Step | Depends on | Acceptance |
+|---|---|---|---|
+| 1 | Plan, budget | — | this section |
+| 2 | Reproduce the project's environment: interpreter from its declarations (pyproject, lock, Dockerfile, CI), conflicts resolved by a written rule; build tools detected from the project and from observed errors; provisioning (network) apart from execution (isolated) | — | the original project installs its dependencies and runs its checks before any repair, or the concrete cause is said and no evidence is promoted; tests: incompatible choice, conflicting sources, build failures; a real run on Conduit |
+| 3 | Controlled API read compatibility: a deviation on an accessory field degrades the read with the deviation recorded; on identifiers, relations, filters or compared values it blocks the conclusion; pagination or count inconsistencies make completeness unknown; writes stay strict | — | the document kept as published; per operation and field: declared contract, observed difference, provenance and time, decisions affected, reason; tests: accessory and critical nulls, invalid ids, missing fields, inconsistent totals |
+| 4 | Findings tied to real queries (endpoint -> query -> filter or join -> column -> volume -> observed cost), reads included; inferred apart from observed | — | a missing index is a candidate until reproduced, measured on both sides, the project's checks run on both sides, and its write and storage cost weighed |
+| 5 | Human requests that unblock: blocked operation, evidence, the minimum needed, what continues; states kept apart | — | a request is pertinent to the block it names (tests) |
+| 6 | Conduit regression, a new version, B before A from clean states | 2-5 | each capability's outcome recorded; human preparation counted |
+| 7 | An independent application, chosen and frozen before running | 6 | a proactive run with its own checks and an independent measurement |
+| 8 | A 1.0 candidate commit, clean-checkout install, integration proposal, exit-criteria matrix | all | 1.0 only if every exit criterion has evidence; otherwise "experimental candidate" and what blocks 1.0 |
