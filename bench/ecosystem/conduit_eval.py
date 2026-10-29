@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import time
@@ -23,11 +24,12 @@ from bench.ecosystem import conduit_lab
 from bench.ecosystem.conduit_workspace import archive
 
 LAB = Path.home() / "unbidden-lab"
-RUNS = [("B-1", "proactive"), ("A-1", "goal"), ("A-2", "goal"), ("B-2", "proactive"), ("A-3", "goal"),
-        ("B-3", "proactive"), ("A-4", "goal"), ("B-4", "proactive"), ("A-5", "goal"),
-        ("B-5", "proactive"), ("A-6", "goal"),
-        ("B-6", "proactive"), ("A-7", "goal"),
-        ("B-7", "proactive"), ("A-8", "goal")]  # fmt: skip
+ENV: dict[str, str] = dict(os.environ)  # with the run's envelope and tag (stage 9: spend is split into envelopes)
+# Stage 7-8 runs (B before A), then stage 9's regressions (R9-B<n> before R9-A<n>).
+RUNS = [(f"{arm}-{n}", "proactive" if arm.endswith("B") else "goal")
+        for arm, n in [("B", 1), ("A", 1), ("A", 2), ("B", 2), ("A", 3), ("B", 3), ("A", 4), ("B", 4), ("A", 5),
+                       ("B", 5), ("A", 6), ("B", 6), ("A", 7), ("B", 7), ("A", 8),
+                       ("R9-B", 1), ("R9-A", 1), ("R9-B", 2), ("R9-A", 2), ("R9-B", 3), ("R9-A", 3)]]  # fmt: skip
 
 
 def ledger(worktree: Path) -> float:
@@ -58,7 +60,8 @@ def run(worktree: Path, name: str, mode: str, out: Path) -> dict[str, Any]:
     def cycles(numbers: tuple[int, ...]) -> None:
         for cycle in numbers:
             argv = ["uv", "run", "--project", str(worktree), "unbidden", "watch", "--once"]
-            ran = subprocess.run(argv, cwd=repo, capture_output=True, text=True, timeout=5400)
+            ran = subprocess.run(argv, cwd=repo, capture_output=True, text=True, timeout=5400,
+                                 env={**ENV, "UNBIDDEN_RUN": name})  # fmt: skip
             logs.append(f"== cycle {cycle} (exit {ran.returncode})\n{ran.stdout}{ran.stderr}")
 
     cycles((1, 2))
@@ -103,8 +106,11 @@ def main() -> None:
     parser.add_argument("worktree")
     parser.add_argument("--out", required=True)
     parser.add_argument("--runs", default=",".join(n for n, _ in RUNS))
+    parser.add_argument("--envelope", help="the spend envelope every model call of these runs comes from")
     args = parser.parse_args()
     worktree, out = Path(args.worktree).expanduser(), Path(args.out).expanduser()
+    if args.envelope:
+        ENV["UNBIDDEN_ENVELOPE"] = args.envelope
     out.mkdir(parents=True, exist_ok=True)
     commit = subprocess.run(["git", "-C", str(worktree), "rev-parse", "HEAD"], capture_output=True, text=True,
                             check=True).stdout.strip()  # fmt: skip

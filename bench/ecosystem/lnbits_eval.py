@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -24,6 +25,7 @@ from bench.ecosystem import lnbits_lab
 from bench.ecosystem.conduit_eval import ledger
 
 LAB = Path.home() / "unbidden-lab"
+ENV: dict[str, str] = dict(os.environ)  # with the run's envelope and tag (stage 9: spend is split into envelopes)
 MANDATE = """mandate:
   workspace: lnbits
   priorities: [correctness, performance of reads as data grows]
@@ -46,8 +48,11 @@ MANDATE = """mandate:
       destinations: [api.meta.ai]
       max_payload_bytes: 60000
   models:
-    profile: local-first
-    local_fallback: allow
+    # Stage 9 (D-052): Meta's API only; the projects are public and their data synthetic.
+    profile: frontier
+    private_code_to_frontier: allow
+    local_fallback: deny
+    local_inference: deny
   connections:
     - id: lnbits-db
       kind: postgres
@@ -108,7 +113,7 @@ def run(worktree: Path, name: str, out: Path) -> dict[str, Any]:
     def cycles(numbers: tuple[int, ...]) -> None:
         for cycle in numbers:
             ran = subprocess.run([*unbidden, "watch", "--once"], cwd=repo, capture_output=True, text=True,
-                                 timeout=5400)  # fmt: skip
+                                 timeout=5400, env={**ENV, "UNBIDDEN_RUN": name})  # fmt: skip
             logs.append(f"== cycle {cycle} (exit {ran.returncode})\n{ran.stdout}{ran.stderr}")
 
     cycles((1, 2))
@@ -154,8 +159,11 @@ def main() -> None:
     parser.add_argument("worktree")
     parser.add_argument("--out", required=True)
     parser.add_argument("--run", default="I-1")
+    parser.add_argument("--envelope", help="the spend envelope every model call of this run comes from")
     args = parser.parse_args()
     worktree, out = Path(args.worktree).expanduser(), Path(args.out).expanduser()
+    if args.envelope:
+        ENV["UNBIDDEN_ENVELOPE"] = args.envelope
     out.mkdir(parents=True, exist_ok=True)
     commit = subprocess.run(["git", "-C", str(worktree), "rev-parse", "HEAD"], capture_output=True, text=True,
                             check=True).stdout.strip()  # fmt: skip

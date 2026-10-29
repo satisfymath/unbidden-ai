@@ -50,8 +50,11 @@ MANDATE = """mandate:
       destinations: [api.meta.ai]
       max_payload_bytes: 60000
   models:
-    profile: local-first
-    local_fallback: allow
+    # Stage 9 (D-052): Meta's API only; the projects are public and their data synthetic.
+    profile: frontier
+    private_code_to_frontier: allow
+    local_fallback: deny
+    local_inference: deny
   connections:
     - id: conduit-db
       kind: postgres

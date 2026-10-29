@@ -86,3 +86,9 @@ part reproduced `commentaries.article_id` at L4 (24.8 -> 18.7 ms) on the second 
 
 The cycle is complete on Conduit: reproduced before any change, measured on both sides with the project's checks,
 improvements proposed and a negative declined with evidence; one of the three improvements is a false positive.
+
+## Addendum (stage 9): the sixth version's L4s re-judged
+
+Under the corrected criteria (perf-v3, `stage9-revalidation.md`): `favorites.article_id` upheld (L4);
+`commentaries.author_id` revoked (an artifact: no effect, the index never used); `commentaries.article_id` revoked
+(18% at the endpoint, below the 20% threshold; inconclusive). The table above is kept as it was recorded.

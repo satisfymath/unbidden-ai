@@ -50,4 +50,21 @@ def pending(opp: Opportunity) -> str | None:
         return None
     if criteria.get("version") == SESSION_CRITERIA["version"]:
         return None
+    if any(r.get("criteria") == SESSION_CRITERIA["version"] and r.get("outcome") == "improved"
+           for r in opp.details.get("revalidations", [])):  # fmt: skip
+        return None
     return f"judged by criteria older than {SESSION_CRITERIA['version']}: pending revalidation"
+
+
+def revalidated(store: Store, opp_id: str, *, outcome: str, evidence: str, by: str) -> Opportunity:
+    """A verdict measured again under the current criteria and upheld: recorded beside the original."""
+    opp = store.get("opportunities", opp_id, Opportunity)
+    if opp is None:
+        raise KeyError(opp_id)
+    entry = {"at": utc_now().isoformat(), "criteria": SESSION_CRITERIA["version"], "outcome": outcome,
+             "evidence": evidence, "by": by}  # fmt: skip
+    opp.details = {**opp.details, "revalidations": [*opp.details.get("revalidations", []), entry]}
+    store.put("opportunities", opp)
+    store.append_event(Event(type=EventType.VERDICT_RECORDED, actor=by, entity_id=opp_id, correlation_id=opp_id,
+                             payload={"revalidation": entry}))  # fmt: skip
+    return opp
