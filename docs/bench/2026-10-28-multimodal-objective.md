@@ -157,3 +157,36 @@ of the three methods (`bench/ecosystem/board_eval.py`). All four development def
 every method, the cycle ended verified by the checker, with one commit per defect and none on the healthy board.
 The screenshots and SAM added no measured value on these defects (RESULTS.md, stage 5). The evaluation set (other
 data, designs and defects) is written in `board_lab.py` and `board_eval.py` (sets `eval` and `eval-cycle`).
+
+## Amendment 2 (2026-10-29, stage 7, before any checker v2 code): which row a flag belongs to, and which it is on
+
+Version 1 and amendment 1 stay as written; the stage 5 and 6 results stay as measured with the checker they ran with
+(v1). The stage 6 evaluation found v1's blind spot: v1 judged a flag only on the row that holds it in the page's
+structure, so a SHORT badge drawn over the row above (`e-shifted`) counted as "not flagged" on its own row and as
+nothing on the row it covers, although a person sees that row flagged.
+
+Checker v2 judges each flag on two relations, kept apart:
+- **owner:** the row whose element contains the flag in the page's structure (as v1);
+- **painted on:** the row(s) its painted box covers. For a flag of height h and a row's box, the share is the
+  vertical overlap of the two boxes divided by h, counted only where the flag also lies within the row's
+  horizontal extent. A flag **signals** the row it covers by a share of at least 0.5. If no row reaches 0.5 (a flag
+  straddling a boundary, or drawn between rows), it signals no row and is reported as **straddling**. Rows covered by
+  0.25 to 0.5 are reported as **touched** (not scored). The centre point alone is not used: it would call a flag
+  half over two rows "on" one of them.
+- Boxes are page coordinates (independent of scroll). Visibility, legibility and colour are judged as in amendment 1,
+  by hit-testing the flag's own points where it is painted (at every scroll step and scrolled into view) and by the
+  screenshot's pixels there; a flag never wholly in the viewport is not visible.
+
+Per bin, v2 reports, and scores:
+- **flagged:** a visible, legible, red SHORT flag that the bin's row owns signals that row;
+- **borrowed signal:** the row is signalled only by another row's SHORT flag (it looks flagged, with another bin's
+  amount): not flagged;
+- **unsignalled:** a short bin whose row no visible SHORT flag signals;
+- **false signal:** a bin that is not short whose row a visible red alert signals, whoever owns it.
+A run is verified by v2 when every short bin is flagged, no bin has a false signal or a borrowed signal, and
+amendment 1's other conditions hold (each bin once, numbers right, inventory, history and information kept).
+
+What v2 cannot see either: alerts that sit outside every row in the page's structure (they are not collected as
+flags), whether a person reads a flag as belonging to the row it is on (geometry stands in for that), and anything
+the screenshots at the recorded scroll positions do not show. Applied to the stage 6 records, v2 uses what they
+hold: row and flag boxes, hit-tests and pixels; nothing is captured again unless something is missing.
