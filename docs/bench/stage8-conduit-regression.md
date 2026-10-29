@@ -55,3 +55,11 @@ at the base, `commentaries.article_id`), then the candidate broke at import: the
 for both. Fixed generally (853309d): the migration template carries no annotations. Runs `B-6` then `A-7` from a
 worktree at the commit named below.
 regression version 5: 995afd8
+
+## Sixth regression version
+
+The fifth version (995afd8): B-6 wrote the four candidates; no workload ran at the base for any (every failure on
+event loops: Conduit's suite is asynchronous and the driver was a synchronous test that could not use its async
+fixtures). A-7 as A-6. US$0.31 for both. Fixed generally (821ea27): an async driver, generated from the workload's
+signature, when the suite's fixtures are coroutines. Runs `B-7` then `A-8` from a worktree at the commit named
+below. This is the last regression version the stage's development budget allows.

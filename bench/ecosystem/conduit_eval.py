@@ -26,7 +26,8 @@ LAB = Path.home() / "unbidden-lab"
 RUNS = [("B-1", "proactive"), ("A-1", "goal"), ("A-2", "goal"), ("B-2", "proactive"), ("A-3", "goal"),
         ("B-3", "proactive"), ("A-4", "goal"), ("B-4", "proactive"), ("A-5", "goal"),
         ("B-5", "proactive"), ("A-6", "goal"),
-        ("B-6", "proactive"), ("A-7", "goal")]  # fmt: skip
+        ("B-6", "proactive"), ("A-7", "goal"),
+        ("B-7", "proactive"), ("A-8", "goal")]  # fmt: skip
 
 
 def ledger(worktree: Path) -> float:
