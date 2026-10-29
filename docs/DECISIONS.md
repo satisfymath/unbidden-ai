@@ -1071,6 +1071,6 @@ independently, two improvements hold and **one is a false positive** (an index t
 difference between separate sandbox sessions passed the criteria). On LNbits, the application frozen for
 independence, the evaluation showed no useful cycle.
 
-**Decided:** the candidate (d0db3d3) is called experimental, with the exit criteria and their evidence in
+**Decided:** the candidate (36e1a59) is called experimental, with the exit criteria and their evidence in
 `docs/PLAN.md`; nothing is published, released or merged; the integration proposal is prepared for review only. The
 false L4 is the first thing to fix: an evidence level that a measurement artifact can reach is not one to build on.

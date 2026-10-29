@@ -6,7 +6,7 @@ deployed.
 
 ## The exact point
 
-- Code: commit **CANDIDATE** on branch `feat/58-reproduce`. `uv.lock` pins every Python dependency (Python 3.12).
+- Code: commit **36e1a59** on branch `feat/58-reproduce`. `uv.lock` pins every Python dependency (Python 3.12).
   This file is updated after the commit it names, so read it from the branch head, not from that commit.
 - Tested on (and only on): macOS 27.0.1 on Apple Silicon (arm64); OrbStack with Docker Engine 29.8.2 (linux/arm64
   containers); uv 0.13.1; git 2.56; Ollama 0.40.9 with `muse-glimmer:30b-mxfp8-dflash`; the Meta Model API
@@ -61,7 +61,7 @@ permissions. Credits never widen permissions.
 
 ```sh
 git clone https://github.com/satisfymath/unbidden-ai.git && cd unbidden-ai
-git checkout CANDIDATE        # the candidate named above
+git checkout 36e1a59         # the candidate named above
 uv sync                       # dependencies from uv.lock
 make check                    # ruff, pyright, unit tests (about 640, under a minute)
 uv run unbidden doctor        # Docker, local model, Meta key, GitHub, mandate: what works and what does not
@@ -133,7 +133,31 @@ data and code are synthetic; on real projects leave them out (data then stays lo
 
 ## The walk (clean checkout, fresh HOME)
 
-WALK
+Done on 2026-10-29 four times at successive commits, the last at the candidate (36e1a59): a new empty HOME (no
+`~/.unbidden`, no keys, no uv or model caches, no Unbidden configuration), a fresh clone over HTTPS, and only the
+commands in this file, from "Install and check" through "The lab, up and down" with `--policy local` (no Meta key
+in that HOME: `doctor` reports it, and nothing remote is used). The only thing linked from the machine user's HOME
+was Docker's own plugin directory (`~/.docker/cli-plugins`, which OrbStack installs: without it there is no
+`docker compose`). Ollama is the machine's service. The record: `docs/bench/stage8-release-walk.md`.
+
+| Step | Result at 36e1a59 |
+|---|---|
+| clone, checkout, `uv sync` | ok (4 s) |
+| `make check` | ok: ruff, pyright, 641 unit tests (43 s) |
+| `unbidden doctor` | Ollama and the local model ok, Docker ok; no Meta key (remote off), no GitHub token (proposals stay local), no workspace yet: each said as such |
+| `unbidden spend` | the ledger with a US$1.00 allowance and nothing spent (a new machine's state) |
+| depot and board labs up | ok |
+| one cycle (`watch --once`, local models only) | goal -> missing integration built and validated by the oracle -> the page fixed by a commit -> accepted, every condition verified on what was deployed, the model's own claim recorded apart; one request to a person (PyPI, for the probe), listed as such; US$0.00 |
+| `board_check` (independent, model-free) | no problems |
+| `activity`, `connections`, `egress` | each answered |
+| `kill`, `resume` | engaged and lifted |
+| labs down | ok; no sandbox container left; other labs' containers untouched |
+
+What earlier walks found, and what was changed: at d0db3d3, `make check` failed (the pyright package downloads Node
+on first use, and that failed: `pyright[nodejs]` now brings Node from the lock), a type error in a stage 8 test, and
+this file named Docker Desktop instead of OrbStack; at 2f8cf08, the board app did not answer within its wait once
+(not reproduced in two tries since; no change made), and the labs' `down` removed every container with the shared
+lab label, including other labs' (now limited to its own `unbidden-lab-*` containers).
 
 ## The lab, up and down
 
@@ -152,4 +176,23 @@ listens on 127.0.0.1; `down` removes only those. Stage 8's applications: `condui
 
 ## Integration proposal (verified on the git graph; no PR or merge in this stage)
 
-INTEGRATION
+**Candidate:** `feat/58-reproduce` at 36e1a59 (this file, and the records after it, are documentation commits on
+top of it; the product and harness are those of 36e1a59).
+
+**Relation with `main`:** `main` is 790a711, the merge of PR #1 (`hackathon-build`); its tree is identical to
+b3f7433, where the whole stack starts. The stack is one linear line from b3f7433 to the candidate: 263 commits not in
+`main`, no merge commits. Every other remote branch (61 in all) is an ancestor of the candidate except
+`feat/14-routing`, `feat/15-bridge-domain`, `feat/16-machine` and `feat/17-monorepo`, whose commits are all in the
+stack under rebased commits with the same subject (nothing of theirs is lost), and `feat/20-scale-eval`.
+
+**Commits that are not in the candidate and must not be lost:** one, `feat/20-scale-eval` a77ef43 (docs: v5 paired
+against v4 on dev; 4 files, a 30,000-line JSON). Either cherry-pick it onto the candidate before integrating, or keep
+the branch as its record.
+
+**Checks before integrating:** `make check` on the candidate; the walk above from a clean checkout; a test merge
+into `main` (done 2026-10-29 in a scratch worktree: no conflict, and the merged tree equals the candidate's tree).
+
+**Strategy:** one merge of the candidate into `main` (`git merge --no-ff`), not branch-by-branch merges: the stack
+is linear and contains every branch. A fast-forward is not possible (main's merge commit is not in the stack).
+**Rollback:** move `main` back to 790a711, or `git revert -m 1` the merge (main's tree equals b3f7433, so the revert
+restores it exactly). The stacked branches stay on the remote either way. Nothing is merged in this stage.

@@ -28,6 +28,9 @@ Every number above was measured during the event. How it was measured, and what 
 
 ## Install
 
+The current release candidate, what it supports, its limits and a walked install from a clean checkout:
+[`docs/RELEASE.md`](docs/RELEASE.md). The commands below install from `main`.
+
 Requirements:
 - Python 3.12 and [uv](https://docs.astral.sh/uv/)
 - Docker
