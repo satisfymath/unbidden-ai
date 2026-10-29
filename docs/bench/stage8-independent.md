@@ -101,3 +101,5 @@ is read through its container's user and database. Any repeat on LNbits is repor
 The same protocol and preparation, run `I-2` (`lnbits_eval.py --run I-2`), from a worktree at the commit named
 below, after the Conduit regression's fourth version. It shows whether the fixes made from I-1 work; it was tuned on
 I-1, so it is not out-of-sample evidence.
+
+I-2 commit: fbf8d32

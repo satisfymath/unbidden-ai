@@ -44,3 +44,4 @@ workload request was refused by Guardian's prompt scan (Conduit's tests log in w
 lab swallowed the refusal; A-5 as A-4. Fixed generally (16682f4): credential-looking values masked before asking,
 refusals recorded, a masked value never flagged again. With the post-evaluation fixes from LNbits (da7a595), runs
 `B-5` then `A-6` (`--runs B-5,A-6`) from a worktree at the commit named below.
+regression version 4: fbf8d32
