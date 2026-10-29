@@ -55,6 +55,11 @@ permissions. Credits never widen permissions.
 - The world checks find unindexed foreign keys and table scans; a project whose foreign keys are indexed (LNbits)
   gets no finding from them, correctly, and there are few other kinds of database finding.
 - Masking credential-looking values in prompts (`password="password"` in tests) hides them from the model too.
+- **An L4 can be wrong.** On Conduit, one of three L4 improvements was an index its query does not use: base and
+  candidate are measured in separate sandbox sessions, and a 0.5 ms difference passed the criteria. Check an L4
+  against the query plan before relying on it (`bench/ecosystem/conduit_indep.py` shows how).
+- Index proposals are independent: each is one Alembic migration after the current head, so applying two
+  together needs a merge revision.
 - Results come from a few real projects run once or a few times each; no claim about rates.
 
 ## Install and check
