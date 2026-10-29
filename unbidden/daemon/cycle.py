@@ -184,7 +184,7 @@ class Cycle:
         except Exception as exc:
             self.store.set_value("last_probe", {**record, "why": f"environment: {str(exc)[:300]}"})
             raise
-        if "python" not in images:
+        if "python" not in images and "python" not in getattr(images, "failed", {}):
             self.store.set_value("last_probe", {**record, "why": "no Python image could be built"})
             self.log(f"robustness probe of {package}: no Python image could be built")
             return

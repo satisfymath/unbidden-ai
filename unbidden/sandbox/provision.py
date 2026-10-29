@@ -199,6 +199,26 @@ def _seed(stack: PythonStack) -> str:
     return f" && uv pip install --python /deps/.venv/bin/python{era} {tools}"
 
 
+def _own(stack: PythonStack) -> str:
+    """The project itself, installed the way `uv sync` installs it, editable: its metadata in the environment and its
+    source (the run's snapshot, at /work) on the path. Its code is not in the image; the metadata is enough for
+    `importlib.metadata.version(...)` and entry points that the project reads at import."""
+    if stack.own is None:
+        return ""
+    name, version = stack.own
+    dist = re.sub(r"[-_.]+", "_", name)
+    if not re.fullmatch(r"\w+", dist) or not re.fullmatch(r"[\w.+!-]+", version):
+        return ""
+    info = f'"$SP/{dist}-{version}.dist-info"'
+    roots = "\\n".join(f"/work/{r}".rstrip("/.") or "/work" for r in stack.source_roots)
+    return (
+        " && SP=$(/deps/.venv/bin/python -c \"import sysconfig; print(sysconfig.get_paths()['purelib'])\")"
+        f" && mkdir -p {info}"
+        f" && printf 'Metadata-Version: 2.1\\nName: {name}\\nVersion: {version}\\n' > {info}/METADATA"
+        f" && echo unbidden > {info}/INSTALLER && printf '{roots}\\n' > \"$SP/_unbidden_{dist}.pth\""
+    )
+
+
 def python_dockerfile(stack: PythonStack, *, system_build_tools: bool = False, headers: tuple[str, ...] = ()) -> str:
     if stack.lockfile == "uv.lock":
         scope = "--no-install-workspace --all-packages" if stack.members else "--no-install-project"
@@ -249,7 +269,7 @@ ENV UV_PYTHON=/usr/local/bin/python{stack.version} UV_PYTHON_DOWNLOADS=never
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
 WORKDIR /deps
 COPY ctx/ /deps/
-RUN {install} \\
+RUN {install}{_own(stack)} \\
  && (/deps/.venv/bin/python -c "import pytest" 2>/dev/null \\
      || uv pip install --python /deps/.venv/bin/python pytest=={PYTEST_VERSION} \\
      || uv pip install --python /deps/.venv/bin/python pytest) \\

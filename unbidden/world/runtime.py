@@ -317,6 +317,19 @@ def _postgres(world: WorldModel, service: str, container: str, user: str, defaul
     return read_any
 
 
+def container_env(container: str, names: tuple[str, ...]) -> dict[str, str]:
+    """The named variables of a running container's environment, and no others (a password stays unread)."""
+    from unbidden.operate.ledger import _docker_json  # pyright: ignore[reportPrivateUsage]
+
+    found: dict[str, str] = {}
+    for item in _docker_json("inspect", container):
+        for pair in (item.get("Config") or {}).get("Env") or []:
+            key, _, value = str(pair).partition("=")
+            if key in names:
+                found[key] = value
+    return found
+
+
 def compose_files(repo: Path) -> list[str]:
     """The compose files this project's running containers were started with, relative to the repository."""
     from unbidden.operate.ledger import _docker_json  # pyright: ignore[reportPrivateUsage]
@@ -458,6 +471,18 @@ def discover_runtime(repo: Path, world: WorldModel, rev: str = "HEAD", files: li
             user = data.environment.get("POSTGRES_USER", "postgres")
             default = data.environment.get("POSTGRES_DB", user)
             if _postgres(world, service, name, user, default):
+                ran.add(POSTGRES_READONLY.ref)
+        elif (
+            data is None
+            and (engine := DATA_IMAGES.match(str(container.get("Image", ""))))
+            and engine.group(1) == ("postgres")
+        ):
+            # Running from a compose file not read: the image says PostgreSQL, and the container's own environment
+            # says its user and database (only those two are read). Found on LNbits (stage 8 independent run): its
+            # tables were never read, so no check had anything to look at.
+            env = container_env(name, ("POSTGRES_USER", "POSTGRES_DB"))
+            user = env.get("POSTGRES_USER", "postgres")
+            if _postgres(world, service, name, user, env.get("POSTGRES_DB", user)):
                 ran.add(POSTGRES_READONLY.ref)
     if undeclared:
         world.blind_spots.append(

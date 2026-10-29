@@ -108,3 +108,25 @@ def test_environments_before_3_12_are_seeded_as_they_were() -> None:
     # Conduit: aiosql imports pkg_resources; today's setuptools lacks it or warns, which its suite makes an error.
     assert "--exclude-newer 2022-08-21T12:00:00+00:00 setuptools pip" in python_dockerfile(old)
     assert "setuptools" not in python_dockerfile(new).split("uv venv /deps/.venv")[1].split("-r ")[0]
+
+
+def test_the_projects_own_package_is_registered_as_uv_sync_would_install_it() -> None:
+    """Found on LNbits (stage 8 independent run, 6bbf3a1): only its dependencies were installed, and importing it
+    failed on `importlib.metadata.version("lnbits")`. The image now registers the project itself, editable."""
+    from unbidden.observe.stack import PythonStack, own_package
+    from unbidden.sandbox.provision import python_dockerfile
+
+    package = {"project": {"name": "my-app", "version": "1.2.0"}, "build-system": {"requires": ["hatchling"]}}
+    assert own_package(package) == ("my-app", "1.2.0")
+    assert own_package({"project": {"name": "my-app", "dynamic": ["version"]}, "build-system": {}}) == (
+        "my-app",
+        "0.0.0",
+    )
+    assert own_package({"project": {"name": "scripts-only"}}) is None  # not a package: uv sync installs nothing
+    stack = PythonStack(version="3.12", lockfile="uv.lock", manifest="pyproject.toml", ruff=False, pyright=False,
+                        pytest=True, own=("my-app", "1.2.0"))  # fmt: skip
+    built = python_dockerfile(stack)
+    assert "my_app-1.2.0.dist-info" in built and "Name: my-app" in built and "_unbidden_my_app.pth" in built
+    assert "dist-info" not in python_dockerfile(PythonStack(version="3.12", lockfile="uv.lock",
+                                                            manifest="pyproject.toml", ruff=False, pyright=False,
+                                                            pytest=True))  # fmt: skip

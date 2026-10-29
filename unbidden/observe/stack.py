@@ -64,6 +64,7 @@ class PythonStack:
     path_sources: tuple[tuple[str, str], ...] = ()  # (package, directory) installed from a path in the repository
     version_notes: tuple[str, ...] = ()  # why this interpreter: the rule, the project's declarations, conflicts
     lock_date: str | None = None  # when the lockfile (or manifest) was last committed: the environment's era
+    own: tuple[str, str] | None = None  # (name, version) of the project's own package, installed by `uv sync`
 
 
 @dataclass(frozen=True)
@@ -344,6 +345,7 @@ def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str]
                 pyright="pyright" in text,
                 pytest="pytest" in text or bool(_tests_under(files, (".",))),
                 requirements=poetry_requirements(_read(repo, rev, "poetry.lock")),
+                own=own_package(project),
             )
     if "pyproject.toml" in files:
         project = tomllib.loads(_read(repo, rev, "pyproject.toml"))
@@ -370,6 +372,7 @@ def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str]
             source_roots=roots,
             test_paths=tests if members else (),
             mypy=mypy,
+            own=None if members else own_package(project),
             **uv,
         )
     if "requirements.txt" in files:
@@ -396,6 +399,19 @@ def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str]
             requirements=requirements,
         )
     return None
+
+
+def own_package(project: dict[str, Any]) -> tuple[str, str] | None:
+    """The project's own distribution, when it is a package (a build system is declared): `uv sync` and `poetry
+    install` install it in the environment, so code may read its own metadata (`importlib.metadata.version`). Found
+    on LNbits (stage 8, independent run): only its dependencies were installed, and importing it failed. A dynamic
+    version is given as 0.0.0, as for projects that take it from git."""
+    meta = project.get("project", {}) or project.get("tool", {}).get("poetry", {})
+    name = meta.get("name")
+    if not name or "build-system" not in project:
+        return None
+    version = meta.get("version") if isinstance(meta.get("version"), str) else None
+    return str(name), version or "0.0.0"
 
 
 def _admits(spec: str, version: str) -> bool:
