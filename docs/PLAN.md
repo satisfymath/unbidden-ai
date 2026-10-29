@@ -565,3 +565,24 @@ evaluation at 94765da (A: Linen 12/12; B: perception per method, 30/30 repairs v
 (`docs/bench/stage6-demo.md`); the release and the integration order (`docs/RELEASE.md`). Spend: US$5.94 of US$10
 before the demo, US$0.07 the demo. Pending, by evidence: the checker's next version counts visible false flags;
 PR13, OAuth, other cloud providers and an interface stay for after consolidation; no PR or merge was made.
+
+# Stage 7: checker v2, verifiable acceptance, and a real application (2026-10-29)
+
+Starting point: `feat/56-consolidation` @ 536fafe (release f8d3fc2, evaluation 94765da), no later work. Stage 6 is
+closed and its records stay as they are. Stage 6's results, stated precisely: A, 12 runs on one service (Linen);
+B, 30 repair runs accepted by the original checker, 27 on seeded defects and 3 on healthy controls, over a small set
+of states: runs, not 30 independent problems.
+
+**Budget.** No new authorization: the stage 6 one (D-044), US$10 from 2026-10-28T22:44:23Z, of which US$6.01 spent;
+US$3.99 available (ledger checked 2026-10-29). Planned: development US$1.20, the frozen transfer evaluation US$2.00,
+contingency US$0.79. If that is not enough, what was done is delivered and a concrete extension is asked for.
+
+| # | Step | Depends on | Acceptance |
+|---|---|---|---|
+| 1 | Plan, budget | — | this section |
+| 2 | Checker v2: which row a flag belongs to, which row(s) it is drawn over, what a person sees | — | rules written before code (objective, amendment 2); healthy and adversarial tests; stage 6 records re-read with no model call; original and v2 results side by side |
+| 3 | Acceptance inside the product: conditions with source, observation, outcome, and what happens when unverifiable | — | proposed / model-says-resolved / objective checks passed / inconclusive or rejected kept apart in state and `activity`; a model cannot weaken a condition after its repair fails; tests for each listed case |
+| 4 | A real application, chosen and pinned before the agent runs | — | not built by us, not Mealie, runs locally isolated, stack in scope, observable behaviour, own checks; reasons and limits recorded; every human setup step counted |
+| 5 | Transfer (a general goal) and proactive discovery (no ticket) on it | 2-4 | frozen version, configuration, criteria, budget and repetitions before the runs; "no demonstrable improvement" is a valid result |
+| 6 | Release from a clean checkout following only RELEASE.md; integration proposal from the real git graph | — | every instruction executed as written |
+| 7 | PLAN, RESULTS, RELEASE, decisions | all | — |
