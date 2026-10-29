@@ -32,7 +32,7 @@ def test_the_index_goes_on_the_column_of_the_mapped_class_and_a_migration_follow
     assert 'mapped_column(GUID, ForeignKey("labels.id"), index=True)' in model
     assert 'ForeignKey("labels.id"), primary_key=True)' in model  # the other class's label_id is untouched
     (migration,) = (text for path, text in files.items() if path.startswith("app/alembic/versions/"))
-    assert 'down_revision: str | None = "a9f823e9e441"' in migration
+    assert 'down_revision = "a9f823e9e441"' in migration
     assert 'create_index(batch_op.f("ix_shopping_list_items_label_id"), ["label_id"]' in migration
     compile(migration, "migration.py", "exec")
 
@@ -121,4 +121,8 @@ def test_a_table_kept_only_in_migrations_gets_the_migration_alone(tmp_path: Path
         "_comments_article_id.py"
     )
     (migration,) = out.values()
-    assert 'down_revision: str | None = "aaa111"' in migration and '["article_id"]' in migration
+    assert 'down_revision = "aaa111"' in migration and '["article_id"]' in migration
+    import ast
+
+    ast.parse(migration, feature_version=(3, 8))  # valid syntax on every supported Python
+    assert "|" not in migration  # no PEP 604 annotation: evaluated at import, a TypeError before 3.10

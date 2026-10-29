@@ -209,6 +209,8 @@ def _model_index(source: str, table: str, column: str) -> str | None:
     return "".join(lines)
 
 
+# No annotations: `str | None` is a TypeError before Python 3.10, and the project's interpreter may be older
+# (Conduit's 3.9 broke the first candidate measured, stage 8 regression B-5).
 _INDEX_MIGRATION = '''"""add index on {table}.{column}
 
 Revision ID: {revision}
@@ -220,9 +222,9 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "{revision}"
-down_revision: str | None = "{head_rev}"
-branch_labels: str | tuple[str, ...] | None = None
-depends_on: str | tuple[str, ...] | None = None
+down_revision = "{head_rev}"
+branch_labels = None
+depends_on = None
 
 
 def upgrade():
