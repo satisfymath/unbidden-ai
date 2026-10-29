@@ -14,3 +14,12 @@ what is found and how it is explained; whether an experiment runs and what it sh
 checks green on both sides, or a discard with evidence); what is asked of a person; the second cycle's repeats;
 calls, models, latency, spend.
 regression version: adb803d
+
+## Second regression version
+
+The first version's runs (adb803d, `B-2`, `A-3`) showed five defects, each fixed generally, none with
+Conduit-specific code: one request per need and the held work released on the grant; deviations counted once per
+operation, field and value; reads bounded by records (50 requests had stopped the listing at 5,000 of 20,000); and
+handlers of routes mounted with `include_router` prefixes located (two endpoints had no handler, so their joins went
+unexplained). Same protocol, same preparation, same single declared answer: runs `B-3` then `A-4`
+(`--runs B-3,A-4`) from a worktree at the commit named below.
