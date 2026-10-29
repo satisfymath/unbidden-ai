@@ -586,3 +586,10 @@ contingency US$0.79. If that is not enough, what was done is delivered and a con
 | 5 | Transfer (a general goal) and proactive discovery (no ticket) on it | 2-4 | frozen version, configuration, criteria, budget and repetitions before the runs; "no demonstrable improvement" is a valid result |
 | 6 | Release from a clean checkout following only RELEASE.md; integration proposal from the real git graph | — | every instruction executed as written |
 | 7 | PLAN, RESULTS, RELEASE, decisions | all | — |
+
+## Stage 7 status, 2026-10-29
+
+Done: checker v2 and the stage 6 re-read (step 2); acceptance in the product with its tests and `activity` (step 3);
+the application chosen and its protocol written (step 4, part); the release walked from a clean checkout and
+corrected, and the integration proposal from the git graph (step 6). Blocked: building and running Conduit (needs a
+person's permission), and so the transfer and proactive runs (step 5). Spend: US$6.06 of US$10; US$3.94 left.

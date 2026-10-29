@@ -1,3 +1,12 @@
+# Stage 7, so far (2026-10-29)
+
+| | Implemented | Tested (units) | Lab, real models | Out of development |
+|---|---|---|---|---|
+| Checker v2 (owner vs painted-on rows) | yes | yes (adversarial and healthy) | applied to the 80 stage 6 records, no model call | — (a checker, not the agent) |
+| Acceptance inside the product | yes | yes (10 cases: model says fixed and a check fails, a check that cannot run, one condition met and another broken, stale evidence, an unusable model re-check, weakened conditions, ambiguity) | yes, once: the release walk (board goal on Spark, accepted, checker verified) | not yet |
+| Transfer to a real application (Conduit) | protocol only | — | **blocked**: building a third-party repository needs permission | — |
+| Release from a clean checkout | yes | `make check`: 600 tests | walked as written: works, corrected (RELEASE.md) | — |
+
 # Stage 7: checker v2 on the stage 6 records (2026-10-29; no model call, no new capture)
 
 Rules: objective amendment 2 (written before the code). Code: `bench/ecosystem/board_check.py` (`judge_v2`, beside

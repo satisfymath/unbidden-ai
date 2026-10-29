@@ -975,3 +975,22 @@ row that is not its own); it is a new version, and the stage 6 results stay as m
 
 **What this does not show:** systems other than PostgreSQL, OpenAPI 3.0/3.1 REST with header keys and Idempotency-Key
 writes undone by DELETE, local pages; production systems; other kinds of goals; small n (descriptive).
+
+## D-046 · 2026-10-29 · Stage 7 (in progress): checker v2, acceptance inside the product, and the transfer's block
+
+**Checker v2** (objective amendment 2): a flag is judged on the row that owns it and on the row it is painted on
+(share of its height >= 0.5 signals; straddling reported). Re-reading all 80 stage 6 records with no model call:
+30/30 repairs still verified; the shifted states' wrong rows 18 -> 27; perception precision 1.00 for every method.
+The original reading is kept beside it.
+
+**Acceptance inside the product:** a change counts only when conditions fixed before it (sealed; their source,
+observation, satisfying result, and "inconclusive" when unverifiable) hold on what is deployed, the model's claim kept
+apart; an ambiguous goal changes nothing and asks. The benchmark's checker is not copied into the agent; the kinds are
+generic (declared checks, keys once, information kept, marks given by the goal and the page, an action's effect).
+
+**Transfer:** Conduit (FastAPI RealWorld, pinned 029eb77) chosen and its protocol written before any run. Building and
+running it is blocked: this session's permission rules refused building a third-party repository. It needs David's
+explicit permission; nothing was attempted around the refusal.
+
+**Doctor:** on 2026-10-29 the Meta model listing answered 401 for the key while chat calls with it worked; doctor now
+says what it saw. (An intermediate message in this stage wrongly said the key had to be replaced; corrected.)
