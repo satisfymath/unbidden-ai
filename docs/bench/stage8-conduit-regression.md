@@ -23,3 +23,4 @@ operation, field and value; reads bounded by records (50 requests had stopped th
 handlers of routes mounted with `include_router` prefixes located (two endpoints had no handler, so their joins went
 unexplained). Same protocol, same preparation, same single declared answer: runs `B-3` then `A-4`
 (`--runs B-3,A-4`) from a worktree at the commit named below.
+regression version 2: 37e2324
