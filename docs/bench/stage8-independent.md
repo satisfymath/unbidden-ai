@@ -69,3 +69,5 @@ read with deviations or blocked; findings and their labels; experiments and thei
 with no improvement is a valid result and is reported as such.
 
 **Budget:** the independent test's share, US$1.80; the workspace's cap is US$1.50.
+
+**Frozen product commit:** 6bbf3a1 (product, harness and this protocol; the run uses a worktree at it).

@@ -35,3 +35,4 @@ stopped every index experiment at "no the model of table ...": Conduit keeps its
 reads with SQL. Fixed generally (bea8adf): the schema comes from the migration that creates the table when no model
 maps it, and a PostgreSQL test service counts as enforcing foreign keys. Runs `B-4` then `A-5` (`--runs B-4,A-5`),
 same protocol, from a worktree at the commit named below, which is also the independent run's frozen commit.
+regression version 3: 6bbf3a1
