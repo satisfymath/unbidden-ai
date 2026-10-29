@@ -75,8 +75,8 @@ with no improvement is a valid result and is reported as such.
 ## Result of I-1 (the evaluation, as run)
 
 Run once on 2026-10-29 at 6bbf3a1 with LNbits at 9349da1; record in `stage8-independent/I-1/`. 104 s for four
-cycles, US$0.00 of model spend (one Spark call was not needed: nothing reached a model but the probe's local test
-writing), ledger 6.2648 before and after.
+cycles, US$0.00 of model spend: one model call, the probe's property tests written by the local model (Glimmer;
+the code is labelled private, so it leaves only renamed and the route kept it local); ledger 6.2648 before and after.
 
 | Capability | What happened | Independent measurement |
 |---|---|---|
