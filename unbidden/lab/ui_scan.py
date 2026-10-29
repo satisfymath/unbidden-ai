@@ -76,6 +76,7 @@ def main() -> None:
         page.goto(url, wait_until="domcontentloaded", timeout=30000)
         page.wait_for_timeout(wait_ms)
         rows = page.evaluate(ROWS)
+        lines = page.evaluate("document.body.innerText.split('\\n').map(l => l.trim()).filter(l => l)")
         overlays = page.evaluate(OVERLAYS)
         ids = [m["id"] for r in rows for m in r["marks"]]
         total = page.evaluate("document.documentElement.scrollHeight")
@@ -119,6 +120,7 @@ def main() -> None:
                 "steps": steps,
                 "rows": rows,
                 "overlays": overlays,
+                "lines": lines,
             }
         )
     )

@@ -60,6 +60,11 @@ CHECK_SCHEMA: dict[str, Any] = {
             },
         },
         "cause": {"type": "string"},
+        "flag": {
+            "type": ["object", "null"],
+            "required": ["text_contains", "background"],
+            "properties": {"text_contains": {"type": "string"}, "background": {"type": "string"}},
+        },
     },
 }
 
@@ -256,6 +261,7 @@ async def perceive(
         "conclusive": answer is not None,
         "discrepancies": answer["discrepancies"] if answer else [],
         "cause": answer.get("cause", "") if answer else "",
+        "flag": answer.get("flag") if answer else None,
         "problems": problems,
         "model": served(brain, "director.page_check", started),
         "sam": sam, "screenshots": scan.digests(),
@@ -325,12 +331,16 @@ def run_checks(tree: Path, mandate: Mandate) -> dict[str, Any]:
     """The application's declared checks, offline, in its declared image, on a copy of the changed tree."""
     ops = mandate.operations
     if not ops.check_steps or not ops.check_image:
-        return {"ok": False, "log": "the mandate declares no checks for the application (operations.check_steps)"}
+        return {
+            "ok": False,
+            "ran": False,
+            "log": "the mandate declares no checks for the application (operations.check_steps)",
+        }
     verdict = PolicyEngine(mandate).evaluate(
         ActionRequest(capability="sandbox.run", purpose="the application's checks")
     )
     if not verdict.allowed:
-        return {"ok": False, "log": "; ".join(verdict.reasons)}
+        return {"ok": False, "ran": False, "log": "; ".join(verdict.reasons)}
     from unbidden.guardian.killswitch import labels
 
     log = []
@@ -386,6 +396,34 @@ async def propose(
     return (changed or None), cause, model
 
 
+def conditions(
+    want: dict[str, dict[str, Any]], flag: dict[str, Any], page: dict[str, Any], mandate: Mandate
+) -> list[Any]:
+    """What a change must satisfy, fixed before it is made, each with where it comes from."""
+    from unbidden.contracts.acceptance import Condition
+    from unbidden.director.acceptance import info_lines
+
+    keys = sorted(want)
+    out = [
+        Condition(id="checks", kind="checks_pass", source="mandate", what="the application's declared checks pass",
+                  spec={"steps": mandate.operations.check_steps}, satisfies="every declared step exits 0"),
+        Condition(id="rows", kind="keys_once", source="data", what="every key of the data is on exactly one row",
+                  spec={"keys": keys}, satisfies="no key hidden, dropped or duplicated"),
+        Condition(id="marks", kind="marks", source="model",
+                  what=f"rows the goal flags carry {flag['text_contains']!r} on {flag['background']}; no other does",
+                  spec={"text_contains": flag["text_contains"], "background": flag["background"], "min_visible": 0.9,
+                        "flag_keys": [k for k in keys if want[k]["flag"]],
+                        "plain_keys": [k for k in keys if not want[k]["flag"]]},
+                  satisfies="each flagged key's row has such a mark at least 90 % visible; no other row has one"),
+    ]  # fmt: skip
+    if "lines" in page:
+        out.append(Condition(id="information", kind="information_kept", source="project",
+                             what="what the page said besides the rows is still said",
+                             spec={"lines": sorted(info_lines(page["lines"], set(keys))), "keys": keys},
+                             satisfies="every such line still on the page (digits may change)"))  # fmt: skip
+    return out
+
+
 def changes_today(store: Store, goal: Goal, window: str) -> int:
     return sum(1 for d in store.get_value(f"page_changes:{goal.id}", []) if d.startswith(window))
 
@@ -395,9 +433,11 @@ async def pursue_page(
     repo: Path, artifacts: Path, perception: str, window: str, source: Source,
 ) -> None:  # fmt: skip
     """Observe, compare, and within bounds repair and verify. Sets `run.status` and records the evidence."""
+    from unbidden.director import acceptance as accept
     from unbidden.lab.ui import scan as scan_page
     from unbidden.operate.deploy import OperationRefused, deploy
 
+    accept.refresh(store, f"page:{goal.id}:", _git(repo, "rev-parse", "HEAD").stdout.strip())
     out = artifacts / "pages" / run.id
     before = scan_page(url, out / "before")
     found = await perceive(brain, store, mandate, goal, before, want, perception, source=source)
@@ -417,6 +457,15 @@ async def pursue_page(
         run.status = "page_reported"
         run.notes.append(f"{len(found['discrepancies'])} discrepancies; no change allowed now (max_changes {limit})")
         return
+    flag = found.get("flag") or {}
+    if not flag.get("text_contains") or not flag.get("background"):
+        # How a flagged row must look is neither in the goal nor in the page: a person says, before anything changes.
+        run.status = "page_needs_clarification"
+        run.notes.append("the goal and the page do not say how a flagged row is marked; nothing changed")
+        return
+    acc = accept.fix(f"page:{goal.id}:{run.id}", conditions(want, flag, before.page, mandate))
+    store.put(accept.COLLECTION, acc)
+    run.evidence["acceptance"] = acc.id
     feedback: str | None = None
     base = _git(repo, "rev-parse", "HEAD").stdout.strip()
     attempts: list[dict[str, Any]] = []
@@ -472,33 +521,28 @@ async def pursue_page(
         after = scan_page(url, out / f"after-{attempt}")
         again = await perceive(brain, store, mandate, goal, after, want, perception, source=source)
         record["after"] = {"dir": str(out / f"after-{attempt}"), **again}
-        if not again["conclusive"]:
-            # A change that cannot be judged is not left deployed, and is not called a fix.
-            record["result"] = "the check after the change gave no usable answer; the previous commit is redeployed"
-            deploy(repo, store, mandate, base, reason=f"goal {goal.id}: a change could not be verified", rollback=True)
+        claim = "unusable" if not again["conclusive"] else "unresolved" if again["discrepancies"] else "resolved"
+        acc.change = {"commit": commit, "patch_sha256": record["patch_sha256"], "attempt": attempt}
+        accept.judge(acc, {"checks": checks, "page": after.page}, commit, claim)
+        store.put(accept.COLLECTION, acc)
+        record["acceptance"] = {"state": acc.state, "why": acc.why, "model_claim": claim,
+                                "outcomes": [o.model_dump(mode="json") for o in acc.outcomes]}  # fmt: skip
+        if acc.state == "accepted":
+            record["result"] = "accepted: every fixed condition holds on what is deployed"
+            run.status = "page_fixed"
+            run.notes.append(
+                f"{len(found['discrepancies'])} discrepancies fixed by {commit[:12]}, accepted: {cause[:160]}"
+            )
+            return
+        # Rejected or inconclusive: what cannot be accepted is not left deployed.
+        record["result"] = f"{acc.state}: {acc.why}; the previous commit is redeployed"
+        deploy(repo, store, mandate, base, reason=f"goal {goal.id}: a change was {acc.state}", rollback=True)
+        if acc.state == "inconclusive":
             run.status = "page_inconclusive"
             run.notes.append(record["result"])
             return
-        rows_now = rows_by_key(after.page, set(want))
-        lost = sorted(k for k in want if len(rows_now.get(k, [])) != 1 and len(shown.get(k, [])) == 1)
-        if lost:
-            record["result"] = f"rows lost: {', '.join(lost)}; the previous commit is redeployed"
-            deploy(repo, store, mandate, base, reason=f"goal {goal.id}: a change lost rows", rollback=True)
-            run.status = "page_unresolved"
-            run.notes.append(record["result"])
-            return
-        if not again["discrepancies"]:
-            record["result"] = "the discrepancies are gone"
-            run.status = "page_fixed"
-            run.notes.append(f"{len(found['discrepancies'])} discrepancies fixed by {commit[:12]}: {cause[:160]}")
-            return
-        if len(again["discrepancies"]) >= len(found["discrepancies"]):
-            record["result"] = "no better; the previous commit is redeployed"
-            deploy(repo, store, mandate, base, reason=f"goal {goal.id}: a change did not help", rollback=True)
-        else:
-            record["result"] = f"{len(again['discrepancies'])} discrepancies remain"
-            base, before, found = commit, after, again
-        feedback = "; ".join(f"{d['key']}: {d['kind']}" for d in again["discrepancies"])[:600]
+        failed = [o for o in acc.outcomes if o.status == "failed"]
+        feedback = "; ".join(f"{o.condition}: {json.dumps(o.observation)[:200]}" for o in failed)[:800]
         if changes_today(store, goal, window) >= limit:
             break
     run.status = "page_unresolved"

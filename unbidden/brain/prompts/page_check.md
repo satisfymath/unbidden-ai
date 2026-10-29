@@ -34,4 +34,9 @@ For every key whose row the page shows wrongly, say what is wrong:
 Report only what the observations show. If the page is right, report nothing. Then say, in one sentence, what in
 the page's code most likely causes what you found (or "none").
 
+Last, say how a flagged row must be marked on this page, as `flag`: the text its mark carries (`text_contains`) and
+the background colour of that mark, in the colour words used in the observations above (`background`, e.g. "red",
+"dark green"). Take it from the goal first, then from how this page already marks rows where it is right. If neither
+says, answer `flag: null`; do not guess.
+
 Answer with JSON only, matching this schema: {{schema}}

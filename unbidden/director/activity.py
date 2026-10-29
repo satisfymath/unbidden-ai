@@ -121,6 +121,7 @@ def _ecosystem(store: Store) -> dict[str, Any]:
     """Connections, integrations, actions and goal runs: what Unbidden can really do in the project, and did."""
     from unbidden.connect.registry import COLLECTION as CONNECTIONS
     from unbidden.connect.registry import summary
+    from unbidden.contracts.acceptance import Acceptance
     from unbidden.contracts.action import Action
     from unbidden.contracts.connection import Connection, ConnectionState
     from unbidden.director.goals import COLLECTION as GOALS
@@ -168,6 +169,22 @@ def _ecosystem(store: Store) -> dict[str, Any]:
             }
             for a in actions
             if a.kind == "api_call"
+        ],
+        # Each change judged by acceptance, its four parts kept apart: what was applied, what the model said, what
+        # the objective checks found, and the result.
+        "acceptances": [
+            {
+                "subject": a.subject,
+                "applied": a.change.get("commit"),
+                "model_claim": a.model_claim,
+                "checks": {
+                    st: [o.condition for o in a.outcomes if o.status == st]
+                    for st in ("satisfied", "failed", "unverifiable")
+                },
+                "state": a.state,
+                "why": a.why,
+            }
+            for a in sorted(store.list("acceptances", Acceptance), key=lambda a: a.created_at)
         ],
         "goals": [
             {
@@ -228,6 +245,13 @@ def render_text(data: dict[str, Any]) -> list[str]:
     for g in data.get("goals", []):
         lines.append(
             f"[bold]goal[/] {g['goal']}: {g['status']}, {g['short']} short, {g['actions']} action(s): {g['note']}"
+        )
+    for a in data.get("acceptances", []):
+        c = a["checks"]
+        lines.append(
+            f"[bold]change[/] {(a['applied'] or 'none applied')[:12]}: model says {a['model_claim']}; checks satisfied "
+            f"{c['satisfied'] or '-'}, failed {c['failed'] or '-'}, unverifiable {c['unverifiable'] or '-'}; "
+            f"{a['state']} ({a['why']})"
         )
     for n in data.get("needs_a_person", []):
         lines.append(f"[yellow]needs a person[/] {n.get('connection') or n.get('proposal')}: {n['what']}")

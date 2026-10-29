@@ -26,8 +26,15 @@ ROWS = [
     {"row": 1, "cells": ["B02", "OK"], "box": {"y": 40, "h": 40}, "marks": []},
 ]
 PAGE = {"rows": ROWS, "overlays": []}
+RED_MARK = {"text": "SHORT 4", "background": "rgb(198, 40, 40)", "color": "rgb(255, 255, 255)", "font_px": 14,
+            "visible": 1, "covered_by": {}, "visibility": "visible"}  # fmt: skip
+# After the repair: every objective condition holds (B01 marked red, B02 plain, both once).
+FIXED = {"rows": [{**ROWS[0], "marks": [RED_MARK]}, ROWS[1]], "overlays": []}
 GOOD_EMPTY = '{"discrepancies": [], "cause": "none"}'
-ONE = '{"discrepancies": [{"key": "B01", "kind": "not_flagged", "evidence": "green"}], "cause": "css"}'
+ONE = (
+    '{"discrepancies": [{"key": "B01", "kind": "not_flagged", "evidence": "green"}], "cause": "css", '
+    '"flag": {"text_contains": "SHORT", "background": "red"}}'
+)
 
 
 @dataclass
@@ -97,7 +104,8 @@ def test_an_unusable_answer_after_a_repair_is_not_a_fix_and_the_change_is_withdr
         deploys.append((commit, rollback))
         return type("D", (), {"ok": True, "log": ""})()
 
-    monkeypatch.setattr("unbidden.lab.ui.scan", lambda url, out: FakeScan())
+    scans = iter([FakeScan(), FakeScan(page=FIXED)])
+    monkeypatch.setattr("unbidden.lab.ui.scan", lambda url, out: next(scans))
     monkeypatch.setattr(presentation, "propose", propose)
     monkeypatch.setattr(presentation, "run_checks", lambda tree, mandate: {"ok": True, "log": ""})
     monkeypatch.setattr("unbidden.operate.deploy.deploy", deploy)
