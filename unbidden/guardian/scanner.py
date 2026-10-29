@@ -130,11 +130,13 @@ def secret_hits(hits: Sequence[Hit]) -> list[Hit]:
 
 
 def _mask(value: str) -> str:
-    return value[:3] + "***" if len(value) > 6 else "***"
+    # Five characters at most: shorter than any pattern's shortest secret, so a masked value is never flagged again
+    # (a three-character prefix made `password="pas***"` a six-character value the scan still flagged).
+    return value[:2] + "***" if len(value) > 6 else "***"
 
 
 def redact_text(text: str) -> str:
-    """Mask every secret, keeping a three-character prefix so a person can tell which value it was.
+    """Mask every secret, keeping a two-character prefix so a person can tell which value it was.
 
     Idempotent: a masked value no longer matches any pattern.
     """

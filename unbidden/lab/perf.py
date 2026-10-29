@@ -28,6 +28,7 @@ from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.experiment import Experiment, TestOutcome, Verdict
 from unbidden.contracts.llm import LLMRequest, Message, Tier
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
+from unbidden.guardian.scanner import redact_text
 from unbidden.lab.evaluator import classify_tests, level_for
 from unbidden.lab.fixlab import Candidate, unified_patch
 from unbidden.lab.perfstats import PERF_CRITERIA, judge
@@ -258,8 +259,17 @@ class PerfLab:
     # Model-written artifacts ----------------------------------------------------------------------------
 
     async def _ask_files(
-        self, purpose: str, content: str, opp: Opportunity, sha: str, max_tokens: int
+        self, purpose: str, content: str, opp: Opportunity, sha: str, max_tokens: int, notes: list[str]
     ) -> dict[str, str] | None:
+        """Files from the local model, or None with the reason in `notes`. Values in the repository's text that look
+        like credentials (a test's `password="password"`) are masked first, as in logs: the prompt still passes
+        Guardian's own scan, which refused the whole request when they were left in (stage 8 regression, B-4)."""
+        masked = redact_text(content)
+        if masked != content:
+            note = f"{purpose}: values that look like credentials were masked in the repository's text"
+            if note not in notes:
+                notes.append(note)
+            content = masked
         try:
             response = await self.brain.complete(
                 LLMRequest(
@@ -273,7 +283,8 @@ class PerfLab:
                 )
             )
             return parse_files(response.content)
-        except (BrainError, ProviderError, CodeBlockError):
+        except (BrainError, ProviderError, CodeBlockError) as exc:
+            notes.append(f"{purpose}: no answer ({type(exc).__name__}: {str(exc)[:200]})")
             return None
 
     def _show(self, rev: str, path: str) -> str:
@@ -595,7 +606,9 @@ class PerfLab:
                 self.progress(f"candidate: index on {table}.{column}, written from the finding")
         for attempt in range(0 if candidate_files else 2):
             self.progress(f"asking the local model for the schema change (attempt {attempt + 1})")
-            candidate_files = await self._ask_files("lab.perf_candidate", content, opp, cand_prompt.sha256, 4000)
+            candidate_files = await self._ask_files(
+                "lab.perf_candidate", content, opp, cand_prompt.sha256, 4000, result.notes
+            )
             if not candidate_files:
                 continue
             new = self._findings(rev, candidate_files) - before_findings
@@ -645,6 +658,7 @@ class PerfLab:
                 opp,
                 wl_prompt.sha256,
                 3000,
+                result.notes,
             )
             workload = {k: v for k, v in (workload or {}).items() if k == f"{LAB_DIR}/workload.py"}
             if not workload:
@@ -669,7 +683,7 @@ class PerfLab:
         if before is None or workload is None:
             # Nothing was measured, so nothing is known about the change: the lab could not build a workload
             # (kept in artifacts). That blocks this commit; it is not evidence against the opportunity.
-            last = next((n for n in reversed(result.notes) if n.startswith("workload attempt")), "")
+            last = next((n for n in reversed(result.notes) if n.startswith(("workload attempt", "lab.workload"))), "")
             result.blocked = f"cannot measure: no workload ran at the base after {self.repairs + 1} attempts ({last})"
             result.notes.append(result.blocked)
             return result

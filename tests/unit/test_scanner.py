@@ -53,8 +53,10 @@ def test_redaction_keeps_a_prefix_and_is_idempotent() -> None:
     text = f"push with {FAKE_GH} now"
     once = redact_text(text)
     assert FAKE_GH not in once
-    assert "ghp***" in once
-    assert redact_text(once) == once
+    assert "gh***" in once
+    assert redact_text(once) == once and not secret_hits(scan(once))
+    assigned = redact_text('login(password="password")')  # the scan of a masked text finds nothing, too
+    assert assigned == 'login(password="pa***")' and not secret_hits(scan(assigned))
 
 
 def test_redact_json_walks_nested_values() -> None:
