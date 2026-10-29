@@ -25,6 +25,58 @@ class ColumnUse:
     file: str
     line: int
     function: str
+    via: str = ""  # for SQL kept apart from the code: "comments.sql:8 get-comments-for-article-by-slug (join)"
+
+
+# A condition: ON or WHERE, up to the next clause.
+_CLAUSE = re.compile(
+    r"\b(?P<kind>ON|WHERE)\b(?P<body>.*?)(?=\b(?:INNER|LEFT|RIGHT|JOIN|GROUP|ORDER|LIMIT|RETURNING)\b|;|$)", re.I | re.S
+)
+_SQL_NAME = re.compile(r"^--\s*(?:name:|:name)\s*(?P<name>[\w-]+)", re.M)
+
+
+def sql_queries(sources: dict[str, str]) -> list[tuple[str, int, str, str]]:
+    """Named queries kept in .sql files (`-- name: x`, the aiosql, yesql and pugsql convention): file, line, name,
+    text. A file without names is one query named after the file."""
+    found: list[tuple[str, int, str, str]] = []
+    for path, text in sources.items():
+        marks = list(_SQL_NAME.finditer(text))
+        if not marks:
+            found.append((path, 1, Path(path).stem, text))
+            continue
+        for i, mark in enumerate(marks):
+            end = marks[i + 1].start() if i + 1 < len(marks) else len(text)
+            found.append((path, text[: mark.start()].count("\n") + 1, mark.group("name"), text[mark.start() : end]))
+    return found
+
+
+def sql_uses(queries: list[tuple[str, int, str, str]], table: str, column: str) -> list[tuple[str, int, str, str]]:
+    """Queries that look rows of `table` up by `column`: the column in a WHERE or JOIN ... ON condition, qualified by
+    the table or its alias (or bare, when the query reads only that table). Returns (file, line, name, kind)."""
+    out = []
+    for path, line, name, text in queries:
+        aliases = {table} | {
+            m.group("alias") for m in re.finditer(
+                rf"\b(?:FROM|JOIN)\s+{re.escape(table)}(?:\s+(?:AS\s+)?(?P<alias>(?!WHERE|JOIN|ON|INNER|LEFT|RIGHT|USING)\w+))?",
+                text, re.I) if m.group("alias")
+        }  # fmt: skip
+        if not re.search(rf"\b(?:FROM|JOIN)\s+{re.escape(table)}\b", text, re.I):
+            continue
+        qualified = "|".join(re.escape(a) for a in sorted(aliases))
+        dotted = re.compile(rf"\b(?:{qualified})\.{re.escape(column)}\b", re.I)
+        bare = re.compile(rf"(?<![.\w]){re.escape(column)}\s*(?:=|IN\b)", re.I)
+        for clause in _CLAUSE.finditer(text):
+            body = clause.group("body")
+            # An unqualified column belongs to the table the condition's own FROM (or JOIN) reads: the nearest one
+            # before it. `FROM favorites WHERE article_id = (SELECT id FROM articles ...)` is about favorites.
+            before = list(re.finditer(r"\b(?:FROM|JOIN)\s+(\w+)", text[: clause.start()], re.I))
+            owner = before[-1].group(1).lower() if before else ""
+            if dotted.search(body) or (owner == table.lower() and bare.search(body.split("(SELECT")[0])):
+                kind = "join" if clause.group("kind").upper() == "ON" else "filter"
+                at = line + text[: clause.start()].count("\n")
+                out.append((path, at, name, kind))
+                break
+    return out
 
 
 def _git(repo: Path, *args: str) -> str:
@@ -102,6 +154,19 @@ def column_users(repo: Path, rev: str, world: WorldModel, table: str, column: st
     paths = [p for p in tracked if p.endswith(".py") and not _SKIP.search(p)]
     sources = {p: _git(repo, "show", f"{rev}:{p}") for p in paths}
     uses = column_uses(sources, mapped_classes(sources, table), column)
+    # SQL kept in .sql files and called by name from Python (`queries.get_comments_for_article_by_slug(...)`): the
+    # functions that call such a query use the column as that query does.
+    sql = {p: _git(repo, "show", f"{rev}:{p}") for p in tracked if p.endswith(".sql") and not _SKIP.search(p)}
+    for qfile, qline, qname, kind in sql_uses(sql_queries(sql), table, column):
+        called = re.compile(rf"\.{re.escape(qname.replace('-', '_'))}\s*\(")
+        for path, text in sources.items():
+            lines = text.splitlines()
+            for i, line in enumerate(lines):
+                if not called.search(line):
+                    continue
+                function = next((m.group("name") for j in range(i, -1, -1) if (m := _DEF.match(lines[j]))), "")
+                if function:
+                    uses.append(ColumnUse(path, i + 1, function, f"{qfile}:{qline} {qname} ({kind})"))
     by_function: dict[str, list[ColumnUse]] = {}
     for use in uses:
         by_function.setdefault(use.function, []).append(use)

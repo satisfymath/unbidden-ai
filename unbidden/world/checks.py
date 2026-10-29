@@ -72,6 +72,30 @@ def full_table_scans(world: WorldModel, previous: dict[str, Any], seconds: float
     return found
 
 
+# A B-tree leaf entry for a 4-byte key: the key, an 8-byte tuple header, a 4-byte item pointer, at the default
+# 90 % fill. An estimate: a wider key (bigint, uuid, text) costs more.
+INDEX_BYTES_PER_ROW = (4 + 8 + 4) / 0.9
+
+
+def index_tradeoffs(table: str, column: str, rows: Any, table_bytes: Any) -> dict[str, Any]:
+    """What adding the index costs, as far as the database's statistics say: storage, and the writes that must keep
+    it. An estimate, said so: the experiment measures reads, not these."""
+    size = int(rows * INDEX_BYTES_PER_ROW) if isinstance(rows, int) else None
+    share = ""
+    if size and table_bytes:
+        share = f" ({size / table_bytes:.0%} of the table's {table_bytes / 1e6:.1f} MB)"
+    said = (
+        f"about {size / 1e6:.1f} MB for {rows} rows{share}" if size else "storage unknown (no row estimate)"
+    ) + f"; every INSERT into {table}, UPDATE of {column} and DELETE also writes it"
+    return {
+        "index_bytes_estimate": size,
+        "table_bytes": table_bytes,
+        "writes": f"INSERT into {table}, UPDATE of {column}, DELETE",
+        "basis": "estimate from the database's statistics; not measured",
+        "said": said,
+    }
+
+
 def unindexed_foreign_keys(world: WorldModel, repo: Path | None = None) -> list[Opportunity]:
     """A foreign key column that leads no index, with the endpoints where that costs.
 
@@ -93,15 +117,21 @@ def unindexed_foreign_keys(world: WorldModel, repo: Path | None = None) -> list[
         if not column or any(cols and cols[0] == column for cols in _indexed_columns(table.attributes)):
             continue
         rows = table.attributes.get("rows_estimate", "?")
+        users: list[Any] = []
         if repo is not None:
             users = column_users(repo, world.rev, world, table.name, column)
             ids = [f"endpoint:{name}" for name, _ in users]
             if users:
-                via = sorted({f"{u.file}:{u.line} {u.function}" for _, u in users})
-                path, what = "filter", f"filtered by {len(ids)} endpoint(s)"
+                via = sorted({f"{u.file}:{u.line} {u.function}" + (f" via {u.via}" if u.via else "") for _, u in users})
+                joins = any(u.via.endswith("(join)") for _, u in users)
+                path, what = (
+                    ("join" if joins else "filter"),
+                    f"{'joined' if joins else 'filtered'} on by {len(ids)} endpoint(s)",
+                )
                 why = (
-                    f"Code filters {table.name} by {column} ({', '.join(via)}): without an index every such lookup "
-                    f"scans the whole table (~{rows} rows now), so its cost grows with all rows, not the ones it needs."
+                    f"Code reads {table.name} by {column} ({', '.join(via)}; inferred from the code, not observed): "
+                    f"without an index every such lookup scans the whole table (~{rows} rows now, from the "
+                    f"database's statistics), so its cost grows with all rows, not the ones it needs."
                 )
             else:
                 ids = sorted(
@@ -129,12 +159,13 @@ def unindexed_foreign_keys(world: WorldModel, repo: Path | None = None) -> list[
         if not ids:
             continue
         endpoints = [world.resources[i].name for i in ids]
+        tradeoffs = index_tradeoffs(table.name, column, rows, table.attributes.get("bytes"))
         found.append(
             Opportunity(
                 source="world",
                 category="performance",
                 title=f"{table.name}.{column} is a foreign key without an index, {what}",
-                summary=f"{why} Endpoints: {', '.join(endpoints)}.",
+                summary=f"{why} Endpoints: {', '.join(endpoints)}. Cost of the index: {tradeoffs['said']}.",
                 dedup_key=f"world:unindexed_fk:{table.name}.{column}",
                 evidence=[*relation.evidence, *table.evidence[-1:]],
                 details={
@@ -142,6 +173,7 @@ def unindexed_foreign_keys(world: WorldModel, repo: Path | None = None) -> list[
                     "table": table.name,
                     "column": column,
                     "cost_path": path,
+                    "tradeoffs": tradeoffs,
                     "rows": rows if isinstance(rows, int) else None,
                     "endpoints": endpoints,
                     "rev": world.rev,
@@ -152,6 +184,19 @@ def unindexed_foreign_keys(world: WorldModel, repo: Path | None = None) -> list[
                             "line": world.resources[i].attributes.get("line"),
                         }
                         for i in ids
+                    ],
+                    # endpoint -> code -> query -> condition: each step's provenance (inferred from code); the
+                    # observed cost is the experiment's own measurement of these endpoints, before any change.
+                    "chain": [
+                        {
+                            "endpoint": e,
+                            "code": f"{u.file}:{u.line} {u.function}",
+                            "query": u.via or None,
+                            "column": f"{table.name}.{column}",
+                            "rows": rows,
+                            "provenance": "inferred from code",
+                        }
+                        for e, u in users
                     ],
                 },
             )
