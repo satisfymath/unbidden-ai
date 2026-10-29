@@ -119,6 +119,8 @@ def test_an_accessory_null_degrades_the_read_recorded_and_the_document_is_untouc
     assert dev[0].endswith("image") and dev[1] == "null" and dev[2] == "read continues"
     assert all(d["declared"] == "type string" and d["at"] and "GET /api/articles" in d["source"] for d in log.log)
     assert setup[3] == DOC  # the published document is kept as it was
+    (entry,) = log.log  # three pages, one deviation: kept once, counted
+    assert entry["count"] == 2 and entry["last_at"] >= entry["at"]
 
 
 @pytest.mark.parametrize(

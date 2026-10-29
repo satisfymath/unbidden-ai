@@ -106,4 +106,6 @@ def test_cursor_and_page_styles_and_their_failures() -> None:
     data = {1: {"items": [{"id": 1}], "pages": 2}, 2: {"items": [{"id": 2}], "pages": 2}}
     assert read_all(lambda p: data[p["page"]], numbered).completeness is Completeness.COMPLETE
     unbounded = read_all(lambda p: {"items": [{"id": p["page"]}]}, numbered, max_pages=5)
-    assert unbounded.completeness is Completeness.INCOMPLETE and "stopped after" in unbounded.why
+    assert unbounded.completeness is Completeness.INCOMPLETE and "read bound" in unbounded.why
+    by_records = read_all(lambda p: {"items": [{"id": 3 * p["page"] + i} for i in range(3)]}, numbered, max_records=7)
+    assert by_records.completeness is Completeness.INCOMPLETE and by_records.requests == 3  # records, not requests

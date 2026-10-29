@@ -49,3 +49,35 @@ def test_the_same_block_is_one_request_and_an_unneeded_access_is_optional(store:
     seen = _ecosystem(store)
     assert [n["what"].split(" (then")[0] for n in seen["needs_a_person"]] == [first.needs]
     assert [o["connection"] for o in seen["optional_access"]] == ["github:o/r"]  # listed, not asked for
+
+
+def test_one_need_is_one_request_and_meeting_it_runs_the_held_jobs_now(store: Store) -> None:
+    """Stage 8 regression (adb803d): five experiments blocked on one registry were five requests, and after the grant
+    they waited out their backoff. Now: one request, the jobs parked without spending attempts, run on release."""
+    from datetime import timedelta
+
+    from unbidden.contracts.common import utc_now
+    from unbidden.contracts.guardian import Mandate
+    from unbidden.contracts.jobs import Job, JobStatus
+    from unbidden.director.blocks import PARKED, release
+
+    held = []
+    for opp in ("opp_1", "opp_2"):
+        store.enqueue(Job(type="research.probe", idempotency_key=f"probe:{opp}", payload={"opp": opp}))
+        claimed = store.claim()
+        assert claimed is not None
+        block = record(store, classify(f"research.probe {opp}", NEEDS_DEBIAN, "it runs again"), claimed.id)
+        claimed.attempts -= 1
+        store.finish(claimed, error="needs a person", retry_in=PARKED)
+        held.append(claimed.id)
+    (only,) = open_blocks(store)
+    assert only.waiting == ["research.probe opp_1", "research.probe opp_2"] and only.jobs == held
+    assert store.claim() is None  # parked: nothing runs before the answer
+    mandate = Mandate(workspace="w")
+    assert release(store, mandate) == []  # not met: the mandate does not list it yet
+    mandate.egress.package_registries.append("deb.debian.org")
+    (released,) = release(store, mandate)
+    assert released.resolved and not open_blocks(store)
+    due = [j for j in store.jobs(status=JobStatus.QUEUED) if j.run_at <= utc_now() + timedelta(seconds=1)]
+    assert sorted(j.id for j in due) == sorted(held) and all(j.attempts == 0 for j in due)
+    assert block.id == released.id

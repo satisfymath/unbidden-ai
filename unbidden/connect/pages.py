@@ -19,7 +19,10 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
 
-MAX_PAGES = 50
+# The bound is on what is read, not on how many requests that takes: 50 requests stopped Conduit's 20,000
+# articles at 5,000 (stage 8). The request cap stays as a guard against a service that hands back tiny pages.
+MAX_RECORDS = 100_000
+MAX_PAGES = 2_000
 
 
 class Completeness(StrEnum):
@@ -106,11 +109,17 @@ def read_all(
     *,
     page_size: int | None = None,
     max_pages: int = MAX_PAGES,
+    max_records: int = MAX_RECORDS,
 ) -> Read:
     """Follow the declared pagination to the end, or as far as it can be trusted. `fetch(params)` returns a body."""
     style, info = style_of(parameters)
     seen: dict[str, dict[str, Any]] = {}
     requests = 0
+
+    def bound(requests: int) -> str:
+        return (
+            f"stopped at the read bound: {len(seen)} records in {requests} requests (bounds {max_records}, {max_pages})"
+        )
 
     def take(batch: list[dict[str, Any]]) -> tuple[int, int]:
         new = duplicate = 0
@@ -137,7 +146,7 @@ def read_all(
     if style == "offset":
         limit = min(page_size or info["limit"], info["limit"])
         offset, total = 0, None
-        while requests < max_pages:
+        while requests < max_pages and len(seen) < max_records:
             data = fetch({"offset": offset, "limit": limit})
             requests += 1
             batch = records_of(data)
@@ -186,7 +195,7 @@ def read_all(
             return Read(
                 list(seen.values()),
                 Completeness.INCOMPLETE,
-                f"stopped after {max_pages} requests",
+                bound(requests),
                 style,
                 requests,
                 total,
@@ -200,7 +209,7 @@ def read_all(
     if style == "cursor":
         token: str | None = None
         used: set[str] = set()
-        while requests < max_pages:
+        while requests < max_pages and len(seen) < max_records:
             data = fetch({info["param"]: token} if token else {})
             requests += 1
             new, duplicate = take(records_of(data))
@@ -214,14 +223,12 @@ def read_all(
             if token in used:
                 return Read(list(seen.values()), Completeness.INCOMPLETE, "the cursor came back again", style, requests)
             used.add(token)
-        return Read(
-            list(seen.values()), Completeness.INCOMPLETE, f"stopped after {max_pages} requests", style, requests
-        )
+        return Read(list(seen.values()), Completeness.INCOMPLETE, bound(requests), style, requests)
     # page
     pages: int | None = None
     total = None
     number = 1
-    while requests < max_pages:
+    while requests < max_pages and len(seen) < max_records:
         data = fetch({info["param"]: number})
         requests += 1
         batch = records_of(data)
@@ -236,9 +243,7 @@ def read_all(
             break
         number += 1
     else:
-        return Read(
-            list(seen.values()), Completeness.INCOMPLETE, f"stopped after {max_pages} pages", style, requests, total
-        )
+        return Read(list(seen.values()), Completeness.INCOMPLETE, bound(requests), style, requests, total)
     if total is not None and total != len(seen):
         return Read(
             list(seen.values()),

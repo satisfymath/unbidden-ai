@@ -12,6 +12,7 @@ from typing import Any
 from unbidden.contracts.common import utc_now
 from unbidden.contracts.llm import Tier
 from unbidden.daemon.cycle import Cycle, Log, job, retry_after, timeout_for
+from unbidden.director.blocks import PARKED, release
 from unbidden.guardian.killswitch import CURRENT, JobScope, TrackingExecutor, kill_containers
 from unbidden.runtime import Runtime
 
@@ -165,6 +166,9 @@ async def _work(
             store.enqueue(job("world.refresh", str(int(now.timestamp() // MAP_EVERY_S))))
         # Every cycle starts by checking its connections: a `--once` run, or a daemon at each map interval.
         store.enqueue(job("connect.survey", now.isoformat() if once else str(int(now.timestamp() // MAP_EVERY_S))))
+        # What a person granted since the last cycle: the work it held runs now, not after its backoff.
+        for met in release(store, runtime.workspace.mandate()) if runtime is not None else []:
+            log(f"unblocked: {met.needs}; {len(met.jobs)} job(s) run again")
         while True:
             if killswitch.engaged:
                 log("kill switch engaged; waiting")
@@ -190,14 +194,14 @@ async def _work(
 
                 subject = next((str(v) for k, v in (claimed.payload or {}).items() if k in ("id", "goal", "opp")), "")
                 block = record(store, classify(f"{claimed.type} {subject}".strip(), f"{type(exc).__name__}: {exc}",
-                                               f"{claimed.type} runs again"))  # fmt: skip
+                                               f"{claimed.type} runs again"), claimed.id)  # fmt: skip
+                retry = retry_after(claimed.attempts)
                 if block.kind == "pending_person":
                     log(f"needs a person: {block.needs} (then: {block.continues})")
-                store.finish(
-                    claimed,
-                    error=f"{type(exc).__name__}: {exc}\n{traceback.format_exc(limit=3)}",
-                    retry_in=retry_after(claimed.attempts),
-                )
+                    # Parked until a person answers: waiting is not the job's own failure, so no attempt is spent.
+                    claimed.attempts, retry = claimed.attempts - 1, PARKED
+                store.finish(claimed, error=f"{type(exc).__name__}: {exc}\n{traceback.format_exc(limit=3)}",
+                             retry_in=retry)  # fmt: skip
             else:
                 store.finish(claimed)
         if once:

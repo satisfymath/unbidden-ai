@@ -268,6 +268,13 @@ class Store:
             args.append(status.value)
         return [Job.model_validate_json(row["doc"]) for row in self._conn.execute(sql + " ORDER BY run_at", args)]
 
+    def requeue(self, job: Job) -> Job:
+        """A parked job run now (its block was released): queued, due now."""
+        job.status, job.run_at = JobStatus.QUEUED, utc_now()
+        with self.transaction() as conn:
+            self._save_job(conn, job)
+        return job
+
     def requeue_running(self) -> int:
         """After a crash, jobs left running belong to no one; put them back in the queue."""
         stuck = self.jobs(status=JobStatus.RUNNING)

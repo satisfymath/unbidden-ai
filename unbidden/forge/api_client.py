@@ -271,6 +271,17 @@ class Degraded:
     critical: set[str] = field(default_factory=set[str])
     log: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
 
+    def note(self, entry: dict[str, Any]) -> None:
+        """One entry per (operation, field, observed value, decision), counted: the same null on every page of a
+        listing is one deviation seen many times (stage 8 regression: 102 entries for one), first and last seen."""
+        key = tuple(entry.get(k) for k in ("operation", "field", "observed", "decision"))
+        for kept in self.log:
+            if tuple(kept.get(k) for k in ("operation", "field", "observed", "decision")) == key:
+                kept["count"] = kept.get("count", 1) + 1
+                kept["last_at"] = entry.get("at")
+                return
+        self.log.append({**entry, "count": 1})
+
 
 def call(
     integration: ApiIntegration,
@@ -383,7 +394,7 @@ def call(
             ]
             seen = {(d["field"].split("/")[0], leaf(d["field"]), d["observed"]) for d in found}
             for top, name, observed in sorted(seen):
-                degraded.log.append({
+                degraded.note({
                     "operation": op.id, "field": f"{top}/../{name}" if top != name else name, "observed": observed,
                     "declared": next(d["declared"] for d in found if leaf(d["field"]) == name),
                     "at": utc_now().isoformat(), "source": f"{op.method} {op.path} answered {status}",
@@ -505,7 +516,7 @@ def oracle(
         if anonymous == 200:
             # Declared secured, answered without the key (an optional authentication the document marks required):
             # the reads are still the service's own; recorded as the deviation it is, not a failure.
-            degraded.log.append(
+            degraded.note(
                 {
                     "operation": op.id,
                     "field": "(security)",

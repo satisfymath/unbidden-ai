@@ -14,21 +14,30 @@ and what continues once it is given. Kinds, kept apart:
 
 An access that was found but blocks nothing (a discovered repository nobody granted) is `optional`: listed apart, with
 what it would enable, never as a requirement.
+
+One request per need (stage 8 regression, adb803d): five experiments blocked on the same registry were five requests
+and five answers for one grant. A block is now keyed by its kind and its minimum; the operations and jobs it holds
+are listed on it. A job blocked on a person is parked, without spending its attempts, and `release` puts it back in
+the queue as soon as the mandate shows the need met (the same regression: after the grant, the blocked experiments
+waited out their retry backoff and the two cycles that followed did nothing).
 """
 
 from __future__ import annotations
 
 import hashlib
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Literal
 
 from pydantic import Field
 
 from unbidden.contracts.common import Contract, utc_now
+from unbidden.contracts.guardian import Mandate
+from unbidden.contracts.jobs import JobStatus
 from unbidden.store import Store
 
 COLLECTION = "blocks"
+PARKED = timedelta(days=30)  # a job waiting on a person: run again when released, or after this
 Kind = Literal["pending_person", "compatibility", "missing_capability", "unavailable", "not_viable", "optional"]
 
 
@@ -41,6 +50,9 @@ class Block(Contract):
     continues: str  # what runs again once it is given
     at: datetime = Field(default_factory=utc_now)
     resolved: bool = False
+    waiting: list[str] = Field(default_factory=list[str])  # every operation held by this need
+    jobs: list[str] = Field(default_factory=list[str])  # the queued jobs to run again once it is met
+    resolved_at: datetime | None = None
 
 
 def classify(operation: str, error: str, continues: str) -> Block:
@@ -75,18 +87,47 @@ def classify(operation: str, error: str, continues: str) -> Block:
 
 
 def _block(operation: str, kind: Kind, evidence: str, needs: str, continues: str) -> Block:
-    key = hashlib.sha256(f"{operation}|{kind}|{needs}".encode()).hexdigest()[:16]
+    # What a person grants is the same whatever it blocks; the other kinds stay one per operation.
+    scope = "" if kind == "pending_person" else operation
+    key = hashlib.sha256(f"{scope}|{kind}|{needs}".encode()).hexdigest()[:16]
     return Block(id=f"blk_{key}", operation=operation, kind=kind, evidence=evidence[-600:], needs=needs,
-                 continues=continues)  # fmt: skip
+                 continues=continues, waiting=[operation])  # fmt: skip
 
 
-def record(store: Store, block: Block) -> Block:
-    """Kept once per (operation, kind, need): the same block seen again is not a new request."""
+def record(store: Store, block: Block, job: str | None = None) -> Block:
+    """Kept once per need: the same need met again adds the operation and job it holds, not a new request."""
     existing = store.get(COLLECTION, block.id, Block)
-    if existing is not None and not existing.resolved:
-        return existing
-    store.put(COLLECTION, block)
-    return block
+    if existing is None or existing.resolved:
+        existing = block
+    for operation in block.waiting:
+        if operation not in existing.waiting:
+            existing.waiting.append(operation)
+    if job is not None and job not in existing.jobs:
+        existing.jobs.append(job)
+    store.put(COLLECTION, existing)
+    return existing
+
+
+def met(block: Block, mandate: Mandate) -> bool:
+    """Whether the mandate now shows a person's answer. Only what the mandate itself records can be checked here
+    (registries); an approval or a credential is seen when the work runs again, after its own backoff."""
+    asked = re.match(r"add ([\w.\-, ]+) to egress\.package_registries", block.needs)
+    if block.kind != "pending_person" or asked is None:
+        return False
+    hosts = [h.strip() for h in asked.group(1).split(",") if h.strip()]
+    return all(h in mandate.egress.package_registries for h in hosts)
+
+
+def release(store: Store, mandate: Mandate) -> list[Block]:
+    """Blocks whose need the mandate now meets: resolved, and the jobs they held queued to run now."""
+    released = [b for b in open_blocks(store) if met(b, mandate)]
+    for block in released:
+        block.resolved, block.resolved_at = True, utc_now()
+        store.put(COLLECTION, block)
+        for held in store.jobs(status=JobStatus.QUEUED):
+            if held.id in block.jobs:
+                store.requeue(held)
+    return released
 
 
 def open_blocks(store: Store) -> list[Block]:
