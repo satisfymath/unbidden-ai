@@ -30,7 +30,7 @@ from unbidden.contracts.connection import USABLE, Connection, ConnectionState
 from unbidden.contracts.guardian import Goal, Mandate
 from unbidden.contracts.llm import LLMRequest, Message, Source, Tier
 from unbidden.forge.api_client import COLLECTION as INTEGRATIONS
-from unbidden.forge.api_client import ApiIntegration, CallFailed  # pyright: ignore[reportPrivateUsage]
+from unbidden.forge.api_client import ApiIntegration, CallFailed, DeviationBlocked  # pyright: ignore[reportPrivateUsage]
 from unbidden.operate.actions import idempotency_key, run_api_action
 from unbidden.store import Store
 
@@ -274,7 +274,11 @@ async def pursue(
         rows = _read(store, mandate, plan, conns, integrations, run)
     except Incomplete as exc:
         return _finish(store, run, "blocked_incomplete", f"read incomplete, nothing decided: {exc}")
-    except (Unavailable, QueryRefused, CallFailed, KeyError, ValueError) as exc:
+    except DeviationBlocked as exc:
+        return _finish(store, run, "blocked", f"conclusion blocked by a documented-vs-observed deviation: {exc}")
+    except CallFailed as exc:
+        return _finish(store, run, "failed", f"reads: {exc}")
+    except (Unavailable, QueryRefused, KeyError, ValueError) as exc:
         return _finish(store, run, "failed", f"reads: {exc}")
     key, expression = str(plan.get("key")), str(plan.get("shortfall"))
     short, values = [], {}
@@ -351,11 +355,16 @@ def _read(
     run.reads.append({"connection": db.id, "query": sql.get("query"), "rows": len(left)})
     op = integration.op(str(api.get("operation")))
     conn = conns[str(api.get("connection"))]
-    from unbidden.forge.api_client import read_collection
+    from unbidden.forge.api_client import Degraded, read_collection
 
-    read = read_collection(integration, conn, mandate, op.id)
+    # What this conclusion depends on: the key, and every field of the comparison. A deviation there blocks it.
+    compared = {
+        n.id for n in ast.walk(ast.parse(str(plan.get("shortfall") or "0"), mode="eval")) if isinstance(n, ast.Name)
+    }
+    degraded = Degraded(critical={key, *compared})
+    read = read_collection(integration, conn, mandate, op.id, degraded=degraded)
     right = read.records
-    run.reads.append({"connection": conn.id, "operation": op.id, **read.summary()})
+    run.reads.append({"connection": conn.id, "operation": op.id, **read.summary(), "deviations": degraded.log[:20]})
     db_whole = len(left) < 1000
     run.reads[0]["completeness"] = "complete" if db_whole else "incomplete"
     if read.completeness.value != "complete" or not db_whole:

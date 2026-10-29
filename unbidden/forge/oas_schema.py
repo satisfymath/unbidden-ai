@@ -22,6 +22,7 @@ allowed in 3.0); `nullable` in a 3.1 document (not a 3.1 keyword: 3.1 writes `ty
 
 from __future__ import annotations
 
+import re
 from typing import Any, Literal
 
 from jsonschema import Draft202012Validator
@@ -137,3 +138,39 @@ def validate(value: Any, schema: dict[str, Any]) -> None:
 
 
 __all__ = ["UnsupportedSchema", "ValidationError", "read", "resolve", "to_json_schema", "validate", "version"]
+
+
+# Deviations between a document and an observed response (stage 8) ------------------------------------------------
+
+# Fields whose deviation always blocks: they identify records, relate them, or say how many there are.
+IDENTITY = re.compile(
+    r"(^|_)(id|ids|key|slug|code|uuid)$|Id$|^(total|count|next|next_cursor|cursor|page|pages)$|count$", re.I
+)
+
+
+def deviations(value: Any, schema: dict[str, Any]) -> list[dict[str, str]]:
+    """What in `value` the (translated) schema does not admit, one entry per field: its path, what was declared,
+    what was observed (`null`, `absent`, or a type), and whether a degraded read may continue past it. Only an
+    undeclared null or an absent value may; any other mismatch, or anything at the top level, may not."""
+    out: list[dict[str, str]] = []
+    for error in Draft202012Validator(schema).iter_errors(value):
+        path = "/".join(str(p) for p in error.absolute_path)
+        if error.validator == "required":
+            missing = re.findall(r"'([^']+)' is a required property", error.message)
+            for name in missing or ["?"]:
+                field = f"{path}/{name}" if path else name
+                out.append({"field": field, "declared": "required", "observed": "absent", "degradable": "yes"})
+        elif error.validator == "type" and error.instance is None:
+            out.append({"field": path, "declared": f"type {error.validator_value}", "observed": "null",
+                        "degradable": "yes" if path else "no"})  # fmt: skip
+        else:
+            declared = f"{error.validator} {error.validator_value}"[:80]
+            out.append({"field": path or "(the response)", "declared": declared,
+                        "observed": type(error.instance).__name__, "degradable": "no"})  # fmt: skip
+    return out
+
+
+def leaf(field: str) -> str:
+    """The field's own name in a path ("articles/3/author/image" -> "image"), indexes skipped."""
+    parts = [p for p in field.split("/") if p and not p.isdigit()]
+    return parts[-1] if parts else field

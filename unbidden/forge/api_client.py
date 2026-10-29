@@ -20,6 +20,7 @@ import json
 import re
 import time
 import uuid
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 from urllib.parse import quote
@@ -36,7 +37,9 @@ from unbidden.forge.oas_schema import validate
 from unbidden.guardian.credentials import broker
 
 COLLECTION = "integrations"
-ORACLE_VERSION = 2  # 2: complete reads cross-checked; writes judged by observed, documented effects
+# 3: reads may degrade past accessory deviations, recorded; 2: complete reads cross-checked; writes judged by
+# observed, documented effects
+ORACLE_VERSION = 3
 MAX_PAGES = 10
 METHODS = ("get", "post", "put", "patch", "delete")
 
@@ -76,6 +79,9 @@ class ApiIntegration(Contract):
     # Every operation the document declares (id, method, path, summary, effect): what an extension may add.
     documented: list[dict[str, str]] = Field(default_factory=list[dict[str, str]])
     superseded_by: str | None = None
+    # Where the service's responses differ from its document (stage 8): per operation and field, the declared
+    # contract, what was observed, when, and what it decided. The document itself is kept as published.
+    deviations: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
     approved_by: str | None = None
     quality: dict[str, Any] = Field(default_factory=dict[str, Any])
     provenance: dict[str, Any] = Field(default_factory=dict[str, Any])
@@ -228,6 +234,11 @@ class CallFailed(RuntimeError):
         self.status = status
 
 
+class DeviationBlocked(CallFailed):
+    """A response deviates from its document on a field a conclusion needs (an identity, a relation, a count, a
+    compared value): the read is not used."""
+
+
 def _headers(integration: ApiIntegration, grant: ConnectionGrant, *, with_key: bool = True) -> dict[str, str]:
     headers = {"Accept": "application/json", "User-Agent": "unbidden"}
     if with_key and integration.auth.get("in") == "header":
@@ -251,6 +262,16 @@ def _validate_params(op: Operation, params: dict[str, Any]) -> None:
         validate(params[name], p.get("schema") or {})
 
 
+@dataclass
+class Degraded:
+    """A read allowed to continue past a document's deviations that touch no critical field (stage 8). `critical`:
+    names whose deviation blocks (the identity, relation and count fields always do; a goal adds the fields it
+    compares). Every deviation met is appended to `log`, with what it means for the reading."""
+
+    critical: set[str] = field(default_factory=set[str])
+    log: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
+
+
 def call(
     integration: ApiIntegration,
     conn: Connection,
@@ -265,6 +286,7 @@ def call(
     gate: bool = True,
     store: Any = None,
     intent: str | None = None,
+    degraded: Degraded | None = None,
 ) -> tuple[int, Any]:
     """One call of one integration operation. The gate checks the connection, the checked ability, the grant and
     the policy at this moment; the request is built from the document's operation only; the response is validated
@@ -345,7 +367,37 @@ def call(
         try:
             validate(data, schema)
         except jsonschema.ValidationError as exc:
-            raise CallFailed(status, f"{op.id} answered {status} outside its documented schema: {exc.message}") from exc
+            if degraded is None or mutating:  # writes, and reads not allowed to degrade, stay strict
+                raise CallFailed(
+                    status, f"{op.id} answered {status} outside its documented schema: {exc.message}"
+                ) from exc
+            from unbidden.forge.oas_schema import IDENTITY, deviations, leaf
+
+            found = deviations(data, schema)
+            blocking = [
+                d
+                for d in found
+                if d["degradable"] != "yes"
+                or IDENTITY.search(leaf(d["field"]))
+                or leaf(d["field"]) in degraded.critical
+            ]
+            seen = {(d["field"].split("/")[0], leaf(d["field"]), d["observed"]) for d in found}
+            for top, name, observed in sorted(seen):
+                degraded.log.append({
+                    "operation": op.id, "field": f"{top}/../{name}" if top != name else name, "observed": observed,
+                    "declared": next(d["declared"] for d in found if leaf(d["field"]) == name),
+                    "at": utc_now().isoformat(), "source": f"{op.method} {op.path} answered {status}",
+                    "decision": "blocks the read" if any(leaf(b["field"]) == name for b in blocking)
+                    else "read continues without this field; nothing is inferred from it",
+                })  # fmt: skip
+            if blocking:
+                why = "; ".join(
+                    f"{b['field']}: declared {b['declared']}, observed {b['observed']}" for b in blocking[:3]
+                )
+                raise DeviationBlocked(
+                    status,
+                    f"{op.id} answered {status} outside its documented schema, on what a conclusion needs: {why}",
+                ) from exc
     if status >= 400:
         # Documented or not, an error is not data: a refused key read as an empty answer would look like nothing to do.
         raise CallFailed(status, f"{op.id} answered {status}: {str(data)[:200]}")
@@ -361,13 +413,16 @@ def read_collection(
     gate: bool = True,
     transport: httpx.BaseTransport | None = None,
     page_size: int | None = None,
+    degraded: Degraded | None = None,
 ) -> Any:
     """A whole collection through a listing operation, with how complete the read is (`connect/pages.py`)."""
     from unbidden.connect.pages import read_all
 
     op = integration.op(op_id)
     return read_all(
-        lambda params: call(integration, conn, mandate, op_id, params=params, gate=gate, transport=transport)[1],
+        lambda params: call(
+            integration, conn, mandate, op_id, params=params, gate=gate, transport=transport, degraded=degraded
+        )[1],
         op.parameters,
         page_size=page_size,
     )
@@ -405,9 +460,14 @@ def oracle(
     listing = [o for o in reads if not any(p.get("in") == "path" for p in o.parameters)]
     keyed = [o for o in reads if any(p.get("in") == "path" for p in o.parameters)]
 
+    # Reads may continue past an undeclared null or an absent value on an accessory field; never past one on an
+    # identity, relation or count field, nor on a path parameter a keyed operation needs.
+    degraded = Degraded(critical={p["name"] for o in keyed for p in o.parameters if p.get("in") == "path"})
+
     def run(op: Operation, **kw: Any) -> tuple[int | None, Any, str | None]:
         try:
-            status, data = call(integration, conn, mandate, op.id, gate=False, transport=transport, **kw)
+            status, data = call(integration, conn, mandate, op.id, gate=False, transport=transport, degraded=degraded,
+                                **kw)  # fmt: skip
             return status, data, None
         except (CallFailed, Unavailable, jsonschema.ValidationError) as exc:
             return getattr(exc, "status", None), None, str(exc)[:300]
@@ -417,16 +477,18 @@ def oracle(
     for op in listing:
         error, items, completeness, agrees, why, read_why = None, [], None, False, "", ""
         try:
-            first = read_collection(integration, conn, mandate, op.id, gate=False, transport=transport)
+            first = read_collection(integration, conn, mandate, op.id, gate=False, transport=transport,
+                                    degraded=degraded)  # fmt: skip
             items, completeness, read_why = first.records, first.completeness, first.why
             # Independent of the reader: the same collection with another page size must hold the same records.
             agrees, why = cross_check(
                 first,
                 lambda params, op=op: call(
-                    integration, conn, mandate, op.id, params=params, gate=False, transport=transport
+                    integration, conn, mandate, op.id, params=params, gate=False, transport=transport,
+                    degraded=degraded,
                 )[1],
                 op.parameters,
-            )
+            )  # fmt: skip
         except (CallFailed, Unavailable, jsonschema.ValidationError) as exc:
             error = str(exc)[:300]
             status = getattr(exc, "status", None)
@@ -440,9 +502,22 @@ def oracle(
             anonymous = exc.status
         except Unavailable:
             anonymous = None
-        refused = anonymous in (401, 403)
+        if anonymous == 200:
+            # Declared secured, answered without the key (an optional authentication the document marks required):
+            # the reads are still the service's own; recorded as the deviation it is, not a failure.
+            degraded.log.append(
+                {
+                    "operation": op.id,
+                    "field": "(security)",
+                    "declared": "requires the key",
+                    "observed": "answers without it",
+                    "at": utc_now().isoformat(),
+                    "source": f"{op.method} {op.path} without the key answered 200",
+                    "decision": "reads continue with the key; nothing depends on that refusal",
+                }
+            )
         results[op.id] = {
-            "passed": error is None and completeness is Completeness.COMPLETE and agrees and refused,
+            "passed": error is None and completeness is Completeness.COMPLETE and agrees,
             "observed": (
                 # A failed read says why first: that is the block a person has to act on.
                 (f"read failed: {error}; " if error else "")
@@ -486,8 +561,10 @@ def oracle(
                 "observed": f"undid {op.id}: {results[op.id]['observed']}",
                 "error": results[op.id]["error"],
             }
+    integration.deviations = degraded.log
     return {
         "version": ORACLE_VERSION,
+        "deviations": len(degraded.log),
         "at": utc_now().isoformat(),
         "operations": results,
         # Reads must pass; a write counts only where it was authorized to be exercised (otherwise it stays disabled).

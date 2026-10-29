@@ -165,6 +165,20 @@ def read_all(
                 )
             offset += len(batch)
             if total is not None and offset >= total:
+                if len(batch) == limit:
+                    # The declared total is reached on a full page: one more page says whether it was the whole
+                    # (a count that is the page's own length, not the collection's, looks exactly like this).
+                    more = records_of(fetch({"offset": offset, "limit": limit}))
+                    requests += 1
+                    if more:
+                        return Read(
+                            list(seen.values()),
+                            Completeness.INCOMPLETE,
+                            f"the declared total {total} is contradicted: offset {offset} returned {len(more)} more",
+                            style,
+                            requests,
+                            total,
+                        )
                 break
             if total is None and len(batch) < limit:
                 break
