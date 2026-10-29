@@ -27,6 +27,7 @@ import time
 from pathlib import Path
 
 LABEL = "unbidden.lab=ecosystem"
+OWN = "unbidden-lab-"  # the prefix of every container and network these labs create
 PG = "unbidden-lab-pg"
 PG_NET = "unbidden-lab-db"
 PG_PORT = 55432
@@ -262,10 +263,14 @@ def down(lab: Path) -> None:
     repo = lab / "shopfront"
     if repo.exists():
         subprocess.run(["docker", "compose", "-p", "shopfront-staging", "down"], cwd=repo, capture_output=True)
-    ids = _docker("ps", "-aq", "--filter", f"label={LABEL}").stdout.split()
+    # Only what these labs start, all named `unbidden-lab-*`: other labs share the label (Conduit's and LNbits'
+    # compose projects carry it too), and the release walk's `down` removed their containers when the label alone
+    # selected them (stage 8; their volumes were kept, and they were restored).
+    mine = ("--filter", f"label={LABEL}", "--filter", f"name=^{OWN}")
+    ids = _docker("ps", "-aq", *mine).stdout.split()
     if ids:
         _docker("rm", "-f", *ids)
-    for net in _docker("network", "ls", "-q", "--filter", f"label={LABEL}").stdout.split():
+    for net in _docker("network", "ls", "-q", *mine).stdout.split():
         _docker("network", "rm", net, check=False)
 
 
