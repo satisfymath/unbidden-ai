@@ -22,7 +22,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from bench.ecosystem import board_lab
+from bench.ecosystem import board_lab, ownership
 from bench.ecosystem import lab as base
 
 PAGE_SCRIPT = Path(__file__).with_name("board_check_page.py")
@@ -249,7 +249,7 @@ def capture(out: Path) -> dict[str, Any]:
     out.mkdir(parents=True, exist_ok=True)
     out.chmod(0o777)
     subprocess.run(
-        ["docker", "run", "--rm", "--network", f"{board_lab.PROJECT}_default", "--label", base.LABEL,
+        ["docker", "run", "--rm", "--network", f"{board_lab.PROJECT}_default", *ownership.labels("board-check"),
          "-v", f"{PAGE_SCRIPT}:/check/page.py:ro", "-v", f"{out}:/out", "--user", "1001:1001", "-e", "HOME=/tmp",
          IMAGE, "python", "/check/page.py", "http://board:8000/board", "/out"],
         check=True, capture_output=True, text=True, timeout=300,

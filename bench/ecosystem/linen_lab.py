@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from bench.ecosystem import lab as base
+from bench.ecosystem import ownership
 
 NAME, PORT, SEED, ITEMS = "unbidden-lab-linen", 19191, 41_2026, 29
 SCRIPT = Path(__file__).with_name("linen.py")
@@ -96,7 +97,7 @@ def _service(lab: Path) -> None:
     if base._docker("ps", "-aq", "--filter", f"name=^{NAME}$").stdout.strip():  # pyright: ignore[reportPrivateUsage]
         base._docker("rm", "-f", NAME)  # pyright: ignore[reportPrivateUsage]  (a fresh start: no transfers)
     base._docker(  # pyright: ignore[reportPrivateUsage]
-        "run", "-d", "--name", NAME, "--label", base.LABEL, "--user", f"{os.getuid()}:{os.getgid()}",
+        "run", "-d", "--name", NAME, *ownership.labels("linen"), "--user", f"{os.getuid()}:{os.getgid()}",
         "-v", f"{SCRIPT}:/app/linen.py:ro", "-v", f"{home}:/data", "-p", f"127.0.0.1:{PORT}:8080",
         "python:3.12-slim", "python", "-u", "/app/linen.py", "8080", "/data",
     )  # fmt: skip
@@ -191,8 +192,8 @@ def up(lab: Path) -> None:
 def down(lab: Path) -> None:
     repo = lab / "hotelapp"
     if repo.exists():
-        subprocess.run(["docker", "compose", "-p", "hotelapp-staging", "down"], cwd=repo, capture_output=True)
-    subprocess.run(["docker", "rm", "-f", NAME], capture_output=True, check=False)
+        ownership.compose_down("hotelapp-staging", str(repo))
+    ownership.down("linen")
     base.down(lab)
 
 

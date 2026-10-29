@@ -26,8 +26,10 @@ import subprocess
 import time
 from pathlib import Path
 
+from bench.ecosystem import ownership
+
 LABEL = "unbidden.lab=ecosystem"
-OWN = "unbidden-lab-"  # the prefix of every container and network these labs create
+PG_VOLUME = "unbidden-lab-pg-data"  # named, so ordinary teardown keeps the data and the next `up` finds it
 PG = "unbidden-lab-pg"
 PG_NET = "unbidden-lab-db"
 PG_PORT = 55432
@@ -104,7 +106,9 @@ def up(lab: Path) -> None:
         _docker("start", PG)
     else:
         if not _docker("network", "ls", "-q", "--filter", f"name=^{PG_NET}$").stdout.strip():
-            _docker("network", "create", "--label", LABEL, PG_NET)
+            _docker("network", "create", *ownership.labels("base"), PG_NET)
+        if not ownership.owned("volume", "base"):
+            _docker("volume", "create", *ownership.labels("base"), PG_VOLUME)
         env_file = lab / "pg.env"
         env_file.write_text(f"POSTGRES_PASSWORD={values['LAB_PG_ADMIN']}\nPOSTGRES_DB=shop\n")
         env_file.chmod(0o600)
@@ -113,8 +117,9 @@ def up(lab: Path) -> None:
             "-d",
             "--name",
             PG,
-            "--label",
-            LABEL,
+            *ownership.labels("base"),
+            "-v",
+            f"{PG_VOLUME}:/var/lib/postgresql/data",
             "--network",
             PG_NET,
             "--env-file",
@@ -198,8 +203,7 @@ def stockroom_up(lab: Path, which: str) -> None:
         "-d",
         "--name",
         name,
-        "--label",
-        LABEL,
+        *ownership.labels("base"),
         "--user",
         f"{os.getuid()}:{os.getgid()}",
         "-v",
@@ -259,19 +263,15 @@ def restore_reader(lab: Path) -> None:
     _psql(f"ALTER ROLE shop_reader PASSWORD '{_secrets(lab)['SHOP_READER_PW']}'")
 
 
-def down(lab: Path) -> None:
+def down(lab: Path, *, volumes: bool = False) -> None:
     repo = lab / "shopfront"
     if repo.exists():
-        subprocess.run(["docker", "compose", "-p", "shopfront-staging", "down"], cwd=repo, capture_output=True)
-    # Only what these labs start, all named `unbidden-lab-*`: other labs share the label (Conduit's and LNbits'
-    # compose projects carry it too), and the release walk's `down` removed their containers when the label alone
-    # selected them (stage 8; their volumes were kept, and they were restored).
-    mine = ("--filter", f"label={LABEL}", "--filter", f"name=^{OWN}")
-    ids = _docker("ps", "-aq", *mine).stdout.split()
-    if ids:
-        _docker("rm", "-f", *ids)
-    for net in _docker("network", "ls", "-q", *mine).stdout.split():
-        _docker("network", "rm", net, check=False)
+        ownership.compose_down("shopfront-staging", str(repo), volumes=volumes)
+    # By this lab's identity only (`ownership.py`): the stage 8 walk's teardown selected the shared family label and
+    # removed two other labs' containers. Volumes (the database's data) stay unless asked.
+    report = ownership.down("base", volumes=volumes)
+    for problem in report.failed:
+        print(f"not removed: {problem}")
 
 
 def status() -> str:
@@ -297,12 +297,13 @@ def main() -> None:
     )
     parser.add_argument("target", nargs="*", help="a stockroom (a, b), then SKUs for `flaky`")
     parser.add_argument("--dir", default=os.path.expanduser("~/unbidden-lab"))
+    parser.add_argument("--volumes", action="store_true", help="down: also remove the database volume")
     args = parser.parse_args()
     lab = Path(args.dir)
     which = args.target[0] if args.target else "a"
     {
         "up": up,
-        "down": lambda _: down(lab),
+        "down": lambda _: down(lab, volumes=args.volumes),
         "revoke-reader": revoke_reader,
         "restore-reader": restore_reader,
         "status": lambda _: print(status()),

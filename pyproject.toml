@@ -51,6 +51,7 @@ markers = [
     "unit: fast, no external services",
     "e2e: full cycle with the mock model",
     "slow: real model, real sandbox, or a timing measurement that depends on the machine",
+    "docker: needs a local Docker daemon (skipped without one)",
 ]
 addopts = "-m 'not slow'"
 

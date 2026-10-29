@@ -59,6 +59,7 @@ OVERRIDE = """services:
       DATABASE_URL: "postgresql://postgres:{pg}@db/postgres"
     labels:
       unbidden.lab: ecosystem
+      unbidden.lab.id: conduit
   db:
     ports: !override
       - "127.0.0.1:{db_port}:5432"
@@ -68,8 +69,12 @@ OVERRIDE = """services:
       - conduit-data:/var/lib/postgresql/data
     labels:
       unbidden.lab: ecosystem
+      unbidden.lab.id: conduit
 volumes:
   conduit-data:
+    labels:
+      unbidden.lab: ecosystem
+      unbidden.lab.id: conduit
 """
 COMPOSE = ["docker", "compose", "-f", "docker-compose.yml", "-f", "docker-compose.lab.yml", "-p", PROJECT]
 
@@ -191,19 +196,23 @@ def token(lab: Path) -> str:
     return "held in conduit-secrets.env"
 
 
-def down(lab: Path) -> None:
+def down(lab: Path, volumes: bool = False) -> None:
+    """Stop and remove the project's containers; its database volume only with `--volumes`."""
     repo = repo_dir(lab)
     if repo.exists():
-        subprocess.run([*COMPOSE, "down", "-v"], cwd=repo, capture_output=True, check=False)
+        subprocess.run([*COMPOSE, "down", *(["-v"] if volumes else [])], cwd=repo, capture_output=True,
+                       check=False)  # fmt: skip
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("action", choices=["up", "seed", "token", "down"])
     parser.add_argument("--dir", default=os.path.expanduser("~/unbidden-lab"))
+    parser.add_argument("--volumes", action="store_true", help="down: also remove the data volume")
     args = parser.parse_args()
     lab = Path(args.dir)
-    result = {"up": up, "seed": seed, "token": token, "down": down}[args.action](lab)
+    actions = {"up": up, "seed": seed, "token": token, "down": lambda lab: down(lab, args.volumes)}
+    result = actions[args.action](lab)
     if result is not None:
         print(json.dumps(result))
 

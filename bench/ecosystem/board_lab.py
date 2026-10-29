@@ -32,6 +32,7 @@ from typing import Any
 import httpx
 
 from bench.ecosystem import lab as base
+from bench.ecosystem import ownership
 
 DEPOT_SCRIPT = Path(__file__).with_name("depot.py")
 DEPOT_NAME, DEPOT_PORT, DB = "unbidden-lab-boarddepot", 18086, "boardpicks"
@@ -51,6 +52,7 @@ COMPOSE = f"""services:
       - "host.docker.internal:host-gateway"
     labels:
       unbidden.lab: ecosystem
+      unbidden.lab.id: board
 """
 
 # Variants of the healthy design (development): each a change of the base before the case's commit.
@@ -355,7 +357,7 @@ def _data(lab: Path, seed: int, n: int) -> dict[str, str]:
         base._docker("restart", DEPOT_NAME)  # pyright: ignore[reportPrivateUsage]  (its stock is read at start)
     else:
         base._docker(  # pyright: ignore[reportPrivateUsage]
-            "run", "-d", "--name", DEPOT_NAME, "--label", base.LABEL, "--user", f"{os.getuid()}:{os.getgid()}",
+            "run", "-d", "--name", DEPOT_NAME, *ownership.labels("board"), "--user", f"{os.getuid()}:{os.getgid()}",
             "-v", f"{DEPOT_SCRIPT}:/app/depot.py:ro", "-v", f"{home}:/data", "-p", f"127.0.0.1:{DEPOT_PORT}:8080",
             "python:3.12-slim", "python", "-u", "/app/depot.py", "8080", "/data",
         )  # fmt: skip
@@ -441,7 +443,8 @@ def deploy(repo: Path) -> None:
 def down(lab: Path) -> None:
     repo = repo_dir(lab)
     if repo.exists():
-        subprocess.run(["docker", "compose", "-p", PROJECT, "down"], cwd=repo, capture_output=True, check=False)
+        ownership.compose_down(PROJECT, str(repo))
+    ownership.down("board")
 
 
 def main() -> None:

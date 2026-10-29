@@ -21,6 +21,7 @@ import time
 from pathlib import Path
 
 from bench.ecosystem import lab as base
+from bench.ecosystem import ownership
 from bench.ecosystem.depot import Depot
 
 NAME, PORT, SEED = "unbidden-lab-depot", 18085, 31_2026
@@ -99,8 +100,7 @@ def _service(lab: Path) -> None:
         "-d",
         "--name",
         NAME,
-        "--label",
-        base.LABEL,
+        *ownership.labels("depot"),
         "--user",
         f"{os.getuid()}:{os.getgid()}",  # pyright: ignore[reportPrivateUsage]
         "-v",
@@ -186,7 +186,8 @@ def up(lab: Path) -> None:
 def down(lab: Path) -> None:
     repo = lab / "depotapp"
     if repo.exists():
-        subprocess.run(["docker", "compose", "-p", "depotapp-staging", "down"], cwd=repo, capture_output=True)
+        ownership.compose_down("depotapp-staging", str(repo))
+    ownership.down("depot")
     base.down(lab)
     (lab / "depot" / "faults").unlink(missing_ok=True)
     (lab / "depot" / "keys").unlink(missing_ok=True)

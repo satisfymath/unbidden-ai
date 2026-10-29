@@ -25,6 +25,7 @@ import time
 from pathlib import Path
 
 from bench.ecosystem import lab as base
+from bench.ecosystem import ownership
 
 LABEL = base.LABEL
 CARRIERS = {"scl": ("santiago", 19081), "ccp": ("concepcion", 19082)}
@@ -105,8 +106,7 @@ def _carrier(lab: Path, which: str) -> None:
         "-d",
         "--name",
         name,
-        "--label",
-        LABEL,
+        *ownership.labels("dispatch"),
         "--user",
         f"{os.getuid()}:{os.getgid()}",  # pyright: ignore[reportPrivateUsage]
         "-v",
@@ -205,7 +205,8 @@ def up(lab: Path) -> None:
 def down(lab: Path) -> None:
     repo = lab / "dispatch"
     if repo.exists():
-        subprocess.run(["docker", "compose", "-p", "dispatch-staging", "down"], cwd=repo, capture_output=True)
+        ownership.compose_down("dispatch-staging", str(repo))
+    ownership.down("dispatch")
     base.down(lab)
     for which in CARRIERS:
         state = lab / f"carrier-{which}" / "state.json"

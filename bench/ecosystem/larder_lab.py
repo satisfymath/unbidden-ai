@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from bench.ecosystem import lab as base
+from bench.ecosystem import ownership
 
 NAME, PORT, SEED, ITEMS = "unbidden-lab-larder", 19091, 77_2026, 37
 SCRIPT = Path(__file__).with_name("larder.py")
@@ -96,7 +97,7 @@ def _service(lab: Path) -> None:
     if base._docker("ps", "-aq", "--filter", f"name=^{NAME}$").stdout.strip():  # pyright: ignore[reportPrivateUsage]
         base._docker("rm", "-f", NAME)  # pyright: ignore[reportPrivateUsage]  (a fresh start: no transfers)
     base._docker(  # pyright: ignore[reportPrivateUsage]
-        "run", "-d", "--name", NAME, "--label", base.LABEL, "--user", f"{os.getuid()}:{os.getgid()}",
+        "run", "-d", "--name", NAME, *ownership.labels("larder"), "--user", f"{os.getuid()}:{os.getgid()}",
         "-v", f"{SCRIPT}:/app/larder.py:ro", "-v", f"{home}:/data", "-p", f"127.0.0.1:{PORT}:8080",
         "python:3.12-slim", "python", "-u", "/app/larder.py", "8080", "/data",
     )  # fmt: skip
@@ -205,8 +206,8 @@ def up(lab: Path) -> None:
 def down(lab: Path) -> None:
     repo = lab / "pantryapp"
     if repo.exists():
-        subprocess.run(["docker", "compose", "-p", "pantryapp-staging", "down"], cwd=repo, capture_output=True)
-    subprocess.run(["docker", "rm", "-f", NAME], capture_output=True, check=False)
+        ownership.compose_down("pantryapp-staging", str(repo))
+    ownership.down("larder")
     base.down(lab)
 
 
