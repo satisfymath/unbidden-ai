@@ -64,3 +64,25 @@ fixtures). A-7 as A-6. US$0.31 for both. Fixed generally (821ea27): an async dri
 signature, when the suite's fixtures are coroutines. Runs `B-7` then `A-8` from a worktree at the commit named
 below. This is the last regression version the stage's development budget allows.
 regression version 6: f56b130
+
+## What the sixth version showed (B-7, A-8)
+
+**B-7** (50 min, US$0.14, one intervention: Debian's archive): the project's suite ran on both sides of every
+experiment (90 tests, 3 rounds, none failed); four candidates written by rule, four workloads ran at the base.
+
+| Candidate | Endpoint (Unbidden's workload) | Unbidden's verdict | Independent check (lab data, `conduit_indep.py`, query time, median of 15) |
+|---|---|---|---|
+| `commentaries.article_id` | `GET /api/articles/{slug}/comments` 26.0 -> 18.6 ms | improved, L4 | **confirmed**: the listing's query 8.43 -> 0.06 ms |
+| `favorites.article_id` | `DELETE /api/articles/{slug}` 10.0 -> 1.7 ms | improved, L4 | **confirmed, conditionally**: 0.60 -> 0.20 ms once comments are indexed; alone 7.81 -> 7.26 ms, the cascade into the unindexed comments dominating on this data |
+| `commentaries.author_id` | `DELETE .../comments/{id}` 2.5 -> 2.0 ms | improved, L4 | **not confirmed**: the delete finds the row by primary key (0.04 -> 0.03 ms); the 0.5 ms difference at the endpoint cannot come from this index. A false L4: base and candidate run in separate sandbox sessions, each seeding its own data, and a small absolute difference passed the criteria |
+| `articles.author_id` | (two experiments) 32.4 -> 32.4 ms, 34.0 -> 35.7 ms | no effect, declined | consistent (not checked further) |
+
+Proposals: three local branches (`unbidden/...`), each a single Alembic migration after the current head; none
+pushed (pull requests denied by the mandate, `github.com` not an allowed destination). Applied together they would
+leave three Alembic heads: each is a proposal on its own.
+
+**A-8** (81 min, US$0.24): the goal blocked as before (the API's listing complete only as "unknown"); its proactive
+part reproduced `commentaries.article_id` at L4 (24.8 -> 18.7 ms) on the second attempt.
+
+The cycle is complete on Conduit: reproduced before any change, measured on both sides with the project's checks,
+improvements proposed and a negative declined with evidence; one of the three improvements is a false positive.

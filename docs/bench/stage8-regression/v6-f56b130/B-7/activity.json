@@ -1,0 +1,178 @@
+{
+  "workspace": "conduit",
+  "at": "2026-10-29T19:53:58.745074+00:00",
+  "discovered": {
+    "total": 4,
+    "by_status": {
+      "proposed": 3,
+      "declined": 1
+    }
+  },
+  "experimenting": [],
+  "declined_because": [
+    [
+      "2 experiments found no proven fix",
+      1
+    ]
+  ],
+  "waiting_because": [],
+  "proven": [
+    {
+      "id": "opp_d807ff5b43c64106",
+      "title": "commentaries.article_id is a foreign key without an index, joined on by 1 endpoint(s)",
+      "level": 4,
+      "status": "proposed",
+      "level_name": "validated",
+      "outcome": null,
+      "held_checks": 0,
+      "current_rules": null
+    },
+    {
+      "id": "opp_7ec51834490b40ca",
+      "title": "commentaries.author_id is a foreign key without an index, filtered on by 2 endpoint(s)",
+      "level": 4,
+      "status": "proposed",
+      "level_name": "validated",
+      "outcome": null,
+      "held_checks": 0,
+      "current_rules": null
+    },
+    {
+      "id": "opp_7930b88281234539",
+      "title": "favorites.article_id is a foreign key without an index, checked when 1 endpoint(s) delete a articles row",
+      "level": 4,
+      "status": "proposed",
+      "level_name": "validated",
+      "outcome": null,
+      "held_checks": 0,
+      "current_rules": null
+    }
+  ],
+  "invalidated": [],
+  "proposals": {
+    "ready": [
+      "perf: index commentaries.article_id \u00b7 GET /api/articles/{slug}/comments: median 26.0 ms \u2192 18.6 ms (28% faster)",
+      "perf: index commentaries.author_id \u00b7 DELETE /api/articles/{slug}/comments/{comment_id}: median 2.5 ms \u2192 2.0 ms (22% fast",
+      "perf: index favorites.article_id \u00b7 DELETE /api/articles/{slug}: median 10.0 ms \u2192 1.7 ms (83% faster)"
+    ]
+  },
+  "capabilities": {
+    "needs": {},
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 70,
+    "usd": 0.992,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {
+    "world \u00b7 performance \u00b7 -": {
+      "successes": 3,
+      "failures": 2,
+      "p": 0.6,
+      "prior": 0.6
+    }
+  },
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55440/postgres",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.alembic_version",
+        "select public.articles",
+        "select public.articles_to_tags",
+        "select public.commentaries",
+        "select public.favorites",
+        "select public.followers_to_followings",
+        "select public.tags",
+        "select public.users"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-29T19:53:58.199014+00:00"
+    },
+    {
+      "id": "github:nsidnev/fastapi-realworld-example-app",
+      "kind": "github",
+      "environment": "local",
+      "state": "discovered",
+      "read": [],
+      "write": [],
+      "requested": [],
+      "effective": [],
+      "blocked": "the mandate names no GitHub repository",
+      "next_step": "set egress.github.repository to nsidnev/fastapi-realworld-example-app and grant a token reference",
+      "found_by": [
+        "git remote origin"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18110",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "FastAPI example application: 19 operations documented, authenticated by apiKey Authorization; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-29T19:53:58.203976+00:00"
+    }
+  ],
+  "needs_a_person": [],
+  "optional_access": [
+    {
+      "connection": "github:nsidnev/fastapi-realworld-example-app",
+      "what": "set egress.github.repository to nsidnev/fastapi-realworld-example-app and grant a token reference",
+      "enables": "reading it"
+    }
+  ],
+  "blocks": [],
+  "integrations": [],
+  "actions": [],
+  "acceptances": [],
+  "goals": []
+}

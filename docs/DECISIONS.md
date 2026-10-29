@@ -1011,3 +1011,59 @@ runs identical. No false claims, no intervention, US$0.06.
 build toolchain, (2) deviations between a document and observed responses recorded as evidence (reads proceed with
 the deviation stated; writes stay strict), (3) reads in the endpoint-to-table map. None of them is made in this
 stage's evaluated version; Conduit cannot serve as out-of-sample evidence for them.
+
+## D-048 · 2026-10-29 · Stage 8: reproduce the project's environment, and keep provisioning apart from execution
+
+The stage 7 transfer was blocked because the sandbox built dependencies for its own Python (3.12, arm64, no compiler)
+while Conduit declares 3.9. **Decided:** the interpreter is chosen from the project's declarations by a written rule
+(`observe/python_version.py`): the CI's matrix and the project's Dockerfile, then `.python-version`/`runtime.txt`,
+within what `requires-python`, Poetry and the locks admit; the oldest admissible when only a range is declared; every
+source and conflict recorded with the choice. Build tools come only through provisioning the mandate authorizes
+(Debian's archive in `egress.package_registries`), retried when the error says a compiler or `pg_config` is
+missing; interpreters before 3.12 are seeded with pip and setuptools as of the lockfile's commit date. The CI job is
+chosen by what it executes (its scripts included), and its service containers become the sandbox's sidecars.
+Provisioning has network; execution has none. Also: the project's own package is registered in the environment as
+`uv sync` does (LNbits read its version at import), and each language is provisioned on its own (a frontend's npm
+registry no longer blocks Python work).
+
+Shown: Conduit's suite (90 tests) ran at the base on Python 3.9 with the CI's PostgreSQL, two rounds, before any
+change; LNbits' interpreter choice (3.12) matched what uv chose independently. Not shown in an evaluation: LNbits'
+own tests run by Unbidden (its evaluation run failed at import; fixed after it).
+
+## D-049 · 2026-10-29 · Stage 8: controlled read compatibility; findings tied to queries; requests that unblock
+
+**Reads.** A document and its service may disagree. A read may continue past a deviation on an accessory field
+(recorded per operation, field, declared contract, observed value, provenance, time, decision and count); a
+deviation on an identifier, a relation, a count, or a field a goal compares blocks the conclusion
+(`DeviationBlocked`); a declared total contradicted by the next page, or no total under a known name, makes the read
+incomplete or unknown; writes stay strict. No "ignore schema errors" mode. Reads are bounded by records (100,000),
+not requests. On Conduit: all 20,000 articles read, completeness unknown (its count is not under a known name), the
+goal blocked; the `articlesCount` defect stays Claude's observation, never given to the agent.
+
+**Findings.** Columns are traced from SQL files (`-- name:` queries, the nearest FROM/JOIN) to the Python callers and
+the endpoints, routes mounted through `include_router` located with their literal prefixes; an index candidate
+carries an estimated size and the writes that maintain it, labelled as estimates. Index experiments run on tables
+kept only in migrations (no ORM model), with a rule-written migration valid on the project's Python.
+
+**Requests.** A block records the operation, evidence, kind (pending a person, compatibility, missing capability,
+unavailable, not viable), the minimum that unblocks it and what continues; one request per need; held jobs are
+parked without spending attempts and released when the mandate shows the need met. On Conduit: one request
+(Debian's archive), answered once, the five held jobs ran in the next cycle.
+
+## D-050 · 2026-10-29 · Stage 8: the independent application, and what it showed
+
+Chosen by a rule written before looking at code (`docs/bench/stage8-independent.md`): LNbits v1.6.2, frozen with the
+product at 6bbf3a1, run once (I-1, proactive): no improvement, and not a justified abstention: the map read no table
+(its PostgreSQL ran from a compose file the map did not read), the probe could not import the project, and one
+request (npm's registry) was not needed by the work it blocked. Measured independently: the CI's unit tests pass
+(646) at the release; both foreign keys are indexed and the main read takes 1.4 ms on 5,000 payments, so there was
+nothing to fix at this volume. The three causes were fixed generally after the evaluation (da7a595); the repeat I-2
+(labelled post-evaluation) mapped the 14 tables, ran the probe on the project's code (0 crashes), asked nothing, and
+found nothing, consistent with the independent measurement.
+
+## D-051 · 2026-10-29 · Stage 8: an experimental candidate, not 1.0
+
+The exit criteria (`docs/PLAN.md`) are not all met: no useful cycle (an improvement measured with the checks green
+on both sides, or a discard with evidence) on the independent application, and on Conduit only after six regression
+versions, each fixing a general cause found by the one before. **Decided:** the candidate is called experimental;
+nothing is published, released or merged; the integration proposal is prepared for review only.

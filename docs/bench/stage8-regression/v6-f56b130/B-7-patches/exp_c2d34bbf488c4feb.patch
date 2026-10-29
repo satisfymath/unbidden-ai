@@ -1,0 +1,27 @@
+--- a/app/db/migrations/versions/1d302b38ceb2_add_index_articles_author_id.py
++++ b/app/db/migrations/versions/1d302b38ceb2_add_index_articles_author_id.py
+@@ -0,0 +1,24 @@
++"""add index on articles.author_id
++
++Revision ID: 1d302b38ceb2
++Revises: fdf8821871d7
++
++"""
++
++from alembic import op
++
++# revision identifiers, used by Alembic.
++revision = "1d302b38ceb2"
++down_revision = "fdf8821871d7"
++branch_labels = None
++depends_on = None
++
++
++def upgrade():
++    with op.batch_alter_table("articles", schema=None) as batch_op:
++        batch_op.create_index(batch_op.f("ix_articles_author_id"), ["author_id"], unique=False)
++
++
++def downgrade():
++    with op.batch_alter_table("articles", schema=None) as batch_op:
++        batch_op.drop_index(batch_op.f("ix_articles_author_id"))
