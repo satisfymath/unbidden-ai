@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -22,7 +23,7 @@ from bench.ecosystem import conduit_lab
 from bench.ecosystem.conduit_workspace import archive
 
 LAB = Path.home() / "unbidden-lab"
-RUNS = [("B-1", "proactive"), ("A-1", "goal"), ("A-2", "goal")]
+RUNS = [("B-1", "proactive"), ("A-1", "goal"), ("A-2", "goal"), ("B-2", "proactive"), ("A-3", "goal")]
 
 
 def ledger(worktree: Path) -> float:
@@ -35,8 +36,8 @@ def restore(worktree: Path) -> dict[str, Any]:
     repo = conduit_lab.repo_dir(LAB)
     subprocess.run(["git", "-C", str(repo), "checkout", "-q", "--detach", "--force", conduit_lab.COMMIT], check=True)
     subprocess.run(["git", "-C", str(repo), "clean", "-q", "-fd"], check=True)  # excluded lab files stay (-x not given)
-    for branch in subprocess.run(["git", "-C", str(repo), "branch", "--format=%(refname:short)"], capture_output=True,
-                                 text=True, check=True).stdout.split():  # fmt: skip
+    for branch in subprocess.run(["git", "-C", str(repo), "for-each-ref", "--format=%(refname:short)", "refs/heads"],
+                                 capture_output=True, text=True, check=True).stdout.split():  # fmt: skip
         subprocess.run(["git", "-C", str(repo), "branch", "-q", "-D", branch], check=False)
     counts = conduit_lab.seed(LAB)
     conduit_lab.token(LAB)
@@ -49,17 +50,40 @@ def run(worktree: Path, name: str, mode: str, out: Path) -> dict[str, Any]:
     subprocess.run(["uv", "run", "python", "-m", "bench.ecosystem.conduit_workspace", str(worktree), "--mode", mode],
                    cwd=worktree, check=True, capture_output=True)  # fmt: skip
     logs, started = [], time.monotonic()
-    for cycle in (1, 2):
-        ran = subprocess.run(["uv", "run", "--project", str(worktree), "unbidden", "watch", "--once"], cwd=repo,
-                             capture_output=True, text=True, timeout=5400)  # fmt: skip
-        logs.append(f"== cycle {cycle} (exit {ran.returncode})\n{ran.stdout}{ran.stderr}")
+
+    def cycles(numbers: tuple[int, ...]) -> None:
+        for cycle in numbers:
+            argv = ["uv", "run", "--project", str(worktree), "unbidden", "watch", "--once"]
+            ran = subprocess.run(argv, cwd=repo, capture_output=True, text=True, timeout=5400)
+            logs.append(f"== cycle {cycle} (exit {ran.returncode})\n{ran.stdout}{ran.stderr}")
+
+    cycles((1, 2))
+    # A person answers what Unbidden asked, and only that, from the answers this protocol declares a person gives:
+    # adding a package registry it names. Counted as an intervention; then two more cycles.
+    record["interventions"] = []
+    show = ["uv", "run", "--project", str(worktree), "unbidden", "activity", "--json"]
+    asked = json.loads(subprocess.run(show, cwd=repo, capture_output=True, text=True, check=False).stdout or "{}")
+    for request in asked.get("needs_a_person", []):
+        wanted = re.search(r"add ([\w.\-, ]+) to egress\.package_registries", str(request.get("what", "")))
+        if wanted:
+            hosts = [h.strip() for h in wanted.group(1).split(",") if h.strip()]
+            mandate = repo / ".unbidden" / "mandate.yaml"
+            text = mandate.read_text()
+            listed = re.search(r"package_registries: \[([^\]]*)\]", text)
+            if listed:
+                have = [h.strip() for h in listed.group(1).split(",") if h.strip()]
+                merged = ", ".join(dict.fromkeys([*have, *hosts]))
+                mandate.write_text(text.replace(listed.group(0), f"package_registries: [{merged}]"))
+                record["interventions"].append({"answered": request, "granted": hosts, "at": time.time()})
+    if record["interventions"]:
+        cycles((3, 4))
     record["wall_s"] = round(time.monotonic() - started, 1)
     activity = subprocess.run(["uv", "run", "--project", str(worktree), "unbidden", "activity", "--json"], cwd=repo,
                               capture_output=True, text=True, check=False).stdout  # fmt: skip
     record["repo_after"] = subprocess.run(["git", "-C", str(repo), "status", "--short"], capture_output=True,
                                           text=True, check=False).stdout.strip()  # fmt: skip
-    record["branches_after"] = subprocess.run(["git", "-C", str(repo), "branch", "--format=%(refname:short)"],
-                                              capture_output=True, text=True, check=False).stdout.split()  # fmt: skip
+    heads = ["git", "-C", str(repo), "for-each-ref", "--format=%(refname:short)", "refs/heads"]
+    record["branches_after"] = subprocess.run(heads, capture_output=True, text=True, check=False).stdout.split()
     record["usd_after"] = ledger(worktree)
     where = out / name
     where.mkdir(parents=True, exist_ok=True)
