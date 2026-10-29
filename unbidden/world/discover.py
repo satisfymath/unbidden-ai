@@ -26,6 +26,7 @@ from unbidden.world.connectors import (
     OPENAPI_HTTP,
     POSTGRES_READONLY,
     PROMETHEUS,
+    SQL_RELATIONS,
 )
 from unbidden.world.reconcile import reconcile
 from unbidden.world.relations import infer_endpoint_tables
@@ -182,6 +183,8 @@ async def discover(repo: Path, rev: str, store: Store, mandate: Mandate, brain: 
     else:
         world.blind_spots.append(BlindSpot(what="the running system", why="runtime.read is not allowed by the mandate"))
     _text_needs(world, store)
+    _sql_relations(repo, rev, world)
+    ran.add(SQL_RELATIONS.ref)
     if brain is not None:
         await infer_endpoint_tables(repo, rev, world, brain)
         world.stamp(LLM_RELATIONS.ref, valid_for=rev)
@@ -216,3 +219,21 @@ def sensitive_terms(world: WorldModel) -> SensitiveTermIndex:
         if resource.kind == "endpoint":
             terms.extend(seg for seg in resource.name.split(" ", 1)[-1].split("/") if seg and "{" not in seg)
     return SensitiveTermIndex(terms)
+
+
+def _sql_relations(repo: Path, rev: str, world: WorldModel) -> None:
+    """Endpoint-to-table relations from named SQL queries the handlers' code calls (`column_use.sql_table_access`)."""
+    from unbidden.contracts.common import EvidenceLevel, EvidenceRef, capped_confidence
+    from unbidden.contracts.world import Relation
+    from unbidden.world.column_use import sql_table_access
+
+    for endpoint, table, predicate, where in sql_table_access(repo, rev, world):
+        world.relate(
+            Relation(
+                src=endpoint, dst=f"table:{table}", predicate=predicate,  # type: ignore[arg-type]
+                status=EpistemicStatus.INFERRED,
+                confidence=capped_confidence(0.9, EvidenceLevel.REASONABLE_SUSPICION),
+                evidence=[EvidenceRef(kind="file", locator=where, note="a named SQL query the handler's code calls")],
+                source=SQL_RELATIONS.ref,
+            )
+        )  # fmt: skip

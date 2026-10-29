@@ -199,3 +199,61 @@ def column_users(repo: Path, rev: str, world: WorldModel, table: str, column: st
                 found.append((endpoint.name, use))
                 break
     return sorted(found, key=lambda pair: pair[0])
+
+
+_READ = re.compile(r"\b(?:FROM|JOIN)\s+(?P<table>\w+)", re.I)
+_WRITE = re.compile(r"\b(?:INSERT\s+INTO|UPDATE|DELETE\s+FROM)\s+(?P<table>\w+)", re.I)
+
+
+def sql_table_access(repo: Path, rev: str, world: WorldModel) -> list[tuple[str, str, str, str]]:
+    """(endpoint, table, "reads" | "writes", where) for each endpoint whose handler calls a function that runs a named
+    SQL query on a mapped table: SELECT/JOIN reads it, INSERT/UPDATE/DELETE writes it (stage 9: the endpoint-to-table
+    map came from a model alone, and a more cautious model lost the deletes, so the cascade checks never ran). From
+    code, inferred, no model; a query reached only through another layer the handler does not call is not seen."""
+    tables = {t.name for t in world.of_kind("table")}
+    tracked = _git(repo, "ls-tree", "-r", "--name-only", rev).splitlines()
+    sql = {p: _git(repo, "show", f"{rev}:{p}") for p in tracked if p.endswith(".sql") and not _SKIP.search(p)}
+    if not sql or not tables:
+        return []
+    sources = {p: _git(repo, "show", f"{rev}:{p}") for p in tracked if p.endswith(".py") and not _SKIP.search(p)}
+    by_function: dict[str, list[tuple[str, str, str]]] = {}  # function -> (file, table, predicate)
+    for qfile, qline, qname, text in sql_queries(sql):
+        body = re.sub(r"--[^\n]*", "", text)
+        writes = {m.group("table") for m in _WRITE.finditer(body)} & tables
+        reads = ({m.group("table") for m in _READ.finditer(body)} & tables) - writes
+        if not reads and not writes:
+            continue
+        called = re.compile(rf"\.{re.escape(qname.replace('-', '_'))}\s*\(")
+        for path, code in sources.items():
+            lines = code.splitlines()
+            for i, line in enumerate(lines):
+                if not called.search(line):
+                    continue
+                function = next((m.group("name") for j in range(i, -1, -1) if (m := _DEF.match(lines[j]))), "")
+                if function:
+                    for table, predicate in [*((t, "reads") for t in reads), *((t, "writes") for t in writes)]:
+                        by_function.setdefault(function, []).append(
+                            (path, table, f"{predicate}|{qfile}:{qline} {qname}")
+                        )
+    definers = {
+        name: [
+            p for p, text in sources.items() if re.search(rf"^\s*(?:async\s+)?def\s+{re.escape(name)}\s*\(", text, re.M)
+        ]
+        for name in by_function
+    }
+    found: set[tuple[str, str, str, str]] = set()
+    for endpoint in world.of_kind("endpoint"):
+        file, line = endpoint.attributes.get("file"), endpoint.attributes.get("line")
+        if not file or not line:
+            continue
+        code = handler_source(repo, rev, str(file), int(str(line)))
+        for name, uses in by_function.items():
+            for m in re.finditer(rf"(?:(?P<receiver>\w+)\.|[\s(]){re.escape(name)}\(", code):
+                if code[: m.start() + 1].rstrip().endswith("def"):
+                    continue
+                target = _target(str(file), definers[name], m.group("receiver") or "")
+                for path, table, how in uses:
+                    if path == target:
+                        predicate, where = how.split("|", 1)
+                        found.add((endpoint.id, table, predicate, where))
+    return sorted(found)

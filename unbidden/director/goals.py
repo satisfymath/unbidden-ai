@@ -272,6 +272,7 @@ async def pursue(
                 conns[name].id,
                 f"goal {goal.id} needs {name}",
                 resume=[resume or {"type": "goal.pursue", "key": goal.id, "payload": {"goal": goal.id}}],
+                purpose=goal.statement,
             )
             if need.status.value == "abandoned":
                 why = next((n for n in reversed(need.notes) if not n.startswith(("attempt", "no capability"))), "")

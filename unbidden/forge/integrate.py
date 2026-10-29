@@ -113,9 +113,16 @@ def reuse(
 
 
 async def build(
-    brain: Any, store: Store, mandate: Mandate, conn: Connection, transport: httpx.BaseTransport | None = None
+    brain: Any,
+    store: Store,
+    mandate: Mandate,
+    conn: Connection,
+    transport: httpx.BaseTransport | None = None,
+    purposes: list[str] | None = None,
 ) -> tuple[ApiIntegration | None, str, list[str]]:
-    """Reuse, else build; record what was decided and why. Returns (integration or None, decision, notes)."""
+    """Reuse, else build; record what was decided and why. Returns (integration or None, decision, notes).
+    `purposes`: what waits for it beyond the mandate's goals (Unbidden's own questions in a proactive run, stage 9:
+    with no goal stated, the model chose no read operation and the integration was never built)."""
     grant = _grant(mandate, conn)
     document = read_document(mandate, grant, transport)
     try:
@@ -128,7 +135,10 @@ async def build(
         return adopted, f"reuse:{adopted.provenance['reused_from']}", notes
     operations = documented(document)
     prompt = load_prompt("forge_api_client")
-    goals = "\n".join(f"- {g.statement} (bounds: {json.dumps(g.bounds)})" for g in mandate.goals) or "- (none stated)"
+    stated = [f"- {g.statement} (bounds: {json.dumps(g.bounds)})" for g in mandate.goals]
+    stated += [f"- {p} (asked by Unbidden itself; read-only)" for p in purposes or [] if p not in
+               {g.statement for g in mandate.goals}]  # fmt: skip
+    goals = "\n".join(stated) or "- (none stated)"
     request = LLMRequest(
         purpose="forge.api_client",
         tier=Tier.LOCAL,

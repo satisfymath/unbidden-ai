@@ -38,6 +38,7 @@ def record(
     evidence: list[EvidenceRef] | None = None,
     resume: list[dict[str, Any]] | None = None,
     condition: str | None = None,
+    purpose: str | None = None,
 ) -> tuple[CapabilityNeed, bool]:
     """Record a need once per (kind, source); later sightings add what waits for it. Returns it, and whether it is
     one the cycle should build now (new, failed with attempts left, or blocked on a condition that has changed).
@@ -53,6 +54,8 @@ def record(
             need.resume = [*need.resume, job]
     if condition is not None:
         need.condition = condition
+    if purpose and purpose not in need.purposes:
+        need.purposes = [*need.purposes, purpose]
     need.updated_at = utc_now()
     store.put(COLLECTION, need)
     if need.status is NeedStatus.BLOCKED and need.condition != need.blocked_on:

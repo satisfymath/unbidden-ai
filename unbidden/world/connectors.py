@@ -55,6 +55,15 @@ LLM_RELATIONS = ConnectorSpec(
     cost="local model: one call per endpoint with a known handler, at most 40",
     scope="handler source at the mapped revision; answers are inferences capped at confidence 0.60",
 )
+SQL_RELATIONS = ConnectorSpec(
+    id="sql-relations",
+    version=1,
+    purpose="which tables an endpoint reads or writes through named SQL queries its handler's code calls",
+    discovers=["reads", "writes"],
+    capability="repo.read",
+    cost="local: reads the repository's .sql files and Python at the mapped revision; no model",
+    scope="named queries (`-- name:`) called by name from a function the handler calls; inferred from code",
+)
 LEDGER = ConnectorSpec(
     id="deploy-ledger",
     version=1,
@@ -92,6 +101,7 @@ CONNECTORS: tuple[ConnectorSpec, ...] = (
     OPENAPI_HTTP,
     POSTGRES_READONLY,
     LLM_RELATIONS,
+    SQL_RELATIONS,
     LEDGER,
     PROMETHEUS,
     JAEGER,

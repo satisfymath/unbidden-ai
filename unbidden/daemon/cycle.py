@@ -573,7 +573,7 @@ class Cycle:
                 if conn is None:
                     return None, "failed", [f"no connection {n.source}"]
                 built, decision, notes = await integrate.build(
-                    brain, self.store, self.runtime.workspace.mandate(), conn
+                    brain, self.store, self.runtime.workspace.mandate(), conn, purposes=n.purposes
                 )
                 return (built.id if built else None), decision, notes
             if n.kind == "stats_reader":

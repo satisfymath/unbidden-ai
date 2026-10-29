@@ -39,6 +39,8 @@ class CapabilityNeed(Contract):
     attempts: int = 0
     notes: list[str] = Field(default_factory=list[str])
     resume: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])  # jobs to queue once it is in use
+    # What needs it, in words: the goals or Unbidden's own questions that wait for it, given to the builder.
+    purposes: list[str] = Field(default_factory=list[str])
     operations: list[str] = Field(default_factory=list[str])  # for an extension: the documented operations needed
     # What a person controls that the build depends on (a grant's permissions, a valid approval), as seen at the last
     # sighting; a blocked need is built again only when it differs from what it was blocked on. Not an attempt.

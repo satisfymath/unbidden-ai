@@ -373,3 +373,32 @@ def test_no_new_effect_after_revocation_the_kill_switch_or_the_budget(
     assert counting.mutations == 0
     ok, why = authorize(store, mandate, conn, "reorders", "test")
     assert not ok and (stop.split()[0] in why or "limit" in why)
+
+
+def test_a_proactive_question_reaches_the_model_that_chooses_the_operations(mandate: Mandate, store: Any) -> None:
+    """Stage 9 regression on Conduit: a proactive run states no goal, so the model choosing the operations saw
+    "(none stated)", chose no read, and the integration Unbidden's own question needed was never built. The need now
+    carries what waits for it, and the builder is told."""
+    import asyncio
+
+    from unbidden.connect.registry import record
+    from unbidden.forge import integrate
+
+    seen: list[str] = []
+
+    class Brain:
+        async def complete(self, request: Any) -> Any:
+            seen.append(request.messages[0].content)
+            return type("R", (), {"content": json.dumps({"operations": []}), "model": "test"})()
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=DOC)
+
+    mandate.connections = [grant(["read"])]
+    conn = connected([])
+    conn.state = ConnectionState.NEEDS_CAPABILITY
+    record(store, conn, reason="test")
+    question = "For the records GET /items returns, each count must equal what is stored. Change nothing."
+    asyncio.run(integrate.build(Brain(), store, mandate, conn, transport=httpx.MockTransport(handle),
+                                purposes=[question]))  # fmt: skip
+    assert question in seen[0] and "asked by Unbidden itself" in seen[0] and "(none stated)" not in seen[0]
