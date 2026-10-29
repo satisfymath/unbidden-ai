@@ -21,6 +21,8 @@ _ROUTE = re.compile(r"@(?P<obj>\w+)\.(?P<method>get|post|put|patch|delete)\(\s*[
 _HOST_KEY = re.compile(r"(?:^|_)(?:HOST|HOSTNAME|SERVER)$", re.IGNORECASE)
 _ROUTER = re.compile(r"^(?P<obj>\w+)\s*=\s*\w*Router\((?P<args>[^)]*)\)", re.MULTILINE)
 _PREFIX = re.compile(r"prefix\s*=\s*[\"'](?P<prefix>[^\"']+)[\"']")
+_INCLUDE = re.compile(r"(?P<obj>\w+)\.include_router\(\s*(?P<target>[\w.]+)")
+_FROM_IMPORT = re.compile(r"^from\s+(?P<mod>\.*[\w.]*)\s+import\s+(?:\((?P<group>[^)]*)\)|(?P<line>[^\n]+))", re.M)
 
 
 def _ref(kind: str, locator: str, note: str | None = None) -> EvidenceRef:
@@ -176,8 +178,9 @@ def discover_static(
             )
 
     py_files = [f for f in files if f.endswith(".py") and "/tests/" not in f and not f.startswith("tests/")]
-    for path in py_files:
-        text = _show(repo, rev, path)
+    sources = {path: _show(repo, rev, path) for path in py_files}
+    mounts = _mounts(sources)
+    for path, text in sources.items():
         if "table=True" in text or "__tablename__" in text:
             for match in _TABLE_CLASS.finditer(text):
                 cls, bases = match.group(1), match.group(2)
@@ -198,27 +201,25 @@ def discover_static(
                     )
                 )
         if _ROUTE.search(text):
-            prefixes = {  # each router's own prefix: one file may declare several
-                m.group("obj"): p.group("prefix") if (p := _PREFIX.search(m.group("args"))) else ""
-                for m in _ROUTER.finditer(text)
-            }
+            own = _own_prefixes(text)
             for match in _ROUTE.finditer(text):
-                route_path = prefixes.get(match.group("obj"), "") + match.group("path")
-                if not route_path:  # the router's mount point alone: nothing in the file says where that is
-                    continue
-                route = f"{match.group('method').upper()} {route_path}"
                 line = text[: match.start()].count("\n") + 1
-                world.add(
-                    Resource(
-                        id=f"endpoint:{route}",
-                        kind="endpoint",
-                        name=route,
-                        attributes={"file": path, "line": line, "prefix_known": False},
-                        status=INFERRED,
-                        confidence=0.7,
-                        evidence=[_ref("file", f"{path}:{line}")],
+                for mount in mounts.get((path, match.group("obj")), [""]):
+                    route_path = mount + own.get(match.group("obj"), "") + match.group("path")
+                    if not route_path:  # the router's mount point alone: nothing in the code says where that is
+                        continue
+                    route = f"{match.group('method').upper()} {route_path}"
+                    world.add(
+                        Resource(
+                            id=f"endpoint:{route}",
+                            kind="endpoint",
+                            name=route,
+                            attributes={"file": path, "line": line, "prefix_known": False},
+                            status=INFERRED,
+                            confidence=0.7,
+                            evidence=[_ref("file", f"{path}:{line}")],
+                        )
                     )
-                )
     if any(r.kind == "endpoint" for r in world.resources.values()):
         world.blind_spots.append(
             BlindSpot(
@@ -228,3 +229,103 @@ def discover_static(
         )
     if stack.node is None and any(f.endswith(("package.json",)) for f in files):
         world.blind_spots.append(BlindSpot(what="frontend", why="its JavaScript package was not analyzed"))
+
+
+def _own_prefixes(text: str) -> dict[str, str]:
+    """Each router's own prefix (`APIRouter(prefix=...)`): one file may declare several."""
+    return {
+        m.group("obj"): p.group("prefix") if (p := _PREFIX.search(m.group("args"))) else ""
+        for m in _ROUTER.finditer(text)
+    }
+
+
+def _call_args(text: str, start: int) -> str:
+    """The text of a call's arguments from just after its opening parenthesis, across lines, to the matching one."""
+    depth = 1
+    for i in range(start, len(text)):
+        depth += {"(": 1, ")": -1}.get(text[i], 0)
+        if depth == 0:
+            return text[start:i]
+    return text[start:]
+
+
+def _module_file(module: str, files: set[str]) -> str | None:
+    base = module.replace(".", "/")
+    for candidate in (f"{base}.py", f"{base}/__init__.py"):
+        found = [f for f in files if f == candidate or f.endswith("/" + candidate)]  # src/ and similar roots
+        if len(found) == 1:
+            return found[0]
+    return None
+
+
+def _imports(path: str, text: str, files: set[str]) -> dict[str, tuple[str, str | None]]:
+    """`alias -> (file, attribute)`: `from a.b import c` is module c's file when c is a module, else b's attribute c."""
+    out: dict[str, tuple[str, str | None]] = {}
+    for m in _FROM_IMPORT.finditer(text):
+        module = m.group("mod")
+        if module.startswith("."):
+            dots = len(module) - len(module.lstrip("."))
+            parent = path.rsplit("/", dots)[0] if path.count("/") >= dots else ""
+            module = ".".join(x for x in (parent.replace("/", "."), module.lstrip(".")) if x)
+        for name in (m.group("group") or m.group("line") or "").split("#")[0].split(","):
+            original, _, alias = name.strip().partition(" as ")
+            if not original.isidentifier():
+                continue
+            alias = alias.strip() or original
+            if submodule := _module_file(f"{module}.{original}" if module else original, files):
+                out[alias] = (submodule, None)
+            elif owner := _module_file(module, files):
+                out[alias] = (owner, original)
+    return out
+
+
+def _mounts(sources: dict[str, str]) -> dict[tuple[str, str], list[str]]:
+    """Where each router is mounted: `(file, router) -> [literal path prefixes]`, followed through `include_router`.
+
+    FastAPI's full path is the including router's mount and own prefix, then the include's `prefix=`, then the
+    router's own prefix and the route. A prefix that is not a literal (`settings.api_prefix`) is left out: the live
+    OpenAPI supplies it, and reconciling matches on the path's end; nothing above an unknown prefix is prepended (a
+    wrong prefix would stop that match, a missing one does not). A module-level string constant counts as a literal.
+    A router mounted twice gets both paths.
+    """
+    files = set(sources)
+    edges: dict[tuple[str, str], list[tuple[tuple[str, str], str | None]]] = {}
+    for path, text in sources.items():
+        if "include_router(" not in text:
+            continue
+        aliases = _imports(path, text, files)
+        own = _own_prefixes(text)
+        for m in _INCLUDE.finditer(text):
+            args = _call_args(text, m.start("target"))
+            head, _, attr = m.group("target").partition(".")
+            if head in aliases:  # `comments.router` (a module's router) or `api_router` (a router imported by name)
+                file, imported = aliases[head]
+                if imported is None and not attr:
+                    continue
+                child = (file, imported or attr)
+            elif not attr:  # a router of the same file
+                child = (path, head)
+            else:
+                continue
+            given = re.search(r"\bprefix\s*=\s*([^,)\s]+)", args)
+            if given is None:
+                step: str | None = ""
+            elif literal := re.fullmatch(r"[\"']([^\"']*)[\"']", given.group(1)):
+                step = literal.group(1)
+            elif constant := re.search(rf"^{re.escape(given.group(1))}\s*=\s*[\"']([^\"']*)[\"']", text, re.M):
+                step = constant.group(1)  # a module-level constant: `user_prefix = "/users"`
+            else:
+                step = None  # set at runtime: what is above it is unknown here
+            parent = (path, m.group("obj"))
+            edges.setdefault(child, []).append((parent, None if step is None else own.get(parent[1], "") + step))
+
+    def resolve(router: tuple[str, str], seen: frozenset[tuple[str, str]]) -> list[str]:
+        if router not in edges or router in seen:
+            return [""]
+        return sorted({
+            "" if step is None else up + step
+            for parent, step in edges[router]
+            for up in ([""] if step is None else resolve(parent, seen | {router}))
+        })  # fmt: skip
+
+    return {router: resolve(router, frozenset()) for router in edges}

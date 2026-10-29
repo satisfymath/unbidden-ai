@@ -348,6 +348,54 @@ def test_routes_take_their_own_routers_prefix_and_bare_mounts_are_skipped(tmp_pa
     assert names == {"GET /shopping/items/{item_id}", "POST /shopping/lists/{list_id}/items", "GET /shopping/lists"}
 
 
+def test_routes_mounted_through_include_router_take_every_literal_prefix_on_the_way(tmp_path: Path) -> None:
+    """Found on Conduit: routes declared as `""` on routers mounted with prefixes were skipped, so the handlers of
+    the comments and article listings were never located. A synthetic app with the same patterns, not Conduit."""
+    files = {
+        "requirements.txt": "x\n",
+        "app/main.py": (
+            "from app.routes.api import router as api_router\n"
+            "application.include_router(api_router, prefix=settings.api_prefix)\n"
+        ),
+        "app/routes/api.py": (
+            "from fastapi import APIRouter\n"
+            "from app.routes import notes\n"
+            "from app.routes.posts import api as posts\n"
+            "router = APIRouter(prefix='/v1')\n"
+            "router.include_router(posts.router, prefix=cfg.base)\n"
+            "router.include_router(\n    notes.router,\n    dependencies=[Depends(auth)],\n"
+            "    prefix='/posts/{slug}/notes',\n)\n"
+        ),
+        "app/routes/posts/__init__.py": "",
+        "app/routes/posts/api.py": (
+            "from fastapi import APIRouter\n"
+            "from . import listing\n"
+            "router = APIRouter()\n"
+            "router.include_router(listing.router, prefix='/posts')\n"
+            "archive = '/archive'\n"
+            "router.include_router(listing.router, prefix=archive)\n"
+        ),
+        "app/routes/posts/listing.py": 'router = APIRouter()\n@router.get("")\ndef a(): ...\n',
+        "app/routes/notes.py": 'router = APIRouter()\n\n@router.get(\n    "",\n)\ndef b(): ...\n',
+    }
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    for path, text in files.items():
+        (tmp_path / path).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / path).write_text(text)
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    world = WorldModel(rev="HEAD")
+    discover_static(tmp_path, "HEAD", detect_stack(tmp_path), world)
+    where = {r.name: (r.attributes["file"], r.attributes["line"]) for r in world.resources.values()
+             if r.kind == "endpoint"}  # fmt: skip
+    assert where == {
+        "GET /posts": ("app/routes/posts/listing.py", 2),
+        "GET /archive": ("app/routes/posts/listing.py", 2),
+        "GET /v1/posts/{slug}/notes": ("app/routes/notes.py", 3),
+    }  # runtime prefixes (settings.api_prefix, cfg.base) are not literals: nothing above them is prepended
+
+
 def test_reconciling_ignores_parameter_names_and_ranks_twice_mounted_routes_by_their_file() -> None:
     world = WorldModel(rev="HEAD")
     for route, file in [
