@@ -1,0 +1,133 @@
+== cycle 1 (exit 0)
+10:31:34 watching ~/unbidden-lab/conduit (ctrl-c to stop, `unbidden 
+kill` to freeze)
+10:31:49 HEAD is 029eb7781c60
+10:31:51 connections: postgres:127.0.0.1:55440/postgres connected, 
+http_api:http://127.0.0.1:18110 needs_capability
+10:31:51 provisioning python dependencies
+10:31:53 scan of 029eb7781c60: 0 reports, 0 new opportunities
+10:34:21 map of 029eb7781c60: 38 resources, 0 blind spots
+10:34:21 robustness probe at 029eb7781c60: investigate (probe app (30 public 
+functions sampled))
+10:34:21 opp_22c267e0dca94ff3: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+10:34:21 opp_409d1073eb76493b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+10:34:24 research.probe failed: dependency image for python failed to build:
+error: Failed to build `psycopg2-binary==2.9.3`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta:__legacy__.get_requires_for_build_wheel`
+failed (exit status: 1)
+
+         
+         running egg_info
+         writing psycopg2_binary.egg-info/PKG-INFO
+         writing dependency_links to 
+psycopg2_binary.egg-info/dependency_links.txt
+         writing top-level names to psycopg2_binary.egg-info/top_level.txt
+         
+         /root/.cache/uv/builds-v0/.tmp4rhBuE/lib/python3.12/site-packages/setup
+tools/dist.py:765: SetuptoolsDeprecationWarning: License classifiers are 
+deprecated.
+         Error: pg_config executable not found.
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python -r 
+/deps/unbidden-requirements.txt  && (/deps/.venv/bin/python -c \"import pytest\"
+2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1
+|| uv pip install --python /deps/.venv/bin/python pytest)  && 
+(/deps/.venv/bin/python -c \"import hypothesis\" 2>/dev/null      || uv pip 
+install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip 
+install --python /deps/.venv/bin/python hypothesis)" did not complete 
+successfully: exit code: 1
+10:34:26 lab.experiment failed: dependency image for python failed to build:
+error: Failed to build `greenlet==1.1.2`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta:__legacy__.build_wheel` failed (exit 
+status: 1)
+
+         
+         running bdist_wheel
+         running build
+         running build_py
+         creating build/lib.linux-aarch64-cpython-312/greenlet
+         copying src/greenlet/__init__.py -> 
+build/lib.linux-aarch64-cpython-312/greenlet
+         creating build/lib.linux-aarch64-cpython-312/greenlet/tests
+         copying src/greenlet/tests/__init__.py -> 
+build/lib.linux-aarch64-cpython-312/greenlet/tests
+         error: [Errno 2] No such file or directory: 'gcc'
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+1.581          error: [Errno 2] No such file or directory: 'gcc'
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python -r 
+/deps/unbidden-requirements.txt  && (/deps/.venv/bin/python -c \"import pytest\"
+2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1
+|| uv pip install --python /deps/.venv/bin/python pytest)  && 
+(/deps/.venv/bin/python -c \"import hypothesis\" 2>/dev/null      || uv pip 
+install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip 
+install --python /deps/.venv/bin/python hypothesis)" did not complete 
+successfully: exit code: 1
+A package is built from source and needs a C compiler; system packages come from
+deb.debian.org, which the mandate's package registries do not list.
+10:34:28 lab.experiment failed: dependency image for python failed to build:
+error: Failed to build `greenlet==1.1.2`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta:__legacy__.build_wheel` failed (exit 
+status: 1)
+
+         
+         running bdist_wheel
+         running build
+         running build_py
+         creating build/lib.linux-aarch64-cpython-312/greenlet
+         copying src/greenlet/__init__.py -> 
+build/lib.linux-aarch64-cpython-312/greenlet
+         creating build/lib.linux-aarch64-cpython-312/greenlet/tests
+         copying src/greenlet/tests/__init__.py -> 
+build/lib.linux-aarch64-cpython-312/greenlet/tests
+         error: [Errno 2] No such file or directory: 'gcc'
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+1.653          error: [Errno 2] No such file or directory: 'gcc'
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python -r 
+/deps/unbidden-requirements.txt  && (/deps/.venv/bin/python -c \"import pytest\"
+2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1
+|| uv pip install --python /deps/.venv/bin/python pytest)  && 
+(/deps/.venv/bin/python -c \"import hypothesis\" 2>/dev/null      || uv pip 
+install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip 
+install --python /deps/.venv/bin/python hypothesis)" did not complete 
+successfully: exit code: 1
+A package is built from source and needs a C compiler; system packages come from
+deb.debian.org, which the mandate's package registries do not list.
+
+
+== cycle 2 (exit 0)
+10:34:29 watching ~/unbidden-lab/conduit (ctrl-c to stop, `unbidden 
+kill` to freeze)
+10:34:30 connections: postgres:127.0.0.1:55440/postgres connected, 
+http_api:http://127.0.0.1:18110 needs_capability

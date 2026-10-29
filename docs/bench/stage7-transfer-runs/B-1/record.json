@@ -1,0 +1,24 @@
+{
+ "run": "B-1",
+ "mode": "proactive",
+ "restored": {
+  "commit": "029eb7781c60d5f563ee8990a0cbfb79b244538c",
+  "data": {
+   "users": 2000,
+   "articles": 20000,
+   "comments": 300000,
+   "favorites": 20000
+  }
+ },
+ "usd_before": 6.0613,
+ "wall_s": 176.9,
+ "repo_after": "",
+ "branches_after": [
+  "(HEAD",
+  "desacoplado",
+  "en",
+  "029eb77)"
+ ],
+ "usd_after": 6.0613,
+ "workspace": "~/unbidden-lab/conduit-runs/eval7-B-1"
+}

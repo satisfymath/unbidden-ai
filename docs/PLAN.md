@@ -593,3 +593,11 @@ Done: checker v2 and the stage 6 re-read (step 2); acceptance in the product wit
 the application chosen and its protocol written (step 4, part); the release walked from a clean checkout and
 corrected, and the integration proposal from the git graph (step 6). Blocked: building and running Conduit (needs a
 person's permission), and so the transfer and proactive runs (step 5). Spend: US$6.06 of US$10; US$3.94 left.
+
+## Stage 7 closed, 2026-10-29
+
+Steps 1-7 done. The transfer ran once as frozen (B-1, A-1, A-2): two natural findings, reproduction blocked by the
+sandbox's interpreter and toolchain; the goal blocked by the app's inaccurate OpenAPI; no improvement demonstrated.
+Spend: US$6.12 of US$10 (stage 7: US$0.11); US$3.88 left. Next version (D-047): the project's interpreter and a
+toolchain in experiments; documented-vs-observed deviations as evidence; reads in the endpoint map. Then a second
+application for out-of-sample evidence. Unchanged: PR13, OAuth, other cloud providers and an interface are later.

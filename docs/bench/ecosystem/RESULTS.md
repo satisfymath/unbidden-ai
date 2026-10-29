@@ -1,10 +1,69 @@
+# Stage 7: transfer to a real application (Conduit), the frozen runs (2026-10-29)
+
+Protocol: `docs/bench/stage7-transfer.md`, `stage7-freeze.md` (product 9ef6a60, Conduit 029eb77). Preparation:
+`stage7-transfer-prep.md` (about 70 minutes of human work, 12 of them making a 2022 application build today).
+Records: `docs/bench/stage7-transfer-runs/` and the archived workspaces. Order: B-1, then A-1, A-2, each from the
+same restored state and a clean workspace. Interventions during the runs: none. Spend: US$0.06 for the three runs
+(ledger 6.0613 -> 6.1204); US$3.88 left of the stage 6 authorization.
+
+## B: proactive discovery, no ticket (B-1, two cycles, 177 s, US$0)
+
+| Step | What Unbidden did |
+|---|---|
+| Discover | mapped the project from its repository and running staging: 38 resources (compose services, the database's tables, the API's endpoints and which tables each reads, by the local model: 11 calls) |
+| Find, by itself | two opportunities, nothing seeded: `commentaries.article_id` (300,000 rows) and `favorites.article_id` (20,000) are foreign keys that lead no index |
+| Explain | "checked when 1 endpoint deletes an articles row" (the cascade's check). It did not connect them to the read the data model makes more likely to matter, the comments of one article (`GET /api/articles/{slug}/comments` filters by `article_id`) |
+| Decide | experiment on both (expected success 0.60, from its history of this kind) |
+| Reproduce, before any change | **blocked**: its sandbox could not build the application's dependencies: psycopg2-binary 2.9.3 and greenlet 1.1.2 have no wheels for the sandbox's Python 3.12 on arm64, and the image has no compiler or `pg_config`. The project declares Python ^3.9 and its CI runs 3.9; the sandbox did not use that |
+| Ask | listed one thing it needs from a person: GitHub access to the repository (not needed for these opportunities) |
+| Prove | nothing: no measurement, no change, no proposal |
+
+Result: two plausible, natural findings; no improvement demonstrated; nothing claimed. Useful in the sense of
+pointing at real candidates; not useful as a result, because nothing was reproduced or measured.
+
+## A: transfer with a general goal (A-1 and A-2, two cycles each, ~172 s, US$0.03 each)
+
+Both runs ended the same way (the block is deterministic):
+
+| Step | What Unbidden did |
+|---|---|
+| Plan (Spark) | compare the API's counts with the database: the API was needed and had no integration |
+| Acquire the capability (Forge, Spark) | built an integration of three operations (list articles, one article, its comments) from the API's OpenAPI document |
+| Validate (oracle) | **rejected**: the listing "answered 200 outside its documented schema: None is not of type 'string'". The document (FastAPI 0.79, pydantic v1) declares optional fields as plain `string`; the API returns `null` for them. With the listing unread, the keyed operations had no record to try |
+| Report | goal `blocked`, naming the operation and the reason; the need abandoned after two attempts |
+| Also found | the same two unindexed foreign keys as B (the world checks run in every workspace) |
+
+Result: the goal was not reached; nothing was claimed; the block names its cause. A transfer gap, not a lab one: many
+FastAPI applications of that era document optional fields this way.
+
+**Seen by the person preparing the runs, not by Unbidden:** the listing's `articlesCount` equals the page's length
+(2 for `limit=2` over 20,000 articles). It would mislead any client relying on it; Unbidden never read it.
+
+## What this says
+
+Unbidden carried its discovery to an application it had never seen and found real candidates without a hint, at no
+remote cost, and it stopped honestly at the two points where its contracts did not hold: experiments need the
+project's own interpreter and a toolchain, and real OpenAPI documents are not always true to their responses.
+It did not demonstrate an improvement on Conduit. These runs are the out-of-sample contact; whatever is fixed after
+them is a new version, and claiming generalization would need another application.
+
+**The next product change the results justify, in order:**
+1. *Experiments on the project's own Python:* take the interpreter from what the project declares (pyproject, CI
+   matrix) and give the dependency image a build toolchain (compiler, `pg_config`), so a 2022 project can be
+   reproduced at all. It blocked every experiment here.
+2. *Documents that are not true to their responses:* record each observed deviation (here, undeclared `null`s) as
+   evidence, per field; let reads proceed with the deviation stated, and keep writes strict. Today one undeclared
+   null rejects a whole integration.
+3. *Why a finding matters:* the endpoint-to-table map tied the foreign keys to a delete only; the reads that filter by
+   them were missed, which weakens the priority it gives them.
+
 # Stage 7, so far (2026-10-29)
 
 | | Implemented | Tested (units) | Lab, real models | Out of development |
 |---|---|---|---|---|
 | Checker v2 (owner vs painted-on rows) | yes | yes (adversarial and healthy) | applied to the 80 stage 6 records, no model call | — (a checker, not the agent) |
 | Acceptance inside the product | yes | yes (10 cases: model says fixed and a check fails, a check that cannot run, one condition met and another broken, stale evidence, an unusable model re-check, weakened conditions, ambiguity) | yes, once: the release walk (board goal on Spark, accepted, checker verified) | not yet |
-| Transfer to a real application (Conduit) | protocol only | — | **blocked**: building a third-party repository needs permission | — |
+| Transfer to a real application (Conduit) | yes | — | — | ran once (B x1, A x2): two natural findings, no improvement demonstrated; A blocked by the app's inaccurate OpenAPI |
 | Release from a clean checkout | yes | `make check`: 599 tests at e9922e8 | walked as written: works, corrected (RELEASE.md) | — |
 
 # Stage 7: checker v2 on the stage 6 records (2026-10-29; no model call, no new capture)

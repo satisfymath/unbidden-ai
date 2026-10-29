@@ -994,3 +994,20 @@ explicit permission; nothing was attempted around the refusal.
 
 **Doctor:** on 2026-10-29 the Meta model listing answered 401 for the key while chat calls with it worked; doctor now
 says what it saw. (An intermediate message in this stage wrongly said the key had to be replaced; corrected.)
+
+## D-047 · 2026-10-29 · Stage 7: what the transfer to Conduit showed, and the next product changes
+
+David authorized building and running Conduit (029eb77) on 2026-10-29; the compose configuration was reviewed first
+(127.0.0.1 only, the original bind mount replaced, no privilege or Docker socket). Three compatibility fixes, counted
+as human preparation, in an untracked override. Frozen at 9ef6a60; B before A, each from a restored state.
+
+**B (proactive):** two natural opportunities found without a hint (unindexed foreign keys on comments and
+favorites); reproduction blocked: the sandbox built dependencies for Python 3.12/arm64 without a toolchain, while
+the project declares 3.9. No improvement demonstrated. **A (goal):** blocked: the app's OpenAPI document declares
+optional fields as non-null strings and the API returns nulls; strict validation rejected the integration. Both A
+runs identical. No false claims, no intervention, US$0.06.
+
+**Decided:** the next version addresses, in this order, (1) experiments on the project's declared interpreter with a
+build toolchain, (2) deviations between a document and observed responses recorded as evidence (reads proceed with
+the deviation stated; writes stay strict), (3) reads in the endpoint-to-table map. None of them is made in this
+stage's evaluated version; Conduit cannot serve as out-of-sample evidence for them.

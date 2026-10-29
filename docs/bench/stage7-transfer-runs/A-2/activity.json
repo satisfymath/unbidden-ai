@@ -1,0 +1,180 @@
+{
+  "workspace": "conduit",
+  "at": "2026-10-29T13:40:21.872249+00:00",
+  "discovered": {
+    "total": 2,
+    "by_status": {
+      "open": 2
+    }
+  },
+  "experimenting": [],
+  "declined_because": [],
+  "waiting_because": [],
+  "proven": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {
+      "abandoned": 1
+    },
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 8,
+    "usd": 0.0591,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55440/postgres",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.alembic_version",
+        "select public.articles",
+        "select public.articles_to_tags",
+        "select public.commentaries",
+        "select public.favorites",
+        "select public.followers_to_followings",
+        "select public.tags",
+        "select public.users"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-29T13:40:21.398900+00:00"
+    },
+    {
+      "id": "github:nsidnev/fastapi-realworld-example-app",
+      "kind": "github",
+      "environment": "local",
+      "state": "discovered",
+      "read": [],
+      "write": [],
+      "requested": [],
+      "effective": [],
+      "blocked": "the mandate names no GitHub repository",
+      "next_step": "set egress.github.repository to nsidnev/fastapi-realworld-example-app and grant a token reference",
+      "found_by": [
+        "git remote origin"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18110",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "FastAPI example application: 19 operations documented, authenticated by apiKey Authorization; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-29T13:40:21.405354+00:00"
+    }
+  ],
+  "needs_a_person": [
+    {
+      "connection": "github:nsidnev/fastapi-realworld-example-app",
+      "state": "discovered",
+      "what": "set egress.github.repository to nsidnev/fastapi-realworld-example-app and grant a token reference"
+    }
+  ],
+  "integrations": [
+    {
+      "id": "int_a8e2272015a14d80",
+      "title": "FastAPI example application",
+      "on": "http_api:http://127.0.0.1:18110",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "articles_list_articles_api_articles_get": "read",
+        "articles_get_article_api_articles__slug__get": "read",
+        "comments_get_comments_for_article_api_articles__slug__comments_get": "read"
+      },
+      "oracle": {
+        "articles_get_article_api_articles__slug__get": "no listed record carries its path parameters",
+        "articles_list_articles_api_articles_get": "read failed: articles_list_articles_api_articles_get answered 200 outside its documented schema: None is not of type 'string'; 200, 0 records, read not at all (); ; without the key: 200",
+        "comments_get_comments_for_article_api_articles__slug__comments_get": "no listed record carries its path parameters"
+      }
+    },
+    {
+      "id": "int_3180deda88b84c06",
+      "title": "FastAPI example application",
+      "on": "http_api:http://127.0.0.1:18110",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "articles_list_articles_api_articles_get": "read",
+        "articles_get_article_api_articles__slug__get": "read",
+        "comments_get_comments_for_article_api_articles__slug__comments_get": "read"
+      },
+      "oracle": {
+        "articles_get_article_api_articles__slug__get": "no listed record carries its path parameters",
+        "articles_list_articles_api_articles_get": "read failed: articles_list_articles_api_articles_get answered 200 outside its documented schema: None is not of type 'string'; 200, 0 records, read not at all (); ; without the key: 200",
+        "comments_get_comments_for_article_api_articles__slug__comments_get": "no listed record carries its path parameters"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "counts-correct-and-fast",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for conduit-api",
+      "at": "2026-10-29T13:39:42.554098+00:00"
+    },
+    {
+      "goal": "counts-correct-and-fast",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "conduit-api: no integration could be validated (comments_get_comments_for_article_api_articles__slug__comments_get: no listed record carries its path parameters)",
+      "at": "2026-10-29T13:40:04.202171+00:00"
+    }
+  ]
+}
