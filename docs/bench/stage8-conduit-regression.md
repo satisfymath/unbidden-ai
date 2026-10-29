@@ -63,3 +63,4 @@ event loops: Conduit's suite is asynchronous and the driver was a synchronous te
 fixtures). A-7 as A-6. US$0.31 for both. Fixed generally (821ea27): an async driver, generated from the workload's
 signature, when the suite's fixtures are coroutines. Runs `B-7` then `A-8` from a worktree at the commit named
 below. This is the last regression version the stage's development budget allows.
+regression version 6: f56b130
