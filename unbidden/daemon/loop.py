@@ -186,6 +186,13 @@ async def _work(
                 store.finish(claimed, error=str(stop), retry_in=retry)
             except Exception as exc:
                 log(f"{claimed.type} failed: {exc}")
+                from unbidden.director.blocks import classify, record
+
+                subject = next((str(v) for k, v in (claimed.payload or {}).items() if k in ("id", "goal", "opp")), "")
+                block = record(store, classify(f"{claimed.type} {subject}".strip(), f"{type(exc).__name__}: {exc}",
+                                               f"{claimed.type} runs again"))  # fmt: skip
+                if block.kind == "pending_person":
+                    log(f"needs a person: {block.needs} (then: {block.continues})")
                 store.finish(
                     claimed,
                     error=f"{type(exc).__name__}: {exc}\n{traceback.format_exc(limit=3)}",

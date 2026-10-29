@@ -124,6 +124,7 @@ def _ecosystem(store: Store) -> dict[str, Any]:
     from unbidden.contracts.acceptance import Acceptance
     from unbidden.contracts.action import Action
     from unbidden.contracts.connection import Connection, ConnectionState
+    from unbidden.director.blocks import open_blocks
     from unbidden.director.goals import COLLECTION as GOALS
     from unbidden.director.goals import GoalRun
     from unbidden.forge.api_client import COLLECTION as INTEGRATIONS
@@ -134,15 +135,39 @@ def _ecosystem(store: Store) -> dict[str, Any]:
     actions = store.list("actions", Action)
     return {
         "connections": summary(connections),
+        # A person is asked only for what blocks work: a connection in a state only a person changes, a block whose
+        # minimum is a person's (a registry, a grant, an approval). An access found but granted to nobody, which
+        # blocks nothing, is listed apart as optional.
         "needs_a_person": [
             {"connection": c.id, "state": c.state.value, "what": c.next_step or c.blocked}
             for c in connections
-            if c.state in person or (c.grant is None and c.state is ConnectionState.DISCOVERED)
+            if c.state in person
+        ]
+        + [
+            {"blocked": b.operation, "state": b.kind, "what": f"{b.needs} (then: {b.continues})"}
+            for b in open_blocks(store)
+            if b.kind == "pending_person"
         ]
         + [
             {"proposal": a.operation, "state": "proposed", "what": a.reason}
             for a in actions
             if a.kind == "deploy_steps"
+        ],
+        "optional_access": [
+            {"connection": c.id, "what": c.next_step or "grant it in the mandate", "enables": "reading it"}
+            for c in connections
+            if c.grant is None and c.state is ConnectionState.DISCOVERED
+        ],
+        "blocks": [
+            {
+                "operation": b.operation,
+                "kind": b.kind,
+                "needs": b.needs,
+                "continues": b.continues,
+                "evidence": b.evidence[-240:],
+            }
+            for b in open_blocks(store)
+            if b.kind != "pending_person"
         ],
         "integrations": [
             {
@@ -254,7 +279,13 @@ def render_text(data: dict[str, Any]) -> list[str]:
             f"{a['state']} ({a['why']})"
         )
     for n in data.get("needs_a_person", []):
-        lines.append(f"[yellow]needs a person[/] {n.get('connection') or n.get('proposal')}: {n['what']}")
+        lines.append(
+            f"[yellow]needs a person[/] {n.get('connection') or n.get('proposal') or n.get('blocked')}: {n['what']}"
+        )
+    for b in data.get("blocks", []):
+        lines.append(f"[bold]blocked[/] ({b['kind']}) {b['operation']}: {b['needs']}")
+    for o in data.get("optional_access", []):
+        lines.append(f"[dim]optional[/] {o['connection']}: {o['what']} (enables {o['enables']}; blocks nothing)")
     s = data["spent"]
     lines.append(f"[bold]spent[/] US${s['usd']:.4f} in {s['calls']} remote call(s) · {s['basis']}")
     return lines
