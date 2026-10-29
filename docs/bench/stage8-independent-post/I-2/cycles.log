@@ -1,0 +1,29 @@
+== cycle 1 (exit 0)
+14:19:36 watching /Users/david/unbidden-lab/lnbits (ctrl-c to stop, `unbidden 
+kill` to freeze)
+14:19:37 HEAD is 9349da153c22
+14:19:37 deploy procedure found, proposed only: docker compose up -d 
+--remove-orphans
+14:19:37 deploy procedure found, proposed only: docker compose up 
+--remove-orphans
+14:19:37 connections: postgres:127.0.0.1:55450/lnbits connected, 
+http_api:http://127.0.0.1:18120 needs_capability
+14:19:38 provisioning node dependencies
+14:19:38 provisioning python dependencies
+14:19:38 running ruff
+14:19:38 running pyright
+14:19:47 scan of 9349da153c22: 2 reports, 0 new opportunities
+14:26:37 map of 9349da153c22: 233 resources, 3 blind spots
+14:26:38 robustness probe at 9349da153c22: investigate (probe lnbits (80 public 
+functions sampled))
+14:26:41 writing property tests for lnbits
+14:27:24 running them offline
+14:27:29 robustness probe of lnbits: 5 failed, 3 passed in 1.35s; 0 crash(es), 0
+new; 0 property violation(s) kept for a person (L1)
+
+
+== cycle 2 (exit 0)
+14:27:29 watching /Users/david/unbidden-lab/lnbits (ctrl-c to stop, `unbidden 
+kill` to freeze)
+14:27:30 connections: postgres:127.0.0.1:55450/lnbits connected, 
+http_api:http://127.0.0.1:18120 needs_capability

@@ -45,3 +45,12 @@ lab swallowed the refusal; A-5 as A-4. Fixed generally (16682f4): credential-loo
 refusals recorded, a masked value never flagged again. With the post-evaluation fixes from LNbits (da7a595), runs
 `B-5` then `A-6` (`--runs B-5,A-6`) from a worktree at the commit named below.
 regression version 4: fbf8d32
+
+## Fifth regression version
+
+The fourth version (fbf8d32): B-5 measured the base for the first time (a workload written on the third attempt ran
+at the base, `commentaries.article_id`), then the candidate broke at import: the rule-written migration's
+`str | None` annotation is a TypeError on Conduit's Python 3.9. The other three candidates had no workload that ran
+(asyncpg task lifecycles, unique keys reused across attempts). A-6 as A-5, and its proactive part as B-5. US$0.34
+for both. Fixed generally (853309d): the migration template carries no annotations. Runs `B-6` then `A-7` from a
+worktree at the commit named below.
