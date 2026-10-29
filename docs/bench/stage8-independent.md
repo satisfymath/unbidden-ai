@@ -95,3 +95,9 @@ project.
 **Fixed after the evaluation** (da7a595, labelled post-evaluation, general): the project's own package registered
 in the environment as `uv sync` does; languages provisioned apart; a PostgreSQL started from an unread compose file
 is read through its container's user and database. Any repeat on LNbits is reported apart as post-evaluation.
+
+## I-2: a repeat after the evaluation (not evaluation evidence)
+
+The same protocol and preparation, run `I-2` (`lnbits_eval.py --run I-2`), from a worktree at the commit named
+below, after the Conduit regression's fourth version. It shows whether the fixes made from I-1 work; it was tuned on
+I-1, so it is not out-of-sample evidence.

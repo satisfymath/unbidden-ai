@@ -36,3 +36,11 @@ reads with SQL. Fixed generally (bea8adf): the schema comes from the migration t
 maps it, and a PostgreSQL test service counts as enforcing foreign keys. Runs `B-4` then `A-5` (`--runs B-4,A-5`),
 same protocol, from a worktree at the commit named below, which is also the independent run's frozen commit.
 regression version 3: 6bbf3a1
+
+## Fourth regression version
+
+The third version (6bbf3a1): B-4 wrote all four index candidates by rule (the migration-only path), then every
+workload request was refused by Guardian's prompt scan (Conduit's tests log in with `password="password"`), and the
+lab swallowed the refusal; A-5 as A-4. Fixed generally (16682f4): credential-looking values masked before asking,
+refusals recorded, a masked value never flagged again. With the post-evaluation fixes from LNbits (da7a595), runs
+`B-5` then `A-6` (`--runs B-5,A-6`) from a worktree at the commit named below.
