@@ -7,6 +7,7 @@ from typing import Any
 import pytest
 
 from unbidden.contracts.action import Action, ActionStatus
+from unbidden.contracts.common import utc_now
 from unbidden.contracts.connection import Ability, Connection, ConnectionState, Environment
 from unbidden.contracts.guardian import Goal, Mandate
 from unbidden.director import goals
@@ -14,6 +15,9 @@ from unbidden.director.goals import GoalRun, evaluate
 from unbidden.store import Store
 
 pytestmark = pytest.mark.unit
+# The window a goal's bounds count in is the UTC day its actions are dated by; a fixed date made this test fail
+# after midnight UTC (found on 2026-10-29 from a clean checkout of 94765da).
+TODAY = f"{utc_now():%Y-%m-%d}"
 
 
 def test_a_shortfall_is_arithmetic_over_fields_and_nothing_else() -> None:
@@ -55,9 +59,9 @@ def test_a_goals_bounds_hold_across_its_runs_in_a_window(
     act = {"operation": "createReorder", "key_field": "sku", "amount_field": "units"}
     short = [{"sku": f"S{i}", "shortfall": 100 - i} for i in range(6)]
     first = GoalRun(goal="g")
-    goals._act(store, mandate, goal, first, short, act, {"api": conn}, {"api": integration}, plan, "2026-10-28")  # pyright: ignore[reportPrivateUsage, reportArgumentType]
+    goals._act(store, mandate, goal, first, short, act, {"api": conn}, {"api": integration}, plan, TODAY)  # pyright: ignore[reportPrivateUsage, reportArgumentType]
     second = GoalRun(goal="g")
-    goals._act(store, mandate, goal, second, short, act, {"api": conn}, {"api": integration}, plan, "2026-10-28")  # pyright: ignore[reportPrivateUsage, reportArgumentType]
+    goals._act(store, mandate, goal, second, short, act, {"api": conn}, {"api": integration}, plan, TODAY)  # pyright: ignore[reportPrivateUsage, reportArgumentType]
     assert [b["sku"] for b in sent] == ["S0", "S1", "S2"] and second.actions == []
     assert all(b["units"] == 50 for b in sent)  # capped by the bound
 
@@ -88,7 +92,7 @@ def test_a_missing_write_waits_for_the_person_and_resumes_when_the_grant_widens(
             {"api": conn},
             {"api": integration},
             plan,
-            "2026-10-28",
+            TODAY,
         )  # pyright: ignore[reportPrivateUsage]
         return run
 
