@@ -1,0 +1,311 @@
+== cycle 1 (exit 0)
+12:20:04 watching /Users/david/unbidden-lab/conduit (ctrl-c to stop, `unbidden 
+kill` to freeze)
+12:20:04 HEAD is 029eb7781c60
+12:20:04 connections: postgres:127.0.0.1:55440/postgres connected, 
+http_api:http://127.0.0.1:18110 needs_capability
+12:20:04 provisioning python dependencies
+12:20:08 scan of 029eb7781c60: 0 reports, 0 new opportunities
+12:23:30 map of 029eb7781c60: 38 resources, 0 blind spots
+12:23:30 robustness probe at 029eb7781c60: investigate (probe app (30 public 
+functions sampled))
+12:23:43 goal counts-correct-and-fast: waiting_capability: needs an integration 
+for conduit-api
+12:24:28 capability need api_client for http_api:http://127.0.0.1:18110: failed
+12:24:28 opp_dfc4a258c889401a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+12:24:28 opp_b1872b3313b74061: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+12:24:28 opp_c010f57a9ddd445a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+12:24:28 opp_d87212c26beb4a8e: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+12:25:14 capability need api_client for http_api:http://127.0.0.1:18110: 
+abandoned
+12:25:23 goal counts-correct-and-fast: blocked: conduit-api: no integration 
+could be validated (articles_list_articles_api_articles_get: 200, 20000 records,
+read unknown (no total declared; ended on a short batch); the same 20000 records
+with page size 99; without the key: 200)
+12:25:27 research.probe failed: dependency image for python failed to build:
+error: Failed to build `asyncpg==0.26.0`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta.build_wheel` failed (exit status: 1)
+
+         
+         running bdist_wheel
+         running build
+         running build_py
+         creating build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/__init__.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/_version.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/cluster.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         error: command 'gcc' failed: No such file or directory
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv
+pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt  
+&& (/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip 
+install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install 
+--python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+1.776          error: command 'gcc' failed: No such file or directory
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python --exclude-newer 
+2022-08-21T02:23:41Z setuptools pip && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+A package is built from source and needs a C compiler; system packages come from
+deb.debian.org, which the mandate's package registries do not list.
+12:25:27 needs a person: add deb.debian.org to egress.package_registries (system
+build tools: a compiler and the C headers a package builds against) (then: 
+research.probe runs again)
+12:25:30 lab.experiment failed: dependency image for python failed to build:
+error: Failed to build `asyncpg==0.26.0`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta.build_wheel` failed (exit status: 1)
+
+         
+         running bdist_wheel
+         running build
+         running build_py
+         creating build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/__init__.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/_version.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/cluster.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         error: command 'gcc' failed: No such file or directory
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv
+pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt  
+&& (/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip 
+install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install 
+--python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+1.758          error: command 'gcc' failed: No such file or directory
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python --exclude-newer 
+2022-08-21T02:23:41Z setuptools pip && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+A package is built from source and needs a C compiler; system packages come from
+deb.debian.org, which the mandate's package registries do not list.
+12:25:30 needs a person: add deb.debian.org to egress.package_registries (system
+build tools: a compiler and the C headers a package builds against) (then: 
+research.probe runs again)
+12:25:32 lab.experiment failed: dependency image for python failed to build:
+error: Failed to build `asyncpg==0.26.0`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta.build_wheel` failed (exit status: 1)
+
+         
+         running bdist_wheel
+         running build
+         running build_py
+         creating build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/__init__.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/_version.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/cluster.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         error: command 'gcc' failed: No such file or directory
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv
+pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt  
+&& (/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip 
+install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install 
+--python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+1.748          error: command 'gcc' failed: No such file or directory
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python --exclude-newer 
+2022-08-21T02:23:41Z setuptools pip && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+A package is built from source and needs a C compiler; system packages come from
+deb.debian.org, which the mandate's package registries do not list.
+12:25:32 needs a person: add deb.debian.org to egress.package_registries (system
+build tools: a compiler and the C headers a package builds against) (then: 
+research.probe runs again)
+12:25:35 lab.experiment failed: dependency image for python failed to build:
+error: Failed to build `asyncpg==0.26.0`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta.build_wheel` failed (exit status: 1)
+
+         
+         running bdist_wheel
+         running build
+         running build_py
+         creating build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/__init__.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/_version.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/cluster.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         error: command 'gcc' failed: No such file or directory
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv
+pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt  
+&& (/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip 
+install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install 
+--python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+1.861          error: command 'gcc' failed: No such file or directory
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python --exclude-newer 
+2022-08-21T02:23:41Z setuptools pip && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+A package is built from source and needs a C compiler; system packages come from
+deb.debian.org, which the mandate's package registries do not list.
+12:25:35 needs a person: add deb.debian.org to egress.package_registries (system
+build tools: a compiler and the C headers a package builds against) (then: 
+research.probe runs again)
+12:25:38 lab.experiment failed: dependency image for python failed to build:
+error: Failed to build `asyncpg==0.26.0`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta.build_wheel` failed (exit status: 1)
+
+         
+         running bdist_wheel
+         running build
+         running build_py
+         creating build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/__init__.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/_version.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/cluster.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         error: command 'gcc' failed: No such file or directory
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv
+pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt  
+&& (/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip 
+install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install 
+--python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+1.753          error: command 'gcc' failed: No such file or directory
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python --exclude-newer 
+2022-08-21T02:23:41Z setuptools pip && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+A package is built from source and needs a C compiler; system packages come from
+deb.debian.org, which the mandate's package registries do not list.
+12:25:38 needs a person: add deb.debian.org to egress.package_registries (system
+build tools: a compiler and the C headers a package builds against) (then: 
+research.probe runs again)
+
+
+== cycle 2 (exit 0)
+12:25:38 watching /Users/david/unbidden-lab/conduit (ctrl-c to stop, `unbidden 
+kill` to freeze)
+12:25:39 connections: postgres:127.0.0.1:55440/postgres connected, 
+http_api:http://127.0.0.1:18110 needs_capability
+
+
+== cycle 3 (exit 0)
+12:25:40 watching /Users/david/unbidden-lab/conduit (ctrl-c to stop, `unbidden 
+kill` to freeze)
+12:25:40 unblocked: add deb.debian.org to egress.package_registries (system 
+build tools: a compiler and the C headers a package builds against); 5 job(s) 
+run again
+12:25:40 connections: postgres:127.0.0.1:55440/postgres connected, 
+http_api:http://127.0.0.1:18110 needs_capability
+12:25:43 writing property tests for app
+12:25:54 running them offline
+12:26:07 robustness probe of app: 2 failed, 5 passed in 11.65s; 0 crash(es), 0 
+new; 0 property violation(s) kept for a person (L1)
+12:26:09 candidate: index on commentaries.article_id, written from the finding
+12:26:09 writing the workload (attempt 1)
+12:26:10 writing the workload (attempt 2)
+12:26:12 writing the workload (attempt 3)
+12:26:13 writing the workload (attempt 4)
+12:26:14 writing the workload (attempt 5)
+12:26:16 opp_dfc4a258c889401a: not measured (cannot measure: no workload ran at 
+the base after 5 attempts ())
+12:26:16 opp_dfc4a258c889401a: wait (not measurable at this commit: cannot 
+measure: no workload ran at the base after 5 attempts ())
+12:26:17 candidate: index on commentaries.author_id, written from the finding
+12:26:17 writing the workload (attempt 1)
+12:26:19 writing the workload (attempt 2)
+12:26:20 writing the workload (attempt 3)
+12:26:21 writing the workload (attempt 4)
+12:26:23 writing the workload (attempt 5)
+12:26:24 opp_b1872b3313b74061: not measured (cannot measure: no workload ran at 
+the base after 5 attempts ())
+12:26:24 opp_b1872b3313b74061: wait (not measurable at this commit: cannot 
+measure: no workload ran at the base after 5 attempts ())
+12:26:25 candidate: index on favorites.article_id, written from the finding
+12:26:25 writing the workload (attempt 1)
+12:26:27 writing the workload (attempt 2)
+12:26:29 writing the workload (attempt 3)
+12:26:30 writing the workload (attempt 4)
+12:26:32 writing the workload (attempt 5)
+12:26:34 opp_c010f57a9ddd445a: not measured (cannot measure: no workload ran at 
+the base after 5 attempts ())
+12:26:34 opp_c010f57a9ddd445a: wait (not measurable at this commit: cannot 
+measure: no workload ran at the base after 5 attempts ())
+12:26:36 candidate: index on articles.author_id, written from the finding
+12:26:36 writing the workload (attempt 1)
+12:26:37 writing the workload (attempt 2)
+12:26:39 writing the workload (attempt 3)
+12:26:40 writing the workload (attempt 4)
+12:26:41 writing the workload (attempt 5)
+12:26:43 opp_d87212c26beb4a8e: not measured (cannot measure: no workload ran at 
+the base after 5 attempts ())
+12:26:43 opp_d87212c26beb4a8e: wait (not measurable at this commit: cannot 
+measure: no workload ran at the base after 5 attempts ())
+
+
+== cycle 4 (exit 0)
+12:26:43 watching /Users/david/unbidden-lab/conduit (ctrl-c to stop, `unbidden 
+kill` to freeze)
+12:26:44 connections: postgres:127.0.0.1:55440/postgres connected, 
+http_api:http://127.0.0.1:18110 needs_capability

@@ -1,0 +1,50 @@
+== cycle 1 (exit 0)
+12:26:55 watching /Users/david/unbidden-lab/lnbits (ctrl-c to stop, `unbidden 
+kill` to freeze)
+12:26:55 HEAD is 9349da153c22
+12:26:56 deploy procedure found, proposed only: docker compose up -d 
+--remove-orphans
+12:26:56 deploy procedure found, proposed only: docker compose up 
+--remove-orphans
+12:26:56 connections: postgres:127.0.0.1:55450/lnbits connected, 
+http_api:http://127.0.0.1:18120 needs_capability
+12:26:56 provisioning node dependencies
+12:26:56 provisioning python dependencies
+12:27:23 running ruff
+12:27:24 running pyright
+12:27:33 scan of 9349da153c22: 2 reports, 0 new opportunities
+12:27:36 map of 9349da153c22: 219 resources, 3 blind spots
+12:27:37 robustness probe at 9349da153c22: investigate (probe lnbits (80 public 
+functions sampled))
+12:27:39 research.probe failed: sandbox.provision: destination 
+registry.npmjs.org is not in the mandate's allowlist
+12:27:39 needs a person: add registry.npmjs.org to egress.package_registries 
+(then: research.probe runs again)
+
+
+== cycle 2 (exit 0)
+12:27:40 watching /Users/david/unbidden-lab/lnbits (ctrl-c to stop, `unbidden 
+kill` to freeze)
+12:27:41 connections: postgres:127.0.0.1:55450/lnbits connected, 
+http_api:http://127.0.0.1:18120 needs_capability
+
+
+== cycle 3 (exit 0)
+12:27:43 watching /Users/david/unbidden-lab/lnbits (ctrl-c to stop, `unbidden 
+kill` to freeze)
+12:27:43 unblocked: add registry.npmjs.org to egress.package_registries; 1 
+job(s) run again
+12:27:43 connections: postgres:127.0.0.1:55450/lnbits connected, 
+http_api:http://127.0.0.1:18120 needs_capability
+12:27:52 writing property tests for lnbits
+12:28:35 running them offline
+12:28:36 robustness probe of lnbits: the tests did not run (['E   
+importlib.metadata.PackageNotFoundError: No package metadata was found for 
+lnbits'])
+
+
+== cycle 4 (exit 0)
+12:28:37 watching /Users/david/unbidden-lab/lnbits (ctrl-c to stop, `unbidden 
+kill` to freeze)
+12:28:38 connections: postgres:127.0.0.1:55450/lnbits connected, 
+http_api:http://127.0.0.1:18120 needs_capability

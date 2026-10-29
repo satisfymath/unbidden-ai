@@ -71,3 +71,27 @@ with no improvement is a valid result and is reported as such.
 **Budget:** the independent test's share, US$1.80; the workspace's cap is US$1.50.
 
 **Frozen product commit:** 6bbf3a1 (product, harness and this protocol; the run uses a worktree at it).
+
+## Result of I-1 (the evaluation, as run)
+
+Run once on 2026-10-29 at 6bbf3a1 with LNbits at 9349da1; record in `stage8-independent/I-1/`. 104 s for four
+cycles, US$0.00 of model spend (one Spark call was not needed: nothing reached a model but the probe's local test
+writing), ledger 6.2648 before and after.
+
+| Capability | What happened | Independent measurement |
+|---|---|---|
+| Interpreter | Python 3.12, by the written rule: the CI's matrix (3.10, 3.12) and the project's Dockerfile (3.12) agree; pyproject and poetry.lock admit >=3.10,<3.13; the disagreement of the two concrete sources recorded | uv, in a plain container running the CI's command, picked 3.12 too |
+| Reproduction | Dependencies installed from `uv.lock`; ruff and pyright ran (2 reports, 0 new opportunities). The project's own tests never ran: the probe's run failed at import, `PackageNotFoundError: lnbits` (the image installed the dependencies, not the project, which reads its own version at import) | The CI's `test-unit` job at the release, outside Unbidden: **646 passed** in 34 s. The project is reproducible as declared; the failure is Unbidden's |
+| Requests to a person | One: `registry.npmjs.org`, answered once (counted). It named the block it came from, but the work blocked (a probe of Python code) did not need Node: one language's provisioning blocked the other's | — |
+| Reads | The database connection read the catalog (14 tables, read-only role). The API stayed `needs_capability`: a proactive run builds no API integration (by design: integrations are built when a goal needs one) | — |
+| Map and findings | 219 resources (208 endpoints from the live OpenAPI and code), **no table**: the running PostgreSQL was recognized from its image, but tables are read only for a service declared in a compose file the map reads, and the lab's compose file (`docker-compose.lab.yml`, written by the person; the repository has none) was not one of the names it reads. No check had data to look at; **0 opportunities** | Both foreign keys (`balance_check.wallet`, `balance_notify.wallet`) lead a unique index; `apipayments` has 15 indexes; the main read (a wallet's payments, newest first, 20 per page) takes **1.36 ms** median of 20 for a wallet of 5,000 payments and 0.14 ms for one of 100. Nothing to fix was found at this volume |
+| Experiments | None (nothing to experiment on) | — |
+
+**Reading.** No improvement, and it is not a justified abstention: Unbidden did not observe the database it was
+connected to through its map, and could not run the project's tests. The independent measurement found nothing worth
+changing either, so the silence happens to be right, for the wrong reason. The cycle was not completed on this
+project.
+
+**Fixed after the evaluation** (da7a595, labelled post-evaluation, general): the project's own package registered
+in the environment as `uv sync` does; languages provisioned apart; a PostgreSQL started from an unread compose file
+is read through its container's user and database. Any repeat on LNbits is reported apart as post-evaluation.

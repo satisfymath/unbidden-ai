@@ -1,0 +1,122 @@
+{
+  "workspace": "lnbits",
+  "at": "2026-10-29T15:28:39.556751+00:00",
+  "discovered": {
+    "total": 0,
+    "by_status": {}
+  },
+  "experimenting": [],
+  "declined_because": [],
+  "waiting_because": [],
+  "proven": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {},
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 0,
+    "usd": 0,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55450/lnbits",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.accounts",
+        "select public.apipayments",
+        "select public.assets",
+        "select public.audit",
+        "select public.balance_check",
+        "select public.balance_notify",
+        "select public.balances",
+        "select public.dbversions",
+        "select public.extensions",
+        "select public.installed_extensions",
+        "select public.system_settings",
+        "select public.tiny_url",
+        "select public.wallets",
+        "select public.wasm_invocations",
+        "select public.webpush_subscriptions"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-29T15:28:38.011014+00:00"
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18120",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "LNbits API: 178 operations documented, authenticated by oauth2, http bearer, apiKey X-API-KEY, apiKey api-key; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-29T15:28:38.022097+00:00"
+    }
+  ],
+  "needs_a_person": [
+    {
+      "proposal": "docker compose up -d --remove-orphans",
+      "state": "proposed",
+      "what": "found in docker/regtest/docker-scripts.sh; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose up --remove-orphans",
+      "state": "proposed",
+      "what": "found in docker/regtest/docker-scripts.sh; a proposal only: a person declares deploy steps in the mandate"
+    }
+  ],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [],
+  "actions": [],
+  "acceptances": [],
+  "goals": []
+}
