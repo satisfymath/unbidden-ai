@@ -9,9 +9,7 @@ Write the file `.unbidden-lab/workload.py` defining `build(...) -> Callable[[], 
   fixtures listed below for the client, the database session and an authenticated user rather than building
   your own. Import only names you can see in the code below.
 - Seed at least {{rows}} rows in `{{table}}`, spread over at least {{owners}} distinct rows it references, so
-  each owner has a small share. Create the referenced rows first, then the {{table}} rows. Insert them with
-  SQLAlchemy Core in bulk, one statement per table with a list of dicts (`session.execute(insert(Model), rows)`),
-  never one ORM object per row and never database-specific SQL: the tests may run on SQLite or on Postgres.
+  each owner has a small share. Create the referenced rows first, then the {{table}} rows. {{insert_rule}}
   Fill every non-null column (ids, foreign keys, timestamps from Python), commit, then run `ANALYZE` (both
   engines accept it).
 - Call the endpoint as an ordinary user that owns some of the seeded rows, authenticated the same way the
@@ -31,7 +29,7 @@ The endpoint's handler (`{{handler_file}}`):
 {{handler}}
 ```
 
-The data models (`{{models_file}}`):
+{{schema_label}} (`{{models_file}}`):
 ```python
 {{models}}
 ```

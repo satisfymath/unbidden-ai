@@ -144,15 +144,47 @@ def alembic_head(repo: Path, rev: str) -> tuple[str, str, str] | None:
 
 
 _COLUMN_CALL = re.compile(r"(mapped_column|Column|Field)\(")
+_ORM_INSERT = (
+    "Insert them with SQLAlchemy Core in bulk, one statement per table with a list of dicts "
+    "(`session.execute(insert(Model), rows)`), never one ORM object per row and never database-specific SQL: the "
+    "tests may run on SQLite or on Postgres."
+)
+_SQL_INSERT = (
+    "The application keeps no ORM model of these tables: they are created by the migration shown below, and its "
+    "code reads them with SQL. Insert through the same database access the application's tests and code use (its "
+    "connection or pool fixture, or its own repository classes), in bulk: one multi-row statement per table, never "
+    "one statement per row."
+)
 
 
 def index_candidate(
-    show: Callable[[str], str], table: str, column: str, models_file: str, head: tuple[str, str, str]
+    show: Callable[[str], str],
+    table: str,
+    column: str,
+    models_file: str,
+    head: tuple[str, str, str],
+    *,
+    model: bool = True,
 ) -> dict[str, str] | None:
     """The change an unindexed foreign key asks for, written without a model: `index=True` on the column of the
     class mapped to `table`, and an Alembic migration that creates the index after the current head. None when the
-    column is not declared on one line, where an edit by pattern would be a guess."""
-    source = show(models_file)
+    column is not declared on one line, where an edit by pattern would be a guess. A table that no class maps (its
+    schema lives only in migrations, `model=False`) gets the migration alone."""
+    edited = _model_index(show(models_file), table, column) if model else None
+    if model and edited is None:
+        return None
+    migrations_dir, head_rev, _ = head
+    revision = hashlib.sha256(f"{table}.{column}:{head_rev}".encode()).hexdigest()[:12]
+    name = f"ix_{table}_{column}"
+    migration = _INDEX_MIGRATION.format(table=table, column=column, revision=revision, head_rev=head_rev, name=name)
+    out = {f"{migrations_dir}/{revision}_add_index_{table}_{column}.py": migration}
+    if edited is not None:
+        out[models_file] = edited
+    return out
+
+
+def _model_index(source: str, table: str, column: str) -> str | None:
+    """The model file with `index=True` on the column, or None when the edit would be a guess."""
     lines = source.splitlines(keepends=True)
     mapped = next(
         (i for i, x in enumerate(lines) if re.search(rf"__tablename__\s*=\s*[\"']{re.escape(table)}[\"']", x)), None
@@ -173,10 +205,10 @@ def index_candidate(
         return None
     stripped = line.rstrip()
     lines[declared[0]] = f"{stripped[:-1]}, index=True)\n"
-    migrations_dir, head_rev, _ = head
-    revision = hashlib.sha256(f"{table}.{column}:{head_rev}".encode()).hexdigest()[:12]
-    name = f"ix_{table}_{column}"
-    migration = f'''"""add index on {table}.{column}
+    return "".join(lines)
+
+
+_INDEX_MIGRATION = '''"""add index on {table}.{column}
 
 Revision ID: {revision}
 Revises: {head_rev}
@@ -201,7 +233,6 @@ def downgrade():
     with op.batch_alter_table("{table}", schema=None) as batch_op:
         batch_op.drop_index(batch_op.f("{name}"))
 '''
-    return {models_file: "".join(lines), f"{migrations_dir}/{revision}_add_index_{table}_{column}.py": migration}
 
 
 class PerfLab:
@@ -271,6 +302,21 @@ class PerfLab:
                     return path
                 if re.search(rf"__tablename__\s*=\s*[\"']{re.escape(table)}[\"']", text):  # SQLAlchemy
                     return path
+        return None
+
+    def _schema_file(self, rev: str, table: str) -> tuple[str, bool] | None:
+        """Where `table`'s columns are declared: the model that maps it (True), else the Alembic migration that
+        creates it (False), for projects whose code reads the database with SQL and keeps no ORM model."""
+        if models := self._models_file(rev, table):
+            return models, True
+        created = re.compile(
+            rf"create_table\(\s*[\"']{re.escape(table)}[\"']|CREATE\s+TABLE\s+(IF\s+NOT\s+EXISTS\s+)?[\"`]?"
+            rf"{re.escape(table)}[\"`]?\s*\(",
+            re.IGNORECASE,
+        )
+        for path in _git(self.repo, "ls-tree", "-r", "--name-only", rev).splitlines():
+            if "/versions/" in path and path.endswith(".py") and created.search(self._show(rev, path)):
+                return path, False
         return None
 
     def _related_models(self, rev: str, models_file: str, table: str, budget: int = 6000) -> str:
@@ -489,22 +535,26 @@ class PerfLab:
         plan = test_plan(self.repo, rev, self.stack, "python")
         ci = ci_test_plan(self.repo, rev, "python")
         head = alembic_head(self.repo, rev)
-        models_file = self._models_file(rev, table)
+        schema = self._schema_file(rev, table)
+        models_file, has_model = schema if schema else (None, False)
         handlers = self._handlers(opp, rev)
         missing = [
             what
             for what, have in (
                 ("a CI job that runs the tests", plan is not None and ci is not None),
                 ("a single Alembic head", head is not None),
-                (f"the model of table {table}", models_file is not None),
+                (f"the schema of table {table} (a model, or the migration that creates it)", models_file is not None),
                 ("the handlers of the endpoints that read it", bool(handlers)),
             )
             if not have
         ]
-        if opp.details.get("cost_path") == "parent_delete":
+        enforcing = plan is not None and any(
+            re.match(r"(.*/)?(postgres|postgis|mysql|mariadb)\b", s.image or "") for s in plan.services
+        )
+        if opp.details.get("cost_path") == "parent_delete" and not enforcing:
             # The cost is the database's own foreign-key check; whether the test database makes it (SQLite only
-            # with `PRAGMA foreign_keys`) is not something the lab can tell yet, and a test run without it would
-            # report "no effect" for the wrong reason.
+            # with `PRAGMA foreign_keys`) is not something the lab can tell, and a test run without it would
+            # report "no effect" for the wrong reason. A PostgreSQL or MySQL test service always enforces them.
             missing.append("test database known to enforce foreign keys")
         if missing:
             result.blocked = "cannot measure: no " + ", no ".join(missing)
@@ -534,7 +584,9 @@ class PerfLab:
         origin = ""
         column = str(opp.details.get("column", ""))
         if opp.details.get("check") == "unindexed_foreign_key" and column:
-            candidate_files = index_candidate(lambda path: self._show(rev, path), table, column, models_file, head)
+            candidate_files = index_candidate(
+                lambda path: self._show(rev, path), table, column, models_file, head, model=has_model
+            )
             if candidate_files and self._findings(rev, candidate_files) - before_findings:
                 result.notes.append("the written index change added findings; asking the local model instead")
                 candidate_files = None
@@ -584,6 +636,8 @@ class PerfLab:
                     handler=handler[2],
                     models_file=models_file,
                     models=self._show(rev, models_file)[:8000],
+                    schema_label="The data models" if has_model else "The migration that creates the tables",
+                    insert_rule=_ORM_INSERT if has_model else _SQL_INSERT,
                     related_models=self._related_models(rev, models_file, table),
                     calls=str(WARMUP + SAMPLES),
                     test_examples=self._test_examples(rev, list_endpoint, table),
