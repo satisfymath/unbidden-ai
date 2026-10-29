@@ -20,15 +20,23 @@ systems were not exercised.
 
 ## Install and check
 
+This file is updated after the commit it names, so read it from the branch head, not from that commit.
+
 ```sh
 git clone git@github.com:satisfymath/unbidden-ai.git && cd unbidden-ai
-git checkout f8d3fc2
+git checkout f8d3fc2         # the release named above
 uv sync                      # dependencies from uv.lock
-make check                   # ruff, pyright, unit tests (about 570, under a minute)
-echo 'MODEL_API_KEY=...' >> ~/.unbidden/.env && chmod 600 ~/.unbidden/.env   # never in the repository
+make check                   # ruff, pyright, unit tests (about 580, under a minute)
 uv run unbidden doctor       # docker, models, keys, sandbox: what works and what does not
 uv run unbidden spend        # the machine-wide spend ledger and its cap
 ```
+
+The Meta key lives in `~/.unbidden/.env` (mode 600, never in the repository) as `MODEL_API_KEY=<key>`; add it once,
+by editing that file (do not append a second line if one is there). What `doctor` says, and what it means:
+- `workspace not initialized`: expected outside a project; a project becomes a workspace with `unbidden init` in its
+  repository (the lab's scripts below do it for the lab's projects);
+- `the model listing refuses the key (401)`: seen on 2026-10-29 while chat calls with the same key worked; it does
+  not by itself mean the key must be replaced; `unbidden spend` and a run's `model_runs` show whether calls succeed.
 
 Spend: every remote call reserves its worst cost in `~/.unbidden/spend.db` before it is sent and is refused past
 the cap a person entered (`unbidden spend --verified-balance USD --source ... --reserve FRACTION`). The ledger is an
@@ -89,18 +97,26 @@ Every lab resource carries the label `unbidden.lab=ecosystem` and listens on 127
 `uv run python -m bench.ecosystem.board_demo "$PWD"`: see `docs/bench/stage6-demo.md` for what it shows, what the
 harness prepares, and a recorded run with its cost.
 
-## Integration order of the stacked branches (proposed; no PR or merge in this stage)
+## Integration proposal (verified on the git graph, 2026-10-29; no PR or merge in this stage)
 
-`main` is at the merged `hackathon-build`. Every later branch is stacked on the previous one, so they integrate in
-this order, each into `main` after the one before it:
+**Candidate:** the head of `feat/57-transfer` once stage 7 closes (its commit recorded in `docs/PLAN.md`); until
+then, `feat/56-consolidation` @ 536fafe (release f8d3fc2).
 
-1. `feat/18-runtime-truth` .. `feat/38-eval-v2`: the evidence and boundary work (stage 2); branches 14-17 are already
-   contained in this stack under rebased commits (same subjects).
-2. `feat/42-postgres-network` .. `feat/47-ecosystem-dev-fixes`: connections, Forge API clients, typed actions, goals.
-3. `feat/48-stage4-plan` .. `feat/54-blocked-needs`: authorization of effects, complete reads, postconditions,
-   extension, routing on Meta, blocked needs.
-4. `feat/55-send-time-authorization`: writes authorized as they leave; the page goal; images through the router.
-5. `feat/56-consolidation`: OpenAPI by version, inconclusive page checks, perception metrics, Linen, this release.
+**Relation with `main`:** `main` is 790a711, the merge of PR #1 (`hackathon-build`); its tree is identical to
+b3f7433, which is where the whole stack starts. The stack is one linear line from b3f7433 to the candidate (227
+commits at `feat/57-transfer`, no merge commits). Branches 01-13, 18-19 and 21-57 are ancestors of the candidate:
+integrating the candidate integrates them all; they need no separate merge. Branches 14-17 are not ancestors, but
+every one of their commits is in the stack under a rebased commit (same subject); nothing of theirs is lost.
 
-One commit outside the stack: `feat/20-scale-eval` a77ef43 (docs: v5 paired against v4 on dev), a report only; it
-can be cherry-picked onto the stack before step 1 merges, or left in its branch as a record.
+**Commits that are not in the candidate and must not be lost:** one, `feat/20-scale-eval` a77ef43 (docs: v5 paired
+against v4 on dev; 4 files, a 30,000-line JSON). Either cherry-pick it onto the candidate before integrating, or keep
+the branch as its record.
+
+**Checks before integrating:** `make check` on the candidate (ruff, pyright, about 600 unit tests); the release walk
+in this file from a clean checkout; a test merge into `main` (done on 2026-10-29 in a scratch worktree: no conflict).
+
+**Strategy:** one merge of the candidate into `main` (`git merge --no-ff`), not 50 branch-by-branch merges, since
+the stack is linear and already contains every branch. A fast-forward is not possible: main's merge commit is not in
+the stack. **Rollback:** `main` is moved back to 790a711 (the merge is one commit; reverting it with
+`git revert -m 1` restores main's tree exactly, since main's tree equals b3f7433). The stacked branches stay on the
+remote either way.
