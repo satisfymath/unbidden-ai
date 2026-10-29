@@ -8,7 +8,7 @@ deployed.
 
 - Code: commit **CANDIDATE** on branch `feat/58-reproduce`. `uv.lock` pins every Python dependency (Python 3.12).
   This file is updated after the commit it names, so read it from the branch head, not from that commit.
-- Tested on (and only on): macOS 27.0.1 on Apple Silicon (arm64); Docker Desktop with Engine 29.8.2 (linux/arm64
+- Tested on (and only on): macOS 27.0.1 on Apple Silicon (arm64); OrbStack with Docker Engine 29.8.2 (linux/arm64
   containers); uv 0.13.1; git 2.56; Ollama 0.40.9 with `muse-glimmer:30b-mxfp8-dflash`; the Meta Model API
   (`muse-spark-1.3` on the `code` route). Linux and x86-64 hosts were not tested.
 - Projects whose experiments ran here: Python 3.9 (Conduit), 3.10-3.12 (full-stack-fastapi-template, mealie, Rich,
@@ -68,7 +68,8 @@ uv run unbidden doctor        # Docker, local model, Meta key, GitHub, mandate: 
 uv run unbidden spend         # the machine-wide spend ledger and its cap
 ```
 
-Prerequisites a person provides: Docker running; Ollama running with a model (`unbidden doctor --fix` picks and
+Prerequisites a person provides: Docker running with its compose plugin (`docker compose version` must answer;
+Docker Desktop and OrbStack install it for the user, under `~/.docker/cli-plugins`); Ollama running with a model (`unbidden doctor --fix` picks and
 pulls one that fits the machine); for remote models, a Meta key in `~/.unbidden/.env` as `MODEL_API_KEY=<key>` (mode
 600, never in a repository; add it once by editing that file); for remote spend, a cap entered by a person
 (`unbidden spend --verified-balance USD --source ... --reserve FRACTION`). Without the key, everything local works

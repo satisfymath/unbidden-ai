@@ -113,7 +113,7 @@ def test_a_table_kept_only_in_migrations_gets_the_migration_alone(tmp_path: Path
     lab = SimpleNamespace(repo=tmp_path, _show=lambda rev, p: (tmp_path / p).read_text())
     lab._models_file = lambda rev, table: PerfLab._models_file(lab, rev, table)  # type: ignore[attr-defined]
     found = PerfLab._schema_file(lab, "HEAD", "comments")  # type: ignore[arg-type]
-    assert found == ("app/db/migrations/versions/aaa111_init.py", False)
+    assert found is not None and found == ("app/db/migrations/versions/aaa111_init.py", False)
     head = ("app/db/migrations/versions", "aaa111", "app/db/migrations/versions/aaa111_init.py")
     out = index_candidate(lambda p: files[p], "comments", "article_id", found[0], head, model=False)
     assert out is not None and len(out) == 1  # no model file to edit

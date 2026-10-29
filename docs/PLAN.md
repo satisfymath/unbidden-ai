@@ -622,3 +622,32 @@ development and Conduit regression up to US$1.30; the independent test US$1.80; 
 | 6 | Conduit regression, a new version, B before A from clean states | 2-5 | each capability's outcome recorded; human preparation counted |
 | 7 | An independent application, chosen and frozen before running | 6 | a proactive run with its own checks and an independent measurement |
 | 8 | A 1.0 candidate commit, clean-checkout install, integration proposal, exit-criteria matrix | all | 1.0 only if every exit criterion has evidence; otherwise "experimental candidate" and what blocks 1.0 |
+
+## Stage 8: status and exit criteria (2026-10-29)
+
+Spend: US$7.29 of US$10 on the ledger (stage 8: US$1.17; it read 6.1204 at the start); **US$2.71 left**. The
+counter was never reset. Development and the Conduit regression: US$1.17 of the US$1.30 planned (six regression
+versions, B before A each); the independent test: US$0.00 of US$1.80 (its model calls stayed local); contingency
+untouched. No billing change, no other charge.
+
+| # | Exit criterion | Evidence | Met? |
+|---|---|---|---|
+| 1 | The project's environment is reproduced before experimenting | Conduit: the interpreter chosen by rule (3.9 from the CI and the Dockerfile), Debian's build tools through the one authorized request, the CI's PostgreSQL as a sidecar; its suite ran at the base in every experiment of B-7/A-8 (90 tests, 3 rounds, none failed). LNbits, in its evaluation (I-1): the interpreter chosen right (3.12, as uv chose independently), but the project could not be imported, so its tests never ran; fixed after the evaluation (da7a595), and no experiment ran there since | partly: on the regression application, not on the independent one in its evaluation |
+| 2 | Incompatible data produces no false conclusion | Tests for cases A-D (`test_api_deviations.py`); Conduit: optional nulls recorded per operation and field with a count, the listing read whole (20,000) and judged "unknown" because no total is declared under a known name, so the goal blocked instead of concluding; writes strict | yes |
+| 3 | Findings are explained and prioritized with evidence | The chain endpoint -> SQL query -> join or filter -> column -> volume, read from the code and the live system; candidates with estimated index size and write cost. Independently checked (`conduit_indep.py`): of three L4 claims, two confirmed (comments listing 8.43 -> 0.06 ms; article delete 0.60 -> 0.20 ms with comments indexed), **one a false positive** (`commentaries.author_id`: the delete uses the primary key) | partly: one false L4 |
+| 4 | Permissions, budgets and revocations are respected | No push or pull request (denied by the mandate; `github.com` not an allowed destination: the refusal is in the log); registries only as granted, the grant asked once; the ledger checked before and after every run, never reset; send-time authorization, revocation and spend caps under test (`test_send_time_authorization.py`, `test_connections.py`, `test_spend.py`) | yes |
+| 5 | Acceptance tells applied, claimed by the model, verified and inconclusive apart | Stage 7's contract (`contracts/acceptance.py`: proposed, applied, accepted, rejected, inconclusive, stale; the model's claim apart) and its tests and runs (D-046); not exercised in stage 8's runs, whose goal blocked before any change | yes (stage 7 evidence; not re-exercised) |
+| 6 | A useful cycle on an independent application, with human preparation declared | LNbits I-1: preparation declared; no improvement, and not a justified abstention (no table mapped, the project not importable). The post-evaluation repeat (I-2) mapped and abstained consistently with the independent measurement, but it was tuned on I-1 and is not out-of-sample evidence | **no** |
+| 7 | Installation and operation documented and reproduced | WALK_RESULT | WALK_MET |
+| 8 | A candidate commit and integration prepared | candidate d0db3d3; the integration proposal from the git graph in `RELEASE.md`; nothing merged, published or deployed | yes |
+
+**Verdict: experimental candidate, not 1.0.** What blocks 1.0: (6) a useful cycle, or a justified abstention, on an
+application never used in development, frozen before running; (1) the same application's own checks run by Unbidden
+at its base in that evaluation; (3) a measurement criterion that does not grant L4 to an effect the query plan
+cannot explain (an absolute floor, or base and candidate measured in one session).
+
+**Next, in order:** (1) the false L4: measure base and candidate in the same session, alternating, and require the
+changed query in the plan; (2) a second independent application, frozen first, with experiments expected (an
+unindexed foreign key under load in an asynchronous or SQL-first project); (3) completeness for listings whose count
+is named differently (read the declared response schema for a count field, never guessed); (4) proactive runs that
+build an API integration when a finding needs one.

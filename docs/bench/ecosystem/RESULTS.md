@@ -1,3 +1,47 @@
+# Stage 8: reproduce, read under deviations, tie findings to queries; Conduit as regression, LNbits independent (2026-10-29)
+
+Records: `docs/bench/stage8-regression/` (six versions, B before A each), `stage8-conduit-regression.md` (protocol and
+what each version showed), `stage8-independent.md` and `stage8-independent/` (LNbits, chosen and frozen before
+running), `stage8-independent-post/` (a repeat after the evaluation, not evidence). Spend: US$1.17 (ledger 6.1204 ->
+7.2945); US$2.71 left of the US$10 authorization. Human preparation: Conduit's as in stage 7; LNbits' lab (a compose
+file and `.env` written by the person, synthetic data, a read key), counted in `stage8-independent.md`. Interventions
+during runs: one per run, the same declared answer (adding the package registry Unbidden named).
+
+## Conduit, development and regression (Unbidden's own changes tuned on it: not out-of-sample)
+
+| Version | Runs | What it showed | Fixed next (generally) |
+|---|---|---|---|
+| 1 (adb803d) | B-2, A-3 | the interpreter (3.9) and build tools reproduced the suite; five requests for one registry; held work idle after the grant; 102 deviation entries for one; reads stopped at 5,000 of 20,000; two endpoints without handlers | one request per need, released work; counted deviations; reads bounded by records; `include_router` prefixes |
+| 2 (37e2324) | B-3, A-4 | one request; held jobs ran; listing read whole, completeness unknown (goal blocked, case C); experiments stopped at "no model of the table" | schemas from migrations; PostgreSQL test services enforce foreign keys |
+| 3 (6bbf3a1) | B-4, A-5 | candidates written by rule; every workload request refused by Guardian (tests log in with `password="password"`), the refusal swallowed | credential-looking values masked before asking; refusals recorded |
+| 4 (fbf8d32) | B-5, A-6 | the base measured for the first time; the candidate broke on a `str \| None` annotation (Python 3.9) | the migration template without annotations |
+| 5 (995afd8) | B-6, A-7 | no workload ran: an asynchronous suite, a synchronous driver | an async driver from the workload's signature |
+| 6 (f56b130) | B-7, A-8 | **the cycle completed**: suite green on both sides (90 tests, 3 rounds); 3 improvements at L4 proposed as local branches, 1 candidate declined with evidence; A's goal still blocked | (next stage) the false L4 below |
+
+Independent check of version 6 (`bench/ecosystem/conduit_indep.py`, query plans on the lab data, no model):
+`commentaries.article_id` confirmed (8.43 -> 0.06 ms), `favorites.article_id` confirmed when comments are indexed
+(0.60 -> 0.20 ms), **`commentaries.author_id` a false positive** (the delete finds its row by primary key).
+
+## LNbits, the independent application (frozen at 6bbf3a1, run once)
+
+No improvement and not a justified abstention: the map read no table (its PostgreSQL ran from a compose file it did
+not read), the probe could not import the project (its own package was not installed), and the one request (npm's
+registry) was not needed by the Python work it blocked. Independently: its CI's unit tests pass (646); both foreign
+keys are indexed; the main read takes 1.4 ms on a 5,000-payment wallet: nothing to fix at this volume. After the
+evaluation, the three causes were fixed generally; the repeat (I-2, labelled post-evaluation) mapped 14 tables, ran
+the probe on the project's code, asked nothing, and found nothing, which matches the independent measurement.
+
+## What it shows, and what it does not
+
+Shows: on a real application whose reproduction failed in stage 7, the full cycle: the project's environment
+reproduced from its own declarations, findings traced to the queries that pay for them, candidates measured on both
+sides with the project's checks, improvements proposed with evidence, a negative declined, a request to a person
+that unblocked exactly what it named; and reads that stop short of a conclusion when the data cannot support one.
+
+Does not show: that this works on an application not used to develop it (the independent run did not complete the
+cycle); that L4 is always right (one of three was an artifact); anything about rates (one application, a few runs).
+The `articlesCount` defect remains Claude's observation; Unbidden never reported it.
+
 # Stage 7: transfer to a real application (Conduit), the frozen runs (2026-10-29)
 
 Protocol: `docs/bench/stage7-transfer.md`, `stage7-freeze.md` (product 9ef6a60, Conduit 029eb77). Preparation:

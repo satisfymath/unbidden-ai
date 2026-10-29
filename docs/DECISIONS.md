@@ -1063,7 +1063,14 @@ found nothing, consistent with the independent measurement.
 
 ## D-051 · 2026-10-29 · Stage 8: an experimental candidate, not 1.0
 
-The exit criteria (`docs/PLAN.md`) are not all met: no useful cycle (an improvement measured with the checks green
-on both sides, or a discard with evidence) on the independent application, and on Conduit only after six regression
-versions, each fixing a general cause found by the one before. **Decided:** the candidate is called experimental;
-nothing is published, released or merged; the integration proposal is prepared for review only.
+On Conduit, after six regression versions (each fixing a general cause the one before showed: one request per
+need and released work; migration-only schemas; credential-looking values masked and refusals recorded; a migration
+valid on Python 3.9; an async driver for async suites), the cycle completed: reproduced, measured on both sides with
+the project's checks green, three improvements proposed at L4 and one candidate declined with evidence. Checked
+independently, two improvements hold and **one is a false positive** (an index the query does not use; a 0.5 ms
+difference between separate sandbox sessions passed the criteria). On LNbits, the application frozen for
+independence, the evaluation showed no useful cycle.
+
+**Decided:** the candidate (d0db3d3) is called experimental, with the exit criteria and their evidence in
+`docs/PLAN.md`; nothing is published, released or merged; the integration proposal is prepared for review only. The
+false L4 is the first thing to fix: an evidence level that a measurement artifact can reach is not one to build on.
