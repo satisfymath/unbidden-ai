@@ -24,3 +24,14 @@ handlers of routes mounted with `include_router` prefixes located (two endpoints
 unexplained). Same protocol, same preparation, same single declared answer: runs `B-3` then `A-4`
 (`--runs B-3,A-4`) from a worktree at the commit named below.
 regression version 2: 37e2324
+
+## Third regression version
+
+The second version (37e2324) confirmed four of the fixes on Conduit: one request for the registry, answered once;
+the five held jobs ran right after the grant (the robustness probe ran: 0 crashes); the listing read all 20,000
+articles (its completeness stays unknown: no total is declared under a name the reader knows, and the read ended on
+a short batch, so the integration is rejected and the goal blocks, as case C requires); deviations counted. It then
+stopped every index experiment at "no the model of table ...": Conduit keeps its schema in Alembic migrations and
+reads with SQL. Fixed generally (bea8adf): the schema comes from the migration that creates the table when no model
+maps it, and a PostgreSQL test service counts as enforcing foreign keys. Runs `B-4` then `A-5` (`--runs B-4,A-5`),
+same protocol, from a worktree at the commit named below, which is also the independent run's frozen commit.
