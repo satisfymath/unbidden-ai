@@ -29,8 +29,30 @@ UPSTREAM = "https://github.com/nsidnev/fastapi-realworld-example-app.git"
 COMMIT = "029eb7781c60d5f563ee8990a0cbfb79b244538c"
 PROJECT, PORT, DB_PORT = "conduit-staging", 18110, 55440
 URL = f"http://127.0.0.1:{PORT}"
+# Human preparation, counted: the 2022 Dockerfile's `pip install poetry==1.1` now pulls poetry-core 1.9, which no
+# longer has `poetry.core.toml`; the build fails. The same Dockerfile with the era's matching pair, given inline in
+# the (untracked) override, so the application's repository stays as published. Then `pkg_resources` was missing at
+# start: 2022's virtualenvs carried setuptools implicitly, today's do not; setuptools of that era is added to the venv.
+DOCKERFILE = """FROM python:3.9.10-slim
+ENV PYTHONUNBUFFERED 1
+EXPOSE 8000
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends netcat && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+COPY poetry.lock pyproject.toml ./
+RUN pip install poetry==1.1.15 poetry-core==1.0.8 && poetry config virtualenvs.in-project true \\
+    && poetry install --no-dev && .venv/bin/pip install setuptools==65.5.0
+COPY . ./
+CMD poetry run alembic upgrade head && poetry run uvicorn --host=0.0.0.0 app.main:app
+"""
+# Human preparation, counted: asyncpg 0.26.0 (the lock's) has no linux/arm64 wheel and the slim image has no compiler;
+# the app image is built for linux/amd64 (emulated on this Apple Silicon machine), the lock untouched.
 OVERRIDE = """services:
   app:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile_inline: |
+{dockerfile}
     ports: !override
       - "127.0.0.1:{port}:8000"
     environment:
@@ -55,7 +77,9 @@ COMPOSE = ["docker", "compose", "-f", "docker-compose.yml", "-f", "docker-compos
 def _secrets(lab: Path) -> dict[str, str]:
     path = lab / "conduit-secrets.env"
     held = dict(line.split("=", 1) for line in path.read_text().splitlines() if "=" in line) if path.exists() else {}
-    missing = {k: secrets.token_urlsafe(18) for k in ("CONDUIT_PG", "CONDUIT_SECRET", "CONDUIT_READER_PW") if k not in held}
+    missing = {
+        k: secrets.token_urlsafe(18) for k in ("CONDUIT_PG", "CONDUIT_SECRET", "CONDUIT_READER_PW") if k not in held
+    }
     if missing or not path.exists():
         held |= missing
         path.write_text("".join(f"{k}={v}\n" for k, v in held.items()))
@@ -75,7 +99,10 @@ def up(lab: Path) -> None:
     (repo / ".env").write_text(f"SECRET_KEY={held['CONDUIT_SECRET']}\nDEBUG=False\n"
                                f"DATABASE_URL=postgresql://postgres:{held['CONDUIT_PG']}@db/postgres\n")  # fmt: skip
     (repo / ".env").chmod(0o600)
-    (repo / "docker-compose.lab.yml").write_text(OVERRIDE.format(port=PORT, db_port=DB_PORT, pg=held["CONDUIT_PG"]))
+    inline = "\n".join("        " + line for line in DOCKERFILE.splitlines())
+    (repo / "docker-compose.lab.yml").write_text(
+        OVERRIDE.format(port=PORT, db_port=DB_PORT, pg=held["CONDUIT_PG"], dockerfile=inline)
+    )
     (repo / "docker-compose.lab.yml").chmod(0o600)
     exclude = repo / ".git" / "info" / "exclude"
     wanted = [".env", "docker-compose.lab.yml", ".unbidden/", "postgres-data/"]
@@ -93,8 +120,22 @@ def up(lab: Path) -> None:
 
 
 def _psql(lab: Path, sql: str) -> str:
-    out = subprocess.run([*COMPOSE, "exec", "-T", "db", "psql", "-v", "ON_ERROR_STOP=1", "-q", "-At", "-U", "postgres",
-                          "-d", "postgres"], cwd=repo_dir(lab), input=sql, text=True, capture_output=True, check=True)  # fmt: skip
+    argv = [
+        *COMPOSE,
+        "exec",
+        "-T",
+        "db",
+        "psql",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-q",
+        "-At",
+        "-U",
+        "postgres",
+        "-d",
+        "postgres",
+    ]
+    out = subprocess.run(argv, cwd=repo_dir(lab), input=sql, text=True, capture_output=True, check=True)
     return out.stdout
 
 
@@ -112,13 +153,14 @@ def seed(lab: Path, seed: int = 7_2026, users: int = 2000, articles: int = 20_00
         f"'@example.test', 'salt', 'not-a-real-hash', '', NULL FROM generate_series(1, {users}) g;",
         "INSERT INTO tags (tag) VALUES " + ", ".join(f"('{t}')" for t in tags) + ";",
         f"INSERT INTO articles (slug, title, description, body, author_id) SELECT 'article-' || g, 'Article ' || g, "
-        f"'A synthetic article', repeat('Lorem ipsum ', 40), 1 + (g * 7919) % {users} "
+        f"'A synthetic article', repeat('Lorem ipsum ', 40), 1 + (g::bigint * 7919) % {users} "
         f"FROM generate_series(1, {articles}) g;",
-        f"INSERT INTO articles_to_tags (article_id, tag) SELECT g, 'topic' || (g % 60) FROM generate_series(1, {articles}) g;",
+        "INSERT INTO articles_to_tags (article_id, tag) SELECT g, 'topic' || (g % 60) "
+        f"FROM generate_series(1, {articles}) g;",
         f"INSERT INTO commentaries (body, author_id, article_id) SELECT 'A synthetic comment', "
-        f"1 + (g * 31) % {users}, 1 + (g * 104729) % {articles} FROM generate_series(1, {comments}) g;",
-        f"INSERT INTO favorites (user_id, article_id) SELECT DISTINCT 1 + (g * 13) % {users}, "
-        f"1 + (g * 7907) % {articles} FROM generate_series(1, {favorites}) g ON CONFLICT DO NOTHING;",
+        f"1 + (g::bigint * 31) % {users}, 1 + (g::bigint * 104729) % {articles} FROM generate_series(1, {comments}) g;",
+        f"INSERT INTO favorites (user_id, article_id) SELECT DISTINCT 1 + (g::bigint * 13) % {users}, "
+        f"1 + (g::bigint * 7907) % {articles} FROM generate_series(1, {favorites}) g ON CONFLICT DO NOTHING;",
         "COMMIT;",
         "ANALYZE;",
         "DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'conduit_reader') THEN "
@@ -128,8 +170,9 @@ def seed(lab: Path, seed: int = 7_2026, users: int = 2000, articles: int = 20_00
     ]
     _ = rng  # deterministic SQL generation; the seed is recorded for the record
     _psql(lab, "\n".join(sql))
-    counts = _psql(lab, "SELECT (SELECT count(*) FROM users), (SELECT count(*) FROM articles), "
-                        "(SELECT count(*) FROM commentaries), (SELECT count(*) FROM favorites);").strip().split("|")  # fmt: skip
+    totals = "SELECT (SELECT count(*) FROM users), (SELECT count(*) FROM articles), "
+    totals += "(SELECT count(*) FROM commentaries), (SELECT count(*) FROM favorites);"
+    counts = _psql(lab, totals).strip().split("|")
     return dict(zip(["users", "articles", "comments", "favorites"], map(int, counts), strict=True))
 
 
