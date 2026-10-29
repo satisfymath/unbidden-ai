@@ -1,0 +1,158 @@
+[
+ {
+  "state": "n-faded",
+  "case": "faded",
+  "variants": [
+   "brand"
+  ],
+  "history": false,
+  "wrong": [
+   "B01",
+   "B06",
+   "B07",
+   "B08",
+   "B12",
+   "B13",
+   "B14",
+   "B16",
+   "B17",
+   "B19",
+   "B21",
+   "B23",
+   "B24",
+   "B26",
+   "B29",
+   "B30",
+   "B35",
+   "B36"
+  ],
+  "healthy": false,
+  "method": "dom",
+  "rep": 1,
+  "policy": "wonder",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "eaddb51 unbidden: board-flags: The SHORT badges were rendered unreadable because their CSS set `opacity: 0.3`, making the red alert badges transparent."
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 91.3,
+  "model_calls": 8,
+  "usd": 0.2428,
+  "models": [
+   "muse-wonder-1.0"
+  ],
+  "sam_calls": 0,
+  "problems_after": []
+ },
+ {
+  "state": "n-window",
+  "case": "window",
+  "variants": [],
+  "history": false,
+  "wrong": [
+   "B02",
+   "B04",
+   "B06",
+   "B07",
+   "B08",
+   "B09",
+   "B12",
+   "B13",
+   "B14",
+   "B15",
+   "B16",
+   "B17",
+   "B18",
+   "B20",
+   "B21",
+   "B22",
+   "B23",
+   "B24",
+   "B25",
+   "B26",
+   "B27",
+   "B28",
+   "B30",
+   "B31",
+   "B32",
+   "B33",
+   "B34",
+   "B36"
+  ],
+  "healthy": false,
+  "method": "dom",
+  "rep": 1,
+  "policy": "wonder",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "bd52685 unbidden: board-flags: The picks query summed the last 30 days instead of the last 7 days, inflating picks and shortfalls and flagging bins tha"
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 98.1,
+  "model_calls": 8,
+  "usd": 0.2753,
+  "models": [
+   "muse-wonder-1.0"
+  ],
+  "sam_calls": 0,
+  "problems_after": []
+ },
+ {
+  "state": "n-banner",
+  "case": "banner",
+  "variants": [
+   "grid"
+  ],
+  "history": false,
+  "wrong": [
+   "B08"
+  ],
+  "healthy": false,
+  "method": "dom",
+  "rep": 1,
+  "policy": "wonder",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "06877f8 unbidden: board-flags: The `.notice` banner was absolutely positioned over row 7, covering B08's SHORT badge so it could not be seen."
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 91.6,
+  "model_calls": 8,
+  "usd": 0.2302,
+  "models": [
+   "muse-wonder-1.0"
+  ],
+  "sam_calls": 0,
+  "problems_after": []
+ }
+]

@@ -1,0 +1,395 @@
+{
+ "goal_runs": [
+  {
+   "status": "waiting_capability",
+   "note": "needs an integration for board-api",
+   "evidence": {}
+  },
+  {
+   "status": "page_fixed",
+   "note": "23 discrepancies fixed by be8ee6cb7e3e: The board overcounted picks by querying 30 days instead of 7 days, inflating every shortfall and flagging bins that are not short.",
+   "evidence": {
+    "attempts": [
+     {
+      "after": {
+       "cause": "none",
+       "conclusive": true,
+       "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_6980bd96e5fc462e/after-1",
+       "discrepancies": [],
+       "model": {
+        "model": "muse-spark-1.3",
+        "route": "profile frontier; synthetic may leave; label synthetic",
+        "seconds": 4.45,
+        "tier": "code",
+        "tokens": [
+         8693,
+         477
+        ],
+        "usd": 0.0128935
+       },
+       "perception": "vision_sam",
+       "problems": [],
+       "sam": [
+        {
+         "image_sha256": "8dcc8f4a36308a2c25336707c9ebbb843f93f63cc5822086774744ed449aa8c1",
+         "model": "sam-3.1",
+         "prompt": "red label",
+         "regions": 6,
+         "scroll_y": 0,
+         "seconds": 1.45,
+         "usd": 0.0025
+        },
+        {
+         "image_sha256": "39bcd4b597ffd129bb760c34694296352202a733d0d35d501cc8342fdb5d5dd9",
+         "model": "sam-3.1",
+         "prompt": "red label",
+         "regions": 10,
+         "scroll_y": 720,
+         "seconds": 1.16,
+         "usd": 0.0025
+        },
+        {
+         "image_sha256": "1eadecde15179e7af4a9b8fdf6af79ec2b67efbc31dd9f1b897d5eb0529b2064",
+         "model": "sam-3.1",
+         "prompt": "red label",
+         "regions": 7,
+         "scroll_y": 1291,
+         "seconds": 1.09,
+         "usd": 0.0025
+        }
+       ],
+       "screenshots": {
+        "step-00": "08e57b6d3ab49df41b0e12e3af354cf6ef32477eeffa7dee65331b532a9e6b91",
+        "step-01": "f2842fb4fd570ca75b7938a44b3ebde679c1d8bdeaa44058a8d5f8c5f439c487",
+        "step-02": "f566bae573a0ef5f775d93cc907dd82fba261b60922752475c374073bd3fe1ae"
+       }
+      },
+      "attempt": 1,
+      "cause": "The board overcounted picks by querying 30 days instead of 7 days, inflating every shortfall and flagging bins that are not short.",
+      "checks": {
+       "log": "$ python -m unittest -> 0\n..\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+       "ok": true
+      },
+      "commit": "be8ee6cb7e3ec6dc15e7bf4369ec1a879bda102c",
+      "deploy": {
+       "log": "t: 2B done\n#4 DONE 0.0s\n\n#5 [internal] load build context\n#5 transferring context: 1.32kB done\n#5 DONE 0.0s\n\n#6 [1/5] FROM docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704\n#6 resolve docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704 0.0s done\n#6 DONE 0.0s\n\n#7 [2/5] WORKDIR /app\n#7 CACHED\n\n#8 [3/5] COPY requirements.txt .\n#8 CACHED\n\n#9 [4/5] RUN pip install --no-cache-dir -r requirements.txt\n#9 CACHED\n\n#10 [5/5] COPY board ./board\n#10 CACHED\n\n#11 exporting to image\n#11 exporting layers done\n#11 exporting manifest sha256:55a80c658e559ce0a1dea2d1a580c173c6f734dbb934c3e8c912db20c9227711 done\n#11 exporting config sha256:2bc51af07bb28302b2fa7bc1b7ec32baf776aa41ca165e50a1aeae914020c7af done\n#11 exporting attestation manifest sha256:d25dd032314f5c5a21b20ea8a14d372a7be68f651077f0200ff0222bbc5e9e7c done\n#11 exporting manifest list sha256:435a0d1e3df537e9c9fde446ecd77a6e60f94bffc2513a0a1408620697ed5c33 done\n#11 naming to docker.io/library/boardapp-staging-board:latest done\n#11 unpacking to docker.io/library/boardapp-staging-board:latest 0.0s done\n#11 DONE 0.1s\n\n#12 resolving provenance for metadata file\n#12 DONE 0.0s\n Image boardapp-staging-board Building \n Image boardapp-staging-board Built \n Container boardapp-staging-board-1 Recreate \n Container boardapp-staging-board-1 Recreated \n Container boardapp-staging-board-1 Starting \n Container boardapp-staging-board-1 Started \n",
+       "ok": true
+      },
+      "model": {
+       "model": "muse-spark-1.3",
+       "route": "profile frontier; private_code may leave; label private_code",
+       "seconds": 4.47,
+       "tier": "code",
+       "tokens": [
+        7700,
+        836
+       ],
+       "usd": 0.013178
+      },
+      "patch": "--- a/board/sources.py\n+++ b/board/sources.py\n@@ -12,7 +12,7 @@\n def picks_7d() -> dict[str, int]:\n     with psycopg.connect(os.environ[\"PICKS_DB\"]) as conn:\n         rows = conn.execute(\n-            \"SELECT bin, sum(units) FROM picks WHERE picked_at > now() - interval '30 days' GROUP BY bin\"\n+            \"SELECT bin, sum(units) FROM picks WHERE picked_at > now() - interval '7 days' GROUP BY bin\"\n         ).fetchall()\n     return {str(b): int(u) for b, u in rows}\n \n",
+      "patch_sha256": "df9f232ef85d829a1aa8fdf217a0021fcaccbddb470cdc8652ee7a763b80e865",
+      "result": "the discrepancies are gone"
+     }
+    ],
+    "before": {
+     "cause": "The Picks (7 d) numbers shown exceed the demand in the data while Supply matches quantity-reserved+incoming, so the page's computed shortfall picks-minus-supply is overstated, creating false SHORT flags and inflated SHORT values.",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_6980bd96e5fc462e/before",
+     "discrepancies": [
+      {
+       "evidence": "row 1 shows 'SHORT 6' bg rgb(198,40,40) fg rgb(255,255,255) visible 1 but data value -5 must not be flagged",
+       "key": "B02",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 3 shows 'SHORT 8' bg rgb(198,40,40) fg rgb(255,255,255) visible 1 but data value 0 must not be flagged",
+       "key": "B04",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 5 shows 'SHORT 23' but data value 18",
+       "key": "B06",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 6 shows 'SHORT 19' but data value 16",
+       "key": "B07",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 7 shows 'SHORT 8' but data value 3",
+       "key": "B08",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 11 shows 'SHORT 12' but data value 2",
+       "key": "B12",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 12 shows 'SHORT 17' but data value 8",
+       "key": "B13",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 13 shows 'SHORT 2' but data value 1",
+       "key": "B14",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 15 shows 'SHORT 6' but data value 2",
+       "key": "B16",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 16 shows 'SHORT 16' but data value 10",
+       "key": "B17",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 17 shows 'SHORT 5' bg rgb(198,40,40) fg rgb(255,255,255) visible 1 but data value -2 must not be flagged",
+       "key": "B18",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 19 shows 'SHORT 7' bg rgb(198,40,40) fg rgb(255,255,255) visible 1 but data value 0 must not be flagged",
+       "key": "B20",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 20 shows 'SHORT 24' but data value 19",
+       "key": "B21",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 21 shows 'SHORT 7' bg rgb(198,40,40) fg rgb(255,255,255) visible 1 but data value 0 must not be flagged",
+       "key": "B22",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 22 shows 'SHORT 22' but data value 11",
+       "key": "B23",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 23 shows 'SHORT 6' but data value 5",
+       "key": "B24",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 24 shows 'SHORT 6' bg rgb(198,40,40) fg rgb(255,255,255) visible 1 but data value 0 must not be flagged",
+       "key": "B25",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 25 shows 'SHORT 23' but data value 12",
+       "key": "B26",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 27 shows 'SHORT 5' bg rgb(198,40,40) fg rgb(255,255,255) visible 1 but data value 0 must not be flagged",
+       "key": "B28",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 29 shows 'SHORT 23' but data value 20",
+       "key": "B30",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 30 shows 'SHORT 8' bg rgb(198,40,40) fg rgb(255,255,255) visible 1 but data value 0 must not be flagged",
+       "key": "B31",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 33 shows 'SHORT 7' bg rgb(198,40,40) fg rgb(255,255,255) visible 1 but data value 0 must not be flagged",
+       "key": "B34",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 35 shows 'SHORT 12' but data value 2",
+       "key": "B36",
+       "kind": "wrong_value"
+      }
+     ],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 16.89,
+      "tier": "code",
+      "tokens": [
+       8820,
+       3716
+      ],
+      "usd": 0.026818
+     },
+     "perception": "vision_sam",
+     "problems": [],
+     "sam": [
+      {
+       "image_sha256": "258f0d6e806876dbbeb9b652c22cafef0d6dccc7060dfc0dbb1c02b005db40a4",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 8,
+       "scroll_y": 0,
+       "seconds": 1.32,
+       "usd": 0.0025
+      },
+      {
+       "image_sha256": "aeb85fc42ac2f737d99d638a0c9a760a73e47f3768bf1f22855fa79fde3ad214",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 14,
+       "scroll_y": 720,
+       "seconds": 1.4,
+       "usd": 0.0025
+      },
+      {
+       "image_sha256": "6d4f89d3bedd74dc35a9ceaec78130926a25c36c54107af3b1f99b82fb3050eb",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 11,
+       "scroll_y": 1291,
+       "seconds": 1.35,
+       "usd": 0.0025
+      }
+     ],
+     "screenshots": {
+      "step-00": "a9e960c2a688a1fae6fa06ecf9a14c8cd1411f57261a76bd550355fb3c0e8371",
+      "step-01": "b285a488690c03af8ad416cdf5a5f566afc8994d44feca84145bac5d8ef9fd38",
+      "step-02": "8248c9d5b41e702ebcf8e26c4002f46f0eae3dd2ecb867f5666da8226383dfb8"
+     }
+    },
+    "perception": "vision_sam",
+    "url": "http://127.0.0.1:18096/"
+   }
+  },
+  {
+   "status": "page_ok",
+   "note": "the page shows what the data says (36 keys)",
+   "evidence": {
+    "before": {
+     "cause": "none",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_a782c6bf52dc48b3/before",
+     "discrepancies": [],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 5.51,
+      "tier": "code",
+      "tokens": [
+       8801,
+       1018
+      ],
+      "usd": 0.01532775
+     },
+     "perception": "vision_sam",
+     "problems": [],
+     "sam": [
+      {
+       "image_sha256": "8dcc8f4a36308a2c25336707c9ebbb843f93f63cc5822086774744ed449aa8c1",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 6,
+       "scroll_y": 0,
+       "seconds": 0.74,
+       "usd": 0.0025
+      },
+      {
+       "image_sha256": "39bcd4b597ffd129bb760c34694296352202a733d0d35d501cc8342fdb5d5dd9",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 10,
+       "scroll_y": 720,
+       "seconds": 1.06,
+       "usd": 0.0025
+      },
+      {
+       "image_sha256": "1eadecde15179e7af4a9b8fdf6af79ec2b67efbc31dd9f1b897d5eb0529b2064",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 7,
+       "scroll_y": 1291,
+       "seconds": 1.27,
+       "usd": 0.0025
+      }
+     ],
+     "screenshots": {
+      "step-00": "08e57b6d3ab49df41b0e12e3af354cf6ef32477eeffa7dee65331b532a9e6b91",
+      "step-01": "f2842fb4fd570ca75b7938a44b3ebde679c1d8bdeaa44058a8d5f8c5f439c487",
+      "step-02": "f566bae573a0ef5f775d93cc907dd82fba261b60922752475c374073bd3fe1ae"
+     }
+    },
+    "perception": "vision_sam",
+    "url": "http://127.0.0.1:18096/"
+   }
+  }
+ ],
+ "model_runs": [
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.010324,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "forge.api_client",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0039385,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0068815,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.026818,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "lab.page_fix",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.013178,
+   "route": "profile frontier; private_code may leave; label private_code"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0128935,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.00611225,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.01532775,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  }
+ ]
+}

@@ -1,0 +1,1050 @@
+{
+ "verified": false,
+ "short": [
+  "B01",
+  "B06",
+  "B07",
+  "B08",
+  "B12",
+  "B13",
+  "B14",
+  "B16",
+  "B17",
+  "B19",
+  "B21",
+  "B23",
+  "B24",
+  "B26",
+  "B29",
+  "B30",
+  "B35",
+  "B36"
+ ],
+ "flagged": [],
+ "false_flags": [],
+ "dom_short": [
+  "B01",
+  "B06",
+  "B07",
+  "B08",
+  "B12",
+  "B13",
+  "B14",
+  "B16",
+  "B17",
+  "B19",
+  "B21",
+  "B23",
+  "B24",
+  "B26",
+  "B29",
+  "B30",
+  "B35",
+  "B36"
+ ],
+ "preserved": {
+  "inventory": true,
+  "history": true,
+  "information": true
+ },
+ "problems": [
+  "B01: short by 13, not flagged: 'SHORT 13' legible, alert_pixels",
+  "B06: short by 18, not flagged: 'SHORT 18' legible, alert_pixels",
+  "B07: short by 16, not flagged: 'SHORT 16' legible, alert_pixels",
+  "B08: short by 3, not flagged: 'SHORT 3' legible, alert_pixels",
+  "B12: short by 2, not flagged: 'SHORT 2' legible, alert_pixels",
+  "B13: short by 8, not flagged: 'SHORT 8' legible, alert_pixels",
+  "B14: short by 1, not flagged: 'SHORT 1' legible, alert_pixels",
+  "B16: short by 2, not flagged: 'SHORT 2' legible, alert_pixels",
+  "B17: short by 10, not flagged: 'SHORT 10' legible, alert_pixels",
+  "B19: short by 14, not flagged: 'SHORT 14' legible, alert_pixels",
+  "B21: short by 19, not flagged: 'SHORT 19' legible, alert_pixels",
+  "B23: short by 11, not flagged: 'SHORT 11' legible, alert_pixels",
+  "B24: short by 5, not flagged: 'SHORT 5' legible, alert_pixels",
+  "B26: short by 12, not flagged: 'SHORT 12' legible, alert_pixels",
+  "B29: short by 3, not flagged: 'SHORT 3' legible, alert_pixels",
+  "B30: short by 20, not flagged: 'SHORT 20' legible, alert_pixels",
+  "B35: short by 1, not flagged: 'SHORT 1' legible, alert_pixels",
+  "B36: short by 2, not flagged: 'SHORT 2' legible, alert_pixels"
+ ],
+ "bins": {
+  "B01": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 13",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B02": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B03": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B04": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B05": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B06": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 18",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B07": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 16",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B08": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 3",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B09": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B10": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B11": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B12": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 2",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B13": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 8",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B14": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 1",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B15": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B16": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 2",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B17": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 10",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B18": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B19": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 14",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B20": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B21": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 19",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B22": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B23": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 11",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B24": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 5",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B25": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B26": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 12",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B27": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B28": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B29": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 3",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B30": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 20",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B31": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B32": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B33": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B34": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B35": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 1",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B36": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": true,
+   "states": [
+    {
+     "text": "SHORT 2",
+     "bound": true,
+     "legible": false,
+     "alert_style": true,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 5.62,
+     "pixels": [
+      237,
+      189,
+      189
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  }
+ },
+ "screenshots": {
+  "step-00.png": "c1229e26c225fe8bb173c9545614bd33a0204273027b6a70608a3fdecf45d30d",
+  "step-01.png": "4a816757489e703c007e3f4b2efc464028a05d8fa7b2b5ca3238d4eb82cefcba",
+  "step-02.png": "d061bba5b683986aacbf4f3d48ff277f4978469e2fbb78009c24bb3efd9451d3"
+ },
+ "app_commit": "214a36edf73ffff554ca5cf23ac024b27b5c5f28"
+}

@@ -1,0 +1,241 @@
+{
+ "goal_runs": [
+  {
+   "status": "waiting_capability",
+   "note": "needs an integration for board-api",
+   "evidence": {}
+  },
+  {
+   "status": "page_fixed",
+   "note": "9 discrepancies fixed by 721eea277857: The SHORT badges were shifted up one row by a relative offset, so they covered the OK rows above instead of their own rows.",
+   "evidence": {
+    "attempts": [
+     {
+      "after": {
+       "cause": "none",
+       "conclusive": true,
+       "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_facb27c4b030466d/after-1",
+       "discrepancies": [],
+       "model": {
+        "model": "muse-spark-1.3",
+        "route": "profile frontier; synthetic may leave; label synthetic",
+        "seconds": 5.25,
+        "tier": "code",
+        "tokens": [
+         4573,
+         1188
+        ],
+        "usd": 0.01076525
+       },
+       "perception": "dom",
+       "problems": [],
+       "sam": [],
+       "screenshots": {
+        "step-00": "d264fef140c56e92753770c84d47f8444dd6773a6b65bd30b6339df57d425c56",
+        "step-01": "e40b7542d33e638b59b9f07cdb5e5651dee3f806fb52f2e73d10f7df8a98bf34",
+        "step-02": "191771ee81e6fbd61b56786fbda8288ddb7eeff8e6cd200943daa575f71d9cea"
+       }
+      },
+      "attempt": 1,
+      "cause": "The SHORT badges were shifted up one row by a relative offset, so they covered the OK rows above instead of their own rows.",
+      "checks": {
+       "log": "$ python -m unittest -> 0\n..\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+       "ok": true
+      },
+      "commit": "721eea2778572d372417edfca552f506ecb09674",
+      "deploy": {
+       "log": " 0.0s\n\n#5 [internal] load build context\n#5 transferring context: 1.44kB done\n#5 DONE 0.0s\n\n#6 [1/5] FROM docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704\n#6 resolve docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704 0.0s done\n#6 DONE 0.0s\n\n#7 [2/5] WORKDIR /app\n#7 CACHED\n\n#8 [3/5] COPY requirements.txt .\n#8 CACHED\n\n#9 [4/5] RUN pip install --no-cache-dir -r requirements.txt\n#9 CACHED\n\n#10 [5/5] COPY board ./board\n#10 DONE 0.1s\n\n#11 exporting to image\n#11 exporting layers 0.1s done\n#11 exporting manifest sha256:29d79bd0ef86084b6749b0a9c6fb87c3577a4d118927971bdc3962246333151a 0.0s done\n#11 exporting config sha256:83d20797d84a0989607787dfa0b721e6c11d04c858ffe6e06c702872a7c3a32a done\n#11 exporting attestation manifest sha256:53ec8610d84f8ddaeb0b31fd1b8fe9fc65c9b5d466e62ab5f2f0b8d6f5696a5c 0.0s done\n#11 exporting manifest list sha256:fb27bfba7b1fe34a0bb3185051126b461f367e586d9a447bafe82a06707b01e3 done\n#11 naming to docker.io/library/boardapp-staging-board:latest done\n#11 unpacking to docker.io/library/boardapp-staging-board:latest 0.0s done\n#11 DONE 0.2s\n\n#12 resolving provenance for metadata file\n#12 DONE 0.0s\n Image boardapp-staging-board Building \n Image boardapp-staging-board Built \n Container boardapp-staging-board-1 Recreate \n Container boardapp-staging-board-1 Recreated \n Container boardapp-staging-board-1 Starting \n Container boardapp-staging-board-1 Started \n",
+       "ok": true
+      },
+      "model": {
+       "model": "muse-spark-1.3",
+       "route": "profile frontier; private_code may leave; label private_code",
+       "seconds": 4.08,
+       "tier": "code",
+       "tokens": [
+        6663,
+        801
+       ],
+       "usd": 0.011733
+      },
+      "patch": "--- a/board/static/board.css\n+++ b/board/static/board.css\n@@ -8,7 +8,7 @@\n .board td { padding: 12px; border-bottom: 1px solid #e3e7eb; }\n .board .num { font-variant-numeric: tabular-nums; }\n .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 14px; }\n-.badge.short { background: #c62828; color: #ffffff; position: relative; top: -46px; }\n+.badge.short { background: #c62828; color: #ffffff; }\n .badge.ok { background: #e3f1e5; color: #1f5f2c; }\n .board .row, .board .head { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1.3fr; }\n .board [role=cell], .board [role=columnheader] { padding: 12px; border-bottom: 1px solid #e3e7eb; }\n",
+      "patch_sha256": "bf71513b3317cbe0f98d4f84729ae107f78ab4a6218d67b46d67ac8c1a78e8ec",
+      "result": "the discrepancies are gone"
+     }
+    ],
+    "before": {
+     "cause": "span.badge.short appears to be sticky or fixed positioned so SHORT badges overlay and cover the OK marks on other bins' rows.",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_facb27c4b030466d/before",
+     "discrepancies": [
+      {
+       "evidence": "row 4 cells show B05 OK but mark 'OK' visible 0 covered by span.badge short, so an alert covers its own row",
+       "key": "B05",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 10 cells show B11 OK but mark 'OK' visible 0 covered by span.badge short, so an alert covers its own row",
+       "key": "B11",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 14 cells show B15 OK but mark 'OK' visible 0 covered by span.badge short, so an alert covers its own row",
+       "key": "B15",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 17 cells show B18 OK but mark 'OK' visible 0 covered by span.badge short, so an alert covers its own row",
+       "key": "B18",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 19 cells show B20 OK but mark 'OK' visible 0 covered by span.badge short, so an alert covers its own row",
+       "key": "B20",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 21 cells show B22 OK but mark 'OK' visible 0 covered by span.badge short, so an alert covers its own row",
+       "key": "B22",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 24 cells show B25 OK but mark 'OK' visible 0 covered by span.badge short, so an alert covers its own row",
+       "key": "B25",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 27 cells show B28 OK but mark 'OK' visible 0 covered by span.badge short, so an alert covers its own row",
+       "key": "B28",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 33 cells show B34 OK but mark 'OK' visible 0 covered by span.badge short, so an alert covers its own row",
+       "key": "B34",
+       "kind": "flagged_wrongly"
+      }
+     ],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 12.67,
+      "tier": "code",
+      "tokens": [
+       4627,
+       2427
+      ],
+      "usd": 0.0160985
+     },
+     "perception": "dom",
+     "problems": [],
+     "sam": [],
+     "screenshots": {
+      "step-00": "719d0fb22d723b05c67c1cc4ca4267d598a4673367c1e17cd92fad477c6b6063",
+      "step-01": "dd3ee0a8f88ec0c7d4f4bd57b387f5a82d0a64dad39b287ce31901a615c077c6",
+      "step-02": "212d8f2e4dac4fc26d4bd51b43d328c688b62e51fd6d61ed1ddbb1fb858f86d0"
+     }
+    },
+    "perception": "dom",
+    "url": "http://127.0.0.1:18096/"
+   }
+  },
+  {
+   "status": "page_ok",
+   "note": "the page shows what the data says (36 keys)",
+   "evidence": {
+    "before": {
+     "cause": "none",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_6e7ba7f32f544aec/before",
+     "discrepancies": [],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 4.6,
+      "tier": "code",
+      "tokens": [
+       4465,
+       1128
+      ],
+      "usd": 0.01037525
+     },
+     "perception": "dom",
+     "problems": [],
+     "sam": [],
+     "screenshots": {
+      "step-00": "d264fef140c56e92753770c84d47f8444dd6773a6b65bd30b6339df57d425c56",
+      "step-01": "e40b7542d33e638b59b9f07cdb5e5651dee3f806fb52f2e73d10f7df8a98bf34",
+      "step-02": "191771ee81e6fbd61b56786fbda8288ddb7eeff8e6cd200943daa575f71d9cea"
+     }
+    },
+    "perception": "dom",
+    "url": "http://127.0.0.1:18096/"
+   }
+  }
+ ],
+ "model_runs": [
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.01252125,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "forge.api_client",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.004287,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0066775,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0160985,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "lab.page_fix",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.011733,
+   "route": "profile frontier; private_code may leave; label private_code"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.01076525,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.00640125,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.01037525,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  }
+ ]
+}

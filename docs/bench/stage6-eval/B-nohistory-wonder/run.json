@@ -1,0 +1,13 @@
+{
+ "mode": "cycle",
+ "set": "eval6-nohistory",
+ "states": [
+  "n-faded",
+  "n-window",
+  "n-banner"
+ ],
+ "methods": "dom",
+ "policy": "wonder",
+ "reps": 1,
+ "commit": "94765dafc969ac2cb8197e8b0493b50c9840880a"
+}

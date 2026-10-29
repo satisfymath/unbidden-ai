@@ -1,0 +1,285 @@
+{
+ "goal_runs": [
+  {
+   "status": "waiting_capability",
+   "note": "needs an integration for board-api",
+   "evidence": {}
+  },
+  {
+   "status": "page_fixed",
+   "note": "1 discrepancies fixed by a6656c073dbc: The notice banner was absolutely positioned at top 520px over the board, covering row B08 so its red SHORT badge was present in DOM but not visible.",
+   "evidence": {
+    "attempts": [
+     {
+      "after": {
+       "cause": "none",
+       "conclusive": true,
+       "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_9081fcbbdc6d4b1a/after-1",
+       "discrepancies": [],
+       "model": {
+        "model": "muse-spark-1.3",
+        "route": "profile frontier; synthetic may leave; label synthetic",
+        "seconds": 5.64,
+        "tier": "code",
+        "tokens": [
+         8692,
+         843
+        ],
+        "usd": 0.01444775
+       },
+       "perception": "vision_sam",
+       "problems": [],
+       "sam": [
+        {
+         "image_sha256": "0efd4959778825f1dcc1d11dcb251ac132818c37b4f5952929a11dcaa46a6f82",
+         "model": "sam-3.1",
+         "prompt": "red label",
+         "regions": 4,
+         "scroll_y": 0,
+         "seconds": 1.66,
+         "usd": 0.0025
+        },
+        {
+         "image_sha256": "3bb81ff17b86ae09cee5164bcf90abd81f383832ab3f00db8b984d79a3580855",
+         "model": "sam-3.1",
+         "prompt": "red label",
+         "regions": 9,
+         "scroll_y": 720,
+         "seconds": 1.49,
+         "usd": 0.0025
+        },
+        {
+         "image_sha256": "e64a68b9b1059158c90a3c8358309f25a697ebe76db6b419f137241e35a38170",
+         "model": "sam-3.1",
+         "prompt": "red label",
+         "regions": 7,
+         "scroll_y": 1366,
+         "seconds": 1.41,
+         "usd": 0.0025
+        }
+       ],
+       "screenshots": {
+        "step-00": "0350942340379eb97c2507fb0def3bddbf6231e65c689dddbd4aedb916b9afe9",
+        "step-01": "6ced3ec942165b4d32f9864398a75a1b2c2aa2e192a1a7898a5bafcea0e88412",
+        "step-02": "191771ee81e6fbd61b56786fbda8288ddb7eeff8e6cd200943daa575f71d9cea"
+       }
+      },
+      "attempt": 1,
+      "cause": "The notice banner was absolutely positioned at top 520px over the board, covering row B08 so its red SHORT badge was present in DOM but not visible.",
+      "checks": {
+       "log": "$ python -m unittest -> 0\n..\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+       "ok": true
+      },
+      "commit": "a6656c073dbc9088afac9264f3e9d9c9c2ac1917",
+      "deploy": {
+       "log": "cker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704\n#6 resolve docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704 0.0s done\n#6 DONE 0.0s\n\n#7 [2/5] WORKDIR /app\n#7 CACHED\n\n#8 [3/5] COPY requirements.txt .\n#8 CACHED\n\n#9 [4/5] RUN pip install --no-cache-dir -r requirements.txt\n#9 CACHED\n\n#10 [5/5] COPY board ./board\n#10 DONE 0.0s\n\n#11 exporting to image\n#11 exporting layers 0.1s done\n#11 exporting manifest sha256:737485d12a69448bcd7b2c53af16633a239f0afd19807424717cbbe6785b52d5 done\n#11 exporting config sha256:9ba414bfe2192f28b9f9b240106e20cbacdab2b63765d7b8990d625a64436e8d 0.0s done\n#11 exporting attestation manifest sha256:32064de437362e6adf260f7d3a4cbbd9ff1632e9da7430080d4c36ea10c1e175\n#11 exporting attestation manifest sha256:32064de437362e6adf260f7d3a4cbbd9ff1632e9da7430080d4c36ea10c1e175 0.0s done\n#11 exporting manifest list sha256:5386f66abd9d631593e3b1d2948249a092889299c40ebbff514656a6a9baa89a done\n#11 naming to docker.io/library/boardapp-staging-board:latest done\n#11 unpacking to docker.io/library/boardapp-staging-board:latest 0.0s done\n#11 DONE 0.1s\n\n#12 resolving provenance for metadata file\n#12 DONE 0.0s\n Image boardapp-staging-board Building \n Image boardapp-staging-board Built \n Container boardapp-staging-board-1 Recreate \n Container boardapp-staging-board-1 Recreated \n Container boardapp-staging-board-1 Starting \n Container boardapp-staging-board-1 Started \n",
+       "ok": true
+      },
+      "model": {
+       "model": "muse-spark-1.3",
+       "route": "profile frontier; private_code may leave; label private_code",
+       "seconds": 5.8,
+       "tier": "code",
+       "tokens": [
+        5943,
+        1306
+       ],
+       "usd": 0.01297925
+      },
+      "patch": "--- a/board/static/board.css\n+++ b/board/static/board.css\n@@ -13,5 +13,5 @@\n .board .row, .board .head { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1.3fr; }\n .board [role=cell], .board [role=columnheader] { padding: 12px; border-bottom: 1px solid #e3e7eb; }\n .board .head { font-weight: 700; }\n-.notice { position: absolute; left: 0; right: 0; top: 520px; height: 150px; padding: 24px 32px; background: #e8eef5; font-size: 18px; }\n+.notice { padding: 24px 32px; background: #e8eef5; font-size: 18px; }\n .summary { padding: 16px 32px; background: #f2f4f6; border-top: 1px solid #d8dde2; }\n",
+      "patch_sha256": "aa8cf5cdf657c960940e4d3f017f89ae6d8790d4f51f899e06ebf50d0c939daa",
+      "result": "the discrepancies are gone"
+     }
+    ],
+    "before": {
+     "cause": "A fixed/sticky div.notice overlay scrolls over / covers the table and hides the B08 row's SHORT badge.",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_9081fcbbdc6d4b1a/before",
+     "discrepancies": [
+      {
+       "evidence": "'SHORT 3' on row 7 has red bg rgb(198,40,40) white fg but visible 0 covered by div.notice; SAM found no 'red label' region for B08; screenshot 1 shows 'Stocktake on Friday' notice covering B08 row",
+       "key": "B08",
+       "kind": "not_flagged"
+      }
+     ],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 7.43,
+      "tier": "code",
+      "tokens": [
+       9468,
+       1650
+      ],
+      "usd": 0.0188475
+     },
+     "perception": "vision_sam",
+     "problems": [],
+     "sam": [
+      {
+       "image_sha256": "7ade5b946cf78faf4256877e7fd9041530d8d4c7fb6f6abaccf72880316161fd",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 5,
+       "scroll_y": 0,
+       "seconds": 2.45,
+       "usd": 0.0025
+      },
+      {
+       "image_sha256": "799823d77559742c99bf70c208f6158e0fb013144d512e1b7b25227197683465",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 10,
+       "scroll_y": 720,
+       "seconds": 1.45,
+       "usd": 0.0025
+      },
+      {
+       "image_sha256": "e64a68b9b1059158c90a3c8358309f25a697ebe76db6b419f137241e35a38170",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 7,
+       "scroll_y": 1294,
+       "seconds": 1.36,
+       "usd": 0.0025
+      }
+     ],
+     "screenshots": {
+      "step-00": "246ba1394d454a06e2067331b9be6f2cfac83f2103910a4623ebc3f1ede61d6f",
+      "step-01": "e40b7542d33e638b59b9f07cdb5e5651dee3f806fb52f2e73d10f7df8a98bf34",
+      "step-02": "191771ee81e6fbd61b56786fbda8288ddb7eeff8e6cd200943daa575f71d9cea"
+     }
+    },
+    "perception": "vision_sam",
+    "url": "http://127.0.0.1:18096/"
+   }
+  },
+  {
+   "status": "page_ok",
+   "note": "the page shows what the data says (36 keys)",
+   "evidence": {
+    "before": {
+     "cause": "none",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_66ea5b985b6147f6/before",
+     "discrepancies": [],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 5.21,
+      "tier": "code",
+      "tokens": [
+       8692,
+       744
+      ],
+      "usd": 0.014027
+     },
+     "perception": "vision_sam",
+     "problems": [],
+     "sam": [
+      {
+       "image_sha256": "0efd4959778825f1dcc1d11dcb251ac132818c37b4f5952929a11dcaa46a6f82",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 4,
+       "scroll_y": 0,
+       "seconds": 1.31,
+       "usd": 0.0025
+      },
+      {
+       "image_sha256": "3bb81ff17b86ae09cee5164bcf90abd81f383832ab3f00db8b984d79a3580855",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 9,
+       "scroll_y": 720,
+       "seconds": 1.39,
+       "usd": 0.0025
+      },
+      {
+       "image_sha256": "e64a68b9b1059158c90a3c8358309f25a697ebe76db6b419f137241e35a38170",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 7,
+       "scroll_y": 1366,
+       "seconds": 1.59,
+       "usd": 0.0025
+      }
+     ],
+     "screenshots": {
+      "step-00": "0350942340379eb97c2507fb0def3bddbf6231e65c689dddbd4aedb916b9afe9",
+      "step-01": "6ced3ec942165b4d32f9864398a75a1b2c2aa2e192a1a7898a5bafcea0e88412",
+      "step-02": "191771ee81e6fbd61b56786fbda8288ddb7eeff8e6cd200943daa575f71d9cea"
+     }
+    },
+    "perception": "vision_sam",
+    "url": "http://127.0.0.1:18096/"
+   }
+  }
+ ],
+ "model_runs": [
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.01344775,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "forge.api_client",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0039555,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0061845,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0188475,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "lab.page_fix",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.01297925,
+   "route": "profile frontier; private_code may leave; label private_code"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.01444775,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0068815,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.014027,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  }
+ ]
+}

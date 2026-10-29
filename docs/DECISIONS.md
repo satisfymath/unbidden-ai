@@ -956,3 +956,22 @@ starting point for these US$10. Split: development US$3 (spendable now), evaluat
 US$2 (held as the reserve, released for the frozen evaluation). Every remote call reserves its worst cost before it
 is sent (spend ledger); calls run one at a time (concurrency 1); retries are the router's bounded repairs and the
 action executor's one reconciled retry. Content sent: synthetic lab data and lab code only, through the egress gate.
+
+## D-045 · 2026-10-29 · Stage 6: what was fixed, what the frozen evaluation showed, and what stays
+
+**Fixes** (each with a test failing on c804aaf): OpenAPI schemas by declared version; unusable page checks are
+inconclusive; perception metrics separated; a write's scope is its resource, not the API's prefix; a failed listing
+says why; colours named in observations. The board goal now states the contract's red background.
+
+**Evaluation (94765da, frozen, docs/bench/stage6-eval/):** question A, Linen (OpenAPI 3.1, page numbers): 12/12 runs
+completed (local x1, Spark x2), 0 false verifications. Question B: 30/30 repairs verified by the checker, with or
+without history; perception differed between methods only on badges drawn over the wrong row, where SAM helped.
+Spend US$5.05, US$0.05 over the evaluation share.
+
+**Decisions.** Spark stays the default model; Wonder is not adopted for repairs (no measured gain at 3.1x the cost).
+The page goal's default perception stays `dom`; `vision_sam` stays optional and is the one to try where a layout
+can draw an element over the wrong row. The checker's next version counts visible false flags (a flag drawn over a
+row that is not its own); it is a new version, and the stage 6 results stay as measured.
+
+**What this does not show:** systems other than PostgreSQL, OpenAPI 3.0/3.1 REST with header keys and Idempotency-Key
+writes undone by DELETE, local pages; production systems; other kinds of goals; small n (descriptive).

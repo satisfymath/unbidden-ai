@@ -1,3 +1,120 @@
+# Stage 6: the frozen evaluation (code 94765da, run 2026-10-28 23:26 to 2026-10-29 01:28 UTC)
+
+Protocol: `docs/bench/stage6-freeze.md`, written before the runs. Records: `docs/bench/stage6-eval/`. Every run
+counted as it came; none was repeated or dropped. Spend in the evaluation window: US$5.05 by the ledger (Spark
+322 calls US$3.97, SAM 129 images US$0.32, Wonder 24 calls US$0.75; worst cost where usage was unknown), against an
+estimate of US$4.10 and a share of US$5.00: US$0.05 over the share, within the stage cap. Human interventions: the
+two the scenarios declare (a widened grant in k2, an approval in k3), nothing else.
+
+## Question A: an API never seen in development (Linen: OpenAPI 3.1, page numbers, its own goal)
+
+| Scenario | local (Glimmer) x1 | Spark x2 |
+|---|---|---|
+| k1 write granted; a repeat cycle | 4/4 verified; no repeat | 4/4, 4/4; no repeat |
+| k2 read-only; a person grants deliveries | extended (`scheduleDelivery`), 4/4 verified | extended, 4/4; extended, 4/4 |
+| k3 writes need approval | nothing before approval; then 4/4 | same, twice |
+| k4 key revoked after the first cycle | 4/4, then revoked and nothing more | same, twice |
+
+12 of 12 runs completed their goal. Every read complete (4 pages); 12 of 12 short stations found every time; every
+delivery on a truly short station; false verifications 0 (against the service's own state); duplicates 0; no write
+without authorization or after revocation; no fallback. Latency per run: local 120-160 s, Spark 23-45 s. Spend:
+Spark US$0.28 for 8 runs. n = 3 per scenario: descriptive.
+
+## Question B: what perception adds (the board, data, designs and defects never used in development)
+
+**Perception** (10 states x 3 methods x 2 repetitions; the same scan and data to every method), as frozen:
+
+| Method | Named >= 1 wrong row (14 defective) | Named all (14) | Recall / precision | Cause named | False alarms (6 healthy) | Inconclusive | Cost | s/check |
+|---|---|---|---|---|---|---|---|---|
+| dom | 10 | 9 | 0.70 / 0.71 | 12 | 0 | 0 | US$0.30 | 9.0 |
+| vision | 10 | 9 | 0.70 / 0.71 | 10 | 0 | 0 | US$0.40 | 11.9 |
+| vision + SAM | 13 | 12 | 0.86 / 0.82 | 11 | 0 | 0 | US$0.56 | 17.8 |
+
+Every difference between the methods is on the two shifted-badge states (a SHORT badge drawn over the row above its
+own); on the faded badge, the banner, the dropped word and the 30-day window the three are alike. On the shifted
+states, every method named the 9 healthy rows the misplaced badges are drawn over (each sits right above a short
+row): a person does see those rows flagged. The frozen checker counts a flag only where the badge belongs to the
+row in the page's structure, so it scores those 9 as wrong guesses and the 18 short rows (whose badge is not on
+their row) as missed. dom and vision named only the 9; vision + SAM, on the grid layout, named all 27 (both
+repetitions). Read post hoc, counting visible false flags as wrong rows (not the frozen metric): on those states dom
+and vision find 9 of 27 and SAM's runs on the grid all 27. Either way, SAM is the one arm that made a measured
+difference, on one defect of the ten, at 1.9x dom's cost. **The checker's limit is a finding of this evaluation**:
+visible false flags are not counted; recorded, not changed in this trial. The cause rubric for the window states
+("30|window|interval|days") matched no stated cause, though the repairs below fixed the window: the rubric, not the
+localization, is in doubt there.
+
+**Repair** (each method from a reset lab; the agent's conclusion and the checker's verdict kept apart):
+
+| Set | Runs | Agent: fixed / fine | Checker verified | False verifications | Commits on healthy | Lost rows or information | Spend |
+|---|---|---|---|---|---|---|---|
+| with history (5 states x 3 methods) | 15 | 15 | 15 | 0 | 0 | 0 | US$1.31 |
+| without a healthy version in history, dom, Spark x2 | 6 | 6 | 6 | 0 | — | 0 | US$0.47 |
+| same, vision and vision + SAM, Spark x1 | 6 | 6 | 6 | 0 | — | 0 | US$0.59 |
+| same, dom, **Wonder** x1 | 3 | 3 | 3 | 0 | — | 0 | US$0.75 |
+
+30 of 30 verified by the checker. On the shifted states the repair removed the offset, which also removes the visible
+false flags the checker cannot see. **Wonder hypothesis** (declared: Wonder completes more repairs without history
+than Spark): not supported. Both completed every case (Spark 6/6, Wonder 3/3) at 3.1x the cost for Wonder; there was
+no gap to close on these defects.
+
+**What B says:** the browser's own observations (dom) were enough to repair every defect here, with or without a
+healthy version in the history. Screenshots added nothing measured. SAM helped perception on one defect (badges
+drawn over the wrong row), and did not change any repair outcome. These are lab boards with seeded defects, one or
+two runs per cell: descriptive evidence, not a general claim about visual perception.
+
+# Stage 6: consolidation, development results (2026-10-28)
+
+Plan: `docs/PLAN.md` (stage 6). Budget: D-044. Decisions: D-045. Records: `docs/bench/stage6-dev/`. The frozen
+evaluation (`docs/bench/stage6-freeze.md`, code 94765da) is reported below it, apart.
+
+**What the stage 5 trial (2793504) did and did not measure** (`docs/bench/stage5-freeze.md`, amendment 1): question
+A under the local policy ran and was blocked in all four scenarios by OpenAPI 3.0 `nullable`; A with Spark and
+every run of B with the agent were cancelled (not run). The oracle check on B's states is not an agent run.
+
+## Fixes, each with a test that fails on c804aaf
+
+| Fix | Found by | What changed |
+|---|---|---|
+| OpenAPI schemas by declared version | the frozen stage 5 trial (A, local) | 3.0 `nullable` beside `type`, `enum` still refusing null, boolean exclusive bounds, read/write-only; 3.1 as JSON Schema 2020-12; refused with a reason: Swagger 2.0, other versions or dialects, 3.1 `nullable`, 3.0 type arrays, remote or recursive `$ref` |
+| Unusable page checks are inconclusive | review (reproduced) | not JSON, outside the schema, or naming unknown rows: one retry, then `page_inconclusive`; after a repair, the previous commit is redeployed |
+| Perception metrics | review | alerted, named >= 1 wrong row, named all, rows named not wrong, false alarms, inconclusive |
+| A write's scope is its resource | the Larder regression (Spark) | `/api/v2/transfers` was scope "api": the grant `write:transfers` never matched |
+| A failed listing says why; a refused key by its status | the Larder regression (a5) | the read's error leads the verdict; the 401/403 is a field, not text |
+| Colours named in page observations | the visual cycle without history | "very light red (pale pink)" beside each computed colour |
+
+## Larder, a post-evaluation regression (no longer out of sample), Spark
+
+First run (before the scope fix, `larder-regression-1-scopebug/`): reads complete, 17 of 17 short items found, no
+transfer in a1-a3 (the scope bug); a5 crashed the harness's own truth reader (a harness bug, fixed). Second run
+(`larder-regression-2/`):
+
+| Scenario | Result |
+|---|---|
+| a1 write granted, repeat | 5/5 transfers verified on truly short items; reads complete; second cycle sent nothing |
+| a2 read-only, then widened | the integration extended with `requestTransfer`, then 5/5 verified; no repeat |
+| a3 approval pending, then approved | nothing until approved; then 5/5 verified; no repeat |
+| a4 token revoked after the first cycle | 5/5 verified, then "revoked" and nothing more |
+| a5 a page outside its document | refused: the integration not validated (the reason now says the page) |
+| a6 a write applied, its answer lost | read back: "the effect is there: the answer was lost, nothing is sent again"; 5/5 verified, no duplicate |
+| a7 a cancel that reverts nothing | the write not enabled: the undo was not observed to restore |
+
+False verifications 0 in every scenario (claimed against the service's own state). US$0.21 for the seven.
+
+## The visual cycle in development: the agent's conclusion and the checker's apart
+
+| Case | Agent concluded | Checker verified | Note |
+|---|---|---|---|
+| style, history (regression check) | fixed, then fine | yes | one commit |
+| healthy (regression check) | fine | yes | no commit |
+| style, no healthy version in history, Spark | fixed | **no** | badge restyled pale pink with red text |
+| same, Wonder | fixed | **no** | same; 3.3x Spark's cost |
+| same, Spark, colours named | fixed | **no** | still pale pink: the goal said "a red SHORT badge" |
+| same, Spark, the goal says "on a red background" | fixed | yes | restyled red with white text |
+
+Three false verifications, all on the case without history, all the same disagreement: the model reads "a red badge"
+as red text on a pink chip; the contract (amendment 1) asks for a red background. The goal now states it. That is a
+change of the person's wording found in development, recorded as such, not a change of the checker.
+
 # Stage 5: the multimodal cycle, development results (2026-10-28)
 
 Plan: `docs/PLAN.md` (stage 5). Contract: amendment 1 of `docs/bench/2026-10-28-multimodal-objective.md`. Decision:

@@ -1,0 +1,370 @@
+{
+ "goal_runs": [
+  {
+   "status": "waiting_capability",
+   "note": "needs an integration for board-api",
+   "evidence": {}
+  },
+  {
+   "status": "page_fixed",
+   "note": "18 discrepancies fixed by 5eb78779a517: The badges were judged not flagged because `opacity: 0.3` washed the red to pale pink and broke white-on-red readability.",
+   "evidence": {
+    "attempts": [
+     {
+      "after": {
+       "cause": "none",
+       "conclusive": true,
+       "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_cfc193bedf5c4529/after-1",
+       "discrepancies": [],
+       "model": {
+        "model": "muse-spark-1.3",
+        "route": "profile frontier; synthetic may leave; label synthetic",
+        "seconds": 4.1,
+        "tier": "code",
+        "tokens": [
+         8762,
+         670
+        ],
+        "usd": 0.0138
+       },
+       "perception": "vision_sam",
+       "problems": [],
+       "sam": [
+        {
+         "image_sha256": "1e5e733a4510fb0bde83812621505ceea9aa50f55c089cee1c13f80e0e653f1d",
+         "model": "sam-3.1",
+         "prompt": "red label",
+         "regions": 6,
+         "scroll_y": 0,
+         "seconds": 2.31,
+         "usd": 0.0025
+        },
+        {
+         "image_sha256": "48164e48c5ec06b165c3936f503fa838af00ee3d652b54d8bfd7048874566d94",
+         "model": "sam-3.1",
+         "prompt": "red label",
+         "regions": 8,
+         "scroll_y": 720,
+         "seconds": 1.08,
+         "usd": 0.0025
+        },
+        {
+         "image_sha256": "c2f9ece7fa939f7b7d4cd1be77b86b389e20b05b8025ad3531698b59460d3b8f",
+         "model": "sam-3.1",
+         "prompt": "red label",
+         "regions": 5,
+         "scroll_y": 1291,
+         "seconds": 1.76,
+         "usd": 0.0025
+        }
+       ],
+       "screenshots": {
+        "step-00": "b98b1b227cc594173079cca7f022e151689463eef314ebaa0ccdad6aada67253",
+        "step-01": "4589e66d588bdbe965ecab471313aace7c9fe88af9f698f9c18634b68b8f8456",
+        "step-02": "1fd7cecfd063f6971d95e788122c7c6387c70750377fcb4403a8b0988c2e1e63"
+       }
+      },
+      "attempt": 1,
+      "cause": "The badges were judged not flagged because `opacity: 0.3` washed the red to pale pink and broke white-on-red readability.",
+      "checks": {
+       "log": "$ python -m unittest -> 0\n..\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+       "ok": true
+      },
+      "commit": "5eb78779a517d260ab26919d761a9056a4e31b1e",
+      "deploy": {
+       "log": " done\n#4 DONE 0.0s\n\n#5 [internal] load build context\n#5 transferring context: 1.26kB done\n#5 DONE 0.0s\n\n#6 [1/5] FROM docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704\n#6 resolve docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704 0.0s done\n#6 DONE 0.0s\n\n#7 [4/5] RUN pip install --no-cache-dir -r requirements.txt\n#7 CACHED\n\n#8 [2/5] WORKDIR /app\n#8 CACHED\n\n#9 [3/5] COPY requirements.txt .\n#9 CACHED\n\n#10 [5/5] COPY board ./board\n#10 CACHED\n\n#11 exporting to image\n#11 exporting layers done\n#11 exporting manifest sha256:1c487266d8f1786206c2dc25a9048ae8bd2d3cbde8d8f3f4612b97e2f0af728e done\n#11 exporting config sha256:4acdbc683ce43c76da3351e24f40bc05cb243861f06de72333285e648fecf62c done\n#11 exporting attestation manifest sha256:bdd073c6433a38209b8ff88b1d5decac35e3df3e7f5ff4a09aaee25d9db2782f 0.0s done\n#11 exporting manifest list sha256:3b669f511ec0e22d11c8eb3517f81a8242fa990a3f1e6adcb05c9a88cb1164b9 done\n#11 naming to docker.io/library/boardapp-staging-board:latest done\n#11 unpacking to docker.io/library/boardapp-staging-board:latest 0.0s done\n#11 DONE 0.1s\n\n#12 resolving provenance for metadata file\n#12 DONE 0.0s\n Image boardapp-staging-board Building \n Image boardapp-staging-board Built \n Container boardapp-staging-board-1 Recreate \n Container boardapp-staging-board-1 Recreated \n Container boardapp-staging-board-1 Starting \n Container boardapp-staging-board-1 Started \n",
+       "ok": true
+      },
+      "model": {
+       "model": "muse-spark-1.3",
+       "route": "profile frontier; private_code may leave; label private_code",
+       "seconds": 4.05,
+       "tier": "code",
+       "tokens": [
+        7631,
+        910
+       ],
+       "usd": 0.01340625
+      },
+      "patch": "--- a/board/static/board.css\n+++ b/board/static/board.css\n@@ -9,6 +9,6 @@\n .board td { padding: 12px; border-bottom: 1px solid #e3e7eb; }\n .board .num { font-variant-numeric: tabular-nums; }\n .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 14px; }\n-.badge.short { background: #c62828; color: #ffffff; opacity: 0.3; }\n+.badge.short { background: #c62828; color: #ffffff; }\n .badge.ok { background: #e3f1e5; color: #1f5f2c; }\n .summary { padding: 16px 32px; background: #f2f4f6; border-top: 1px solid #d8dde2; }\n",
+      "patch_sha256": "4e137347f2ad02a0f7768d2b37ab8aafdfabf1d7a8a6d476cb968dc5bbf54f68",
+      "result": "the discrepancies are gone"
+     }
+    ],
+    "before": {
+     "cause": "All SHORT badges have opacity 0.3 which washes the red to pale pink and destroys white-on-red contrast so they are not perceivable as red alerts.",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_cfc193bedf5c4529/before",
+     "discrepancies": [
+      {
+       "evidence": "mark 'SHORT 13' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink not red alert; SAM found no 'red label' in row; transparent/low-contrast so not readable as white-on-red alert",
+       "key": "B01",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "mark 'SHORT 18' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink; SAM found no 'red label' in row",
+       "key": "B06",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "mark 'SHORT 16' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink; SAM found no 'red label' in row",
+       "key": "B07",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "mark 'SHORT 3' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink; SAM found no 'red label' in row",
+       "key": "B08",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "mark 'SHORT 2' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink; SAM found no 'red label' in row",
+       "key": "B12",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "mark 'SHORT 8' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink; SAM found no 'red label' in row",
+       "key": "B13",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "mark 'SHORT 1' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink; SAM found no 'red label' in row",
+       "key": "B14",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "mark 'SHORT 2' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink; SAM found no 'red label' in row",
+       "key": "B16",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "mark 'SHORT 10' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink; SAM found no 'red label' in row",
+       "key": "B17",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "mark 'SHORT 14' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink; SAM found no 'red label' in row",
+       "key": "B19",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "mark 'SHORT 19' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink; SAM found no 'red label' in row",
+       "key": "B21",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "mark 'SHORT 11' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink; SAM found no 'red label' in row",
+       "key": "B23",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "mark 'SHORT 5' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink; SAM found no 'red label' in row",
+       "key": "B24",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "mark 'SHORT 12' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink; SAM found no 'red label' in row",
+       "key": "B26",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "mark 'SHORT 3' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink; SAM found no 'red label' in row",
+       "key": "B29",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "mark 'SHORT 20' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink; SAM found no 'red label' in row",
+       "key": "B30",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "mark 'SHORT 1' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink; SAM found no 'red label' in row",
+       "key": "B35",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "mark 'SHORT 2' bg rgb(198,40,40) fg white opacity 0.3; screenshot shows pale pink; SAM found no 'red label' in row",
+       "key": "B36",
+       "kind": "not_flagged"
+      }
+     ],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 8.2,
+      "tier": "code",
+      "tokens": [
+       8639,
+       2021
+      ],
+      "usd": 0.019388
+     },
+     "perception": "vision_sam",
+     "problems": [],
+     "sam": [
+      {
+       "image_sha256": "0c795e3841cab664fa85e6c7cc0fc5bde3908414c39c528a50d43535869fae93",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 0,
+       "scroll_y": 0,
+       "seconds": 1.5,
+       "usd": 0.0025
+      },
+      {
+       "image_sha256": "2cc0e35cd090e037ab40a485cbf404826f2330ff6733051ad5d1eca9f8be529c",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 0,
+       "scroll_y": 720,
+       "seconds": 1.58,
+       "usd": 0.0025
+      },
+      {
+       "image_sha256": "775c15ed5a9ab00fa7570924dc643bfe8d0e6c3e2a1bfda741b9ef4bffb65e13",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 0,
+       "scroll_y": 1291,
+       "seconds": 2.3,
+       "usd": 0.0025
+      }
+     ],
+     "screenshots": {
+      "step-00": "53b314bffde397fd06bc723325bc167e49b53a6c05258c547822e63af53f814d",
+      "step-01": "3a75cf200f52606553738ac9a5a6abfafd5a41e153e959dbcfee5f1e31ce013e",
+      "step-02": "231b449190f98777e81afcc4da6ce77c6ebe1bad8ac0dc752abc2bc774217cea"
+     }
+    },
+    "perception": "vision_sam",
+    "url": "http://127.0.0.1:18096/"
+   }
+  },
+  {
+   "status": "page_ok",
+   "note": "the page shows what the data says (36 keys)",
+   "evidence": {
+    "before": {
+     "cause": "none",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_5d88ec46e97b4400/before",
+     "discrepancies": [],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 5.25,
+      "tier": "code",
+      "tokens": [
+       8798,
+       806
+      ],
+      "usd": 0.014423
+     },
+     "perception": "vision_sam",
+     "problems": [],
+     "sam": [
+      {
+       "image_sha256": "1e5e733a4510fb0bde83812621505ceea9aa50f55c089cee1c13f80e0e653f1d",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 6,
+       "scroll_y": 0,
+       "seconds": 1.1,
+       "usd": 0.0025
+      },
+      {
+       "image_sha256": "48164e48c5ec06b165c3936f503fa838af00ee3d652b54d8bfd7048874566d94",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 8,
+       "scroll_y": 720,
+       "seconds": 1.09,
+       "usd": 0.0025
+      },
+      {
+       "image_sha256": "c2f9ece7fa939f7b7d4cd1be77b86b389e20b05b8025ad3531698b59460d3b8f",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 5,
+       "scroll_y": 1291,
+       "seconds": 1.25,
+       "usd": 0.0025
+      }
+     ],
+     "screenshots": {
+      "step-00": "b98b1b227cc594173079cca7f022e151689463eef314ebaa0ccdad6aada67253",
+      "step-01": "4589e66d588bdbe965ecab471313aace7c9fe88af9f698f9c18634b68b8f8456",
+      "step-02": "1fd7cecfd063f6971d95e788122c7c6387c70750377fcb4403a8b0988c2e1e63"
+     }
+    },
+    "perception": "vision_sam",
+    "url": "http://127.0.0.1:18096/"
+   }
+  }
+ ],
+ "model_runs": [
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0094825,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "forge.api_client",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.00445275,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.00686875,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.019388,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "lab.page_fix",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.01340625,
+   "route": "profile frontier; private_code may leave; label private_code"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0138,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.00651175,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.014423,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  }
+ ]
+}

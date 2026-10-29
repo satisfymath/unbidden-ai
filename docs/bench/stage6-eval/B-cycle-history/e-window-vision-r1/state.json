@@ -1,0 +1,356 @@
+{
+ "goal_runs": [
+  {
+   "status": "waiting_capability",
+   "note": "needs an integration for board-api",
+   "evidence": {}
+  },
+  {
+   "status": "page_fixed",
+   "note": "32 discrepancies fixed by 12472715ff39: The page was short because the picks query summed 30 days instead of 7 days, inflating picks and shortfalls.",
+   "evidence": {
+    "attempts": [
+     {
+      "after": {
+       "cause": "none",
+       "conclusive": true,
+       "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_ffd7587aa76941b0/after-1",
+       "discrepancies": [],
+       "model": {
+        "model": "muse-spark-1.3",
+        "route": "profile frontier; synthetic may leave; label synthetic",
+        "seconds": 5.46,
+        "tier": "code",
+        "tokens": [
+         8318,
+         1164
+        ],
+        "usd": 0.0153445
+       },
+       "perception": "vision",
+       "problems": [],
+       "sam": [],
+       "screenshots": {
+        "step-00": "1d4443e9f218f411ecdd5da905985b0aa4e644a8449e65950f2dc662a5cfca62",
+        "step-01": "f2842fb4fd570ca75b7938a44b3ebde679c1d8bdeaa44058a8d5f8c5f439c487",
+        "step-02": "f566bae573a0ef5f775d93cc907dd82fba261b60922752475c374073bd3fe1ae"
+       }
+      },
+      "attempt": 1,
+      "cause": "The page was short because the picks query summed 30 days instead of 7 days, inflating picks and shortfalls.",
+      "checks": {
+       "log": "$ python -m unittest -> 0\n..\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+       "ok": true
+      },
+      "commit": "12472715ff396697fe6a790096a2504b5f8ac41a",
+      "deploy": {
+       "log": " done\n#4 DONE 0.0s\n\n#5 [internal] load build context\n#5 transferring context: 1.32kB done\n#5 DONE 0.0s\n\n#6 [1/5] FROM docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704\n#6 resolve docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704 0.0s done\n#6 DONE 0.0s\n\n#7 [2/5] WORKDIR /app\n#7 CACHED\n\n#8 [3/5] COPY requirements.txt .\n#8 CACHED\n\n#9 [4/5] RUN pip install --no-cache-dir -r requirements.txt\n#9 CACHED\n\n#10 [5/5] COPY board ./board\n#10 CACHED\n\n#11 exporting to image\n#11 exporting layers done\n#11 exporting manifest sha256:963d2e86ab4e9f33596696036888db0c78252451ab3f1de99cb60b9ef48b2800 done\n#11 exporting config sha256:03323652044a3106baa1e8203a1a1a5bda44e7d97f02b381da11738682cf69cb done\n#11 exporting attestation manifest sha256:ae863dbc506593d387307e7b4365714fb35341fbb87a23560422cdd634173e35 0.0s done\n#11 exporting manifest list sha256:d86011e29634bfaf014bb06d3a9cfda3fefa71c7bed902c5ccaad6d5f7351caa done\n#11 naming to docker.io/library/boardapp-staging-board:latest done\n#11 unpacking to docker.io/library/boardapp-staging-board:latest 0.0s done\n#11 DONE 0.1s\n\n#12 resolving provenance for metadata file\n#12 DONE 0.0s\n Image boardapp-staging-board Building \n Image boardapp-staging-board Built \n Container boardapp-staging-board-1 Recreate \n Container boardapp-staging-board-1 Recreated \n Container boardapp-staging-board-1 Starting \n Container boardapp-staging-board-1 Started \n",
+       "ok": true
+      },
+      "model": {
+       "model": "muse-spark-1.3",
+       "route": "profile frontier; private_code may leave; label private_code",
+       "seconds": 3.19,
+       "tier": "code",
+       "tokens": [
+        7739,
+        585
+       ],
+       "usd": 0.01216
+      },
+      "patch": "--- a/board/sources.py\n+++ b/board/sources.py\n@@ -12,7 +12,7 @@\n def picks_7d() -> dict[str, int]:\n     with psycopg.connect(os.environ[\"PICKS_DB\"]) as conn:\n         rows = conn.execute(\n-            \"SELECT bin, sum(units) FROM picks WHERE picked_at > now() - interval '30 days' GROUP BY bin\"\n+            \"SELECT bin, sum(units) FROM picks WHERE picked_at > now() - interval '7 days' GROUP BY bin\"\n         ).fetchall()\n     return {str(b): int(u) for b, u in rows}\n \n",
+      "patch_sha256": "df9f232ef85d829a1aa8fdf217a0021fcaccbddb470cdc8652ee7a763b80e865",
+      "result": "the discrepancies are gone"
+     }
+    ],
+    "before": {
+     "cause": "The page's Picks (7 d) counts are overcounted relative to the data, so the derived SHORT amounts and flags computed from picks minus supply are inflated and flag bins that should not be flagged.",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_ffd7587aa76941b0/before",
+     "discrepancies": [
+      {
+       "evidence": "row 1 shows 'SHORT 6' red white visible 1 but data value -5 must not be flagged",
+       "key": "B02",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 1 shows 'SHORT 6' but data value is -5",
+       "key": "B02",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 3 shows 'SHORT 8' red white visible 1 but data value 0 must not be flagged",
+       "key": "B04",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 3 shows 'SHORT 8' but data value is 0",
+       "key": "B04",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 5 shows 'SHORT 23' but data value is 18",
+       "key": "B06",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 6 shows 'SHORT 19' but data value is 16",
+       "key": "B07",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 7 shows 'SHORT 8' but data value is 3",
+       "key": "B08",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 11 shows 'SHORT 12' but data value is 2",
+       "key": "B12",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 12 shows 'SHORT 17' but data value is 8",
+       "key": "B13",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 13 shows 'SHORT 2' but data value is 1",
+       "key": "B14",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 15 shows 'SHORT 6' but data value is 2",
+       "key": "B16",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 16 shows 'SHORT 16' but data value is 10",
+       "key": "B17",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 17 shows 'SHORT 5' red white visible 1 but data value -2 must not be flagged",
+       "key": "B18",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 17 shows 'SHORT 5' but data value is -2",
+       "key": "B18",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 19 shows 'SHORT 7' red white visible 1 but data value 0 must not be flagged",
+       "key": "B20",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 19 shows 'SHORT 7' but data value is 0",
+       "key": "B20",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 20 shows 'SHORT 24' but data value is 19",
+       "key": "B21",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 21 shows 'SHORT 7' red white visible 1 but data value 0 must not be flagged",
+       "key": "B22",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 21 shows 'SHORT 7' but data value is 0",
+       "key": "B22",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 22 shows 'SHORT 22' but data value is 11",
+       "key": "B23",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 23 shows 'SHORT 6' but data value is 5",
+       "key": "B24",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 24 shows 'SHORT 6' red white visible 1 but data value 0 must not be flagged",
+       "key": "B25",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 24 shows 'SHORT 6' but data value is 0",
+       "key": "B25",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 25 shows 'SHORT 23' but data value is 12",
+       "key": "B26",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 27 shows 'SHORT 5' red white visible 1 but data value 0 must not be flagged",
+       "key": "B28",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 27 shows 'SHORT 5' but data value is 0",
+       "key": "B28",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 29 shows 'SHORT 23' but data value is 20",
+       "key": "B30",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 30 shows 'SHORT 8' red white visible 1 but data value 0 must not be flagged",
+       "key": "B31",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 30 shows 'SHORT 8' but data value is 0",
+       "key": "B31",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 33 shows 'SHORT 7' red white visible 1 but data value 0 must not be flagged",
+       "key": "B34",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row 33 shows 'SHORT 7' but data value is 0",
+       "key": "B34",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row 35 shows 'SHORT 12' but data value is 2",
+       "key": "B36",
+       "kind": "wrong_value"
+      }
+     ],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 16.08,
+      "tier": "code",
+      "tokens": [
+       8327,
+       4458
+      ],
+      "usd": 0.02935525
+     },
+     "perception": "vision",
+     "problems": [],
+     "sam": [],
+     "screenshots": {
+      "step-00": "c146928c67dfcd078fe655db6b58cfdffc5b1cbfed95732e28d43c598e0f9850",
+      "step-01": "b285a488690c03af8ad416cdf5a5f566afc8994d44feca84145bac5d8ef9fd38",
+      "step-02": "8248c9d5b41e702ebcf8e26c4002f46f0eae3dd2ecb867f5666da8226383dfb8"
+     }
+    },
+    "perception": "vision",
+    "url": "http://127.0.0.1:18096/"
+   }
+  },
+  {
+   "status": "page_ok",
+   "note": "the page shows what the data says (36 keys)",
+   "evidence": {
+    "before": {
+     "cause": "none",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_d5377508a0954f0c/before",
+     "discrepancies": [],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 5.36,
+      "tier": "code",
+      "tokens": [
+       8318,
+       888
+      ],
+      "usd": 0.0141715
+     },
+     "perception": "vision",
+     "problems": [],
+     "sam": [],
+     "screenshots": {
+      "step-00": "1d4443e9f218f411ecdd5da905985b0aa4e644a8449e65950f2dc662a5cfca62",
+      "step-01": "f2842fb4fd570ca75b7938a44b3ebde679c1d8bdeaa44058a8d5f8c5f439c487",
+      "step-02": "f566bae573a0ef5f775d93cc907dd82fba261b60922752475c374073bd3fe1ae"
+     }
+    },
+    "perception": "vision",
+    "url": "http://127.0.0.1:18096/"
+   }
+  }
+ ],
+ "model_runs": [
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.00946975,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "forge.api_client",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.00390025,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0068815,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.02935525,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "lab.page_fix",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.01216,
+   "route": "profile frontier; private_code may leave; label private_code"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0153445,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.00663075,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0141715,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  }
+ ]
+}

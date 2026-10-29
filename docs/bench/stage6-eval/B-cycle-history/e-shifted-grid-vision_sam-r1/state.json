@@ -1,0 +1,423 @@
+{
+ "goal_runs": [
+  {
+   "status": "waiting_capability",
+   "note": "needs an integration for board-api",
+   "evidence": {}
+  },
+  {
+   "status": "page_fixed",
+   "note": "27 discrepancies fixed by 713270aa734e: The SHORT badges are visually shifted one row up by `position: relative; top: -46px`, so each row shows the next short row's badge or blank.",
+   "evidence": {
+    "attempts": [
+     {
+      "after": {
+       "cause": "none",
+       "conclusive": true,
+       "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_4d93ca9ab7d94ac4/after-1",
+       "discrepancies": [],
+       "model": {
+        "model": "muse-spark-1.3",
+        "route": "profile frontier; synthetic may leave; label synthetic",
+        "seconds": 4.4,
+        "tier": "code",
+        "tokens": [
+         8688,
+         476
+        ],
+        "usd": 0.012883
+       },
+       "perception": "vision_sam",
+       "problems": [],
+       "sam": [
+        {
+         "image_sha256": "0c3b75e1dddc2e2a39e9adfd99768730c2172578b7d1fce6e033197efffa3f2c",
+         "model": "sam-3.1",
+         "prompt": "red label",
+         "regions": 6,
+         "scroll_y": 0,
+         "seconds": 2.34,
+         "usd": 0.0025
+        },
+        {
+         "image_sha256": "799823d77559742c99bf70c208f6158e0fb013144d512e1b7b25227197683465",
+         "model": "sam-3.1",
+         "prompt": "red label",
+         "regions": 10,
+         "scroll_y": 720,
+         "seconds": 1.29,
+         "usd": 0.0025
+        },
+        {
+         "image_sha256": "e64a68b9b1059158c90a3c8358309f25a697ebe76db6b419f137241e35a38170",
+         "model": "sam-3.1",
+         "prompt": "red label",
+         "regions": 7,
+         "scroll_y": 1294,
+         "seconds": 1.27,
+         "usd": 0.0025
+        }
+       ],
+       "screenshots": {
+        "step-00": "d264fef140c56e92753770c84d47f8444dd6773a6b65bd30b6339df57d425c56",
+        "step-01": "e40b7542d33e638b59b9f07cdb5e5651dee3f806fb52f2e73d10f7df8a98bf34",
+        "step-02": "191771ee81e6fbd61b56786fbda8288ddb7eeff8e6cd200943daa575f71d9cea"
+       }
+      },
+      "attempt": 1,
+      "cause": "The SHORT badges are visually shifted one row up by `position: relative; top: -46px`, so each row shows the next short row's badge or blank.",
+      "checks": {
+       "log": "$ python -m unittest -> 0\n..\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+       "ok": true
+      },
+      "commit": "713270aa734e87391fc1fc8493b4ffceb2782312",
+      "deploy": {
+       "log": " done\n#4 DONE 0.0s\n\n#5 [internal] load build context\n#5 transferring context: 1.44kB done\n#5 DONE 0.0s\n\n#6 [1/5] FROM docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704\n#6 resolve docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704 0.0s done\n#6 DONE 0.0s\n\n#7 [2/5] WORKDIR /app\n#7 CACHED\n\n#8 [3/5] COPY requirements.txt .\n#8 CACHED\n\n#9 [4/5] RUN pip install --no-cache-dir -r requirements.txt\n#9 CACHED\n\n#10 [5/5] COPY board ./board\n#10 CACHED\n\n#11 exporting to image\n#11 exporting layers done\n#11 exporting manifest sha256:29d79bd0ef86084b6749b0a9c6fb87c3577a4d118927971bdc3962246333151a done\n#11 exporting config sha256:83d20797d84a0989607787dfa0b721e6c11d04c858ffe6e06c702872a7c3a32a done\n#11 exporting attestation manifest sha256:18759f02269d4365b3c76b47b84c9f233edb830ce35a1cfa66ea09eb09720dda 0.0s done\n#11 exporting manifest list sha256:e52a684ae27942335202f657a5dd5fe846471feb5de0d41e2b0e935b84bbcbaf done\n#11 naming to docker.io/library/boardapp-staging-board:latest done\n#11 unpacking to docker.io/library/boardapp-staging-board:latest 0.0s done\n#11 DONE 0.1s\n\n#12 resolving provenance for metadata file\n#12 DONE 0.0s\n Image boardapp-staging-board Building \n Image boardapp-staging-board Built \n Container boardapp-staging-board-1 Recreate \n Container boardapp-staging-board-1 Recreated \n Container boardapp-staging-board-1 Starting \n Container boardapp-staging-board-1 Started \n",
+       "ok": true
+      },
+      "model": {
+       "model": "muse-spark-1.3",
+       "route": "profile frontier; private_code may leave; label private_code",
+       "seconds": 6.18,
+       "tier": "code",
+       "tokens": [
+        8009,
+        1819
+       ],
+       "usd": 0.017742
+      },
+      "patch": "--- a/board/static/board.css\n+++ b/board/static/board.css\n@@ -8,7 +8,7 @@\n .board td { padding: 12px; border-bottom: 1px solid #e3e7eb; }\n .board .num { font-variant-numeric: tabular-nums; }\n .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 14px; }\n-.badge.short { background: #c62828; color: #ffffff; position: relative; top: -46px; }\n+.badge.short { background: #c62828; color: #ffffff; }\n .badge.ok { background: #e3f1e5; color: #1f5f2c; }\n .board .row, .board .head { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1.3fr; }\n .board [role=cell], .board [role=columnheader] { padding: 12px; border-bottom: 1px solid #e3e7eb; }\n",
+      "patch_sha256": "bf71513b3317cbe0f98d4f84729ae107f78ab4a6218d67b46d67ac8c1a78e8ec",
+      "result": "the discrepancies are gone"
+     }
+    ],
+    "before": {
+     "cause": "SHORT badges are offset one row too high, so each badge displays on the previous row.",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_4d93ca9ab7d94ac4/before",
+     "discrepancies": [
+      {
+       "evidence": "row blank, SHORT 13 in header",
+       "key": "B01",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "shows SHORT 18",
+       "key": "B05",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "shows 16 vs 18",
+       "key": "B06",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "shows 3 vs 16",
+       "key": "B07",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row blank",
+       "key": "B08",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "shows SHORT 2",
+       "key": "B11",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "shows 8 vs 2",
+       "key": "B12",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "shows 1 vs 8",
+       "key": "B13",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row blank",
+       "key": "B14",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "shows SHORT 2",
+       "key": "B15",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "shows 10 vs 2",
+       "key": "B16",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row blank",
+       "key": "B17",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "shows SHORT 14",
+       "key": "B18",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row blank",
+       "key": "B19",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "shows SHORT 19",
+       "key": "B20",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row blank",
+       "key": "B21",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "shows SHORT 11",
+       "key": "B22",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "shows 5 vs 11",
+       "key": "B23",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row blank",
+       "key": "B24",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "shows SHORT 12",
+       "key": "B25",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "row blank",
+       "key": "B26",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "shows SHORT 3",
+       "key": "B28",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "shows 20 vs 3",
+       "key": "B29",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row blank",
+       "key": "B30",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "shows SHORT 1",
+       "key": "B34",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "shows 2 vs 1",
+       "key": "B35",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "row blank",
+       "key": "B36",
+       "kind": "not_flagged"
+      }
+     ],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 38.99,
+      "tier": "code",
+      "tokens": [
+       8770,
+       4393
+      ],
+      "usd": 0.02963275
+     },
+     "perception": "vision_sam",
+     "problems": [],
+     "sam": [
+      {
+       "image_sha256": "8fdc8dc5bdd13bfb29b663ea3f067a1942bd036215ed275910d9ecf838bdb167",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 6,
+       "scroll_y": 0,
+       "seconds": 1.8,
+       "usd": 0.0025
+      },
+      {
+       "image_sha256": "cbdb12ad875ef047094bbfad5b7f329cba17f2107d2e3eda376d1e5777e42dcd",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 10,
+       "scroll_y": 720,
+       "seconds": 1.91,
+       "usd": 0.0025
+      },
+      {
+       "image_sha256": "2d42042d01308ca922f517b1d6c791b42ee3bacef6589e8d7647423696b2c98d",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 6,
+       "scroll_y": 1294,
+       "seconds": 1.26,
+       "usd": 0.0025
+      }
+     ],
+     "screenshots": {
+      "step-00": "719d0fb22d723b05c67c1cc4ca4267d598a4673367c1e17cd92fad477c6b6063",
+      "step-01": "dd3ee0a8f88ec0c7d4f4bd57b387f5a82d0a64dad39b287ce31901a615c077c6",
+      "step-02": "212d8f2e4dac4fc26d4bd51b43d328c688b62e51fd6d61ed1ddbb1fb858f86d0"
+     }
+    },
+    "perception": "vision_sam",
+    "url": "http://127.0.0.1:18096/"
+   }
+  },
+  {
+   "status": "page_ok",
+   "note": "the page shows what the data says (36 keys)",
+   "evidence": {
+    "before": {
+     "cause": "none",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_241c168685044a89/before",
+     "discrepancies": [],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 3.26,
+      "tier": "code",
+      "tokens": [
+       8688,
+       504
+      ],
+      "usd": 0.013002
+     },
+     "perception": "vision_sam",
+     "problems": [],
+     "sam": [
+      {
+       "image_sha256": "0c3b75e1dddc2e2a39e9adfd99768730c2172578b7d1fce6e033197efffa3f2c",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 6,
+       "scroll_y": 0,
+       "seconds": 2.53,
+       "usd": 0.0025
+      },
+      {
+       "image_sha256": "799823d77559742c99bf70c208f6158e0fb013144d512e1b7b25227197683465",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 10,
+       "scroll_y": 720,
+       "seconds": 1.02,
+       "usd": 0.0025
+      },
+      {
+       "image_sha256": "e64a68b9b1059158c90a3c8358309f25a697ebe76db6b419f137241e35a38170",
+       "model": "sam-3.1",
+       "prompt": "red label",
+       "regions": 7,
+       "scroll_y": 1294,
+       "seconds": 2.26,
+       "usd": 0.0025
+      }
+     ],
+     "screenshots": {
+      "step-00": "d264fef140c56e92753770c84d47f8444dd6773a6b65bd30b6339df57d425c56",
+      "step-01": "e40b7542d33e638b59b9f07cdb5e5651dee3f806fb52f2e73d10f7df8a98bf34",
+      "step-02": "191771ee81e6fbd61b56786fbda8288ddb7eeff8e6cd200943daa575f71d9cea"
+     }
+    },
+    "perception": "vision_sam",
+    "url": "http://127.0.0.1:18096/"
+   }
+  }
+ ],
+ "model_runs": [
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.010528,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "forge.api_client",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.00390025,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.00609525,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": false,
+   "usd": 0.03237275,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.02963275,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "lab.page_fix",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.017742,
+   "route": "profile frontier; private_code may leave; label private_code"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.012883,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.00689,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.013002,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  }
+ ]
+}

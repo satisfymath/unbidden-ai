@@ -1,0 +1,311 @@
+{
+ "goal_runs": [
+  {
+   "status": "waiting_capability",
+   "note": "needs an integration for board-api",
+   "evidence": {}
+  },
+  {
+   "status": "page_fixed",
+   "note": "23 discrepancies fixed by bd52685345d3: The picks query summed the last 30 days instead of the last 7 days, inflating picks and shortfalls and flagging bins that are not short.",
+   "evidence": {
+    "attempts": [
+     {
+      "after": {
+       "cause": "none",
+       "conclusive": true,
+       "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_8b262d5596974ed0/after-1",
+       "discrepancies": [],
+       "model": {
+        "model": "muse-wonder-1.0",
+        "route": "profile frontier; synthetic may leave; label synthetic",
+        "seconds": 4.36,
+        "tier": "code",
+        "tokens": [
+         4501,
+         811
+        ],
+        "usd": 0.034224
+       },
+       "perception": "dom",
+       "problems": [],
+       "sam": [],
+       "screenshots": {
+        "step-00": "08e57b6d3ab49df41b0e12e3af354cf6ef32477eeffa7dee65331b532a9e6b91",
+        "step-01": "f2842fb4fd570ca75b7938a44b3ebde679c1d8bdeaa44058a8d5f8c5f439c487",
+        "step-02": "f566bae573a0ef5f775d93cc907dd82fba261b60922752475c374073bd3fe1ae"
+       }
+      },
+      "attempt": 1,
+      "cause": "The picks query summed the last 30 days instead of the last 7 days, inflating picks and shortfalls and flagging bins that are not short.",
+      "checks": {
+       "log": "$ python -m unittest -> 0\n..\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+       "ok": true
+      },
+      "commit": "bd52685345d30eae2380a26faf896a8cd25a8a4d",
+      "deploy": {
+       "log": " done\n#4 DONE 0.0s\n\n#5 [internal] load build context\n#5 transferring context: 1.32kB done\n#5 DONE 0.0s\n\n#6 [1/5] FROM docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704\n#6 resolve docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704 0.0s done\n#6 DONE 0.0s\n\n#7 [2/5] WORKDIR /app\n#7 CACHED\n\n#8 [3/5] COPY requirements.txt .\n#8 CACHED\n\n#9 [4/5] RUN pip install --no-cache-dir -r requirements.txt\n#9 CACHED\n\n#10 [5/5] COPY board ./board\n#10 CACHED\n\n#11 exporting to image\n#11 exporting layers done\n#11 exporting manifest sha256:55a80c658e559ce0a1dea2d1a580c173c6f734dbb934c3e8c912db20c9227711 done\n#11 exporting config sha256:2bc51af07bb28302b2fa7bc1b7ec32baf776aa41ca165e50a1aeae914020c7af done\n#11 exporting attestation manifest sha256:0445f38c1ad4e79d84abe9e7baa068b6145f6b447c58722a64d639b5d61294d8 0.0s done\n#11 exporting manifest list sha256:e5ebe36b24a1bf1102e7250560ff9345bceb62bcb3c6c5a309cfe0b3fddb022d done\n#11 naming to docker.io/library/boardapp-staging-board:latest done\n#11 unpacking to docker.io/library/boardapp-staging-board:latest 0.0s done\n#11 DONE 0.1s\n\n#12 resolving provenance for metadata file\n#12 DONE 0.0s\n Image boardapp-staging-board Building \n Image boardapp-staging-board Built \n Container boardapp-staging-board-1 Recreate \n Container boardapp-staging-board-1 Recreated \n Container boardapp-staging-board-1 Starting \n Container boardapp-staging-board-1 Started \n",
+       "ok": true
+      },
+      "model": {
+       "model": "muse-wonder-1.0",
+       "route": "profile frontier; private_code may leave; label private_code",
+       "seconds": 4.03,
+       "tier": "code",
+       "tokens": [
+        7787,
+        601
+       ],
+       "usd": 0.043168
+      },
+      "patch": "--- a/board/sources.py\n+++ b/board/sources.py\n@@ -12,7 +12,7 @@\n def picks_7d() -> dict[str, int]:\n     with psycopg.connect(os.environ[\"PICKS_DB\"]) as conn:\n         rows = conn.execute(\n-            \"SELECT bin, sum(units) FROM picks WHERE picked_at > now() - interval '30 days' GROUP BY bin\"\n+            \"SELECT bin, sum(units) FROM picks WHERE picked_at > now() - interval '7 days' GROUP BY bin\"\n         ).fetchall()\n     return {str(b): int(u) for b, u in rows}\n \n",
+      "patch_sha256": "df9f232ef85d829a1aa8fdf217a0021fcaccbddb470cdc8652ee7a763b80e865",
+      "result": "the discrepancies are gone"
+     }
+    ],
+    "before": {
+     "cause": "The board likely computes SHORT from picked totals other than the last-7-days picked_units, inflating picks and thus creating extra red badges and larger shortfall numbers.",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_8b262d5596974ed0/before",
+     "discrepancies": [
+      {
+       "evidence": "Row 1 shows 'SHORT 6' bg rgb(198, 40, 40) fg rgb(255, 255, 255) 14px visible 1, but value -5; must not be flagged",
+       "key": "B02",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "Row 3 shows 'SHORT 8' bg rgb(198, 40, 40) fg rgb(255, 255, 255) 14px visible 1, but value 0; must not be flagged",
+       "key": "B04",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "Row 5 shows 'SHORT 23', but data value is 18",
+       "key": "B06",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "Row 6 shows 'SHORT 19', but data value is 16",
+       "key": "B07",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "Row 7 shows 'SHORT 8', but data value is 3",
+       "key": "B08",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "Row 11 shows 'SHORT 12', but data value is 2",
+       "key": "B12",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "Row 12 shows 'SHORT 17', but data value is 8",
+       "key": "B13",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "Row 13 shows 'SHORT 2', but data value is 1",
+       "key": "B14",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "Row 15 shows 'SHORT 6', but data value is 2",
+       "key": "B16",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "Row 16 shows 'SHORT 16', but data value is 10",
+       "key": "B17",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "Row 17 shows 'SHORT 5' bg rgb(198, 40, 40) fg rgb(255, 255, 255) 14px visible 1, but value -2; must not be flagged",
+       "key": "B18",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "Row 19 shows 'SHORT 7' bg rgb(198, 40, 40) fg rgb(255, 255, 255) 14px visible 1, but value 0; must not be flagged",
+       "key": "B20",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "Row 20 shows 'SHORT 24', but data value is 19",
+       "key": "B21",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "Row 21 shows 'SHORT 7' bg rgb(198, 40, 40) fg rgb(255, 255, 255) 14px visible 1, but value 0; must not be flagged",
+       "key": "B22",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "Row 22 shows 'SHORT 22', but data value is 11",
+       "key": "B23",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "Row 23 shows 'SHORT 6', but data value is 5",
+       "key": "B24",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "Row 24 shows 'SHORT 6' bg rgb(198, 40, 40) fg rgb(255, 255, 255) 14px visible 1, but value 0; must not be flagged",
+       "key": "B25",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "Row 25 shows 'SHORT 23', but data value is 12",
+       "key": "B26",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "Row 27 shows 'SHORT 5' bg rgb(198, 40, 40) fg rgb(255, 255, 255) 14px visible 1, but value 0; must not be flagged",
+       "key": "B28",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "Row 29 shows 'SHORT 23', but data value is 20",
+       "key": "B30",
+       "kind": "wrong_value"
+      },
+      {
+       "evidence": "Row 30 shows 'SHORT 8' bg rgb(198, 40, 40) fg rgb(255, 255, 255) 14px visible 1, but value 0; must not be flagged",
+       "key": "B31",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "Row 33 shows 'SHORT 7' bg rgb(198, 40, 40) fg rgb(255, 255, 255) 14px visible 1, but value 0; must not be flagged",
+       "key": "B34",
+       "kind": "flagged_wrongly"
+      },
+      {
+       "evidence": "Row 35 shows 'SHORT 12', but data value is 2",
+       "key": "B36",
+       "kind": "wrong_value"
+      }
+     ],
+     "model": {
+      "model": "muse-wonder-1.0",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 14.32,
+      "tier": "code",
+      "tokens": [
+       4510,
+       3283
+      ],
+      "usd": 0.0837
+     },
+     "perception": "dom",
+     "problems": [],
+     "sam": [],
+     "screenshots": {
+      "step-00": "a9e960c2a688a1fae6fa06ecf9a14c8cd1411f57261a76bd550355fb3c0e8371",
+      "step-01": "b285a488690c03af8ad416cdf5a5f566afc8994d44feca84145bac5d8ef9fd38",
+      "step-02": "8248c9d5b41e702ebcf8e26c4002f46f0eae3dd2ecb867f5666da8226383dfb8"
+     }
+    },
+    "perception": "dom",
+    "url": "http://127.0.0.1:18096/"
+   }
+  },
+  {
+   "status": "page_ok",
+   "note": "the page shows what the data says (36 keys)",
+   "evidence": {
+    "before": {
+     "cause": "none",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_9d92a0fe91af4c86/before",
+     "discrepancies": [],
+     "model": {
+      "model": "muse-wonder-1.0",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 3.76,
+      "tier": "code",
+      "tokens": [
+       4501,
+       427
+      ],
+      "usd": 0.026544
+     },
+     "perception": "dom",
+     "problems": [],
+     "sam": [],
+     "screenshots": {
+      "step-00": "08e57b6d3ab49df41b0e12e3af354cf6ef32477eeffa7dee65331b532a9e6b91",
+      "step-01": "f2842fb4fd570ca75b7938a44b3ebde679c1d8bdeaa44058a8d5f8c5f439c487",
+      "step-02": "f566bae573a0ef5f775d93cc907dd82fba261b60922752475c374073bd3fe1ae"
+     }
+    },
+    "perception": "dom",
+    "url": "http://127.0.0.1:18096/"
+   }
+  }
+ ],
+ "model_runs": [
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-wonder-1.0",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.03324,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "forge.api_client",
+   "model": "muse-wonder-1.0",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.015684,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-wonder-1.0",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.020864,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-wonder-1.0",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0837,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "lab.page_fix",
+   "model": "muse-wonder-1.0",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.043168,
+   "route": "profile frontier; private_code may leave; label private_code"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-wonder-1.0",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.034224,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-wonder-1.0",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.017884,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-wonder-1.0",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.026544,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  }
+ ]
+}
