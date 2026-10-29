@@ -58,6 +58,8 @@ class Experiment(Contract):
     samples_before_ms: list[float] = Field(default_factory=list[float])
     samples_after_ms: list[float] = Field(default_factory=list[float])
     workload_sha256: str | None = None
+    # Criteria v3: every measured session, raw (arm, position in the order, samples, median, index scans).
+    sessions: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
     # Unbidden's commit and cleanliness, model routes, images, seed: what produced this measurement.
     provenance: dict[str, Any] = Field(default_factory=dict)
     cost: Cost = Field(default_factory=Cost)
@@ -72,6 +74,8 @@ class Verdict(Contract):
     tests: TestOutcome
     reasons: list[str]
     caveats: list[str] = Field(default_factory=list)
+    # improved, no_relevant_change, regression, inconclusive or blocked (criteria v3); None on older verdicts.
+    outcome: str | None = None
 
 
 class ProposalStatus(StrEnum):

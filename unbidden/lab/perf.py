@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import statistics
 import subprocess
 from collections import Counter
 from collections.abc import Callable
@@ -31,7 +32,7 @@ from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
 from unbidden.guardian.scanner import redact_text
 from unbidden.lab.evaluator import classify_tests, level_for
 from unbidden.lab.fixlab import Candidate, unified_patch
-from unbidden.lab.perfstats import PERF_CRITERIA, judge
+from unbidden.lab.perfstats import SESSION_CRITERIA, SESSIONS_PER_ARM, judge_sessions
 from unbidden.lab.testsuite import TestPlan, run_suite, test_plan
 from unbidden.observe.ci import ci_test_plan
 from unbidden.observe.stack import Stack
@@ -136,6 +137,54 @@ async def {DRIVER_TEST}({params}):
         assert status == 200, f"sample returned HTTP {{status}}"
     Path("/work/{LAB_DIR}/result.json").write_text(json.dumps({{"latencies_ms": latencies, "engine": None}}))
 '''
+
+
+def index_scans(sidecars: Any, services: list[Any], table: str, column: str) -> int | None:
+    """Scans of every index led by `table.column` in a session's PostgreSQL, over all its databases, read from the
+    engine's statistics once they are flushed. None when the session has no PostgreSQL (the mechanism is then not
+    observable here, said as such)."""
+    import time as _time
+
+    if not (re.fullmatch(r"\w+", table) and re.fullmatch(r"\w+", column)):
+        return None
+    for service in services:
+        name = sidecars.names.get(service.name)
+        if name is None or not re.match(r"(.*/)?(postgres|postgis)\b", service.image or ""):
+            continue
+        user = service.environment.get("POSTGRES_USER", "postgres")
+
+        def psql(database: str, sql: str, name: str = name, user: str = user) -> str | None:
+            ran = subprocess.run(["docker", "exec", name, "psql", "-U", user, "-d", database, "-At", "-c", sql],
+                                 capture_output=True, text=True, check=False)  # fmt: skip
+            return ran.stdout if ran.returncode == 0 else None
+
+        _time.sleep(1.5)  # the statistics collector flushes at most every 500 ms (PostgreSQL < 15)
+        listed = psql(service.environment.get("POSTGRES_DB", user), "SELECT datname FROM pg_database WHERE NOT "
+                      "datistemplate") or ""  # fmt: skip
+        total = 0
+        query = (
+            "SELECT COALESCE(SUM(s.idx_scan), 0) FROM pg_stat_user_indexes s JOIN pg_index i ON i.indexrelid = "
+            "s.indexrelid JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = i.indkey[0] WHERE "
+            f"s.relname = '{table}' AND a.attname = '{column}'"
+        )
+        for database in listed.split():
+            got = psql(database, query)
+            total += int(got.strip() or 0) if got is not None else 0
+        return total
+    return None
+
+
+def _mechanism(sessions: list[dict[str, Any]], index: tuple[str, str] | None) -> tuple[bool | None, str]:
+    """For an index candidate: was an index on the column used on (at least) every measured call of every candidate
+    session? None when the change declares no mechanism, or the engine does not show it."""
+    if index is None:
+        return None, ""
+    scans = [s["index_scans"] for s in sessions if s["arm"] == "candidate"]
+    if any(x is None for x in scans):
+        return None, "index use not observable on this engine"
+    low, high = min(scans), max(scans)
+    note = f"{low}-{high} scans of an index on {index[0]}.{index[1]} per candidate session (needed: {SAMPLES})"
+    return low >= SAMPLES, note
 
 
 def async_suite(read: Callable[[str], str], files: list[str]) -> str | None:
@@ -328,6 +377,7 @@ class PerfLab:
         self.progress = progress
         self.repairs = repairs
         self.marker: str | None = None  # the suite's async marker, when its fixtures are coroutines
+        self.scans: int | None = None  # index scans in the last measured session (None: not observable)
         self.auth_lines: list[str] = []  # how the example test passes credentials
         self.engine: str | None = None  # the database engine the workload ran on, when the driver could tell
 
@@ -527,10 +577,40 @@ class PerfLab:
 
     # Measurement ----------------------------------------------------------------------------------------
 
+    def _sessions(
+        self,
+        rev: str,
+        candidate: dict[str, str],
+        workload: dict[str, str],
+        plan: TestPlan,
+        test_dir: str,
+        index: tuple[str, str] | None,
+        seed: str,
+    ) -> tuple[list[dict[str, Any]] | None, str]:
+        """Criteria v3: SESSIONS_PER_ARM sessions per side, alternating, which side goes first drawn from a seed (the
+        opportunity's id, so a rerun repeats the order). Every session is one sandbox run with a fresh database, the
+        same image, data and limits: what one session changes cannot reach the next."""
+        import random as _random
+
+        first = _random.Random(seed).choice(["base", "candidate"])
+        second = "candidate" if first == "base" else "base"
+        order = [first, second] * SESSIONS_PER_ARM
+        out: list[dict[str, Any]] = []
+        for position, arm in enumerate(order):
+            files = {**candidate, **workload} if arm == "candidate" else dict(workload)
+            samples, error = self._measure(rev, files, plan, test_dir, index)
+            if samples is None:
+                return None, f"{arm} session {position + 1}: {error}"
+            out.append({"arm": arm, "position": position, "samples_ms": samples,
+                        "median_ms": statistics.median(samples), "index_scans": self.scans})  # fmt: skip
+        return out, ""
+
     def _measure(
-        self, rev: str, files: dict[str, str], plan: TestPlan, test_dir: str
+        self, rev: str, files: dict[str, str], plan: TestPlan, test_dir: str, index: tuple[str, str] | None = None
     ) -> tuple[list[float] | None, str]:
-        """Run the workload as a test of the repository's CI test command, selected by name."""
+        """Run the workload as a test of the repository's CI test command, selected by name. With `index` (table,
+        column), also count how often the session's PostgreSQL used an index led by that column (`self.scans`)."""
+        self.scans = None
         image = self.images["python"]
         work = snapshot(self.repo, rev)
         try:
@@ -554,6 +634,8 @@ class PerfLab:
                     network=sidecars.network if sidecars else "none",
                 )
                 result = self.runner.run(spec, work)
+                if index is not None and sidecars is not None:
+                    self.scans = index_scans(sidecars, list(plan.services), *index)
             out = work / LAB_DIR / "result.json"
             if out.exists():
                 data = json.loads(out.read_text())
@@ -770,9 +852,10 @@ class PerfLab:
             result.notes.append(result.blocked)
             return result
 
-        self.progress("measuring the candidate")
-        after, error = self._measure(rev, {**candidate.files, **workload}, plan, test_dir)
-        if after is None:
+        index = (table, column) if opp.details.get("check") == "unindexed_foreign_key" and column else None
+        self.progress(f"measuring {SESSIONS_PER_ARM} sessions per side, alternating")
+        sessions, error = self._sessions(rev, candidate.files, workload, plan, test_dir, index, opp.id)
+        if sessions is None:
             result.notes.append(f"the candidate broke the workload: {error[-300:]}")
             return result
         self.progress("running the CI test job on both sides")
@@ -787,9 +870,14 @@ class PerfLab:
             sides.append(run_suite(self.runner, work, image, plan, rounds=3))
             discard(work)
         tests, test_notes = classify_tests(sides[0], sides[1])
-        stats = judge(before, after)
+        base = [s["median_ms"] for s in sessions if s["arm"] == "base"]
+        cand = [s["median_ms"] for s in sessions if s["arm"] == "candidate"]
+        mechanism, mechanism_note = _mechanism(sessions, index)
+        stats = judge_sessions(base, cand, mechanism=mechanism, mechanism_note=mechanism_note)
         improved = stats.improved and tests is not TestOutcome.REGRESSION
         level = level_for(improved, tests, suite_ran=True)
+        before = [x for s in sessions if s["arm"] == "base" for x in s["samples_ms"]]
+        after = [x for s in sessions if s["arm"] == "candidate" for x in s["samples_ms"]]
         experiment = Experiment(
             opportunity_id=opp.id,
             base_sha=rev,
@@ -799,23 +887,23 @@ class PerfLab:
             candidate_tests=sides[1],
             samples_before_ms=before,
             samples_after_ms=after,
+            sessions=sessions,
             workload_sha256=hashlib.sha256(workload[f"{LAB_DIR}/workload.py"].encode()).hexdigest(),
             provenance=provenance(self.brain, list(self.images.values()), engine=self.engine),
         )
         reasons = [
-            f"{list_endpoint}: median {stats.median_before:.1f} ms → {stats.median_after:.1f} ms "
-            f"({stats.effect:.0%} faster), one-sided Mann-Whitney p = {stats.p_value:.2g}, "
-            f"95% CI of the median difference [{stats.ci_low:.1f}, {stats.ci_high:.1f}] ms",
-            *stats.reasons,
+            f"{list_endpoint}: {stats.reasons[0]}",
+            *stats.reasons[1:],
             *(n for n in test_notes if tests is TestOutcome.REGRESSION),
         ]
         verdict = Verdict(
             experiment_id=experiment.id,
             improved=improved,
             evidence_level=level,
-            criteria=PERF_CRITERIA,
+            criteria=SESSION_CRITERIA,
             tests=tests,
             reasons=reasons,
+            outcome=("regression" if tests is TestOutcome.REGRESSION and stats.improved else stats.outcome),
             caveats=[
                 f"{SEED_ROWS} synthetic rows over {SEED_OWNERS} owners, measured in-process in a sandbox; "
                 "production effect not yet observed",
@@ -838,7 +926,8 @@ class PerfLab:
                 payload={
                     "improved": improved,
                     "level": int(level),
-                    "p_value": stats.p_value,
+                    "outcome": verdict.outcome,
+                    "p_value": stats.p_faster,
                     "median_before_ms": stats.median_before,
                     "median_after_ms": stats.median_after,
                     "effect": stats.effect,

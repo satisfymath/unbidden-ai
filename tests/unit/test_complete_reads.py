@@ -68,7 +68,7 @@ def test_offset_pagination_is_followed_to_its_declared_total(mandate: Mandate) -
 
 
 @pytest.mark.parametrize(
-    ("fault", "why"), [("skip_page", "already read"), ("repeat_page", "already read"), ("short_total", "declared 9")]
+    ("fault", "why"), [("skip_page", "declares 11"), ("repeat_page", "already read"), ("short_total", "declares 9")]
 )
 def test_a_read_that_cannot_be_whole_says_so(fault: str, why: str, mandate: Mandate) -> None:
     integration, conn, t = setup(mandate, fault)
@@ -109,3 +109,47 @@ def test_cursor_and_page_styles_and_their_failures() -> None:
     assert unbounded.completeness is Completeness.INCOMPLETE and "read bound" in unbounded.why
     by_records = read_all(lambda p: {"items": [{"id": 3 * p["page"] + i} for i in range(3)]}, numbered, max_records=7)
     assert by_records.completeness is Completeness.INCOMPLETE and by_records.requests == 3  # records, not requests
+
+
+def offset_service(rows: list[dict[str, Any]], extra: Any) -> Any:
+    """A service over `rows` whose page carries whatever `extra(offset, limit, batch)` adds beside the records."""
+
+    def fetch(params: dict[str, Any]) -> dict[str, Any]:
+        offset, limit = params["offset"], params["limit"]
+        batch = rows[offset : offset + limit]
+        return {"items": batch, **extra(offset, limit, batch)}
+
+    return fetch
+
+
+OFFSET = [{"name": "offset", "in": "query"}, {"name": "limit", "in": "query", "schema": {"maximum": 4}}]
+
+
+@pytest.mark.parametrize(
+    ("extra", "state", "why"),
+    [
+        (lambda o, lim, b: {"limit": lim, "offset": o}, Completeness.UNKNOWN, "no total confirmed"),  # echoes only
+        (lambda o, lim, b: {"n": 10}, Completeness.COMPLETE, "n = 10 on every page"),  # unnamed, but it holds
+        (lambda o, lim, b: {"hits": 37}, Completeness.UNKNOWN, "not explained"),  # unnamed, does not hold: noted
+        (lambda o, lim, b: {"total": 10 + o}, Completeness.UNKNOWN, "the collection changed"),  # data moving
+        (lambda o, lim, b: {"articlesCount": len(b)}, Completeness.UNKNOWN, "the page's length, not a total"),
+    ],
+)  # fmt: skip
+def test_a_count_is_judged_by_how_it_behaves_not_by_its_name(extra: Any, state: Completeness, why: str) -> None:
+    """Stage 9: no field is taken for the collection's total because of its name (Conduit's `articlesCount` is the
+    page's own length); a total is one that holds across pages and matches what was read once the end was seen."""
+    rows = [{"id": i} for i in range(10)]
+    read = read_all(offset_service(rows, extra), OFFSET)
+    assert read.completeness is state and why in read.why, read.why
+    assert len(read.records) == 10  # everything was read in every case: only what can be claimed differs
+
+
+def test_a_skipped_page_with_a_total_that_holds_elsewhere_is_incomplete() -> None:
+    rows = [{"id": i} for i in range(10)]
+
+    def skipping(params: dict[str, Any]) -> dict[str, Any]:
+        offset = params["offset"] + (4 if params["offset"] >= 4 else 0)  # the second page is never served
+        return {"items": rows[offset : offset + params["limit"]], "total": 10}
+
+    read = read_all(skipping, OFFSET)
+    assert read.completeness is Completeness.INCOMPLETE and "declares 10" in read.why

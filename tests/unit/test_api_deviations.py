@@ -141,10 +141,10 @@ def test_an_absent_accessory_field_degrades_and_a_compared_field_blocks(setup: A
         read(setup, [article(1, author__bio=ABSENT), article(2)], Degraded(critical={"bio"}))
 
 
-def test_a_count_that_is_the_pages_own_length_makes_the_read_incomplete(setup: Any) -> None:
+def test_a_count_that_is_the_pages_own_length_is_not_taken_for_a_total(setup: Any) -> None:
     rows = [article(i) for i in range(1, 6)]
     page_count = read(setup, rows, Degraded(), count="page")
-    assert page_count.completeness is Completeness.INCOMPLETE and "contradicted" in page_count.why
+    assert page_count.completeness is Completeness.UNKNOWN and "the page's length, not a total" in page_count.why
     assert read(setup, rows, Degraded()).completeness is Completeness.COMPLETE
 
 

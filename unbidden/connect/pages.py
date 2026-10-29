@@ -14,6 +14,7 @@ compares the records, so a service that skips a page cannot be hidden by the rea
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -103,6 +104,89 @@ def identity(record: dict[str, Any]) -> str:
     return json.dumps({k: record[k] for k in keys} if keys else record, sort_keys=True, default=str)
 
 
+class Counts:
+    """Every integer beside the records, page by page, judged by how it behaves, never by its name (stage 9).
+
+    On Conduit, `articlesCount` is the page's own length (2 for `limit=2` over 20,000 articles); a reader that took
+    any `count` for the collection's size would call a partial read complete. A field is read as the collection's
+    total only when it is the same on every page and equals the distinct records read once the end was observed; as
+    the page's length when it equals each page's record count; an echo of a parameter we sent is not a count. A name
+    or description that says "total" or "count" is the document's claim: a field so named that contradicts what was
+    read makes the read incomplete, one that changes between pages says the collection changed during the read; the
+    name alone never makes a read complete."""
+
+    DOCUMENTED = re.compile(r"(?i)total|count")
+    PAGE_COUNT = re.compile(r"(?i)^(pages|total_?pages|page_?count|num_?pages)$")
+
+    def __init__(self) -> None:
+        self.pages: list[tuple[int, dict[str, int], set[int]]] = []
+
+    def add(self, data: Any, records: int, sent: dict[str, Any] | None = None) -> None:
+        fields = (
+            {k: v for k, v in data.items() if isinstance(v, int) and not isinstance(v, bool)}
+            if isinstance(data, dict)
+            else {}
+        )
+        echoes = {v for v in (sent or {}).values() if isinstance(v, int)}
+        self.pages.append((records, fields, echoes))
+
+    def judge(self, distinct: int, pages_read: int) -> tuple[str | None, int | None, list[str]]:
+        """("confirmed" | "contradicted" | "changed" | None, the total, notes)."""
+        notes: list[str] = []
+        confirmed: int | None = None
+        contradicted: str | None = None
+        changed: str | None = None
+        names = sorted({name for _, fields, _ in self.pages for name in fields})
+        for name in names:
+            rows = [(n, fields[name], echoes) for n, fields, echoes in self.pages if name in fields]
+            values = [v for _, v, _ in rows]
+            documented = bool(self.DOCUMENTED.search(name))
+            if all(v in echoes for _, v, echoes in rows):
+                continue  # what we asked for, sent back
+            if all(v == n for n, v, _ in rows) and (len({n for n, _, _ in rows}) > 1 or distinct > values[0]):
+                notes.append(f"{name} equals each page's record count: the page's length, not a total")
+                continue
+            if len(set(values)) == 1:
+                value = values[0]
+                if value == distinct:
+                    confirmed = value
+                    notes.append(f"{name} = {value} on every page, equal to the distinct records read")
+                elif value == pages_read and self.PAGE_COUNT.search(name):
+                    confirmed = distinct  # the declared number of pages, the same on every page, and all read
+                    notes.append(f"{name} = {value} on every page, and {value} pages were read")
+                elif value == pages_read and not documented:
+                    notes.append(f"{name} = {value}, the number of pages read")
+                elif documented:
+                    contradicted = f"{name} declares {value}; {distinct} distinct records were read"
+                else:
+                    notes.append(f"{name} = {value} on every page: not explained by the read")
+            elif documented:
+                changed = f"{name} changed during the read ({min(values)} to {max(values)}): the collection changed"
+        if contradicted:
+            return "contradicted", None, [contradicted, *notes]
+        if changed:
+            return "changed", None, [changed, *notes]
+        if confirmed is not None:
+            return "confirmed", confirmed, notes
+        return None, None, notes
+
+
+def _end(seen: dict[str, dict[str, Any]], counts: Counts, style: str, requests: int, how: str) -> Read:
+    """The verdict once the end was observed (`how`): complete only with a total the read confirms."""
+    verdict, total, notes = counts.judge(len(seen), requests)
+    records = list(seen.values())
+    if verdict == "confirmed":
+        return Read(records, Completeness.COMPLETE, f"{len(seen)} distinct records, {how}; " + "; ".join(notes),
+                    style, requests, total, notes)  # fmt: skip
+    if verdict == "contradicted":
+        return Read(records, Completeness.INCOMPLETE, f"{notes[0]} ({how})", style, requests, None, notes)
+    if verdict == "changed":
+        return Read(records, Completeness.UNKNOWN, f"{notes[0]} ({how})", style, requests, None, notes)
+    detail = "; ".join(notes) if notes else "no count beside the records"
+    return Read(records, Completeness.UNKNOWN, f"no total confirmed ({detail}); {len(seen)} distinct records, {how}",
+                style, requests, None, notes)  # fmt: skip
+
+
 def read_all(
     fetch: Callable[[dict[str, Any]], Any],
     parameters: list[dict[str, Any]],
@@ -111,9 +195,11 @@ def read_all(
     max_pages: int = MAX_PAGES,
     max_records: int = MAX_RECORDS,
 ) -> Read:
-    """Follow the declared pagination to the end, or as far as it can be trusted. `fetch(params)` returns a body."""
+    """Follow the declared pagination until its end is observed, or as far as it can be trusted. `fetch(params)`
+    returns a body. Completeness comes from what the pages show (`Counts`), not from what a field is called."""
     style, info = style_of(parameters)
     seen: dict[str, dict[str, Any]] = {}
+    counts = Counts()
     requests = 0
 
     def bound(requests: int) -> str:
@@ -132,139 +218,89 @@ def read_all(
                 new += 1
         return new, duplicate
 
+    def stop(why: str) -> Read:
+        return Read(list(seen.values()), Completeness.INCOMPLETE, why, style, requests)
+
     if style == "none":
         data = fetch({})
         batch = records_of(data)
         take(batch)
-        total = _int(data, "total", "count", "total_count")
-        if total is not None:
-            state = Completeness.COMPLETE if total == len(seen) else Completeness.INCOMPLETE
-            return Read(list(seen.values()), state, f"{len(seen)} of a declared {total}", style, 1, total)
-        return Read(
-            list(seen.values()), Completeness.COMPLETE, "the document declares no pagination; one response", style, 1
-        )
+        counts.add(data, len(batch))
+        requests = 1
+        read = _end(seen, counts, style, 1, "one response, no pagination declared")
+        if read.completeness is Completeness.UNKNOWN and "changed" not in read.why:
+            # One response with nothing to page through: what it holds is the collection, unless a count disagrees.
+            read.completeness, read.why = Completeness.COMPLETE, "the document declares no pagination; one response"
+        return read
     if style == "offset":
         limit = min(page_size or info["limit"], info["limit"])
-        offset, total = 0, None
+        offset = 0
         while requests < max_pages and len(seen) < max_records:
-            data = fetch({"offset": offset, "limit": limit})
+            sent = {"offset": offset, "limit": limit}
+            data = fetch(sent)
             requests += 1
             batch = records_of(data)
-            total = _int(data, "total", "count", "total_count") if total is None else total
+            counts.add(data, len(batch), sent)
             new, duplicate = take(batch)
             if duplicate:
-                return Read(
-                    list(seen.values()),
-                    Completeness.INCOMPLETE,
-                    f"offset {offset} returned {duplicate} record(s) already read",
-                    style,
-                    requests,
-                    total,
-                )
+                return stop(f"offset {offset} returned {duplicate} record(s) already read")
             if not batch:
-                break
+                return _end(seen, counts, style, requests, f"an empty page at offset {offset}")
             if new == 0:
-                return Read(
-                    list(seen.values()),
-                    Completeness.INCOMPLETE,
-                    f"no progress at offset {offset}",
-                    style,
-                    requests,
-                    total,
-                )
+                return stop(f"no progress at offset {offset}")
             offset += len(batch)
-            if total is not None and offset >= total:
-                if len(batch) == limit:
-                    # The declared total is reached on a full page: one more page says whether it was the whole
-                    # (a count that is the page's own length, not the collection's, looks exactly like this).
-                    more = records_of(fetch({"offset": offset, "limit": limit}))
-                    requests += 1
-                    if more:
-                        return Read(
-                            list(seen.values()),
-                            Completeness.INCOMPLETE,
-                            f"the declared total {total} is contradicted: offset {offset} returned {len(more)} more",
-                            style,
-                            requests,
-                            total,
-                        )
-                break
-            if total is None and len(batch) < limit:
-                break
-        else:
-            return Read(
-                list(seen.values()),
-                Completeness.INCOMPLETE,
-                bound(requests),
-                style,
-                requests,
-                total,
-            )
-        if total is None:
-            return Read(
-                list(seen.values()), Completeness.UNKNOWN, "no total declared; ended on a short batch", style, requests
-            )
-        state = Completeness.COMPLETE if len(seen) == total else Completeness.INCOMPLETE
-        return Read(list(seen.values()), state, f"{len(seen)} distinct of a declared {total}", style, requests, total)
+            if len(batch) < limit:
+                return _end(seen, counts, style, requests, f"a short page ({len(batch)} < {limit}) at the end")
+        return stop(bound(requests))
     if style == "cursor":
         token: str | None = None
         used: set[str] = set()
         while requests < max_pages and len(seen) < max_records:
             data = fetch({info["param"]: token} if token else {})
             requests += 1
-            new, duplicate = take(records_of(data))
+            batch = records_of(data)
+            counts.add(data, len(batch))
+            new, duplicate = take(batch)
             if duplicate:
-                return Read(list(seen.values()), Completeness.INCOMPLETE, "a page repeated records", style, requests)
+                return stop("a page repeated records")
             token = _token(data)
             if token is None:
-                return Read(
-                    list(seen.values()), Completeness.COMPLETE, "the last page handed back no cursor", style, requests
-                )
+                read = _end(seen, counts, style, requests, "the last page handed back no cursor")
+                if read.completeness is Completeness.UNKNOWN and "changed" not in read.why:
+                    # The cursor protocol says where it ends: no token is the service's own statement of the end.
+                    read.completeness = Completeness.COMPLETE
+                    read.why = f"the last page handed back no cursor; {len(seen)} records"
+                return read
             if token in used:
-                return Read(list(seen.values()), Completeness.INCOMPLETE, "the cursor came back again", style, requests)
+                return stop("the cursor came back again")
             used.add(token)
-        return Read(list(seen.values()), Completeness.INCOMPLETE, bound(requests), style, requests)
+        return stop(bound(requests))
     # page
-    pages: int | None = None
-    total = None
     number = 1
+    sizes: set[int] = set()
     while requests < max_pages and len(seen) < max_records:
-        data = fetch({info["param"]: number})
+        sent = {info["param"]: number}
+        data = fetch(sent)
         requests += 1
         batch = records_of(data)
-        pages = _int(data, "pages", "total_pages", "page_count") if pages is None else pages
-        total = _int(data, "total", "count", "total_count") if total is None else total
+        counts.add(data, len(batch), sent)
         new, duplicate = take(batch)
         if duplicate:
-            return Read(
-                list(seen.values()), Completeness.INCOMPLETE, f"page {number} repeated records", style, requests, total
-            )
-        if not batch or (pages is not None and number >= pages):
-            break
+            return stop(f"page {number} repeated records")
+        if not batch:
+            return _end(seen, counts, style, requests, f"an empty page ({number})")
+        if new == 0:
+            return stop(f"no progress at page {number}")
+        if sizes and len(batch) < max(sizes):
+            return _end(seen, counts, style, requests, f"a short page ({len(batch)}) at page {number}")
+        declared = next((v for k, v in (data.items() if isinstance(data, dict) else [])
+                         if isinstance(v, int) and Counts.PAGE_COUNT.search(k)), None)  # fmt: skip
+        if declared is not None and number >= declared:
+            # The page count the service declares is reached: asking past it is an error on many services.
+            return _end(seen, counts, style, requests, f"the declared last page ({declared}) reached")
+        sizes.add(len(batch))
         number += 1
-    else:
-        return Read(list(seen.values()), Completeness.INCOMPLETE, bound(requests), style, requests, total)
-    if total is not None and total != len(seen):
-        return Read(
-            list(seen.values()),
-            Completeness.INCOMPLETE,
-            f"{len(seen)} distinct of a declared {total}",
-            style,
-            requests,
-            total,
-        )
-    if pages is None and total is None:
-        return Read(
-            list(seen.values()), Completeness.UNKNOWN, "ended on an empty page; no count declared", style, requests
-        )
-    return Read(
-        list(seen.values()),
-        Completeness.COMPLETE,
-        f"{len(seen)} records over {requests} page(s)",
-        style,
-        requests,
-        total,
-    )
+    return stop(bound(requests))
 
 
 def cross_check(

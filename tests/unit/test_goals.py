@@ -107,3 +107,31 @@ def test_a_missing_write_waits_for_the_person_and_resumes_when_the_grant_widens(
     mandate.connections[0].permissions = ["read", "write:reorders"]  # a person widens the grant
     pursue()
     assert store.list(needs.COLLECTION, CapabilityNeed)[0].status is NeedStatus.OPEN
+
+
+@pytest.mark.parametrize(
+    ("state", "outcome"),
+    [("complete", None), ("unknown", "partial"), ("incomplete", "raises")],
+)
+def test_only_a_read_known_to_be_partial_blocks_everything(
+    store: Store, mandate: Mandate, monkeypatch: pytest.MonkeyPatch, state: str, outcome: str | None
+) -> None:
+    """Stage 9: an API listing whose completeness is unknown (a count that is not a total, as Conduit's) no longer
+    blocks every conclusion: the records read are real; only claims about the whole set are withheld."""
+    from unbidden.connect.pages import Completeness, Read
+
+    monkeypatch.setattr(goals, "query", lambda *a, **k: [{"slug": "a", "stored": 2}, {"slug": "b", "stored": 1}])
+    read = Read([{"slug": "a", "shown": 1}], Completeness(state), f"why {state}", "offset", 3)
+    monkeypatch.setattr("unbidden.forge.api_client.read_collection", lambda *a, **k: read)
+    integration: Any = type("I", (), {"op": lambda self, op_id: type("O", (), {"id": op_id})()})()
+    conns: Any = {"db": type("D", (), {"id": "postgres:x"})(), "api": type("C", (), {"id": "http_api:x"})()}
+    plan = {"key": "slug", "sql": {"connection": "db", "query": "q"}, "api": {"connection": "api", "operation": "l"},
+            "shortfall": "stored - shown"}  # fmt: skip
+    run = GoalRun(goal="g")
+    if outcome == "raises":
+        with pytest.raises(goals.Incomplete):
+            goals._read(store, mandate, plan, conns, {"api": integration}, run)  # pyright: ignore[reportPrivateUsage]
+        return
+    rows, partial = goals._read(store, mandate, plan, conns, {"api": integration}, run)  # pyright: ignore[reportPrivateUsage]
+    assert [r["slug"] for r in rows] == ["a"]  # only what was read is judged
+    assert (partial is None) if outcome is None else partial == "why unknown"

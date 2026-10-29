@@ -271,7 +271,7 @@ async def pursue(
     if missing:
         return _finish(store, run, "blocked", "; ".join(f"{n}: {conns[n].state.value}" for n in missing))
     try:
-        rows = _read(store, mandate, plan, conns, integrations, run)
+        rows, partial = _read(store, mandate, plan, conns, integrations, run)
     except Incomplete as exc:
         return _finish(store, run, "blocked_incomplete", f"read incomplete, nothing decided: {exc}")
     except DeviationBlocked as exc:
@@ -294,6 +294,14 @@ async def pursue(
     short.sort(key=lambda r: -r["shortfall"])
     run.findings = short
     page = plan.get("page") or {}
+    if partial and page.get("url"):
+        # A page is judged on every row: rows not read would be judged wrong for being absent.
+        return _finish(store, run, "blocked_incomplete", f"a page is judged on the whole set, and {partial}")
+    if partial and not short:
+        return _finish(store, run, "inconclusive", f"no discrepancy among the {len(rows)} keys read, but the set's "
+                       f"completeness is unknown ({partial}): 'none' is not concluded")  # fmt: skip
+    if partial:
+        run.notes.append(f"over a read whose completeness is unknown ({partial}): keys not read were not judged")
     if page.get("url"):
         return await _pursue_page(brain, store, mandate, goal, run, rows, key, values, str(page["url"]),
                                   window=window, workspace=workspace, source=source)  # fmt: skip
@@ -345,7 +353,9 @@ def _read(
     conns: dict[str, Connection],
     integrations: dict[str, ApiIntegration],
     run: GoalRun,
-) -> list[dict[str, Any]]:
+) -> tuple[list[dict[str, Any]], str | None]:
+    """The joined rows, and why the API's set may be partial (None when it was read whole). A read known to be
+    incomplete blocks everything; one whose completeness is unknown allows only the conclusions it can carry."""
     sql, api, key = plan.get("sql") or {}, plan.get("api") or {}, str(plan.get("key"))
     db = conns.get(str(sql.get("connection")))
     integration = integrations.get(str(api.get("connection")))
@@ -367,9 +377,12 @@ def _read(
     run.reads.append({"connection": conn.id, "operation": op.id, **read.summary(), "deviations": degraded.log[:20]})
     db_whole = len(left) < 1000
     run.reads[0]["completeness"] = "complete" if db_whole else "incomplete"
-    if read.completeness.value != "complete" or not db_whole:
-        # A decision over a partial set would be about the part read as if it were the whole: not taken.
+    if read.completeness.value == "incomplete" or not db_whole:
+        # A decision over a known-partial set would be about the part read as if it were the whole: not taken.
         raise Incomplete(read.why if read.completeness.value != "complete" else "the query reached its row limit")
+    # Unknown completeness (stage 9): every record read is real, so a discrepancy found in it is real; what it cannot
+    # carry is a claim about the whole set ("none", "every"). The caller limits its conclusions to that.
+    partial = None if read.completeness.value == "complete" else read.why
     by_key = {r.get(key): r for r in right}
     if not left or key not in left[0]:
         raise KeyError(f"the query's rows have no field {key!r}")
@@ -382,8 +395,8 @@ def _read(
     for k, other in by_key.items():
         if k not in {r[key] for r in left}:
             joined.append({**other, **{c: 0 for c in left[0] if c != key}, key: k})
-    run.reads.append({"joined": len(joined), "key": key})
-    return joined
+    run.reads.append({"joined": len(joined), "key": key, "partial": partial})
+    return joined, partial
 
 
 def _act(

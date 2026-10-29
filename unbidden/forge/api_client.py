@@ -528,7 +528,10 @@ def oracle(
                 }
             )
         results[op.id] = {
-            "passed": error is None and completeness is Completeness.COMPLETE and agrees,
+            # Unknown completeness validates a listing (what it reads is the service's own, and agrees across
+            # page sizes); conclusions that need the whole set check it themselves. Incomplete does not (stage 9).
+            "passed": error is None and completeness in (Completeness.COMPLETE, Completeness.UNKNOWN) and agrees,
+            "completeness": completeness.value if completeness else None,
             "observed": (
                 # A failed read says why first: that is the block a person has to act on.
                 (f"read failed: {error}; " if error else "")
