@@ -72,6 +72,43 @@ def full_table_scans(world: WorldModel, previous: dict[str, Any], seconds: float
     return found
 
 
+def reported_aggregates(world: WorldModel) -> list[Opportunity]:
+    """Numbers an API reports about stored data (`articles[].favoritesCount`, a listing's `total`), seen in the live
+    document, on a service whose database is mapped: whether they agree with what is stored is unverified. Only
+    listing endpoints (no path parameter), so the records can be read whole or said not to be. A question, never a
+    finding: answering it needs an integration with the API and a read-only query (stage 9)."""
+    if not world.of_kind("table"):
+        return []
+    found: list[Opportunity] = []
+    for endpoint in world.of_kind("endpoint"):
+        fields = endpoint.attributes.get("aggregates") or []
+        method, _, path = endpoint.name.partition(" ")
+        if method != "GET" or "{" in path or not fields or endpoint.status.value != "observed":
+            continue
+        found.append(
+            Opportunity(
+                source="world",
+                category="bugs",
+                title=f"{endpoint.name} reports {', '.join(fields[:3])}: unverified against the stored data",
+                summary=(
+                    f"The live API document says {endpoint.name} answers with {', '.join(fields)}. Whether these "
+                    "numbers agree with what the database stores has not been checked: comparing them needs the "
+                    "API read through an integration and the same numbers counted with a read-only query."
+                ),
+                dedup_key=f"world:reported_aggregates:{endpoint.name}",
+                evidence=[EvidenceRef(kind="config", locator=f"openapi#{endpoint.name}")],
+                details={
+                    "check": "reported_aggregates",
+                    "endpoint": endpoint.name,
+                    "fields": list(fields),
+                    "service": endpoint.attributes.get("service"),
+                    "rev": world.rev,
+                },
+            )
+        )
+    return found
+
+
 # A B-tree leaf entry for a 4-byte key: the key, an 8-byte tuple header, a 4-byte item pointer, at the default
 # 90 % fill. An estimate: a wider key (bigint, uuid, text) costs more.
 INDEX_BYTES_PER_ROW = (4 + 8 + 4) / 0.9
@@ -228,7 +265,7 @@ def run_checks(world: WorldModel, store: Store, repo: Path | None = None) -> lis
     seconds = now_ts - float(last.get("ts", now_ts))
     current = {t.id: t.attributes["scans"] for t in world.of_kind("table") if t.attributes.get("scans")}
     store.set_value("table_scans", {"ts": now_ts, "tables": current})
-    candidates = unindexed_foreign_keys(world, repo)
+    candidates = unindexed_foreign_keys(world, repo) + reported_aggregates(world)
     if seconds > 0:
         candidates += full_table_scans(world, last.get("tables", {}), seconds)
     for opp in candidates:

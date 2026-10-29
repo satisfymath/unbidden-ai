@@ -209,8 +209,19 @@ def _pages(store: Store) -> list[str]:
 
 
 async def pursue(
-    brain: Any, store: Store, mandate: Mandate, goal: Goal, *, window: str, workspace: Any = None
+    brain: Any,
+    store: Store,
+    mandate: Mandate,
+    goal: Goal,
+    *,
+    window: str,
+    workspace: Any = None,
+    resume: dict[str, Any] | None = None,
+    read_only: bool = False,
 ) -> GoalRun:
+    """A goal's run. `read_only` (Unbidden's own consistency questions, stage 9): no action and no page; any
+    difference either way is a finding (`run.findings`), not only a shortfall. `resume` is the job a capability
+    built for it wakes (by default this goal's own pursuit)."""
     run = GoalRun(goal=goal.id)
     usable, blocked, conns, integrations = _sources(store, mandate)
     source: Source = (
@@ -260,7 +271,7 @@ async def pursue(
                 "api_client",
                 conns[name].id,
                 f"goal {goal.id} needs {name}",
-                resume=[{"type": "goal.pursue", "key": goal.id, "payload": {"goal": goal.id}}],
+                resume=[resume or {"type": "goal.pursue", "key": goal.id, "payload": {"goal": goal.id}}],
             )
             if need.status.value == "abandoned":
                 why = next((n for n in reversed(need.notes) if not n.startswith(("attempt", "no capability"))), "")
@@ -289,11 +300,17 @@ async def pursue(
             run.notes.append(f"{row.get(key)}: {exc}")
             continue
         values[str(row[key])] = amount
-        if amount > 0:
+        if amount > 0 or (read_only and amount != 0):
             short.append({key: row[key], "shortfall": amount, "row": row})
     short.sort(key=lambda r: -r["shortfall"])
     run.findings = short
     page = plan.get("page") or {}
+    if read_only:
+        if partial and not short:
+            return _finish(store, run, "inconclusive", f"no difference among the {len(rows)} keys read, but the "
+                           f"set's completeness is unknown ({partial}): 'none' is not concluded")  # fmt: skip
+        whole = "" if not partial else f" (over a read whose completeness is unknown: {partial})"
+        return _finish(store, run, "investigated", f"{len(short)} of {len(rows)} keys differ{whole}")
     if partial and page.get("url"):
         # A page is judged on every row: rows not read would be judged wrong for being absent.
         return _finish(store, run, "blocked_incomplete", f"a page is judged on the whole set, and {partial}")

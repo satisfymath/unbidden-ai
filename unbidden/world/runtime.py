@@ -237,6 +237,44 @@ def _reconcile_endpoint(world: WorldModel, method: str, path: str, live: set[str
     return {}
 
 
+_AGGREGATE = re.compile(r"(?i)(^|_)(count|total)$|[a-z](Count|Total)$|^num_?\w+")
+
+
+def reported_aggregates(spec: dict[str, Any], operation: dict[str, Any]) -> list[str]:
+    """Integer fields of the operation's 200 answer whose names say they report a number of things (`favoritesCount`,
+    `comment_count`, `total`): `articles[].favoritesCount`, `articlesCount`. A name only raises the question of
+    whether the number agrees with what is stored; it never answers it (stage 9, proactive consistency)."""
+    schema = ((operation.get("responses") or {}).get("200") or {}).get("content") or {}
+    schema = (schema.get("application/json") or {}).get("schema") or {}
+    found: list[str] = []
+
+    def resolve(node: dict[str, Any], depth: int) -> dict[str, Any]:
+        while "$ref" in node and depth < 8:
+            target: Any = spec
+            for part in str(node["$ref"]).lstrip("#/").split("/"):
+                target = target.get(part, {}) if isinstance(target, dict) else {}
+            node, depth = target if isinstance(target, dict) else {}, depth + 1
+        return node
+
+    def walk(node: dict[str, Any], prefix: str, depth: int) -> None:
+        node = resolve(node, depth)
+        if depth > 4:
+            return
+        if node.get("type") == "array" or "items" in node:
+            walk(node.get("items") or {}, prefix + "[]", depth + 1)
+            return
+        for name, sub in (node.get("properties") or {}).items():
+            sub = resolve(sub, depth)
+            path = f"{prefix}.{name}" if prefix else name
+            if sub.get("type") == "integer" and _AGGREGATE.search(name):
+                found.append(path)
+            elif isinstance(sub, dict):
+                walk(sub, path, depth + 1)
+
+    walk(schema, "", 0)
+    return found
+
+
 def _postgres(world: WorldModel, service: str, container: str, user: str, default: str) -> bool:
     """Tables, indexes and foreign keys of every database and schema the server holds. False if nothing was read."""
     databases = [row[0] for row in psql(container, user, default, _PG_DATABASES) or []] or [default]
@@ -430,6 +468,7 @@ def discover_runtime(repo: Path, world: WorldModel, rev: str = "HEAD", files: li
                                 "service": service,
                                 "port": port,
                                 "tags": operations[method].get("tags", []),
+                                "aggregates": reported_aggregates(spec, operations[method]),
                                 "auth": bool(operations[method].get("security")),
                                 **extra,
                             },

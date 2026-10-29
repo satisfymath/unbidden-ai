@@ -11,7 +11,7 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
-from unbidden.contracts.common import utc_now
+from unbidden.contracts.common import EvidenceLevel, utc_now
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.experiment import Experiment, Proposal, ProposalStatus, Verdict
 from unbidden.contracts.jobs import Job
@@ -52,6 +52,7 @@ PRIORITY = {
     "world.refresh": 45,
     "connect.survey": 42,
     "goal.pursue": 58,
+    "research.consistency": 59,
 }
 
 
@@ -89,6 +90,7 @@ class Cycle:
             "ops.deploy": self.ops_deploy,
             "research.investigate": self.research_investigate,
             "research.probe": self.research_probe,
+            "research.consistency": self.research_consistency,
             "forge.build": self.forge_build,
             "world.refresh": self.world_refresh,
             "connect.survey": self.connect_survey,
@@ -338,6 +340,16 @@ class Cycle:
                     need.resume = [*need.resume, wake]  # in use, the need queues the sweep that decides this again
                     self.store.put(NEEDS, need)
             self._queue_needs()
+        elif kind is ActionKind.INVESTIGATE and opp.details.get("check") == "reported_aggregates":
+            from unbidden.contracts.jobs import JobStatus
+
+            waiting = [j for s in (JobStatus.QUEUED, JobStatus.RUNNING) for j in self.store.jobs(status=s)
+                       if j.type == "research.consistency"]  # fmt: skip
+            if len(waiting) < MAX_CONSISTENCY_QUEUED and self.store.enqueue(
+                job("research.consistency", opp.id, {"id": opp.id}, correlation_id=opp.id)
+            ):
+                opp.details = {**opp.details, "investigations": int(opp.details.get("investigations", 0)) + 1}
+                self.store.put("opportunities", opp)
         elif kind is ActionKind.INVESTIGATE:
             incident = opp.details.get("incident") or {}
             reopened = int(opp.details.get("reopened", 0))
@@ -623,6 +635,46 @@ class Cycle:
         for goal in mandate.goals:
             self.store.enqueue(job("goal.pursue", f"{goal.id}:{hour}:{signature}", {"goal": goal.id}))
 
+    async def research_consistency(self, j: Job) -> None:
+        """Unbidden's own question about an API's reported numbers (stage 9): a read-only goal it writes from the
+        live document, pursued with the same machinery as a person's goal. If the API has no integration yet, the
+        need is recorded and this job is woken again when it is built; the opportunity keeps what was found."""
+        from unbidden.contracts.guardian import Goal
+        from unbidden.director.goals import pursue
+
+        opp = self.store.get("opportunities", j.payload["id"], Opportunity)
+        if opp is None:
+            return
+        endpoint, fields = str(opp.details.get("endpoint")), list(opp.details.get("fields") or [])
+        goal = Goal(
+            id=f"consistency-{opp.id}",
+            statement=(
+                f"For the records {endpoint} returns, each number it reports ({', '.join(fields)}) must equal the same "
+                "number counted from the stored data. Compare them record by record with a read-only query; a "
+                "difference in either direction is a discrepancy. Change nothing."
+            ),
+            bounds={"environment": "staging", "max_actions": 0},
+        )
+        mandate = self.runtime.workspace.mandate()
+        resume = {"type": "research.consistency", "key": f"{opp.id}:after-capability", "payload": {"id": opp.id}}
+        run = await pursue(self.runtime.brain, self.store, mandate, goal, window=f"{utc_now():%Y-%m-%d}",
+                           workspace=self.runtime.workspace, resume=resume, read_only=True)  # fmt: skip
+        note = run.notes[-1] if run.notes else ""
+        self.log(f"{opp.id}: consistency of {endpoint}: {run.status}: {note}")
+        if run.status in ("waiting_capability", "waiting_extension"):
+            self._queue_needs()
+            return
+        opp = self.store.get("opportunities", opp.id, Opportunity) or opp
+        opp.details = {**opp.details, "consistency": {
+            "status": run.status, "note": note, "run": run.id, "discrepancies": run.findings[:20],
+            "reads": run.reads,
+        }}  # fmt: skip
+        if run.status == "investigated" and run.findings:
+            opp.evidence_level = max(opp.evidence_level, EvidenceLevel.REPRODUCTION)
+        opp.updated_at = utc_now()
+        self.store.put("opportunities", opp)
+        self.store.enqueue(job("director.sweep", f"after:{j.id}"))
+
     async def goal_pursue(self, j: Job) -> None:
         from unbidden.director.goals import pursue
 
@@ -731,8 +783,10 @@ TIMEOUT_S: dict[str, float] = {
     "research.probe": 3600,
     "forge.build": 1800,
     "goal.pursue": 1800,
+    "research.consistency": 1800,
 }
 DEFAULT_TIMEOUT_S = 600.0
+MAX_CONSISTENCY_QUEUED = 3  # consistency investigations waiting at once: each may build an integration and plan
 
 
 def timeout_for(job_type: str) -> float:

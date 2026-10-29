@@ -292,3 +292,24 @@ def test_the_openai_compatible_provider_sends_pictures_as_image_parts() -> None:
     assert sent["content"][0] == {"type": "text", "text": "look"}
     assert sent["content"][1]["image_url"]["url"].startswith("data:image/png;base64,cG5n")
     assert _message(Message(role="user", content="plain"))["content"] == "plain"
+
+
+async def test_a_mandate_that_denies_local_inference_never_uses_the_local_model(store: Store, mandate: Mandate) -> None:
+    """Stage 9's runs use Meta's API only: a call that may go remote goes there with no local fallback; one that may
+    not (production data) is refused with its reason, never served locally."""
+    from unbidden.brain.router import PolicyDenied
+
+    mandate.models.profile = "frontier"
+    mandate.models.local_inference = "deny"
+    brain, local, remote = make_brain(store, mandate)
+    brain.repo_public = True
+    remote.script("lab.fix_candidate", "no file here", repeat=True)
+    local.script("lab.fix_candidate", "# file: a.py\nx = 1\n")
+    with pytest.raises(ModelFailed):  # the remote answer fails: no local model takes over, even with fallback allowed
+        await brain.complete(LLMRequest(purpose="lab.fix_candidate", tier=Tier.LOCAL, expect_files=True,
+                                        messages=[Message(role="user", content="fix", source="repo")]))  # fmt: skip
+    log = "\n".join(f'INFO: 10.0.0.{i}:5 - "GET /a HTTP/1.1" 200 OK' for i in range(5))
+    with pytest.raises(PolicyDenied, match="denies local inference"):
+        await brain.complete(LLMRequest(purpose="forge.adapter", tier=Tier.CODE,
+                                        messages=[Message(role="user", content=log, source="runtime")]))  # fmt: skip
+    assert local.requests == []

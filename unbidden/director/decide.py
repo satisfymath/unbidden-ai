@@ -9,6 +9,7 @@ risk       what a person would have to undo if it went wrong
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from unbidden.contracts.common import EvidenceLevel
 from unbidden.contracts.events import Event, EventType
@@ -98,6 +99,8 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
     if value == 0.0:
         add(ActionKind.DECLINE, 1.0, 0.0, 0.0, f"category {opp.category!r} has no value under this mandate")
         return _choose(opp, candidates, ActionKind.DECLINE)
+    if opp.details.get("check") == "reported_aggregates":
+        return _consistency(opp, candidates, add)
     if "@" in str(opp.details.get("tool", "")):
         reason = "found in a service analyzed in isolation: the lab cannot reproduce it inside the repository yet"
         add(ActionKind.WAIT, 0.0, 0.0, 0.0, reason)
@@ -208,6 +211,29 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
 
 
 MAX_MEASURES = 3
+
+
+def _consistency(opp: Opportunity, candidates: list[CandidateAction], add: Any) -> Decision:
+    """An API's reported numbers against the stored data (stage 9): investigated once, read-only; what it found
+    decides. A discrepancy is an observation for a person (no fix path is automated); agreement over a whole read is a
+    justified abstention; agreement over a read whose completeness is unknown, or a block, says only that."""
+    result = opp.details.get("consistency") or {}
+    if not result:
+        if int(opp.details.get("investigations", 0)) < 1:
+            add(ActionKind.INVESTIGATE, 0.5, 0.05, 0.0, "whether the reported numbers agree with the stored data is "
+                "unverified: read both, read-only")  # fmt: skip
+            return _choose(opp, candidates, ActionKind.INVESTIGATE)
+        add(ActionKind.WAIT, 0.0, 0.0, 0.0, "investigation queued or running")
+        return _choose(opp, candidates, ActionKind.WAIT)
+    status, note = str(result.get("status")), str(result.get("note", ""))[:300]
+    if status == "investigated" and result.get("discrepancies"):
+        add(ActionKind.WAIT, 0.0, 0.0, 0.0, f"discrepancies observed, for a person to judge: {note}")
+        return _choose(opp, candidates, ActionKind.WAIT)
+    if status == "investigated":
+        add(ActionKind.DECLINE, 1.0, 0.0, 0.0, f"the numbers agree with the stored data over a whole read: {note}")
+        return _choose(opp, candidates, ActionKind.DECLINE)
+    add(ActionKind.WAIT, 0.0, 0.0, 0.0, f"{status}: {note}")
+    return _choose(opp, candidates, ActionKind.WAIT)
 
 
 def own_rules_of(opp: Opportunity) -> bool:

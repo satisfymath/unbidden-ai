@@ -102,6 +102,9 @@ class ModelsPolicy(Contract):
     # When the chosen remote model fails or is refused, whether the local model takes over. Every fallback is
     # recorded either way; "deny" keeps a remote-first run from loading a large local model unannounced.
     local_fallback: Literal["allow", "deny"] = "allow"
+    # `deny`: no call is served by the local model at all (stage 9's runs: Meta's API only). A call that may not
+    # leave (secrets, production data, unrenamed private code) is then refused and says why, never sent locally.
+    local_inference: Literal["allow", "deny"] = "allow"
 
 
 class ConnectionGrant(Contract):

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import re
+from dataclasses import replace
 from datetime import UTC, datetime
 from typing import Any, NoReturn
 
@@ -176,6 +177,15 @@ class Brain:
         """`identifiers` adds names that must not leave the machine on this call, on top of the workspace's."""
         self._guard_prompt(request)
         decision, classification = self.decide(request)
+        if self.mandate.models.local_inference == "deny":
+            if not decision.tier.remote:
+                why = f"the mandate denies local inference, and this call may not go remote: {decision.reason}"
+                self.store.append_event(
+                    Event(type=EventType.POLICY_DENIED, actor=ACTOR, correlation_id=request.correlation_id,
+                          payload={"rule": "local_inference", "purpose": request.purpose, "why": why})
+                )  # fmt: skip
+                raise PolicyDenied(why)
+            decision = replace(decision, fallback=None if decision.fallback is Tier.LOCAL else decision.fallback)
         tiers = [decision.tier, *([decision.fallback] if decision.fallback else [])]
         last: Exception | None = None
         for i, tier in enumerate(tiers):
