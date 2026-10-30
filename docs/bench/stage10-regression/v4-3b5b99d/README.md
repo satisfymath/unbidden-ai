@@ -35,3 +35,21 @@ interrupted). Cost US$0.8825 (18.9309 -> 19.8134); `s10-dev` at 2.4802 of 8.00 a
 Both criteria from the handoff hold: Spoolman ends in a verified absence, and Conduit still reaches L4 with control
 and confirmation. Open, not fixed in this regression: the empty request summaries in the absence reason, the failed
 API extension on Spoolman, and workloads that send untyped parameters to Postgres functions.
+
+## LNbits R10-1 (346 s, US$0.1963)
+
+- Checks as in R9-7: 272 collected, 2 failed, both `(needs network)` (fiat-rate tests). No interventions, no branch.
+- No performance experiment. Consistency investigations: waiting (inconclusive: a read-only query hit its 1000-row
+  limit, totals unconfirmed), blocked by a documented-vs-observed deviation (`/api/v1/payments/stats/breakdown`
+  answered 200 with `tag` null where the schema says string), or blocked because the endpoints need oauth2/bearer and
+  the granted credential is of another kind. Each with its reason; none concluded.
+
+## Prefect B-r10 (563 s, US$0.2101) and A-r10 (666 s, US$0.2974)
+
+- Checks `infra_failed` with no reason recorded; every experiment waited on them; the ruff-style opportunities were
+  declined (the team's CI does not run ruff's style). In A, building the API integration failed (`api_client`
+  failed), so the goal waited. No branch, no interventions.
+- The empty reason was a defect (fixed in d0a8f18: a round that reaches no report keeps its exit and last output).
+  The rerun at d0a8f18 (v5-d0a8f18/prefect/B-r11) showed the cause: pytest could not import `prefect`, because
+  `prefect/__init__.py` imports `_build_info`, which versioningit writes at build time and git does not track.
+  Fixed generically in eb23cef (files a build declares it writes are taken from a wheel built in the image).

@@ -1,0 +1,19 @@
+{
+ "run": "R10-1",
+ "mode": "proactive",
+ "restored": {
+  "commit": "9349da153c223b008f7d80453b53a54e09c8ed3d",
+  "data": {
+   "accounts": 2012,
+   "wallets": 4012,
+   "payments": 400000
+  }
+ },
+ "usd_before": 19.8134,
+ "interventions": [],
+ "wall_s": 345.9,
+ "repo_after": "",
+ "branches_after": [],
+ "usd_after": 20.0097,
+ "workspace": "/Users/david/unbidden-lab/lnbits-runs/lnbits-R10-1"
+}

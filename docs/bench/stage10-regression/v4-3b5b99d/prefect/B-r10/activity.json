@@ -1,0 +1,208 @@
+{
+  "workspace": "prefect",
+  "at": "2026-10-30T19:57:14.799498+00:00",
+  "discovered": {
+    "total": 511,
+    "by_status": {
+      "open": 230,
+      "declined": 281
+    }
+  },
+  "experimenting": [],
+  "declined_because": [
+    [
+      "the team's CI does not run ruff: its style is not the team's standard",
+      281
+    ]
+  ],
+  "waiting_because": [
+    [
+      "investigation queued or running",
+      1
+    ]
+  ],
+  "proven": [],
+  "project_checks": {
+    "rev": "1ef3e516d3b3449d19f65b30c45d1e0bff656396",
+    "at": "2026-10-30T19:52:26.105168+00:00",
+    "status": "infra_failed",
+    "collected": null,
+    "failed": [
+      "<suite>"
+    ],
+    "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nset +e\npytest tests --ignore=tests/typesafety  -m \"not windows\"  --numprocesses logical  --maxprocesses 6  --dist worksteal  --disable-",
+    "scope": "matrix entry 1 of 18 (group=1, database=postgres:14, python-version=3.12); pytest-split group 1 of 18",
+    "partial": true,
+    "notes": [
+      "2 step(s) after the tests left out (they run no tests)",
+      "left out, it needs another job's artifact (test-durations-1.json): duration_path=\"test-durations-1.json\"",
+      "left out, it needs another job's artifact (test-durations.json): jq '.\"__pytest_split_incomplete__\" = -1'  test-durations.json > \"$duration_path\""
+    ]
+  },
+  "experiments_wait": {
+    "rev": "1ef3e516d3b3449d19f65b30c45d1e0bff656396",
+    "why": "the project's own checks were not reproduced at 1ef3e516d3b3 (infra_failed: )"
+  },
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {
+      "abandoned": 1
+    },
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 177,
+    "usd": 0.8174,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55470/prefect",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.agent",
+        "select public.alembic_version",
+        "select public.artifact",
+        "select public.artifact_collection",
+        "select public.automation",
+        "select public.automation_bucket",
+        "select public.automation_event_follower",
+        "select public.automation_held_event",
+        "select public.automation_related_resource",
+        "select public.block_document",
+        "select public.block_document_reference",
+        "select public.block_schema",
+        "select public.block_schema_reference",
+        "select public.block_type",
+        "select public.composite_trigger_child_firing",
+        "select public.concurrency_limit",
+        "select public.concurrency_limit_v2",
+        "select public.configuration",
+        "select public.csrf_token",
+        "select public.deployment",
+        "select public.deployment_schedule",
+        "select public.deployment_version",
+        "select public.event_resources",
+        "select public.events",
+        "select public.flow",
+        "select public.flow_run",
+        "select public.flow_run_input",
+        "select public.flow_run_state",
+        "select public.log",
+        "select public.saved_search",
+        "select public.task_run",
+        "select public.task_run_state",
+        "select public.task_run_state_cache",
+        "select public.variable",
+        "select public.work_pool",
+        "select public.work_queue",
+        "select public.worker"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T19:56:40.382570+00:00"
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18140",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "Prefect REST API: 187 operations documented, authenticated by nothing; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T19:56:40.397928+00:00"
+    }
+  ],
+  "needs_a_person": [],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [
+    {
+      "id": "int_2f6af62466d842b7",
+      "title": "Prefect REST API",
+      "on": "http_api:http://127.0.0.1:18140",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "read_account_events_page_events_filter_next_get": "read"
+      },
+      "oracle": {
+        "read_account_events_page_events_filter_next_get": "read failed: read_account_events_page_events_filter_next_get needs page-token; None, 0 records, read not at all (); ; without the key: None"
+      }
+    },
+    {
+      "id": "int_50bba118bab4417c",
+      "title": "Prefect REST API",
+      "on": "http_api:http://127.0.0.1:18140",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "read_events_events_filter_post": "write",
+        "read_account_events_page_events_filter_next_get": "read"
+      },
+      "oracle": {
+        "read_account_events_page_events_filter_next_get": "read failed: read_account_events_page_events_filter_next_get needs page-token; None, 0 records, read not at all (); ; without the key: None",
+        "read_events_events_filter_post": "not exercised: the grant prefect-api allows ['read'], not write:events"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "consistency-opp_d83483a2f9164d23",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for prefect-api",
+      "at": "2026-10-30T19:53:53.931199+00:00"
+    }
+  ]
+}

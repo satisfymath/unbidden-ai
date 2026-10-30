@@ -1,0 +1,251 @@
+{
+  "workspace": "lnbits",
+  "at": "2026-10-30T19:43:44.188827+00:00",
+  "discovered": {
+    "total": 19,
+    "by_status": {
+      "open": 19
+    }
+  },
+  "experimenting": [],
+  "declined_because": [],
+  "waiting_because": [
+    [
+      "blocked: GET /api/v1/assets/paginated accepts oauth2 or http:bearer; the granted credential is not of that kind",
+      1
+    ],
+    [
+      "blocked: GET /api/v1/extension/reviews/tags accepts oauth2 or http:bearer; the granted credential is not of that kind",
+      1
+    ],
+    [
+      "blocked: GET /api/v1/extension/wasm/invocations accepts oauth2 or http:bearer; the granted credential is not of that kind",
+      1
+    ],
+    [
+      "blocked: GET /api/v1/extension/wasm/invocations/current accepts oauth2 or http:bearer; the granted credential is not of that kind",
+      1
+    ],
+    [
+      "blocked: GET /api/v1/extension/wasm/invocations/stats accepts oauth2 or http:bearer; the granted credential is not of that kind",
+      1
+    ],
+    [
+      "blocked: GET /api/v1/payments/all/paginated accepts oauth2 or http:bearer; the granted credential is not of that kind",
+      1
+    ],
+    [
+      "inconclusive: no difference among the 0 keys read, but the set's completeness is unknown (the read-only query returned its limit of 1000 rows): 'none' is not concluded",
+      1
+    ],
+    [
+      "blocked: conclusion blocked by a documented-vs-observed deviation: Get_wallet_payment_total_breakdown_api_v1_payments_stats_breakdown_get answered 200 outside its documented schema, on what a conclusion needs: 0/tag: declared type string, observed null",
+      1
+    ]
+  ],
+  "proven": [],
+  "project_checks": {
+    "rev": "9349da153c223b008f7d80453b53a54e09c8ed3d",
+    "at": "2026-10-30T19:40:48.101450+00:00",
+    "status": "failed",
+    "collected": 272,
+    "failed": [
+      "tests.api.test_api::test_create_invoice_fiat_amount (needs network)",
+      "tests.api.test_api::test_fiat_tracking (needs network)"
+    ],
+    "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest tests/api",
+    "scope": "the whole job",
+    "partial": false,
+    "notes": []
+  },
+  "experiments_wait": null,
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {
+      "in_use": 2
+    },
+    "awaiting_approval": [],
+    "in_use": [
+      {
+        "kind": "api_client",
+        "source": "http_api:http://127.0.0.1:18120"
+      },
+      {
+        "kind": "api_extension",
+        "source": "http_api:http://127.0.0.1:18120#Get_wallet_payment_total_breakdown_api_v1_payments_stats_breakdown_get"
+      }
+    ]
+  },
+  "spent": {
+    "calls": 430,
+    "usd": 2.0152,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18120",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "Payment_List_api_v1_payments_paginated_get",
+        "Get_wallet_payment_total_breakdown_api_v1_payments_stats_breakdown_get"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T19:43:24.243138+00:00"
+    },
+    {
+      "id": "postgres:127.0.0.1:55450/lnbits",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.accounts",
+        "select public.apipayments",
+        "select public.assets",
+        "select public.audit",
+        "select public.balance_check",
+        "select public.balance_notify",
+        "select public.balances",
+        "select public.dbversions",
+        "select public.extensions",
+        "select public.installed_extensions",
+        "select public.system_settings",
+        "select public.tiny_url",
+        "select public.wallets",
+        "select public.wasm_invocations",
+        "select public.webpush_subscriptions"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T19:43:24.226686+00:00"
+    }
+  ],
+  "needs_a_person": [
+    {
+      "proposal": "docker compose up -d --remove-orphans",
+      "state": "proposed",
+      "what": "found in docker/regtest/docker-scripts.sh; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose up --remove-orphans",
+      "state": "proposed",
+      "what": "found in docker/regtest/docker-scripts.sh; a proposal only: a person declares deploy steps in the mandate"
+    }
+  ],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [
+    {
+      "id": "int_269069fa286146ef",
+      "title": "LNbits API",
+      "on": "http_api:http://127.0.0.1:18120",
+      "status": "superseded",
+      "how": "built",
+      "operations": {
+        "Payment_List_api_v1_payments_paginated_get": "read"
+      },
+      "oracle": {
+        "Payment_List_api_v1_payments_paginated_get": "200, 5000 records, read complete (5000 distinct records, an empty page at offset 5000; total is 0 on the empty page past the end: not compared; total = 5000 on every page, equal to the distinct records read); the same 5000 records with page size 99; without the key: 401"
+      }
+    },
+    {
+      "id": "int_9c4ca1f2e4b16ed2",
+      "title": "LNbits API",
+      "on": "http_api:http://127.0.0.1:18120",
+      "status": "validated",
+      "how": "built",
+      "operations": {
+        "Payment_List_api_v1_payments_paginated_get": "read",
+        "Get_wallet_payment_total_breakdown_api_v1_payments_stats_breakdown_get": "read"
+      },
+      "oracle": {
+        "Get_wallet_payment_total_breakdown_api_v1_payments_stats_breakdown_get": "200, 1 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 401",
+        "Payment_List_api_v1_payments_paginated_get": "200, 5000 records, read complete (5000 distinct records, an empty page at offset 5000; total is 0 on the empty page past the end: not compared; total = 5000 on every page, equal to the distinct records read); the same 5000 records with page size 99; without the key: 401"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "consistency-opp_c911fae935164408",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for lnbits-api",
+      "at": "2026-10-30T19:41:59.070364+00:00"
+    },
+    {
+      "goal": "consistency-opp_60484fc27fb941c2",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read Get_wallet_payment_total_breakdown_api_v1_payments_stats_breakdown_get added to the integration (open)",
+      "at": "2026-10-30T19:42:15.221302+00:00"
+    },
+    {
+      "goal": "consistency-opp_c911fae935164408",
+      "status": "inconclusive",
+      "short": 0,
+      "actions": 0,
+      "note": "no difference among the 0 keys read, but the set's completeness is unknown (the read-only query returned its limit of 1000 rows): 'none' is not concluded",
+      "at": "2026-10-30T19:43:24.284306+00:00"
+    },
+    {
+      "goal": "consistency-opp_60484fc27fb941c2",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "conclusion blocked by a documented-vs-observed deviation: Get_wallet_payment_total_breakdown_api_v1_payments_stats_breakdown_get answered 200 outside its documented schema, on what a conclusion needs: 0/tag: declared type string, observed null",
+      "at": "2026-10-30T19:43:32.764932+00:00"
+    }
+  ]
+}
