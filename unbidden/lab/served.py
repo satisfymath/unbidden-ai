@@ -94,17 +94,26 @@ def call(i):
     return response.status, response.read()
 
 
-warm = [call(i)[0] for i in range(warmup)]
+failure = ""
+warm = []
+for i in range(warmup):
+    status, data = call(i)
+    warm.append(status)
+    if not 200 <= status < 300 and not failure:
+        failure = "HTTP %d: %s" % (status, data[:300].decode("utf-8", "replace"))
 latencies, statuses, digests, first = [], [], [], ""
 for i in range(warmup, warmup + samples):
     started = time.perf_counter()
     status, data = call(i)
     latencies.append((time.perf_counter() - started) * 1000)
     statuses.append(status)
+    if not 200 <= status < 300 and not failure:
+        failure = "HTTP %d: %s" % (status, data[:300].decode("utf-8", "replace"))
     digest, text = canonical(data)
     digests.append(digest)
     first = first or text
-out({{"latencies_ms": latencies, "statuses": statuses, "warmup_statuses": warm, "digests": digests, "sample": first}})
+out({{"latencies_ms": latencies, "statuses": statuses, "warmup_statuses": warm, "digests": digests, "sample": first,
+     "failure": failure}})
 '''
 
 
@@ -141,6 +150,7 @@ class Session:
     data: str = ""
     data_ok: bool = False
     error: str = ""
+    failure: str = ""  # the first call that did not succeed, with what the application answered
 
 
 def run_session(
@@ -192,6 +202,8 @@ def run_session(
             plan = seed(psql)
             for statement in plan.statements:
                 psql(statement)
+            if request.get("setup_sql"):
+                psql(str(request["setup_sql"]))
             session.data_ok, session.data = data_check(psql, plan)
             values: list[str] = []
             if request.get("values_sql"):
@@ -234,6 +246,7 @@ def run_session(
     session.statuses = [int(s) for s in [*data.get("warmup_statuses", []), *data["statuses"]]]
     session.digests = list(data["digests"])
     session.sample = str(data.get("sample", ""))
+    session.failure = str(data.get("failure", ""))
     return session
 
 
@@ -259,7 +272,8 @@ def validate(session: Session, table: str, column: str, samples: int, *, reads: 
         return False, [session.error]
     bad = [s for s in session.statuses if not 200 <= s < 300]
     if bad:
-        problems.append(f"{len(bad)} of {len(session.statuses)} calls failed (HTTP {sorted(set(bad))})")
+        problems.append(f"{len(bad)} of {len(session.statuses)} calls failed (HTTP {sorted(set(bad))}); the first "
+                        f"answered {session.failure or 'nothing readable'}")  # fmt: skip
     if not session.data_ok:
         problems.append(f"the data is not what the measurement needs: {session.data}")
     used = [s for s in session.statements if int(s["calls"]) >= samples and reads_by(str(s["query"]), table, column)]

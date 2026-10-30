@@ -85,3 +85,11 @@ def test_a_written_migration_follows_the_projects_own_conventions() -> None:
     plain = in_house_style(_INDEX_MIGRATION.format(table="t", column="c", revision="r1", head_rev="h", name="ix"),
                            '"""x\n"""\nrevision = "h"\n\ndef upgrade():\n    pass\n')  # fmt: skip
     assert "def upgrade():" in plain and "-> None" not in plain  # an older project's style is kept as it is
+
+
+def test_test_packages_are_never_the_product_a_probe_targets() -> None:
+    """Stage 10 v2 regression, Spoolman: `tests_integration` was probed and a fix to its conftest's helper promoted."""
+    from unbidden.research.robustness import not_product
+
+    assert all(not_product(n) for n in ("tests", "tests_integration", "integration_tests", "testing", "test_utils"))
+    assert not any(not_product(n) for n in ("spoolman", "attestation", "contest", "latest"))

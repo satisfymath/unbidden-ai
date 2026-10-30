@@ -10,6 +10,11 @@ The endpoints that use this relation, as the application serves them:
 Their handlers' code:
 {{handlers}}
 
+The data models:
+```python
+{{models}}
+```
+
 Answer with one JSON object:
 - `method` and `path`: one of the endpoints above, with the path exactly as served (its prefix included). A path
   parameter is written `{value}`.
@@ -19,6 +24,10 @@ Answer with one JSON object:
 - `values_sql`: one SELECT over the seeded tables that returns, one per row, the values `{value}` takes, in a
   fixed order (an ORDER BY), at least {{calls}} rows; for example the ids of `{{parent}}` that own rows. Each call
   uses the next value. For an endpoint that removes what it acts on, the values must be distinct.
+- `setup_sql`: "" or UPDATE statements (separated by `;`) that give the seeded rows values the endpoint needs.
+  The seeder fills only required columns and references; every optional column is NULL. If the endpoint refuses
+  rows without some optional value (a weight, a price, a state), set it here, deterministically (no random()).
+  Only UPDATE; it runs once after seeding, and is recorded as data adapted by you.
 - `why`: one sentence: how this request makes the database read `{{table}}` by `{{column}}`.
 
 The request must make the database read `{{table}}` by `{{column}}` on every call, and return data: the engine's

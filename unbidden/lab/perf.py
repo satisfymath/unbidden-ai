@@ -1179,7 +1179,7 @@ class PerfLab:
 
     async def _choose_request(
         self, opp: Opportunity, relation: tuple[str, str], parent: str, handlers: list[tuple[str, str, str]],
-        feedback: str, result: PerfResult,
+        feedback: str, result: PerfResult, models: str = "",
     ) -> dict[str, Any] | None:  # fmt: skip
         prompt = load_prompt("perf_request")
         table, column = relation
@@ -1188,7 +1188,7 @@ class PerfLab:
             parent_note=f", which references `{parent}`" if parent else "",
             endpoints="\n".join(f"- {e}" for e in opp.details.get("endpoints", [])),
             handlers="\n\n".join(f"`{e}` in `{f}`:\n```python\n{c}```" for e, f, c in handlers[:4]),
-            calls=str(WARMUP + SAMPLES), feedback="",
+            calls=str(WARMUP + SAMPLES), feedback="", models=models[:7000],
         )  # fmt: skip
         schema: dict[str, Any] = {
             "type": "object",
@@ -1198,6 +1198,7 @@ class PerfLab:
                 "query": {"type": "object", "additionalProperties": {"type": "string"}},
                 "body": {},
                 "values_sql": {"type": "string"},
+                "setup_sql": {"type": "string"},
                 "why": {"type": "string"},
             },
             "required": ["method", "path", "query", "values_sql", "why"],
@@ -1217,6 +1218,15 @@ class PerfLab:
         if not re.match(r"(?is)^\s*(select|with)\b", sql) or ";" in sql:
             result.notes.append(f"request refused: values_sql is not one SELECT ({sql[:120]!r})")
             return None
+        setup = str(value.get("setup_sql") or "").strip()
+        statements = [s.strip() for s in setup.split(";") if s.strip()]
+        if any(
+            not re.match(r"(?is)^update\s+\w+\s+set\b", s)
+            or re.search(r"(?i)\b(drop|alter|create|truncate|insert|delete|grant|copy|pg_\w+\()", s)
+            for s in statements
+        ):
+            result.notes.append(f"request refused: setup_sql may only UPDATE seeded rows ({setup[:120]!r})")
+            return None
         served = {e.partition(" ")[2] for e in opp.details.get("endpoints", [])}
         path = str(value["path"])
         template = re.sub(r"\{value\}", "{x}", path)
@@ -1230,6 +1240,7 @@ class PerfLab:
             "body": value.get("body"),
             "values_sql": f"BEGIN READ ONLY; {sql}; COMMIT;",
             "why": value.get("why", ""),
+            "setup_sql": "; ".join(statements) + ";" if statements else "",
             "table": table,
             "column": column,
         }
@@ -1256,7 +1267,8 @@ class PerfLab:
         feedback = ""
         for attempt in range(self.repairs + 1):
             self.progress(f"choosing the request (attempt {attempt + 1})")
-            request = await self._choose_request(opp, relation, parent, handlers, feedback, result)
+            request = await self._choose_request(opp, relation, parent, handlers, feedback, result,
+                                                 self._show(rev, models_file[0]) if models_file else "")  # fmt: skip
             if request is None:
                 feedback = "Your previous answer was refused: " + (result.notes[-1] if result.notes else "")
                 continue
@@ -1280,6 +1292,7 @@ class PerfLab:
                 continue
             operation = {"method": request["method"], "path": request["path"], "query": request["query"],
                          "body": request["body"], "values": request["values_sql"], "why": request["why"],
+                         "data_adapted_by_model": request.get("setup_sql") or "",
                          "source": "chosen by a model among the endpoints the map relates to the table; checked by the "
                                    "engine's statement statistics"}  # fmt: skip
             data = describe(plans[-1]) if plans else {}

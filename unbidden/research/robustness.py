@@ -332,6 +332,15 @@ NOT_PRODUCT = {"tests", "test", "testing", "docs", "doc", "examples", "example",
                "tools", "migrations", "alembic", "build", "dist", "site-packages", "node_modules"}  # fmt: skip
 
 
+_TEST_NAME = re.compile(r"(?i)(^|_)(tests?|testing|testutils|fixtures|conftest)($|_)")
+
+
+def not_product(name: str) -> bool:
+    """A directory that is not the product: tooling by name, and any test package however it is called (stage 10:
+    Spoolman's `tests_integration` was probed, and a fix to a helper of its conftest was promoted to L4)."""
+    return name in NOT_PRODUCT or bool(_TEST_NAME.search(name))
+
+
 def probe_targets(repo: Path, rev: str, python: PythonStack) -> list[tuple[str, int]]:
     """The repository's own importable packages (a directory with `__init__.py` directly under a source root), with
     how many public functions each exposes, most first. Found from the tree, never named by a person."""
@@ -348,8 +357,10 @@ def probe_targets(repo: Path, rev: str, python: PythonStack) -> list[tuple[str, 
             prefix = root.split("/") if root else []
             if parts[: len(prefix)] == prefix and len(parts) == len(prefix) + 2:
                 name = parts[len(prefix)]
-                if name not in NOT_PRODUCT and not name.startswith((".", "_")):
-                    packages.add("/".join([*prefix, name]))
+                package = "/".join([*prefix, name])
+                if not_product(name) or name.startswith((".", "_")) or f"{package}/conftest.py" in files:
+                    continue
+                packages.add(package)
     counted = [(p, len(public_functions(repo, rev, p))) for p in sorted(packages)]
     return sorted((c for c in counted if c[1] > 0), key=lambda c: -c[1])
 

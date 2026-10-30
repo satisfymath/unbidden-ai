@@ -1,0 +1,230 @@
+{
+  "workspace": "spoolman",
+  "at": "2026-10-30T15:26:04.539599+00:00",
+  "discovered": {
+    "total": 3,
+    "by_status": {
+      "open": 2,
+      "proposed": 1
+    }
+  },
+  "experimenting": [],
+  "declined_because": [],
+  "waiting_because": [
+    [
+      "investigation queued or running",
+      1
+    ],
+    [
+      "not measurable at this commit: cannot measure: no workload was valid at the base after 5 attempts (request attempt 5 not valid: 23 of 23 calls failed (HTTP [400]))",
+      1
+    ]
+  ],
+  "proven": [
+    {
+      "id": "opp_47dc8180475c4940",
+      "title": "KeyError in assert_lists_compatible (tests_integration/tests/conftest.py)",
+      "level": 4,
+      "status": "proposed",
+      "level_name": "validated",
+      "outcome": null,
+      "held_checks": 0,
+      "current_rules": null,
+      "pending_revalidation": null
+    }
+  ],
+  "project_checks": {
+    "rev": "bed3f14ee77a3a571d31b14215d54b0b88a7519c",
+    "at": "2026-10-30T15:12:58.989104+00:00",
+    "status": "passed",
+    "collected": 278,
+    "failed": [],
+    "command": "python -m pytest -q -p no:cacheprovider",
+    "scope": "the whole job",
+    "partial": false,
+    "notes": []
+  },
+  "experiments_wait": null,
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {
+    "ready": [
+      "fix: KeyError in assert_lists_compatible (tests_integration/tests/conftest.py)"
+    ]
+  },
+  "capabilities": {
+    "needs": {
+      "in_use": 1,
+      "abandoned": 1
+    },
+    "awaiting_approval": [],
+    "in_use": [
+      {
+        "kind": "api_client",
+        "source": "http_api:http://127.0.0.1:18130"
+      }
+    ]
+  },
+  "spent": {
+    "calls": 493,
+    "usd": 3.7524,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {
+    "robustness \u00b7 bugs \u00b7 python": {
+      "successes": 1,
+      "failures": 0,
+      "p": 0.73,
+      "prior": 0.6
+    }
+  },
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18130",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "Find_spool_spool_get"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T15:26:02.907249+00:00"
+    },
+    {
+      "id": "postgres:127.0.0.1:55460/spoolman",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.alembic_version",
+        "select public.filament",
+        "select public.filament_field",
+        "select public.setting",
+        "select public.spool",
+        "select public.spool_field",
+        "select public.tag",
+        "select public.vendor",
+        "select public.vendor_field"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T15:25:50.623855+00:00"
+    }
+  ],
+  "needs_a_person": [
+    {
+      "proposal": "docker compose -f tests_frontend/docker-compose.yml up -d --wait",
+      "state": "proposed",
+      "what": "found in .github/workflows/ci.yml; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f tests_frontend_v2/docker-compose.yml up -d --wait",
+      "state": "proposed",
+      "what": "found in .github/workflows/ci.yml; a proposal only: a person declares deploy steps in the mandate"
+    }
+  ],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [
+    {
+      "id": "int_b68fc88082994317",
+      "title": "Spoolman REST API v1",
+      "on": "http_api:http://127.0.0.1:18130",
+      "status": "validated",
+      "how": "built",
+      "operations": {
+        "Find_spool_spool_get": "read"
+      },
+      "oracle": {
+        "Find_spool_spool_get": "200, 90000 records, read unknown (no total confirmed (no count beside the records); 90000 distinct records, an empty page at offset 90000); the same 90000 records with page size 99; without the key: 200"
+      }
+    },
+    {
+      "id": "int_63f94288e7f1086e",
+      "title": "Spoolman REST API v1",
+      "on": "http_api:http://127.0.0.1:18130",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "Find_spool_spool_get": "read",
+        "Find_spool_groups_spool_group_get": "read"
+      },
+      "oracle": {
+        "Find_spool_groups_spool_group_get": "read failed: Find_spool_groups_spool_group_get needs group_by; None, 0 records, read not at all (); ; without the key: None",
+        "Find_spool_spool_get": "200, 90000 records, read unknown (no total confirmed (no count beside the records); 90000 distinct records, an empty page at offset 90000); the same 90000 records with page size 99; without the key: 200"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "consistency-opp_33f050076b8a4da2",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for spoolman-api",
+      "at": "2026-10-30T15:13:02.863721+00:00"
+    },
+    {
+      "goal": "consistency-opp_33f050076b8a4da2",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read Find_spool_groups_spool_group_get added to the integration (open)",
+      "at": "2026-10-30T15:16:04.773598+00:00"
+    },
+    {
+      "goal": "consistency-opp_33f050076b8a4da2",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read Find_spool_groups_spool_group_get added to the integration (abandoned)",
+      "at": "2026-10-30T15:18:38.056863+00:00"
+    }
+  ]
+}
