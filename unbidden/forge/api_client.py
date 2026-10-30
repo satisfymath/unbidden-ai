@@ -64,6 +64,18 @@ class Operation(Contract):
     # The document's security requirements for it (the operation's own, else the document's): any one of the lists
     # suffices, each list's schemes all needed; [] is public; None when the document says nothing.
     security: list[list[str]] | None = None
+    # Why a POST is read as a read (stage 10): what the document says, then what was observed; "" for a GET.
+    read_by: str = ""
+
+    @property
+    def paging_parameters(self) -> list[dict[str, Any]]:
+        """The parameters a reader pages with: a read by POST pages through its body (`offset`, `limit`, a
+        cursor), declared there instead of in the query."""
+        if self.method == "GET" or not self.body_schema:
+            return self.parameters
+        props = self.body_schema.get("properties") or {}
+        return [*self.parameters, *({"name": k, "in": "query", "schema": v, "body": True}
+                                    for k, v in props.items() if k in PAGING_FIELDS)]  # fmt: skip
 
     def reachable(self, scheme: str | None) -> bool:
         """Whether a credential of this one scheme (or none) can call it, as the document says."""
@@ -128,6 +140,50 @@ def _scope(path: str) -> str:
     return parts[0] if parts else "root"
 
 
+PAGING_FIELDS = frozenset({"limit", "offset", "page", "page_size", "per_page", "cursor", "after", "before",
+                           "page_token", "pageToken"})  # fmt: skip
+QUERY_FIELDS = PAGING_FIELDS | {"sort", "sort_by", "order", "order_by", "filter", "filters", "where", "q", "query",
+                                "search", "fields", "expand"}  # fmt: skip
+_READ_WORDS = re.compile(r"(?i)\b(read|reads|list|lists|filter|filters|search|query|count|counts|find|get|history)\b")
+_WRITE_WORDS = re.compile(
+    r"(?i)\b(create|creates|update|updates|delete|deletes|remove|set|sets|insert|upsert|cancel|resume|pause|"
+    r"trigger|run|schedule|apply|reset|clear|bulk|write|modify|patch|replace|claim|lease|increment|decrement|"
+    r"heartbeat|login|logout|token|secret|secrets)\b"
+)
+
+
+def post_read_evidence(method: str, path: str, spec: dict[str, Any], body: dict[str, Any] | None,
+                       responses: dict[str, dict[str, Any] | None]) -> str:  # fmt: skip
+    """Why a POST only reads, from its document alone, or "" (then it is a write: the restrictive reading). All of:
+    an answer 200 (not 201) that is a list of records, an object holding one, or a count; a body made only of query
+    fields (paging, sorting, and objects the document describes as filters), none of them required; read words in
+    its summary or id and no word of a change. Prefect reads this way (`POST /flow_runs/filter`, stage 9's block);
+    `POST /block_documents/filter` takes `include_secrets` and is not read as a read."""
+    if method != "post" or "201" in responses or "202" in responses:
+        return ""
+    ok = responses.get("200")
+    kind = (ok or {}).get("type")
+    listing = kind == "array" or (kind == "object" and any(
+        (v or {}).get("type") == "array" for v in ((ok or {}).get("properties") or {}).values()))  # fmt: skip
+    if not (listing or kind in ("integer", "number")):
+        return ""
+    props = (body or {}).get("properties") or {}
+    if (body or {}).get("required"):
+        return ""
+    for name, schema in props.items():
+        text = json.dumps(schema)
+        if name not in QUERY_FIELDS and not re.search(r"(?i)\bfilter", text):
+            return ""
+    words = f"{spec.get('summary', '')} {spec.get('operationId', '')} {path.rsplit('/', 1)[-1]}".replace("_", " ")
+    if not _READ_WORDS.search(words) or _WRITE_WORDS.search(f"{words} {path}".replace("_", " ").replace("/", " ")):
+        return ""
+    shape = "a count" if kind in ("integer", "number") else "a listing"
+    return (
+        f"documented as a read: answers 200 with {shape}, its body only filters and pages "
+        f"({', '.join(sorted(props)) or 'empty'}), its summary says {spec.get('summary', '')!r}"
+    )
+
+
 def documented(document: dict[str, Any]) -> list[Operation]:
     """Every operation the document declares, typed from it. Schemas are read by the document's OpenAPI version and
     kept as JSON Schema 2020-12 (`oas_schema`); a document or schema that cannot be read faithfully raises
@@ -155,6 +211,8 @@ def documented(document: dict[str, Any]) -> list[Operation]:
                 )
                 for code, r in (spec.get("responses") or {}).items()
             }
+            body_schema = oas_schema.read(document, body, "request") if body else None
+            read_by = post_read_evidence(method, path, spec, body_schema, responses)
             found.append(
                 Operation(
                     id=spec.get("operationId") or f"{method} {path}",
@@ -162,10 +220,11 @@ def documented(document: dict[str, Any]) -> list[Operation]:
                     path=path,
                     summary=spec.get("summary", ""),
                     description=spec.get("description", ""),
-                    effect="read" if method == "get" else "write",
+                    effect="read" if method == "get" or read_by else "write",
+                    read_by=read_by,
                     scope=_scope(path),
                     parameters=[parameter(p) for p in spec.get("parameters") or []],
-                    body_schema=oas_schema.read(document, body, "request") if body else None,
+                    body_schema=body_schema,
                     responses=responses,
                     security=_security(spec.get("security", document.get("security"))),
                 )
@@ -357,6 +416,10 @@ def call(
     if grant is None:
         raise Unavailable(f"{conn.id} is not granted")
     params = dict(params or {})
+    if op.method != "GET" and op.effect == "read":
+        # A read by POST pages and filters through its body: what a reader passes as parameters goes there.
+        fields = set((op.body_schema or {}).get("properties") or {})
+        body = {**(body or {}), **{k: params.pop(k) for k in list(params) if k in fields}}
     _validate_params(op, params)
     if op.body_schema is not None:
         validate(body, op.body_schema)
@@ -473,13 +536,66 @@ def read_collection(
     from unbidden.connect.pages import read_all
 
     op = integration.op(op_id)
-    return read_all(
+    counter = count_of(integration, op)
+
+    def counted() -> int | None:
+        if counter is None:
+            return None
+        try:
+            value = call(integration, conn, mandate, counter.id, gate=gate, transport=transport, degraded=degraded)[1]
+        except (CallFailed, Unavailable):
+            return None
+        return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+    before = counted()
+    read = read_all(
         lambda params: call(
             integration, conn, mandate, op_id, params=params, gate=gate, transport=transport, degraded=degraded
         )[1],
-        op.parameters,
+        op.paging_parameters,
         page_size=page_size,
     )
+    if counter is not None:
+        from unbidden.connect.pages import confirm_total
+
+        read = confirm_total(read, before, counted(), counter.id)
+    return read
+
+
+def count_of(integration: ApiIntegration, op: Operation) -> Operation | None:
+    """The documented count of the same collection, read the same way (`POST /flow_runs/filter` and
+    `POST /flow_runs/count`): an independent statement of how many records there are, read before and after."""
+    if not op.path.endswith(("/filter", "/search", "/query")):
+        return None
+    sibling = op.path.rsplit("/", 1)[0] + "/count"
+    return next((o for o in integration.operations if o.path == sibling and o.effect == "read"
+                 and (o.responses.get("200") or {}).get("type") == "integer"), None)  # fmt: skip
+
+
+def observe_post_read(
+    integration: ApiIntegration, conn: Connection, mandate: Mandate, op: Operation, *,
+    transport: httpx.BaseTransport | None = None,
+) -> tuple[bool, str]:  # fmt: skip
+    """Whether a POST the document calls a read behaves as one: the same request twice gives the same answer, and the
+    documented count of the collection (when there is one) is the same before and after."""
+    counter = count_of(integration, op) if op.path.endswith(("/filter", "/search", "/query")) else None
+    body = {"limit": 1} if "limit" in ((op.body_schema or {}).get("properties") or {}) else {}
+
+    def once(target: Operation, payload: dict[str, Any] | None) -> Any:
+        return call(integration, conn, mandate, target.id, body=payload, gate=False, transport=transport)[1]
+
+    try:
+        before = once(counter, {}) if counter is not None else None
+        first, second = once(op, body), once(op, body)
+        after = once(counter, {}) if counter is not None else None
+    except (CallFailed, Unavailable, jsonschema.ValidationError) as exc:
+        return False, f"could not be observed ({str(exc)[:160]})"
+    if json.dumps(first, sort_keys=True, default=str) != json.dumps(second, sort_keys=True, default=str):
+        return False, "the same request answered differently twice"
+    if counter is not None and before != after:
+        return False, f"{counter.id} went from {before} to {after} around it"
+    confirmed = f"; {counter.id} unchanged ({before})" if counter is not None else "; no count to confirm by"
+    return True, f"the same answer twice{confirmed}"
 
 
 # The oracle -------------------------------------------------------------------------------------------------------
@@ -528,6 +644,15 @@ def oracle(
 
     from unbidden.connect.pages import Completeness, cross_check
 
+    for op in [o for o in reads if o.read_by]:
+        observed = observe_post_read(integration, conn, mandate, op, transport=transport)
+        op.read_by = f"{op.read_by}; observed: {observed[1]}"
+        if not observed[0]:
+            # The document said read; what was observed does not back it: a write again, as the restrictive reading.
+            op.effect = "write"
+            results[op.id] = {"passed": False, "why": f"not a read after all: {observed[1]}"}
+    reads = [o for o in integration.operations if o.effect == "read"]
+    listing = [o for o in reads if not any(p.get("in") == "path" for p in o.parameters)]
     for op in listing:
         error, items, completeness, agrees, why, read_why = None, [], None, False, "", ""
         try:
@@ -541,7 +666,7 @@ def oracle(
                     integration, conn, mandate, op.id, params=params, gate=False, transport=transport,
                     degraded=degraded,
                 )[1],
-                op.parameters,
+                op.paging_parameters,
             )  # fmt: skip
         except (CallFailed, Unavailable, jsonschema.ValidationError) as exc:
             error = str(exc)[:300]

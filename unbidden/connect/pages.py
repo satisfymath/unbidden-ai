@@ -197,6 +197,25 @@ def _end(seen: dict[str, dict[str, Any]], counts: Counts, style: str, requests: 
                 style, requests, None, notes)  # fmt: skip
 
 
+def confirm_total(read: Read, before: int | None, after: int | None, source: str) -> Read:
+    """A read judged against the collection's documented count, taken before and after it (stage 10): complete only
+    when both counts agree with each other and with the distinct records read; a count that moved says the collection
+    changed during the read; one that disagrees makes the read incomplete. Without both counts, the read stands."""
+    if before is None or after is None:
+        return read
+    distinct = len(read.records)
+    if before != after:
+        read.completeness = Completeness.UNKNOWN
+        read.why = f"{source} went from {before} to {after} during the read: the collection changed; {read.why}"
+    elif before == distinct and read.completeness is not Completeness.INCOMPLETE:
+        read.completeness, read.declared_total = Completeness.COMPLETE, before
+        read.why = f"{source} says {before} before and after, the distinct records read; {read.why}"
+    elif before != distinct:
+        read.completeness = Completeness.INCOMPLETE
+        read.why = f"{source} says {before}; {distinct} distinct records were read; {read.why}"
+    return read
+
+
 def read_all(
     fetch: Callable[[dict[str, Any]], Any],
     parameters: list[dict[str, Any]],
