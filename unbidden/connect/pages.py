@@ -345,7 +345,11 @@ def cross_check(
         smaller = max(1, info["limit"] - 1)
     second = read_all(fetch, parameters, page_size=smaller)
     a, b = {identity(r) for r in first.records}, {identity(r) for r in second.records}
-    if a == b and second.completeness is first.completeness:
+    # Unknown completeness does not contradict a known one: the first read may have been confirmed by a count the
+    # second does not repeat (Prefect, stage 10: the same 50 records, "complete" by its count, "unknown" without).
+    # Incomplete against either does.
+    kinds = {first.completeness, second.completeness}
+    if a == b and (len(kinds) == 1 or kinds == {Completeness.COMPLETE, Completeness.UNKNOWN}):
         return True, f"the same {len(a)} records with page size {smaller}"
     return False, (
         f"page size {info['limit']}: {len(a)} records ({first.completeness.value}); page size {smaller}: "

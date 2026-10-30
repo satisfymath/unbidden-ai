@@ -161,3 +161,23 @@ def test_a_count_on_the_empty_page_past_the_end_is_not_compared() -> None:
     rows = [{"id": i} for i in range(8)]
     read = read_all(offset_service(rows, lambda o, lim, b: {"total": len(rows) if b else 0}), OFFSET)
     assert read.completeness is Completeness.COMPLETE and "not compared" in read.why
+
+
+def test_the_same_records_agree_when_one_read_knows_its_completeness_and_the_other_does_not() -> None:
+    from unbidden.connect.pages import Read
+
+    rows = [{"id": i} for i in range(50)]
+    params = [
+        {"name": "limit", "in": "query", "schema": {"type": "integer", "default": 100}},
+        {"name": "offset", "in": "query", "schema": {"type": "integer"}},
+    ]
+
+    def fetch(p: dict[str, Any]) -> Any:
+        return rows[int(p.get("offset", 0)) : int(p.get("offset", 0)) + int(p["limit"])]
+
+    counted = Read(records=rows, completeness=Completeness.COMPLETE, why="its count says 50", style="offset")
+    assert read_all(fetch, params, page_size=16).completeness is Completeness.UNKNOWN  # no count beside the pages
+    agrees, why = cross_check(counted, fetch, params)
+    assert agrees, why
+    incomplete = Read(records=rows, completeness=Completeness.INCOMPLETE, why="a page skipped", style="offset")
+    assert not cross_check(incomplete, fetch, params)[0]  # incomplete against unknown still disagrees
