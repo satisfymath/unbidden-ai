@@ -54,8 +54,14 @@ def world() -> Iterator[dict[str, str]]:
     docker("volume", "create", *gamma, names["gamma"])
     made.extend([("network", names["gamma"]), ("volume", names["gamma"])])
     yield {"tag": tag, **names}
-    for kind, name in made:
-        docker(*({"container": ("rm", "-f"), "network": ("network", "rm"), "volume": ("volume", "rm")}[kind]), name)
+    # Containers first, then networks, then volumes: a network still serving a container cannot go, and the leaked
+    # networks exhausted Docker's address pools (each run left one; seventeen runs, no network could be created).
+    for wanted in ("container", "network", "volume"):
+        for kind, name in made:
+            if kind == wanted:
+                docker(*({"container": ("rm", "-f"), "network": ("network", "rm"), "volume": ("volume", "rm")}[kind]),
+                       name)  # fmt: skip
+    assert not docker("network", "ls", "-q", "--filter", f"name=^t-own-{tag}").stdout.strip(), "a network leaked"
 
 
 def exists(kind: str, name: str) -> bool:
