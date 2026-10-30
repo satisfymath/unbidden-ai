@@ -137,8 +137,18 @@ class Counts:
         contradicted: str | None = None
         changed: str | None = None
         names = sorted({name for _, fields, _ in self.pages for name in fields})
+        # A count on an empty page past the end says nothing of the set (LNbits answers `total: 0` there, 5,000 on
+        # every page with records, stage 9): compared only where records were served, its difference noted.
+        served = [p for p in self.pages if p[0] > 0] or self.pages
         for name in names:
-            rows = [(n, fields[name], echoes) for n, fields, echoes in self.pages if name in fields]
+            past = {fields[name] for n, fields, _ in self.pages if n == 0 and name in fields}
+            rows = [(n, fields[name], echoes) for n, fields, echoes in served if name in fields]
+            if not rows:
+                continue
+            if past - {fields[name] for _, fields, _ in served if name in fields}:
+                notes.append(
+                    f"{name} is {', '.join(map(str, sorted(past)))} on the empty page past the end: not compared"
+                )
             values = [v for _, v, _ in rows]
             documented = bool(self.DOCUMENTED.search(name))
             if all(v in echoes for _, v, echoes in rows):

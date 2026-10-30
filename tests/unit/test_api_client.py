@@ -466,3 +466,23 @@ def test_only_operations_the_granted_kind_of_credential_can_call_are_offered() -
     assert not ops["wallet"].reachable(None) and ops["health"].reachable(None)  # no credential: public only
     assert auth_kinds(doc, doc["paths"]["/assets"]["get"]) == [["http:bearer"]]
     assert auth_kinds(doc, doc["paths"]["/wallet"]["get"]) == [["apiKey:header"]]
+
+
+def test_a_read_waits_out_a_rate_limit(mandate: Mandate, monkeypatch: Any) -> None:
+    """Stage 9, LNbits: the oracle's full reads met a 429; reads now wait (Retry-After, else growing), writes not."""
+    import unbidden.forge.api_client as api
+
+    waited: list[float] = []
+    monkeypatch.setattr(api.time, "sleep", waited.append)
+    answers = iter([429, 429, 200])
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        status = next(answers)
+        if status == 429:
+            return httpx.Response(429, headers={"Retry-After": "7"}, json={"error": "slow down"})
+        return httpx.Response(200, json=[{"sku": "A1", "on_hand": 1}])
+
+    mandate.connections = [grant(["read"])]
+    status, _ = call(integration(["listItems"]), connected(["listItems"]), mandate, "listItems",
+                     transport=httpx.MockTransport(handle))  # fmt: skip
+    assert status == 200 and waited == [7.0, 7.0]

@@ -153,3 +153,11 @@ def test_a_skipped_page_with_a_total_that_holds_elsewhere_is_incomplete() -> Non
 
     read = read_all(skipping, OFFSET)
     assert read.completeness is Completeness.INCOMPLETE and "declares 10" in read.why
+
+
+def test_a_count_on_the_empty_page_past_the_end_is_not_compared() -> None:
+    """Stage 9, LNbits: `total` is 5,000 on every page with records and 0 on the empty page past the end; read as a
+    collection that changed, the whole read was unknown and the integration rejected."""
+    rows = [{"id": i} for i in range(8)]
+    read = read_all(offset_service(rows, lambda o, lim, b: {"total": len(rows) if b else 0}), OFFSET)
+    assert read.completeness is Completeness.COMPLETE and "not compared" in read.why

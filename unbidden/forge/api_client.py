@@ -40,6 +40,7 @@ COLLECTION = "integrations"
 # 3: reads may degrade past accessory deviations, recorded; 2: complete reads cross-checked; writes judged by
 # observed, documented effects
 ORACLE_VERSION = 3
+RATE_LIMIT_RETRIES = 6  # on reads: Retry-After, else 1, 2, 4 ... s, each at most 30 s
 MAX_PAGES = 10
 METHODS = ("get", "post", "put", "patch", "delete")
 
@@ -355,10 +356,13 @@ def call(
     timeout = float(integration.limits.get("timeout_s", 10.0))
     response: httpx.Response | None = None
     retries = 0 if mutating else int(integration.limits.get("retries", 2))
+    # A rate limit is waited out on reads, longer than a transient error: LNbits limits requests per minute, and the
+    # oracle's two full reads of 5,000 records met its 429 (stage 9). Writes are still sent once.
+    limited = 0 if mutating else RATE_LIMIT_RETRIES
     why = intent or f"{op.id} on {conn.id}"
     from unbidden.connect.effects import authorize, record_attempt
 
-    for attempt in range(retries + 1):
+    for attempt in range(retries + limited + 1):
         if mutating:
             assert store is not None
             ok, refused = authorize(store, mandate, conn, op.scope, why)
@@ -377,7 +381,11 @@ def call(
             if mutating:
                 assert store is not None
                 record_attempt(store, conn, op.id, idempotency_key, why, sent, error)
-        if response.status_code in (429, 503) and attempt < retries:
+        if response.status_code == 429 and attempt < retries + limited:
+            after = response.headers.get("Retry-After", "")
+            time.sleep(min(float(after) if after.replace(".", "", 1).isdigit() else 2.0**attempt, 30.0))
+            continue
+        if response.status_code == 503 and attempt < retries:
             time.sleep(min(float(response.headers.get("Retry-After", "1") or 1), 5.0))
             continue
         break
