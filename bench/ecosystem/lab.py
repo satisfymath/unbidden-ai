@@ -135,6 +135,8 @@ def up(lab: Path) -> None:
     time.sleep(1)
     if _psql("SELECT count(*) FROM pg_tables WHERE tablename = 'orders'") == "0":
         _docker_stdin(_schema(values))
+    align_password("shop_reader", values["SHOP_READER_PW"])
+    align_password("shop_ops", values["SHOP_OPS_PW"])
     for which in STOCKROOMS:
         stockroom_up(lab, which)
     time.sleep(2)
@@ -261,6 +263,15 @@ def revoke_reader(lab: Path) -> None:
 
 def restore_reader(lab: Path) -> None:
     _psql(f"ALTER ROLE shop_reader PASSWORD '{_secrets(lab)['SHOP_READER_PW']}'")
+
+
+def align_password(role: str, password: str) -> None:
+    """The role's password is the one this lab directory holds now: the database's volume outlives a teardown (its
+    data is kept), and roles created by an earlier setup kept an earlier password (stage 9 walk: every walk's new
+    HOME made new secrets, and the board's reader was refused)."""
+    sql = (f"DO $$ BEGIN IF EXISTS (SELECT FROM pg_roles WHERE rolname = '{role}') THEN "
+           f"ALTER ROLE {role} PASSWORD '{password}'; END IF; END $$;")  # fmt: skip
+    _docker("exec", PG, "psql", "-q", "-U", "postgres", "-c", sql, check=False)
 
 
 def down(lab: Path, *, volumes: bool = False) -> None:

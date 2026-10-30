@@ -64,6 +64,7 @@ def _database(lab: Path) -> None:
         ).stdout.strip()
         == "1"
     ):
+        base.align_password("dispatch_reader", _secrets(lab)["DISPATCH_READER_PW"])
         return
     base._docker("exec", base.PG, "psql", "-U", "postgres", "-c", "CREATE DATABASE dispatch")  # pyright: ignore[reportPrivateUsage]
     rng = random.Random(SEED)

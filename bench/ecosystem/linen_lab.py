@@ -73,6 +73,7 @@ def _database(lab: Path) -> None:
         "exec", base.PG, "psql", "-U", "postgres", "-At", "-c", "SELECT 1 FROM pg_database WHERE datname = 'linen'"
     ).stdout.strip()  # fmt: skip
     if exists == "1":
+        base.align_password("linen_reader", _secrets(lab)["LINEN_READER_PW"])
         return
     _psql("CREATE DATABASE linen")
     _, rows = stock()

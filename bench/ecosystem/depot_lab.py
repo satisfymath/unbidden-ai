@@ -51,6 +51,7 @@ def _database(lab: Path) -> None:
         "SELECT 1 FROM pg_database WHERE datname = 'depot'",
     ).stdout.strip()
     if exists == "1":
+        base.align_password("depot_reader", _secrets(lab)["DEPOT_READER_PW"])
         return
     base._docker("exec", base.PG, "psql", "-U", "postgres", "-c", "CREATE DATABASE depot")  # pyright: ignore[reportPrivateUsage]
     rng = random.Random(SEED)

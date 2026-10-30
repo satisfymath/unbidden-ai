@@ -346,6 +346,7 @@ def _data(lab: Path, seed: int, n: int) -> dict[str, str]:
             "GRANT SELECT ON picks TO board_reader;",
             DB,
         )
+    base.align_password("board_reader", _secrets(lab)["BOARD_READER_PW"])
     values = ",\n".join(f"('{b}', {u}, now() - interval '{d} days')" for b, u, d in picks)
     _psql(f"TRUNCATE picks RESTART IDENTITY;\nINSERT INTO picks (bin, units, picked_at) VALUES {values};\nANALYZE;", DB)
     home = lab / "boarddepot"
