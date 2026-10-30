@@ -1,0 +1,293 @@
+== cycle 1 (exit 0)
+15:28:20 watching /Users/david/unbidden-lab/conduit (ctrl-c to stop, `unbidden 
+kill` to freeze)
+15:28:20 HEAD is 029eb7781c60
+15:28:21 connections: postgres:127.0.0.1:55440/postgres connected, 
+http_api:http://127.0.0.1:18110 needs_capability
+15:28:21 provisioning python dependencies
+15:28:25 scan of 029eb7781c60: 0 reports, 0 new opportunities
+15:29:57 map of 029eb7781c60: 38 resources, 0 blind spots
+15:29:58 robustness probe at 029eb7781c60: investigate (probe app (30 public 
+functions sampled))
+15:30:01 observe.checks failed: dependency image for python failed to build:
+error: Failed to build `asyncpg==0.26.0`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta.build_wheel` failed (exit status: 1)
+
+         
+         running bdist_wheel
+         running build
+         running build_py
+         creating build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/__init__.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/_version.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/cluster.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         error: command 'gcc' failed: No such file or directory
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv
+pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt 
+&& SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\" && printf 
+'Metadata-Version: 2.1\\nName: fastapi-realworld-example-app\\nVersion: 
+0.0.0\\n' > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/METADATA && 
+echo unbidden > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/INSTALLER 
+&& printf '/work/src\\n/work\\n' > 
+\"$SP/_unbidden_fastapi_realworld_example_app.pth\"  && (/deps/.venv/bin/python 
+-c \"import pytest\" 2>/dev/null      || uv pip install --python 
+/deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+1.993          error: command 'gcc' failed: No such file or directory
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python --exclude-newer 
+2022-08-21T02:23:41Z setuptools pip && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt && 
+SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\" && printf 
+'Metadata-Version: 2.1\\nName: fastapi-realworld-example-app\\nVersion: 
+0.0.0\\n' > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/METADATA && 
+echo unbidden > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/INSTALLER 
+&& printf '/work/src\\n/work\\n' > 
+\"$SP/_unbidden_fastapi_realworld_example_app.pth\"  && (/deps/.venv/bin/python 
+-c \"import pytest\" 2>/dev/null      || uv pip install --python 
+/deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+A package is built from source and needs a C compiler; system packages come from
+deb.debian.org, which the mandate's package registries do not list.
+15:30:01 needs a person: add deb.debian.org to egress.package_registries (system
+build tools: a compiler and the C headers a package builds against) (then: 
+observe.checks runs again)
+15:30:02 opp_c080efaea5fd41b1: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+15:30:02 experiments wait: the project's own checks were not reproduced at 
+029eb7781c60 (blocked: ProvisionError: dependency image for python failed to 
+build:
+error: Failed to build `asyncpg==0.26.0`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta.build_wheel` )
+15:30:02 opp_97b5ebc14ef54b6b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+15:30:02 opp_8aa2df1342d54cdc: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+15:30:02 opp_65ff7491fae54f8b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+15:30:02 opp_eca3f399eb544d04: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+15:30:02 opp_e5596f255c504444: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+15:30:13 opp_eca3f399eb544d04: consistency of GET /api/articles: 
+waiting_capability: needs an integration for conduit-api
+15:31:08 capability need api_client for http_api:http://127.0.0.1:18110: in_use
+15:31:19 opp_e5596f255c504444: consistency of GET /api/articles/feed: 
+waiting_extension: needs the read 
+articles_get_user_feed_articles_api_articles_feed_get added to the integration 
+(open)
+15:32:07 capability need api_extension for 
+http_api:http://127.0.0.1:18110#articles_get_user_feed_articles_api_articles_fee
+d_get: in_use
+15:32:39 opp_eca3f399eb544d04: consistency of GET /api/articles: inconclusive: 
+no difference among the 1000 keys read, but the set's completeness is unknown 
+(no total confirmed (articlesCount is 0 on the empty page past the end: not 
+compared); 20000 distinct records, an empty page at offset 20000; the read-only 
+query returned its limit of 1000 rows): 'none' is not concluded
+15:32:48 opp_e5596f255c504444: consistency of GET /api/articles/feed: 
+inconclusive: no difference among the 0 keys read, but the set's completeness is
+unknown (no total confirmed (no count beside the records); 0 distinct records, 
+an empty page at offset 0; the read-only query returned its limit of 1000 rows):
+'none' is not concluded
+15:32:48 opp_eca3f399eb544d04: wait (inconclusive: no difference among the 1000 
+keys read, but the set's completeness is unknown (no total confirmed 
+(articlesCount is 0 on the empty page past the end: not compared); 20000 
+distinct records, an empty page at offset 20000; the read-only query returned 
+its limit of 1000 rows): 'none' is not concluded)
+15:32:48 opp_e5596f255c504444: wait (inconclusive: no difference among the 0 
+keys read, but the set's completeness is unknown (no total confirmed (no count 
+beside the records); 0 distinct records, an empty page at offset 0; the 
+read-only query returned its limit of 1000 rows): 'none' is not concluded)
+15:32:52 research.probe failed: dependency image for python failed to build:
+error: Failed to build `asyncpg==0.26.0`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta.build_wheel` failed (exit status: 1)
+
+         
+         running bdist_wheel
+         running build
+         running build_py
+         creating build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/__init__.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/_version.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/cluster.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         error: command 'gcc' failed: No such file or directory
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv
+pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt 
+&& SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\" && printf 
+'Metadata-Version: 2.1\\nName: fastapi-realworld-example-app\\nVersion: 
+0.0.0\\n' > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/METADATA && 
+echo unbidden > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/INSTALLER 
+&& printf '/work/src\\n/work\\n' > 
+\"$SP/_unbidden_fastapi_realworld_example_app.pth\"  && (/deps/.venv/bin/python 
+-c \"import pytest\" 2>/dev/null      || uv pip install --python 
+/deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+2.053          error: command 'gcc' failed: No such file or directory
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python --exclude-newer 
+2022-08-21T02:23:41Z setuptools pip && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt && 
+SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\" && printf 
+'Metadata-Version: 2.1\\nName: fastapi-realworld-example-app\\nVersion: 
+0.0.0\\n' > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/METADATA && 
+echo unbidden > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/INSTALLER 
+&& printf '/work/src\\n/work\\n' > 
+\"$SP/_unbidden_fastapi_realworld_example_app.pth\"  && (/deps/.venv/bin/python 
+-c \"import pytest\" 2>/dev/null      || uv pip install --python 
+/deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+A package is built from source and needs a C compiler; system packages come from
+deb.debian.org, which the mandate's package registries do not list.
+15:32:52 needs a person: add deb.debian.org to egress.package_registries (system
+build tools: a compiler and the C headers a package builds against) (then: 
+observe.checks runs again)
+
+
+== cycle 2 (exit 0)
+15:32:52 watching /Users/david/unbidden-lab/conduit (ctrl-c to stop, `unbidden 
+kill` to freeze)
+15:32:53 connections: postgres:127.0.0.1:55440/postgres connected, 
+http_api:http://127.0.0.1:18110 connected
+
+
+== cycle 3 (exit 0)
+15:32:54 watching /Users/david/unbidden-lab/conduit (ctrl-c to stop, `unbidden 
+kill` to freeze)
+15:32:54 unblocked: add deb.debian.org to egress.package_registries (system 
+build tools: a compiler and the C headers a package builds against); 2 job(s) 
+run again
+15:32:54 connections: postgres:127.0.0.1:55440/postgres connected, 
+http_api:http://127.0.0.1:18110 connected
+15:33:40 the project's own checks at 029eb7781c60: passed (90 collected, 0 
+failed)
+15:33:40 writing property tests for app
+15:33:50 running them offline
+15:34:24 robustness probe of app: 3 failed, 5 passed in 32.88s; 0 crash(es), 0 
+new; 0 property violation(s) kept for a person (L1)
+15:34:25 candidate: index on commentaries.article_id, written from the finding
+15:34:26 writing the workload (attempt 1)
+15:34:46 validating the workload at the base
+15:35:12 writing the workload (attempt 2)
+15:35:48 validating the workload at the base
+15:36:36 measuring 4 sessions per side, alternating
+15:42:50 running the CI test job on both sides
+15:47:00 opp_c080efaea5fd41b1: no proven fix (GET /api/articles/{slug}/comments:
+session medians 927.37 -> 942.59 ms (-2% faster), permutation p = 0.8 (slower: 
+0.229), 95% interval of the effect [-4%, +2%]; no change of 20% or more either 
+way)
+15:47:00 opp_c080efaea5fd41b1: run_experiment (reproduce it and measure a 
+candidate offline (p 0.20 from the lab's history of this kind))
+15:47:01 candidate: index on commentaries.author_id, written from the finding
+15:47:01 writing the workload (attempt 1)
+15:47:45 validating the workload at the base
+15:48:08 writing the workload (attempt 2)
+15:48:31 validating the workload at the base
+15:48:57 writing the workload (attempt 3)
+15:49:39 validating the workload at the base
+15:50:03 writing the workload (attempt 4)
+15:50:25 validating the workload at the base
+15:50:51 writing the workload (attempt 5)
+15:51:16 validating the workload at the base
+15:51:41 opp_97b5ebc14ef54b6b: not measured (cannot measure: no workload was 
+valid at the base after 5 attempts (workload attempt 5 failed: E   
+asyncpg.exceptions.AmbiguousFunctionError: function 
+pg_catalog.date_part(unknown, unknown) is not unique))
+15:51:41 opp_97b5ebc14ef54b6b: wait (not measurable at this commit: cannot 
+measure: no workload was valid at the base after 5 attempts (workload attempt 5 
+failed: E   asyncpg.exceptions.AmbiguousFunctionError: function 
+pg_catalog.date_part(unknown, unknown) is not uni)
+15:51:42 candidate: index on favorites.article_id, written from the finding
+15:51:43 writing the workload (attempt 1)
+15:52:08 validating the workload at the base
+15:52:35 writing the workload (attempt 2)
+15:53:24 validating the workload at the base
+15:53:50 writing the workload (attempt 3)
+15:54:12 validating the workload at the base
+15:54:38 writing the workload (attempt 4)
+15:55:03 validating the workload at the base
+15:55:30 measuring 4 sessions per side, alternating
+15:58:56 A/A control: base against base
+16:00:37 confirming in 4 new sessions per side (1 candidate(s) at this commit)
+16:04:03 running the CI test job on both sides
+16:08:09 opp_8aa2df1342d54cdc: improved, evidence L4
+16:08:09 opp_8aa2df1342d54cdc: propose_change (evidence L4 meets the mandate's 
+L4)
+16:08:09 opp_8aa2df1342d54cdc: branch 
+unbidden/favorites-article-id-is-a-foreign-key-wi-d54cdc ready
+16:08:09 opp_8aa2df1342d54cdc: not published: destination github.com is not in 
+the mandate's allowlist; destination api.github.com is not in the mandate's 
+allowlist
+16:08:10 candidate: index on articles.author_id, written from the finding
+16:08:10 writing the workload (attempt 1)
+16:08:31 validating the workload at the base
+16:08:58 measuring 4 sessions per side, alternating
+16:12:30 running the CI test job on both sides
+16:16:37 opp_65ff7491fae54f8b: no proven fix (GET /api/articles/feed: session 
+medians 32.37 -> 32.68 ms (-1% faster), permutation p = 0.9 (slower: 0.114), 95%
+interval of the effect [-2%, +0%]; no change of 20% or more either way)
+16:16:37 opp_65ff7491fae54f8b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.22 from the lab's history of this kind))
+16:16:37 opp_8aa2df1342d54cdc: not published: destination github.com is not in 
+the mandate's allowlist; destination api.github.com is not in the mandate's 
+allowlist
+16:16:38 candidate: index on commentaries.article_id, written from the finding
+16:16:38 writing the workload (attempt 1)
+16:17:07 validating the workload at the base
+16:17:31 writing the workload (attempt 2)
+16:17:56 validating the workload at the base
+16:18:31 measuring 4 sessions per side, alternating
+16:23:22 running the CI test job on both sides
+16:27:28 opp_c080efaea5fd41b1: no proven fix (GET /api/articles/{slug}/comments:
+session medians 24.33 -> 18.23 ms (+25% faster), permutation p = 0.0286 (slower:
+1), 95% interval of the effect [+24%, +26%]; mechanism observed: 35-35 scans of 
+an index on commentaries.article_id per candidate session (needed: 20))
+16:27:29 opp_c080efaea5fd41b1: decline (2 experiments found no proven fix)
+16:27:30 candidate: index on articles.author_id, written from the finding
+16:27:30 writing the workload (attempt 1)
+16:27:49 validating the workload at the base
+16:28:17 measuring 4 sessions per side, alternating
+16:31:58 running the CI test job on both sides
+16:36:10 opp_65ff7491fae54f8b: no proven fix (GET /api/articles/feed: session 
+medians 32.27 -> 32.52 ms (-1% faster), permutation p = 0.971 (slower: 0.0429), 
+95% interval of the effect [-2%, -0%]; no change of 20% or more either way)
+16:36:10 opp_65ff7491fae54f8b: decline (2 experiments found no proven fix)
+
+
+== cycle 4 (exit 0)
+16:36:11 watching /Users/david/unbidden-lab/conduit (ctrl-c to stop, `unbidden 
+kill` to freeze)
+16:36:11 connections: postgres:127.0.0.1:55440/postgres connected, 
+http_api:http://127.0.0.1:18110 connected

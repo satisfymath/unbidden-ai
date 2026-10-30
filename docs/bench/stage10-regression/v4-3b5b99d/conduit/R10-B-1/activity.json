@@ -1,0 +1,270 @@
+{
+  "workspace": "conduit",
+  "at": "2026-10-30T19:36:12.671263+00:00",
+  "discovered": {
+    "total": 6,
+    "by_status": {
+      "open": 3,
+      "proposed": 1,
+      "declined": 2
+    }
+  },
+  "experimenting": [],
+  "declined_because": [
+    [
+      "2 experiments found no proven fix",
+      2
+    ]
+  ],
+  "waiting_because": [
+    [
+      "inconclusive: no difference among the 1000 keys read, but the set's completeness is unknown (no total confirmed (articlesCount is 0 on the empty page past the end: not compared); 20000 distinct records, an empty page at offset 20000; the read-only query returned its limit of 1000 rows): 'none' is not concluded",
+      1
+    ],
+    [
+      "inconclusive: no difference among the 0 keys read, but the set's completeness is unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0; the read-only query returned its limit of 1000 rows): 'none' is not concluded",
+      1
+    ],
+    [
+      "not measurable at this commit: cannot measure: no workload was valid at the base after 5 attempts (workload attempt 5 failed: E   asyncpg.exceptions.AmbiguousFunctionError: function pg_catalog.date_part(unknown, unknown) is not uni",
+      1
+    ]
+  ],
+  "proven": [
+    {
+      "id": "opp_8aa2df1342d54cdc",
+      "title": "favorites.article_id is a foreign key without an index, checked when 1 endpoint(s) delete a articles row",
+      "level": 4,
+      "status": "proposed",
+      "level_name": "validated",
+      "outcome": null,
+      "held_checks": 0,
+      "current_rules": null,
+      "pending_revalidation": "judged by criteria older than perf-v3: pending revalidation"
+    }
+  ],
+  "project_checks": {
+    "rev": "029eb7781c60d5f563ee8990a0cbfb79b244538c",
+    "at": "2026-10-30T18:32:54.399650+00:00",
+    "status": "passed",
+    "collected": 90,
+    "failed": [],
+    "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npip --version >/dev/null 2>&1 || rm -rf .venv\ncd /work\nalembic upgrade head\n./scripts/test",
+    "scope": "the whole job",
+    "partial": false,
+    "notes": []
+  },
+  "experiments_wait": {
+    "rev": "029eb7781c60d5f563ee8990a0cbfb79b244538c",
+    "why": "the project's own checks were not reproduced at 029eb7781c60 (blocked: ProvisionError: dependency image for python failed to build:\nerror: Failed to build `asyncpg==0.26.0`\n  cause: The build backend returned an error\n  cause: Call to `setuptools.build_meta.build_wheel` )"
+  },
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {
+    "ready": [
+      "perf: index favorites.article_id \u00b7 DELETE /api/articles/{slug}: session medians 9.63 -> 1.62 ms (+83% faster), permutati"
+    ]
+  },
+  "capabilities": {
+    "needs": {
+      "in_use": 2
+    },
+    "awaiting_approval": [],
+    "in_use": [
+      {
+        "kind": "api_client",
+        "source": "http_api:http://127.0.0.1:18110"
+      },
+      {
+        "kind": "api_extension",
+        "source": "http_api:http://127.0.0.1:18110#articles_get_user_feed_articles_api_articles_feed_get"
+      }
+    ]
+  },
+  "spent": {
+    "calls": 584,
+    "usd": 6.6333,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {
+    "world \u00b7 performance \u00b7 -": {
+      "successes": 1,
+      "failures": 4,
+      "p": 0.31,
+      "prior": 0.6
+    }
+  },
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18110",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "articles_list_articles_api_articles_get",
+        "articles_get_article_api_articles__slug__get",
+        "articles_get_user_feed_articles_api_articles_feed_get"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T19:36:11.817364+00:00"
+    },
+    {
+      "id": "postgres:127.0.0.1:55440/postgres",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.alembic_version",
+        "select public.articles",
+        "select public.articles_to_tags",
+        "select public.commentaries",
+        "select public.favorites",
+        "select public.followers_to_followings",
+        "select public.tags",
+        "select public.users"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T19:36:11.782980+00:00"
+    },
+    {
+      "id": "github:nsidnev/fastapi-realworld-example-app",
+      "kind": "github",
+      "environment": "local",
+      "state": "discovered",
+      "read": [],
+      "write": [],
+      "requested": [],
+      "effective": [],
+      "blocked": "the mandate names no GitHub repository",
+      "next_step": "set egress.github.repository to nsidnev/fastapi-realworld-example-app and grant a token reference",
+      "found_by": [
+        "git remote origin"
+      ],
+      "checked_at": null
+    }
+  ],
+  "needs_a_person": [],
+  "optional_access": [
+    {
+      "connection": "github:nsidnev/fastapi-realworld-example-app",
+      "what": "set egress.github.repository to nsidnev/fastapi-realworld-example-app and grant a token reference",
+      "enables": "reading it"
+    }
+  ],
+  "blocks": [],
+  "integrations": [
+    {
+      "id": "int_3abee82c1ce14648",
+      "title": "FastAPI example application",
+      "on": "http_api:http://127.0.0.1:18110",
+      "status": "superseded",
+      "how": "built",
+      "operations": {
+        "articles_list_articles_api_articles_get": "read",
+        "articles_get_article_api_articles__slug__get": "read"
+      },
+      "oracle": {
+        "articles_get_article_api_articles__slug__get": "200; agrees with the listed record: True",
+        "articles_list_articles_api_articles_get": "200, 20000 records, read unknown (no total confirmed (articlesCount is 0 on the empty page past the end: not compared); 20000 distinct records, an empty page at offset 20000); the same 20000 records with page size 99; without the key: 200"
+      }
+    },
+    {
+      "id": "int_d21d3dc641306a51",
+      "title": "FastAPI example application",
+      "on": "http_api:http://127.0.0.1:18110",
+      "status": "validated",
+      "how": "built",
+      "operations": {
+        "articles_list_articles_api_articles_get": "read",
+        "articles_get_article_api_articles__slug__get": "read",
+        "articles_get_user_feed_articles_api_articles_feed_get": "read"
+      },
+      "oracle": {
+        "articles_get_article_api_articles__slug__get": "200; agrees with the listed record: True",
+        "articles_get_user_feed_articles_api_articles_feed_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 403",
+        "articles_list_articles_api_articles_get": "200, 20000 records, read unknown (no total confirmed (articlesCount is 0 on the empty page past the end: not compared); 20000 distinct records, an empty page at offset 20000); the same 20000 records with page size 99; without the key: 200"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "consistency-opp_eca3f399eb544d04",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for conduit-api",
+      "at": "2026-10-30T18:30:02.192186+00:00"
+    },
+    {
+      "goal": "consistency-opp_e5596f255c504444",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read articles_get_user_feed_articles_api_articles_feed_get added to the integration (open)",
+      "at": "2026-10-30T18:31:08.711169+00:00"
+    },
+    {
+      "goal": "consistency-opp_eca3f399eb544d04",
+      "status": "inconclusive",
+      "short": 0,
+      "actions": 0,
+      "note": "no difference among the 1000 keys read, but the set's completeness is unknown (no total confirmed (articlesCount is 0 on the empty page past the end: not compared); 20000 distinct records, an empty page at offset 20000; the read-only query returned its limit of 1000 rows): 'none' is not concluded",
+      "at": "2026-10-30T18:32:07.646051+00:00"
+    },
+    {
+      "goal": "consistency-opp_e5596f255c504444",
+      "status": "inconclusive",
+      "short": 0,
+      "actions": 0,
+      "note": "no difference among the 0 keys read, but the set's completeness is unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0; the read-only query returned its limit of 1000 rows): 'none' is not concluded",
+      "at": "2026-10-30T18:32:39.702015+00:00"
+    }
+  ]
+}
