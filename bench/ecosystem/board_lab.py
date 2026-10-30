@@ -430,14 +430,23 @@ def reset(
 def deploy(repo: Path) -> None:
     subprocess.run(["docker", "compose", "-p", PROJECT, "up", "-d", "--build"], cwd=repo, check=True,
                    capture_output=True)  # fmt: skip
-    for _ in range(60):
+    for attempt in range(90):
         try:
             if httpx.get(URL, timeout=3).status_code == 200:
                 return
         except httpx.HTTPError:
             pass
+        if attempt and attempt % 15 == 0:
+            # A first start can exit before what it reads at start is ready (seen twice in release walks, stages 8
+            # and 9); `up -d` starts it again and does nothing to a running one.
+            subprocess.run(["docker", "compose", "-p", PROJECT, "up", "-d"], cwd=repo, capture_output=True,
+                           check=False)  # fmt: skip
         subprocess.run(["sleep", "1"], check=False)
-    raise SystemExit(f"{URL} did not come up")
+    state = subprocess.run(["docker", "compose", "-p", PROJECT, "ps", "-a", "--format", "{{.Name}} {{.Status}}"],
+                           cwd=repo, capture_output=True, text=True, check=False).stdout.strip()  # fmt: skip
+    logs = subprocess.run(["docker", "compose", "-p", PROJECT, "logs", "--tail", "15"], cwd=repo,
+                          capture_output=True, text=True, check=False).stdout.strip()  # fmt: skip
+    raise SystemExit(f"{URL} did not come up\n{state}\n{logs}")
 
 
 def down(lab: Path) -> None:
