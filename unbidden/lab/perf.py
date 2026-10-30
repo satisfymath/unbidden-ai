@@ -389,6 +389,11 @@ def validate_in_process(
     return not problems, problems, passed
 
 
+def _only_unused(problems: list[str]) -> bool:
+    """A base run whose one problem is that no statement used the relation: it ran, on its data, and answered."""
+    return len(problems) == 1 and problems[0].startswith("the calls did not run a statement")
+
+
 def _same(sessions: list[dict[str, Any]]) -> tuple[bool | None, str]:
     """Whether base and candidate answered the same in every session: the sequence of response digests."""
     base = {tuple(s.get("digests") or []) for s in sessions if s["arm"] == "base" and s.get("digests")}
@@ -411,6 +416,8 @@ class PerfResult:
     candidate: Candidate | None = None
     notes: list[str] = field(default_factory=list[str])
     blocked: str | None = None  # what Unbidden lacks to run the experiment at all: not an experiment, not a negative
+    # The engine showed the endpoints do not look the table up by the column: no opportunity here (verified absence).
+    absent: str | None = None
 
 
 def _git(repo: Path, *args: str) -> str:
@@ -586,6 +593,7 @@ class PerfLab:
         self.parents: list[str] = []  # the tables the measured one references (their inserted rows are counted)
         self.last_session: Session | None = None  # the last served session, whole
         self.prep_block: tuple[str, str] | None = None  # the readiness state a preparation failed at, and why
+        self.unused: list[str] = []  # requests that ran well and whose statements never used the relation
 
     # Model-written artifacts ----------------------------------------------------------------------------
 
@@ -1143,6 +1151,9 @@ class PerfLab:
                 self._keep(opp, f"workload-attempt-{attempt + 1}", text, error)
                 continue
             ok, problems, passed = validate_in_process(record, relation, endpoint.startswith("GET "))
+            if not ok and _only_unused(problems):
+                seen = "; ".join(str(s["query"])[:200] for s in (record.get("statements") or [])[:2])
+                self.unused.append(f"{endpoint}: {seen}")
             if not ok:
                 feedback = (
                     "Your previous workload ran, but it does not measure what it must:\n- "
@@ -1285,6 +1296,9 @@ class PerfLab:
             ok, problems = validate(session, table, column, SAMPLES, reads=request["method"] == "GET")
             self._keep(opp, f"request-attempt-{attempt + 1}", json.dumps(request, indent=1),
                        "valid" if ok else "not valid:\n" + "\n".join(problems))  # fmt: skip
+            if not ok and _only_unused(problems):
+                self.unused.append(f"{request['method']} {request['path']}: " + "; ".join(
+                    str(s["query"])[:200] for s in session.statements[:2]))  # fmt: skip
             if not ok:
                 feedback = ("Your previous request ran, but it does not measure what it must:\n- "
                             + "\n- ".join(problems) + "\nChoose again.")  # fmt: skip
@@ -1404,6 +1418,18 @@ class PerfLab:
                                                       models_file, has_model, relation, result)  # fmt: skip
         if prepared is None and self.prep_block is not None:
             return blocked(*self.prep_block)
+        if prepared is None and len(self.unused) >= 2:
+            # Requests ran without help, on the data, and answered; the engine shows none looks the table up by the
+            # column. Not a preparation that failed: the claimed use is not there (verified absence, stage 10).
+            why = (f"{len(self.unused)} requests to the endpoints that use {relation[0]}.{relation[1]} ran and "
+                   f"answered, and the engine shows none of them looks {relation[0]} up by {relation[1]} ("
+                   + " | ".join(self.unused[:2])[:600] + ")")  # fmt: skip
+            ready("workload_valid", False, why)
+            result.absent = why
+            result.notes.append(f"no opportunity here: {why}")
+            opp.updated_at = utc_now()
+            self.store.put("opportunities", opp)
+            return result
         if prepared is None:
             last = next((n for n in reversed(result.notes) if n.startswith(("workload", "lab.", "request"))), "")
             return blocked("workload_valid", f"no workload was valid at the base after {self.repairs + 1} attempts "

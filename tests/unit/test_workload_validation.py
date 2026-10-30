@@ -93,3 +93,25 @@ def test_test_packages_are_never_the_product_a_probe_targets() -> None:
 
     assert all(not_product(n) for n in ("tests", "tests_integration", "integration_tests", "testing", "test_utils"))
     assert not any(not_product(n) for n in ("spoolman", "attestation", "contest", "latest"))
+
+
+@pytest.mark.parametrize(
+    ("query", "table", "column", "reads"),
+    [
+        ("SELECT * FROM spool WHERE spool.filament_id = $1", "spool", "filament_id", True),
+        ("SELECT * FROM filament LEFT OUTER JOIN vendor ON vendor.id = filament.vendor_id WHERE filament.id = $1",
+         "filament", "vendor_id", False),  # vendor looked up by its key: an index on filament.vendor_id does not serve
+        ("SELECT * FROM vendor JOIN filament ON filament.vendor_id = vendor.id WHERE vendor.id = $1",
+         "filament", "vendor_id", True),
+        ("SELECT c.* FROM commentaries c WHERE c.article_id = $1", "commentaries", "article_id", True),
+        ('SELECT 1 FROM ONLY "public"."favorites" x WHERE "article_id" OPERATOR(pg_catalog.=) $1 FOR KEY SHARE OF x',
+         "favorites", "article_id", True),  # PostgreSQL's own foreign-key check on a parent's delete
+        ("SELECT * FROM comments WHERE comments.id = $1", "comments", "article_id", False),
+    ],
+)  # fmt: skip
+def test_the_engine_statement_says_whether_the_table_is_looked_up_by_the_column(
+    query: str, table: str, column: str, reads: bool
+) -> None:
+    from unbidden.lab.seed import reads_by
+
+    assert reads_by(query, table, column) is reads

@@ -521,7 +521,14 @@ class Cycle:
             result = await lab.run(opp)
         opp = self.store.get("opportunities", opp.id, Opportunity) or opp
         blocked = getattr(result, "blocked", None)
-        if blocked:
+        absent = getattr(result, "absent", None)
+        if absent:
+            # A verified absence: the engine showed the claimed use is not there. Declined with that evidence.
+            opp.details = {**opp.details, "absent": {"rev": opp.details.get("rev"), "why": absent}}
+            opp.status = OpportunityStatus.DECLINED
+            self.store.put("opportunities", opp)
+            self.log(f"{opp.id}: no opportunity here ({absent[:300]})")
+        elif blocked:
             # Nothing ran: what is missing is Unbidden's, not evidence against the opportunity.
             opp.details = {**opp.details, "blocked": {"rev": opp.details.get("rev"), "why": blocked}}
             self.store.put("opportunities", opp)

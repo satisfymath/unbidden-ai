@@ -232,12 +232,48 @@ _STATEMENT_COLUMN = re.compile(r'["\w.]+')
 
 
 def reads_by(query: str, table: str, column: str) -> bool:
-    """Whether a statement reads `table` and selects or joins by `column` (`WHERE spool.filament_id = $1`)."""
-    q = query.lower().replace('"', "")
-    if not re.search(rf"\b(from|join|update|delete from)\s+(public\.)?{re.escape(table)}\b", q):
+    """Whether a statement looks `table` up by `column`: a WHERE condition on it (`spool.filament_id = $1`, `IN`,
+    `= ANY`), or a JOIN that brings `table` in on it (`JOIN spool ON spool.filament_id = filament.id`). A join that
+    brings another table in by its key (`JOIN vendor ON vendor.id = filament.vendor_id`) looks that table up, not
+    `table`: an index on `table.column` does not serve it (stage 10, Spoolman)."""
+    q = re.sub(r"\s+", " ", query.lower().replace('"', ""))
+    # PostgreSQL's own foreign-key checks: `FROM ONLY public.t x WHERE col OPERATOR(pg_catalog.=) $1`
+    q = q.replace(" only ", " ").replace("operator(pg_catalog.=)", "=")
+    names = {table}
+    for m in re.finditer(rf"\b(?:from|join) (?:public\.)?{re.escape(table)}(?: as)? (\w+)", q):
+        if m.group(1) not in (
+            "on",
+            "where",
+            "join",
+            "left",
+            "inner",
+            "right",
+            "full",
+            "cross",
+            "group",
+            "order",
+            "limit",
+        ):
+            names.add(m.group(1))
+    if not re.search(rf"\b(from|join|update|delete from) (public\.)?{re.escape(table)}\b", q):
         return False
-    return bool(re.search(rf"\b{re.escape(column)}\s*(=|in\b|=\s*any)", q)
-                or re.search(rf"(=|in\b)\s*[\w.]*\b{re.escape(column)}\b", q))  # fmt: skip
+    ref = "(?:" + "|".join(re.escape(n) for n in names) + rf")\.{re.escape(column)}"
+    on_column = rf"(?:\b{ref}\b|(?<![\w.]){re.escape(column)}\b) ?(?:=|in\b|= ?any)|(?:=|in\b) ?\(?(?:\b{ref}\b)"
+    # WHERE clauses (and UPDATE/DELETE conditions)
+    for clause in re.findall(r"\bwhere (.*?)(?=\b(?:group by|order by|limit|offset|returning|union)\b|$)", q):
+        if re.search(on_column, clause):
+            return True
+    # JOINs that bring `table` (or an alias of it) in
+    for joined, alias, condition in re.findall(
+        r"\bjoin (?:public\.)?(\w+)(?:(?: as)? (\w+))? on (.*?)(?=\b(?:left|right|"
+        r"inner|full|cross)? ?join\b|\bwhere\b|\bgroup by\b|\border by\b|$)",
+        q,
+    ):
+        if joined == table and re.search(
+            rf"\b(?:{re.escape(alias or table)}|{re.escape(table)})\.{re.escape(column)}\b", condition
+        ):
+            return True
+    return False
 
 
 def statements_using(psql: Psql, table: str, column: str, calls: int) -> list[dict[str, object]]:
