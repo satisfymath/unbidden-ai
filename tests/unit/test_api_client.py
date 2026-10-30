@@ -441,3 +441,28 @@ def test_a_read_outside_the_keys_scope_is_left_out_not_blamed_on_the_key(mandate
     assert any("outside the credential's scope" in n and "listAllItems" in n for n in notes)
     stored = get(store, conn.id)
     assert stored is None or stored.state is not ConnectionState.NEEDS_AUTHORIZATION  # no person asked for a key
+
+
+def test_only_operations_the_granted_kind_of_credential_can_call_are_offered() -> None:
+    """Stage 9, LNbits: its document says per operation which credentials it accepts (a wallet's API key, or OAuth2
+    and bearer tokens); the builder was offered all of them and chose ones an API key cannot call."""
+    from unbidden.forge.api_client import documented
+    from unbidden.forge.integrate import _scheme
+    from unbidden.world.runtime import auth_kinds
+
+    ok = {"200": {"description": "ok"}}
+    doc = {
+        "openapi": "3.1.0", "info": {"title": "t", "version": "1"},
+        "components": {"securitySchemes": {"Key": {"type": "apiKey", "in": "header", "name": "X-Api-Key"},
+                                           "Bearer": {"type": "http", "scheme": "bearer"}}},
+        "security": [{"Key": []}],
+        "paths": {"/wallet": {"get": {"operationId": "wallet", "responses": ok}},
+                  "/assets": {"get": {"operationId": "assets", "security": [{"Bearer": []}], "responses": ok}},
+                  "/health": {"get": {"operationId": "health", "security": [], "responses": ok}}},
+    }  # fmt: skip
+    ops = {o.id: o for o in documented(doc)}
+    scheme = _scheme(doc)
+    assert scheme == "Key" and [i for i, o in ops.items() if o.reachable(scheme)] == ["wallet", "health"]
+    assert not ops["wallet"].reachable(None) and ops["health"].reachable(None)  # no credential: public only
+    assert auth_kinds(doc, doc["paths"]["/assets"]["get"]) == [["http:bearer"]]
+    assert auth_kinds(doc, doc["paths"]["/wallet"]["get"]) == [["apiKey:header"]]

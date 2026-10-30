@@ -60,6 +60,15 @@ class Operation(Contract):
     # the body field whose amount it adds. The postcondition of every later call of this operation.
     observed_effect: dict[str, Any] | None = None
     why: str = ""
+    # The document's security requirements for it (the operation's own, else the document's): any one of the lists
+    # suffices, each list's schemes all needed; [] is public; None when the document says nothing.
+    security: list[list[str]] | None = None
+
+    def reachable(self, scheme: str | None) -> bool:
+        """Whether a credential of this one scheme (or none) can call it, as the document says."""
+        if self.security is None or self.security == [] or any(r == [] for r in self.security):
+            return True
+        return scheme is not None and any(set(r) <= {scheme} for r in self.security)
 
 
 class ApiIntegration(Contract):
@@ -154,9 +163,16 @@ def documented(document: dict[str, Any]) -> list[Operation]:
                     parameters=[parameter(p) for p in spec.get("parameters") or []],
                     body_schema=oas_schema.read(document, body, "request") if body else None,
                     responses=responses,
+                    security=_security(spec.get("security", document.get("security"))),
                 )
             )
     return found
+
+
+def _security(requirements: Any) -> list[list[str]] | None:
+    if not isinstance(requirements, list):
+        return None
+    return [sorted(str(k) for k in r) for r in requirements if isinstance(r, dict)]
 
 
 def signature(document: dict[str, Any], operations: list[Operation]) -> str:

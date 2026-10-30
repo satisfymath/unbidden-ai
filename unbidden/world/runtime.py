@@ -237,6 +237,22 @@ def _reconcile_endpoint(world: WorldModel, method: str, path: str, live: set[str
     return {}
 
 
+def auth_kinds(spec: dict[str, Any], operation: dict[str, Any]) -> list[list[str]] | None:
+    """The kinds of credential the operation accepts, as its document says: any one list suffices, its kinds all
+    needed (`apiKey:header`, `oauth2`, `http:bearer`); [] when public; None when the document says nothing."""
+    schemes = (spec.get("components") or {}).get("securitySchemes") or {}
+    requirements = operation.get("security", spec.get("security"))
+    if not isinstance(requirements, list):
+        return None
+
+    def kind(name: str) -> str:
+        s = schemes.get(name) or {}
+        detail = s.get("in") if s.get("type") == "apiKey" else s.get("scheme") if s.get("type") == "http" else None
+        return f"{s.get('type', name)}:{detail}" if detail else str(s.get("type", name))
+
+    return [sorted(kind(n) for n in r) for r in requirements if isinstance(r, dict)]
+
+
 _AGGREGATE = re.compile(r"(?i)(^|_)(count|total)$|[a-z](Count|Total)$|^num_?\w+")
 
 
@@ -469,6 +485,7 @@ def discover_runtime(repo: Path, world: WorldModel, rev: str = "HEAD", files: li
                                 "port": port,
                                 "tags": operations[method].get("tags", []),
                                 "aggregates": reported_aggregates(spec, operations[method]),
+                                "auth_kinds": auth_kinds(spec, operations[method]),
                                 "auth": bool(operations[method].get("security")),
                                 **extra,
                             },

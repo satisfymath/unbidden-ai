@@ -68,6 +68,14 @@ def read_document(
     return fetch_document(grant.docs or "", transport=transport)
 
 
+def _scheme(document: dict[str, Any]) -> str | None:
+    """The name of the security scheme the integration authenticates with (the first API key in a header, as `_auth`
+    reads it), or None when it sends no credential."""
+    schemes = (document.get("components") or {}).get("securitySchemes") or {}
+    return next((name for name, s in schemes.items() if s.get("type") == "apiKey" and s.get("in") == "header"),
+                next((name for name, s in schemes.items() if s.get("type") == "apiKey"), None))  # fmt: skip
+
+
 def _auth(document: dict[str, Any]) -> dict[str, str]:
     schemes = (document.get("components") or {}).get("securitySchemes") or {}
     for scheme in schemes.values():
@@ -135,6 +143,14 @@ async def build(
         _register(store, adopted, "reuse")
         return adopted, f"reuse:{adopted.provenance['reused_from']}", notes
     operations = documented(document)
+    # Only what the granted credential can call, as the document says per operation (stage 9, LNbits: the builder
+    # chose listings that accept only OAuth2 or a bearer token, and a wallet's API key was refused by them).
+    scheme = _scheme(document)
+    unreachable = [o.id for o in operations if not o.reachable(scheme)]
+    if unreachable:
+        notes.append(f"{len(unreachable)} documented operation(s) need another kind of credential than the one "
+                     f"granted ({scheme or 'none'}): not offered")  # fmt: skip
+        operations = [o for o in operations if o.reachable(scheme)]
     prompt = load_prompt("forge_api_client")
     stated = [f"- {g.statement} (bounds: {json.dumps(g.bounds)})" for g in mandate.goals]
     stated += [f"- {p} (asked by Unbidden itself; read-only)" for p in purposes or [] if p not in

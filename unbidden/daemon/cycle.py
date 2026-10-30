@@ -701,6 +701,19 @@ class Cycle:
         from unbidden.contracts.capability import CapabilityNeed, NeedStatus
         from unbidden.forge.needs import COLLECTION as NEEDS
 
+        # An endpoint whose document accepts only a kind of credential no grant holds (OAuth2 where an API key was
+        # granted) cannot be read: said so, without a model call and without asking anyone for a credential.
+        kinds = opp.details.get("auth_kinds")
+        held = (
+            {"apiKey:header"} if any(g.kind == "http_api" and g.credential_ref for g in mandate.connections) else set()
+        )
+        if isinstance(kinds, list) and kinds != [] and not any(set(r) <= held for r in kinds):
+            needed = " or ".join(" + ".join(r) for r in kinds)
+            note = f"{endpoint} accepts {needed}; the granted credential is not of that kind"
+            opp.details = {**opp.details, "consistency": {"status": "blocked", "model_calls": 0, "note": note}}
+            self.store.put("opportunities", opp)
+            self.log(f"{opp.id}: consistency of {endpoint}: blocked without a model call: it needs {needed}")
+            return
         apis = {f"http_api:{g.location}" for g in mandate.connections if g.kind == "http_api"}
         given_up = [n for n in self.store.list(NEEDS, CapabilityNeed)
                     if n.kind == "api_client" and n.source in apis and n.status is NeedStatus.ABANDONED]  # fmt: skip

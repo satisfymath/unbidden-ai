@@ -98,6 +98,7 @@ def reported_aggregates(world: WorldModel) -> list[Opportunity]:
                 dedup_key=f"world:reported_aggregates:{endpoint.name}",
                 evidence=[EvidenceRef(kind="config", locator=f"openapi#{endpoint.name}")],
                 details={
+                    "auth_kinds": endpoint.attributes.get("auth_kinds"),
                     "check": "reported_aggregates",
                     "endpoint": endpoint.name,
                     "fields": list(fields),
