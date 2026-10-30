@@ -1,0 +1,64 @@
+== cycle 1 (exit 0)
+03:40:10 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+03:40:11 HEAD is bed3f14ee77a
+03:40:11 deploy procedure found, proposed only: docker compose -f 
+tests_frontend/docker-compose.yml up -d --wait
+03:40:11 deploy procedure found, proposed only: docker compose -f 
+tests_frontend_v2/docker-compose.yml up -d --wait
+03:40:11 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability
+03:40:11 provisioning python dependencies
+03:40:11 running ruff
+03:40:12 scan of bed3f14ee77a: 1 reports, 0 new opportunities
+03:44:07 map of bed3f14ee77a: 67 resources, 4 blind spots
+03:44:08 robustness probe at bed3f14ee77a: investigate (probe tests_integration 
+(80 public functions sampled))
+03:44:10 the project's own checks at bed3f14ee77a: passed (278 collected, 0 
+failed)
+03:44:23 goal data-correct-and-fast: waiting_capability: needs an integration 
+for spoolman-api
+03:44:34 capability need api_client for http_api:http://127.0.0.1:18130: failed
+03:44:34 opp_a310f05b0297496f: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+03:44:34 opp_6bf2861452034f2a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+03:44:49 capability need api_client for http_api:http://127.0.0.1:18130: 
+abandoned
+03:45:04 goal data-correct-and-fast: blocked: spoolman-api: no integration could
+be validated (Export_vendors_export_vendors_get: read failed: 
+Export_vendors_export_vendors_get needs fmt; None, 0 records, read not at all 
+(); ; without the key: None Export_vendors_export_vendors_get needs fmt)
+03:45:04 writing property tests for tests_integration
+03:45:18 running them offline
+03:45:21 robustness probe of tests_integration: 3 failed, 1 passed, 1 error in 
+1.90s; 0 crash(es), 0 new; 0 property violation(s) kept for a person (L1)
+03:45:22 opp_a310f05b0297496f: not measured (cannot measure: no a CI job that 
+runs the tests)
+03:45:22 opp_a310f05b0297496f: wait (not measurable at this commit: cannot 
+measure: no a CI job that runs the tests)
+03:45:23 opp_6bf2861452034f2a: not measured (cannot measure: no a CI job that 
+runs the tests)
+03:45:23 opp_6bf2861452034f2a: wait (not measurable at this commit: cannot 
+measure: no a CI job that runs the tests)
+
+
+== cycle 2 (exit 0)
+03:45:23 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+03:45:24 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability
+
+
+== cycle 3 (exit 0)
+03:45:25 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+03:45:26 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability
+
+
+== cycle 4 (exit 0)
+03:45:26 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+03:45:26 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability

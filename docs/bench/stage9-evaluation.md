@@ -81,3 +81,20 @@ or **false promotion** (an L4 or a finding that 2 or 3 does not confirm). The la
 harness (Claude): a limit, stated.
 
 **Frozen product commit:** 466739e (the evaluation runs from a worktree at it).
+
+## Result (the evaluation, as run at 466739e, 2026-10-30)
+
+Four runs, each four cycles, US$0.84 from the `eval` envelope (ledger 12.3122 -> 13.1533), no intervention (no
+registry was asked for), no change to either repository, no branch. Records: `stage9-evaluation/<app>/<run>/`.
+
+| Run | Outcome | What happened | Independent measurement |
+|---|---|---|---|
+| Spoolman B-1 (5 min, US$0.19) | **technical block** | Its own checks ran at the base (278 tests, the fallback plan: its CI runs no pytest step); two unindexed foreign keys found (`spool.filament_id`, `filament.vendor_id`); both experiments blocked: "no CI job that runs the tests" (the performance lab demands one even though the base checks ran) | Its CI's integration suite (PostgreSQL variant), outside Unbidden: **562 passed**. The findings are real (no index; a filter by `filament_id` scans 100,000 rows, 2.35 ms) but **misexplained**: the queries they cite find their row by primary key (0.03 ms with or without the index) |
+| Spoolman A-1 (5 min, US$0.24) | **technical block** | Goal blocked: two integrations rejected; every read answered with the web page, not JSON: the document is served under `/api/v1` and its paths are relative to it, and the client called them at the host's root | Confirmed: `GET /spool` at the root is the HTML client; `/api/v1/spool` is the API |
+| Prefect B-1 (5 min, US$0.20) | **technical block** | The dependency image did not build: Unbidden installs every dependency group (`--all-groups`) and one (`cli-bench`) is a package from GitHub, not a registry; the block was classified "nothing a person can grant" and nobody was asked. Two foreign keys without an index (`work_pool.default_queue_id`, `deployment.concurrency_limit_id`); one consistency question blocked | Prefect's CI installs with `uv sync --locked` (default groups): so installed, `tests/server/models` passes **1,302** (a bounded part of its 18-group suite, SQLite variant). The two indexes are indeed missing; their tables are empty in this data: **inconclusive** |
+| Prefect A-1 (5 min, US$0.21) | **technical block** | Goal blocked: "no documented read operation was chosen": Prefect reads by `POST .../filter`, and Unbidden treats every POST as a write | Confirmed from the document |
+
+**Useful improvement verified: none. Absence of opportunity verified: none. False promotion: none. Technical blocks:
+four (each cause confirmed). Inconclusive: Prefect's two findings.** The cycle was not completed on either
+application. Nothing here is fixed in this version; causes fixed afterwards are tested as regressions, not as
+out-of-sample evidence.

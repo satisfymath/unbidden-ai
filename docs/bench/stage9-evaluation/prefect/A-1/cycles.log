@@ -1,0 +1,288 @@
+== cycle 1 (exit 0)
+03:58:20 watching /Users/david/unbidden-lab/prefect (ctrl-c to stop, `unbidden 
+kill` to freeze)
+03:58:20 HEAD is 1ef3e516d3b3
+03:58:21 connections: postgres:127.0.0.1:55470/prefect connected, 
+http_api:http://127.0.0.1:18140 needs_capability
+03:58:21 provisioning python dependencies
+03:58:23 scan of 1ef3e516d3b3: 0 reports, 0 new opportunities
+04:01:56 map of 1ef3e516d3b3: 248 resources, 4 blind spots
+04:02:01 robustness probe at 1ef3e516d3b3: investigate (probe src/prefect (80 
+public functions sampled))
+04:02:04 observe.checks failed: dependency image for python failed to build:
+error: Failed to download and build `python-cli-bench @ 
+git+https://github.com/zzstoatzz/python-cli-bench.git@3bdb12d0e97d814c86bddc6573
+c8d49b99f39719`
+  cause: Git operation failed
+  cause: Git executable not found. Ensure that Git is installed and available.
+
+hint: `python-cli-bench` was included because `prefect:cli-bench` depends on 
+`python-cli-bench`
+error: No solution found when resolving dependencies for split (markers: 
+python_full_version == '3.15.*')
+  cause: Because prefect-aws>=0.5.11,<=0.7.4 depends on your project and 
+prefect-aws>=0.5.8,<=0.5.9 depends on your project, we can conclude that all of:
+             prefect-aws>=0.5.8,<=0.5.9
+             prefect-aws>=0.5.11,<=0.7.4
+         depend on your project.
+         And because prefect-aws==0.5.10 depends on your project and 
+prefect-aws==0.7.5 depends on your project, we can conclude that 
+prefect-aws>=0.5.8,<=0.7.5 depends on your project.
+         And because prefect-aws==0.7.6 depends on your project and 
+prefect-aws>=0.7.8,<=0.7.11 depends on your project, we can conclude that all 
+of:
+hint: While the active Python version is 3.11, the resolution failed for other 
+Python versions supported by your project. Consider limiting your project's 
+supported Python versions using `requires-python`.
+ERROR: process "/bin/sh -c (uv sync --frozen --no-install-project --all-groups 
+--project /deps || (touch /deps/UNBIDDEN_LOCK_STALE && uv sync 
+--no-install-project --all-groups --project /deps)) && 
+SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/prefect-0.0.0.dist-info\" && printf 'Metadata-Version: 2.1\\nName: 
+prefect\\nVersion: 0.0.0\\n' > \"$SP/prefect-0.0.0.dist-info\"/METADATA && echo 
+unbidden > \"$SP/prefect-0.0.0.dist-info\"/INSTALLER && printf 
+'/work/src\\n/work\\n' > \"$SP/_unbidden_prefect.pth\"  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+0.899 hint: While the active Python version is 3.11, the resolution failed for 
+other Python versions supported by your project. Consider limiting your 
+project's supported Python versions using `requires-python`.
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c (uv sync --frozen 
+--no-install-project --all-groups --project /deps || (touch 
+/deps/UNBIDDEN_LOCK_STALE && uv sync --no-install-project --all-groups --project
+/deps)) && SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/prefect-0.0.0.dist-info\" && printf 'Metadata-Version: 2.1\\nName: 
+prefect\\nVersion: 0.0.0\\n' > \"$SP/prefect-0.0.0.dist-info\"/METADATA && echo 
+unbidden > \"$SP/prefect-0.0.0.dist-info\"/INSTALLER && printf 
+'/work/src\\n/work\\n' > \"$SP/_unbidden_prefect.pth\"  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+04:02:18 goal data-correct-and-fast: waiting_capability: needs an integration 
+for prefect-api
+04:02:32 capability need api_client for http_api:http://127.0.0.1:18140: failed
+04:02:34 opp_9cffba3a37b5443a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+04:02:34 opp_d5047fd78ee446a8: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+04:02:34 opp_6ce6c1797942488c: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+04:02:50 capability need api_client for http_api:http://127.0.0.1:18140: 
+abandoned
+04:03:06 goal data-correct-and-fast: blocked: prefect-api: no integration could 
+be validated (no documented read operation was chosen)
+04:03:06 opp_6ce6c1797942488c: consistency of GET /events/filter/next: blocked 
+without a model call: http_api:http://127.0.0.1:18140: no documented read 
+operation was chosen
+04:03:09 opp_6ce6c1797942488c: wait (blocked: http_api:http://127.0.0.1:18140: 
+no documented read operation was chosen)
+04:03:11 research.probe failed: dependency image for python failed to build:
+error: Failed to download and build `python-cli-bench @ 
+git+https://github.com/zzstoatzz/python-cli-bench.git@3bdb12d0e97d814c86bddc6573
+c8d49b99f39719`
+  cause: Git operation failed
+  cause: Git executable not found. Ensure that Git is installed and available.
+
+hint: `python-cli-bench` was included because `prefect:cli-bench` depends on 
+`python-cli-bench`
+error: No solution found when resolving dependencies for split (markers: 
+python_full_version == '3.15.*')
+  cause: Because prefect-aws>=0.5.11,<=0.7.4 depends on your project and 
+prefect-aws>=0.5.8,<=0.5.9 depends on your project, we can conclude that all of:
+             prefect-aws>=0.5.8,<=0.5.9
+             prefect-aws>=0.5.11,<=0.7.4
+         depend on your project.
+         And because prefect-aws==0.5.10 depends on your project and 
+prefect-aws==0.7.5 depends on your project, we can conclude that 
+prefect-aws>=0.5.8,<=0.7.5 depends on your project.
+         And because prefect-aws==0.7.6 depends on your project and 
+prefect-aws>=0.7.8,<=0.7.11 depends on your project, we can conclude that all 
+of:
+hint: While the active Python version is 3.11, the resolution failed for other 
+Python versions supported by your project. Consider limiting your project's 
+supported Python versions using `requires-python`.
+ERROR: process "/bin/sh -c (uv sync --frozen --no-install-project --all-groups 
+--project /deps || (touch /deps/UNBIDDEN_LOCK_STALE && uv sync 
+--no-install-project --all-groups --project /deps)) && 
+SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/prefect-0.0.0.dist-info\" && printf 'Metadata-Version: 2.1\\nName: 
+prefect\\nVersion: 0.0.0\\n' > \"$SP/prefect-0.0.0.dist-info\"/METADATA && echo 
+unbidden > \"$SP/prefect-0.0.0.dist-info\"/INSTALLER && printf 
+'/work/src\\n/work\\n' > \"$SP/_unbidden_prefect.pth\"  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+0.838 hint: While the active Python version is 3.11, the resolution failed for 
+other Python versions supported by your project. Consider limiting your 
+project's supported Python versions using `requires-python`.
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c (uv sync --frozen 
+--no-install-project --all-groups --project /deps || (touch 
+/deps/UNBIDDEN_LOCK_STALE && uv sync --no-install-project --all-groups --project
+/deps)) && SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/prefect-0.0.0.dist-info\" && printf 'Metadata-Version: 2.1\\nName: 
+prefect\\nVersion: 0.0.0\\n' > \"$SP/prefect-0.0.0.dist-info\"/METADATA && echo 
+unbidden > \"$SP/prefect-0.0.0.dist-info\"/INSTALLER && printf 
+'/work/src\\n/work\\n' > \"$SP/_unbidden_prefect.pth\"  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+04:03:13 lab.experiment failed: dependency image for python failed to build:
+error: Failed to download and build `python-cli-bench @ 
+git+https://github.com/zzstoatzz/python-cli-bench.git@3bdb12d0e97d814c86bddc6573
+c8d49b99f39719`
+  cause: Git operation failed
+  cause: Git executable not found. Ensure that Git is installed and available.
+
+hint: `python-cli-bench` was included because `prefect:cli-bench` depends on 
+`python-cli-bench`
+error: No solution found when resolving dependencies for split (markers: 
+python_full_version == '3.15.*')
+  cause: Because prefect-aws>=0.5.11,<=0.7.4 depends on your project and 
+prefect-aws>=0.5.8,<=0.5.9 depends on your project, we can conclude that all of:
+             prefect-aws>=0.5.8,<=0.5.9
+             prefect-aws>=0.5.11,<=0.7.4
+         depend on your project.
+         And because prefect-aws==0.5.10 depends on your project and 
+prefect-aws==0.7.5 depends on your project, we can conclude that 
+prefect-aws>=0.5.8,<=0.7.5 depends on your project.
+         And because prefect-aws==0.7.6 depends on your project and 
+prefect-aws>=0.7.8,<=0.7.11 depends on your project, we can conclude that all 
+of:
+hint: While the active Python version is 3.11, the resolution failed for other 
+Python versions supported by your project. Consider limiting your project's 
+supported Python versions using `requires-python`.
+ERROR: process "/bin/sh -c (uv sync --frozen --no-install-project --all-groups 
+--project /deps || (touch /deps/UNBIDDEN_LOCK_STALE && uv sync 
+--no-install-project --all-groups --project /deps)) && 
+SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/prefect-0.0.0.dist-info\" && printf 'Metadata-Version: 2.1\\nName: 
+prefect\\nVersion: 0.0.0\\n' > \"$SP/prefect-0.0.0.dist-info\"/METADATA && echo 
+unbidden > \"$SP/prefect-0.0.0.dist-info\"/INSTALLER && printf 
+'/work/src\\n/work\\n' > \"$SP/_unbidden_prefect.pth\"  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+0.852 hint: While the active Python version is 3.11, the resolution failed for 
+other Python versions supported by your project. Consider limiting your 
+project's supported Python versions using `requires-python`.
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c (uv sync --frozen 
+--no-install-project --all-groups --project /deps || (touch 
+/deps/UNBIDDEN_LOCK_STALE && uv sync --no-install-project --all-groups --project
+/deps)) && SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/prefect-0.0.0.dist-info\" && printf 'Metadata-Version: 2.1\\nName: 
+prefect\\nVersion: 0.0.0\\n' > \"$SP/prefect-0.0.0.dist-info\"/METADATA && echo 
+unbidden > \"$SP/prefect-0.0.0.dist-info\"/INSTALLER && printf 
+'/work/src\\n/work\\n' > \"$SP/_unbidden_prefect.pth\"  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+04:03:15 lab.experiment failed: dependency image for python failed to build:
+error: Failed to download and build `python-cli-bench @ 
+git+https://github.com/zzstoatzz/python-cli-bench.git@3bdb12d0e97d814c86bddc6573
+c8d49b99f39719`
+  cause: Git operation failed
+  cause: Git executable not found. Ensure that Git is installed and available.
+
+hint: `python-cli-bench` was included because `prefect:cli-bench` depends on 
+`python-cli-bench`
+error: No solution found when resolving dependencies for split (markers: 
+python_full_version == '3.15.*')
+  cause: Because prefect-aws>=0.5.11,<=0.7.4 depends on your project and 
+prefect-aws>=0.5.8,<=0.5.9 depends on your project, we can conclude that all of:
+             prefect-aws>=0.5.8,<=0.5.9
+             prefect-aws>=0.5.11,<=0.7.4
+         depend on your project.
+         And because prefect-aws==0.5.10 depends on your project and 
+prefect-aws==0.7.5 depends on your project, we can conclude that 
+prefect-aws>=0.5.8,<=0.7.5 depends on your project.
+         And because prefect-aws==0.7.6 depends on your project and 
+prefect-aws>=0.7.8,<=0.7.11 depends on your project, we can conclude that all 
+of:
+hint: While the active Python version is 3.11, the resolution failed for other 
+Python versions supported by your project. Consider limiting your project's 
+supported Python versions using `requires-python`.
+ERROR: process "/bin/sh -c (uv sync --frozen --no-install-project --all-groups 
+--project /deps || (touch /deps/UNBIDDEN_LOCK_STALE && uv sync 
+--no-install-project --all-groups --project /deps)) && 
+SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/prefect-0.0.0.dist-info\" && printf 'Metadata-Version: 2.1\\nName: 
+prefect\\nVersion: 0.0.0\\n' > \"$SP/prefect-0.0.0.dist-info\"/METADATA && echo 
+unbidden > \"$SP/prefect-0.0.0.dist-info\"/INSTALLER && printf 
+'/work/src\\n/work\\n' > \"$SP/_unbidden_prefect.pth\"  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+0.783 hint: While the active Python version is 3.11, the resolution failed for 
+other Python versions supported by your project. Consider limiting your 
+project's supported Python versions using `requires-python`.
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c (uv sync --frozen 
+--no-install-project --all-groups --project /deps || (touch 
+/deps/UNBIDDEN_LOCK_STALE && uv sync --no-install-project --all-groups --project
+/deps)) && SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/prefect-0.0.0.dist-info\" && printf 'Metadata-Version: 2.1\\nName: 
+prefect\\nVersion: 0.0.0\\n' > \"$SP/prefect-0.0.0.dist-info\"/METADATA && echo 
+unbidden > \"$SP/prefect-0.0.0.dist-info\"/INSTALLER && printf 
+'/work/src\\n/work\\n' > \"$SP/_unbidden_prefect.pth\"  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+
+
+== cycle 2 (exit 0)
+04:03:15 watching /Users/david/unbidden-lab/prefect (ctrl-c to stop, `unbidden 
+kill` to freeze)
+04:03:16 connections: postgres:127.0.0.1:55470/prefect connected, 
+http_api:http://127.0.0.1:18140 needs_capability
+04:03:26 goal data-correct-and-fast: blocked: prefect-api: no integration could 
+be validated (no documented read operation was chosen)
+
+
+== cycle 3 (exit 0)
+04:03:29 watching /Users/david/unbidden-lab/prefect (ctrl-c to stop, `unbidden 
+kill` to freeze)
+04:03:30 connections: postgres:127.0.0.1:55470/prefect connected, 
+http_api:http://127.0.0.1:18140 needs_capability
+
+
+== cycle 4 (exit 0)
+04:03:30 watching /Users/david/unbidden-lab/prefect (ctrl-c to stop, `unbidden 
+kill` to freeze)
+04:03:31 connections: postgres:127.0.0.1:55470/prefect connected, 
+http_api:http://127.0.0.1:18140 needs_capability

@@ -1,0 +1,132 @@
+{
+  "workspace": "spoolman",
+  "at": "2026-10-30T06:40:09.527378+00:00",
+  "discovered": {
+    "total": 2,
+    "by_status": {
+      "open": 2
+    }
+  },
+  "experimenting": [],
+  "declined_because": [],
+  "waiting_because": [
+    [
+      "not measurable at this commit: cannot measure: no a CI job that runs the tests",
+      2
+    ]
+  ],
+  "proven": [],
+  "project_checks": {
+    "rev": "bed3f14ee77a3a571d31b14215d54b0b88a7519c",
+    "at": "2026-10-30T06:39:41.126455+00:00",
+    "status": "passed",
+    "collected": 278,
+    "failed": [],
+    "command": "python -m pytest -q -p no:cacheprovider"
+  },
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {},
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 42,
+    "usd": 0.1894,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55460/spoolman",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.alembic_version",
+        "select public.filament",
+        "select public.filament_field",
+        "select public.setting",
+        "select public.spool",
+        "select public.spool_field",
+        "select public.tag",
+        "select public.vendor",
+        "select public.vendor_field"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T06:40:08.937028+00:00"
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18130",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "Spoolman REST API v1: 47 operations documented, authenticated by nothing; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T06:40:08.943532+00:00"
+    }
+  ],
+  "needs_a_person": [
+    {
+      "proposal": "docker compose -f tests_frontend/docker-compose.yml up -d --wait",
+      "state": "proposed",
+      "what": "found in .github/workflows/ci.yml; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f tests_frontend_v2/docker-compose.yml up -d --wait",
+      "state": "proposed",
+      "what": "found in .github/workflows/ci.yml; a proposal only: a person declares deploy steps in the mandate"
+    }
+  ],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [],
+  "actions": [],
+  "acceptances": [],
+  "goals": []
+}

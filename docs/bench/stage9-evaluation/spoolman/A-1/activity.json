@@ -1,0 +1,204 @@
+{
+  "workspace": "spoolman",
+  "at": "2026-10-30T06:45:26.990082+00:00",
+  "discovered": {
+    "total": 2,
+    "by_status": {
+      "open": 2
+    }
+  },
+  "experimenting": [],
+  "declined_because": [],
+  "waiting_because": [
+    [
+      "not measurable at this commit: cannot measure: no a CI job that runs the tests",
+      2
+    ]
+  ],
+  "proven": [],
+  "project_checks": {
+    "rev": "bed3f14ee77a3a571d31b14215d54b0b88a7519c",
+    "at": "2026-10-30T06:44:08.332211+00:00",
+    "status": "passed",
+    "collected": 278,
+    "failed": [],
+    "command": "python -m pytest -q -p no:cacheprovider"
+  },
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {
+      "abandoned": 1
+    },
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 87,
+    "usd": 0.4287,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55460/spoolman",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.alembic_version",
+        "select public.filament",
+        "select public.filament_field",
+        "select public.setting",
+        "select public.spool",
+        "select public.spool_field",
+        "select public.tag",
+        "select public.vendor",
+        "select public.vendor_field"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T06:45:26.407238+00:00"
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18130",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "Spoolman REST API v1: 47 operations documented, authenticated by nothing; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T06:45:26.413556+00:00"
+    }
+  ],
+  "needs_a_person": [
+    {
+      "proposal": "docker compose -f tests_frontend/docker-compose.yml up -d --wait",
+      "state": "proposed",
+      "what": "found in .github/workflows/ci.yml; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f tests_frontend_v2/docker-compose.yml up -d --wait",
+      "state": "proposed",
+      "what": "found in .github/workflows/ci.yml; a proposal only: a person declares deploy steps in the mandate"
+    }
+  ],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [
+    {
+      "id": "int_be6ee51171f64458",
+      "title": "Spoolman REST API v1",
+      "on": "http_api:http://127.0.0.1:18130",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "info_info_get": "read",
+        "Find_filaments_filament_get": "read",
+        "Find_spool_spool_get": "read",
+        "Find_vendor_vendor_get": "read",
+        "Find_spool_groups_spool_group_get": "read",
+        "Search_search_get": "read"
+      },
+      "oracle": {
+        "Find_filaments_filament_get": "read failed: Find_filaments_filament_get answered 200 outside its documented schema, on what a conclusion needs: (the response): declared type array, observed str; 200, 0 records, read not at all (); ; without the key: 200",
+        "Find_spool_groups_spool_group_get": "read failed: Find_spool_groups_spool_group_get needs group_by; None, 0 records, read not at all (); ; without the key: None",
+        "Find_spool_spool_get": "read failed: Find_spool_spool_get answered 200 outside its documented schema, on what a conclusion needs: (the response): declared type array, observed str; 200, 0 records, read not at all (); ; without the key: 200",
+        "Find_vendor_vendor_get": "read failed: Find_vendor_vendor_get answered 200 outside its documented schema, on what a conclusion needs: (the response): declared type array, observed str; 200, 0 records, read not at all (); ; without the key: 200",
+        "Search_search_get": "read failed: Search_search_get needs q; None, 0 records, read not at all (); ; without the key: None",
+        "info_info_get": "read failed: info_info_get answered 200 outside its documented schema, on what a conclusion needs: (the response): declared type object, observed str; 200, 0 records, read not at all (); ; without the key: 200"
+      }
+    },
+    {
+      "id": "int_8ceeb0f9221241ba",
+      "title": "Spoolman REST API v1",
+      "on": "http_api:http://127.0.0.1:18130",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "health_health_get": "read",
+        "info_info_get": "read",
+        "Find_filaments_filament_get": "read",
+        "Find_spool_spool_get": "read",
+        "Find_vendor_vendor_get": "read",
+        "Find_spool_groups_spool_group_get": "read",
+        "Export_filaments_export_filaments_get": "read",
+        "Export_spools_export_spools_get": "read",
+        "Export_vendors_export_vendors_get": "read"
+      },
+      "oracle": {
+        "Export_filaments_export_filaments_get": "read failed: Export_filaments_export_filaments_get needs fmt; None, 0 records, read not at all (); ; without the key: None",
+        "Export_spools_export_spools_get": "read failed: Export_spools_export_spools_get needs fmt; None, 0 records, read not at all (); ; without the key: None",
+        "Export_vendors_export_vendors_get": "read failed: Export_vendors_export_vendors_get needs fmt; None, 0 records, read not at all (); ; without the key: None",
+        "Find_filaments_filament_get": "read failed: Find_filaments_filament_get answered 200 outside its documented schema, on what a conclusion needs: (the response): declared type array, observed str; 200, 0 records, read not at all (); ; without the key: 200",
+        "Find_spool_groups_spool_group_get": "read failed: Find_spool_groups_spool_group_get needs group_by; None, 0 records, read not at all (); ; without the key: None",
+        "Find_spool_spool_get": "read failed: Find_spool_spool_get answered 200 outside its documented schema, on what a conclusion needs: (the response): declared type array, observed str; 200, 0 records, read not at all (); ; without the key: 200",
+        "Find_vendor_vendor_get": "read failed: Find_vendor_vendor_get answered 200 outside its documented schema, on what a conclusion needs: (the response): declared type array, observed str; 200, 0 records, read not at all (); ; without the key: 200",
+        "health_health_get": "read failed: health_health_get answered 200 outside its documented schema, on what a conclusion needs: (the response): declared type object, observed str; 200, 0 records, read not at all (); ; without the key: 200",
+        "info_info_get": "read failed: info_info_get answered 200 outside its documented schema, on what a conclusion needs: (the response): declared type object, observed str; 200, 0 records, read not at all (); ; without the key: 200"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "data-correct-and-fast",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for spoolman-api",
+      "at": "2026-10-30T06:44:10.583954+00:00"
+    },
+    {
+      "goal": "data-correct-and-fast",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "spoolman-api: no integration could be validated (Export_vendors_export_vendors_get: read failed: Export_vendors_export_vendors_get needs fmt; None, 0 records, read not at all (); ; without the key: None Export_vendors_export_vendors_get needs fmt)",
+      "at": "2026-10-30T06:44:49.057659+00:00"
+    }
+  ]
+}

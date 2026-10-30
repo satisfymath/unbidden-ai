@@ -1,0 +1,21 @@
+{
+ "app": "prefect",
+ "run": "B-1",
+ "mode": "proactive",
+ "restored": {
+  "commit": "1ef3e516d3b3449d19f65b30c45d1e0bff656396",
+  "data": {
+   "flows": 50,
+   "flow_runs": 10000,
+   "task_runs": 30000,
+   "logs": 30000
+  }
+ },
+ "usd_before": 12.7409,
+ "interventions": [],
+ "wall_s": 307.7,
+ "repo_after": "",
+ "branches_after": [],
+ "usd_after": 12.9414,
+ "workspace": "/Users/david/unbidden-lab/prefect-runs/eval9-prefect-B-1"
+}

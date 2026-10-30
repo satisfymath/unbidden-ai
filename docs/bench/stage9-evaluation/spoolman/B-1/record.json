@@ -1,0 +1,20 @@
+{
+ "app": "spoolman",
+ "run": "B-1",
+ "mode": "proactive",
+ "restored": {
+  "commit": "bed3f14ee77a3a571d31b14215d54b0b88a7519c",
+  "data": {
+   "vendors": 200,
+   "filaments": 5000,
+   "spools": 100000
+  }
+ },
+ "usd_before": 12.3122,
+ "interventions": [],
+ "wall_s": 290.7,
+ "repo_after": "",
+ "branches_after": [],
+ "usd_after": 12.5016,
+ "workspace": "/Users/david/unbidden-lab/spoolman-runs/eval9-spoolman-B-1"
+}
