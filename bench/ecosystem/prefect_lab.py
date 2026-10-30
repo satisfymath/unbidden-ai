@@ -118,6 +118,9 @@ def _psql(lab: Path, sql: str) -> str:
 def seed(lab: Path, flows: int = 50, runs_per_flow: int = 200, tasks_per_run: int = 3) -> dict[str, int]:
     """Synthetic flows and their runs, written through the server's API (concurrently, bounded)."""
     held = _secrets(lab)
+    # The same data before every run: what an earlier seed or run wrote is removed first (the evaluation re-seeds
+    # before each run, and the API only adds).
+    _psql(lab, "TRUNCATE log, task_run, flow_run, flow RESTART IDENTITY CASCADE;")
     client = httpx.Client(base_url=f"{URL}/api", timeout=30)
     flow_ids = [client.post("/flows/", json={"name": f"synthetic-flow-{i}"}).json()["id"] for i in range(flows)]
 

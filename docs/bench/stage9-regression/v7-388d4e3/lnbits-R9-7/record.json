@@ -1,0 +1,19 @@
+{
+ "run": "R9-7",
+ "mode": "proactive",
+ "restored": {
+  "commit": "9349da153c223b008f7d80453b53a54e09c8ed3d",
+  "data": {
+   "accounts": 2010,
+   "wallets": 4010,
+   "payments": 400000
+  }
+ },
+ "usd_before": 12.1101,
+ "interventions": [],
+ "wall_s": 393.8,
+ "repo_after": "",
+ "branches_after": [],
+ "usd_after": 12.3122,
+ "workspace": "/Users/david/unbidden-lab/lnbits-runs/r9-v7-lnbits-R9-7"
+}
