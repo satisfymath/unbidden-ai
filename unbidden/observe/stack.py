@@ -8,6 +8,7 @@ import json
 import re
 import subprocess
 import tomllib
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
@@ -67,6 +68,9 @@ class PythonStack:
     own: tuple[str, str] | None = None  # (name, version) of the project's own package, installed by `uv sync`
     # What the CI's `uv sync` installs (`--group test`, `--all-extras`, `--dev` ...); None when no CI step says it.
     sync_flags: tuple[str, ...] | None = None
+    # Files the project's build declares it writes (a version or build-info module) and the repository lacks: code
+    # imports them, and `uv sync` leaves them in the tree. The image runs the build to have them (Prefect, stage 10).
+    build_writes: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -376,6 +380,7 @@ def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str]
             mypy=mypy,
             own=None if members else own_package(project),
             sync_flags=ci_sync_flags(repo, rev, files),
+            build_writes=() if members else build_writes(project, files),
             **uv,
         )
     if "requirements.txt" in files:
@@ -412,6 +417,27 @@ def ci_sync_flags(repo: Path, rev: str, files: set[str]) -> tuple[str, ...] | No
 
     plan = ci_test_plan(repo, rev, "python")
     return plan.sync_flags if plan is not None else None
+
+
+def build_writes(project: dict[str, Any], files: Iterable[str]) -> tuple[str, ...]:
+    """The Python files the build backend is declared to write into the source tree, as configured in pyproject.toml
+    (versioningit's write, setuptools-scm's version_file, hatch-vcs's version-file, pdm's write_to, hatch's build
+    artifacts), that the repository does not track."""
+    tool = project.get("tool", {})
+    scm = tool.get("setuptools_scm", {})
+    hatch = tool.get("hatch", {})
+    declared = [
+        tool.get("versioningit", {}).get("write", {}).get("file")
+        or tool.get("versioningit", {}).get("write", {}).get("path"),
+        scm.get("version_file") or scm.get("write_to"),
+        hatch.get("build", {}).get("hooks", {}).get("vcs", {}).get("version-file"),
+        tool.get("pdm", {}).get("version", {}).get("write_to"),
+        *hatch.get("build", {}).get("artifacts", []),
+    ]
+    tracked = set(files)
+    return tuple(
+        sorted({d.lstrip("/") for d in declared if isinstance(d, str) and d.endswith(".py") and "*" not in d} - tracked)
+    )
 
 
 def own_package(project: dict[str, Any]) -> tuple[str, str] | None:

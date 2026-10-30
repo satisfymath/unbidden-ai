@@ -51,7 +51,7 @@ class PythonAdapter:
                 "PYTHONPATH": ":".join("/work" if r == "." else f"/work/{r}" for r in part.source_roots),
                 "PYTHONDONTWRITEBYTECODE": "1",
             },
-            links={},
+            links={path: f"/deps/generated/{path}" for path in part.build_writes},
             notes=_python_notes(tag, part, docker),
         )
 

@@ -326,3 +326,34 @@ def test_pnpm_comes_from_the_lockfile_when_the_project_declares_none(tmp_path: P
     node = detect_stack(repo).node
     assert node is not None and (node.manager, node.manager_version) == ("pnpm", "10")
     assert "corepack prepare pnpm@10 --activate" in node_dockerfile(node)
+
+
+def test_files_the_build_writes_and_the_repository_lacks_are_found_from_pyproject() -> None:
+    from unbidden.observe.stack import build_writes
+
+    project = {
+        "tool": {
+            "versioningit": {"write": {"path": "src/pkg/_build_info.py"}},
+            "hatch": {"build": {"artifacts": ["src/pkg/_config.py", "src/pkg/ui", "src/pkg/*.so"]}},
+            "setuptools_scm": {"version_file": "src/pkg/_version.py"},
+        }
+    }
+    found = build_writes(project, ["pyproject.toml", "src/pkg/__init__.py", "src/pkg/_version.py"])
+    assert found == ("src/pkg/_build_info.py", "src/pkg/_config.py")  # tracked files and non-Python artifacts left
+    assert build_writes({}, []) == ()
+
+
+def test_a_build_that_writes_files_gets_a_stage_that_keeps_only_those_files() -> None:
+    from unbidden.observe.stack import PythonStack
+    from unbidden.sandbox.provision import own_extract_script, python_dockerfile
+
+    plain = PythonStack(version="3.12", lockfile=None, manifest="pyproject.toml", ruff=True, pyright=False, pytest=True)
+    assert " AS own" not in python_dockerfile(plain) and "/deps/generated" not in python_dockerfile(plain)
+    writes = PythonStack(
+        version="3.12", lockfile=None, manifest="pyproject.toml", ruff=True, pyright=False, pytest=True,
+        build_writes=("src/pkg/_build_info.py",),
+    )  # fmt: skip
+    dockerfile = python_dockerfile(writes)
+    assert dockerfile.startswith("FROM python:3.12 AS own")  # the full image: version plugins call git
+    assert dockerfile.rstrip().endswith("COPY --from=own /generated/ /deps/generated/")
+    assert "'src/pkg/_build_info.py': ['pkg/_build_info.py', 'src/pkg/_build_info.py']" in own_extract_script(writes)

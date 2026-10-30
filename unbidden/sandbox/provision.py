@@ -254,7 +254,7 @@ def python_dockerfile(stack: PythonStack, *, system_build_tools: bool = False, h
         if system_build_tools
         else ""
     )
-    return f"""FROM node:22-slim AS node
+    return f"""{_own_build(stack, uv)}FROM node:22-slim AS node
 FROM python:{stack.version}-slim
 COPY --from=node /usr/local/bin/node /usr/local/bin/node
 COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
@@ -279,6 +279,49 @@ RUN {install}{_own(stack)} \\
  && (/deps/.venv/bin/python -c "import hypothesis" 2>/dev/null \\
      || uv pip install --python /deps/.venv/bin/python hypothesis=={HYPOTHESIS_VERSION} \\
      || uv pip install --python /deps/.venv/bin/python hypothesis)
+{"COPY --from=own /generated/ /deps/generated/" + chr(10) if stack.build_writes else ""}"""
+
+
+OWN_TREE = "own"  # the repository at the commit, in the build context, only when its build writes files
+
+
+def _own_build(stack: PythonStack, uv: str) -> str:
+    """A stage that builds the project's wheel, as `uv sync` builds it, and keeps only the files its build writes into
+    the source tree (a version or build-info module the code imports). A build that fails leaves them absent, as
+    before, and the checks say what the import then raised."""
+    if not stack.build_writes:
+        return ""
+    # The full image, not slim: it has git, which version plugins call even where there is no repository (Prefect's
+    # versioningit), and nothing need be installed from the distribution's registry.
+    return f"""FROM python:{stack.version} AS own
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
+COPY {OWN_TREE}/ /src/
+COPY {OWN_EXTRACT} /{OWN_EXTRACT}
+RUN pip install --no-cache-dir "{uv}" \\
+ && (uv build --wheel --out-dir /wheel /src || true) \\
+ && python /{OWN_EXTRACT}
+"""
+
+
+OWN_EXTRACT = "unbidden-own-extract.py"
+
+
+def own_extract_script(stack: PythonStack) -> str:
+    """Copies each file the build writes out of the built wheel to /generated, at its path in the repository: inside
+    the wheel it sits under the package, without the source root (src/prefect/_build_info.py is prefect/...)."""
+    inside = {p: [p.removeprefix(f"{r.rstrip('/')}/") for r in stack.source_roots if r not in (".", "")] + [p]
+              for p in stack.build_writes}  # fmt: skip
+    return f"""import glob, os, zipfile
+os.makedirs("/generated", exist_ok=True)
+wheels = glob.glob("/wheel/*.whl")
+z = zipfile.ZipFile(wheels[0]) if wheels else None
+names = set(z.namelist()) if z else set()
+for path, candidates in {inside!r}.items():
+    hit = next((n for n in candidates if n in names), None)
+    if z and hit:
+        os.makedirs(os.path.dirname(os.path.join("/generated", path)), exist_ok=True)
+        with open(os.path.join("/generated", path), "wb") as out:
+            out.write(z.read(hit))
 """
 
 
@@ -499,6 +542,15 @@ def _provision(
             (build / "ctx").mkdir(parents=True, exist_ok=True)
             (build / "ctx" / name).write_text(generated)
             digest = hashlib.sha256((digest + generated).encode()).hexdigest()[:16]
+        if getattr(stack, "build_writes", ()):
+            own = build / OWN_TREE
+            own.mkdir(parents=True)
+            (build / OWN_EXTRACT).write_text(own_extract_script(stack))
+            archive = subprocess.run(["git", "-C", str(repo), "archive", rev], capture_output=True, check=True).stdout
+            subprocess.run(["tar", "-x", "-C", str(own)], input=archive, check=True)
+            tree = subprocess.run(["git", "-C", str(repo), "rev-parse", f"{rev}^{{tree}}"], capture_output=True,
+                                  text=True, check=True).stdout.strip()  # fmt: skip
+            digest = hashlib.sha256((digest + tree).encode()).hexdigest()[:16]
         dockerfile = lang.dockerfile(stack, system_build_tools=system_build_tools, headers=headers)
         tag = f"unbidden-deps-{language}:{hashlib.sha256((dockerfile + digest).encode()).hexdigest()[:16]}"
         exists = subprocess.run([docker, "image", "inspect", tag], capture_output=True, check=False).returncode == 0
