@@ -1,0 +1,3 @@
+not valid:
+23 of 23 calls failed (HTTP [404])
+the calls did not run a statement that reads filament by vendor_id on every call (none on that table and column)

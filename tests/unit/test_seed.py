@@ -76,3 +76,16 @@ def test_the_engine_says_which_statements_read_the_relation(pg: str) -> None:
         psql(f"SELECT * FROM spool WHERE id = {i};")
     used = statements_using(psql, "spool", "filament_id", 20)
     assert len(used) == 1 and "filament_id" in str(used[0]["query"]) and int(used[0]["calls"]) >= 23  # type: ignore[call-overload]
+
+
+def test_the_table_an_endpoint_acts_on_is_seeded_too(pg: str) -> None:
+    """Stage 10, Spoolman: `PUT /spool/{id}/measure` joins `filament` by `vendor_id`; with only `filament` and `vendor`
+    seeded, every call answered 404 and no request a model chose could be valid."""
+    psql = psql_for(pg, "postgres", "postgres")
+    psql(SCHEMA)
+    plan = plan_seed(psql, "filament", "vendor_id", 1000, 20, others=5, paths=["/api/v1/spool/{spool_id}/measure"],
+                     context_rows=300)  # fmt: skip
+    assert plan.counts == {"vendor": 20, "filament": 1000, "spool": 300}
+    for statement in plan.statements:
+        psql(statement)
+    assert psql("SELECT count(*), count(filament_id) FROM spool").strip() == "300\t300"  # each references a filament

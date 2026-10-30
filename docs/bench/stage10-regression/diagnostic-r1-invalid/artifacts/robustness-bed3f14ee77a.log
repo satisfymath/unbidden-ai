@@ -1,0 +1,84 @@
+..FF                                                                     [100%]
+=================================== FAILURES ===================================
+__________________ test_assert_lists_compatible_never_crashes __________________
+
+    @settings(max_examples=300, deadline=None)
+>   @given(ids=st.lists(st.integers(min_value=-10**18, max_value=10**18) | st.text(), min_size=0, max_size=10))
+                   ^^^
+
+tests/test_unbidden_robustness.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+ids = [0, '']
+
+    @settings(max_examples=300, deadline=None)
+    @given(ids=st.lists(st.integers(min_value=-10**18, max_value=10**18) | st.text(), min_size=0, max_size=10))
+    def test_assert_lists_compatible_never_crashes(ids):
+        items = [{"id": v, "value": v} for v in ids]
+>       assert_lists_compatible(items, list(items))
+
+tests/test_unbidden_robustness.py:27: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+a = [{'id': 0, 'value': 0}, {'id': '', 'value': ''}]
+b = [{'id': 0, 'value': 0}, {'id': '', 'value': ''}], sort_key = 'id'
+
+    def assert_lists_compatible(a: Iterable[dict[str, Any]], b: Iterable[dict[str, Any]], sort_key: str = "id") -> None:
+        """Compare two lists of items where the order of the items is not guaranteed."""
+>       a_sorted = sorted(a, key=lambda x: x[sort_key])
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: '<' not supported between instances of 'str' and 'int'
+E       Failing test case: test_assert_lists_compatible_never_crashes(
+E           ids=[0, ''],
+E       )
+E       
+E       You can reproduce this test case by temporarily adding @reproduce_failure('6.170.12', b'AAFBAEEAAUEBgAA=') as a decorator on your test function
+
+tests_integration/tests/conftest.py:289: TypeError
+________________________ test_get_db_type_never_crashes ________________________
+
+    @settings(max_examples=300, deadline=None)
+>   @given(dummy=st.text())
+                   ^^^
+
+tests/test_unbidden_robustness.py:31: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+dummy = ''
+
+    @settings(max_examples=300, deadline=None)
+    @given(dummy=st.text())
+    def test_get_db_type_never_crashes(dummy):
+>       result = get_db_type()
+                 ^^^^^^^^^^^^^
+
+tests/test_unbidden_robustness.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def get_db_type() -> DbType:
+        """Return the database type from environment variables."""
+        env_db_type = os.environ.get("DB_TYPE")
+        if env_db_type is None:
+>           raise RuntimeError("DB_TYPE environment variable not set")
+E           RuntimeError: DB_TYPE environment variable not set
+E           Failing test case: test_get_db_type_never_crashes(
+E               dummy='',  # or any other generated value
+E           )
+E           
+E           You can reproduce this test case by temporarily adding @reproduce_failure('6.170.12', b'AIA=') as a decorator on your test function
+
+tests_integration/tests/conftest.py:32: RuntimeError
+=========================== short test summary info ============================
+FAILED tests/test_unbidden_robustness.py::test_assert_lists_compatible_never_crashes - TypeError: '<' not supported between instances of 'str' and 'int'
+Failing test case: test_assert_lists_compatible_never_crashes(
+    ids=[0, ''],
+)
+
+You can reproduce this test case by temporarily adding @reproduce_failure('6.170.12', b'AAFBAEEAAUEBgAA=') as a decorator on your test function
+FAILED tests/test_unbidden_robustness.py::test_get_db_type_never_crashes - RuntimeError: DB_TYPE environment variable not set
+Failing test case: test_get_db_type_never_crashes(
+    dummy='',  # or any other generated value
+)
+
+You can reproduce this test case by temporarily adding @reproduce_failure('6.170.12', b'AIA=') as a decorator on your test function
+2 failed, 2 passed in 1.06s

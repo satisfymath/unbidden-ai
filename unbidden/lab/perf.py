@@ -1208,7 +1208,8 @@ class PerfLab:
         plans: list[SeedPlan] = []
 
         def seed(psql: Psql) -> SeedPlan:
-            plan = plan_seed(psql, table, column, SEED_ROWS, SEED_OWNERS)
+            paths = [e.partition(" ")[2] for e in opp.details.get("endpoints", [])]
+            plan = plan_seed(psql, table, column, SEED_ROWS, SEED_OWNERS, paths=paths)
             plans.append(plan)
             return plan
 

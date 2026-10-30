@@ -133,13 +133,29 @@ class SeedPlan:
     parent: str | None
 
 
-def plan_seed(psql: Psql, table: str, column: str, rows: int, owners: int, others: int = 50) -> SeedPlan:
-    """Rows for `table`, `column` spread evenly over `owners` rows of the table it references, and every table those
-    require (a NOT NULL foreign key), in dependency order. Raises ValueError with the reason when the schema does not
-    allow it (no such table, a required self-reference, a multi-column key)."""
+def resources(tables: dict[str, Table], paths: list[str]) -> list[str]:
+    """The tables the endpoints act on, named by their paths' literal segments (`/api/v1/spool/{id}/measure` acts on
+    `spool`): an endpoint that loads a record of one table and joins the measured one answers 404 while that table is
+    empty (stage 10, Spoolman: `PUT /spool/{id}/measure` with only `filament` seeded)."""
+    found: list[str] = []
+    for path in paths:
+        for segment in re.findall(r"/([A-Za-z_][\w-]*)", path):
+            for name in (segment, segment.replace("-", "_"), segment.rstrip("s"), segment.removesuffix("es")):
+                if name in tables and name not in found:
+                    found.append(name)
+    return found
+
+
+def plan_seed(psql: Psql, table: str, column: str, rows: int, owners: int, others: int = 50,
+              paths: list[str] | None = None, context_rows: int = 2000) -> SeedPlan:  # fmt: skip
+    """Rows for `table`, `column` spread evenly over `owners` rows of the table it references, the tables the
+    endpoints act on (`context_rows` each, their own references spread the same way), and every table those require
+    (a NOT NULL foreign key), in dependency order. Raises ValueError with the reason when the schema does not allow it
+    (no such table, a required self-reference, a multi-column key)."""
     tables = catalog(psql)
     if table not in tables:
         raise ValueError(f"the database has no table {table} (its migrations may not have run)")
+    context = [r for r in resources(tables, paths or []) if r != table]
     parent = tables[table].foreign.get(column, (None, None))[0]
     counts: dict[str, int] = {}
     order: list[str] = []
@@ -161,15 +177,22 @@ def plan_seed(psql: Psql, table: str, column: str, rows: int, owners: int, other
         order.append(name)
 
     visit(table, ())
+    for name in context:
+        visit(name, ())
     for name in order:
-        counts[name] = rows if name == table else owners if name == parent else others
+        counts[name] = (rows if name == table else owners if name == parent
+                        else context_rows if name in context else others)  # fmt: skip
     statements: list[str] = []
     for name in order:
         t = tables[name]
         cols, exprs, joins = [], [], []
         for c in t.columns:
             ref = t.foreign.get(c.name)
-            if ref is not None and (_needed(c) or (name == table and c.name == column)):
+            if ref is not None and (
+                _needed(c)
+                or (name == table and c.name == column)
+                or (name in context and ref[0] in counts and ref[0] != name)
+            ):
                 alias = f"p_{len(joins)}"
                 joins.append(f"(SELECT array_agg({ref[1]} ORDER BY {ref[1]}) AS ids FROM {ref[0]}) {alias}")
                 cols.append(c.name)

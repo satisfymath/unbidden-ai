@@ -196,11 +196,18 @@ def run_session(
             values: list[str] = []
             if request.get("values_sql"):
                 values = [ln.split("\t")[0] for ln in psql(str(request["values_sql"])).splitlines() if ln.strip()]
+            calls = warmup + samples
+            if request.get("values_sql") and (not values or (request.get("method") != "GET" and len(values) < calls)):
+                # Sent anyway, an empty value makes `/vendor/{value}` into `/vendor/` (stage 10: a redirect on every
+                # call, read as the request's failure); a write needs a target per call.
+                raise ValueError(f"the request's values query returned {len(values)} row(s), {calls} needed "
+                                 f"(seeded: {session.data})")  # fmt: skip
             psql("CREATE EXTENSION IF NOT EXISTS pg_stat_statements; SELECT pg_stat_statements_reset();")
         except (RuntimeError, ValueError) as exc:
             (lab / "abort").touch()
             thread.join(60)
-            session.error = f"seeding the database failed: {exc}"
+            session.error = (f"the request cannot be sent: {exc}" if "values query" in str(exc)
+                             else f"seeding the database failed: {exc}")  # fmt: skip
             return session
         (lab / "request.json").write_text(json.dumps({**request, "values": values}))
         (lab / "seeded").touch()
