@@ -7,6 +7,7 @@ are dropped; the sandbox provides dependencies and services itself.
 
 from __future__ import annotations
 
+import functools
 import json
 import re
 import shlex
@@ -1028,6 +1029,13 @@ def _tokens(segment: str) -> list[str]:
 
 def tool_invocations(commands: str, tool: str) -> list[Invocation]:
     """Every step in the CI's commands that runs `tool` itself, with its subcommand, paths, config and directory."""
+    return list(_invocations(commands, tool))
+
+
+@functools.lru_cache(maxsize=64)
+def _invocations(commands: str, tool: str) -> tuple[Invocation, ...]:
+    # Read once per CI text and tool: every sweep asks it for each opportunity, and tokenizing a large CI is slow
+    # (stage 10: Prefect's, about 0.4 s a call, made each sweep of 229 opportunities last about 40 s).
     found: list[Invocation] = []
     for line in commands.splitlines():
         cwd = ""
@@ -1074,7 +1082,7 @@ def tool_invocations(commands: str, tool: str) -> list[Invocation]:
                     elif arg not in (".", "./") and ("/" in arg or "." in arg or arg.isidentifier()):
                         paths.append(arg.removeprefix("./").rstrip("/"))
                 found.append(Invocation(subcommand, tuple(paths), config, cwd, version))
-    return found
+    return tuple(found)
 
 
 def runs_tool(commands: str | None, tool: str) -> bool:
