@@ -60,8 +60,12 @@ def run(worktree: Path, name: str, mode: str, out: Path) -> dict[str, Any]:
     def cycles(numbers: tuple[int, ...]) -> None:
         for cycle in numbers:
             argv = ["uv", "run", "--project", str(worktree), "unbidden", "watch", "--once"]
-            ran = subprocess.run(argv, cwd=repo, capture_output=True, text=True, timeout=5400,
-                                 env={**ENV, "UNBIDDEN_RUN": name})  # fmt: skip
+            try:
+                ran = subprocess.run(argv, cwd=repo, capture_output=True, text=True, timeout=5400,
+                                     env={**ENV, "UNBIDDEN_RUN": name})  # fmt: skip
+            except subprocess.TimeoutExpired as exc:  # recorded, and the run goes on to archive its workspace
+                logs.append(f"== cycle {cycle} (did not finish within {exc.timeout:.0f} s)")
+                continue
             logs.append(f"== cycle {cycle} (exit {ran.returncode})\n{ran.stdout}{ran.stderr}")
 
     cycles((1, 2))

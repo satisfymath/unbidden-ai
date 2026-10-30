@@ -132,8 +132,12 @@ def run(worktree: Path, app: str, name: str, out: Path) -> dict[str, Any]:
 
     def cycles(numbers: tuple[int, ...]) -> None:
         for cycle in numbers:
-            ran = subprocess.run([*unbidden, "watch", "--once"], cwd=repo, capture_output=True, text=True,
-                                 timeout=5400, env={**ENV, "UNBIDDEN_RUN": f"{app}-{name}"})  # fmt: skip
+            try:
+                ran = subprocess.run([*unbidden, "watch", "--once"], cwd=repo, capture_output=True, text=True,
+                                     timeout=5400, env={**ENV, "UNBIDDEN_RUN": f"{app}-{name}"})  # fmt: skip
+            except subprocess.TimeoutExpired as exc:  # recorded, and the run goes on to archive its workspace
+                logs.append(f"== cycle {cycle} (did not finish within {exc.timeout:.0f} s)")
+                continue
             logs.append(f"== cycle {cycle} (exit {ran.returncode})\n{ran.stdout}{ran.stderr}")
 
     cycles((1, 2))

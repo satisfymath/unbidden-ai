@@ -513,3 +513,37 @@ def test_a_call_goes_to_the_granted_location_plus_the_server_path(mandate: Manda
     under = integration(["listItems"]).model_copy(update={"base_path": "/api/v1"})
     call(under, connected(["listItems"]), mandate, "listItems", transport=httpx.MockTransport(handle))
     assert seen == ["/api/v1/v1/items"]
+
+
+def test_a_read_with_a_required_parameter_it_cannot_fill_is_left_out(mandate: Mandate, store: Any) -> None:
+    """Stage 9, Spoolman: a grouped listing needs `group_by`, the oracle has no value for it, and the whole
+    integration was rejected. It is left out and the other reads are judged again."""
+    import asyncio
+    import copy
+
+    from unbidden.connect.registry import record
+    from unbidden.forge import integrate
+
+    doc = copy.deepcopy(DOC)
+    responses = doc["paths"]["/v1/items"]["get"]["responses"]
+    doc["paths"]["/v1/groups"] = {"get": {"operationId": "groupItems", "responses": responses, "parameters": [
+        {"name": "group_by", "in": "query", "required": True, "schema": {"type": "string"}}]}}  # fmt: skip
+
+    class Brain:
+        async def complete(self, request: Any) -> Any:
+            ops = [{"id": "listItems", "use": "read", "why": "x"}, {"id": "groupItems", "use": "read", "why": "x"}]
+            return type("R", (), {"content": json.dumps({"operations": ops}), "model": "test"})()
+
+    items = [{"sku": "A1", "on_hand": 3}, {"sku": "B2", "on_hand": 5}]
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=doc) if request.url.path == "/o" else service(items).handle_request(request)
+
+    mandate.connections = [grant(["read"])]
+    conn = connected([])
+    conn.state = ConnectionState.NEEDS_CAPABILITY
+    record(store, conn, reason="test")
+    built, _, notes = asyncio.run(integrate.build(Brain(), store, mandate, conn,
+                                                  transport=httpx.MockTransport(handle)))  # fmt: skip
+    assert built is not None and [o.id for o in built.operations] == ["listItems"]
+    assert any("required parameter" in n and "groupItems" in n for n in notes)

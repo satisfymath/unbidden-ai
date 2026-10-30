@@ -150,6 +150,25 @@ def text_metrics(port: int, *, timeout_s: float = 1.0) -> list[dict[str, Any]]:
     return found
 
 
+def fetch_openapis(port: int, *, timeout_s: float = 3.0) -> list[tuple[str, dict[str, Any]]]:
+    """Every distinct OpenAPI document a port serves at the usual paths: an application may mount its API as a
+    sub-application with its own document (Spoolman: the root's has two routes, `/api/v1/openapi.json` the API)."""
+    found: list[tuple[str, dict[str, Any]]] = []
+    seen: set[str] = set()
+    for path in OPENAPI_PATHS:
+        try:
+            response = httpx.get(f"http://127.0.0.1:{port}{path}", timeout=timeout_s)
+        except httpx.HTTPError:
+            continue
+        if response.status_code == 200 and "json" in response.headers.get("content-type", ""):
+            data = response.json()
+            key = json.dumps(data.get("paths", {}), sort_keys=True) if isinstance(data, dict) else ""
+            if isinstance(data, dict) and "paths" in data and key not in seen:
+                seen.add(key)
+                found.append((path, data))
+    return found
+
+
 def fetch_openapi(port: int, *, timeout_s: float = 3.0) -> tuple[str, dict[str, Any]] | None:
     for path in OPENAPI_PATHS:
         try:
@@ -459,17 +478,20 @@ def discover_runtime(repo: Path, world: WorldModel, rev: str = "HEAD", files: li
 
         published = host_ports(container)
         described = False
-        for port in host_ports(container):
-            found = fetch_openapi(port)
-            if found is None:
-                continue
-            path, spec = found
+        documents = [(port, doc) for port in host_ports(container) for doc in fetch_openapis(port)]
+        for port, (path, spec) in documents:
             described = True
             ran.add(OPENAPI_HTTP.ref)
             locator = f"http://127.0.0.1:{port}{path}"
-            live = {f"{m.upper()} {r}" for r, ops in spec["paths"].items() for m in METHODS if m in ops}
+            # The paths live under the document's server path (Spoolman's `/api/v1`, stage 9): an endpoint is named
+            # by the path it is reached at, so a workload or a reader calls what exists.
+            from unbidden.forge.api_client import base_path
+
+            prefix = base_path(spec, f"http://127.0.0.1:{port}")
+            live = {f"{m.upper()} {prefix}{r}" for r, ops in spec["paths"].items() for m in METHODS if m in ops}
             world.blind_spots = [b for b in world.blind_spots if b.what != "full endpoint paths"]
-            for route, operations in sorted(spec["paths"].items()):
+            for documented_route, operations in sorted(spec["paths"].items()):
+                route = prefix + documented_route
                 for method in METHODS:
                     if method not in operations:
                         continue

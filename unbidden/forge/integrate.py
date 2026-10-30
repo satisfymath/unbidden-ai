@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from typing import Any
 
 import httpx
@@ -212,6 +213,17 @@ async def build(
         and (r.get("status") in (401, 403) or str(r.get("observed", "")).startswith(("401", "403")))
     ]
     reads = [o.id for o in integration.operations if o.effect == "read"]
+    # A read the oracle could not call for a required parameter it has no value for (Spoolman's `group_by`, stage 9)
+    # says nothing about the others: left out, noted, the rest judged again.
+    unfilled = [k for k, r in verdict["operations"].items() if not r["passed"]
+                and re.search(rf"{re.escape(k)} needs \w+", f"{r.get('observed')} {r.get('error')}")]  # fmt: skip
+    if unfilled and len(unfilled) < len(reads):
+        notes.append(f"left out, a required parameter has no value to read with: {', '.join(unfilled)}")
+        refused = [k for k in refused if k not in unfilled]
+        kept = [o for o in integration.operations if o.id not in unfilled]
+        integration = integration.model_copy(update={"operations": kept, "signature": signature(document, kept)})
+        verdict = oracle(integration, conn, mandate, store=store, transport=transport)
+        reads = [o.id for o in kept if o.effect == "read"]
     if refused and len(refused) < len(reads):
         # Some reads answer with this credential and these do not: they are outside its scope (stage 9, LNbits: a
         # wallet's read key, refused by the account-wide `assets` listing, was reported as a key a person must
