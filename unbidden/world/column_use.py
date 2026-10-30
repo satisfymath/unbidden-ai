@@ -118,10 +118,22 @@ def column_uses(sources: dict[str, str], classes: list[str], column: str) -> lis
             stripped = line.strip()
             if not pattern.search(line) or stripped.startswith("#") or re.match(rf"{re.escape(column)}\s*:", stripped):
                 continue
+            if _keyed_join(lines, i, classes, column):
+                continue
             function = next((m.group("name") for j in range(i, -1, -1) if (m := _DEF.match(lines[j]))), "")
             if function:
                 uses.append(ColumnUse(path, i + 1, function))
     return uses
+
+
+def _keyed_join(lines: list[str], i: int, classes: list[str], column: str) -> bool:
+    """A join condition on the column (`Spool.filament_id == Filament.id`) in a statement that finds its row by that
+    class's primary key (`.where(Spool.id == spool_id)`): the query enters by the key, and an index on the column is
+    not what it uses (stage 9 evaluation, Spoolman: two findings were explained by such queries)."""
+    if not re.search(rf"\b(?:{'|'.join(map(re.escape, classes))})\.{re.escape(column)}\s*==\s*\w+\.\w+", lines[i]):
+        return False
+    window = "\n".join(lines[max(0, i - 6) : i + 7])
+    return any(re.search(rf"\b{re.escape(c)}\.id\s*==", window) for c in classes)
 
 
 def _target(handler_file: str, definers: list[str], receiver: str = "") -> str | None:

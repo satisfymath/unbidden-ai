@@ -63,6 +63,12 @@ def classify(operation: str, error: str, continues: str) -> Block:
         needed = registries[0].strip() if registries else "deb.debian.org"
         return _block(operation, "pending_person", text, f"add {needed} to egress.package_registries (system build "
                       "tools: a compiler and the C headers a package builds against)", continues)  # fmt: skip
+    vcs = re.search(r"git\+https?://([\w.-]+)/", text)
+    if vcs and re.search(r"Failed to (?:download|fetch|clone)|failed to build", text, re.I):
+        # A dependency installed straight from a git repository (stage 9 evaluation, Prefect: `python-cli-bench @
+        # git+https://github.com/...`): its host is what a person would allow, not something nobody can grant.
+        return _block(operation, "pending_person", text, f"add {vcs.group(1)} to egress.package_registries (a "
+                      "dependency is installed from a git repository there)", continues)  # fmt: skip
     if "sandbox.provision:" in text and "allowlist" in text:
         hosts = sorted(set(re.findall(r"destination ([\w.\-]+) is not in the mandate's allowlist", text)))
         needed = f"add {', '.join(hosts) or 'the package registry'} to egress.package_registries"

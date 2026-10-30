@@ -65,6 +65,8 @@ class PythonStack:
     version_notes: tuple[str, ...] = ()  # why this interpreter: the rule, the project's declarations, conflicts
     lock_date: str | None = None  # when the lockfile (or manifest) was last committed: the environment's era
     own: tuple[str, str] | None = None  # (name, version) of the project's own package, installed by `uv sync`
+    # What the CI's `uv sync` installs (`--group test`, `--all-extras`, `--dev` ...); None when no CI step says it.
+    sync_flags: tuple[str, ...] | None = None
 
 
 @dataclass(frozen=True)
@@ -373,6 +375,7 @@ def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str]
             test_paths=tests if members else (),
             mypy=mypy,
             own=None if members else own_package(project),
+            sync_flags=ci_sync_flags(repo, rev, files),
             **uv,
         )
     if "requirements.txt" in files:
@@ -399,6 +402,16 @@ def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str]
             requirements=requirements,
         )
     return None
+
+
+def ci_sync_flags(repo: Path, rev: str, files: set[str]) -> tuple[str, ...] | None:
+    """What the CI's test job installs (`observe.ci._sync_flags`); None when there is none, or it runs no `uv sync`."""
+    if not any(f.startswith(".github/workflows/") for f in files):
+        return None
+    from unbidden.observe.ci import ci_test_plan
+
+    plan = ci_test_plan(repo, rev, "python")
+    return plan.sync_flags if plan is not None else None
 
 
 def own_package(project: dict[str, Any]) -> tuple[str, str] | None:

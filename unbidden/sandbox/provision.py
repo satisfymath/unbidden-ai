@@ -177,8 +177,11 @@ LOCK_STALE = "/deps/UNBIDDEN_LOCK_STALE"
 def _uv_sync(stack: PythonStack, scope: str) -> str:
     """One `uv sync` for the project's groups, minus those that need another Python and the packages installed from a
     directory of the repository (their code is not in the build context; tests import them from the snapshot)."""
-    flags = "".join(f" --no-group {g}" for g in stack.skip_groups)
-    flags += "".join(f" --no-install-package {name}" for name, _ in stack.path_sources)
+    flags = "".join(f" --no-install-package {name}" for name, _ in stack.path_sources)
+    if stack.sync_flags is not None:  # what the CI installs, as it installs it
+        groups = "".join(f" {f}" for f in stack.sync_flags)
+        return f"uv sync {scope}{groups}{flags} --project /deps"
+    flags = "".join(f" --no-group {g}" for g in stack.skip_groups) + flags
     return f"uv sync {scope} --all-groups{flags} --project /deps"
 
 

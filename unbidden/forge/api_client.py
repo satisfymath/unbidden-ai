@@ -83,6 +83,9 @@ class ApiIntegration(Contract):
     signature: str  # what makes another instance compatible: title, major version, the operations' shapes
     auth: dict[str, str]  # {"type": "apiKey", "in": "header", "name": ...}; the value stays with the broker
     operations: list[Operation]
+    # The document's `servers` path, under which its paths live (`/api/v1`): calls go to the granted location plus
+    # this, never to another host (stage 9 evaluation, Spoolman: every read reached the web page at the root).
+    base_path: str = ""
     limits: dict[str, float] = Field(default_factory=lambda: {"timeout_s": 10.0, "retries": 2.0})
     version: int = 1
     status: str = "validated"  # validated | rejected | approved | disabled | superseded
@@ -174,6 +177,22 @@ def _security(requirements: Any) -> list[list[str]] | None:
     if not isinstance(requirements, list):
         return None
     return [sorted(str(k) for k in r) for r in requirements if isinstance(r, dict)]
+
+
+def base_path(document: dict[str, Any], location: str) -> str:
+    """The path every operation lives under, from the document's first server: a relative URL as it is; an absolute
+    one only on the granted host (its path); anything else is ignored, so a call never leaves the granted host."""
+    from urllib.parse import urlparse
+
+    servers = document.get("servers") or []
+    url = str((servers[0] or {}).get("url", "")) if servers and isinstance(servers[0], dict) else ""
+    if not url or "{" in url:
+        return ""
+    parsed, granted = urlparse(url), urlparse(location)
+    if parsed.netloc and (parsed.hostname, parsed.port) != (granted.hostname, granted.port):
+        return ""
+    path = (parsed.path if parsed.netloc else url).rstrip("/")
+    return "" if path in ("", "/") else "/" + path.lstrip("/")
 
 
 def signature(document: dict[str, Any], operations: list[Operation]) -> str:
@@ -352,7 +371,7 @@ def call(
             path = path.replace("{" + name + "}", quote(str(params[name]), safe=""))
         elif name in params and where == "query":
             query[name] = params[name]
-    url = conn.location.rstrip("/") + path
+    url = conn.location.rstrip("/") + integration.base_path + path
     timeout = float(integration.limits.get("timeout_s", 10.0))
     response: httpx.Response | None = None
     retries = 0 if mutating else int(integration.limits.get("retries", 2))

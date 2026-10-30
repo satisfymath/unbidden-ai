@@ -132,3 +132,23 @@ def test_tables_an_endpoint_reads_and_writes_come_from_the_queries_its_code_call
     found = sql_table_access(repo, "HEAD", world)
     assert [(t, p) for _, t, p, _ in found] == [("articles", "writes")]  # it calls delete, never get
     assert found[0][3] == "app/sql/articles.sql:1 delete-article"
+
+
+def test_a_join_in_a_query_keyed_by_the_primary_key_is_not_a_lookup_by_the_column() -> None:
+    """Stage 9 evaluation, Spoolman: `spool.filament_id` was said to be "filtered on" by queries that find the spool
+    by its primary key and join the filament by its own: an index on filament_id is not what they use."""
+    from unbidden.world.column_use import column_uses
+
+    keyed = (
+        "async def use_length(db, spool_id):\n"
+        "    result = await db.execute(\n"
+        "        sqlalchemy.select(models.Filament.diameter)\n"
+        "        .join(models.Spool, models.Spool.filament_id == models.Filament.id)\n"
+        "        .where(models.Spool.id == spool_id),\n"
+        "    )\n"
+    )
+    by_column = (
+        "async def of_filament(db, fid):\n    return await db.execute(select(Spool).where(Spool.filament_id == fid))\n"
+    )
+    found = column_uses({"a.py": keyed, "b.py": by_column}, ["Spool"], "filament_id")
+    assert [(u.file, u.function) for u in found] == [("b.py", "of_filament")]

@@ -43,6 +43,8 @@ class CiPlan:
     # The job's own service containers (GitHub Actions `services:`): name, image, environment, container ports.
     containers: tuple[tuple[str, str, tuple[tuple[str, str], ...], tuple[int, ...]], ...] = ()
     env: tuple[tuple[str, str], ...] = ()  # the job's and its test steps' environment, as the team wrote it
+    # What the job's `uv sync` installs (its own steps, and the local composite actions it uses); None: no `uv sync`.
+    sync_flags: tuple[str, ...] | None = None
 
     def script(self) -> str:
         lines = ["set -e"]
@@ -173,6 +175,10 @@ def _reproducible(runs: list[dict[str, Any]], files: set[str] | None) -> bool:
         text = "\n".join(ln for ln in str(step["run"]).splitlines() if not _SETUP_LINE.match(ln))
         if re.search(r"(^|[\s;&|])sudo\s", text):
             return False
+        # A step that fetches from the network while the job runs (stage 9, Prefect: a compatibility job downloads a
+        # schema with `curl https://...`) cannot run where tests have no network.
+        if re.search(r"\b(?:curl|wget)\b[^\n]*\bhttps?://|\bgit\s+clone\b", text):
+            return False
         if files is not None:
             for target in re.findall(r"(?:^|[\s;&|])cd\s+([\w./-]+)", text):
                 target = target.strip("/").removeprefix("./")
@@ -260,6 +266,32 @@ def _called(repo: Path, rev: str, jobs: list[tuple[str, str, dict[str, Any]]]) -
     return out
 
 
+_SYNC_FLAG = re.compile(
+    r"--(?:all-extras|all-groups|dev|no-dev|only-dev|no-default-groups)\b"
+    r"|--(?:group|extra|only-group|no-group)[= ]+[\w.-]+"
+)
+
+
+def _sync_flags(repo: Path, rev: str, job: dict[str, Any]) -> tuple[str, ...] | None:
+    """The dependency groups and extras the test job installs, read from the `uv sync` its steps run, and those of
+    the local composite actions it uses (`uses: ./.github/actions/prepare`). Stage 9 evaluation, Prefect: its test job
+    runs `uv sync --locked`; Unbidden installed every group, one of them a package from GitHub, and the image did
+    not build. None when the job runs no `uv sync` (the previous rule, every group, stands)."""
+    texts = [str(s.get("run", "")) for s in job.get("steps") or [] if isinstance(s, dict)]
+    for step in job.get("steps") or []:
+        uses = str(step.get("uses", "")) if isinstance(step, dict) else ""
+        if uses.startswith("./"):
+            for name in ("action.yml", "action.yaml"):
+                text = _git(repo, "show", f"{rev}:{uses.removeprefix('./').rstrip('/')}/{name}")
+                if text:
+                    texts.append(text)
+                    break
+    lines = [ln for text in texts for ln in re.findall(r"\buv\s+sync\b([^\n]*)", text)]
+    if not lines:
+        return None
+    return tuple(dict.fromkeys(m.group(0).replace("=", " ") for ln in lines for m in _SYNC_FLAG.finditer(ln)))
+
+
 def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
     """The first workflow job that tests `language` code, as a plan the sandbox can run offline."""
     names = [
@@ -308,12 +340,18 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
         runs = " ".join(str(_as_run(s).get("run", "")) for s in job.get("steps") or [] if isinstance(s, dict))
         return runs + " " + " ".join(scripts_of(job).values())
 
-    def runner(item: tuple[str, str, dict[str, Any]]) -> tuple[int, int]:
+    def runner(item: tuple[str, str, dict[str, Any]]) -> tuple[int, int, int]:
         text = executes(item[2])
         explicit = _RUNNER_CALL.search(text) is not None
         # A job that starts the app in the background and tests it over HTTP needs ports and often the network.
         served = bool(re.search(r"&\s*$", text, re.M)) or bool(_HTTP_TESTS.search(text))
-        return (0 if explicit else 1, 1 if served else 0)
+        # A job whose steps or environment need the repository's secrets (a profiling token) fails without them
+        # (stage 9, Prefect); reports uploaded by an action (`uses:` with a token) do not count.
+        job = item[2]
+        own = [job.get("env") or {}, *[{"run": s.get("run"), "env": s.get("env")} for s in job.get("steps") or []
+                                         if isinstance(s, dict) and not s.get("uses")]]  # fmt: skip
+        secret = "secrets." in json.dumps(own, default=str)
+        return (0 if explicit else 1, 1 if served else 0, 1 if secret else 0)
 
     jobs.sort(key=lambda item: (*runner(item), *rank(item)))
     for name, job_name, job in jobs:
@@ -327,7 +365,9 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
             continue
         plan = _job_plan(name, job_name, job, language, tasks, scripts_of(job), files)
         if plan is not None:
-            return plan
+            from dataclasses import replace
+
+            return replace(plan, sync_flags=_sync_flags(repo, rev, job))
     return None
 
 

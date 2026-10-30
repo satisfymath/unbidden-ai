@@ -486,3 +486,30 @@ def test_a_read_waits_out_a_rate_limit(mandate: Mandate, monkeypatch: Any) -> No
     status, _ = call(integration(["listItems"]), connected(["listItems"]), mandate, "listItems",
                      transport=httpx.MockTransport(handle))  # fmt: skip
     assert status == 200 and waited == [7.0, 7.0]
+
+
+@pytest.mark.parametrize(
+    ("servers", "expected"),
+    [([{"url": "/api/v1"}], "/api/v1"), ([{"url": "http://127.0.0.1:1/api/v2/"}], "/api/v2"),
+     ([{"url": "https://elsewhere.example.com/api"}], ""), ([{"url": "/"}], ""), ([], ""),
+     ([{"url": "/{version}"}], "")],
+)  # fmt: skip
+def test_calls_live_under_the_documents_server_path_on_the_granted_host_only(servers: Any, expected: str) -> None:
+    """Stage 9 evaluation, Spoolman: its document is served under /api/v1 with paths relative to it, and every read
+    reached the web page at the host's root. A server on another host never redirects a call."""
+    from unbidden.forge.api_client import base_path
+
+    assert base_path({"servers": servers}, "http://127.0.0.1:1") == expected
+
+
+def test_a_call_goes_to_the_granted_location_plus_the_server_path(mandate: Mandate) -> None:
+    seen: list[str] = []
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        seen.append(request.url.path)
+        return httpx.Response(200, json=[{"sku": "A1", "on_hand": 1}])
+
+    mandate.connections = [grant(["read"])]
+    under = integration(["listItems"]).model_copy(update={"base_path": "/api/v1"})
+    call(under, connected(["listItems"]), mandate, "listItems", transport=httpx.MockTransport(handle))
+    assert seen == ["/api/v1/v1/items"]

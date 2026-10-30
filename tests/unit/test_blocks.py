@@ -81,3 +81,12 @@ def test_one_need_is_one_request_and_meeting_it_runs_the_held_jobs_now(store: St
     due = [j for j in store.jobs(status=JobStatus.QUEUED) if j.run_at <= utc_now() + timedelta(seconds=1)]
     assert sorted(j.id for j in due) == sorted(held) and all(j.attempts == 0 for j in due)
     assert block.id == released.id
+
+
+def test_a_dependency_from_a_git_repository_names_its_host_for_a_person() -> None:
+    """Stage 9 evaluation, Prefect: the image failed on a dependency installed from GitHub and the block said
+    nothing a person could grant, so nobody was asked."""
+    error = ("dependency image for python failed to build:\nerror: Failed to download and build `python-cli-bench @ "
+             "git+https://github.com/zzstoatzz/python-cli-bench.git@3bdb12d`")  # fmt: skip
+    block = classify("research.probe", error, "the probe runs again")
+    assert block.kind == "pending_person" and block.needs.startswith("add github.com to egress.package_registries")

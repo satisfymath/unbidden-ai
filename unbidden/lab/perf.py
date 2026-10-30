@@ -744,7 +744,10 @@ class PerfLab:
         missing = [
             what
             for what, have in (
-                ("a CI job that runs the tests", plan is not None and ci is not None),
+                # The project's test command, from its CI job or, without one, the same fallback the base checks
+                # use (stage 9 evaluation, Spoolman: its CI runs no pytest step, the base checks ran 278 tests, and
+                # every experiment was blocked for want of a CI job).
+                ("a way to run the project's tests", plan is not None),
                 ("a single Alembic head", head is not None),
                 (f"the schema of table {table} (a model, or the migration that creates it)", models_file is not None),
                 ("the handlers of the endpoints that read it", bool(handlers)),
@@ -763,8 +766,8 @@ class PerfLab:
             result.blocked = "cannot measure: no " + ", no ".join(missing)
             result.notes.append(result.blocked)
             return result
-        assert plan is not None and ci is not None and head is not None and models_file is not None
-        cwd = ci.steps[-1].cwd if ci.steps else "."
+        assert plan is not None and head is not None and models_file is not None
+        cwd = ci.steps[-1].cwd if ci is not None and ci.steps else "."
         test_dir = self.stack.python.test_paths[0] if self.stack.python and self.stack.python.test_paths else "tests"
         list_endpoint = next((e for e in endpoints if e.startswith("GET ") and "{" not in e), endpoints[0])
         handler = next((h for h in handlers if h[0] == list_endpoint), handlers[0])

@@ -28,6 +28,7 @@ from unbidden.forge.api_client import (
     ApiIntegration,
     CallFailed,
     abilities,
+    base_path,
     call,
     choose,
     documented,
@@ -105,6 +106,7 @@ def reuse(
             update={
                 "id": f"int_{hashlib.sha256((existing.id + conn.id).encode()).hexdigest()[:16]}",
                 "source": conn.id,
+                "base_path": base_path(document, conn.location),
                 "document_sha256": hashlib.sha256(json.dumps(document, sort_keys=True).encode()).hexdigest(),
                 "provenance": {**existing.provenance, "reused_from": existing.id, "reused_at": utc_now().isoformat()},
                 "created_at": utc_now(),
@@ -193,6 +195,7 @@ async def build(
         signature=signature(document, chosen),
         auth=_auth(document),
         operations=chosen,
+        base_path=base_path(document, conn.location),
         provenance={
             "model": getattr(response, "model", None),
             "prompt_sha256": prompt.sha256,
