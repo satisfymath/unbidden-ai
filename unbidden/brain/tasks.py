@@ -27,6 +27,7 @@ TASKS: dict[str, TaskSpec] = {
     "lab.fix_candidate": TaskSpec("heavy"),
     "lab.perf_candidate": TaskSpec("heavy"),
     "lab.workload": TaskSpec("heavy"),
+    "lab.perf_request": TaskSpec("light"),  # picks a request among documented operations: data, not code
     "lab.robust_fix": TaskSpec("heavy"),
     "research.robustness": TaskSpec("heavy"),
     "forge.tests": TaskSpec("light"),
@@ -59,6 +60,7 @@ TYPICAL_SOURCES: dict[str, tuple[Source, ...]] = {
     "lab.fix_candidate": ("repo",),
     "lab.perf_candidate": ("repo",),
     "lab.workload": ("repo",),
+    "lab.perf_request": ("repo",),
     "lab.robust_fix": ("repo",),
     "research.robustness": ("repo",),
     "forge.tests": ("runtime",),

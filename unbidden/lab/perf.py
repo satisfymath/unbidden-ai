@@ -26,13 +26,23 @@ from unbidden.brain.providers import ProviderError
 from unbidden.brain.router import Brain, BrainError
 from unbidden.contracts.common import EvidenceRef, utc_now
 from unbidden.contracts.events import Event, EventType
-from unbidden.contracts.experiment import Experiment, TestOutcome, Verdict
+from unbidden.contracts.experiment import Experiment, ExperimentSpec, TestOutcome, Verdict
 from unbidden.contracts.llm import LLMRequest, Message, Tier
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
 from unbidden.guardian.scanner import redact_text
 from unbidden.lab.evaluator import classify_tests, level_for
 from unbidden.lab.fixlab import Candidate, unified_patch
-from unbidden.lab.perfstats import SESSION_CRITERIA, SESSIONS_PER_ARM, judge_sessions
+from unbidden.lab.perfstats import (
+    CONTROL_SESSIONS,
+    MIN_EFFECT,
+    PROMOTION_CRITERIA,
+    SESSIONS_PER_ARM,
+    judge_promotion,
+    judge_sessions,
+)
+from unbidden.lab.prepare import ServerRecipe, inventory
+from unbidden.lab.seed import Psql, SeedPlan, describe, plan_seed, reads_by, statements_using
+from unbidden.lab.served import Session, nonempty, postgres_of, run_session, validate
 from unbidden.lab.testsuite import TestPlan, run_suite, test_plan
 from unbidden.observe.ci import ci_test_plan
 from unbidden.observe.stack import Stack
@@ -60,6 +70,32 @@ import importlib.util, inspect, json, time
 from pathlib import Path
 
 
+def _status(r):
+    return r if isinstance(r, int) else getattr(r, "status_code", getattr(r, "status", None))
+
+
+def _digest(r):
+    """The response's content, canonical: the same data gives the same digest, whatever the order of a list."""
+    import hashlib
+    body = getattr(r, "content", None)
+    if body is None or isinstance(r, int):
+        return None, ""
+    try:
+        value = json.loads(body)
+    except ValueError:
+        return hashlib.sha256(body).hexdigest(), body[:300].decode("utf-8", "replace")
+
+    def norm(v):
+        if isinstance(v, dict):
+            return {{k: norm(x) for k, x in sorted(v.items())}}
+        if isinstance(v, list):
+            return sorted((norm(x) for x in v), key=lambda x: json.dumps(x, sort_keys=True))
+        return v
+
+    text = json.dumps(norm(value), sort_keys=True)
+    return hashlib.sha256(text.encode()).hexdigest(), text[:300]
+
+
 def {DRIVER_TEST}(request):
     spec = importlib.util.spec_from_file_location("unbidden_workload", "/work/{LAB_DIR}/workload.py")
     module = importlib.util.module_from_spec(spec)
@@ -68,14 +104,18 @@ def {DRIVER_TEST}(request):
     fixtures = {{name: request.getfixturevalue(name) for name in inspect.signature(module.build).parameters}}
     call = module.build(**fixtures)
     for _ in range({WARMUP}):
-        status = call()
+        status = _status(call())
         assert status == 200, f"warm-up returned HTTP {{status}}"
-    latencies = []
+    latencies, digests, sample = [], [], ""
     for _ in range({SAMPLES}):
         started = time.perf_counter()
-        status = call()
+        response = call()
         latencies.append((time.perf_counter() - started) * 1000)
+        status = _status(response)
         assert status == 200, f"sample returned HTTP {{status}}"
+        digest, text = _digest(response)
+        digests.append(digest)
+        sample = sample or text
     # The database engine the measurement ran on, from any fixture that holds a session or an engine.
     engine = None
     for value in fixtures.values():
@@ -84,7 +124,8 @@ def {DRIVER_TEST}(request):
             engine = engine or getattr(getattr(bind, "dialect", None), "name", None)
         except Exception:
             pass
-    Path("/work/{LAB_DIR}/result.json").write_text(json.dumps({{"latencies_ms": latencies, "engine": engine}}))
+    Path("/work/{LAB_DIR}/result.json").write_text(json.dumps({{"latencies_ms": latencies, "engine": engine,
+                                                              "digests": digests, "sample": sample}}))
 '''
 
 
@@ -113,6 +154,33 @@ from pathlib import Path
 import pytest
 
 
+def _status(r):
+    return r if isinstance(r, int) else getattr(r, "status_code", getattr(r, "status", None))
+
+
+def _digest(r):
+    """The response's content, canonical: the same data gives the same digest, whatever the order of a list."""
+    import hashlib
+    body = getattr(r, "content", None)
+    if body is None or isinstance(r, int):
+        return None, ""
+    try:
+        value = json.loads(body)
+    except ValueError:
+        return hashlib.sha256(body).hexdigest(), body[:300].decode("utf-8", "replace")
+
+    def norm(v):
+        if isinstance(v, dict):
+            return {{k: norm(x) for k, x in sorted(v.items())}}
+        if isinstance(v, list):
+            return sorted((norm(x) for x in v), key=lambda x: json.dumps(x, sort_keys=True))
+        return v
+
+    text = json.dumps(norm(value), sort_keys=True)
+    return hashlib.sha256(text.encode()).hexdigest(), text[:300]
+
+
+
 @pytest.mark.{marker}
 async def {DRIVER_TEST}({params}):
     spec = importlib.util.spec_from_file_location("unbidden_workload", "/work/{LAB_DIR}/workload.py")
@@ -123,19 +191,24 @@ async def {DRIVER_TEST}({params}):
         call = await call
 
     async def once():
-        status = call()
-        return await status if inspect.isawaitable(status) else status
+        response = call()
+        return await response if inspect.isawaitable(response) else response
 
     for _ in range({WARMUP}):
-        status = await once()
+        status = _status(await once())
         assert status == 200, f"warm-up returned HTTP {{status}}"
-    latencies = []
+    latencies, digests, sample = [], [], ""
     for _ in range({SAMPLES}):
         started = time.perf_counter()
-        status = await once()
+        response = await once()
         latencies.append((time.perf_counter() - started) * 1000)
+        status = _status(response)
         assert status == 200, f"sample returned HTTP {{status}}"
-    Path("/work/{LAB_DIR}/result.json").write_text(json.dumps({{"latencies_ms": latencies, "engine": None}}))
+        digest, text = _digest(response)
+        digests.append(digest)
+        sample = sample or text
+    Path("/work/{LAB_DIR}/result.json").write_text(json.dumps({{"latencies_ms": latencies, "engine": None,
+                                                              "digests": digests, "sample": sample}}))
 '''
 
 
@@ -237,6 +310,98 @@ def failure_excerpt(output: str, limit: int = 2500) -> str:
     tail = "\n".join(lines[-25:])
     excerpt = "\n".join(dict.fromkeys(keep)) + "\n...\n" + tail if keep else tail
     return excerpt[-limit:]
+
+
+BUILTIN_FIXTURES = frozenset({"request", "tmp_path", "tmp_path_factory", "monkeypatch", "capsys", "caplog",
+                              "event_loop", "anyio_backend", "pytestconfig"})  # fmt: skip
+
+
+def signature_problems(workload: str, visible: set[str]) -> str:
+    """Why `build`'s parameters cannot be the suite's fixtures, before anything runs: no `build`, `*args` or
+    `**kwargs` (pytest takes them for fixtures named `a`, `kwargs`; stage 10, Spoolman), or a name no conftest
+    visible from the workload's directory defines."""
+    import ast
+
+    try:
+        tree = ast.parse(workload)
+    except SyntaxError as exc:
+        return f"it is not valid Python ({exc.msg}, line {exc.lineno})"
+    build = next((n for n in tree.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == "build"),
+                 None)  # fmt: skip
+    if build is None:
+        return "it defines no top-level `build` function"
+    if build.args.vararg or build.args.kwarg:
+        return "`build` takes *args or **kwargs; name each fixture it needs as a parameter"
+    unknown = [a.arg for a in build.args.args if a.arg not in visible]
+    if unknown:
+        listed = ", ".join(sorted(visible - BUILTIN_FIXTURES)[:40]) or "none"
+        return (
+            f"`build` asks for {', '.join(unknown)}, which no conftest visible from the tests defines (they define: "
+            f"{listed})"
+        )
+    return ""
+
+
+def _inserted(psql: Callable[[str], str], tables: list[str]) -> dict[str, int]:
+    """Rows inserted into `tables` during the session, every database of the server (the suite may use its own)."""
+    names = ", ".join("'" + t.replace("'", "") + "'" for t in tables if re.fullmatch(r"\w+", t))
+    if not names:
+        return {}
+    out: dict[str, int] = {}
+    for line in psql(f"SELECT relname, n_tup_ins FROM pg_stat_user_tables WHERE relname IN ({names})").splitlines():
+        if "\t" in line:
+            name, count = line.split("\t", 1)
+            out[name] = out.get(name, 0) + int(count or 0)
+    return out
+
+
+def validate_in_process(
+    record: dict[str, Any], relation: tuple[str, str], reads: bool
+) -> tuple[bool, list[str], list[str]]:
+    """The base run of an in-process workload: did the operation it claims (the engine's statements), on the data it
+    needs (rows the engine counted), with a result that can be compared (the response, not only its status)."""
+    table, column = relation
+    problems: list[str] = []
+    passed = [f"the workload ran at the base without help ({len(record['samples_ms'])} measured calls, HTTP 200)"]
+    statements = record.get("statements")
+    if statements is None:
+        passed.append("the engine's statements are not observable here (not PostgreSQL): not verified by the engine")
+    elif not [s for s in statements if int(s["calls"]) >= SAMPLES and reads_by(str(s["query"]), table, column)]:
+        seen = "; ".join(str(s["query"])[:160] for s in statements[:2]) or "none on that table and column"
+        problems.append(f"the calls did not run a statement that reads {table} by {column} on every call ({seen})")
+    else:
+        passed.append(f"the engine ran a statement reading {table} by {column} on every call")
+    inserted = record.get("inserted")
+    if inserted is not None:
+        rows = inserted.get(table, 0)
+        if rows < SEED_ROWS // 2:
+            problems.append(f"only {rows} rows were inserted into {table}; seed at least {SEED_ROWS}")
+        else:
+            passed.append(f"{rows} rows inserted into {table}")
+    digests = [d for d in record.get("digests") or [] if d]
+    if not digests:
+        problems.append("the returned function gives a status code only: return the response object, so the result "
+                        "can be compared between base and candidate")  # fmt: skip
+    elif reads and not nonempty(str(record.get("sample") or "")):
+        problems.append(f"the request returned no data (first response: {str(record.get('sample'))[:160]!r})")
+    else:
+        passed.append("the response carries data, and its digest is recorded")
+    return not problems, problems, passed
+
+
+def _same(sessions: list[dict[str, Any]]) -> tuple[bool | None, str]:
+    """Whether base and candidate answered the same in every session: the sequence of response digests."""
+    base = {tuple(s.get("digests") or []) for s in sessions if s["arm"] == "base" and s.get("digests")}
+    cand = {tuple(s.get("digests") or []) for s in sessions if s["arm"] == "candidate" and s.get("digests")}
+    if not base or not cand or any(None in d for d in base | cand):
+        return None, "no response content was recorded on one side"
+    if base == cand:
+        return True, f"the same {len(next(iter(base)))} responses on both sides, in every session"
+    if len(base) > 1:
+        return None, "the base itself answered differently from one session to the next: not comparable"
+    reference = next(iter(base))
+    differing = max(sum(1 for a, b in zip(reference, c, strict=False) if a != b) for c in cand)
+    return False, f"{differing} of {len(reference)} responses differ between base and candidate"
 
 
 @dataclass
@@ -394,6 +559,9 @@ class PerfLab:
         self.scans: int | None = None  # index scans in the last measured session (None: not observable)
         self.auth_lines: list[str] = []  # how the example test passes credentials
         self.engine: str | None = None  # the database engine the workload ran on, when the driver could tell
+        self.parents: list[str] = []  # the tables the measured one references (their inserted rows are counted)
+        self.last_session: Session | None = None  # the last served session, whole
+        self.prep_block: tuple[str, str] | None = None  # the readiness state a preparation failed at, and why
 
     # Model-written artifacts ----------------------------------------------------------------------------
 
@@ -515,7 +683,9 @@ class PerfLab:
             out.append(f"`{target}` in `{path}`:\n```python\n" + "\n".join(text[start:end])[:2500] + "\n```")
         return "\n\n".join(out)[:budget] or "(none found)"
 
-    def _test_examples(self, rev: str, endpoint: str = "", table: str = "", budget: int = 9000) -> str:
+    def _test_examples(
+        self, rev: str, endpoint: str = "", table: str = "", budget: int = 9000, visible: set[str] | None = None
+    ) -> str:
         """What a workload needs to fit the repository's own tests, within what one request may carry: every pytest
         fixture the suite defines (name, parameters, file) and the classes they are typed with, then an existing test
         that calls the endpoint (its imports and calls are real), then the fixture files about the table and the
@@ -565,6 +735,7 @@ class PerfLab:
             for p, text in sources.items()
             if not Path(p).name.startswith("test_")  # a test module's own fixtures are not visible elsewhere
             for m in re.finditer(r"@(?:pytest\.)?fixture[^\n]*\n(?:@[^\n]*\n)*(async\s+)?def\s+(\w+)\(([^)]*)\)", text)
+            if visible is None or m.group(2) in visible  # only those visible where the workload runs (stage 10)
         ]
         if fixtures:
             blocks.append(
@@ -608,37 +779,39 @@ class PerfLab:
 
     def _sessions(
         self,
-        rev: str,
+        measure: Callable[[dict[str, str]], tuple[dict[str, Any] | None, str]],
         candidate: dict[str, str],
-        workload: dict[str, str],
-        plan: TestPlan,
-        test_dir: str,
-        index: tuple[str, str] | None,
         seed: str,
+        per_arm: int = SESSIONS_PER_ARM,
+        arms: tuple[str, str] = ("base", "candidate"),
     ) -> tuple[list[dict[str, Any]] | None, str]:
-        """Criteria v3: SESSIONS_PER_ARM sessions per side, alternating, which side goes first drawn from a seed (the
-        opportunity's id, so a rerun repeats the order). Every session is one sandbox run with a fresh database, the
-        same image, data and limits: what one session changes cannot reach the next."""
+        """Sessions alternating between two arms, which goes first drawn from `seed` (a rerun repeats the order).
+        Every session is one sandbox run with a fresh database, the same image, data and limits: what one session
+        changes cannot reach the next. `arms` may name two sets of base sessions (the A/A control)."""
         import random as _random
 
-        first = _random.Random(seed).choice(["base", "candidate"])
-        second = "candidate" if first == "base" else "base"
-        order = [first, second] * SESSIONS_PER_ARM
+        first = _random.Random(seed).choice(list(arms))
+        second = arms[1] if first == arms[0] else arms[0]
         out: list[dict[str, Any]] = []
-        for position, arm in enumerate(order):
-            files = {**candidate, **workload} if arm == "candidate" else dict(workload)
-            samples, error = self._measure(rev, files, plan, test_dir, index)
-            if samples is None:
+        for position, arm in enumerate([first, second] * per_arm):
+            record, error = measure(candidate if arm == "candidate" else {})
+            if record is None:
                 return None, f"{arm} session {position + 1}: {error}"
-            out.append({"arm": arm, "position": position, "samples_ms": samples,
-                        "median_ms": statistics.median(samples), "index_scans": self.scans})  # fmt: skip
+            out.append({"arm": arm, "position": position, **record})
         return out, ""
 
     def _measure(
-        self, rev: str, files: dict[str, str], plan: TestPlan, test_dir: str, index: tuple[str, str] | None = None
-    ) -> tuple[list[float] | None, str]:
-        """Run the workload as a test of the repository's CI test command, selected by name. With `index` (table,
-        column), also count how often the session's PostgreSQL used an index led by that column (`self.scans`)."""
+        self,
+        rev: str,
+        files: dict[str, str],
+        plan: TestPlan,
+        test_dir: str,
+        relation: tuple[str, str],
+        index: tuple[str, str] | None = None,
+    ) -> tuple[dict[str, Any] | None, str]:
+        """In-process: the workload run as a test of the repository's CI test command, selected by name, beside a
+        fresh database; then what the engine says it did: index scans on `index`, the statements that read
+        `relation` (pg_stat_statements), the rows inserted."""
         self.scans = None
         image = self.images["python"]
         work = snapshot(self.repo, rev)
@@ -654,7 +827,9 @@ class PerfLab:
             (work / LAB_DIR).chmod(0o777)
             link_dependencies(work, image)
             env = {**plan.env, "PYTEST_ADDOPTS": f"-k {DRIVER_TEST} -p no:cacheprovider"}
-            with data_services(list(plan.services)) as sidecars:
+            statements: list[dict[str, Any]] | None = None
+            inserted: dict[str, int] | None = None
+            with data_services(list(plan.services), statements=True) as sidecars:
                 spec = sandbox_spec(
                     image,
                     list(serial(plan.argv)),
@@ -665,12 +840,48 @@ class PerfLab:
                 result = self.runner.run(spec, work)
                 if index is not None and sidecars is not None:
                     self.scans = index_scans(sidecars, list(plan.services), *index)
+                psql = postgres_of(sidecars, list(plan.services))
+                if psql is not None:
+                    try:
+                        psql("CREATE EXTENSION IF NOT EXISTS pg_stat_statements;")
+                        statements = statements_using(psql, *relation, SAMPLES)
+                        inserted = _inserted(psql, [relation[0], *self.parents])
+                    except RuntimeError:
+                        statements = None
             out = work / LAB_DIR / "result.json"
             if out.exists():
                 data = json.loads(out.read_text())
                 self.engine = data.get("engine") or self.engine
-                return [float(x) for x in data["latencies_ms"]], ""
+                samples = [float(x) for x in data["latencies_ms"]]
+                return {"samples_ms": samples, "median_ms": statistics.median(samples), "index_scans": self.scans,
+                        "digests": data.get("digests") or [], "sample": data.get("sample") or "",
+                        "statements": statements, "inserted": inserted}, ""  # fmt: skip
             return None, failure_excerpt(result.stdout + result.stderr)
+        finally:
+            discard(work)
+
+    def _served(
+        self, rev: str, files: dict[str, str], recipe: ServerRecipe, request: dict[str, Any], seed: Callable[..., Any],
+        index: tuple[str, str] | None,
+    ) -> tuple[dict[str, Any] | None, str]:  # fmt: skip
+        """Served: the application started as the project starts it, beside a fresh database (`served.py`)."""
+        image = self.images["python"]
+        work = snapshot(self.repo, rev)
+        try:
+            for path, content in files.items():
+                (work / path).parent.mkdir(parents=True, exist_ok=True)
+                (work / path).write_text(content)
+            link_dependencies(work, image)
+            session = run_session(self.runner, image, work, recipe, request, seed, warmup=WARMUP, samples=SAMPLES,
+                                  index=index, scans=index_scans)  # fmt: skip
+            self.engine = "postgresql"
+            self.last_session = session
+            if session.samples_ms is None:
+                return None, session.error
+            return {"samples_ms": session.samples_ms, "median_ms": statistics.median(session.samples_ms),
+                    "index_scans": session.scans, "digests": session.digests, "sample": session.sample,
+                    "statements": session.statements, "statuses": session.statuses, "data": session.data,
+                    "data_ok": session.data_ok}, ""  # fmt: skip
         finally:
             discard(work)
 
@@ -728,51 +939,26 @@ class PerfLab:
 
     # The experiment -------------------------------------------------------------------------------------
 
-    async def run(self, opp: Opportunity) -> PerfResult:
-        result = PerfResult()
-        rev: str = opp.details["rev"]
-        table, endpoints = opp.details["table"], opp.details["endpoints"]
-        plan = test_plan(self.repo, rev, self.stack, "python")
-        ci = ci_test_plan(self.repo, rev, "python")
-        head = alembic_head(self.repo, rev)
-        self.marker = async_suite(
-            lambda path: self._show(rev, path), _git(self.repo, "ls-tree", "-r", "--name-only", rev).splitlines()
-        )
-        schema = self._schema_file(rev, table)
-        models_file, has_model = schema if schema else (None, False)
-        handlers = self._handlers(opp, rev)
-        missing = [
-            what
-            for what, have in (
-                # The project's test command, from its CI job or, without one, the same fallback the base checks
-                # use (stage 9 evaluation, Spoolman: its CI runs no pytest step, the base checks ran 278 tests, and
-                # every experiment was blocked for want of a CI job).
-                ("a way to run the project's tests", plan is not None),
-                ("a single Alembic head", head is not None),
-                (f"the schema of table {table} (a model, or the migration that creates it)", models_file is not None),
-                ("the handlers of the endpoints that read it", bool(handlers)),
-            )
-            if not have
-        ]
-        enforcing = plan is not None and any(
-            re.match(r"(.*/)?(postgres|postgis|mysql|mariadb)\b", s.image or "") for s in plan.services
-        )
-        if opp.details.get("cost_path") == "parent_delete" and not enforcing:
-            # The cost is the database's own foreign-key check; whether the test database makes it (SQLite only
-            # with `PRAGMA foreign_keys`) is not something the lab can tell, and a test run without it would
-            # report "no effect" for the wrong reason. A PostgreSQL or MySQL test service always enforces them.
-            missing.append("test database known to enforce foreign keys")
-        if missing:
-            result.blocked = "cannot measure: no " + ", no ".join(missing)
-            result.notes.append(result.blocked)
-            return result
-        assert plan is not None and head is not None and models_file is not None
-        cwd = ci.steps[-1].cwd if ci is not None and ci.steps else "."
-        test_dir = self.stack.python.test_paths[0] if self.stack.python and self.stack.python.test_paths else "tests"
-        list_endpoint = next((e for e in endpoints if e.startswith("GET ") and "{" not in e), endpoints[0])
-        handler = next((h for h in handlers if h[0] == list_endpoint), handlers[0])
+    def _parents(self, rev: str, models_file: str, table: str) -> list[str]:
+        """The tables `table` references (its foreign keys), read from its model or migration."""
+        source = self._show(rev, models_file)
+        return list(dict.fromkeys(re.findall(r"ForeignKey\(\s*[\"'](\w+)\.", source)))[:8]
 
-        # Candidate, held to the repository's own checks: a speed-up may not bring new findings with it.
+    def _reference(self, rev: str, models_file: str, column: str) -> str | None:
+        """The table `column` references, from the line that declares it (`ForeignKey("filament.id")`)."""
+        for line in self._show(rev, models_file).splitlines():
+            if re.match(rf"\s*{re.escape(column)}\s*[:=]", line) and (
+                m := re.search(r"ForeignKey\(\s*[\"'](\w+)\.", line)
+            ):
+                return m.group(1)
+        return None
+
+    async def _candidate(
+        self, opp: Opportunity, rev: str, table: str, column: str, head: tuple[str, str, str], models_file: str,
+        has_model: bool, handlers: list[tuple[str, str, str]], result: PerfResult,
+    ) -> Candidate | None:  # fmt: skip
+        """The schema change: written from the finding by rule when it can be, else by the model; either way held to
+        the repository's own checks (a speed-up may not bring new findings with it)."""
         cand_prompt = load_prompt("perf_candidate")
         migrations_dir, head_rev, head_file = head
         content = cand_prompt.render(
@@ -788,7 +974,6 @@ class PerfLab:
         before_findings = self._findings(rev, {})
         candidate_files: dict[str, str] | None = None
         origin = ""
-        column = str(opp.details.get("column", ""))
         if opp.details.get("check") == "unindexed_foreign_key" and column:
             candidate_files = index_candidate(
                 lambda path: self._show(rev, path), table, column, models_file, head, model=has_model
@@ -817,17 +1002,49 @@ class PerfLab:
             candidate_files = None
         if not candidate_files:
             result.notes.append("the local model gave no schema change that keeps the repository's checks clean")
-            return result
+            return None
         base_dir = snapshot(self.repo, rev)
         candidate = Candidate(
             origin or self.brain.author("lab.perf_candidate"), candidate_files, unified_patch(base_dir, candidate_files)
         )
         discard(base_dir)
-        # Workload, repaired against the base until it runs.
+        return candidate
+
+    def _visible_fixtures(self, rev: str, test_dir: str) -> set[str]:
+        """Fixtures a test placed in `test_dir` can use: those of the conftest files in it and above it, and of the
+        modules they load as plugins (stage 10: Spoolman's workloads asked for `random_filament`, a fixture of
+        `tests_integration/`, invisible from `tests/`)."""
+        tracked = _git(self.repo, "ls-tree", "-r", "--name-only", rev).splitlines()
+        parts = Path(test_dir).parts
+        ancestors = {str(Path(*parts[:i])) if i else "." for i in range(len(parts) + 1)}
+        conftests = [p for p in tracked if Path(p).name == "conftest.py" and str(Path(p).parent) in ancestors]
+        texts = {p: self._show(rev, p) for p in conftests}
+        loaded = " ".join(texts.values())
+        for p in tracked:
+            module = p.removesuffix(".py").replace("/", ".")
+            if p.endswith(".py") and p not in texts and (module in loaded or module.split(".", 1)[-1] in loaded):
+                texts[p] = self._show(rev, p)
+        names = {
+            m.group(2)
+            for text in texts.values()
+            for m in re.finditer(
+                r"@(?:pytest(?:_asyncio)?\.)?fixture[^\n]*\n(?:@[^\n]*\n)*(async\s+)?def\s+(\w+)\(", text
+            )
+        }
+        return names | BUILTIN_FIXTURES
+
+    async def _prepare_in_process(
+        self, opp: Opportunity, rev: str, plan: TestPlan, test_dir: str, cwd: str, endpoint: str,
+        handler: tuple[str, str, str], models_file: str, has_model: bool, relation: tuple[str, str],
+        result: PerfResult,
+    ) -> tuple[Callable[[dict[str, str]], tuple[dict[str, Any] | None, str]], str, dict[str, Any], dict[str, Any],
+               dict[str, Any]] | None:  # fmt: skip
+        """A workload written as one more test of the project's suite, validated at the base."""
+        table = relation[0]
+        index = (relation[0], relation[1]) if opp.details.get("check") == "unindexed_foreign_key" else None
+        visible = self._visible_fixtures(rev, test_dir)
         wl_prompt = load_prompt("perf_workload")
         feedback = ""
-        before: list[float] | None = None
-        workload: dict[str, str] | None = None
         for attempt in range(self.repairs + 1):
             self.progress(f"writing the workload (attempt {attempt + 1})")
             workload = await self._ask_files(
@@ -835,7 +1052,7 @@ class PerfLab:
                 wl_prompt.render(
                     framework="FastAPI",
                     async_rule=_ASYNC_RULE if self.marker else "",
-                    endpoint=list_endpoint,
+                    endpoint=endpoint,
                     rows=str(SEED_ROWS),
                     owners=str(SEED_OWNERS),
                     table=table,
@@ -849,7 +1066,7 @@ class PerfLab:
                     insert_rule=_ORM_INSERT if has_model else _SQL_INSERT,
                     related_models=self._related_models(rev, models_file, table),
                     calls=str(WARMUP + SAMPLES),
-                    test_examples=self._test_examples(rev, list_endpoint, table),
+                    test_examples=self._test_examples(rev, endpoint, table, visible=visible),
                 ),
                 opp,
                 wl_prompt.sha256,
@@ -861,36 +1078,339 @@ class PerfLab:
             if not workload:
                 feedback = "Your previous answer had no `# file: .unbidden-lab/workload.py` block."
                 continue
-            self.progress("measuring the base")
-            before, error = self._measure(rev, workload, plan, test_dir)
-            if before is not None:
-                break
-            feedback = f"Your previous workload failed when run. The end of its output:\n```\n{error}\n```\nFix it."
-            if re.search(r"HTTP 40[13]\b|assert 40[13] == 200", error):
-                feedback += (
-                    "\nThe request was not authenticated or not allowed. Pass credentials exactly as the existing test"
-                    " shown below does (the same fixture attribute, the same argument), without wrapping them again;"
-                    " if the endpoint needs a permission, use the fixture that has it."
+            text = workload[f"{LAB_DIR}/workload.py"]
+            wrong = signature_problems(text, visible)
+            if wrong:
+                # Refused before running: pytest would take these parameters for fixtures it does not have.
+                feedback = f"Your previous workload cannot run: {wrong}. Fix it."
+                result.notes.append(f"workload attempt {attempt + 1} refused before running: {wrong[:200]}")
+                self._keep(opp, f"workload-attempt-{attempt + 1}", text, f"refused before running: {wrong}")
+                continue
+            self.progress("validating the workload at the base")
+            record, error = self._measure(rev, workload, plan, test_dir, relation, index)
+            if record is None:
+                feedback = f"Your previous workload failed when run. The end of its output:\n```\n{error}\n```\nFix it."
+                if re.search(r"HTTP 40[13]\b|assert 40[13] == 200", error):
+                    feedback += (
+                        "\nThe request was not authenticated or not allowed. Pass credentials exactly as the existing"
+                        " test shown below does (the same fixture attribute, the same argument), without wrapping them"
+                        " again; if the endpoint needs a permission, use the fixture that has it."
+                    )
+                    if self.auth_lines:
+                        feedback += " That test does it like this:\n" + "\n".join(f"    {x}" for x in self.auth_lines)
+                last_line = next((ln for ln in error.splitlines() if ln.startswith("E ") or "Error" in ln), "no output")
+                result.notes.append(f"workload attempt {attempt + 1} failed: {last_line[:200]}")
+                self._keep(opp, f"workload-attempt-{attempt + 1}", text, error)
+                continue
+            ok, problems, passed = validate_in_process(record, relation, endpoint.startswith("GET "))
+            if not ok:
+                feedback = (
+                    "Your previous workload ran, but it does not measure what it must:\n- "
+                    + "\n- ".join(problems)
+                    + "\nFix it."
                 )
-                if self.auth_lines:
-                    feedback += " That test does it like this:\n" + "\n".join(f"    {x}" for x in self.auth_lines)
-            last_line = next((ln for ln in error.splitlines() if ln.startswith("E ") or "Error" in ln), "no output")
-            result.notes.append(f"workload attempt {attempt + 1} failed: {last_line[:200]}")
-            self._keep(opp, f"workload-attempt-{attempt + 1}", workload[f"{LAB_DIR}/workload.py"], error)
-        if before is None or workload is None:
-            # Nothing was measured, so nothing is known about the change: the lab could not build a workload
-            # (kept in artifacts). That blocks this commit; it is not evidence against the opportunity.
-            last = next((n for n in reversed(result.notes) if n.startswith(("workload attempt", "lab.workload"))), "")
-            result.blocked = f"cannot measure: no workload ran at the base after {self.repairs + 1} attempts ({last})"
+                result.notes.append(f"workload attempt {attempt + 1} not valid: {'; '.join(problems)[:300]}")
+                self._keep(opp, f"workload-attempt-{attempt + 1}", text, "not valid:\n" + "\n".join(problems))
+                continue
+            method, _, path = endpoint.partition(" ")
+            operation = {
+                "method": method,
+                "path": path,
+                "source": f"{handler[1]} (the endpoint's handler, from the map)",
+                "request": "a test of the project's suite written by a model, run by a fixed driver",
+            }
+            data = {
+                "tables": {table: SEED_ROWS},
+                "owners": SEED_OWNERS,
+                "written_by": "the workload (model-written); the rows the engine counted are in the validation",
+            }
+            validation = {
+                "attempt": attempt + 1,
+                "passed": passed,
+                "statements": record.get("statements"),
+                "inserted": record.get("inserted"),
+            }
+
+            def measure(files: dict[str, str], wl: dict[str, str] = workload) -> tuple[dict[str, Any] | None, str]:
+                return self._measure(rev, {**files, **wl}, plan, test_dir, relation, index)
+
+            return measure, text, operation, data, validation
+        return None
+
+    async def _choose_request(
+        self, opp: Opportunity, relation: tuple[str, str], parent: str, handlers: list[tuple[str, str, str]],
+        feedback: str, result: PerfResult,
+    ) -> dict[str, Any] | None:  # fmt: skip
+        prompt = load_prompt("perf_request")
+        table, column = relation
+        content = prompt.render(
+            table=table, column=column, parent=parent, rows=str(SEED_ROWS), owners=str(SEED_OWNERS),
+            parent_note=f", which references `{parent}`" if parent else "",
+            endpoints="\n".join(f"- {e}" for e in opp.details.get("endpoints", [])),
+            handlers="\n\n".join(f"`{e}` in `{f}`:\n```python\n{c}```" for e, f, c in handlers[:4]),
+            calls=str(WARMUP + SAMPLES), feedback="",
+        )  # fmt: skip
+        schema: dict[str, Any] = {
+            "type": "object",
+            "properties": {
+                "method": {"type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]},
+                "path": {"type": "string"},
+                "query": {"type": "object", "additionalProperties": {"type": "string"}},
+                "body": {},
+                "values_sql": {"type": "string"},
+                "why": {"type": "string"},
+            },
+            "required": ["method", "path", "query", "values_sql", "why"],
+        }
+        messages = [Message(role="user", content=content, source="repo")]
+        if feedback:
+            messages.append(Message(role="user", content=mask_personal(redact_text(feedback)), source="synthetic"))
+        try:
+            value, _ = await self.brain.complete_json(LLMRequest(
+                purpose="lab.perf_request", tier=Tier.LOCAL, messages=messages, response_schema=schema,
+                max_tokens=800, prompt_sha256=prompt.sha256, correlation_id=opp.id,
+            ))  # fmt: skip
+        except (BrainError, ProviderError) as exc:
+            result.notes.append(f"lab.perf_request: no answer ({type(exc).__name__}: {str(exc)[:200]})")
+            return None
+        sql = str(value.get("values_sql", "")).strip().rstrip(";")
+        if not re.match(r"(?is)^\s*(select|with)\b", sql) or ";" in sql:
+            result.notes.append(f"request refused: values_sql is not one SELECT ({sql[:120]!r})")
+            return None
+        served = {e.partition(" ")[2] for e in opp.details.get("endpoints", [])}
+        path = str(value["path"])
+        template = re.sub(r"\{value\}", "{x}", path)
+        if not any(re.sub(r"\{[^}]+\}", "{x}", s) == template for s in served):
+            result.notes.append(f"request refused: {path} is not one of the endpoints that use the relation")
+            return None
+        return {
+            "method": value["method"],
+            "path": path,
+            "query": dict(value.get("query") or {}),
+            "body": value.get("body"),
+            "values_sql": f"BEGIN READ ONLY; {sql}; COMMIT;",
+            "why": value.get("why", ""),
+            "table": table,
+            "column": column,
+        }
+
+    async def _prepare_served(
+        self, opp: Opportunity, rev: str, recipe: ServerRecipe, relation: tuple[str, str],
+        handlers: list[tuple[str, str, str]], result: PerfResult,
+    ) -> tuple[Callable[[dict[str, str]], tuple[dict[str, Any] | None, str]], str, dict[str, Any], dict[str, Any],
+               dict[str, Any]] | None:  # fmt: skip
+        """The application as the project runs it; the database seeded from its catalog; a request chosen by a model
+        among the endpoints that use the relation and validated at the base by the engine's own statistics."""
+        table, column = relation
+        index = relation if opp.details.get("check") == "unindexed_foreign_key" else None
+        models_file = self._schema_file(rev, table)
+        parent = (self._reference(rev, models_file[0], column) if models_file else None) or ""
+        plans: list[SeedPlan] = []
+
+        def seed(psql: Psql) -> SeedPlan:
+            plan = plan_seed(psql, table, column, SEED_ROWS, SEED_OWNERS)
+            plans.append(plan)
+            return plan
+
+        feedback = ""
+        for attempt in range(self.repairs + 1):
+            self.progress(f"choosing the request (attempt {attempt + 1})")
+            request = await self._choose_request(opp, relation, parent, handlers, feedback, result)
+            if request is None:
+                feedback = "Your previous answer was refused: " + (result.notes[-1] if result.notes else "")
+                continue
+            self.progress("validating the request at the base, against the application as the project runs it")
+            self._served(rev, {}, recipe, request, seed, index)
+            session = self.last_session
+            assert session is not None
+            if session.error.startswith(("the application did not start", "seeding the database failed")):
+                # Not the request's fault: nothing a model can repair. Said precisely, as the environment's.
+                result.notes.append(f"workload: {session.error[:600]}")
+                self.prep_block = ("environment_ready" if session.error.startswith("the application") else
+                                   "workload_valid", session.error[:600])  # fmt: skip
+                return None
+            ok, problems = validate(session, table, column, SAMPLES, reads=request["method"] == "GET")
+            self._keep(opp, f"request-attempt-{attempt + 1}", json.dumps(request, indent=1),
+                       "valid" if ok else "not valid:\n" + "\n".join(problems))  # fmt: skip
+            if not ok:
+                feedback = ("Your previous request ran, but it does not measure what it must:\n- "
+                            + "\n- ".join(problems) + "\nChoose again.")  # fmt: skip
+                result.notes.append(f"request attempt {attempt + 1} not valid: {'; '.join(problems)[:300]}")
+                continue
+            operation = {"method": request["method"], "path": request["path"], "query": request["query"],
+                         "body": request["body"], "values": request["values_sql"], "why": request["why"],
+                         "source": "chosen by a model among the endpoints the map relates to the table; checked by the "
+                                   "engine's statement statistics"}  # fmt: skip
+            data = describe(plans[-1]) if plans else {}
+            validation = {"attempt": attempt + 1, "passed": [
+                "the application started as the project starts it (" + recipe.command[:120] + ")",
+                f"every call succeeded ({len(session.statuses)} calls)",
+                f"the engine ran a statement reading {table} by {column} on every call",
+                f"data: {session.data}"], "statements": session.statements[:3]}  # fmt: skip
+            frozen = dict(request)
+
+            def measure(files: dict[str, str], req: dict[str, Any] = frozen) -> tuple[dict[str, Any] | None, str]:
+                return self._served(rev, files, recipe, req, seed, index)
+
+            return measure, json.dumps(frozen, sort_keys=True), operation, data, validation
+        return None
+
+    async def run(self, opp: Opportunity) -> PerfResult:
+        result = PerfResult()
+        rev: str = opp.details["rev"]
+        table, endpoints = opp.details["table"], opp.details["endpoints"]
+        column = str(opp.details.get("column", ""))
+        readiness: dict[str, dict[str, Any]] = {}
+
+        def ready(state: str, ok: bool, why: str) -> None:
+            readiness[state] = {"ok": ok, "why": why[:400]}
+            opp.details = {**opp.details, "readiness": dict(readiness)}
+
+        def blocked(state: str, why: str) -> PerfResult:
+            """A preparation that failed: not an absent opportunity, not a negative result (stage 10)."""
+            ready(state, False, why)
+            result.blocked = f"cannot measure: {why}"
             result.notes.append(result.blocked)
+            opp.updated_at = utc_now()
+            self.store.put("opportunities", opp)
             return result
 
-        index = (table, column) if opp.details.get("check") == "unindexed_foreign_key" and column else None
-        self.progress(f"measuring {SESSIONS_PER_ARM} sessions per side, alternating")
-        sessions, error = self._sessions(rev, candidate.files, workload, plan, test_dir, index, opp.id)
-        if sessions is None:
-            result.notes.append(f"the candidate broke the workload: {error[-300:]}")
+        plan = test_plan(self.repo, rev, self.stack, "python")
+        ci = ci_test_plan(self.repo, rev, "python")
+        head = alembic_head(self.repo, rev)
+        self.marker = async_suite(
+            lambda path: self._show(rev, path), _git(self.repo, "ls-tree", "-r", "--name-only", rev).splitlines()
+        )
+        schema = self._schema_file(rev, table)
+        models_file, has_model = schema if schema else (None, False)
+        handlers = self._handlers(opp, rev)
+        missing = [
+            what
+            for what, have in (
+                # The project's test command, from its CI job or, without one, the same fallback the base checks
+                # use (stage 9 evaluation, Spoolman: its CI runs no pytest step, the base checks ran 278 tests, and
+                # every experiment was blocked for want of a CI job).
+                ("a way to run the project's tests", plan is not None),
+                ("a single Alembic head", head is not None),
+                (f"the schema of table {table} (a model, or the migration that creates it)", models_file is not None),
+                ("the handlers of the endpoints that read it", bool(handlers)),
+            )
+            if not have
+        ]
+        enforcing = plan is not None and any(
+            re.match(r"(.*/)?(postgres|postgis|mysql|mariadb)\b", s.image or "") for s in plan.services
+        )
+        if missing:
+            return blocked("environment_ready", "no " + ", no ".join(missing))
+        assert plan is not None and head is not None and models_file is not None
+        ready("environment_ready", True, f"dependency image built; tests run by {plan.source}; migrations at {head[0]}")
+        checks = self.store.get_value("baseline_checks") or {}
+        if checks.get("rev") == rev and checks.get("status") in ("passed", "failed") and checks.get("collected"):
+            ready("checks_reproduced", True, f"{checks['status']} at the base, {checks['collected']} collected "
+                                             f"({checks.get('scope') or plan.scope})")  # fmt: skip
+        else:
+            ready("checks_reproduced", False, "not recorded at this commit (the lab's own test runs decide)")
+        cwd = ci.steps[-1].cwd if ci is not None and ci.steps else "."
+        test_dir = self.stack.python.test_paths[0] if self.stack.python and self.stack.python.test_paths else "tests"
+        inv = inventory(self.repo, rev, [test_dir])
+        mode = inv.mode
+        if mode is None:
+            return blocked("environment_ready", "the project's API tests run neither in-process nor against a "
+                                                f"server it says how to start ({inv.why_not_served})")  # fmt: skip
+        if opp.details.get("cost_path") == "parent_delete" and not (enforcing or mode == "served"):
+            # The cost is the database's own foreign-key check; whether the test database makes it (SQLite only
+            # with `PRAGMA foreign_keys`) is not something the lab can tell. PostgreSQL always enforces them.
+            return blocked("environment_ready", "no test database known to enforce foreign keys")
+        preparation = [e.as_dict() for e in inv.evidence]
+        list_endpoint = next((e for e in endpoints if e.startswith("GET ") and "{" not in e), endpoints[0])
+        handler = next((h for h in handlers if h[0] == list_endpoint), handlers[0])
+        tables = self._parents(rev, models_file, table)
+        self.parents = tables
+
+        # Candidate, held to the repository's own checks: a speed-up may not bring new findings with it.
+        candidate = await self._candidate(opp, rev, table, column, head, models_file, has_model, handlers, result)
+        if candidate is None:
             return result
+        index = (table, column) if opp.details.get("check") == "unindexed_foreign_key" and column else None
+        relation = (table, column) if column else (table, "id")
+
+        # The workload, validated at the base before any comparison, repaired a bounded number of times.
+        if mode == "served":
+            assert inv.server is not None
+            prepared = await self._prepare_served(opp, rev, inv.server, relation, handlers, result)
+        else:
+            prepared = await self._prepare_in_process(opp, rev, plan, test_dir, cwd, list_endpoint, handler,
+                                                      models_file, has_model, relation, result)  # fmt: skip
+        if prepared is None and self.prep_block is not None:
+            return blocked(*self.prep_block)
+        if prepared is None:
+            last = next((n for n in reversed(result.notes) if n.startswith(("workload", "lab.", "request"))), "")
+            return blocked("workload_valid", f"no workload was valid at the base after {self.repairs + 1} attempts "
+                                             f"({last})")  # fmt: skip
+        measure, workload_text, operation, data, validation = prepared
+        ready("workload_valid", True, "; ".join(validation["passed"]))
+
+        # The spec, fixed before the first comparison.
+        workload_sha = hashlib.sha256(workload_text.encode()).hexdigest()
+        reads = operation.get("method", "GET") == "GET"
+        scope = (f"{operation.get('method')} {operation.get('path')} on {data.get('tables') or data}, "
+                 f"{'PostgreSQL' if mode == 'served' or enforcing else 'the test database'} in a sandbox, "
+                 f"{'the application as the project runs it' if mode == 'served' else 'inside the test suite'}; "
+                 "not a claim about other endpoints, other data or production")  # fmt: skip
+        spec = ExperimentSpec(
+            opportunity_id=opp.id, base_sha=rev, mode=mode, operation=operation, data=data,
+            functional_checks=["every warm-up and measured call succeeds",
+                               "the response carries data" if reads else "the call acts on its own target",
+                               "the same responses on both sides (canonical JSON digests)",
+                               f"the engine ran a statement reading {relation[0]} by {relation[1]} on every call"],
+            metric="wall-clock time of one request, ms, median per session", warmup=WARMUP, samples=SAMPLES,
+            sessions_per_arm=SESSIONS_PER_ARM, order_seed=opp.id, threshold=MIN_EFFECT,
+            criteria=PROMOTION_CRITERIA, scope=scope, workload_sha256=workload_sha, preparation=preparation,
+        )  # fmt: skip
+        self.store.put("experiment_specs", spec)
+
+        self.progress(f"measuring {SESSIONS_PER_ARM} sessions per side, alternating")
+        sessions, error = self._sessions(measure, candidate.files, opp.id)
+        if sessions is None:
+            ready("experiment_executed", False, f"the candidate broke the workload: {error[-300:]}")
+            result.notes.append(f"the candidate broke the workload: {error[-300:]}")
+            opp.updated_at = utc_now()
+            self.store.put("opportunities", opp)
+            return result
+        ready("experiment_executed", True, f"{len(sessions)} sessions")
+        base = [s["median_ms"] for s in sessions if s["arm"] == "base"]
+        cand = [s["median_ms"] for s in sessions if s["arm"] == "candidate"]
+        mechanism, mechanism_note = _mechanism(sessions, index)
+        functional, functional_note = _same(sessions)
+        first = judge_sessions(base, cand, mechanism=mechanism, mechanism_note=mechanism_note)
+        control: list[dict[str, Any]] = []
+        confirmation: list[dict[str, Any]] = []
+        family = 1
+        if first.improved and functional:
+            self.progress("A/A control: base against base")
+            control = self._sessions(measure, {}, f"{opp.id}:control", CONTROL_SESSIONS, ("base-a", "base-b"))[0] or []
+            confirmed = list(self.store.get_value(f"confirmations:{rev}") or [])
+            family = len(dict.fromkeys([*confirmed, opp.id]))
+            self.store.set_value(f"confirmations:{rev}", list(dict.fromkeys([*confirmed, opp.id])))
+            per_arm = SESSIONS_PER_ARM if family <= 3 else SESSIONS_PER_ARM + 1
+            self.progress(f"confirming in {per_arm} new sessions per side ({family} candidate(s) at this commit)")
+            confirmation = self._sessions(measure, candidate.files, f"{opp.id}:confirm", per_arm)[0] or []
+        aa = ([s["median_ms"] for s in control if s["arm"] == "base-a"],
+              [s["median_ms"] for s in control if s["arm"] == "base-b"]) if control else None  # fmt: skip
+        again = (
+            (
+                [s["median_ms"] for s in confirmation if s["arm"] == "base"],
+                [s["median_ms"] for s in confirmation if s["arm"] == "candidate"],
+            )
+            if confirmation
+            else None
+        )
+        promotion = judge_promotion(
+            (base, cand), mechanism=mechanism, mechanism_note=mechanism_note, functional_same=functional,
+            functional_note=functional_note, control=aa, confirmation=again,
+            confirmation_mechanism=_mechanism(confirmation, index)[0] if confirmation else None, family=family,
+        )  # fmt: skip
+
         self.progress("running the CI test job on both sides")
         image = self.images["python"]
         sides = []
@@ -903,14 +1423,10 @@ class PerfLab:
             sides.append(run_suite(self.runner, work, image, plan, rounds=3))
             discard(work)
         tests, test_notes = classify_tests(sides[0], sides[1])
-        base = [s["median_ms"] for s in sessions if s["arm"] == "base"]
-        cand = [s["median_ms"] for s in sessions if s["arm"] == "candidate"]
-        mechanism, mechanism_note = _mechanism(sessions, index)
-        stats = judge_sessions(base, cand, mechanism=mechanism, mechanism_note=mechanism_note)
-        improved = stats.improved and tests is not TestOutcome.REGRESSION
+        improved = promotion.improved and tests is not TestOutcome.REGRESSION
         level = level_for(improved, tests, suite_ran=True)
-        before = [x for s in sessions if s["arm"] == "base" for x in s["samples_ms"]]
-        after = [x for s in sessions if s["arm"] == "candidate" for x in s["samples_ms"]]
+        evaluable = promotion.outcome != "inconclusive" or bool(control or confirmation)
+        ready("result_evaluable", evaluable, promotion.outcome)
         experiment = Experiment(
             opportunity_id=opp.id,
             base_sha=rev,
@@ -918,38 +1434,44 @@ class PerfLab:
             rounds=3,
             baseline_tests=sides[0],
             candidate_tests=sides[1],
-            samples_before_ms=before,
-            samples_after_ms=after,
+            samples_before_ms=[x for s in sessions if s["arm"] == "base" for x in s["samples_ms"]],
+            samples_after_ms=[x for s in sessions if s["arm"] == "candidate" for x in s["samples_ms"]],
             sessions=sessions,
-            workload_sha256=hashlib.sha256(workload[f"{LAB_DIR}/workload.py"].encode()).hexdigest(),
+            workload_sha256=workload_sha,
             provenance=provenance(self.brain, list(self.images.values()), engine=self.engine),
+            spec_id=spec.id,
+            validation=validation,
+            control=control,
+            confirmation=confirmation,
         )
-        reasons = [
-            f"{list_endpoint}: {stats.reasons[0]}",
-            *stats.reasons[1:],
-            *(n for n in test_notes if tests is TestOutcome.REGRESSION),
-        ]
+        outcome = "regression" if tests is TestOutcome.REGRESSION and promotion.primary.improved else promotion.outcome
         verdict = Verdict(
             experiment_id=experiment.id,
             improved=improved,
             evidence_level=level,
-            criteria=SESSION_CRITERIA,
+            criteria=PROMOTION_CRITERIA,
             tests=tests,
-            reasons=reasons,
-            outcome=("regression" if tests is TestOutcome.REGRESSION and stats.improved else stats.outcome),
+            reasons=[
+                f"{operation.get('method')} {operation.get('path')}: {promotion.reasons[0]}",
+                *promotion.reasons[1:],
+                *(n for n in test_notes if tests is TestOutcome.REGRESSION),
+            ],
+            outcome=outcome,
             caveats=[
-                f"{SEED_ROWS} synthetic rows over {SEED_OWNERS} owners, measured in-process in a sandbox; "
-                "production effect not yet observed",
+                f"{data.get('tables') or data}, measured in a sandbox; production effect not yet observed",
                 *self._engine_caveat(),
                 *(n for n in test_notes if tests is not TestOutcome.REGRESSION),
+                f"the project's tests on both sides: {plan.scope}" + (" (part of the suite)" if plan.partial else ""),
             ],
+            scope=scope,
+            spec_id=spec.id,
         )
         self.store.put("experiments", experiment)
         if self.store.path is not None:
             artifacts = self.store.path.parent / "artifacts"
             artifacts.mkdir(parents=True, exist_ok=True)
             (artifacts / f"{experiment.id}.patch").write_text(candidate.patch)
-            (artifacts / f"{experiment.id}.workload.py").write_text(workload[f"{LAB_DIR}/workload.py"])
+            (artifacts / f"{experiment.id}.workload.py").write_text(workload_text)
         self.store.append_event(
             Event(
                 type=EventType.VERDICT_RECORDED,
@@ -960,11 +1482,12 @@ class PerfLab:
                     "improved": improved,
                     "level": int(level),
                     "outcome": verdict.outcome,
-                    "p_value": stats.p_faster,
-                    "median_before_ms": stats.median_before,
-                    "median_after_ms": stats.median_after,
-                    "effect": stats.effect,
+                    "p_value": promotion.primary.p_faster,
+                    "median_before_ms": promotion.primary.median_before,
+                    "median_after_ms": promotion.primary.median_after,
+                    "effect": promotion.primary.effect,
                     "tests": tests.value,
+                    "spec": spec.id,
                 },
             )
         )

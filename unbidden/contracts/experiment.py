@@ -45,6 +45,35 @@ class TestSummary(Contract):
         return INFRA_FAILED if self.failed_per_round[i] == [SUITE] else RAN
 
 
+READINESS = ("environment_ready", "checks_reproduced", "workload_valid", "experiment_executed", "result_evaluable")
+
+
+class ExperimentSpec(Contract):
+    """What an experiment measures and how it will be judged, fixed before its first comparison (stage 10). Written
+    once; a change to the workload after anything was observed is a new spec and a new experiment, the old ones kept.
+    `preparation` is where each part came from (the project's CI, its compose file, its Dockerfile, its fixtures, the
+    engine's catalog, a model's choice), so a reader can tell the project's evidence from Unbidden's choices."""
+
+    id: str = Field(default_factory=lambda: new_id("spec"))
+    opportunity_id: str
+    base_sha: Sha
+    mode: str  # "in_process": a test of the project's own suite; "served": the application as the project runs it
+    operation: dict[str, Any]  # method, path, parameters, and where they came from
+    data: dict[str, Any]  # tables, rows, distribution, how they were seeded
+    functional_checks: list[str]
+    metric: str
+    warmup: int
+    samples: int
+    sessions_per_arm: int
+    order_seed: str
+    threshold: float
+    criteria: dict[str, float | int | str]
+    scope: str  # what a conclusion from this experiment may claim, and no more
+    workload_sha256: str
+    preparation: list[dict[str, str]] = Field(default_factory=list[dict[str, str]])
+    created_at: datetime = Field(default_factory=utc_now)
+
+
 class Experiment(Contract):
     id: str = Field(default_factory=lambda: new_id("exp"))
     opportunity_id: str
@@ -62,6 +91,12 @@ class Experiment(Contract):
     sessions: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
     # Unbidden's commit and cleanliness, model routes, images, seed: what produced this measurement.
     provenance: dict[str, Any] = Field(default_factory=dict)
+    # Criteria v4: the spec fixed before comparing, the workload's validation at the base, the A/A control and the
+    # confirmation sessions, raw.
+    spec_id: str | None = None
+    validation: dict[str, Any] = Field(default_factory=dict)
+    control: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
+    confirmation: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
     cost: Cost = Field(default_factory=Cost)
     started_at: datetime = Field(default_factory=utc_now)
 
@@ -76,6 +111,9 @@ class Verdict(Contract):
     caveats: list[str] = Field(default_factory=list)
     # improved, no_relevant_change, regression, inconclusive or blocked (criteria v3); None on older verdicts.
     outcome: str | None = None
+    # Criteria v4: the operation, data and engine the conclusion holds for (an L4 says no more than this).
+    scope: str | None = None
+    spec_id: str | None = None
 
 
 class ProposalStatus(StrEnum):

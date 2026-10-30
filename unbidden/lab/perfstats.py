@@ -162,3 +162,93 @@ def judge_sessions(
     if effect < MIN_EFFECT:
         reasons.append(f"median improvement {effect:.0%} is below {MIN_EFFECT:.0%}")
     return SessionJudgement("inconclusive", p_faster, p_slower, m_before, m_after, effect, low, high, reasons)
+
+
+# Criteria v4 (stage 10), fixed before any measurement under them. v3's sessions answer whether the candidate is
+# faster in one set of sessions; a promotion also needs: the same functional result on both sides (a faster wrong
+# answer is a regression), an A/A control in the same conditions that stays quiet (the environment's own noise does
+# not reach the threshold), and a confirmation in new sessions, judged at an alpha divided among the candidates that
+# reached confirmation at the same commit (picking the best of several noisy tries is not a result).
+CONTROL_MAX_EFFECT = MIN_EFFECT / 2  # an A/A difference of 10% or more: the conditions are too noisy to judge 20%
+CONTROL_SESSIONS = 2
+PROMOTION_CRITERIA: dict[str, float | int | str] = {
+    **SESSION_CRITERIA,
+    "version": "perf-v4",
+    "functional": "every measured call succeeds and returns the same result on both sides (canonical JSON digest)",
+    "control": f"A/A: {CONTROL_SESSIONS} base sessions against {CONTROL_SESSIONS} more, |effect| below "
+    f"{CONTROL_MAX_EFFECT:.0%}",
+    "confirmation": f"{SESSIONS_PER_ARM} new sessions per arm in a new order, improved again at alpha "
+    f"{SESSION_ALPHA} / (candidates confirmed at this commit)",
+    "scope": "the declared operation, data and engine; no claim about other endpoints or production",
+}
+
+
+@dataclass(frozen=True)
+class Promotion:
+    outcome: str  # one of OUTCOMES
+    reasons: list[str]
+    primary: SessionJudgement
+    confirmation: SessionJudgement | None = None
+    control_effect: float | None = None
+
+    @property
+    def improved(self) -> bool:
+        return self.outcome == "improved"
+
+
+def control_effect(first: list[float], second: list[float]) -> float:
+    """The relative difference between two sets of base sessions (A/A): what the environment alone produces."""
+    a, b = statistics.median(first), statistics.median(second)
+    return (a - b) / a if a > 0 else 0.0
+
+
+def judge_promotion(
+    primary: tuple[list[float], list[float]],
+    *,
+    mechanism: bool | None = None,
+    mechanism_note: str = "",
+    functional_same: bool | None = None,
+    functional_note: str = "",
+    control: tuple[list[float], list[float]] | None = None,
+    confirmation: tuple[list[float], list[float]] | None = None,
+    confirmation_mechanism: bool | None = None,
+    family: int = 1,
+) -> Promotion:
+    """Criteria v4. `primary` and `confirmation`: (base, candidate) session medians; `control`: two sets of base
+    session medians; `family`: candidates that reached confirmation at this commit, this one included. A stage that
+    did not run (None) leaves the outcome short of `improved`, never better."""
+    first = judge_sessions(*primary, mechanism=mechanism, mechanism_note=mechanism_note)
+    reasons = list(first.reasons)
+    if functional_same is False:
+        return Promotion(
+            "regression",
+            [
+                *reasons,
+                f"the result differs between base and candidate: {functional_note or 'functional check failed'}",
+            ],
+            first,
+        )
+    if not first.improved:
+        return Promotion(first.outcome, reasons, first)
+    if functional_same is None:
+        return Promotion("inconclusive", [*reasons, "the functional result was not observed on both sides"], first)
+    if control is None:
+        return Promotion("inconclusive", [*reasons, "no A/A control was run"], first)
+    noise = control_effect(*control)
+    reasons.append(f"A/A control: {noise:+.0%} between two sets of base sessions")
+    if abs(noise) >= CONTROL_MAX_EFFECT:
+        return Promotion("inconclusive", [*reasons, f"the A/A control moved {abs(noise):.0%}, at least "
+                                                    f"{CONTROL_MAX_EFFECT:.0%}: too noisy to judge"], first,
+                         control_effect=noise)  # fmt: skip
+    if confirmation is None:
+        return Promotion("inconclusive", [*reasons, "not confirmed in new sessions"], first, control_effect=noise)
+    alpha = SESSION_ALPHA / max(1, family)
+    second = judge_sessions(*confirmation, mechanism=confirmation_mechanism, mechanism_note=mechanism_note)
+    reasons.append(f"confirmation: {second.reasons[0]}")
+    if second.outcome != "improved" or second.p_faster >= alpha:
+        why = f"p = {second.p_faster:.3g} is not below {alpha:.3g} ({family} candidate(s) at this commit)" if (
+            second.outcome == "improved") else "; ".join(second.reasons[1:]) or second.outcome  # fmt: skip
+        return Promotion("inconclusive", [*reasons, f"not confirmed: {why}"], first, second, noise)
+    if functional_note:
+        reasons.append(functional_note)
+    return Promotion("improved", reasons, first, second, noise)

@@ -39,8 +39,10 @@ def _run(docker: str, *args: str) -> subprocess.CompletedProcess[str]:
 
 @contextmanager
 def data_services(
-    services: list[Service], *, docker: str = "docker", ready_timeout_s: float = 90
+    services: list[Service], *, docker: str = "docker", ready_timeout_s: float = 90, statements: bool = False
 ) -> Iterator[Sidecars | None]:
+    """`statements`: PostgreSQL also keeps per-statement statistics (pg_stat_statements), read by the lab to see
+    what a measured request made the engine do."""
     if not services:
         yield None
         return
@@ -58,7 +60,9 @@ def data_services(
                     "--tmpfs", f"{DATA_DIRS.get(kind, '/data')}:rw", "--memory", "1g"]  # fmt: skip
             for key, value in sorted(service.environment.items()):
                 argv += ["-e", f"{key}={value}"]
-            started = _run(docker, *argv, service.image or "")
+            command = (["postgres", "-c", "shared_preload_libraries=pg_stat_statements", "-c",
+                        "pg_stat_statements.track=all"] if statements and kind == "postgres" else [])  # fmt: skip
+            started = _run(docker, *argv, service.image or "", *command)
             if started.returncode != 0:
                 raise SandboxError(f"data service {service.name} did not start: {started.stderr.strip()[-300:]}")
             names[service.name] = container
