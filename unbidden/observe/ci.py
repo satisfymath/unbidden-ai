@@ -170,7 +170,7 @@ def _reproducible(runs: list[dict[str, Any]], files: set[str] | None) -> bool:
     the repository does not have (one it downloads or generates while the job runs). Stage 9: LNbits' JMeter job,
     taken for its tests, ran `sudo update-java-alternatives` and `cd lnbits-extensions`."""
     for step in runs:
-        text = str(step["run"])
+        text = "\n".join(ln for ln in str(step["run"]).splitlines() if not _SETUP_LINE.match(ln))
         if re.search(r"(^|[\s;&|])sudo\s", text):
             return False
         if files is not None:
