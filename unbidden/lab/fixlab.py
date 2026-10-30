@@ -67,6 +67,7 @@ class LabResult:
     verdict: Verdict | None
     candidate: Candidate | None
     notes: list[str] = field(default_factory=list[str])
+    blocked: str | None = None  # what kept the lab from judging at all: not an experiment, not a negative result
 
 
 @dataclass(frozen=True)
@@ -257,12 +258,32 @@ class FixLab:
         result = LabResult(None, None, None)
 
         self.progress(f"reproducing {opp.title}")
+        # The checks' reports at a commit are the same for every opportunity they raised: kept once per commit and
+        # package, so a second finding of the same tool does not rebuild and re-run them (stage 10: 229 findings of
+        # one Prefect commit each re-ran mypy and ruff, about 35 s apiece, to learn the same thing).
+        key = f"reproduced:{rev}:{tool.language}:{tool.cwd}"
+        known = self.store.get_value(key) if self.store is not None else None
+        if known and known.get("incomplete"):
+            result.blocked = f"cannot judge: incomplete reports from {', '.join(known['incomplete'])}"
+            result.notes.append(result.blocked)
+            return result
+        if known and not set(targeted) <= set(known.get("present", {}).get(tool.name, [])):
+            result.notes.append("the targeted findings no longer reproduce at this commit")
+            return result
         base_work = self._work(rev, image)
         try:
             before = self._run_tools(base_work, siblings, image)
             incomplete = [r.tool for r in before if not r.can_resolve]
+            if self.store is not None:
+                present_by_tool = {
+                    s.name: sorted(_fingerprints([r for r in before if r.tool == s.name])) for s in siblings
+                }
+                self.store.set_value(key, {"incomplete": incomplete, "present": present_by_tool})
             if incomplete:
-                result.notes.append(f"cannot judge: incomplete reports from {', '.join(incomplete)}")
+                # The lab could not see the findings, so nothing is known about a fix: a block, not a failed attempt
+                # (stage 10: counted as failures, these drove the learned chance of this kind of fix to 0.006).
+                result.blocked = f"cannot judge: incomplete reports from {', '.join(incomplete)}"
+                result.notes.append(result.blocked)
                 return result
             present = set(_fingerprints([r for r in before if r.tool == tool.name]))
             if not set(targeted) <= present:

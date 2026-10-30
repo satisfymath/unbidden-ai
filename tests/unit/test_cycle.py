@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -16,7 +17,12 @@ from unbidden.store import Store
 pytestmark = pytest.mark.unit
 
 
-def make_cycle(store: Store, mandate: Mandate) -> Cycle:
+def make_cycle(store: Store, mandate: Mandate, *, checks: str | None = "passed") -> Cycle:
+    """A cycle whose project checks ran at the head with `checks` (None: they have not run yet)."""
+    head = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+    store.set_value("head", head)
+    if checks is not None:
+        store.set_value("baseline_checks", {"rev": head, "status": checks, "collected": 12})
     workspace = SimpleNamespace(mandate=lambda: mandate, repo=Path("."))
     runtime: Any = SimpleNamespace(store=store, workspace=workspace)
     return Cycle(runtime, log=lambda _: None)
@@ -43,3 +49,32 @@ def test_every_handled_job_type_has_a_priority(store: Store, mandate: Mandate) -
     from unbidden.daemon.cycle import PRIORITY
 
     assert set(make_cycle(store, mandate).handlers()) <= set(PRIORITY)
+
+
+def _opps(store: Store, n: int) -> None:
+    for i in range(n):
+        opp = Opportunity(
+            source="tsc", category="types", title=f"t{i}", summary="s", dedup_key=f"k{i}",
+            evidence=[EvidenceRef(kind="file", locator="a")],
+        )  # fmt: skip
+        store.put("opportunities", opp, key=opp.dedup_key)
+
+
+@pytest.mark.parametrize("checks", [None, "infra_failed", "no_plan"])
+async def test_no_experiment_starts_before_the_checks_are_reproduced(
+    store: Store, mandate: Mandate, checks: str | None
+) -> None:
+    """Stage 10 (Prefect B-post1): 229 experiments ran on a commit whose base checks had failed to start."""
+    _opps(store, 2)
+    cycle = make_cycle(store, mandate, checks=checks)
+    await cycle.director_sweep(Job(type="director.sweep", idempotency_key="s"))
+    assert not [j for j in store.jobs() if j.type == "lab.experiment"]
+    assert store.get_value("readiness_block")["rev"] == store.get_value("head")
+
+
+async def test_one_sweep_waits_at_a_time(store: Store, mandate: Mandate) -> None:
+    """Stage 10: every finished experiment queued its own sweep; the queue of Prefect's cycle never emptied."""
+    cycle = make_cycle(store, mandate)
+    for i in range(5):
+        cycle._wake(f"after:{i}")  # pyright: ignore[reportPrivateUsage]
+    assert len([j for j in store.jobs() if j.type == "director.sweep"]) == 1

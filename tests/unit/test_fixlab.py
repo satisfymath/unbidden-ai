@@ -115,3 +115,17 @@ async def test_regression_is_not_an_improvement(store: Store, mandate: Mandate, 
 def test_suppression_detection() -> None:
     patch = "+++ b/a.py\n+x = f()  # type: ignore\n-y = 1  # noqa\n+// eslint-disable-next-line\n"
     assert added_suppressions(patch) == ["x = f()  # type: ignore", "// eslint-disable-next-line"]
+
+
+async def test_reproduction_is_kept_per_commit_and_an_incomplete_report_is_a_block(
+    store: Store, mandate: Mandate, repo: tuple[Path, str]
+) -> None:
+    """Stage 10 (Prefect): each finding re-ran the same checks at the same commit, and a check that could not report
+    was counted as a failed attempt, which taught the Director that such fixes never work."""
+    lab, opp = setup(store, mandate, repo)
+    rev = opp.details["rev"]
+    store.set_value(f"reproduced:{rev}:node:.", {"incomplete": ["tsc"], "present": {}})
+    calls = len(lab.runner.calls)  # type: ignore[attr-defined]
+    result = await lab.run(opp)
+    assert result.blocked == "cannot judge: incomplete reports from tsc"
+    assert len(lab.runner.calls) == calls  # type: ignore[attr-defined]  # nothing rebuilt or re-run

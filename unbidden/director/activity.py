@@ -92,6 +92,9 @@ def build(store: Store, workspace: str, spend_rows: list[dict[str, Any]] | None 
             for o in proven[:TOP]
         ],
         "project_checks": store.get_value("baseline_checks"),
+        "experiments_wait": (lambda b: b if b and b.get("rev") == store.get_value("head") else None)(
+            store.get_value("readiness_block")
+        ),
         "revoked": [
             {
                 **_brief(o),
@@ -247,6 +250,8 @@ def render_text(data: dict[str, Any]) -> list[str]:
         counted = f"{checks.get('collected')} collected, {len(checks.get('failed') or [])} failed"
         lines.append(f"the project's own checks at {str(checks.get('rev', ''))[:12]}: {checks.get('status')} "
                      f"({checks.get('why') or counted})")  # fmt: skip
+    if data.get("experiments_wait"):
+        lines.append(f"  [yellow]experiments wait[/]: {data['experiments_wait']['why']}")
     for r in data.get("revoked") or []:
         lines.append(f"  [yellow]revoked[/] was L{r['was']} · {r['title']}: {r['why']}")
     if data["proven"]:

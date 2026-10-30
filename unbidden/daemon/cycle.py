@@ -166,8 +166,10 @@ class Cycle:
         except Exception as exc:  # the environment could not be built: that is the finding
             record |= {"status": "blocked", "why": f"{type(exc).__name__}: {str(exc)[:400]}"}
             self.store.set_value("baseline_checks", record)
+            self._wake(f"checks:{rev[:12]}")
             raise
         self.store.set_value("baseline_checks", record)
+        self._wake(f"checks:{rev[:12]}")  # experiments that waited for the checks may start now
         self.log(f"the project's own checks at {rev[:12]}: {record.get('status')} "
                  f"({record.get('collected')} collected, {len(record.get('failed') or [])} failed)")  # fmt: skip
 
@@ -266,7 +268,28 @@ class Cycle:
                 f"{len(kept)} property violation(s) kept for a person (L1)"
             )
         if opened:
-            self.store.enqueue(job("director.sweep", f"probe:{j.id}"))
+            self._wake(f"probe:{j.id}")
+
+    def _wake(self, key: str) -> None:
+        """Ask the Director to decide again, unless a sweep is already waiting: that one will see this change too
+        (stage 10: every finished experiment queued its own sweep, each deciding 511 opportunities for 50 s, and
+        Prefect's cycle never emptied its queue)."""
+        from unbidden.contracts.jobs import JobStatus
+
+        if not any(q.type == "director.sweep" for q in self.store.jobs(status=JobStatus.QUEUED)):
+            self.store.enqueue(job("director.sweep", key))
+
+    def _checks_ready(self, head: str | None) -> tuple[bool, str]:
+        """Readiness: an experiment starts only once the project's own checks ran at this commit's base (its
+        environment reproduced, tests collected). Before that, nothing an experiment found could be judged, and its
+        failure would be read as evidence against the opportunity."""
+        record = self.store.get_value("baseline_checks") or {}
+        if not head or record.get("rev") != head:
+            return False, "the project's own checks have not run at this commit yet"
+        if record.get("status") in ("passed", "failed") and record.get("collected"):
+            return True, ""
+        return False, (f"the project's own checks were not reproduced at {head[:12]} ({record.get('status')}: "
+                       f"{str(record.get('why') or '')[:200]})")  # fmt: skip
 
     async def director_sweep(self, _: Job) -> None:
         self._queue_needs()
@@ -276,6 +299,7 @@ class Cycle:
         head = self.store.get_value("head")
         commands = ci_commands(self.runtime.workspace.repo, head) if head else ""
         ci_status, per_tool, ci_problem = self._ci_verdicts(head, mandate)
+        ready, not_ready = self._checks_ready(head)
         queued = 0
         live = (OpportunityStatus.OPEN, OpportunityStatus.EXPERIMENTING, OpportunityStatus.PROPOSED)
         unpublished = {
@@ -322,7 +346,11 @@ class Cycle:
                 # One recorded decision per opportunity, evidence level and attempt; acting on it is retried
                 # every sweep, safely, because every job is queued under an idempotency key.
                 self._record_decision(opp, decision)
-            if decision.chosen is ActionKind.RUN_EXPERIMENT and queued < EXPERIMENTS_PER_SWEEP:
+            if decision.chosen is ActionKind.RUN_EXPERIMENT and not ready:
+                if self.store.get_value("readiness_block") != {"rev": head, "why": not_ready}:
+                    self.store.set_value("readiness_block", {"rev": head, "why": not_ready})
+                    self.log(f"experiments wait: {not_ready}")
+            elif decision.chosen is ActionKind.RUN_EXPERIMENT and queued < EXPERIMENTS_PER_SWEEP:
                 # One experiment per attempt at each commit (a lab blocked at one commit runs again at the next) and
                 # per reopening: a reopened opportunity's attempts start again under a new key.
                 rev, reopened = str(opp.details.get("rev", ""))[:12], int(opp.details.get("reopened", 0))
@@ -506,7 +534,7 @@ class Cycle:
             # the last note, a masking notice, as if that were why).
             why = result.verdict.reasons[:2] if result.verdict is not None and result.verdict.reasons else []
             self.log(f"{opp.id}: no proven fix ({'; '.join(why or result.notes[-1:])})")
-        self.store.enqueue(job("director.sweep", f"after:{j.id}"))
+        self._wake(f"after:{j.id}")
 
     async def proposal_prepare(self, j: Job) -> None:
         opp = self.store.get("opportunities", j.payload["id"], Opportunity)
@@ -742,7 +770,7 @@ class Cycle:
             opp.evidence_level = max(opp.evidence_level, EvidenceLevel.REPRODUCTION)
         opp.updated_at = utc_now()
         self.store.put("opportunities", opp)
-        self.store.enqueue(job("director.sweep", f"after:{j.id}"))
+        self._wake(f"after:{j.id}")
 
     async def goal_pursue(self, j: Job) -> None:
         from unbidden.director.goals import pursue
