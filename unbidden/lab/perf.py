@@ -478,6 +478,7 @@ def index_candidate(
     revision = hashlib.sha256(f"{table}.{column}:{head_rev}".encode()).hexdigest()[:12]
     name = f"ix_{table}_{column}"
     migration = _INDEX_MIGRATION.format(table=table, column=column, revision=revision, head_rev=head_rev, name=name)
+    migration = in_house_style(migration, show(head[2]))
     out = {f"{migrations_dir}/{revision}_add_index_{table}_{column}.py": migration}
     if edited is not None:
         out[models_file] = edited
@@ -507,6 +508,29 @@ def _model_index(source: str, table: str, column: str) -> str | None:
     stripped = line.rstrip()
     lines[declared[0]] = f"{stripped[:-1]}, index=True)\n"
     return "".join(lines)
+
+
+def in_house_style(migration: str, head: str) -> str:
+    """The written migration in the conventions of the project's own latest one, so its linters see nothing new
+    (stage 10: Spoolman lints with every ruff rule; a migration without docstrings or return annotations added
+    findings, and the index the finding asked for was set aside). Only what the head itself shows is copied: the
+    revision variables' annotations, `-> None` on the functions, a docstring in each, a period after the title."""
+    out = migration
+    for name in ("revision", "down_revision", "branch_labels", "depends_on"):
+        declared = re.search(rf"^{name}(\s*:\s*[^=\n]+?)\s*=", head, re.M)
+        if declared:
+            out = re.sub(rf"^{name} = ", f"{name}{declared.group(1)} = ", out, count=1, flags=re.M)
+    if re.search(r"^def upgrade\(\)\s*->\s*None\s*:", head, re.M):
+        out = out.replace("def upgrade():", "def upgrade() -> None:").replace(
+            "def downgrade():", "def downgrade() -> None:"
+        )
+    if re.search(r'^def upgrade\([^\n]*:\n\s+"""', head, re.M):
+        out = re.sub(r"(def upgrade\([^\n]*:\n)", r'\1    """Add the index."""\n', out)
+        out = re.sub(r"(def downgrade\([^\n]*:\n)", r'\1    """Remove the index."""\n', out)
+    first = head.lstrip('"').split("\n", 1)[0].strip()
+    if first.endswith("."):
+        out = re.sub(r'^"""(.+?)\n', lambda m: f'"""{m.group(1).rstrip(".")}.\n', out, count=1)
+    return out
 
 
 # No annotations: `str | None` is a TypeError before Python 3.10, and the project's interpreter may be older
@@ -939,6 +963,20 @@ class PerfLab:
 
     # The experiment -------------------------------------------------------------------------------------
 
+    def _added(self, rev: str, files: dict[str, str], before: Counter[str]) -> Counter[str]:
+        """Findings the change adds. In a file the change creates, a rule its directory's existing files already break
+        is the project's convention, not the change's doing (stage 10: Spoolman lints with every rule, its migrations
+        carry no copyright notice, and so would any new one)."""
+        added = self._findings(rev, files) - before
+        broken = {(k.split(" ", 2)[1], str(Path(k.split(" ", 2)[2].split(":", 1)[0]).parent)) for k in before}
+        existing = set(_git(self.repo, "ls-tree", "-r", "--name-only", rev).splitlines())
+        for key in list(added):
+            _, rule, rest = key.split(" ", 2)
+            path = rest.split(":", 1)[0]
+            if path not in existing and path in files and (rule, str(Path(path).parent)) in broken:
+                del added[key]
+        return added
+
     def _parents(self, rev: str, models_file: str, table: str) -> list[str]:
         """The tables `table` references (its foreign keys), read from its model or migration."""
         source = self._show(rev, models_file)
@@ -978,8 +1016,10 @@ class PerfLab:
             candidate_files = index_candidate(
                 lambda path: self._show(rev, path), table, column, models_file, head, model=has_model
             )
-            if candidate_files and self._findings(rev, candidate_files) - before_findings:
-                result.notes.append("the written index change added findings; asking the local model instead")
+            added = self._added(rev, candidate_files, before_findings) if candidate_files else None
+            if added:
+                listed = "; ".join(sorted(added.elements())[:3])
+                result.notes.append(f"the written index change added findings ({listed}); asking the model instead")
                 candidate_files = None
             elif candidate_files:
                 origin = "rule"  # written by Unbidden from the finding, no model involved
@@ -991,7 +1031,7 @@ class PerfLab:
             )
             if not candidate_files:
                 continue
-            new = self._findings(rev, candidate_files) - before_findings
+            new = self._added(rev, candidate_files, before_findings)
             if not new:
                 break
             listed = "\n".join(f"- {f}" for f in sorted(new.elements())[:10])
@@ -1331,7 +1371,14 @@ class PerfLab:
         # Candidate, held to the repository's own checks: a speed-up may not bring new findings with it.
         candidate = await self._candidate(opp, rev, table, column, head, models_file, has_model, handlers, result)
         if candidate is None:
-            return result
+            # Nothing was measured: no change could be written that keeps the project's checks clean. A block with its
+            # notes, not an experiment that found no fix (stage 10, Spoolman: counted twice as failures, then declined).
+            return blocked(
+                "experiment_executed",
+                "no candidate change keeps the project's own checks clean ("
+                + "; ".join(n for n in result.notes if "candidate" in n or "finding" in n)[:300]
+                + ")",
+            )
         index = (table, column) if opp.details.get("check") == "unindexed_foreign_key" and column else None
         relation = (table, column) if column else (table, "id")
 

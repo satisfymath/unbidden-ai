@@ -69,3 +69,19 @@ def test_the_same_responses_on_both_sides_or_a_named_difference() -> None:
     ok, note = _same(wrong)
     assert ok is False and "1 of 2 responses differ" in note
     assert _same([{"arm": "base", "digests": []}, {"arm": "candidate", "digests": ["x"]}])[0] is None
+
+
+def test_a_written_migration_follows_the_projects_own_conventions() -> None:
+    """Stage 10, Spoolman: its migrations are linted with every rule; the index's migration must look like them."""
+    from unbidden.lab.perf import _INDEX_MIGRATION, in_house_style
+
+    head = ('"""tags.\n\nRevision ID: fe49\n"""\n\nrevision: str = "fe49"\ndown_revision: str | None = "9c1d"\n\n\n'
+            'def upgrade() -> None:\n    """Create the tag table."""\n    pass\n')  # fmt: skip
+    written = in_house_style(_INDEX_MIGRATION.format(table="t", column="c", revision="r1", head_rev="fe49", name="ix"),
+                             head)  # fmt: skip
+    assert written.startswith('"""add index on t.c.\n')
+    assert 'revision: str = "r1"' in written and 'down_revision: str | None = "fe49"' in written
+    assert 'def upgrade() -> None:\n    """Add the index."""' in written
+    plain = in_house_style(_INDEX_MIGRATION.format(table="t", column="c", revision="r1", head_rev="h", name="ix"),
+                           '"""x\n"""\nrevision = "h"\n\ndef upgrade():\n    pass\n')  # fmt: skip
+    assert "def upgrade():" in plain and "-> None" not in plain  # an older project's style is kept as it is
