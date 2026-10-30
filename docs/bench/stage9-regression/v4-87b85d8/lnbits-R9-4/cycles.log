@@ -1,0 +1,143 @@
+== cycle 1 (exit 0)
+00:27:49 watching /Users/david/unbidden-lab/lnbits (ctrl-c to stop, `unbidden 
+kill` to freeze)
+00:28:03 HEAD is 9349da153c22
+00:28:06 deploy procedure found, proposed only: docker compose up -d 
+--remove-orphans
+00:28:06 deploy procedure found, proposed only: docker compose up 
+--remove-orphans
+00:28:06 connections: postgres:127.0.0.1:55450/lnbits connected, 
+http_api:http://127.0.0.1:18120 needs_capability
+00:28:06 provisioning node dependencies
+00:28:06 provisioning python dependencies
+00:28:06 running ruff
+00:28:06 running pyright
+00:28:13 scan of 9349da153c22: 2 reports, 0 new opportunities
+00:30:50 map of 9349da153c22: 233 resources, 3 blind spots
+00:30:52 robustness probe at 9349da153c22: investigate (probe lnbits (80 public 
+functions sampled))
+00:31:42 the project's own checks at 9349da153c22: failed (272 collected, 2 
+failed)
+00:31:44 opp_24de92862eef45a9: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_62737035161644d9: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_1b3e94d7675f422e: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_33061bca353a4896: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_2ef0a63c5822433d: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_2eae0136c1404f63: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_8a49ccf364864667: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_5c79ba2578cf4496: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_224046cc135b4a6e: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_d17031b8cfc9479c: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_2255d1d67ef54a58: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_a3e8f377ed434326: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_f69ab4a82aba4ef6: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_958f190bb2e04bea: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_24c3219e2dde4763: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_72cf3102ccd64909: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_f29bd052cfa54c45: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_8a897bb5e0cf4a9e: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:44 opp_f5630beb0b1044c8: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:31:54 opp_24de92862eef45a9: consistency of GET /api/v1/assets/paginated: 
+waiting_capability: needs an integration for lnbits-api
+00:32:02 capability need api_client for http_api:http://127.0.0.1:18120: failed
+00:32:10 opp_62737035161644d9: consistency of GET 
+/api/v1/extension/reviews/tags: blocked: lnbits-api: needs_authorization
+00:32:18 opp_1b3e94d7675f422e: consistency of GET 
+/api/v1/extension/wasm/invocations: blocked: lnbits-api: needs_authorization
+00:32:20 opp_24de92862eef45a9: wait (investigation queued or running)
+00:32:20 opp_62737035161644d9: wait (blocked: lnbits-api: needs_authorization)
+00:32:20 opp_1b3e94d7675f422e: wait (blocked: lnbits-api: needs_authorization)
+00:32:27 capability need api_client for http_api:http://127.0.0.1:18120: 
+abandoned
+00:32:27 opp_33061bca353a4896: consistency of GET 
+/api/v1/extension/wasm/invocations/current: blocked without a model call: 
+http_api:http://127.0.0.1:18120: Get_user_assets_api_v1_assets_paginated_get 
+refused the credential
+00:32:27 opp_2ef0a63c5822433d: consistency of GET 
+/api/v1/extension/wasm/invocations/stats: blocked without a model call: 
+http_api:http://127.0.0.1:18120: Get_user_assets_api_v1_assets_paginated_get 
+refused the credential
+00:32:27 opp_2eae0136c1404f63: consistency of GET 
+/api/v1/payments/all/paginated: blocked without a model call: 
+http_api:http://127.0.0.1:18120: Get_user_assets_api_v1_assets_paginated_get 
+refused the credential
+00:32:27 opp_24de92862eef45a9: consistency of GET /api/v1/assets/paginated: 
+blocked without a model call: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get refused the credential
+00:32:28 opp_33061bca353a4896: wait (blocked: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get refused the credential)
+00:32:28 opp_2ef0a63c5822433d: wait (blocked: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get refused the credential)
+00:32:28 opp_2eae0136c1404f63: wait (blocked: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get refused the credential)
+00:32:28 opp_8a49ccf364864667: consistency of GET /api/v1/payments/paginated: 
+blocked without a model call: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get refused the credential
+00:32:28 opp_5c79ba2578cf4496: consistency of GET 
+/api/v1/payments/stats/breakdown: blocked without a model call: 
+http_api:http://127.0.0.1:18120: Get_user_assets_api_v1_assets_paginated_get 
+refused the credential
+00:32:28 opp_224046cc135b4a6e: consistency of GET /api/v1/payments/stats/daily: 
+blocked without a model call: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get refused the credential
+00:32:30 opp_8a49ccf364864667: wait (blocked: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get refused the credential)
+00:32:30 opp_5c79ba2578cf4496: wait (blocked: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get refused the credential)
+00:32:30 opp_224046cc135b4a6e: wait (blocked: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get refused the credential)
+00:32:30 opp_d17031b8cfc9479c: consistency of GET 
+/api/v1/payments/stats/wallets: blocked without a model call: 
+http_api:http://127.0.0.1:18120: Get_user_assets_api_v1_assets_paginated_get 
+refused the credential
+00:32:30 opp_2255d1d67ef54a58: consistency of GET /api/v1/wallet/paginated: 
+blocked without a model call: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get refused the credential
+00:32:30 opp_a3e8f377ed434326: consistency of GET /audit/api/v1: blocked without
+a model call: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get refused the credential
+00:32:30 writing property tests for lnbits
+00:32:38 running them offline
+00:32:42 robustness probe of lnbits: 2 failed, 6 passed in 1.40s; 0 crash(es), 0
+new; 0 property violation(s) kept for a person (L1)
+
+
+== cycle 2 (exit 0)
+00:32:43 watching /Users/david/unbidden-lab/lnbits (ctrl-c to stop, `unbidden 
+kill` to freeze)
+00:32:44 connections: postgres:127.0.0.1:55450/lnbits connected, 
+http_api:http://127.0.0.1:18120 needs_capability
+00:32:45 opp_d17031b8cfc9479c: wait (blocked: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get refused the credential)
+00:32:45 opp_2255d1d67ef54a58: wait (blocked: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get refused the credential)
+00:32:45 opp_a3e8f377ed434326: wait (blocked: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get refused the credential)
+00:32:45 opp_f69ab4a82aba4ef6: consistency of GET /node/api/v1/info: blocked 
+without a model call: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get refused the credential
+00:32:45 opp_958f190bb2e04bea: consistency of GET /node/api/v1/invoices: blocked
+without a model call: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get refused the credential
+00:32:45 opp_24c3219e2dde4763: consistency of GET /node/api/v1/payments: blocked
+without a model call: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get refused the credential

@@ -192,6 +192,18 @@ async def build(
         if integration.op(k).effect == "read"
         and (r.get("status") in (401, 403) or str(r.get("observed", "")).startswith(("401", "403")))
     ]
+    reads = [o.id for o in integration.operations if o.effect == "read"]
+    if refused and len(refused) < len(reads):
+        # Some reads answer with this credential and these do not: they are outside its scope (stage 9, LNbits: a
+        # wallet's read key, refused by the account-wide `assets` listing, was reported as a key a person must
+        # replace). They are left out, said so, and what remains is judged again; no person is asked for anything.
+        notes.append(f"outside the credential's scope (refused while other reads answer): {', '.join(refused)}")
+        integration = integration.model_copy(update={
+            "operations": [o for o in integration.operations if o.id not in refused],
+            "signature": signature(document, [o for o in integration.operations if o.id not in refused]),
+        })  # fmt: skip
+        verdict = oracle(integration, conn, mandate, store=store, transport=transport)
+        refused = []
     if refused:
         # The service refused the credential itself: nothing is known about the document's truth, and the problem
         # is access, for a person to fix. The connection says so; the integration is not condemned.

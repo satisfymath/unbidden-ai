@@ -402,3 +402,42 @@ def test_a_proactive_question_reaches_the_model_that_chooses_the_operations(mand
     asyncio.run(integrate.build(Brain(), store, mandate, conn, transport=httpx.MockTransport(handle),
                                 purposes=[question]))  # fmt: skip
     assert question in seen[0] and "asked by Unbidden itself" in seen[0] and "(none stated)" not in seen[0]
+
+
+def test_a_read_outside_the_keys_scope_is_left_out_not_blamed_on_the_key(mandate: Mandate, store: Any) -> None:
+    """Stage 9, LNbits: a wallet's read key answers the wallet's listings, and the account-wide one refuses it; the
+    whole credential was reported as one a person must replace. The refused read is left out instead."""
+    import asyncio
+    import copy
+
+    from unbidden.connect.registry import get, record
+    from unbidden.forge import integrate
+
+    doc = copy.deepcopy(DOC)
+    responses = doc["paths"]["/v1/items"]["get"]["responses"]
+    doc["paths"]["/v1/admin/items"] = {"get": {"operationId": "listAllItems", "responses": responses}}
+
+    class Brain:
+        async def complete(self, request: Any) -> Any:
+            ops = [{"id": "listItems", "use": "read", "why": "x"}, {"id": "listAllItems", "use": "read", "why": "x"}]
+            return type("R", (), {"content": json.dumps({"operations": ops}), "model": "test"})()
+
+    items = [{"sku": "A1", "on_hand": 3}, {"sku": "B2", "on_hand": 5}]
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/o":
+            return httpx.Response(200, json=doc)
+        if request.url.path == "/v1/admin/items":
+            return httpx.Response(401, json={"error": "an account key is needed"})
+        return service(items).handle_request(request)
+
+    mandate.connections = [grant(["read"])]
+    conn = connected([])
+    conn.state = ConnectionState.NEEDS_CAPABILITY
+    record(store, conn, reason="test")
+    built, decision, notes = asyncio.run(integrate.build(Brain(), store, mandate, conn,
+                                                         transport=httpx.MockTransport(handle)))  # fmt: skip
+    assert built is not None and decision == "built" and [o.id for o in built.operations] == ["listItems"]
+    assert any("outside the credential's scope" in n and "listAllItems" in n for n in notes)
+    stored = get(store, conn.id)
+    assert stored is None or stored.state is not ConnectionState.NEEDS_AUTHORIZATION  # no person asked for a key
