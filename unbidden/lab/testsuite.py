@@ -14,7 +14,7 @@ from unbidden.observe.ci import ci_test_plan
 from unbidden.observe.compose import Service, load_compose
 from unbidden.observe.stack import Stack
 from unbidden.sandbox.provision import DependencyImage, sandbox_spec
-from unbidden.sandbox.runner import SandboxRunner, SandboxSpec
+from unbidden.sandbox.runner import SandboxResult, SandboxRunner, SandboxSpec
 from unbidden.sandbox.sidecars import data_services
 
 
@@ -150,6 +150,7 @@ class Round:
     failed: list[str] | None  # None: the run said nothing about the code
     status: str  # RAN, NOT_COLLECTED or INFRA_FAILED
     collected: int | None  # test cases the runner reported; None when it does not say
+    why: str | None = None  # for a round that told nothing about the code: how the run ended, and its last output
 
     @property
     def meaningful(self) -> bool:
@@ -186,7 +187,7 @@ def _round(
 
         names = go_test_failures(result.stdout)
         if names is None:
-            return Round(None, INFRA_FAILED, None)  # no test event at all: retried once, then counted
+            return Round(None, INFRA_FAILED, None, _ended(result))  # no test event at all: retried once, then counted
         count = go_test_count(result.stdout)
         return Round(names, RAN if count else NOT_COLLECTED, count)
     report = _junit(junit)
@@ -194,7 +195,7 @@ def _round(
         return Round([], NOT_COLLECTED, 0)  # pytest: no tests collected
     if report is None and plan.pytest and not result.ok:
         # Nothing reached pytest's report: setup failed or the run crashed. Retried once, then counted.
-        return Round(None, INFRA_FAILED, None)
+        return Round(None, INFRA_FAILED, None, _ended(result))
     names, collected = (report[0], report[1]) if report is not None else (None, None)
     if names and needs_network(result.stdout + result.stderr):
         names = [f"{n} (needs network)" for n in names]
@@ -204,6 +205,13 @@ def _round(
         names = [SUITE]
     status = NOT_COLLECTED if collected == 0 else RAN
     return Round(sorted(names), status, collected)
+
+
+def _ended(result: SandboxResult) -> str:
+    """How a run that reached no test report ended: its exit, and the last lines it printed."""
+    how = "timed out" if result.timed_out else f"exit {result.exit_code}"
+    tail = (result.stderr.strip() or result.stdout.strip())[-600:]
+    return f"{how}: {tail}" if tail else f"{how}, nothing printed"
 
 
 def run_suite(
@@ -218,6 +226,7 @@ def run_suite(
     failed_per_round: list[list[str]] = []
     statuses: list[str] = []
     collected: list[int | None] = []
+    why: list[str | None] = []
     n = 0
     for _ in range(rounds):
         result = Round(None, INFRA_FAILED, None)
@@ -229,7 +238,12 @@ def run_suite(
         failed_per_round.append(result.failed if result.failed is not None else [SUITE])
         statuses.append(result.status)
         collected.append(result.collected)
+        why.append(result.why)
     shutil.rmtree(work / JUNIT_DIR, ignore_errors=True)
     return TestSummary(
-        rounds=rounds, failed_per_round=failed_per_round, round_status=statuses, collected_per_round=collected
+        rounds=rounds,
+        failed_per_round=failed_per_round,
+        round_status=statuses,
+        collected_per_round=collected,
+        infra_why=why,
     )

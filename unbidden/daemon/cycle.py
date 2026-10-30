@@ -164,6 +164,8 @@ class Cycle:
                            summary.collected_per_round else None, "failed": summary.failed_per_round[0][:50],
                            "command": " ".join(plan.argv)[:300], "scope": plan.scope, "partial": plan.partial,
                            "notes": list(plan.notes)[:10]}  # fmt: skip
+                if ran == "infra_failed" and summary.infra_why and summary.infra_why[0]:
+                    record["why"] = summary.infra_why[0]  # the checks did not run: say how, not only that
         except Exception as exc:  # the environment could not be built: that is the finding
             record |= {"status": "blocked", "why": f"{type(exc).__name__}: {str(exc)[:400]}"}
             self.store.set_value("baseline_checks", record)

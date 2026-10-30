@@ -19,15 +19,15 @@ JUNIT = """<testsuite tests="3"><testcase classname="t" name="a"/><testcase clas
 class FakeRunner:
     """Answers each round with an exit code and, when given, the JUnit report pytest would have written."""
 
-    def __init__(self, work: Path, outcomes: list[tuple[int, str | None]]) -> None:
-        self.work, self.outcomes, self.calls = work, outcomes, 0
+    def __init__(self, work: Path, outcomes: list[tuple[int, str | None]], stderr: str = "") -> None:
+        self.work, self.outcomes, self.calls, self.stderr = work, outcomes, 0, stderr
 
     def run(self, spec: SandboxSpec, work: Path) -> SandboxResult:
         code, report = self.outcomes[min(self.calls, len(self.outcomes) - 1)]
         self.calls += 1
         if report is not None:
             (work / JUNIT_DIR / f"round-{self.calls}.xml").write_text(report)
-        return SandboxResult(code, "", "", False, 1.0, False, False)
+        return SandboxResult(code, "", self.stderr, False, 1.0, False, False)
 
 
 def test_each_round_records_whether_the_suite_ran_and_how_many_tests_it_collected(tmp_path: Path) -> None:
@@ -46,6 +46,13 @@ def test_a_suite_that_never_reports_is_an_infrastructure_failure_after_one_retry
     summary = run_suite(runner, tmp_path, IMAGE, PYTEST, rounds=1)  # type: ignore[arg-type]
     assert runner.calls == 2  # retried once
     assert summary.round_status == ["infra_failed"] and summary.failed_per_round == [["<suite>"]]
+
+
+def test_a_suite_that_never_reports_says_how_it_ended(tmp_path: Path) -> None:
+    runner = FakeRunner(tmp_path, [(2, None)], stderr="ImportError: libpq.so.5: cannot open shared object file")
+    summary = run_suite(runner, tmp_path, IMAGE, PYTEST, rounds=1)  # type: ignore[arg-type]
+    assert summary.round_status == ["infra_failed"]
+    assert summary.infra_why == ["exit 2: ImportError: libpq.so.5: cannot open shared object file"]
 
 
 def test_xdist_starts_as_many_workers_as_the_sandbox_has_cpus(tmp_path: Path) -> None:

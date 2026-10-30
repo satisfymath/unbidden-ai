@@ -37,6 +37,7 @@ class TestSummary(Contract):
     failed_per_round: list[list[str]]
     round_status: list[str] = Field(default_factory=list[str])  # RAN, NOT_COLLECTED or INFRA_FAILED per round
     collected_per_round: list[int | None] = Field(default_factory=list[int | None])  # None: the runner did not say
+    infra_why: list[str | None] = Field(default_factory=list[str | None])  # per round: how one that ran no tests ended
 
     def status(self, i: int) -> str:
         """A round's status; for an older record, an unattributed failure is taken as a suite that did not run."""
