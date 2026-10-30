@@ -27,6 +27,7 @@ class EventType(StrEnum):
     EGRESS_ALLOWED = "egress.allowed"
     EGRESS_BLOCKED = "egress.blocked"
     POLICY_DENIED = "policy.denied"
+    VALUES_MASKED = "guardian.values_masked"  # credential-looking values masked out of repository text
     MODEL_CALLED = "model.called"
     MODEL_FALLBACK = "model.fallback"
     KILL_SWITCH = "killswitch.changed"

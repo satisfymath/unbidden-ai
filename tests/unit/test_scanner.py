@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from unbidden.guardian.scanner import SensitiveTermIndex, redact_json, redact_text, scan, secret_hits
@@ -72,3 +74,72 @@ def test_identifiers_match_whole_words_case_insensitive() -> None:
     kinds = [h.kind for h in scan("SELECT * FROM Order_Items", index)]
     assert kinds == ["identifier:order_items"]
     assert not scan("reorder_items_total", index)
+
+
+# Stage 10 diagnosis (docs/bench/stage10-diagnosis.md): the records' two Guardian refusals.
+@pytest.mark.parametrize(
+    "text",
+    [
+        "SPOOLMAN_DB_URL=postgresql+asyncpg://postgres:abc@db:5432/spoolman",  # a test configuration's URL
+        "postgres://app:s3cr3tpass@db:5432/shop",
+        "redis://user:longerpassword@cache:6379/0",
+    ],
+)
+def test_masking_a_url_password_is_idempotent(text: str) -> None:
+    once = redact_text(text)
+    assert not secret_hits(scan(once)), once  # the masked prompt passes the scan it is sent through
+    assert redact_text(once) == once
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "mysql://root:${MYSQL_PASSWORD}@db:3306/app",  # an environment reference, not a value
+        "reservation_token=reservation.reservation_token,",  # Prefect's code: a dotted attribute path
+        '"reservation_token": frame.payload.reservation_token,',
+        "ORMCsrfToken = CsrfToken",  # an alias of a class
+    ],
+)
+def test_code_and_references_are_not_secrets(text: str) -> None:
+    assert not secret_hits(scan(text)), text
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "API_TOKEN=Ab9xQ2mZ7rT4",  # an unquoted value that is not a name in the key
+        'reservation_token = "res.abc.Def123"',  # quoted: always judged as a possible secret
+        "JWT_SECRET=eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.abcDEF123",  # a token with dots, mixed case
+        "postgres://app:Xk9fT2qLm8@db/shop",
+    ],
+)
+def test_real_secrets_are_still_refused(text: str) -> None:
+    assert secret_hits(scan(text)), text
+
+
+def test_the_router_masks_repository_text_and_still_refuses_other_secrets(tmp_path: Path) -> None:
+    """Stage 10: repository text is masked before Guardian's scan; a secret from any other source is still refused."""
+    from unbidden.brain.router import Brain, SecretInPrompt
+    from unbidden.contracts.llm import LLMRequest, Message, Tier
+    from unbidden.store import Store
+
+    store = Store(tmp_path / "state.db")
+    brain = Brain.__new__(Brain)
+    brain.store = store
+    repo = LLMRequest(
+        purpose="t",
+        tier=Tier.LOCAL,
+        max_tokens=10,
+        messages=[Message(role="user", source="repo", content="URL=postgresql://u:abcdef@db/x")],
+    )
+    masked = brain._mask_repository(repo)  # pyright: ignore[reportPrivateUsage]
+    assert "abcdef" not in masked.messages[0].content
+    brain._guard_prompt(masked)  # pyright: ignore[reportPrivateUsage]  # passes: nothing secret is left
+    other = LLMRequest(
+        purpose="t",
+        tier=Tier.LOCAL,
+        max_tokens=10,
+        messages=[Message(role="user", source="runtime", content="DB_PASSWORD=Xk9fT2qLm8")],
+    )
+    with pytest.raises(SecretInPrompt):
+        brain._guard_prompt(brain._mask_repository(other))  # pyright: ignore[reportPrivateUsage]

@@ -83,10 +83,13 @@ class SensitiveTermIndex:
 
 
 _CODE_NAME = re.compile(r"^[a-z_][a-z_]*$")
+_CODE_PATH = re.compile(r"^[a-z_][a-z0-9_]*(?:\.[a-z_][a-z0-9_]*)+$")  # reservation.reservation_token
+_IDENTIFIER = re.compile(r"^[A-Za-z_]\w*$")
+_MASKED = re.compile(r"^.{0,2}\*{3}$")  # what `_mask` leaves
 
 
 def _is_code_reference(match: re.Match[str]) -> bool:
-    """`password = new_password`, `token = r.json()`, `key = response["k"]`: code, not a credential.
+    """`password = new_password`, `token = r.json()`, `key = response["k"]`, `token=run.token`: code, not a credential.
 
     Only unquoted values qualify: a quoted literal is always judged as a possible secret.
     """
@@ -95,15 +98,24 @@ def _is_code_reference(match: re.Match[str]) -> bool:
         return False
     if end < len(text) and text[end] in "([.":
         return True
-    return bool(_CODE_NAME.match(match.group("value")))
+    value = match.group("value")
+    if _CODE_NAME.match(value) or _CODE_PATH.match(value):
+        return True
+    # `ORMCsrfToken = CsrfToken`: a name assigned to a name it ends with is an alias, not a value (stage 10, Prefect).
+    name = text[match.start() : start].rstrip("\"' :=")
+    return bool(_IDENTIFIER.match(value)) and len(value) >= 4 and name.endswith(value)
 
 
 def _secret_span(kind: str, match: re.Match[str]) -> tuple[int, int] | None:
     if kind == "credential_assignment":
         value = match.group("value")
-        if _PLACEHOLDER.match(value) or _is_code_reference(match):
+        if _PLACEHOLDER.match(value) or _MASKED.match(value) or _is_code_reference(match):
             return None
         return match.start("value"), match.end("value")
+    if kind == "url_credentials" and (_PLACEHOLDER.match(match.group(1)) or _MASKED.match(match.group(1))):
+        # `${PASSWORD}` is a reference; `ab***` is what masking left (stage 10: the mask of a URL password matched
+        # the URL pattern again, and the scan of the masked prompt refused the whole request).
+        return None
     if match.re.groups:
         return match.start(1), match.end(1)
     return match.start(), match.end()

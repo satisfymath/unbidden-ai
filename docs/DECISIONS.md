@@ -1154,3 +1154,21 @@ path, an install that diverged from the CI's, and reads by POST. Their general c
 limit) were fixed afterwards and tested only as regressions. **Decided:** the candidate stays experimental; no second
 set of applications is taken in this stage (that would be replacing applications until one succeeds); the next stage
 pre-registers a larger set before any run. Spend: see `docs/PLAN.md` (stage 9).
+
+## D-058 · 2026-10-30 · Stage 10 budget: the remaining US$20.30 of the same cap, split before any call
+
+No new money: the cumulative cap stays **US$37.2945** (D-052). Verified before spending: the ledger reads
+**US$16.9894** spent, **US$20.3051** available (stage 9: dev US$8.3193, eval US$0.8411, demo US$0.5345; all Meta,
+Spark). The ledger is not reset; stage 9's envelopes stay in its history (`budget-history.jsonl`, the `envelope`
+column of every request).
+
+**Split, enforced by the program** (`unbidden spend --envelopes ... --envelopes-total 20.30`; every call names its
+envelope and is refused before it leaves if it does not fit; the overall cap still applies):
+- `s10-dev` **US$8.00**: diagnosis, development, regressions on Conduit, LNbits, Spoolman and Prefect, the fst and
+  mealie revalidations;
+- `s10-eval` **US$8.50**: the new frozen evaluation only (a real reserve: nothing else may draw on it);
+- `s10-close` **US$3.80**: the final demo, the walks, contingency.
+Moving funds between envelopes needs a decision recorded first. Models: Meta's API only, `muse-spark-1.3` by
+default; `muse-wonder-1.0` only for an identified difficulty, compared on a bounded number of calls, its cost
+recorded; no local model and no local fallback (mandates: `local_fallback: deny`, `local_inference: deny`). No
+billing, card or credit setting is changed.

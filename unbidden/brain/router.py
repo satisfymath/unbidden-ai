@@ -30,7 +30,7 @@ from unbidden.guardian.classify import Classification, classify
 from unbidden.guardian.egress import evaluate_screenshots, evaluate_synthetic
 from unbidden.guardian.killswitch import KillSwitch, checkpoint
 from unbidden.guardian.policy import PolicyEngine
-from unbidden.guardian.scanner import SensitiveTermIndex, scan_many, secret_hits
+from unbidden.guardian.scanner import SensitiveTermIndex, redact_text, scan_many, secret_hits
 from unbidden.store import Store
 
 ACTOR = "brain"
@@ -175,6 +175,7 @@ class Brain:
 
     async def complete(self, request: LLMRequest, *, identifiers: SensitiveTermIndex | None = None) -> LLMResponse:
         """`identifiers` adds names that must not leave the machine on this call, on top of the workspace's."""
+        request = self._mask_repository(request)
         self._guard_prompt(request)
         decision, classification = self.decide(request)
         if self.mandate.models.local_inference == "deny":
@@ -278,6 +279,24 @@ class Brain:
         return parse_json(response.content), response
 
     # Guards -----------------------------------------------------------------------------------------------
+
+    def _mask_repository(self, request: LLMRequest) -> LLMRequest:
+        """Values in the repository's own text that look like credentials (a test configuration's `password=abc`, a
+        database URL) are masked before any check, for every purpose: the value never leaves, and the rest of the
+        code still can (stage 10: an unmasked handler made Prefect's every endpoint-to-table request refused). Only
+        text whose source is the repository; anything else holding a secret is still refused whole."""
+        masked = [
+            m.model_copy(update={"content": redact_text(m.content)}) if m.source == "repo" else m
+            for m in request.messages
+        ]
+        changed = sum(a.content != b.content for a, b in zip(masked, request.messages, strict=True))
+        if not changed:
+            return request
+        self.store.append_event(
+            Event(type=EventType.VALUES_MASKED, actor=ACTOR, correlation_id=request.correlation_id,
+                  payload={"purpose": request.purpose, "messages": changed})
+        )  # fmt: skip
+        return request.model_copy(update={"messages": masked})
 
     def _guard_prompt(self, request: LLMRequest) -> None:
         texts = [m.content for m in request.messages]
