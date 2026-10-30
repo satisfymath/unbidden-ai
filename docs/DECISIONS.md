@@ -1172,3 +1172,53 @@ Moving funds between envelopes needs a decision recorded first. Models: Meta's A
 default; `muse-wonder-1.0` only for an identified difficulty, compared on a bounded number of calls, its cost
 recorded; no local model and no local fallback (mandates: `local_fallback: deny`, `local_inference: deny`). No
 billing, card or credit setting is changed.
+
+## D-059 · 2026-10-30 · Experiments are prepared from the project's own evidence and validated before they are compared
+
+The diagnosis (`docs/bench/stage10-diagnosis.md`) put Spoolman's sixteen failed workloads in classes: missing
+fixtures (they live in the project's HTTP integration suite), an unprepared environment (an unbuilt web client the
+image copies in), an absent service (the database settings of its integration compose), invalid workloads (`*args`
+read as fixtures), and a Guardian refusal (a masking defect). The common cause: the lab could measure only by writing
+an in-process test, which Spoolman never writes. **Decided:**
+- The lab measures the way the project tests its API (`lab/prepare.py`): `in_process` when the CI's tests call the
+  project's own application in-process; `served` when its API tests call a server, using the server command, the
+  environment and the database its repository declares (compose, Dockerfile, entrypoint), each item recorded with
+  its source; build artifacts its image copies in that the repository lacks are created empty, and said.
+- In `served` mode the database is seeded by fixed code from the engine's catalog (`lab/seed.py`), and a model
+  only chooses the request (data) among the endpoints the map relates to the table; a fixed driver sends it.
+- A workload is valid only after a base run shows: no help needed, the engine ran a statement reading the table by
+  the column on every measured call (pg_stat_statements), the rows are there, the result carries data. Repairs are
+  bounded; every attempt is kept; a preparation that fails is a block with its reason and readiness state
+  (environment ready, checks reproduced, workload valid, experiment executed, result evaluable), never an absent
+  opportunity or a negative result.
+- The experiment's spec (operation, data, checks, metric, warm-up, samples, order, threshold, criteria, scope,
+  workload digest, provenance) is stored before the first comparison; a changed workload is a new spec.
+
+## D-060 · 2026-10-30 · Criteria perf-v4: the same answer, a quiet control, a confirmation; an L4 states its scope
+
+Fixed before any measurement under them (`lab/perfstats.py`, `PROMOTION_CRITERIA`): perf-v3's sessions, plus the
+same responses on both sides (canonical JSON digests; a faster wrong answer is a regression), an A/A control of two
+base sessions against two (|effect| below 10%, half the relevance threshold), and a confirmation in new sessions in a
+new order at alpha 0.05 divided among the candidates that reached confirmation at the same commit (five sessions per
+side from the fourth on, since four cannot reach 0.0125). Any stage that did not run leaves the outcome short of
+`improved`. The verdict carries the spec and its scope: the operation, the data and the engine; never the
+application. Tested on the seven cases the stage names (`tests/unit/test_promotion.py`). The perf-v3 verdicts stand
+as recorded; promotions under v4 are new verdicts.
+
+## D-061 · 2026-10-30 · Split CI suites, reads by POST, Guardian's masking, the Director's waits
+
+- **CI** (`observe/ci.py`): matrix entries expanded as GitHub Actions does; expressions evaluated by a parser of the
+  documented grammar only where the matrix and literals decide them; `$GITHUB_ENV` kept as environment; bookkeeping
+  after the tests and lines needing another job's artifact left out and said; pytest-split runs one real group. A
+  plan states its scope; base checks of a part are never "the suite". Experiments run the same plan on both sides.
+- **Reads by POST** (`forge/api_client.py`): only when the document says read in every checkable way and an
+  observation (the same answer twice, the documented count unchanged) agrees; otherwise a write. Their pages go
+  through the body; a documented count read before and after decides completeness (complete, changed, incomplete).
+  The connection's `read` permission authorizes them; why each is a read is recorded on the operation.
+- **Guardian** (`guardian/scanner.py`, `brain/router.py`): masking is idempotent for URL credentials; `${VAR}`
+  references, dotted attribute paths and aliases are code; every message whose source is the repository is masked
+  before the scan (event `guardian.values_masked`); anything else holding a secret is still refused whole.
+- **Director** (`daemon/cycle.py`, `lab/fixlab.py`): no experiment before the project's checks ran at the commit
+  with tests collected (the wait is recorded and shown); one sweep waits at a time; a check whose report is
+  incomplete is a block, kept per commit, not a failed attempt (it had taught the Director that such fixes never
+  work: 0.006).
