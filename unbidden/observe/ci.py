@@ -17,9 +17,12 @@ from typing import Any
 
 import yaml
 
+# Commands the sandbox's image stands for, in command position (stage 10: `--exclude-service docker`, a pytest option
+# of Prefect's, dropped its test command once continued lines were read whole).
 _SKIP = re.compile(
-    r"(?ix)\b(docker|compose|pip\s+install|uv\s+sync|uv\s+lock|uv\s+pip|poetry\s+install|npm\s+(ci|install)|pnpm\s+install"
-    r"|yarn\s+install|apt-get|brew|curl|wget|codecov|coverage\s+report|coverage\s+html|smokeshow|git\s+)"
+    r"(?ix)(?:^|[;&|(]\s*|\b(?:sudo|then|do)\s+)(?:(?:uv|poetry|pipenv|pdm)\s+run\s+(?:--[\w-]+\s+)*)?(?:python3?\s+-m\s+)?"
+    r"(docker|docker-compose|compose|pip3?\s+install|uv\s+sync|uv\s+lock|uv\s+pip|poetry\s+install|npm\s+(ci|install)"
+    r"|pnpm\s+install|yarn\s+install|apt-get|brew|curl|wget|codecov|coverage\s+report|coverage\s+html|smokeshow|git)\b"
     # Activating a virtualenv: the dependency image already puts its environment first.
     r"|^\s*(source|\.)\s+\S*(venv|VENV|activate)\S*\s*$"
 )
@@ -45,9 +48,20 @@ class CiPlan:
     env: tuple[tuple[str, str], ...] = ()  # the job's and its test steps' environment, as the team wrote it
     # What the job's `uv sync` installs (its own steps, and the local composite actions it uses); None: no `uv sync`.
     sync_flags: tuple[str, ...] | None = None
+    # A job the CI runs as several groups (matrix entries, pytest-split groups): every group's label, which one this
+    # plan runs, and what was left out (the group's share of the suite is all the plan claims).
+    groups: tuple[str, ...] = ()
+    scope: str = "the whole job"
+    notes: tuple[str, ...] = ()
+
+    @property
+    def partial(self) -> bool:
+        return len(self.groups) > 1
 
     def script(self) -> str:
-        lines = ["set -e"]
+        # Steps write to the runner's files (`>> "$GITHUB_OUTPUT"`); here they are scratch files, read by nothing.
+        lines = ["set -e", "export GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env "
+                 "GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path"]  # fmt: skip
         for step in self.steps:
             target = "/work" if step.cwd in ("", ".") else f"/work/{step.cwd}"
             lines.append(f"cd {target}")
@@ -61,7 +75,7 @@ def _git(repo: Path, *args: str) -> str:
 
 def _clean(command: str) -> str | None:
     kept: list[str] = []
-    for line in _EXPR.sub("", command).splitlines():
+    for line in _EXPR.sub("", re.sub(r"\\\n\s*", " ", command)).splitlines():
         line = line.strip()
         if not line or line.startswith("#") or _SKIP.search(line):
             continue
@@ -189,6 +203,16 @@ def _reproducible(runs: list[dict[str, Any]], files: set[str] | None) -> bool:
     return True
 
 
+_WRITES_ENV = re.compile(
+    r"""^\s*echo\s+["']?(?P<key>[A-Za-z_]\w*)=(?P<value>[^"'\n]*?)["']?\s*>>\s*"?\$\{?GITHUB_ENV\}?"?\s*$"""
+)
+_SPLIT_BOOKKEEPING = re.compile(
+    r"\s--(?:durations-path|splitting-algorithm)(?:\s+|=)(?:\"[^\"]*\"|\S+)|\s--(?:store|clean)-durations\b"
+)
+_SPLITS = re.compile(r"--splits(?:\s+|=)[\"']?(?P<n>\d+)[\"']?\s+--group(?:\s+|=)[\"']?(?P<g>\d+)[\"']?")
+_DATA_FILE = re.compile(r"(?<![\w$/.-])(?P<path>[\w./-]+\.(?:json|xml|txt|csv|ya?ml|tar|zip|gz))\b")
+
+
 def _job_plan(
     workflow: str, job_name: str, job: dict[str, Any], language: str, tasks: dict[str, list[str]] | None = None,
     scripts: dict[str, str] | None = None, files: set[str] | None = None,
@@ -196,8 +220,31 @@ def _job_plan(
     defaults = ((job.get("defaults") or {}).get("run") or {}).get("working-directory", ".")
     steps: list[CiStep] = []
     services: list[str] = []
-    runs = [_as_run(s) for s in job.get("steps") or [] if isinstance(s, dict)]
-    runs = [s for s in runs if isinstance(s.get("run"), str) and not _system_setup(str(s["run"]))]
+    notes: list[str] = []
+    all_steps = [s for s in job.get("steps") or [] if isinstance(s, dict)]
+    downloads = any(str(s.get("uses", "")).startswith("actions/download-artifact") for s in all_steps)
+    runs = [_as_run(s) for s in all_steps]
+    # What a step writes to `$GITHUB_ENV` is the environment of the steps after it (stage 10, Prefect: the database
+    # URL); kept as environment, and the line itself dropped.
+    written: dict[str, str] = {}
+    for step in runs:
+        if isinstance(step.get("run"), str):
+            lines = str(step["run"]).splitlines()
+            for line in lines:
+                if (m := _WRITES_ENV.match(line)) and "$" not in m.group("value"):
+                    written[m.group("key")] = m.group("value")
+            step["run"] = "\n".join(ln for ln in lines if not _WRITES_ENV.match(ln))
+    runs = [s for s in runs if isinstance(s.get("run"), str) and str(s["run"]).strip()]
+    runs = [s for s in runs if not _system_setup(str(s["run"]))]
+    if any(_PUBLISHES.search(_expand_tasks(str(s["run"]), tasks or {})) for s in runs):
+        return None  # a job that publishes is never a test plan, whatever comes after its tests
+    # The job's tests end at its last step that runs the test runner: what follows uploads, validates or reports
+    # (stage 10, Prefect: a `jq` check of the durations file was taken for a test step).
+    last = max((i for i, s in enumerate(runs) if _RUNNER_CALL.search(_expand_tasks(str(s["run"]), tasks or {}))),
+               default=None)  # fmt: skip
+    if last is not None and last + 1 < len(runs):
+        notes.append(f"{len(runs) - last - 1} step(s) after the tests left out (they run no tests)")
+        runs = runs[: last + 1]
     if any(_PUBLISHES.search(_expand_tasks(str(s["run"]), tasks or {})) for s in runs):
         return None
     if not _reproducible(runs, files):
@@ -211,6 +258,20 @@ def _job_plan(
         command = _clean(run)
         if command is not None:
             command = "\n".join(line for line in command.splitlines() if not _CHECK_RUN.search(line))
+        if command and downloads and files is not None:
+            # A line that reads a file the repository does not have, in a job that downloads another job's artifacts,
+            # needs that artifact (stage 10, Prefect: `test-durations.json`): left out, and said.
+            kept_lines = []
+            for line in command.splitlines():
+                missing = [m.group("path") for m in _DATA_FILE.finditer(line)
+                           if m.group("path").lstrip("./") not in files and not _RUNNER_CALL.search(line)]  # fmt: skip
+                if missing and not line.lstrip().startswith(("echo ", "exit ", "set ")):
+                    notes.append(f"left out, it needs another job's artifact ({missing[0]}): {line.strip()[:120]}")
+                    continue
+                kept_lines.append(line)
+            command = "\n".join(kept_lines)
+        if command:
+            command = _SPLIT_BOOKKEEPING.sub("", command)
         if command and _parses(command):
             steps.append(CiStep(cwd=str(step.get("working-directory") or defaults), command=command))
     text = " ".join(s.command for s in steps) + " " + " ".join((scripts or {}).values())
@@ -227,8 +288,206 @@ def _job_plan(
     env: dict[str, str] = {str(k): str(v) for k, v in (job.get("env") or {}).items() if not _EXPR.search(str(v))}
     for step in runs:
         env |= {str(k): str(v) for k, v in (step.get("env") or {}).items() if not _EXPR.search(str(v))}
+    env |= written
+    split = next((m for s in steps if (m := _SPLITS.search(s.command))), None)
+    scope = f"pytest-split group {split.group('g')} of {split.group('n')}" if split else ""
     return CiPlan(workflow=workflow, job=job_name, steps=tuple(steps), services=tuple(dict.fromkeys(services)),
-                  containers=tuple(containers), env=tuple(sorted(env.items())))  # fmt: skip
+                  containers=tuple(containers), env=tuple(sorted(env.items())), scope=scope,
+                  notes=tuple(dict.fromkeys(notes)))  # fmt: skip
+
+
+def _entry_job(job: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
+    """The job as one matrix entry runs it: its expressions resolved where known, steps whose `if:` is known to be
+    false left out."""
+    context = {"matrix": entry}
+    steps = []
+    for step in job.get("steps") or []:
+        if isinstance(step, dict) and "if" in step:
+            condition = re.sub(r"^\s*\$\{\{\s*(.*?)\s*\}\}\s*$", r"\1", str(step["if"]), flags=re.S)
+            value = gh_expression(condition, context)
+            if value is not None and value in (False, "", 0):
+                continue
+        steps.append(step)
+    return _resolve({**job, "steps": steps}, context)
+
+
+def _entries(job: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
+    """The job's matrix entries, each as it runs; those whose service containers all have an image first (an entry
+    with its database is what the lab can measure on), then in the matrix's own order."""
+    out = []
+    for entry in _matrix(job):
+        resolved = _entry_job(job, entry)
+        images = [str((s or {}).get("image", "")) for s in (resolved.get("services") or {}).values()]
+        complete = bool(images) and all(i and "${{" not in i for i in images)
+        out.append((0 if complete else 1, _label(entry), resolved))
+    out.sort(key=lambda x: x[0])
+    return [(label, resolved) for _, label, resolved in out]
+
+
+_TOKEN = re.compile(
+    r"\s*(?:(?P<str>'(?:[^']|'')*')|(?P<num>-?\d+(?:\.\d+)?)|(?P<op>&&|\|\||==|!=|!|\(|\)|,)"
+    r"|(?P<name>[A-Za-z_][\w-]*(?:\.[A-Za-z_*][\w-]*)*))"
+)
+_UNKNOWN = object()
+
+
+def gh_expression(expr: str, context: dict[str, Any]) -> Any:
+    """The value of a GitHub Actions expression where only literals and `context` (the matrix, a reusable
+    workflow's inputs) are known; None when it depends on anything else (a secret, a step's output, the runner's
+    state). A small parser over the documented grammar: nothing in the repository's text is ever run as code."""
+    tokens: list[tuple[str, str]] = []
+    pos = 0
+    while pos < len(expr):
+        if expr[pos:].strip() == "":
+            break
+        m = _TOKEN.match(expr, pos)
+        if m is None:
+            return None
+        kind = str(m.lastgroup)
+        tokens.append((kind, m.group(kind)))
+        pos = m.end()
+    at = 0
+
+    def peek() -> tuple[str, str] | None:
+        return tokens[at] if at < len(tokens) else None
+
+    def take() -> tuple[str, str]:
+        nonlocal at
+        at += 1
+        return tokens[at - 1]
+
+    def truthy(v: Any) -> bool:
+        return v not in (None, False, "", 0) and v is not _UNKNOWN
+
+    def primary() -> Any:
+        tok = take()
+        if tok == ("op", "!"):
+            v = primary()
+            return _UNKNOWN if v is _UNKNOWN else not truthy(v)
+        if tok == ("op", "("):
+            v = disjunction()
+            take()
+            return v
+        kind, text = tok
+        if kind == "str":
+            return text[1:-1].replace("''", "'")
+        if kind == "num":
+            return float(text) if "." in text else int(text)
+        if text in ("true", "false", "null"):
+            return {"true": True, "false": False, "null": None}[text]
+        if peek() == ("op", "("):  # a function call
+            take()
+            args: list[Any] = []
+            while peek() != ("op", ")"):
+                args.append(disjunction())
+                if peek() == ("op", ","):
+                    take()
+            take()
+            if any(a is _UNKNOWN for a in args) or text not in ("startsWith", "endsWith", "contains", "format"):
+                return _UNKNOWN
+            a = [str(x) if not isinstance(x, (list, dict)) else x for x in args]
+            if text == "format":
+                return re.sub(r"\{(\d+)\}", lambda m: str(a[int(m.group(1)) + 1]), str(a[0]))
+            if text == "contains":
+                return str(a[1]).lower() in (a[0] if isinstance(a[0], list) else str(a[0]).lower())
+            subject, part = str(a[0]).lower(), str(a[1]).lower()
+            return subject.startswith(part) if text == "startsWith" else subject.endswith(part)
+        value: Any = context
+        for part in text.split("."):
+            if not isinstance(value, dict) or part not in value:
+                return _UNKNOWN
+            value = value[part]
+        return value
+
+    def comparison() -> Any:
+        left = primary()
+        while peek() in (("op", "=="), ("op", "!=")):
+            op = take()[1]
+            right = primary()
+            if left is _UNKNOWN or right is _UNKNOWN:
+                left = _UNKNOWN
+            else:
+                same = str(left).lower() == str(right).lower()
+                left = same if op == "==" else not same
+        return left
+
+    def conjunction() -> Any:
+        left = comparison()
+        while peek() == ("op", "&&"):
+            take()
+            right = comparison()
+            if left is _UNKNOWN:
+                left = _UNKNOWN if truthy(right) or right is _UNKNOWN else right
+            else:
+                left = right if truthy(left) else left
+        return left
+
+    def disjunction() -> Any:
+        left = conjunction()
+        while peek() == ("op", "||"):
+            take()
+            right = conjunction()
+            left = _UNKNOWN if left is _UNKNOWN else left if truthy(left) else right
+        return left
+
+    try:
+        value = disjunction()
+    except IndexError:
+        return None
+    if at != len(tokens) or value is _UNKNOWN:
+        return None
+    return value
+
+
+def _matrix(job: dict[str, Any]) -> list[dict[str, Any]]:
+    """Every entry of a job's matrix, as GitHub Actions expands it: the product of its lists, `exclude` removed,
+    `include` added. One empty entry for a job without a matrix (or with a matrix built by an expression)."""
+    matrix = (job.get("strategy") or {}).get("matrix")
+    if not isinstance(matrix, dict):
+        return [{}]
+    axes = {k: v for k, v in matrix.items() if k not in ("include", "exclude") and isinstance(v, list)}
+    entries: list[dict[str, Any]] = [{}]
+    for key, values in axes.items():
+        entries = [{**e, key: v} for e in entries for v in values]
+
+    def matches(entry: dict[str, Any], pattern: dict[str, Any]) -> bool:
+        return all(entry.get(k) == v for k, v in pattern.items())
+
+    excluded = [x for x in matrix.get("exclude") or [] if isinstance(x, dict)]
+    entries = [e for e in entries if not any(matches(e, x) for x in excluded)]
+    for extra in [x for x in matrix.get("include") or [] if isinstance(x, dict)]:
+        hit = [e for e in entries if all(e.get(k) == v for k, v in extra.items() if k in axes)]
+        if hit and any(k in axes for k in extra):
+            for e in hit:
+                e.update({k: v for k, v in extra.items() if k not in axes})
+        else:
+            entries.append(dict(extra))
+    return entries or [{}]
+
+
+def _label(entry: dict[str, Any]) -> str:
+    def short(v: Any) -> str:
+        return str(v.get("id") or v.get("name") or v) if isinstance(v, dict) else str(v)
+
+    return ", ".join(f"{k}={short(v)}" for k, v in entry.items()) or "the job"
+
+
+def _resolve(node: Any, context: dict[str, Any]) -> Any:
+    """Every `${{ ... }}` whose value is known replaced by it; the others left for `_clean` to drop as before."""
+    if isinstance(node, str):
+
+        def one(m: re.Match[str]) -> str:
+            value = gh_expression(m.group(1), context)
+            if value is None:
+                return m.group(0)
+            return " ".join(str(v) for v in value) if isinstance(value, list) else str(value)
+
+        return re.sub(r"\$\{\{\s*(.*?)\s*\}\}", one, node, flags=re.S)
+    if isinstance(node, list):
+        return [_resolve(x, context) for x in node]
+    if isinstance(node, dict):
+        return {k: _resolve(v, context) for k, v in node.items()}
+    return node
 
 
 def _fill(node: Any, values: dict[str, Any]) -> Any:
@@ -363,11 +622,21 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
             continue
         if language == "node" and not re.search(r"node|npm|pnpm|yarn|bun", hint):
             continue
-        plan = _job_plan(name, job_name, job, language, tasks, scripts_of(job), files)
+        entries = _entries(job)
+        label, resolved = entries[0]
+        plan = _job_plan(name, job_name, resolved, language, tasks, scripts_of(resolved), files)
         if plan is not None:
             from dataclasses import replace
 
-            return replace(plan, sync_flags=_sync_flags(repo, rev, job))
+            groups = tuple(lbl for lbl, _ in entries)
+            parts = [f"matrix entry 1 of {len(groups)} ({label})"] if len(groups) > 1 else []
+            if plan.scope:
+                parts.append(plan.scope)
+                if len(groups) == 1:  # a split without a matrix: the groups are pytest-split's own
+                    n = int(re.search(r"of (\d+)", plan.scope).group(1))  # type: ignore[union-attr]
+                    groups = tuple(f"pytest-split group {i}" for i in range(1, n + 1))
+            return replace(plan, sync_flags=_sync_flags(repo, rev, job), groups=groups if len(groups) > 1 else (),
+                           scope="; ".join(parts) or plan.scope or "the whole job")  # fmt: skip
     return None
 
 

@@ -250,6 +250,8 @@ def render_text(data: dict[str, Any]) -> list[str]:
         counted = f"{checks.get('collected')} collected, {len(checks.get('failed') or [])} failed"
         lines.append(f"the project's own checks at {str(checks.get('rev', ''))[:12]}: {checks.get('status')} "
                      f"({checks.get('why') or counted})")  # fmt: skip
+        if checks.get("partial"):
+            lines.append(f"  [yellow]part of the suite[/]: {checks.get('scope')}; the rest was not run here")
     if data.get("experiments_wait"):
         lines.append(f"  [yellow]experiments wait[/]: {data['experiments_wait']['why']}")
     for r in data.get("revoked") or []:

@@ -30,6 +30,11 @@ class TestPlan:
     services: tuple[Service, ...] = ()
     env: dict[str, str] = field(default_factory=dict[str, str])
     report: str = "junit"  # how failures are read: the language adapter's test_report
+    # What the plan covers: the whole job, or one of the groups the CI splits it into (`partial`); a run of a part is
+    # never reported as the suite.
+    scope: str = "the whole job"
+    partial: bool = False
+    notes: tuple[str, ...] = ()
 
 
 def test_plan(repo: Path, rev: str, stack: Stack, language: str) -> TestPlan | None:
@@ -66,6 +71,9 @@ def test_plan(repo: Path, rev: str, stack: Stack, language: str) -> TestPlan | N
             pytest=language == "python",
             services=(*services, *own),
             env=env,
+            scope=ci.scope,
+            partial=ci.partial,
+            notes=ci.notes,
         )
     argv = _default_argv(stack, language)
     if argv is None:
@@ -83,11 +91,19 @@ def _to_sidecars(value: str, services: tuple[Service, ...]) -> str:
 
     def host(match: re.Match[str]) -> str:
         port = match.group("port")
-        named = [s for s in services if port and port.lstrip(":") in s.ports]
+        # A URL without a port uses its scheme's (stage 10, Prefect: `postgresql+asyncpg://...@localhost/prefect`
+        # beside a Redis service).
+        known = port.lstrip(":") if port else _DEFAULT_PORTS.get((match.group("scheme") or "").split("+")[0], "")
+        named = [s for s in services if known and known in s.ports]
         target = named[0].name if named else (services[0].name if len(services) == 1 else match.group("host"))
-        return target + (port or "")
+        return (match.group("prefix") or "") + target + (port or "")
 
-    return re.sub(r"(?P<host>localhost|127\.0\.0\.1)(?P<port>:\d+)?", host, value)
+    return re.sub(r"(?P<prefix>(?P<scheme>[a-z][a-z0-9.]*)(?:\+[a-z0-9]+)?://(?:[^@/\s]*@)?)?"
+                  r"(?P<host>localhost|127\.0\.0\.1)(?P<port>:\d+)?", host, value)  # fmt: skip
+
+
+_DEFAULT_PORTS = {"postgres": "5432", "postgresql": "5432", "mysql": "3306", "mariadb": "3306", "redis": "6379",
+                  "mongodb": "27017", "amqp": "5672"}  # fmt: skip
 
 
 JUNIT_DIR = ".unbidden-junit"
