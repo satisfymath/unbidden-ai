@@ -1,0 +1,123 @@
+
+### git clone -q https://github.com/satisfymath/unbidden-ai.git
+### exit 0 in 2 s
+
+### git checkout -q 2f3986e
+### exit 0 in 0 s
+
+### uv sync -q
+### exit 0 in 3 s
+
+### make check
+........................................................................ [ 83%]
+........................................................................ [ 93%]
+..........................................                               [100%]
+690 passed, 5 deselected in 41.20s
+### exit 0 in 49 s
+
+### uv run unbidden doctor
+  ok  ollama       4 model(s) at http://localhost:11434
+  ok  machine      Apple M5 Pro, 64 GB, 54 GB for a model
+  ok  local model  muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best
+local quality measured)
+  ok  docker       running
+  !!  meta api     no MODEL_API_KEY: frontier models are off
+  !!  github       no GITHUB_TOKEN: proposals stay local branches
+  !!  workspace    not initialized: `unbidden init`
+### exit 0 in 0 s
+
+### uv run unbidden spend
+no verified balance: an allowance of US$1.00 to check the remote path
+  permitted US$1.00 · spent US$0.0000 · available US$1.0000
+by model                                                   
+ model  calls  retries  failed  tokens in  tokens out  US$ 
+by run                                                   
+ run  calls  retries  failed  tokens in  tokens out  US$ 
+by workspace                                                   
+ workspace  calls  retries  failed  tokens in  tokens out  US$ 
+costs are list price x reported tokens, worst cost when unknown; the dashboard 
+is the bill
+### exit 0 in 0 s
+
+### uv run python -m bench.ecosystem.depot_lab up
+### exit 0 in 11 s
+
+### uv run python -m bench.ecosystem.board_lab reset style
+{"case": "style", "variants": [], "commit": "6777f0509a98266f61819f37f632b091fa79f11a"}
+### exit 0 in 9 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project $WALKDIR/home.pvoy/unbidden-ai unbidden init)
+Unbidden is set up in 
+/private/tmp/claude-501/-Users-david-unbidden-ai/e45596bf-00bf-4781-abc7-f887255
+8fdd0/scratchpad/walk9/home.pvoy/unbidden-lab/boardapp
+  mandate: 
+/private/tmp/claude-501/-Users-david-unbidden-ai/e45596bf-00bf-4781-abc7-f887255
+8fdd0/scratchpad/walk9/home.pvoy/unbidden-lab/boardapp/.unbidden/mandate.yaml  
+(review what it may do on its own)
+  next:    unbidden scan
+### exit 0 in 0 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project $WALKDIR/home.pvoy/unbidden-ai unbidden watch --once)
+09:24:47 watching 
+/private/tmp/claude-501/-Users-david-unbidden-ai/e45596bf-00bf-4781-abc7-f887255
+8fdd0/scratchpad/walk9/home.pvoy/unbidden-lab/boardapp (ctrl-c to stop, 
+`unbidden kill` to freeze)
+09:24:47 HEAD is 6777f0509a98
+09:24:47 deploy procedure found, proposed only: docker compose -p 
+boardapp-staging up -d --build
+09:24:47 connections: 
+09:24:47 provisioning python dependencies
+09:24:50 running ruff-baseline
+09:24:51 scan of 6777f0509a98: 1 reports, 0 new opportunities
+09:24:52 map of 6777f0509a98: 5 resources, 1 blind spots
+09:24:52 robustness probe at 6777f0509a98: investigate (probe board (8 public 
+functions sampled))
+09:24:53 the project's own checks at 6777f0509a98: passed (2 collected, 0 
+failed)
+09:24:53 writing property tests for board
+09:24:53 robustness probe of board: no usable tests were written
+### exit 0 in 7 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project $WALKDIR/home.pvoy/unbidden-ai unbidden activity)
+boardapp · 0 opportunities · 
+needs a person docker compose -p boardapp-staging up -d --build: found in 
+README.md; a proposal only: a person declares deploy steps in the mandate
+spent US$0.0000 in 0 remote call(s) · list price x reported tokens; the 
+provider's dashboard is the bill
+### exit 0 in 0 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project $WALKDIR/home.pvoy/unbidden-ai unbidden connections)
+ connection       env    state      can read         can change  blocked / next 
+ compose:compose  local  connected  ps, inspect,     -                          
+                                    logs                                        
+### exit 0 in 0 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project $WALKDIR/home.pvoy/unbidden-ai unbidden egress)
+Nothing has left this machine.
+### exit 0 in 1 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project $WALKDIR/home.pvoy/unbidden-ai unbidden kill)
+Kill switch engaged. No job starts and no model is called until `unbidden 
+resume`.
+### exit 0 in 0 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project $WALKDIR/home.pvoy/unbidden-ai unbidden resume)
+Kill switch released.
+### exit 0 in 0 s
+
+### uv run python -m bench.ecosystem.board_lab down && uv run python -m bench.ecosystem.depot_lab down
+### exit 0 in 32 s
+
+### docker ps -a --filter label=unbidden.sandbox --format {{.Names}}
+### exit 0 in 0 s
+
+### docker ps --format {{.Names}} --filter name=conduit-staging --filter name=lnbits-staging --filter name=spoolman-staging --filter name=prefect-staging
+prefect-staging-server-1
+prefect-staging-db-1
+spoolman-staging-app-1
+spoolman-staging-db-1
+lnbits-staging-app-1
+lnbits-staging-db-1
+conduit-staging-app-1
+conduit-staging-db-1
+### exit 0 in 0 s

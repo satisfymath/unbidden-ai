@@ -7,7 +7,7 @@ tagged, released, merged or deployed.
 
 ## The exact point
 
-- Code: commit **CANDIDATE** on branch `feat/59-v1`. `uv.lock` pins every Python dependency (Python 3.12). This file
+- Code: commit **1c4cab7** on branch `feat/59-v1`. `uv.lock` pins every Python dependency (Python 3.12). This file
   is updated after the commit it names: read it from the branch head.
 - Verified platform (and only this one): macOS 27.0.1 on Apple Silicon (arm64); OrbStack with Docker Engine 29.8.2
   (linux/arm64 containers) and its compose plugin; uv 0.13.1; git 2.56. Linux and x86-64 hosts were not tested.
@@ -76,7 +76,7 @@ call then names one with `UNBIDDEN_ENVELOPE`); a cap is raised without resetting
 
 ```sh
 git clone https://github.com/satisfymath/unbidden-ai.git && cd unbidden-ai
-git checkout CANDIDATE        # the candidate named above
+git checkout 1c4cab7          # the candidate named above
 uv sync                       # dependencies from uv.lock (pyright brings its own Node)
 make check                    # ruff, pyright, about 690 tests (the Docker ones skip without a daemon)
 uv run unbidden doctor        # Docker, models, Meta key, GitHub, mandate: what works and what does not
@@ -147,12 +147,52 @@ data and code may leave (synthetic data, public code); on real projects leave th
 
 ## The walk (clean checkout, empty HOME)
 
-WALK
+`docs/bench/stage9-walk/walk.sh`: an empty HOME (`mktemp -d`), a fresh HTTPS clone of the candidate, only the
+commands of this file, then a mandate, one cycle on the board lab, the evidence commands, stop, resume and cleanup.
+Declared departures from a stranger's machine: Docker's compose plugin directory is linked from the machine user's
+HOME; the HOME has no Meta key and no local model, so the cycle's model calls are refused with their reason (stage 9
+uses Meta's API only, and the key is never copied); the lab's PostgreSQL volume is the machine's, kept between walks.
+
+| Walk | Candidate | Result | What it found (fixed in the next candidate) |
+|---|---|---|---|
+| 1 | 2f3986e | 18 of 18 | every command ran, but the text `activity` did not show the base checks or revocations, and a probe whose model call was refused did not say why (fixed in 62e97d2) |
+| 2 | 62e97d2 | 17 of 18 | the board lab's app did not answer, with nothing to show why (672014c: it starts the app again while it does not answer, and prints its state and logs when it never does) |
+| 3, 4 | 672014c | 17 of 18 | the logs showed why: the board's reader role kept a password from an earlier walk's secrets, because the kept database volume outlives a HOME (fixed in 1c4cab7: every lab sets its roles' current password on each setup) |
+| **5** | **1c4cab7** | **18 of 18** | clone 1 s, `uv sync` 4 s, `make check` 48 s (691 tests), `doctor` (no key, no GitHub token: said so), labs up, `init`, one cycle (map: 5 resources, 1 blind spot; the project's checks at the base passed, 2 collected; the probe's model call refused: "the mandate denies local inference, and this call may not go remote"), `activity`, `connections`, `egress`, `kill`, `resume`, labs down; no sandbox container left; the other labs' containers untouched |
+
+Logs: `docs/bench/stage9-walk/walk{1..5}.log`. Not walked: Linux, x86-64, a HOME with the Meta key (the paid
+cycle is shown by the demo instead).
 
 ## The demo
 
-DEMO
+`docs/bench/stage9-demo.md`, written from the run's records by `bench/ecosystem/demo9_report.py` (no model writes
+it), with an independent check (`bench/ecosystem/conduit_indep.py`: the endpoints' own SQL on the lab data, rolled
+back). Run DEMO-B-1 at 2f3986e (the candidate differs from it in the activity text, a probe message and lab
+scripts: three commits, none in the measured path), on Conduit, a **development** application: a demonstration,
+not evaluation evidence.
+
+- Harness (not Unbidden): the repository at 029eb77, synthetic data (2,000 users, 20,000 articles, 300,000
+  comments, 20,000 favorites), a read-only role, a fresh token, a proactive mandate with no goal, the `demo`
+  envelope; one declared answer (a registry Unbidden names: `deb.debian.org`).
+- Unbidden: the project's checks at the base (90 passed); six opportunities; two L4 under perf-v3
+  (`commentaries.article_id` 24.1 -> 18.3 ms, `favorites.article_id` 9.6 -> 1.7 ms, the index used on every
+  measured call), one measured "no change" (`articles.author_id`), one not measurable (its workload failed), two
+  consistency questions inconclusive (completeness unknown); two local branches with migrations; nothing pushed.
+  US$0.53, 46 calls, 47 minutes.
+- Independent check: the comments listing 8.27 -> 0.06 ms; the article delete 0.61 -> 0.20 ms with comments indexed
+  on both sides. Both L4s confirmed.
 
 ## Integration proposal (from the git graph; no PR, merge or tag in this stage)
 
-INTEGRATION
+Facts from the graph (origin, 2026-10-30): `main` is 790a711, the merge of PR #1, whose tree is identical to
+b3f7433's; b3f7433 is an ancestor of the candidate. The candidate is 291 commits past `main`, with no merge commit.
+Of the other remote branches, `feat/14-routing` .. `feat/17-monorepo` carry two commits whose patches differ from
+the candidate's but whose changes are in it, rewritten (984064f as bd5ea97, 032c26b as b282d22): nothing to bring.
+**`feat/20-scale-eval` has one commit the candidate lacks: a77ef43** (docs: the v5 evaluation paired against v4 on
+dev); it cherry-picks onto the candidate without conflict (tested in a scratch worktree).
+
+Proposal, for a person to carry out: (1) cherry-pick a77ef43 onto `feat/59-v1`; (2) `make check`; (3) one pull
+request `feat/59-v1` -> `main`, merged with `--no-ff` (tested: clean, and the result's tree equals the candidate's);
+(4) the old feature branches deleted only after that merge. Rollback: `main` returns to 790a711 (`git revert -m 1`
+of the merge commit, or reset before anything is built on it); the spend ledger, the labs' data and the archived
+workspaces live outside the repository and are unaffected. No pull request, merge, tag or release was made.

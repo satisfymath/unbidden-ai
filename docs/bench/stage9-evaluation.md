@@ -98,3 +98,18 @@ registry was asked for), no change to either repository, no branch. Records: `st
 four (each cause confirmed). Inconclusive: Prefect's two findings.** The cycle was not completed on either
 application. Nothing here is fixed in this version; causes fixed afterwards are tested as regressions, not as
 out-of-sample evidence.
+
+## After the evaluation (regressions on the evaluation's applications: not out-of-sample evidence)
+
+The four blocks' causes were fixed in general (c5ea5ee: the performance lab uses the base checks' test plan; API calls
+go under the document's `servers` path; dependencies installed as the CI's test job's `uv sync`; a git dependency's
+host named as a registry a person may add; a primary-key join no longer counted as a lookup by the column. Not
+addressed, stated limits: Prefect's reads by `POST .../filter`, its 18-group sharded suite), then 977835c for what the repeats showed. Records: `stage9-post-evaluation/`.
+
+| Repeat | Product | Result |
+|---|---|---|
+| Spoolman B-post1, A-post1 | c5ea5ee | base checks 278 passed; API read as JSON; experiments did not run (perf workloads failed); goal blocked by an unread operation |
+| Prefect | c5ea5ee | the first cycle passed the 90-minute bound and the harness stopped (it did not then handle a timeout; fixed in 977835c); nothing concluded |
+| Spoolman B-post2, A-post2 | 977835c | base checks 278 passed; the goal read 900 keys with no discrepancy, **inconclusive** (no total confirmed); a read it needed was abandoned, said so; the performance workloads still failed (five attempts each, none ran at the base); no L4, no false promotion |
+
+None of this changes the evaluation's result above: 1.0's criterion 6 stays unmet.

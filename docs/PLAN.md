@@ -651,3 +651,40 @@ changed query in the plan; (2) a second independent application, frozen first, w
 unindexed foreign key under load in an asynchronous or SQL-first project); (3) completeness for listings whose count
 is named differently (read the declared response schema for a count field, never guessed); (4) proactive runs that
 build an API integration when a finding needs one.
+
+## Stage 9: status and exit criteria (2026-10-30)
+
+**Spend (D-052).** Cap US$37.29 cumulative (US$7.29 spent before + US$30 authorized); the ledger reads US$16.99
+spent, **US$20.31 available**; stage 9 spent US$9.69, every call through an envelope, reserved before sending and
+settled after: `dev` US$8.32 of 12 (development, revalidation, regressions v1-v8, post-evaluation repeats), `eval`
+US$0.84 of 12 (the frozen evaluation), `demo` US$0.53 of 6 (the demo; the walks made no model call). Meta's API
+only (Spark; Wonder not used in this stage's runs); no local model call; no redistribution between envelopes. The
+counter was never reset; no billing, card or credit setting changed.
+
+**Development vs evaluation, kept apart.** Development (Conduit, LNbits; `docs/bench/stage9-regression.md`,
+`stage9-revalidation.md`): perf-v3 replayed on Conduit's controls (A/A and an irrelevant index: no relevant change),
+two of three earlier L4s revoked with their history, Conduit's cycle stable at two confirmed L4s. Evaluation
+(Spoolman, Prefect; `docs/bench/stage9-evaluation.md`): four technical blocks, no useful improvement, no false
+promotion; their causes fixed afterwards and repeated as regressions only.
+
+| # | Exit criterion | Evidence | Met? |
+|---|---|---|---|
+| 1 | The project's environment is reproduced before experimenting | Every cycle runs the project's own checks at the base (`observe.checks`, D-056) and shows them in `activity`: Conduit 90 passed (every run since v2), LNbits 272 collected (2 need network, said so), Spoolman 278 passed (evaluation and repeats); Prefect: its install diverged from its CI in the evaluation (fixed after, c5ea5ee) and its sharded suite is a stated limit | partly: three of four applications, Prefect not |
+| 2 | Incompatible data produces no false conclusion | Completeness from behaviour (D-055, `tests/unit/test_complete_reads.py`, `test_consistency.py`); totals under unknown names judged by structure; partial reads (row limit, unknown completeness) withhold "none" (Conduit, LNbits, Spoolman: every such question inconclusive with its reason); writes strict; `articlesCount` remains a person's finding | yes |
+| 3 | Findings are explained and prioritized with evidence; no false L4 | perf-v3 (D-053, `test_perfstats.py`): controls give no change; `commentaries.author_id` (false L4) revoked, never promoted again; `commentaries.article_id` revoked at 18% and found L4 at 24-25% under other workloads (workload-dependent: a limit); the demo's two L4s confirmed independently; Spoolman's findings were real but misexplained (fixed after: a primary-key join is not a lookup) | partly: no false promotion in stage 9, but the verdict depends on a model-written workload |
+| 4 | Permissions, budgets and revocations are respected | Envelopes enforced before each call (`test_spend.py`); labs owned by identity, `down` only its own lab, volumes kept (`test_lab_ownership.py`, two labs plus foreign resources; walk 5 left the other labs untouched); Hosli, Mealie and frozen worktrees untouched; no push of a proposal, no PR, merge, tag or deploy | yes |
+| 5 | Acceptance tells applied, claimed, verified and inconclusive apart | Stage 7's contract (D-046); verdict outcomes now improved / no relevant change / regression / inconclusive / blocked, revocations kept (`test_revoke.py`, `unbidden activity`) | yes |
+| 6 | A useful cycle on an independent application, frozen first | Spoolman and Prefect, frozen at 466739e by a rule written first: four technical blocks, no useful improvement, no verified absence | **no** |
+| 7 | Installation and operation documented and reproduced | `RELEASE.md` (platforms, scope, requirements, permissions, models and budget, limits, install to cleanup, recovery, levels); walk 5 from an empty HOME at 1c4cab7: 18 of 18 steps (`docs/bench/stage9-walk/`); Linux, x86-64 and a walk with the Meta key not done | yes, on the one platform tested |
+| 8 | A candidate commit, a reproducible demo and an integration prepared | candidate 1c4cab7 (`make check`: 691 passed); demo `docs/bench/stage9-demo.md` (harness vs Unbidden declared, independently checked); integration from the graph in `RELEASE.md` (a77ef43 to bring, cherry-pick and `--no-ff` merge tested clean); nothing merged or published | yes |
+
+**Verdict: experimental candidate, not 1.0.** Criterion 6 is unmet, and 1 and 3 are partly met. The false L4 of
+stage 8 is retired; the measurement no longer promotes what the engine does not show; but no useful cycle has run on
+an application not used in development.
+
+**Next, in order:** (1) performance workloads that run on a new application: the measure must not depend on a model
+writing a test from scratch (Spoolman's five attempts each failed; a workload from the endpoints' own calls and the
+project's fixtures); (2) a pre-registered larger set of applications (several, frozen together, before any run), so
+one block does not end the evaluation; (3) reads by `POST .../filter` declared read-only by the document or a
+person, and sharded CI suites run as their groups; (4) revalidate the remaining pending L4s (fst, mealie) under
+perf-v3; (5) Linux and x86-64 walks.
