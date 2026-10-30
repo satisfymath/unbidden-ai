@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass, replace
 from typing import Any
 
@@ -14,6 +16,19 @@ from unbidden.sandbox.runner import SandboxResult
 Parser = Callable[[SandboxResult, list[str]], AnalyzerReport]
 MISSING_MODULE_RULES = frozenset({"TS2305", "TS2307", "TS2792"})  # no exported member, cannot find module
 MAX_FINDINGS = 2000
+_KEEP: ContextVar[int | None] = ContextVar("keep_findings", default=MAX_FINDINGS)
+
+
+@contextmanager
+def every_finding() -> Iterator[None]:
+    """Reports made inside keep all their findings. The cap bounds what a scan stores and turns into opportunities;
+    the lab compares the findings before and after a fix, and a capped report could not show what a fix changed
+    (stage 10: pyright found 11642 on Prefect, and every report was partial)."""
+    token = _KEEP.set(None)
+    try:
+        yield
+    finally:
+        _KEEP.reset(token)
 
 
 @dataclass(frozen=True)
@@ -71,14 +86,15 @@ def _report(tool: str, result: SandboxResult, argv: list[str], findings: list[Fi
         completeness = Completeness.FAILED
     else:
         completeness, error = Completeness.COMPLETE, None
-    dropped = max(0, len(findings) - MAX_FINDINGS)
+    keep = _KEEP.get()
+    dropped = max(0, len(findings) - keep) if keep is not None else 0
     if dropped:
         completeness = Completeness.PARTIAL
     return AnalyzerReport(
         tool=tool,
         argv=argv,
         exit_code=result.exit_code,
-        findings=findings[:MAX_FINDINGS],
+        findings=findings[:keep] if keep is not None else findings,
         completeness=completeness,
         dropped=dropped,
         error=error,

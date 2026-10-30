@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 
@@ -357,3 +358,29 @@ def test_a_build_that_writes_files_gets_a_stage_that_keeps_only_those_files() ->
     assert dockerfile.startswith("FROM python:3.12 AS own")  # the full image: version plugins call git
     assert dockerfile.rstrip().endswith("COPY --from=own /generated/ /deps/generated/")
     assert "'src/pkg/_build_info.py': ['pkg/_build_info.py', 'src/pkg/_build_info.py']" in own_extract_script(writes)
+
+
+def test_pyright_in_a_python_image_gets_nodes_larger_heap_and_memory() -> None:
+    from unbidden.sandbox.provision import DEFAULT_MEMORY, NODE_HEAP_MB, NODE_MEMORY, sandbox_spec
+    from unbidden.sandbox.provision import DependencyImage as Image
+
+    image = Image(tag="img", language="python", registries=[], env={}, links={})
+    pyright = sandbox_spec(image, ["pyright", "--outputjson"])
+    assert pyright.env["NODE_OPTIONS"] == f"--max-old-space-size={NODE_HEAP_MB}" and pyright.memory == NODE_MEMORY
+    mypy = sandbox_spec(image, ["mypy", "."])
+    assert "NODE_OPTIONS" not in mypy.env and mypy.memory == DEFAULT_MEMORY
+
+
+def test_the_lab_keeps_every_finding_where_the_scan_keeps_the_cap() -> None:
+    from unbidden.sandbox.tools import MAX_FINDINGS, every_finding, parse_pyright
+
+    diagnostics = [
+        {"file": f"/work/m{i}.py", "severity": "error", "message": "x", "rule": "r", "range": {"start": {"line": 1}}}
+        for i in range(MAX_FINDINGS + 5)
+    ]
+    result = SandboxResult(1, json.dumps({"generalDiagnostics": diagnostics}), "", False, 1.0, False, False)
+    capped = parse_pyright(result, ["pyright"])
+    assert capped.completeness.value == "partial" and capped.dropped == 5
+    with every_finding():
+        whole = parse_pyright(result, ["pyright"])
+    assert whole.can_resolve and len(whole.findings) == MAX_FINDINGS + 5

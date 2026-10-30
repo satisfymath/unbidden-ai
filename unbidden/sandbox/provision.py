@@ -615,7 +615,10 @@ def sandbox_spec(
     """The one way to run something against a dependency image: its setup, its environment, and for a workspace
     package, that package's directory with its own node_modules/.bin first on PATH."""
     env = dict(image.env)
-    if image.language == "node":
+    # Pyright runs on Node in a Python image too: on a large project (Prefect, stage 10) it ran out of Node's default
+    # heap (about 1 GB) and its report was lost.
+    node = image.language == "node" or any("pyright" in a for a in argv[:3])
+    if node:
         # Type checks of large monorepos exhaust Node's default heap; the container gets room for a larger one.
         env.setdefault("NODE_OPTIONS", f"--max-old-space-size={NODE_HEAP_MB}")
     workdir = "/work" if cwd in (".", "") else f"/work/{cwd}"
@@ -630,5 +633,5 @@ def sandbox_spec(
         timeout_s=timeout_s,
         public_env=public_env or {},
         network=network,
-        memory=NODE_MEMORY if image.language == "node" else DEFAULT_MEMORY,
+        memory=NODE_MEMORY if node else DEFAULT_MEMORY,
     )

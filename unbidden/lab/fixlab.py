@@ -33,12 +33,12 @@ from unbidden.lab.context import select as select_context
 from unbidden.lab.evaluator import CRITERIA, evaluate_fix
 from unbidden.lab.testsuite import TestPlan, run_suite, test_plan
 from unbidden.languages import adapter, adapter_for_path
-from unbidden.observe.ci import ci_python_versions
+from unbidden.observe.ci import ci_commands, ci_python_versions, runs_tool
 from unbidden.observe.stack import Stack
 from unbidden.provenance import provenance
 from unbidden.sandbox.provision import DependencyImage, ProvisionError, link_dependencies, provision, sandbox_spec
 from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
-from unbidden.sandbox.tools import Tool, tool_named, tools_for
+from unbidden.sandbox.tools import Tool, every_finding, tool_named, tools_for
 from unbidden.store import Store
 
 ACTOR = "lab"
@@ -144,7 +144,8 @@ class FixLab:
         reports: list[AnalyzerReport] = []
         for tool in tools:
             result = self.runner.run(sandbox_spec(image, list(tool.argv), cwd=tool.cwd), work)
-            reports.append(tool.report(result, list(tool.argv)))
+            with every_finding():  # compared before and after a fix: all of them, not the scan's capped list
+                reports.append(tool.report(result, list(tool.argv)))
         return reports
 
     # Candidates ----------------------------------------------------------------------------------------
@@ -251,6 +252,12 @@ class FixLab:
         rev: str = opp.details["rev"]
         # Every check of the same language in the same package: a fix may not break its neighbours.
         siblings = [t for t in tools_for(self.stack) if t.language == tool.language and t.cwd == tool.cwd]
+        # Of those, the ones the team's CI runs: a tool it does not run sets no standard a fix must keep (stage 10:
+        # ruff's report on Prefect, which its CI does not run, was partial and blocked every mypy fix). The fix's own
+        # tool always stays. Without CI commands to read, all of them.
+        commands = ci_commands(self.repo, rev)
+        if commands:
+            siblings = [t for t in siblings if t.name == tool.name or runs_tool(commands, t.name.split(":")[0])]
         targeted: list[str] = list(opp.details["fingerprints"])
         findings = [Finding.model_validate(f) for f in opp.details["findings"]]
         paths: list[str] = list(opp.details["paths"])
