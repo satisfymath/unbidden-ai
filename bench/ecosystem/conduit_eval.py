@@ -116,10 +116,12 @@ def main() -> None:
                             check=True).stdout.strip()  # fmt: skip
     (out / "frozen.json").write_text(json.dumps({"product": commit, "app": conduit_lab.COMMIT}, indent=1))
     wanted = args.runs.split(",")
-    for name, mode in RUNS:
-        if name in wanted:
-            rec = run(worktree, name, mode, out)
-            print(json.dumps({k: rec[k] for k in ("run", "usd_before", "usd_after", "wall_s")}), flush=True)
+    known = dict(RUNS)
+    for name in wanted:
+        # Stage 9 regressions are numbered as they are run: the mode is in the name (R9-B-n proactive, R9-A-n goal).
+        mode = known.get(name) or ("goal" if name.rsplit("-", 1)[0].endswith("A") else "proactive")
+        rec = run(worktree, name, mode, out)
+        print(json.dumps({k: rec[k] for k in ("run", "usd_before", "usd_after", "wall_s")}), flush=True)
 
 
 if __name__ == "__main__":
