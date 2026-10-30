@@ -434,8 +434,10 @@ def _read(
         other = by_key.get(row[key])
         if other is not None:
             joined.append({**other, **{k: (float(v) if hasattr(v, "as_integer_ratio") else v) for k, v in row.items()}})
-    # Keys with records in the API but no row in the query: nothing was ordered; their demand is zero.
-    for k, other in by_key.items():
+    # Keys with records in the API but no row in the query: nothing was ordered; their demand is zero. Only when the
+    # query read everything: a query cut at its row limit did not read those keys, so they are not zero, they are
+    # unknown, and are left out (stage 9: Conduit's goal reported 19,000 of 20,000 keys "short" that way).
+    for k, other in by_key.items() if db_whole else []:
         if k not in {r[key] for r in left}:
             joined.append({**other, **{c: 0 for c in left[0] if c != key}, key: k})
     run.reads.append({"joined": len(joined), "key": key, "partial": partial})

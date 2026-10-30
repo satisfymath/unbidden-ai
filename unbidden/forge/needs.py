@@ -80,7 +80,11 @@ async def build(store: Store, mandate: Mandate, need: CapabilityNeed, read: Read
     lines = read(need.kind, need.source)
     if not lines:
         return _failed(store, need, "the source returned no lines to build from")
-    capability_id, decision, notes = await forge(need, lines)
+    try:
+        capability_id, decision, notes = await forge(need, lines)
+    except Exception as exc:  # a refused model call, a crash: a failed attempt, said (stage 9: LNbits' need was left
+        # "building" for good when Guardian refused the builder's prompt, and nine questions waited on it)
+        return _failed(store, need, f"the build stopped: {type(exc).__name__}: {str(exc)[:300]}")
     need.notes = [*need.notes, *notes[-5:]]
     if capability_id is None and decision == "blocked":
         # Waiting for a person is not a failed attempt: it is built again when what blocked it changes.

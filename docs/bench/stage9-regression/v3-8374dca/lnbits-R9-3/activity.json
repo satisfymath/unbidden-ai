@@ -1,0 +1,224 @@
+{
+  "workspace": "lnbits",
+  "at": "2026-10-30T03:22:59.088582+00:00",
+  "discovered": {
+    "total": 19,
+    "by_status": {
+      "open": 19
+    }
+  },
+  "experimenting": [],
+  "declined_because": [],
+  "waiting_because": [
+    [
+      "investigation queued or running",
+      6
+    ]
+  ],
+  "proven": [],
+  "project_checks": {
+    "rev": "9349da153c223b008f7d80453b53a54e09c8ed3d",
+    "at": "2026-10-30T03:20:12.852692+00:00",
+    "status": "failed",
+    "collected": 272,
+    "failed": [
+      "tests.api.test_api::test_create_invoice_fiat_amount (needs network)",
+      "tests.api.test_api::test_fiat_tracking (needs network)"
+    ],
+    "command": "bash -c set -e\ncd /work\npytest tests/api"
+  },
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {
+      "building": 1
+    },
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 159,
+    "usd": 0.8125,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55450/lnbits",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.accounts",
+        "select public.apipayments",
+        "select public.assets",
+        "select public.audit",
+        "select public.balance_check",
+        "select public.balance_notify",
+        "select public.balances",
+        "select public.dbversions",
+        "select public.extensions",
+        "select public.installed_extensions",
+        "select public.system_settings",
+        "select public.tiny_url",
+        "select public.wallets",
+        "select public.wasm_invocations",
+        "select public.webpush_subscriptions"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T03:22:21.743213+00:00"
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18120",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "LNbits API: 178 operations documented, authenticated by oauth2, http bearer, apiKey X-API-KEY, apiKey api-key; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T03:22:21.753542+00:00"
+    }
+  ],
+  "needs_a_person": [
+    {
+      "proposal": "docker compose up -d --remove-orphans",
+      "state": "proposed",
+      "what": "found in docker/regtest/docker-scripts.sh; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose up --remove-orphans",
+      "state": "proposed",
+      "what": "found in docker/regtest/docker-scripts.sh; a proposal only: a person declares deploy steps in the mandate"
+    }
+  ],
+  "optional_access": [],
+  "blocks": [
+    {
+      "operation": "forge.build need_6ebc6b65eada60fa",
+      "kind": "compatibility",
+      "needs": "nothing known a person can grant; the evidence says what failed",
+      "continues": "forge.build runs again",
+      "evidence": "SecretInPrompt: fo*** prompt contains credential_assignment"
+    }
+  ],
+  "integrations": [],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "consistency-opp_747b80e07f15468e",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for lnbits-api",
+      "at": "2026-10-30T03:21:04.623096+00:00"
+    },
+    {
+      "goal": "consistency-opp_e94c129838184239",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for lnbits-api",
+      "at": "2026-10-30T03:21:15.422952+00:00"
+    },
+    {
+      "goal": "consistency-opp_71d6f970647f409a",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for lnbits-api",
+      "at": "2026-10-30T03:21:28.642256+00:00"
+    },
+    {
+      "goal": "consistency-opp_3c60a7c35d304839",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for lnbits-api",
+      "at": "2026-10-30T03:21:36.863333+00:00"
+    },
+    {
+      "goal": "consistency-opp_1ab38e3bcf0545dd",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for lnbits-api",
+      "at": "2026-10-30T03:21:44.851995+00:00"
+    },
+    {
+      "goal": "consistency-opp_3424ca8b07f64950",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for lnbits-api",
+      "at": "2026-10-30T03:21:55.814123+00:00"
+    },
+    {
+      "goal": "consistency-opp_094c9ece818a49c9",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for lnbits-api",
+      "at": "2026-10-30T03:22:23.507522+00:00"
+    },
+    {
+      "goal": "consistency-opp_961eda0fadf343d4",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for lnbits-api",
+      "at": "2026-10-30T03:22:36.786719+00:00"
+    },
+    {
+      "goal": "consistency-opp_b80939a023ee4e3a",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for lnbits-api",
+      "at": "2026-10-30T03:22:51.103577+00:00"
+    }
+  ]
+}

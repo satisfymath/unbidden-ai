@@ -73,7 +73,7 @@ MANDATE = """mandate:
       permissions: [read]
       content_may_leave: true
 {goals}"""
-CAPS = {"proactive": 1.2, "goal": 0.4}
+CAPS = {"proactive": 1.2, "goal": 1.2}  # stage 9: Meta-only runs cost more; the goal run hit US$0.40 in R9-A-3
 
 
 def main() -> None:

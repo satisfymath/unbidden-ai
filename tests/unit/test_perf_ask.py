@@ -50,3 +50,27 @@ def test_a_refused_request_is_recorded_not_swallowed() -> None:
     notes: list[str] = []
     assert ask(Brain(fail=True), notes) is None
     assert any(n.startswith("lab.workload: no answer (PolicyDenied: refused") for n in notes)
+
+
+def test_the_labs_own_output_travels_apart_and_personal_values_are_masked() -> None:
+    """Stage 9, Conduit: a failed workload's output (its tests' `author@email.com`, pytest's ERROR lines) was sent in
+    the repository's message, and the whole request was classified as production data and refused."""
+    from unbidden.guardian.classify import classify
+
+    class Capturing:
+        def __init__(self) -> None:
+            self.request: Any = None
+
+        async def complete(self, request: Any) -> Any:
+            self.request = request
+            return SimpleNamespace(content="# file: .unbidden-lab/workload.py\n```python\nx = 1\n```\n")
+
+    brain = Capturing()
+    output = "ERROR at setup\nERROR tests/x.py\nERROR asyncpg 172.18.0.2:5432\nE  author@email.com exists\n"
+    lab = SimpleNamespace(brain=brain)
+    asyncio.run(PerfLab._ask_files(lab, "lab.workload", 'create(email="author@email.com")', SimpleNamespace(id="o"),  # type: ignore[arg-type]
+                                   "sha", 100, [], lab_output=output))  # fmt: skip
+    repo_part, lab_part = brain.request.messages
+    assert (repo_part.source, lab_part.source) == ("repo", "synthetic")
+    assert "author@email.com" not in repo_part.content + lab_part.content and "172.18.0.2" not in lab_part.content
+    assert classify(brain.request.messages, repo_public=True).label.value != "production_data"

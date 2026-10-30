@@ -37,6 +37,7 @@ from unbidden.forge.api_client import (
 )
 from unbidden.forge.oas_schema import UnsupportedSchema
 from unbidden.guardian.policy import PolicyEngine, grant_host
+from unbidden.guardian.scanner import redact_text
 from unbidden.store import Store
 
 
@@ -148,7 +149,9 @@ async def build(
         messages=[
             Message(
                 role="user",
-                content=prompt.render(**selection_prompt(goals, grant.permissions, operations)),
+                # Values that look like credentials in the documentation (an example `api_key = ...`) are masked, as
+                # in a lab's prompt; Guardian still scans what is sent (stage 9, LNbits).
+                content=redact_text(prompt.render(**selection_prompt(goals, grant.permissions, operations))),
                 # Documentation of this connection: remote only if its grant says its content may leave.
                 source="synthetic" if grant.content_may_leave else "runtime",
             )

@@ -1,0 +1,101 @@
+== cycle 1 (exit 0)
+00:17:22 watching /Users/david/unbidden-lab/lnbits (ctrl-c to stop, `unbidden 
+kill` to freeze)
+00:17:22 HEAD is 9349da153c22
+00:17:22 deploy procedure found, proposed only: docker compose up -d 
+--remove-orphans
+00:17:22 deploy procedure found, proposed only: docker compose up 
+--remove-orphans
+00:17:22 connections: postgres:127.0.0.1:55450/lnbits connected, 
+http_api:http://127.0.0.1:18120 needs_capability
+00:17:23 provisioning node dependencies
+00:17:23 provisioning python dependencies
+00:17:23 running ruff
+00:17:23 running pyright
+00:17:30 scan of 9349da153c22: 2 reports, 0 new opportunities
+00:20:11 map of 9349da153c22: 233 resources, 3 blind spots
+00:20:12 robustness probe at 9349da153c22: investigate (probe lnbits (80 public 
+functions sampled))
+00:21:03 the project's own checks at 9349da153c22: failed (272 collected, 2 
+failed)
+00:21:04 opp_747b80e07f15468e: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_e94c129838184239: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_71d6f970647f409a: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_3c60a7c35d304839: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_1ab38e3bcf0545dd: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_3424ca8b07f64950: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_094c9ece818a49c9: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_961eda0fadf343d4: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_b80939a023ee4e3a: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_4f90826b680a4a37: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_84df2d125386465b: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_eb4a29ab2ceb4645: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_a4f4c6c37f4346e8: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_fdbf23397f1f4d8e: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_6213963c8afa4253: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_7f65c8423e4c49e2: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_a46a65500bec493c: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_03089a316aae4b7b: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:04 opp_a0e57fcee4024611: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+00:21:14 opp_747b80e07f15468e: consistency of GET /api/v1/assets/paginated: 
+waiting_capability: needs an integration for lnbits-api
+00:21:15 forge.build failed: forge.api_client: prompt contains 
+credential_assignment
+00:21:28 opp_e94c129838184239: consistency of GET 
+/api/v1/extension/reviews/tags: waiting_capability: needs an integration for 
+lnbits-api
+00:21:35 opp_71d6f970647f409a: consistency of GET 
+/api/v1/extension/wasm/invocations: waiting_capability: needs an integration for
+lnbits-api
+00:21:36 opp_747b80e07f15468e: wait (investigation queued or running)
+00:21:36 opp_e94c129838184239: wait (investigation queued or running)
+00:21:36 opp_71d6f970647f409a: wait (investigation queued or running)
+00:21:44 opp_3c60a7c35d304839: consistency of GET 
+/api/v1/extension/wasm/invocations/current: waiting_capability: needs an 
+integration for lnbits-api
+00:21:55 opp_1ab38e3bcf0545dd: consistency of GET 
+/api/v1/extension/wasm/invocations/stats: waiting_capability: needs an 
+integration for lnbits-api
+00:22:06 opp_3424ca8b07f64950: consistency of GET 
+/api/v1/payments/all/paginated: waiting_capability: needs an integration for 
+lnbits-api
+00:22:06 writing property tests for lnbits
+00:22:16 running them offline
+00:22:20 robustness probe of lnbits: 4 failed, 4 passed in 1.58s; 0 crash(es), 0
+new; 0 property violation(s) kept for a person (L1)
+
+
+== cycle 2 (exit 0)
+00:22:21 watching /Users/david/unbidden-lab/lnbits (ctrl-c to stop, `unbidden 
+kill` to freeze)
+00:22:22 connections: postgres:127.0.0.1:55450/lnbits connected, 
+http_api:http://127.0.0.1:18120 needs_capability
+00:22:23 opp_3c60a7c35d304839: wait (investigation queued or running)
+00:22:23 opp_1ab38e3bcf0545dd: wait (investigation queued or running)
+00:22:23 opp_3424ca8b07f64950: wait (investigation queued or running)
+00:22:36 opp_094c9ece818a49c9: consistency of GET /api/v1/payments/paginated: 
+waiting_capability: needs an integration for lnbits-api
+00:22:51 opp_961eda0fadf343d4: consistency of GET 
+/api/v1/payments/stats/breakdown: waiting_capability: needs an integration for 
+lnbits-api
+00:22:58 opp_b80939a023ee4e3a: consistency of GET /api/v1/payments/stats/daily: 
+waiting_capability: needs an integration for lnbits-api

@@ -35,7 +35,10 @@ returned templates, not applications); metadata was read from GitHub's public AP
 
 **Disclosed:** while writing Spoolman's synthetic data, the harness's author read its table models (to name columns)
 and saw two foreign keys declared without an index. The selection had already been made by the rule; nothing in the
-product, the goal or the harness refers to it. Prefect's schema was not read: its data is written through its API.
+product, the goal or the harness refers to it. Prefect's schema was not read: its data is written through its API. During development (2026-10-30), the CI reader
+(`ci_test_plan`) was also run once on both applications' repositories while checking it on LNbits: Spoolman gave no
+plan, Prefect a job of `api-compatibility-tests.yaml`. Nothing was changed because of either result, and neither
+repository was used again before the freeze; they are recorded here so the reader knows they were seen.
 
 ## Labs (human preparation, counted)
 

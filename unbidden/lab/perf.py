@@ -187,6 +187,20 @@ def _mechanism(sessions: list[dict[str, Any]], index: tuple[str, str] | None) ->
     return low >= SAMPLES, note
 
 
+_EMAIL = re.compile(
+    r"\b[A-Za-z0-9._%+-]+@(?!example\.(?:com|org|net)\b|test\b|localhost\b)[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"
+)
+_IPV4 = re.compile(
+    r"\b(?!127\.0\.0\.1\b|0\.0\.0\.0\b|192\.0\.2\.|198\.51\.100\.|203\.0\.113\.)(?:\d{1,3}\.){3}\d{1,3}\b"
+)
+
+
+def mask_personal(text: str) -> str:
+    """Email addresses and IP addresses replaced by documentation ones (`person@example.com`, `192.0.2.1`): a test
+    fixture's `author@email.com` or a sidecar's address carries nothing a workload needs."""
+    return _IPV4.sub("192.0.2.1", _EMAIL.sub("person@example.com", text))
+
+
 def async_suite(read: Callable[[str], str], files: list[str]) -> str | None:
     """The pytest marker of an asynchronous suite, when its fixtures are coroutines: `asyncio` (pytest-asyncio) or
     `anyio`; None for a synchronous one."""
@@ -384,7 +398,14 @@ class PerfLab:
     # Model-written artifacts ----------------------------------------------------------------------------
 
     async def _ask_files(
-        self, purpose: str, content: str, opp: Opportunity, sha: str, max_tokens: int, notes: list[str]
+        self,
+        purpose: str,
+        content: str,
+        opp: Opportunity,
+        sha: str,
+        max_tokens: int,
+        notes: list[str],
+        lab_output: str = "",
     ) -> dict[str, str] | None:
         """Files from the local model, or None with the reason in `notes`. Values in the repository's text that look
         like credentials (a test's `password="password"`) are masked first, as in logs: the prompt still passes
@@ -395,13 +416,21 @@ class PerfLab:
             if note not in notes:
                 notes.append(note)
             content = masked
+        # What the lab's own sandbox printed (a failed workload's output) is a separate message: it comes from runs
+        # on the workload's synthetic data, not from the repository or a running system (stage 9: Conduit's test
+        # emails and pytest's ERROR lines in it made the whole request "production data", refused). Personal-looking
+        # values are masked in both; Guardian still classifies and scans what is sent.
+        content = mask_personal(content)
+        messages = [Message(role="user", content=content, source="repo")]
+        if lab_output:
+            messages.append(Message(role="user", content=mask_personal(redact_text(lab_output)), source="synthetic"))
         try:
             response = await self.brain.complete(
                 LLMRequest(
                     purpose=purpose,
                     expect_files=True,
                     tier=Tier.LOCAL,
-                    messages=[Message(role="user", content=content, source="repo")],
+                    messages=messages,
                     max_tokens=max_tokens,
                     prompt_sha256=sha,
                     correlation_id=opp.id,
@@ -808,7 +837,7 @@ class PerfLab:
                     owners=str(SEED_OWNERS),
                     table=table,
                     cwd=f"/work/{cwd}",
-                    feedback=feedback,
+                    feedback="",
                     handler_file=handler[1],
                     handler=handler[2],
                     models_file=models_file,
@@ -823,6 +852,7 @@ class PerfLab:
                 wl_prompt.sha256,
                 3000,
                 result.notes,
+                lab_output=feedback,
             )
             workload = {k: v for k, v in (workload or {}).items() if k == f"{LAB_DIR}/workload.py"}
             if not workload:

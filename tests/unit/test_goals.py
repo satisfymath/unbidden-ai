@@ -135,3 +135,40 @@ def test_only_a_read_known_to_be_partial_blocks_everything(
     rows, partial = goals._read(store, mandate, plan, conns, {"api": integration}, run)  # pyright: ignore[reportPrivateUsage]
     assert [r["slug"] for r in rows] == ["a"]  # only what was read is judged
     assert (partial is None) if outcome is None else partial == "why unknown"
+
+
+def test_keys_a_row_limited_query_did_not_read_are_not_taken_as_zero(
+    store: Store, mandate: Mandate, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Stage 9 regression on Conduit: the read-only query stopped at its 1,000-row limit, every other key of the API
+    was joined as "stored zero", and 19,000 of 20,000 keys were reported short."""
+    from unbidden.connect.pages import Completeness, Read
+
+    rows = [{"slug": f"a{i}", "stored": 1} for i in range(1000)]
+    monkeypatch.setattr(goals, "query", lambda *a, **k: rows)
+    api = [{"slug": f"a{i}", "shown": 1} for i in range(1500)]
+    monkeypatch.setattr("unbidden.forge.api_client.read_collection",
+                        lambda *a, **k: Read(api, Completeness.COMPLETE, "whole", "offset", 15))  # fmt: skip
+    integration: Any = type("I", (), {"op": lambda self, op_id: type("O", (), {"id": op_id})()})()
+    conns: Any = {"db": type("D", (), {"id": "postgres:x"})(), "api": type("C", (), {"id": "http_api:x"})()}
+    plan = {"key": "slug", "sql": {"connection": "db", "query": "q"}, "api": {"connection": "api", "operation": "l"},
+            "shortfall": "stored - shown"}  # fmt: skip
+    joined, partial = goals._read(store, mandate, plan, conns, {"api": integration}, GoalRun(goal="g"))  # pyright: ignore[reportPrivateUsage]
+    assert len(joined) == 1000 and "limit of 1000 rows" in str(partial)  # the 500 unread keys are not "zero"
+
+
+def test_a_build_that_raises_is_a_failed_attempt_not_a_need_left_building(store: Store, mandate: Mandate) -> None:
+    """Stage 9, LNbits: Guardian refused the builder's prompt, the exception escaped, and the need stayed "building"
+    while nine questions waited on it."""
+    import asyncio
+
+    from unbidden.contracts.capability import NeedStatus
+    from unbidden.forge import needs
+
+    need, _ = needs.record(store, "api_client", "http_api:x", "a question needs it")
+
+    async def refusing(n: Any, lines: list[str]) -> Any:
+        raise RuntimeError("the prompt contains credential_assignment")
+
+    after = asyncio.run(needs.build(store, mandate, need, lambda kind, source: [source], refusing))
+    assert after.status is NeedStatus.FAILED and any("credential_assignment" in n for n in after.notes)
