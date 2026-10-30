@@ -1,0 +1,301 @@
+{
+  "workspace": "lnbits",
+  "at": "2026-10-30T00:02:56.465887+00:00",
+  "discovered": {
+    "total": 19,
+    "by_status": {
+      "open": 19
+    }
+  },
+  "experimenting": [],
+  "declined_because": [],
+  "waiting_because": [
+    [
+      "blocked: lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      19
+    ]
+  ],
+  "proven": [],
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {
+      "abandoned": 1
+    },
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 61,
+    "usd": 0.3503,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55450/lnbits",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.accounts",
+        "select public.apipayments",
+        "select public.assets",
+        "select public.audit",
+        "select public.balance_check",
+        "select public.balance_notify",
+        "select public.balances",
+        "select public.dbversions",
+        "select public.extensions",
+        "select public.installed_extensions",
+        "select public.system_settings",
+        "select public.tiny_url",
+        "select public.wallets",
+        "select public.wasm_invocations",
+        "select public.webpush_subscriptions"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T00:02:54.414859+00:00"
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18120",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "LNbits API: 178 operations documented, authenticated by oauth2, http bearer, apiKey X-API-KEY, apiKey api-key; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T00:02:54.424875+00:00"
+    }
+  ],
+  "needs_a_person": [
+    {
+      "proposal": "docker compose up -d --remove-orphans",
+      "state": "proposed",
+      "what": "found in docker/regtest/docker-scripts.sh; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose up --remove-orphans",
+      "state": "proposed",
+      "what": "found in docker/regtest/docker-scripts.sh; a proposal only: a person declares deploy steps in the mandate"
+    }
+  ],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "consistency-opp_6ce7abf6361f443c",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for lnbits-api",
+      "at": "2026-10-29T23:57:28.654358+00:00"
+    },
+    {
+      "goal": "consistency-opp_970101c767814bfd",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for lnbits-api",
+      "at": "2026-10-29T23:57:42.624183+00:00"
+    },
+    {
+      "goal": "consistency-opp_e077c42cb67346ff",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-29T23:57:54.442467+00:00"
+    },
+    {
+      "goal": "consistency-opp_6ce7abf6361f443c",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-29T23:58:05.526001+00:00"
+    },
+    {
+      "goal": "consistency-opp_970101c767814bfd",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-29T23:58:18.132711+00:00"
+    },
+    {
+      "goal": "consistency-opp_ba00bd7ff25b4dcb",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-29T23:58:34.476148+00:00"
+    },
+    {
+      "goal": "consistency-opp_3f595c399b1141bd",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-29T23:58:45.229788+00:00"
+    },
+    {
+      "goal": "consistency-opp_625a2700b134458d",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-29T23:58:57.848086+00:00"
+    },
+    {
+      "goal": "consistency-opp_4aea9e233f484594",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-29T23:59:14.927932+00:00"
+    },
+    {
+      "goal": "consistency-opp_d8f650ca8b93485d",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-29T23:59:31.419228+00:00"
+    },
+    {
+      "goal": "consistency-opp_d1035df2685b4239",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-29T23:59:43.187990+00:00"
+    },
+    {
+      "goal": "consistency-opp_e9fa763af93a4b94",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-29T23:59:53.532360+00:00"
+    },
+    {
+      "goal": "consistency-opp_74b4330156d34d92",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-30T00:00:01.318511+00:00"
+    },
+    {
+      "goal": "consistency-opp_14227d18f36746c9",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-30T00:00:17.805008+00:00"
+    },
+    {
+      "goal": "consistency-opp_d0baafae3d4a4413",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-30T00:00:30.113419+00:00"
+    },
+    {
+      "goal": "consistency-opp_c89d472f8c444d84",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-30T00:00:49.210935+00:00"
+    },
+    {
+      "goal": "consistency-opp_c4532e9d85af40c8",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-30T00:01:01.529685+00:00"
+    },
+    {
+      "goal": "consistency-opp_336f60622c334468",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-30T00:01:16.668657+00:00"
+    },
+    {
+      "goal": "consistency-opp_1ccdadf0855a46a3",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-30T00:01:32.762466+00:00"
+    },
+    {
+      "goal": "consistency-opp_46ac06d1ed924974",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-30T00:01:50.785379+00:00"
+    },
+    {
+      "goal": "consistency-opp_58905f3a932648b7",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "lnbits-api: no integration could be validated (http_api:http://127.0.0.1:18120's documentation: a $ref refers to itself (recursive schemas are not read))",
+      "at": "2026-10-30T00:02:05.220356+00:00"
+    }
+  ]
+}

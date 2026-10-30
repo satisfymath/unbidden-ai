@@ -103,12 +103,12 @@ def test_documents_not_read_are_refused_with_why(document: dict[str, Any], why: 
         oas_schema.version(document)
 
 
-def test_remote_and_recursive_references_are_refused() -> None:
+def test_remote_references_are_refused_and_a_recursive_one_is_read() -> None:
     with pytest.raises(UnsupportedSchema, match="inside the document"):
         read(doc("3.0.3", {}), {"$ref": "https://example.com/x.json"}, "response")
-    with pytest.raises(UnsupportedSchema, match="itself"):
-        read(doc("3.0.3", {"N": {"type": "object", "properties": {"next": {"$ref": "#/components/schemas/N"}}}}),
-             {"$ref": "#/components/schemas/N"}, "response")  # fmt: skip
+    linked = read(doc("3.0.3", {"N": {"type": "object", "properties": {"next": {"$ref": "#/components/schemas/N"}}}}),
+                  {"$ref": "#/components/schemas/N"}, "response")  # fmt: skip
+    assert "$defs" in linked  # stage 9: kept as a reference, resolved by the validator (refused before)
 
 
 def test_larder_reads_whole_through_the_real_client() -> None:
@@ -198,3 +198,26 @@ def test_a_listing_read_that_fails_says_why_in_the_verdict(store: object, mandat
         assert not verdict["passed"] and observed.startswith("read failed:") and "documented schema" in observed
     finally:
         credentials.reset()
+
+
+@pytest.mark.parametrize("openapi", ["3.0.3", "3.1.0"])
+def test_a_recursive_schema_is_read_and_checked_at_every_depth(openapi: str) -> None:
+    """Stage 9: LNbits' document has a schema that refers to itself, and the whole API was refused. A recursive
+    reference is kept as a reference into `$defs`; nested values are checked as deep as they go."""
+    from jsonschema.exceptions import ValidationError
+
+    from unbidden.forge.oas_schema import read, validate
+
+    node = {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+            "name": {"type": "string"},
+            "children": {"type": "array", "items": {"$ref": "#/components/schemas/Node"}},
+        },
+    }
+    document = {"openapi": openapi, "components": {"schemas": {"Node": node}}}
+    schema = read(document, {"$ref": "#/components/schemas/Node"}, "response")
+    validate({"name": "a", "children": [{"name": "b", "children": [{"name": "c"}]}]}, schema)
+    with pytest.raises(ValidationError):
+        validate({"name": "a", "children": [{"name": "b", "children": [{"name": 7}]}]}, schema)

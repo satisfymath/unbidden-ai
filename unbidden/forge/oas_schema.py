@@ -17,7 +17,7 @@ in JSON Schema 2020-12, and one validator serves both versions:
 
 Refused with a reason rather than guessed: Swagger 2.0 and versions other than 3.0.x and 3.1.x; 3.0 type arrays (not
 allowed in 3.0); `nullable` in a 3.1 document (not a 3.1 keyword: 3.1 writes `type: [T, "null"]`); another
-`$schema` dialect in 3.1; remote or recursive `$ref`s.
+`$schema` dialect in 3.1; remote `$ref`s. Recursive `$ref`s are kept as references into `$defs` (stage 9).
 """
 
 from __future__ import annotations
@@ -55,30 +55,48 @@ def version(document: dict[str, Any]) -> Version:
     raise UnsupportedSchema(f"openapi {declared or '(missing)'}: only 3.0.x and 3.1.x are read")
 
 
-def resolve(document: dict[str, Any], schema: Any, v: Version, depth: int = 0) -> Any:
-    """Inline local `$ref`s so each schema stands alone."""
+def resolve(
+    document: dict[str, Any],
+    schema: Any,
+    v: Version,
+    depth: int = 0,
+    stack: tuple[str, ...] = (),
+    defs: dict[str, Any] | None = None,
+) -> Any:
+    """Inline local `$ref`s so each schema stands alone. A reference met again while it is being expanded (a tree, a
+    nested comment) is kept as a reference into `$defs` instead, which JSON Schema 2020-12 resolves itself (stage 9:
+    LNbits' document has one, and the whole API was refused); `read` attaches those definitions to the schema."""
     if depth > MAX_DEPTH:
-        raise UnsupportedSchema("a $ref refers to itself (recursive schemas are not read)")
+        raise UnsupportedSchema(f"a schema nested deeper than {MAX_DEPTH} levels")
     if isinstance(schema, list):
-        return [resolve(document, item, v, depth + 1) for item in schema]
+        return [resolve(document, item, v, depth + 1, stack, defs) for item in schema]
     if not isinstance(schema, dict):
         return schema
     if "$ref" in schema:
         ref = str(schema["$ref"])
         if not ref.startswith("#/"):
             raise UnsupportedSchema(f"$ref {ref!r}: only references inside the document are read")
-        target: Any = document
-        for part in ref[2:].split("/"):
-            part = part.replace("~1", "/").replace("~0", "~")
-            if not isinstance(target, dict) or part not in target:
-                raise UnsupportedSchema(f"$ref {ref!r} points nowhere in the document")
-            target = target[part]
-        inlined = resolve(document, target, v, depth + 1)
+        name = re.sub(r"[^\w.-]", "_", ref[2:])
+        if ref in stack:
+            if defs is None:
+                raise UnsupportedSchema("a $ref refers to itself (recursive schemas need `read`)")
+            defs.setdefault(name, None)  # filled when its outermost expansion ends
+            inlined: Any = {"$ref": f"#/$defs/{name}"}
+        else:
+            target: Any = document
+            for part in ref[2:].split("/"):
+                part = part.replace("~1", "/").replace("~0", "~")
+                if not isinstance(target, dict) or part not in target:
+                    raise UnsupportedSchema(f"$ref {ref!r} points nowhere in the document")
+                target = target[part]
+            inlined = resolve(document, target, v, depth + 1, (*stack, ref), defs)
+            if defs is not None and name in defs and defs[name] is None:
+                defs[name] = inlined
         siblings = {k: val for k, val in schema.items() if k != "$ref"}
         if v == "3.0" or not siblings:
             return inlined  # 3.0: siblings of a $ref are ignored
-        return {"allOf": [inlined, resolve(document, siblings, v, depth + 1)]}
-    return {k: resolve(document, val, v, depth + 1) for k, val in schema.items()}
+        return {"allOf": [inlined, resolve(document, siblings, v, depth + 1, stack, defs)]}
+    return {k: resolve(document, val, v, depth + 1, stack, defs) for k, val in schema.items()}
 
 
 def to_json_schema(schema: Any, v: Version, direction: Direction) -> Any:
@@ -125,7 +143,12 @@ def read(document: dict[str, Any], schema: Any, direction: Direction) -> Any:
     if schema is None:
         return None
     v = version(document)
-    translated = to_json_schema(resolve(document, schema, v), v, direction)
+    defs: dict[str, Any] = {}
+    resolved = resolve(document, schema, v, defs=defs)
+    if defs:
+        resolved = {"allOf": [resolved], "$defs": defs} if not isinstance(resolved, dict) or "$defs" in resolved else {
+            **resolved, "$defs": defs}  # fmt: skip
+    translated = to_json_schema(resolved, v, direction)
     Draft202012Validator.check_schema(translated)  # a schema that is not one is the document's error, said here
     return translated
 

@@ -313,8 +313,14 @@ def live_check(
     )
     if listing is None:
         return CheckResult(ConnectionState.DEGRADED, "the integration has no parameterless read to check with")
+    from unbidden.forge.api_client import Degraded
+
+    # As the oracle reads (stage 8): an accessory field that differs from the document is recorded, not fatal; one
+    # that identifies, relates or counts still fails the check (stage 9: Conduit's documented-as-string nulls left
+    # its validated integration unusable, every read refused as "not observed to be allowed").
+    seen = Degraded()
     try:
-        status, _ = call(integration, conn, mandate, listing.id, gate=False, transport=transport)
+        status, _ = call(integration, conn, mandate, listing.id, gate=False, transport=transport, degraded=seen)
     except CallFailed as exc:
         if exc.status in (401, 403):
             return CheckResult(
@@ -331,7 +337,8 @@ def live_check(
     effective = ["read"] + (["write"] if any(a.kind == "write" for a in found) else [])
     return CheckResult(
         ConnectionState.CONNECTED,
-        f"{integration.title} {integration.api_version} through {integration.id}: {listing.id} answered {status}",
+        f"{integration.title} {integration.api_version} through {integration.id}: {listing.id} answered {status}"
+        + (f" ({len(seen.log)} documented-vs-observed deviation(s) recorded)" if seen.log else ""),
         effective=effective,
         abilities=found,
     )

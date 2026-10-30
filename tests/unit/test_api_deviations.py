@@ -161,3 +161,20 @@ def test_writes_stay_strict_even_when_a_read_may_degrade(setup: Any, tmp_path: A
         call(integration, conn, mandate, "favorite", params={"slug": "a-1"}, gate=False, transport=service([]),
              store=store, degraded=Degraded())  # fmt: skip
     assert not isinstance(raised.value, DeviationBlocked)  # strict, not a degraded read
+
+
+def test_an_integrated_connection_is_checked_with_the_same_tolerance_as_the_oracle(setup: Any) -> None:
+    """Stage 9 regression on Conduit: the oracle validated an integration past an accessory null, then the
+    connection's own check read strictly, failed on that null, and every read was refused as "not observed to be
+    allowed". The check now reads as the oracle does; a critical deviation still fails it."""
+    from unbidden.contracts.connection import ConnectionState
+    from unbidden.forge.integrate import live_check
+
+    integration, conn, mandate, _ = setup
+    integration.quality = {"operations": {"listArticles": {"passed": True}}}
+    rows = [article(i) for i in range(1, 4)]  # author.image is null: documented as a string
+    ok = live_check(integration, conn, mandate, transport=service(rows))
+    assert ok.state is ConnectionState.CONNECTED and "deviation" in ok.detail
+    assert any(a.kind == "read" and "listArticles" in a.operations for a in ok.abilities)
+    broken = live_check(integration, conn, mandate, transport=service([article(1, slug=None), article(2)]))
+    assert broken.state is ConnectionState.DEGRADED

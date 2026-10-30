@@ -91,6 +91,7 @@ def build(store: Store, workspace: str, spend_rows: list[dict[str, Any]] | None 
             }
             for o in proven[:TOP]
         ],
+        "project_checks": store.get_value("baseline_checks"),
         "revoked": [
             {
                 **_brief(o),

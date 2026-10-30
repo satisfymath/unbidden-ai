@@ -53,6 +53,7 @@ PRIORITY = {
     "connect.survey": 42,
     "goal.pursue": 58,
     "research.consistency": 59,
+    "observe.checks": 52,
 }
 
 
@@ -91,6 +92,7 @@ class Cycle:
             "research.investigate": self.research_investigate,
             "research.probe": self.research_probe,
             "research.consistency": self.research_consistency,
+            "observe.checks": self.observe_checks,
             "forge.build": self.forge_build,
             "world.refresh": self.world_refresh,
             "connect.survey": self.connect_survey,
@@ -129,7 +131,45 @@ class Cycle:
         )
         self.log(f"map of {rev[:12]}: {len(world.resources)} resources, {len(world.blind_spots)} blind spots")
         self._plan_probe(rev, result.stack)
+        self.store.enqueue(job("observe.checks", rev[:12], {"rev": rev}))
         self.store.enqueue(job("director.sweep", f"{rev}:{utc_now():%Y%m%d%H%M}"))
+
+    async def observe_checks(self, j: Job) -> None:
+        """The project's own checks at the base, once per commit, before any experiment (stage 9): whether its
+        environment is reproduced here is then known whatever the cycle finds, and an abstention rests on it. One round
+        of the CI's test job (the experiments run three on each side); a suite too long for its bound is said so."""
+        from unbidden.lab.testsuite import run_suite, test_plan
+        from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
+
+        rev = j.payload["rev"]
+        record: dict[str, Any] = {"rev": rev, "at": utc_now().isoformat()}
+        try:
+            stack, images = await asyncio.to_thread(self._env, rev)
+            plan = test_plan(self.runtime.workspace.repo, rev, stack, "python") if stack.python else None
+            if plan is None:
+                record |= {"status": "no_plan", "why": "no test job to run (no CI job and no test files found)"}
+            else:
+                from unbidden.sandbox.provision import link_dependencies
+
+                work = snapshot(self.runtime.workspace.repo, rev)
+                try:
+                    link_dependencies(work, images["python"])
+                    summary = await asyncio.to_thread(run_suite, SandboxRunner(), work, images["python"], plan,
+                                                      rounds=1, timeout_s=CHECKS_TIMEOUT_S)  # fmt: skip
+                finally:
+                    discard(work)
+                ran = summary.status(0)
+                status = ("failed" if summary.failed_per_round[0] else "passed") if ran == "ran" else ran
+                record |= {"status": status, "collected": summary.collected_per_round[0] if
+                           summary.collected_per_round else None, "failed": summary.failed_per_round[0][:50],
+                           "command": " ".join(plan.argv)[:300]}  # fmt: skip
+        except Exception as exc:  # the environment could not be built: that is the finding
+            record |= {"status": "blocked", "why": f"{type(exc).__name__}: {str(exc)[:400]}"}
+            self.store.set_value("baseline_checks", record)
+            raise
+        self.store.set_value("baseline_checks", record)
+        self.log(f"the project's own checks at {rev[:12]}: {record.get('status')} "
+                 f"({record.get('collected')} collected, {len(record.get('failed') or [])} failed)")  # fmt: skip
 
     async def world_refresh(self, _: Job) -> None:
         """The running system, mapped again without waiting for a commit: data grows, a migration is applied, a
@@ -656,6 +696,21 @@ class Cycle:
             bounds={"environment": "staging", "max_actions": 0},
         )
         mandate = self.runtime.workspace.mandate()
+        # An API whose integration was already given up (two failed builds, or a document this reader does not
+        # interpret) answers no question: said without a model call (stage 9, LNbits: 19 questions, 21 plans).
+        from unbidden.contracts.capability import CapabilityNeed, NeedStatus
+        from unbidden.forge.needs import COLLECTION as NEEDS
+
+        apis = {f"http_api:{g.location}" for g in mandate.connections if g.kind == "http_api"}
+        given_up = [n for n in self.store.list(NEEDS, CapabilityNeed)
+                    if n.kind == "api_client" and n.source in apis and n.status is NeedStatus.ABANDONED]  # fmt: skip
+        if apis and len(given_up) == len(apis):
+            why = "; ".join(f"{n.source}: " + next((x for x in reversed(n.notes) if not x.startswith(("attempt",
+                            "no capability"))), "no integration") for n in given_up)  # fmt: skip
+            opp.details = {**opp.details, "consistency": {"status": "blocked", "note": why, "model_calls": 0}}
+            self.store.put("opportunities", opp)
+            self.log(f"{opp.id}: consistency of {endpoint}: blocked without a model call: {why}")
+            return
         resume = {"type": "research.consistency", "key": f"{opp.id}:after-capability", "payload": {"id": opp.id}}
         run = await pursue(self.runtime.brain, self.store, mandate, goal, window=f"{utc_now():%Y-%m-%d}",
                            workspace=self.runtime.workspace, resume=resume, read_only=True)  # fmt: skip
@@ -784,8 +839,10 @@ TIMEOUT_S: dict[str, float] = {
     "forge.build": 1800,
     "goal.pursue": 1800,
     "research.consistency": 1800,
+    "observe.checks": 3900,
 }
 DEFAULT_TIMEOUT_S = 600.0
+CHECKS_TIMEOUT_S = 3600.0  # the project's own suite, once at the base; a longer one is recorded as not finished
 MAX_CONSISTENCY_QUEUED = 3  # consistency investigations waiting at once: each may build an integration and plan
 
 
