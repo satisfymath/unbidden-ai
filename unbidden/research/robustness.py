@@ -223,7 +223,8 @@ class RobustnessProbe:
                     ],
                 )
             )
-        except (BrainError, ProviderError):
+        except (BrainError, ProviderError) as exc:  # said, not mistaken for an answer without tests (stage 9 walk)
+            self.refused = f"no model answered: {type(exc).__name__}: {str(exc)[:240]}"
             return None
         self.last_answer = response.content
         try:

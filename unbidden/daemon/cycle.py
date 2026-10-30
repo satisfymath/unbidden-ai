@@ -242,8 +242,9 @@ class Cycle:
         artifacts.mkdir(exist_ok=True)
         (artifacts / f"robustness-{rev[:12]}.answer.md").write_text(probe.last_answer)
         if outcome is None:
-            self.store.set_value("last_probe", {**record, "why": "no usable tests were written"})
-            self.log(f"robustness probe of {package}: no usable tests were written")
+            why = getattr(probe, "refused", None) or "no usable tests were written"
+            self.store.set_value("last_probe", {**record, "why": why})
+            self.log(f"robustness probe of {package}: {why}")
             return
         tests, output = outcome
         (artifacts / f"robustness-{rev[:12]}.py").write_text(tests)

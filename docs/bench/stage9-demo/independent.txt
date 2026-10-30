@@ -1,0 +1,4 @@
+commentaries.article_id / GET comments: median 8.27 ms -> 0.06 ms (n=15)
+favorites.article_id / DELETE article: median 7.74 ms -> 7.16 ms (n=15)
+favorites.article_id / DELETE article, comments indexed on both sides: median 0.61 ms -> 0.20 ms (n=15)
+commentaries.author_id / DELETE comment: median 0.04 ms -> 0.03 ms (n=15)

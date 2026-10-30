@@ -242,6 +242,13 @@ def render_text(data: dict[str, Any]) -> list[str]:
     lines = [f"[bold]{data['workspace']}[/] · {d['total']} opportunities · " + ", ".join(
         f"{n} {s}" for s, n in sorted(d["by_status"].items())
     )]  # fmt: skip
+    checks = data.get("project_checks") or {}
+    if checks:
+        counted = f"{checks.get('collected')} collected, {len(checks.get('failed') or [])} failed"
+        lines.append(f"the project's own checks at {str(checks.get('rev', ''))[:12]}: {checks.get('status')} "
+                     f"({checks.get('why') or counted})")  # fmt: skip
+    for r in data.get("revoked") or []:
+        lines.append(f"  [yellow]revoked[/] was L{r['was']} · {r['title']}: {r['why']}")
     if data["proven"]:
         lines.append("[bold]proven[/]")
         for p in data["proven"]:

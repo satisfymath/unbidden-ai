@@ -48,3 +48,15 @@ def test_a_revoked_l4_keeps_its_verdict_history_and_reason(store: Store) -> None
 def test_verdicts_under_older_criteria_are_pending_revalidation(store: Store) -> None:
     assert "pending revalidation" in str(pending(proven(store, PERF_CRITERIA)))
     assert pending(proven(store, SESSION_CRITERIA)) is None
+
+
+def test_the_text_activity_shows_the_projects_own_checks_and_revocations(store: Store) -> None:
+    """Stage 9 walk: RELEASE promises the base checks in `unbidden activity`; only the JSON had them."""
+    from unbidden.director.activity import render_text
+
+    store.set_value("baseline_checks", {"rev": "a" * 40, "status": "passed", "collected": 90, "failed": []})
+    opp = proven(store, PERF_CRITERIA)
+    revoke(store, opp.id, "an artifact", criteria="perf-v3", evidence="x", by="person")
+    text = "\n".join(render_text(build(store, "w")))
+    assert "the project's own checks at aaaaaaaaaaaa: passed (90 collected, 0 failed)" in text
+    assert "revoked" in text and "an artifact" in text
