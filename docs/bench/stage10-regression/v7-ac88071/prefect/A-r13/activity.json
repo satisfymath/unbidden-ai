@@ -1,0 +1,238 @@
+{
+  "workspace": "prefect",
+  "at": "2026-10-30T23:11:30.606267+00:00",
+  "discovered": {
+    "total": 511,
+    "by_status": {
+      "declined": 281,
+      "open": 230
+    }
+  },
+  "experimenting": [],
+  "declined_because": [
+    [
+      "the team's CI does not run ruff: its style is not the team's standard",
+      281
+    ]
+  ],
+  "waiting_because": [
+    [
+      "not measurable at this commit: cannot judge: incomplete reports from ruff, pyright",
+      227
+    ],
+    [
+      "not measurable at this commit: cannot measure: no a single Alembic head",
+      2
+    ],
+    [
+      "blocked: http_api:http://127.0.0.1:18140: no documented read operation was chosen",
+      1
+    ]
+  ],
+  "proven": [],
+  "project_checks": {
+    "rev": "1ef3e516d3b3449d19f65b30c45d1e0bff656396",
+    "at": "2026-10-30T22:43:02.174167+00:00",
+    "status": "failed",
+    "collected": 1033,
+    "failed": [
+      "tests._internal.test_release_workflows::test_prerelease_tag_validation_does_not_execute_ref[.github/workflows/docker-images.yaml]",
+      "tests._internal.test_release_workflows::test_prerelease_tag_validation_does_not_execute_ref[.github/workflows/prefect-client-publish.yaml]",
+      "tests._internal.test_release_workflows::test_prerelease_tag_validation_does_not_execute_ref[.github/workflows/python-package.yaml]",
+      "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[-True]",
+      "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7-True]",
+      "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7.dev1-False]",
+      "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7.dev12-False]",
+      "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7.dev1;touch injected-True]",
+      "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7a1-True]",
+      "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7b1-True]",
+      "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7rc1-True]"
+    ],
+    "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nset +e\npytest tests --ignore=tests/typesafety  -m \"not windows\"  --numprocesses logical  --maxprocesses 6  --dist worksteal  --disable-",
+    "scope": "matrix entry 1 of 18 (group=1, database=postgres:14, python-version=3.12); pytest-split group 1 of 18",
+    "partial": true,
+    "notes": [
+      "2 step(s) after the tests left out (they run no tests)",
+      "left out, it needs another job's artifact (test-durations-1.json): duration_path=\"test-durations-1.json\"",
+      "left out, it needs another job's artifact (test-durations.json): jq '.\"__pytest_split_incomplete__\" = -1'  test-durations.json > \"$duration_path\""
+    ]
+  },
+  "experiments_wait": null,
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {
+      "abandoned": 1
+    },
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 409,
+    "usd": 1.9986,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55470/prefect",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.agent",
+        "select public.alembic_version",
+        "select public.artifact",
+        "select public.artifact_collection",
+        "select public.automation",
+        "select public.automation_bucket",
+        "select public.automation_event_follower",
+        "select public.automation_held_event",
+        "select public.automation_related_resource",
+        "select public.block_document",
+        "select public.block_document_reference",
+        "select public.block_schema",
+        "select public.block_schema_reference",
+        "select public.block_type",
+        "select public.composite_trigger_child_firing",
+        "select public.concurrency_limit",
+        "select public.concurrency_limit_v2",
+        "select public.configuration",
+        "select public.csrf_token",
+        "select public.deployment",
+        "select public.deployment_schedule",
+        "select public.deployment_version",
+        "select public.event_resources",
+        "select public.events",
+        "select public.flow",
+        "select public.flow_run",
+        "select public.flow_run_input",
+        "select public.flow_run_state",
+        "select public.log",
+        "select public.saved_search",
+        "select public.task_run",
+        "select public.task_run_state",
+        "select public.task_run_state_cache",
+        "select public.variable",
+        "select public.work_pool",
+        "select public.work_queue",
+        "select public.worker"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T23:11:29.826085+00:00"
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18140",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "Prefect REST API: 187 operations documented, authenticated by nothing; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T23:11:29.840398+00:00"
+    }
+  ],
+  "needs_a_person": [],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [
+    {
+      "id": "int_21ff87f890fc4fbb",
+      "title": "Prefect REST API",
+      "on": "http_api:http://127.0.0.1:18140",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "count_flows_flows_count_post": "read",
+        "read_flows_flows_filter_post": "read",
+        "count_flow_runs_flow_runs_count_post": "read",
+        "read_flow_runs_flow_runs_filter_post": "read",
+        "count_task_runs_task_runs_count_post": "read",
+        "read_task_runs_task_runs_filter_post": "read",
+        "count_deployments_deployments_count_post": "read",
+        "read_deployments_deployments_filter_post": "read"
+      },
+      "oracle": {
+        "count_deployments_deployments_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_flow_runs_flow_runs_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_flows_flows_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_task_runs_task_runs_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "read_deployments_deployments_filter_post": "200, 0 records, read complete (count_deployments_deployments_count_post says 0 before and after, the distinct records read; no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); page size 100: 0 records (complete); page size 1: 0 (unknown); 0 differ; without the key: 200",
+        "read_flow_runs_flow_runs_filter_post": "200, 10000 records, read complete (count_flow_runs_flow_runs_count_post says 10000 before and after, the distinct records read; no total confirmed (no count beside the records); 10000 distinct records, an empty page at offset 10000); page size 100: 10000 records (complete); page size 99: 10000 (unknown); 0 differ; without the key: 200",
+        "read_flows_flows_filter_post": "200, 50 records, read complete (count_flows_flows_count_post says 50 before and after, the distinct records read; no total confirmed (no count beside the records); 50 distinct records, a short page (50 < 100) at the end); page size 100: 50 records (complete); page size 16: 50 (unknown); 0 differ; without the key: 200",
+        "read_task_runs_task_runs_filter_post": "200, 30000 records, read complete (count_task_runs_task_runs_count_post says 30000 before and after, the distinct records read; no total confirmed (no count beside the records); 30000 distinct records, an empty page at offset 30000); page size 100: 30000 records (complete); page size 99: 30000 (unknown); 0 differ; without the key: 200"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "data-correct-and-fast",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for prefect-api",
+      "at": "2026-10-30T22:44:26.214349+00:00"
+    },
+    {
+      "goal": "data-correct-and-fast",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "prefect-api: no integration could be validated (no documented read operation was chosen)",
+      "at": "2026-10-30T22:46:05.797619+00:00"
+    },
+    {
+      "goal": "data-correct-and-fast",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "prefect-api: no integration could be validated (no documented read operation was chosen)",
+      "at": "2026-10-30T23:11:14.723289+00:00"
+    }
+  ]
+}
