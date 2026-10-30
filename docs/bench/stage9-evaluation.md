@@ -80,4 +80,4 @@ Each outcome is classified as one of: **useful improvement verified** (measured 
 or **false promotion** (an L4 or a finding that 2 or 3 does not confirm). The labeller is the person who built the
 harness (Claude): a limit, stated.
 
-**Frozen product commit:** FROZEN (the evaluation runs from a worktree at it).
+**Frozen product commit:** 466739e (the evaluation runs from a worktree at it).
