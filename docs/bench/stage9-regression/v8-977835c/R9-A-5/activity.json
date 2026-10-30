@@ -1,0 +1,304 @@
+{
+  "workspace": "conduit",
+  "at": "2026-10-30T11:26:38.123779+00:00",
+  "discovered": {
+    "total": 6,
+    "by_status": {
+      "open": 3,
+      "proposed": 2,
+      "declined": 1
+    }
+  },
+  "experimenting": [],
+  "declined_because": [
+    [
+      "2 experiments found no proven fix",
+      1
+    ]
+  ],
+  "waiting_because": [
+    [
+      "inconclusive: no difference among the 1000 keys read, but the set's completeness is unknown (no total confirmed (articlesCount is 0 on the empty page past the end: not compared); 20000 distinct records, an empty page at offset 20000; the read-only query returned its limit of 1000 rows): 'none' is not concluded",
+      1
+    ],
+    [
+      "inconclusive: no difference among the 0 keys read, but the set's completeness is unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0; the read-only query returned its limit of 1000 rows): 'none' is not concluded",
+      1
+    ],
+    [
+      "not measurable at this commit: cannot measure: no workload ran at the base after 5 attempts (workload attempt 5 failed: E   AttributeError: 'Article' object has no attribute 'id')",
+      1
+    ]
+  ],
+  "proven": [
+    {
+      "id": "opp_607463cad7ce495d",
+      "title": "commentaries.article_id is a foreign key without an index, joined on by 1 endpoint(s)",
+      "level": 4,
+      "status": "proposed",
+      "level_name": "validated",
+      "outcome": null,
+      "held_checks": 0,
+      "current_rules": null,
+      "pending_revalidation": null
+    },
+    {
+      "id": "opp_bd87df82158e4a1a",
+      "title": "favorites.article_id is a foreign key without an index, checked when 1 endpoint(s) delete a articles row",
+      "level": 4,
+      "status": "proposed",
+      "level_name": "validated",
+      "outcome": null,
+      "held_checks": 0,
+      "current_rules": null,
+      "pending_revalidation": null
+    }
+  ],
+  "project_checks": {
+    "rev": "029eb7781c60d5f563ee8990a0cbfb79b244538c",
+    "at": "2026-10-30T10:34:36.569224+00:00",
+    "status": "passed",
+    "collected": 90,
+    "failed": [],
+    "command": "bash -c set -e\ncd /work\npip --version >/dev/null 2>&1 || rm -rf .venv\ncd /work\nalembic upgrade head\n./scripts/test"
+  },
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {
+    "ready": [
+      "perf: index favorites.article_id \u00b7 DELETE /api/articles/{slug}: session medians 9.60 -> 1.64 ms (+83% faster), permutati",
+      "perf: index commentaries.article_id \u00b7 GET /api/articles/{slug}/comments: session medians 20.52 -> 14.74 ms (+28% faster)"
+    ]
+  },
+  "capabilities": {
+    "needs": {
+      "in_use": 2
+    },
+    "awaiting_approval": [],
+    "in_use": [
+      {
+        "kind": "api_client",
+        "source": "http_api:http://127.0.0.1:18110"
+      },
+      {
+        "kind": "api_extension",
+        "source": "http_api:http://127.0.0.1:18110#articles_get_user_feed_articles_api_articles_feed_get"
+      }
+    ]
+  },
+  "spent": {
+    "calls": 494,
+    "usd": 5.58,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {
+    "world \u00b7 performance \u00b7 -": {
+      "successes": 2,
+      "failures": 3,
+      "p": 0.46,
+      "prior": 0.6
+    }
+  },
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18110",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "articles_list_articles_api_articles_get",
+        "articles_get_article_api_articles__slug__get",
+        "comments_get_comments_for_article_api_articles__slug__comments_get",
+        "articles_get_user_feed_articles_api_articles_feed_get"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T11:26:11.574126+00:00"
+    },
+    {
+      "id": "postgres:127.0.0.1:55440/postgres",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.alembic_version",
+        "select public.articles",
+        "select public.articles_to_tags",
+        "select public.commentaries",
+        "select public.favorites",
+        "select public.followers_to_followings",
+        "select public.tags",
+        "select public.users"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T11:26:11.542478+00:00"
+    },
+    {
+      "id": "github:nsidnev/fastapi-realworld-example-app",
+      "kind": "github",
+      "environment": "local",
+      "state": "discovered",
+      "read": [],
+      "write": [],
+      "requested": [],
+      "effective": [],
+      "blocked": "the mandate names no GitHub repository",
+      "next_step": "set egress.github.repository to nsidnev/fastapi-realworld-example-app and grant a token reference",
+      "found_by": [
+        "git remote origin"
+      ],
+      "checked_at": null
+    }
+  ],
+  "needs_a_person": [],
+  "optional_access": [
+    {
+      "connection": "github:nsidnev/fastapi-realworld-example-app",
+      "what": "set egress.github.repository to nsidnev/fastapi-realworld-example-app and grant a token reference",
+      "enables": "reading it"
+    }
+  ],
+  "blocks": [],
+  "integrations": [
+    {
+      "id": "int_87c01155221f4635",
+      "title": "FastAPI example application",
+      "on": "http_api:http://127.0.0.1:18110",
+      "status": "superseded",
+      "how": "built",
+      "operations": {
+        "articles_list_articles_api_articles_get": "read",
+        "articles_get_article_api_articles__slug__get": "read",
+        "comments_get_comments_for_article_api_articles__slug__comments_get": "read"
+      },
+      "oracle": {
+        "articles_get_article_api_articles__slug__get": "200; agrees with the listed record: True",
+        "articles_list_articles_api_articles_get": "200, 20000 records, read unknown (no total confirmed (articlesCount is 0 on the empty page past the end: not compared); 20000 distinct records, an empty page at offset 20000); the same 20000 records with page size 99; without the key: 200",
+        "comments_get_comments_for_article_api_articles__slug__comments_get": "200; agrees with the listed record: True"
+      }
+    },
+    {
+      "id": "int_a9939975ec09656c",
+      "title": "FastAPI example application",
+      "on": "http_api:http://127.0.0.1:18110",
+      "status": "validated",
+      "how": "built",
+      "operations": {
+        "articles_list_articles_api_articles_get": "read",
+        "articles_get_article_api_articles__slug__get": "read",
+        "comments_get_comments_for_article_api_articles__slug__comments_get": "read",
+        "articles_get_user_feed_articles_api_articles_feed_get": "read"
+      },
+      "oracle": {
+        "articles_get_article_api_articles__slug__get": "200; agrees with the listed record: True",
+        "articles_get_user_feed_articles_api_articles_feed_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 403",
+        "articles_list_articles_api_articles_get": "200, 20000 records, read unknown (no total confirmed (articlesCount is 0 on the empty page past the end: not compared); 20000 distinct records, an empty page at offset 20000); the same 20000 records with page size 99; without the key: 200",
+        "comments_get_comments_for_article_api_articles__slug__comments_get": "200; agrees with the listed record: True"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "counts-correct-and-fast",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for conduit-api",
+      "at": "2026-10-30T10:31:06.105636+00:00"
+    },
+    {
+      "goal": "counts-correct-and-fast",
+      "status": "inconclusive",
+      "short": 0,
+      "actions": 0,
+      "note": "no discrepancy among the 1000 keys read, but the set's completeness is unknown (no total confirmed (articlesCount is 0 on the empty page past the end: not compared); 20000 distinct records, an empty page at offset 20000; the read-only query returned its limit of 1000 rows): 'none' is not concluded",
+      "at": "2026-10-30T10:31:59.471767+00:00"
+    },
+    {
+      "goal": "consistency-opp_36c63fa7826840cf",
+      "status": "inconclusive",
+      "short": 0,
+      "actions": 0,
+      "note": "no difference among the 1000 keys read, but the set's completeness is unknown (no total confirmed (articlesCount is 0 on the empty page past the end: not compared); 20000 distinct records, an empty page at offset 20000; the read-only query returned its limit of 1000 rows): 'none' is not concluded",
+      "at": "2026-10-30T10:32:27.618721+00:00"
+    },
+    {
+      "goal": "consistency-opp_7534174c50dd418a",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read articles_get_user_feed_articles_api_articles_feed_get added to the integration (open)",
+      "at": "2026-10-30T10:32:56.130554+00:00"
+    },
+    {
+      "goal": "consistency-opp_7534174c50dd418a",
+      "status": "inconclusive",
+      "short": 0,
+      "actions": 0,
+      "note": "no difference among the 0 keys read, but the set's completeness is unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0; the read-only query returned its limit of 1000 rows): 'none' is not concluded",
+      "at": "2026-10-30T10:33:42.567808+00:00"
+    },
+    {
+      "goal": "counts-correct-and-fast",
+      "status": "inconclusive",
+      "short": 0,
+      "actions": 0,
+      "note": "no discrepancy among the 1000 keys read, but the set's completeness is unknown (no total confirmed (articlesCount is 0 on the empty page past the end: not compared); 20000 distinct records, an empty page at offset 20000; the read-only query returned its limit of 1000 rows): 'none' is not concluded",
+      "at": "2026-10-30T10:34:06.168327+00:00"
+    },
+    {
+      "goal": "counts-correct-and-fast",
+      "status": "inconclusive",
+      "short": 0,
+      "actions": 0,
+      "note": "no discrepancy among the 1000 keys read, but the set's completeness is unknown (no total confirmed (articlesCount is 0 on the empty page past the end: not compared); 20000 distinct records, an empty page at offset 20000; the read-only query returned its limit of 1000 rows): 'none' is not concluded",
+      "at": "2026-10-30T11:26:11.661083+00:00"
+    }
+  ]
+}

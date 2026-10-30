@@ -1098,3 +1098,59 @@ for a concrete difficulty that justifies a comparison, with a stated limit of at
 when a case needs that evidence. No local model and no silent local fallback in this stage's runs (their mandates
 say `profile: frontier`, `local_fallback: deny`); the product's local support stays as it is. Guardian, permissions
 and egress controls are unchanged; only public projects and synthetic data are sent.
+
+## D-053 · 2026-10-30 · Performance criteria v3: the session is the unit; an index must be seen at work
+
+The stage 8 false L4 (Conduit, `commentaries.author_id`, 2.5 -> 2.0 ms) was reproduced from its samples: criteria v1
+compared one sandbox session per side with a per-sample test, so a difference between two sessions passed as an
+effect. **Decided** (committed in 92d9361 before any measurement under it): four sessions per side, alternating,
+order from a seed, each a fresh database with the same image, data and limits; the session median is the unit; an
+exact one-sided permutation test (alpha 0.05); >= 20% to improve, >= 10% slower to regress, "no relevant change" when
+the effect's 95% interval lies inside +-20%, otherwise inconclusive, blocked under two sessions per side; for an index,
+`pg_stat_user_indexes` must show it used on at least every measured call, else the speed-up is not attributed to it.
+A plan change alone is not a benefit, and no other kind of change is held to a plan change. Controls: an A/A run and
+an irrelevant index both came out "no relevant change". Re-judged: `favorites.article_id` upheld; `commentaries.
+author_id` revoked (an artifact); `commentaries.article_id` revoked at 18% with the workload of B-7 (later regressions,
+with other model-written workloads, measured it at 25% and promoted it: the verdict depends on the workload's data,
+stated as a limit). Older L4s judged by v1 (full-stack-fastapi-template, mealie) are pending revalidation.
+Revocations keep the verdict, the experiment and the reason (`unbidden/lab/revoke.py`).
+
+## D-054 · 2026-10-30 · Lab resources are owned by identity; teardown never selects by family or name
+
+The stage 8 incident (a lab's teardown removed two other labs' containers) is closed with ownership: every container,
+network and volume a lab creates carries `unbidden.lab.id=<lab>`; teardown selects by that alone; volumes are kept
+unless `--volumes`; a half-created lab and a network still in use are handled and reported. Tested with real Docker
+(two labs, foreign resources, volumes, partial failures) and live beside the running labs. A leak in that test's own
+teardown exhausted Docker's address pools after seventeen runs; fixed, and the test now fails on a leaked network.
+
+## D-055 · 2026-10-30 · Completeness from behaviour; partial reads carry only partial conclusions; proactive integrations
+
+A count is a total only if it holds across pages and equals what was read once the end was seen; a page's own length
+(Conduit's `articlesCount`) or an echo of a parameter is not; a documented count that contradicts the read makes it
+incomplete, one that changes between pages unknown; a count on an empty page past the end is not compared. An unknown
+read, or a query cut at its row limit, allows the conclusions its records carry (a discrepancy found) and withholds
+"none"/"every"; keys a limited query did not read are never taken as zero (a false "19,000 keys short" in a
+regression). Proactive runs ask their own read-only questions (an API's reported numbers against the stored data),
+acquire and extend the integration they need (purposes passed to the builder; only operations the granted kind of
+credential can call, as the document's `security` says; reads outside the credential's reach left out, not blamed
+on it; unfillable reads left out; rate limits waited out; the document's server path applied), and end questions
+that cannot be answered without a model call and without asking anyone for something that would not unblock them.
+
+## D-056 · 2026-10-30 · Reproduction before experiment, in every cycle; the CI read as it runs
+
+Every commit gets the project's own checks at its base (`observe.checks`), so a finding or an abstention rests on a
+reproduced environment, or says why not. The CI reader follows local reusable workflows and composite actions, reads
+an action's test-command input, installs the groups the test job's `uv sync` installs, skips steps that only install
+system packages, and rejects jobs that need privileges, the network or the repository's secrets while they run. The
+performance lab runs on the same test plan as the base checks. Endpoint-to-table relations also come from the named
+SQL a handler's code calls (no model); a join in a query keyed by the primary key is not a lookup by the column.
+
+## D-057 · 2026-10-30 · Stage 9: the frozen evaluation ended in four technical blocks; an experimental candidate
+
+The evaluation (`docs/bench/stage9-evaluation.md`, Spoolman v0.27.0 and Prefect 3.9.0, frozen at 466739e, selected
+by a rule written first) gave no useful improvement, no verified absence, no false promotion, and four technical
+blocks, each cause confirmed independently: a lab that demanded a CI job, a client that ignored the document's server
+path, an install that diverged from the CI's, and reads by POST. Their general causes (except reads by POST, a stated
+limit) were fixed afterwards and tested only as regressions. **Decided:** the candidate stays experimental; no second
+set of applications is taken in this stage (that would be replacing applications until one succeeds); the next stage
+pre-registers a larger set before any run. Spend: see `docs/PLAN.md` (stage 9).

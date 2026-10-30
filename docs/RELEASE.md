@@ -139,7 +139,7 @@ data and code may leave (synthetic data, public code); on real projects leave th
 - Experiments work on snapshots, never on the repository; a proposal is a local branch (or a pull request where the
   mandate allows), reverted like any commit. A deploy is rolled back with the mandate's own steps; a failed one leaves
   a hold only a person releases (`unbidden hold`).
-- A lab verdict that does not hold is revoked, not erased (`unbidden.lab.revoke`): kept with its reason.
+- A lab verdict that does not hold is revoked, not erased (`unbidden/lab/revoke.py`): kept with its reason.
 - Clean up: sandbox containers carry `unbidden.sandbox` (`docker ps -a --filter label=unbidden.sandbox`); dependency
   images are `unbidden-deps-*`; the workspace is `.unbidden/`. The benchmark labs own their resources by identity
   (`unbidden.lab.id=<lab>`): `... down` removes only that lab's containers and networks and keeps its data; `--volumes`

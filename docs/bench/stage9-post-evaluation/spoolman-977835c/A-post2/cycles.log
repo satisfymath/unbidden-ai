@@ -1,0 +1,83 @@
+== cycle 1 (exit 0)
+06:29:35 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+06:29:36 HEAD is bed3f14ee77a
+06:29:36 deploy procedure found, proposed only: docker compose -f 
+tests_frontend/docker-compose.yml up -d --wait
+06:29:36 deploy procedure found, proposed only: docker compose -f 
+tests_frontend_v2/docker-compose.yml up -d --wait
+06:29:36 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability
+06:29:36 provisioning python dependencies
+06:29:36 running ruff
+06:29:37 scan of bed3f14ee77a: 1 reports, 0 new opportunities
+06:33:37 map of bed3f14ee77a: 67 resources, 4 blind spots
+06:33:37 robustness probe at bed3f14ee77a: investigate (probe tests_integration 
+(80 public functions sampled))
+06:33:40 the project's own checks at bed3f14ee77a: passed (278 collected, 0 
+failed)
+06:33:52 goal data-correct-and-fast: waiting_capability: needs an integration 
+for spoolman-api
+06:35:04 capability need api_client for http_api:http://127.0.0.1:18130: in_use
+06:35:38 goal data-correct-and-fast: investigated: 900 of 900 keys short; 
+nothing to change
+06:35:39 opp_164ffe476e914f3d: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+06:35:39 opp_d3c065ef138643bd: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+06:35:49 opp_d3c065ef138643bd: consistency of GET /api/v1/spool/group: 
+waiting_extension: needs the read Find_spool_groups_spool_group_get added to the
+integration (open)
+06:36:55 capability need api_extension for 
+http_api:http://127.0.0.1:18130#Find_spool_groups_spool_group_get: failed
+06:36:56 opp_d3c065ef138643bd: wait (investigation queued or running)
+06:38:02 capability need api_extension for 
+http_api:http://127.0.0.1:18130#Find_spool_groups_spool_group_get: abandoned
+06:38:12 opp_d3c065ef138643bd: consistency of GET /api/v1/spool/group: 
+waiting_extension: needs the read Find_spool_groups_spool_group_get added to the
+integration (abandoned)
+06:38:12 writing property tests for tests_integration
+06:38:25 running them offline
+06:38:27 robustness probe of tests_integration: 3 passed in 1.10s; 0 crash(es), 
+0 new; 0 property violation(s) kept for a person (L1)
+06:38:29 asking the local model for the schema change (attempt 1)
+06:38:49 asking the local model for the schema change (attempt 2)
+06:39:09 writing the workload (attempt 1)
+06:39:50 measuring the base
+06:39:52 writing the workload (attempt 2)
+06:40:32 measuring the base
+06:40:33 writing the workload (attempt 3)
+06:41:21 measuring the base
+06:41:22 writing the workload (attempt 4)
+06:41:55 writing the workload (attempt 5)
+06:42:21 opp_164ffe476e914f3d: not measured (cannot measure: no workload ran at 
+the base after 5 attempts (lab.workload: no answer (EgressBlocked: payload 
+contains 1 secret(s))))
+06:42:21 opp_164ffe476e914f3d: wait (not measurable at this commit: cannot 
+measure: no workload ran at the base after 5 attempts (lab.workload: no answer 
+(EgressBlocked: payload contains 1 secret(s))))
+
+
+== cycle 2 (exit 0)
+06:42:22 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+06:42:49 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 connected
+06:43:25 goal data-correct-and-fast: inconclusive: no discrepancy among the 900 
+keys read, but the set's completeness is unknown (no total confirmed (no count 
+beside the records); 90000 distinct records, an empty page at offset 90000; the 
+read-only query returned its limit of 1000 rows): 'none' is not concluded
+
+
+== cycle 3 (exit 0)
+06:43:26 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+06:43:54 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 connected
+
+
+== cycle 4 (exit 0)
+06:43:55 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+06:44:24 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 connected
