@@ -139,15 +139,62 @@ _RUNNER_CALL = re.compile(r"\bpytest\b|-m (pytest|unittest)\b|\bgo test\b|\b(vit
 _HTTP_TESTS = re.compile(r"\b(newman|postman)\b", re.I)
 
 
+_ACTION_COMMAND = re.compile(r"^\s*(?:(?:uv|poetry|pipenv|pdm)\s+run\s+|python3?\s+-m\s+)?pytest\b")
+
+
+def _as_run(step: dict[str, Any]) -> dict[str, Any]:
+    """A step that calls an action whose inputs carry the test command (`pavelzw/pytest-action`'s `custom-pytest:
+    uv run pytest tests/unit`) is read as that command (stage 9: LNbits' tests run this way)."""
+    if isinstance(step.get("run"), str) or not step.get("uses"):
+        return step
+    command = next((str(v) for v in (step.get("with") or {}).values() if _ACTION_COMMAND.search(str(v))), None)
+    return {**step, "run": command} if command else step
+
+
+_SETUP_LINE = re.compile(
+    r"^\s*(?:sudo\s+)?(?:apt(?:-get)?\s+(?:update|install|upgrade)|brew\s+install|yum\s+install|dnf\s+install|"
+    r"apk\s+add|.*>>\s*\"?\$GITHUB_(?:PATH|ENV)\"?|.*\.sh\s+-y)\b.*$"
+)
+
+
+def _system_setup(command: str) -> bool:
+    """A step that only installs system packages for the CI's runner (`sudo apt-get install postgresql-client-18`):
+    the sandbox's image stands for it, so it is skipped like the runner's other preparation, not run and not held
+    against the job."""
+    lines = [ln for ln in command.splitlines() if ln.strip() and not ln.strip().startswith("#")]
+    return bool(lines) and all(_SETUP_LINE.match(ln) for ln in lines)
+
+
+def _reproducible(runs: list[dict[str, Any]], files: set[str] | None) -> bool:
+    """Whether a job's steps can run in the sandbox: none raises privileges (`sudo`), and none works in a directory
+    the repository does not have (one it downloads or generates while the job runs). Stage 9: LNbits' JMeter job,
+    taken for its tests, ran `sudo update-java-alternatives` and `cd lnbits-extensions`."""
+    for step in runs:
+        text = str(step["run"])
+        if re.search(r"(^|[\s;&|])sudo\s", text):
+            return False
+        if files is not None:
+            for target in re.findall(r"(?:^|[\s;&|])cd\s+([\w./-]+)", text):
+                target = target.strip("/").removeprefix("./")
+                if target in ("", ".", "..", "/work") or target.startswith(("$", "~", "/")):
+                    continue
+                if not any(f == target or f.startswith(target + "/") for f in files):
+                    return False
+    return True
+
+
 def _job_plan(
     workflow: str, job_name: str, job: dict[str, Any], language: str, tasks: dict[str, list[str]] | None = None,
-    scripts: dict[str, str] | None = None,
+    scripts: dict[str, str] | None = None, files: set[str] | None = None,
 ) -> CiPlan | None:  # fmt: skip
     defaults = ((job.get("defaults") or {}).get("run") or {}).get("working-directory", ".")
     steps: list[CiStep] = []
     services: list[str] = []
-    runs = [s for s in job.get("steps") or [] if isinstance(s, dict) and isinstance(s.get("run"), str)]
+    runs = [_as_run(s) for s in job.get("steps") or [] if isinstance(s, dict)]
+    runs = [s for s in runs if isinstance(s.get("run"), str) and not _system_setup(str(s["run"]))]
     if any(_PUBLISHES.search(_expand_tasks(str(s["run"]), tasks or {})) for s in runs):
+        return None
+    if not _reproducible(runs, files):
         return None
     for step in runs:
         if step.get("continue-on-error") is True:  # optional by the team's own account (a cache check)
@@ -178,6 +225,41 @@ def _job_plan(
                   containers=tuple(containers), env=tuple(sorted(env.items())))  # fmt: skip
 
 
+def _fill(node: Any, values: dict[str, Any]) -> Any:
+    """`${{ inputs.x }}` replaced by the caller's value; anything else left as it is."""
+    if isinstance(node, str):
+        return re.sub(r"\$\{\{\s*inputs\.([\w-]+)\s*\}\}", lambda m: str(values.get(m.group(1), m.group(0))), node)
+    if isinstance(node, list):
+        return [_fill(x, values) for x in node]
+    if isinstance(node, dict):
+        return {k: _fill(v, values) for k, v in node.items()}
+    return node
+
+
+def _called(repo: Path, rev: str, jobs: list[tuple[str, str, dict[str, Any]]]) -> list[tuple[str, str, dict[str, Any]]]:
+    """Jobs of local reusable workflows (`uses: ./.github/workflows/tests.yml` with `with:` inputs), with each
+    `${{ inputs.x }}` replaced by what the caller passes or the input's default; what stays an expression (a matrix
+    value) is left out as before."""
+    out: list[tuple[str, str, dict[str, Any]]] = []
+    for name, job_name, job in jobs:
+        uses = str(job.get("uses", ""))
+        if not uses.startswith("./.github/workflows/"):
+            continue
+        try:
+            called = yaml.safe_load(_git(repo, "show", f"{rev}:{uses.removeprefix('./')}")) or {}
+        except yaml.YAMLError:
+            continue
+        trigger = (called.get("on") or called.get(True) or {}) if isinstance(called, dict) else {}
+        declared = ((trigger.get("workflow_call") or {}).get("inputs") or {}) if isinstance(trigger, dict) else {}
+        values = {k: (v or {}).get("default") for k, v in declared.items() if isinstance(v, dict)}
+        values |= {str(k): v for k, v in (job.get("with") or {}).items()}
+
+        for inner_name, inner in (called.get("jobs") or {}).items():
+            if isinstance(inner, dict):
+                out.append((f"{name}:{job_name}", f"{inner_name} ({uses.rsplit('/', 1)[-1]})", _fill(inner, values)))
+    return out
+
+
 def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
     """The first workflow job that tests `language` code, as a plan the sandbox can run offline."""
     names = [
@@ -192,6 +274,7 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
         except yaml.YAMLError:
             continue
         jobs += [(name, str(j), job) for j, job in (workflow.get("jobs") or {}).items() if isinstance(job, dict)]
+    jobs += _called(repo, rev, jobs)
 
     # A job is judged by what its steps run, not by its name (rich tests in `pythonpackage.yml`, job `build`); jobs
     # named for tests are tried first.
@@ -207,6 +290,7 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
         )
 
     tasks = taskfile_tasks(repo, rev)
+    files = set(_git(repo, "ls-tree", "-r", "--name-only", rev).splitlines())
 
     def scripts_of(job: dict[str, Any]) -> dict[str, str]:
         """Repository scripts the job's steps run (`./scripts/test`), so a job is judged by what they execute."""
@@ -221,7 +305,7 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
         return found
 
     def executes(job: dict[str, Any]) -> str:
-        runs = " ".join(str(s.get("run", "")) for s in job.get("steps") or [] if isinstance(s, dict))
+        runs = " ".join(str(_as_run(s).get("run", "")) for s in job.get("steps") or [] if isinstance(s, dict))
         return runs + " " + " ".join(scripts_of(job).values())
 
     def runner(item: tuple[str, str, dict[str, Any]]) -> tuple[int, int]:
@@ -241,7 +325,7 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
             continue
         if language == "node" and not re.search(r"node|npm|pnpm|yarn|bun", hint):
             continue
-        plan = _job_plan(name, job_name, job, language, tasks, scripts_of(job))
+        plan = _job_plan(name, job_name, job, language, tasks, scripts_of(job), files)
         if plan is not None:
             return plan
     return None

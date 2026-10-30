@@ -78,3 +78,72 @@ def test_the_job_that_runs_the_test_runner_with_its_own_database(tmp_path: Path)
     assert "./scripts/test" in plan.argv[-1] and "newman" not in plan.argv[-1] and "uvicorn" not in plan.argv[-1]
     assert [(s.name, s.image) for s in plan.services] == [("postgres", "postgres:11.5-alpine")]
     assert plan.env["DATABASE_URL"] == "postgresql://postgres:postgres@postgres/postgres"  # localhost -> the sidecar
+
+
+CALLER = """name: ci
+on: [pull_request]
+jobs:
+  perf:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          app &
+          sleep 10
+          sudo update-java-alternatives --set /usr/lib/jvm/temurin-8
+          cd downloaded-extensions
+          make test
+  unit:
+    uses: ./.github/workflows/run-tests.yml
+    with:
+      custom-pytest: "uv run pytest tests/unit"
+      python-version: ${{ matrix.python-version }}
+"""
+CALLED = """name: run-tests
+on:
+  workflow_call:
+    inputs:
+      custom-pytest: {required: true, type: string}
+      db-name: {default: shop, type: string}
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: ${{ inputs.db-name }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+      - uses: some-org/pytest-action@v2
+        env:
+          WALLET: Fake
+        with:
+          verbose: true
+          custom-pytest: ${{ inputs.custom-pytest }}
+"""
+
+
+def test_a_reusable_workflow_and_an_action_that_wraps_pytest_are_followed(tmp_path: Path) -> None:
+    """Stage 9, LNbits: its tests run through a local reusable workflow and an action that takes the pytest command
+    as an input; the reader took a JMeter job instead (sudo, a downloaded directory) and the base checks never ran."""
+    from unbidden.observe.ci import ci_test_plan
+
+    files = {"pyproject.toml": '[project]\nname = "app"\n', "tests/unit/test_x.py": "def test_x(): ...\n",
+             ".github/workflows/ci.yml": CALLER, ".github/workflows/run-tests.yml": CALLED}  # fmt: skip
+    for path, text in files.items():
+        (tmp_path / path).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / path).write_text(text)
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    plan = ci_test_plan(tmp_path, "HEAD", "python")
+    assert plan is not None and plan.job == "tests (run-tests.yml)"
+    assert [s.command for s in plan.steps] == ["pytest tests/unit"]  # the apt-get step is the runner's setup
+    assert ("WALLET", "Fake") in plan.env
+    ((name, image, env, _),) = plan.containers
+    assert (name, image) == ("postgres", "postgres:16") and ("POSTGRES_DB", "shop") in env  # the input's default

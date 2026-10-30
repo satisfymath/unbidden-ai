@@ -1,0 +1,237 @@
+{
+  "workspace": "conduit",
+  "at": "2026-10-30T01:00:39.637104+00:00",
+  "discovered": {
+    "total": 6,
+    "by_status": {
+      "open": 4,
+      "proposed": 1,
+      "declined": 1
+    }
+  },
+  "experimenting": [],
+  "declined_because": [
+    [
+      "2 experiments found no proven fix",
+      1
+    ]
+  ],
+  "waiting_because": [
+    [
+      "blocked_incomplete: read incomplete, nothing decided: no total confirmed (articlesCount equals each page's record count: the page's length, not a total); 20000 distinct records, an empty page at offset 20000",
+      1
+    ],
+    [
+      "failed: reads: int_3d53ac02228040be has no operation articles_get_user_feed_articles_api_articles_feed_get",
+      1
+    ],
+    [
+      "not measurable at this commit: cannot measure: no workload ran at the base after 5 attempts (workload attempt 5 failed: E   TypeError: int() argument must be a string, a bytes-like object or a number, not 'NoneType')",
+      1
+    ],
+    [
+      "not measurable at this commit: cannot measure: no workload ran at the base after 5 attempts (workload attempt 5 failed: E   AssertionError: warm-up returned HTTP 204)",
+      1
+    ]
+  ],
+  "proven": [
+    {
+      "id": "opp_a4ba466ee5d5485d",
+      "title": "commentaries.article_id is a foreign key without an index, joined on by 1 endpoint(s)",
+      "level": 4,
+      "status": "proposed",
+      "level_name": "validated",
+      "outcome": null,
+      "held_checks": 0,
+      "current_rules": null,
+      "pending_revalidation": null
+    }
+  ],
+  "project_checks": {
+    "rev": "029eb7781c60d5f563ee8990a0cbfb79b244538c",
+    "at": "2026-10-30T00:13:16.587714+00:00",
+    "status": "passed",
+    "collected": 90,
+    "failed": [],
+    "command": "bash -c set -e\ncd /work\npip --version >/dev/null 2>&1 || rm -rf .venv\ncd /work\nalembic upgrade head\n./scripts/test"
+  },
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {
+    "ready": [
+      "perf: index commentaries.article_id \u00b7 GET /api/articles/{slug}/comments: session medians 23.42 -> 17.81 ms (+24% faster)"
+    ]
+  },
+  "capabilities": {
+    "needs": {
+      "in_use": 1
+    },
+    "awaiting_approval": [],
+    "in_use": [
+      {
+        "kind": "api_client",
+        "source": "http_api:http://127.0.0.1:18110"
+      }
+    ]
+  },
+  "spent": {
+    "calls": 190,
+    "usd": 2.1883,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {
+    "world \u00b7 performance \u00b7 -": {
+      "successes": 1,
+      "failures": 3,
+      "p": 0.37,
+      "prior": 0.6
+    }
+  },
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18110",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "articles_list_articles_api_articles_get",
+        "articles_get_article_api_articles__slug__get"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T01:00:38.883508+00:00"
+    },
+    {
+      "id": "postgres:127.0.0.1:55440/postgres",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.alembic_version",
+        "select public.articles",
+        "select public.articles_to_tags",
+        "select public.commentaries",
+        "select public.favorites",
+        "select public.followers_to_followings",
+        "select public.tags",
+        "select public.users"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T01:00:38.854429+00:00"
+    },
+    {
+      "id": "github:nsidnev/fastapi-realworld-example-app",
+      "kind": "github",
+      "environment": "local",
+      "state": "discovered",
+      "read": [],
+      "write": [],
+      "requested": [],
+      "effective": [],
+      "blocked": "the mandate names no GitHub repository",
+      "next_step": "set egress.github.repository to nsidnev/fastapi-realworld-example-app and grant a token reference",
+      "found_by": [
+        "git remote origin"
+      ],
+      "checked_at": null
+    }
+  ],
+  "needs_a_person": [],
+  "optional_access": [
+    {
+      "connection": "github:nsidnev/fastapi-realworld-example-app",
+      "what": "set egress.github.repository to nsidnev/fastapi-realworld-example-app and grant a token reference",
+      "enables": "reading it"
+    }
+  ],
+  "blocks": [],
+  "integrations": [
+    {
+      "id": "int_3d53ac02228040be",
+      "title": "FastAPI example application",
+      "on": "http_api:http://127.0.0.1:18110",
+      "status": "validated",
+      "how": "built",
+      "operations": {
+        "articles_list_articles_api_articles_get": "read",
+        "articles_get_article_api_articles__slug__get": "read"
+      },
+      "oracle": {
+        "articles_get_article_api_articles__slug__get": "200; agrees with the listed record: True",
+        "articles_list_articles_api_articles_get": "200, 20000 records, read unknown (no total confirmed (articlesCount equals each page's record count: the page's length, not a total); 20000 distinct records, an empty page at offset 20000); the same 20000 records with page size 99; without the key: 200"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "consistency-opp_a8438c9cb64a4337",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for conduit-api",
+      "at": "2026-10-30T00:11:17.763971+00:00"
+    },
+    {
+      "goal": "consistency-opp_24cee2f52294409d",
+      "status": "failed",
+      "short": 0,
+      "actions": 0,
+      "note": "reads: int_3d53ac02228040be has no operation articles_get_user_feed_articles_api_articles_feed_get",
+      "at": "2026-10-30T00:12:15.851524+00:00"
+    },
+    {
+      "goal": "consistency-opp_a8438c9cb64a4337",
+      "status": "blocked_incomplete",
+      "short": 0,
+      "actions": 0,
+      "note": "read incomplete, nothing decided: no total confirmed (articlesCount equals each page's record count: the page's length, not a total); 20000 distinct records, an empty page at offset 20000",
+      "at": "2026-10-30T00:12:31.525812+00:00"
+    }
+  ]
+}

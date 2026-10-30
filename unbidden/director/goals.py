@@ -282,6 +282,27 @@ async def pursue(
         return _finish(store, run, "waiting_capability", f"needs an integration for {', '.join(unbuilt)}")
     if missing:
         return _finish(store, run, "blocked", "; ".join(f"{n}: {conns[n].state.value}" for n in missing))
+    wanted = str((plan.get("api") or {}).get("operation"))
+    api_name = str((plan.get("api") or {}).get("connection"))
+    if api_name in integrations and wanted not in {o.id for o in integrations[api_name].operations}:
+        # A read the integration was not built with (stage 9: the integration built for one consistency question
+        # lacked the next one's operation): documented, it is added by extending the integration, then this resumes.
+        integration = integrations[api_name]
+        if wanted not in {d["id"] for d in integration.documented}:
+            return _finish(store, run, "blocked", f"the plan's read {wanted!r} is not in {integration.source}'s "
+                           "documentation")  # fmt: skip
+        from unbidden.forge import needs
+
+        need, _ = needs.record(
+            store, "api_extension", f"{conns[api_name].id}#{wanted}", f"goal {goal.id} needs {wanted}",
+            resume=[resume or {"type": "goal.pursue", "key": goal.id, "payload": {"goal": goal.id}}],
+            purpose=goal.statement,
+        )  # fmt: skip
+        if wanted not in need.operations:
+            need.operations = [*need.operations, wanted]
+            store.put(needs.COLLECTION, need)
+        return _finish(store, run, "waiting_extension", f"needs the read {wanted} added to the integration "
+                       f"({need.status.value})")  # fmt: skip
     try:
         rows, partial = _read(store, mandate, plan, conns, integrations, run)
     except Incomplete as exc:
@@ -395,12 +416,16 @@ def _read(
     run.reads.append({"connection": conn.id, "operation": op.id, **read.summary(), "deviations": degraded.log[:20]})
     db_whole = len(left) < 1000
     run.reads[0]["completeness"] = "complete" if db_whole else "incomplete"
-    if read.completeness.value == "incomplete" or not db_whole:
+    if read.completeness.value == "incomplete":
         # A decision over a known-partial set would be about the part read as if it were the whole: not taken.
-        raise Incomplete(read.why if read.completeness.value != "complete" else "the query reached its row limit")
-    # Unknown completeness (stage 9): every record read is real, so a discrepancy found in it is real; what it cannot
-    # carry is a claim about the whole set ("none", "every"). The caller limits its conclusions to that.
-    partial = None if read.completeness.value == "complete" else read.why
+        raise Incomplete(read.why)
+    # Unknown completeness, or a query that reached its row limit (stage 9): every record compared is real, so a
+    # discrepancy found in it is real; what it cannot carry is a claim about the whole set ("none", "every"). The
+    # caller limits its conclusions to that.
+    reasons = [] if read.completeness.value == "complete" else [read.why]
+    if not db_whole:
+        reasons.append(f"the read-only query returned its limit of {len(left)} rows")
+    partial = "; ".join(reasons) or None
     by_key = {r.get(key): r for r in right}
     if not left or key not in left[0]:
         raise KeyError(f"the query's rows have no field {key!r}")
