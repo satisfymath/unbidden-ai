@@ -546,9 +546,18 @@ def _entries(job: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
         resolved = _entry_job(job, entry)
         images = [str((s or {}).get("image", "")) for s in (resolved.get("services") or {}).values()]
         complete = bool(images) and all(i and "${{" not in i for i in images)
-        out.append((0 if complete else 1, _label(entry), resolved))
-    out.sort(key=lambda x: x[0])
-    return [(label, resolved) for _, label, resolved in out]
+        # An entry whose values name the engine of one of the job's service containers runs the suite on that
+        # engine, the one the lab measures on (mealie, stage 10: `DB_ENGINE: ${{ matrix.Database }}` over sqlite and
+        # postgres, both with a postgres service; the sqlite entry came first and seeded a database nobody read).
+        engines = {e for i in images for e in _ENGINES if e in i.lower()}
+        values = " ".join(str(v) for v in entry.values()).lower()
+        on_service = any(e in values for e in engines) if engines else False
+        out.append((0 if complete else 1, 0 if on_service else 1, _label(entry), resolved))
+    out.sort(key=lambda x: (x[0], x[1]))
+    return [(label, resolved) for _, _, label, resolved in out]
+
+
+_ENGINES = ("postgres", "mysql", "mariadb", "mongo", "redis")
 
 
 _TOKEN = re.compile(

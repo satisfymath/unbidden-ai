@@ -228,3 +228,27 @@ def test_the_jobs_environment_reaches_the_run_without_service_containers(tmp_pat
     repo = _repo(tmp_path, jobs)
     plan = test_plan(repo, "HEAD", detect_stack(repo), "python")
     assert plan is not None and plan.env.get("OPENAI_API_KEY") == "test_key"
+
+
+def test_the_matrix_entry_on_the_jobs_own_database_service_comes_first(tmp_path: Path) -> None:
+    # mealie, stage 10: `DB_ENGINE: ${{ matrix.Database }}` over [sqlite, postgres] with a postgres service: the
+    # sqlite entry was taken, so the workload seeded SQLite while the lab read the Postgres sidecar (0 rows).
+    jobs = """  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: m
+        ports: ["5432:5432"]
+    strategy:
+      matrix:
+        Database: [sqlite, postgres]
+    steps:
+      - run: pytest tests
+        env:
+          DB_ENGINE: ${{ matrix.Database }}
+"""
+    plan = ci_test_plan(_repo(tmp_path, jobs), "HEAD", "python")
+    assert plan is not None
+    assert dict(plan.env)["DB_ENGINE"] == "postgres" and "Database=postgres" in plan.scope
