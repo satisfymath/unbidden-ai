@@ -318,6 +318,67 @@ def serial(argv: tuple[str, ...]) -> tuple[str, ...]:
     )
 
 
+_PYTEST_LINE = re.compile(r"(^|[\s(;&|])pytest\b")
+_TAKES_VALUE = {"-k", "-m", "-p", "-c", "-o", "-W", "-n", "--maxfail", "--timeout", "--timeout-method", "--durations",
+                "--junitxml", "--junit-xml", "--rootdir", "--confcutdir", "--basetemp", "--numprocesses", "--dist",
+                "--cov", "--cov-report", "--cov-config", "--deselect", "--ignore", "--import-mode", "--tb"}  # fmt: skip
+
+
+def pytest_targets(argv: tuple[str, ...]) -> list[str]:
+    """The paths the plan's pytest names (directories or files), in order; empty when it names none (codex-lb,
+    stage 10: `pytest ... tests/unit tests/test_request_logs_options_api.py`; a driver outside them is never
+    collected, and `-k` then matches nothing)."""
+    found: list[str] = []
+    for arg in argv:
+        for line in arg.splitlines():
+            if not _PYTEST_LINE.search(line):
+                continue
+            tokens = line.strip().strip("()").split()
+            after = tokens[tokens.index(next(t for t in tokens if t == "pytest" or t.endswith("/pytest"))) + 1 :]
+            skip = False
+            for token in after:
+                if skip:
+                    skip = False
+                    continue
+                if token.startswith("-"):
+                    skip = token in _TAKES_VALUE and "=" not in token
+                    continue
+                if token in ("&&", "||", "|", ";"):
+                    break
+                found.append(token.rstrip(")"))
+    return found
+
+
+def driver_dir(argv: tuple[str, ...], test_dir: str, exists: Callable[[str], bool]) -> str:
+    """Where the measurement driver goes: the first directory the plan's pytest names, so the suite's conftests apply
+    and the file is collected; else the directory of its first named file; else `test_dir`."""
+    for target in pytest_targets(argv):
+        clean = target.removeprefix("./").rstrip("/")
+        if exists(clean) and not clean.endswith(".py"):
+            return clean
+    for target in pytest_targets(argv):
+        clean = target.removeprefix("./")
+        if clean.endswith(".py") and "/" in clean:
+            return clean.rsplit("/", 1)[0]
+    return test_dir
+
+
+def with_driver(argv: tuple[str, ...], driver_path: str) -> tuple[str, ...]:
+    """The plan's command with the driver's path named on every pytest line that names targets: collected whatever
+    the targets are; a line that names none collects the tree and needs nothing."""
+    out = []
+    for arg in argv:
+        lines = []
+        for line in arg.splitlines():
+            if _PYTEST_LINE.search(line) and pytest_targets((line,)):
+                stripped = line.rstrip()
+                subshell = stripped.lstrip().startswith("(") and stripped.endswith(")")  # a make recipe line
+                line = (stripped[:-1] + f" {driver_path})") if subshell else f"{stripped} {driver_path}"
+            lines.append(line)
+        out.append("\n".join(lines))
+    return tuple(out)
+
+
 def failure_excerpt(output: str, limit: int = 2500) -> str:
     """The lines that say what went wrong (pytest's `E` lines, tracebacks' last frames), not the noise around."""
     lines = output.splitlines()
@@ -1012,7 +1073,8 @@ class PerfLab:
             driver = DRIVER
             if self.marker is not None:
                 driver = async_driver(files.get(f"{LAB_DIR}/workload.py", ""), self.marker) or DRIVER
-            for path, content in {**files, f"{test_dir}/{DRIVER_TEST}.py": driver}.items():
+            driver_path = f"{test_dir}/{DRIVER_TEST}.py"
+            for path, content in {**files, driver_path: driver}.items():
                 target = work / path
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text(content)
@@ -1025,7 +1087,7 @@ class PerfLab:
             with data_services(list(plan.services), statements=True) as sidecars:
                 spec = sandbox_spec(
                     image,
-                    list(serial(plan.argv)),
+                    list(with_driver(serial(plan.argv), driver_path)),
                     public_env=env,
                     timeout_s=900,
                     network=sidecars.network if sidecars else "none",
@@ -1559,6 +1621,9 @@ class PerfLab:
             ready("checks_reproduced", False, "not recorded at this commit (the lab's own test runs decide)")
         cwd = ci.steps[-1].cwd if ci is not None and ci.steps else "."
         test_dir = self.stack.python.test_paths[0] if self.stack.python and self.stack.python.test_paths else "tests"
+        tracked = set(_git(self.repo, "ls-tree", "-r", "--name-only", rev).splitlines())
+        dirs = {str(Path(f).parent) for f in tracked}
+        test_dir = driver_dir(plan.argv, test_dir, lambda p: p in dirs or p in tracked)
         inv = inventory(self.repo, rev, [test_dir])
         mode = inv.mode
         if mode is None:

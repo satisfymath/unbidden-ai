@@ -301,3 +301,26 @@ def test_the_rule_written_index_edits_a_declaration_that_spans_lines() -> None:
         )
         is None
     )  # already indexed: not a guess, nothing to do
+
+
+def test_the_driver_goes_where_the_plans_pytest_collects_and_is_named_on_its_line() -> None:
+    # codex-lb, stage 10: `pytest -q ... tests/unit tests/test_request_logs_options_api.py`; the driver written to
+    # tests/ was never collected ("6422 deselected", five attempts).
+    from unbidden.lab.perf import driver_dir, pytest_targets, with_driver
+
+    script = (
+        "set -e\ncd /work\n"
+        "(PYTHONFAULTHANDLER=1 pytest -q -ra -o faulthandler_timeout=300 --timeout=180 --timeout-method=thread "
+        "--durations=20 tests/unit tests/test_request_logs_options_api.py)"
+    )
+    argv = ("bash", "-c", script)
+    assert pytest_targets(argv) == ["tests/unit", "tests/test_request_logs_options_api.py"]
+    exists = {"tests/unit", "tests/test_request_logs_options_api.py"}.__contains__
+    assert driver_dir(argv, "tests", exists) == "tests/unit"
+    named = with_driver(argv, "tests/unit/test_unbidden_workload.py")[2]
+    assert named.endswith("tests/test_request_logs_options_api.py tests/unit/test_unbidden_workload.py)")
+    plain = ("bash", "-c", "set -e\ncd /work\npytest -n auto --dist loadfile -x")
+    assert pytest_targets(plain) == [] and driver_dir(plain, "tests", exists) == "tests"
+    assert with_driver(plain, "tests/x.py") == plain  # no targets: the tree is collected
+    files_only = ("bash", "-c", "pytest tests/api/test_a.py -k slow")
+    assert driver_dir(files_only, "tests", lambda p: p == "tests/api/test_a.py") == "tests/api"
