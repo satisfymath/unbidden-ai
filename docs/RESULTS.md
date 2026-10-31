@@ -52,8 +52,11 @@ a database application: US$0.06-1.1 and 2-20 minutes per mode (Prefect up to 6 h
 
 ## Failures and limits (open)
 
-Workload construction depends on the model where the project's resources are not reused (mealie); API reads at
-their bounds (codex-lb's request logs at 100,000); host load; discovery limited to foreign keys; no Linux walk.
+Workload construction depends on the model where the project's resources are not reused (C3); API reads at their
+bounds (codex-lb's request logs at 100,000); discovery limited to foreign keys; no Linux walk. Promotions judged
+before the content comparison of dec7ba2: fst revalidated under it (holds); Conduit's L4 of `stage10-regression/
+v4-3b5b99d` (judged by response digests) is pending revalidation under it and is reported with that validity until
+then; mealie's L4 unconfirmed.
 
 ## Candidate commit, integration and rollback
 
