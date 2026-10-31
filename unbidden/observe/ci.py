@@ -90,13 +90,18 @@ def _git(repo: Path, *args: str) -> str:
     return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, check=False).stdout
 
 
+# A report path of the CI's own: on pytest's command line it wins over the lab's (PYTEST_ADDOPTS), and the lab's
+# report, which names each failure, is never written (rag-api, stage 10: `--junitxml=test-results-unit.xml`).
+_OWN_REPORT = re.compile(r"\s--junit-?xml(?:=|\s+)\S+")
+
+
 def _clean(command: str) -> str | None:
     kept: list[str] = []
     for line in _EXPR.sub("", re.sub(r"\\\n\s*", " ", command)).splitlines():
         line = line.strip()
         if not line or line.startswith("#") or _SKIP.search(line):
             continue
-        kept.append(_RUNNERS.sub(r"\g<open>", line))  # a make recipe line keeps its subshell
+        kept.append(_OWN_REPORT.sub("", _RUNNERS.sub(r"\g<open>", line)))  # a make recipe line keeps its subshell
     return "\n".join(kept) or None
 
 

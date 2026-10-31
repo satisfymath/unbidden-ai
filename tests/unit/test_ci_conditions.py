@@ -176,7 +176,11 @@ def _rag_like(tmp_path: Path, steps: str) -> Path:
 def test_the_jobs_test_requirements_are_found_and_container_runtime_tests_left_out(tmp_path: Path) -> None:
     # rag-api, stage 10: test_requirements.txt (testcontainers) was not installed, and its integration step starts a
     # pgvector container; the sandbox has no container runtime and never gets the host's Docker socket.
-    repo = _rag_like(tmp_path, "      - run: pytest --maxfail=1\n      - run: pytest -m integration --maxfail=3\n")
+    repo = _rag_like(
+        tmp_path,
+        "      - run: pytest --maxfail=1 --junitxml=test-results-unit.xml\n"
+        "      - run: pytest -m integration --maxfail=3\n",
+    )
     plan = ci_test_plan(repo, "HEAD", "python")
     assert plan is not None
     assert plan.requirement_files == ("requirements.txt", "test_requirements.txt")
