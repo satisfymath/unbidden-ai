@@ -1104,12 +1104,25 @@ def tool_scope(
         return None
     files = set(tracked)
     dirs = {str(d) for f in files for d in PurePosixPath(f).parents if str(d) != "."}
+    scope: list[str] = []
+    if "pre-commit" in commands:
+        # A hook runs the tool on the files its `files` pattern matches, minus `exclude` (pre-commit's own
+        # re.search on each path), written "re:..." and "!re:..." (Prefect, stage 10: mypy runs on four directories).
+        config = read(".pre-commit-config.yaml") or ""
+        hooks = _hooks_of(config, tool)
+        if hooks is not None:
+            commands = commands.replace(config.lower()[:20000], "")  # the hooks are read here, not as commands
+            for hook in hooks:
+                if not hook.get("files"):
+                    return None  # this hook runs on every file
+                scope.append(f"re:{_pattern(hook['files'])}")
+                if hook.get("exclude"):
+                    scope.append(f"!re:{_pattern(hook['exclude'])}")
 
     def exists(path: str) -> bool:
         return path in files or path in dirs
 
     runs = [inv for inv in tool_invocations(commands, tool) if inv.checks_files]
-    scope: list[str] = []
     for inv in runs:
         base = inv.cwd.strip("./")
         named = [str(PurePosixPath(base) / p).strip("/") if base else p.strip("/") for p in inv.paths]
@@ -1129,6 +1142,27 @@ def tool_scope(
             return None
         scope += paths
     return tuple(sorted(set(scope))) or None
+
+
+def _hooks_of(config: str, tool: str) -> list[dict[str, Any]] | None:
+    """The pre-commit hooks that run `tool`, or None when the config has none (or cannot be read)."""
+    try:
+        loaded = yaml.safe_load(config) or {}
+    except yaml.YAMLError:
+        return None
+    hooks = [
+        h
+        for r in loaded.get("repos") or []
+        if isinstance(r, dict)
+        for h in r.get("hooks") or []
+        if isinstance(h, dict) and (h.get("id") == tool or str(h.get("entry", "")).split()[:1] == [tool])
+    ]
+    return hooks or None
+
+
+def _pattern(value: object) -> str:
+    """A pre-commit pattern as Python reads it; `(?x)` verbose patterns keep their flag."""
+    return str(value).strip()
 
 
 def _config_scope(read: Callable[[str], str | None], inv: Invocation, tool: str) -> list[str]:

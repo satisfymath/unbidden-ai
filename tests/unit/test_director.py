@@ -390,3 +390,30 @@ def test_a_tools_ci_scope_is_its_named_paths_or_its_configs_include_and_never_wo
     assert tool_scope(configs.get, tracked, "mypy src/pkg benches", "mypy") == ("benches", "src/pkg")
     assert tool_scope(configs.get, tracked, "mypy .", "mypy") is None  # the whole tree
     assert tool_scope(configs.get, tracked, "pytest", "pyright") is None  # not run at all
+
+
+def test_a_pre_commit_hooks_files_pattern_is_the_tools_scope(mandate: Mandate) -> None:
+    # Prefect, stage 10: mypy runs through pre-commit on four directories (`files:` a verbose pattern); three mypy
+    # fixes in src/prefect/_internal/ and utilities/ reached L4 outside it.
+    from unbidden.observe.ci import tool_scope
+
+    config = (
+        "repos:\n  - repo: https://github.com/pre-commit/mirrors-mypy\n    hooks:\n      - id: mypy\n"
+        "        files: |\n          (?x)^(\n            src/pkg/server/.*|\n"
+        "            src/pkg/events/.*\n          )$\n"
+    )
+    commands = "uv run pre-commit run --all-files\n" + config.lower()
+    scope = tool_scope({".pre-commit-config.yaml": config}.get, ["src/pkg/server/a.py"], commands, "mypy")
+    assert scope is not None and scope[0].startswith("re:")
+
+    def found(path: str) -> Opportunity:
+        return Opportunity(
+            source="mypy", category="types", title=f"mypy errors in {path}", summary="s", dedup_key=f"mypy:{path}",
+            evidence=[EvidenceRef(kind="file", locator=path)], details={"tool": "mypy", "paths": [path]},
+        )  # fmt: skip
+
+    ctx = Context(open_pull_requests=0, attempts=0, ci_commands=commands, tool_scopes={"mypy": scope})
+    assert decide(found("src/pkg/_internal/x.py"), mandate, ctx).chosen is ActionKind.DECLINE
+    assert decide(found("src/pkg/server/models.py"), mandate, ctx).chosen is not ActionKind.DECLINE
+    every = "repos:\n  - repo: r\n    hooks:\n      - id: mypy\n"
+    assert tool_scope({".pre-commit-config.yaml": every}.get, [], "pre-commit run\n" + every, "mypy") is None

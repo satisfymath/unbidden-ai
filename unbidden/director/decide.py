@@ -8,6 +8,7 @@ risk       what a person would have to undo if it went wrong
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -120,6 +121,11 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
     paths = [str(p) for p in opp.details.get("paths") or []]
 
     def under(path: str, d: str) -> bool:
+        if d.startswith("re:"):  # a pre-commit hook's pattern, as pre-commit applies it
+            try:
+                return re.search(d[3:], path) is not None
+            except re.error:
+                return True  # a pattern Python cannot read excludes nothing
         return path == d or path.startswith(f"{d}/")
 
     held = [d for d in scope or () if not d.startswith("!")]
@@ -130,7 +136,7 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
             1.0,
             0.0,
             0.0,
-            f"the team's CI checks {tool} only in {', '.join(held)}"
+            f"the team's CI checks {tool} only in {', '.join(h if len(h) < 60 else h[:57] + '...' for h in held)}"
             + (f", except {', '.join(exempt[:4])}{' ...' if len(exempt) > 4 else ''}" if exempt else "")
             + ": these findings are outside what it holds to",
         )
