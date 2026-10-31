@@ -15,6 +15,7 @@ from unbidden.observe.ci import (  # pyright: ignore[reportPrivateUsage]
     _entries,
     _install_script,
     ci_test_plan,
+    script_kind,
     tox_environments,
 )
 from unbidden.observe.stack import detect_stack
@@ -240,3 +241,64 @@ def test_the_packages_the_job_installs_with_apt_go_into_the_image(tmp_path: Path
     bare = PythonStack(version="3.12", lockfile=None, manifest="pyproject.toml", ruff=False, pyright=False, pytest=True)
     assert "apt-get" not in python_dockerfile(bare)
     assert "apt-get install -y --no-install-recommends gettext &&" in python_dockerfile(bare, headers=("gettext",))
+
+
+def test_sudo_on_the_repository_still_makes_the_job_irreproducible(tmp_path: Path) -> None:
+    """lnbits' regtest job: `sudo chmod -R a+rwx .` (run 2 took it for the test job once sudo lines were relaxed)."""
+    repo = _repo(tmp_path, {
+        "pyproject.toml": '[project]\nname = "lnbits"\nrequires-python = ">=3.10"\n',
+        "tests/test_a.py": "def test_a(): ...\n",
+        ".github/workflows/regtest.yml": WORKFLOW + """  regtest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          sudo chmod -R a+rwx .
+          docker compose up -d
+      - run: pytest tests/regtest
+""",
+    })  # fmt: skip
+    assert ci_test_plan(repo, "HEAD", "python") is None
+
+
+def test_scripts_that_only_check_or_build_are_left_out_and_a_benchmark_job_comes_last(tmp_path: Path) -> None:
+    """starlette and httpx: `scripts/check` lints, `scripts/build` builds the package and docs (no network offline),
+    `scripts/test` runs the suite; starlette's benchmark job was taken before its test job."""
+    check = (
+        'export PREFIX=""\nexport SOURCE_FILES="httpx tests"\nset -x\n./scripts/sync-version\n'
+        "${PREFIX}ruff format $SOURCE_FILES --diff\n${PREFIX}mypy $SOURCE_FILES\n"
+    )
+    scripts = {"scripts/check": check, "scripts/sync-version": "#!/bin/sh\nVERSION=1\nsed -i s/x/y/ a.py\n"}
+    assert script_kind(check, scripts) is None  # sync-version edits a file: not only a check
+    scripts["scripts/sync-version"] = "#!/bin/sh\nruff check --select I .\n"
+    assert script_kind(check, scripts) == ("checks", [])
+    assert script_kind("set -ex\nuv build\nmkdocs build\n") == ("builds", [])
+    assert script_kind("set -ex\nuv run coverage run -m pytest $@\n") is None
+    repo = _repo(tmp_path, {
+        "pyproject.toml": '[project]\nname = "starlette"\nrequires-python = ">=3.10"\n',
+        "scripts/install": "#!/bin/sh\nuv sync --frozen\n",
+        "scripts/check": "#!/bin/sh\nset -ex\nuv run ruff check .\nuv run mypy .\n",
+        "scripts/build": "#!/bin/sh\nset -ex\nuv build\nuv run mkdocs build\n",
+        "scripts/test": "#!/bin/sh\nset -ex\nuv run coverage run -m pytest $@\n",
+        "tests/test_a.py": "def test_a(): ...\n",
+        ".github/workflows/benchmark.yml": WORKFLOW + """  benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pytest benchmarks/ --codspeed
+""",
+        ".github/workflows/main.yml": WORKFLOW + """  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/install
+      - run: scripts/check
+      - run: scripts/build
+      - run: scripts/test
+""",
+    })  # fmt: skip
+    plan = ci_test_plan(repo, "HEAD", "python")
+    assert plan is not None and plan.workflow == "main.yml", plan
+    assert [s.command for s in plan.steps] == ["scripts/test"]
+    assert any("scripts/check only checks" in n for n in plan.notes)
+    assert any("scripts/build only builds" in n for n in plan.notes)

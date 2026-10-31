@@ -221,7 +221,9 @@ def _round(
     elif not names and not result.ok:
         names = [SUITE]
     status = NOT_COLLECTED if collected == 0 else RAN
-    return Round(sorted(names), status, collected)
+    # What the run printed last, kept when something failed: the record then says why (stage 10, level A:
+    # TimeTracker's `pytest::internal` and CTFd's 50 failures were names without a cause).
+    return Round(sorted(names), status, collected, _ended(result) if names else None)
 
 
 def _ended(result: SandboxResult) -> str:

@@ -78,8 +78,9 @@ class CiPlan:
 
     def script(self) -> str:
         # Steps write to the runner's files (`>> "$GITHUB_OUTPUT"`); here they are scratch files, read by nothing.
-        lines = ["set -e", "export GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env "
-                 "GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path"]  # fmt: skip
+        lines = ["set -e", "export GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output "
+                 "GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary "
+                 "GITHUB_PATH=/tmp/github_path"]  # fmt: skip
         for step in self.steps:
             target = "/work" if step.cwd in ("", ".") else f"/work/{step.cwd}"
             lines.append(f"cd {target}")
@@ -355,7 +356,9 @@ def _parses(command: str) -> bool:
 
 
 # Jobs that need more than the repository: a browser, a deployed system, another operating system.
-_NEEDS_MORE = re.compile(r"e2e|browser|playwright|cypress|integration|smoke|deploy|release|\bwin|windows|macos")
+_NEEDS_MORE = re.compile(
+    r"e2e|browser|playwright|cypress|integration|smoke|deploy|release|\bwin|windows|macos|bench"
+)  # a benchmark job times, it does not check (starlette, humanize: taken before the test job, stage 10)
 
 
 _RUNNER_CALL = re.compile(r"\bpytest\b|-m (pytest|unittest)\b|\bgo test\b|\b(vitest|jest|mocha)\b")
@@ -473,7 +476,8 @@ def _system_setup(command: str) -> bool:
 
 
 _RUNNER_PREP = re.compile(
-    r"^\s*sudo\s+(?:rm|chmod|chown|mkdir|ln|cp|mv|touch|tee|sed|systemctl|service)\b[^\n]*(?:\s/(?:etc|usr|opt|var|root)/|$)"
+    r"^\s*sudo\s+(?:rm|chmod|chown|mkdir|ln|cp|mv|touch|tee|sed)\b[^\n]*\s/(?:etc|usr|opt|var|root|dev|sys)/"
+    r"|^\s*sudo\s+(?:systemctl|service)\b"
 )
 _SUDO_INSTALL = re.compile(
     r"^(?P<indent>\s*)sudo\s+(?=(?:yarn|npm|pnpm|bun)\s+(?:install|ci)\b|(?:python3?\s+-m\s+)?pip3?\s+install\b)"
@@ -503,26 +507,60 @@ _INSTALL_CALL = re.compile(
 )
 
 
-def _install_script(text: str) -> list[str] | None:
+_BUILD_CALL = re.compile(
+    r"^\s*(?:\$\{?PREFIX\}?)?(?:python3?\s+-m\s+build|uv\s+build|hatch\s+build|flit\s+build|pdm\s+build|mkdocs\s+build"
+    r"|sphinx-build|twine\s+check)\b"
+)
+_PREFIXED = re.compile(r"^\s*\$\{?PREFIX\}?")  # `${PREFIX}ruff check` (httpx, starlette: a venv's bin when present)
+
+
+def _install_script(text: str, scripts: dict[str, str] | None = None) -> list[str] | None:
     """The requirement files a repository script installs, when installing is all it does (stage 10, httpx:
     `scripts/install` runs `pip install -r requirements.txt`, which has no network in the sandbox; the dependency
     image stands for it, as for a `pip install` step). None when the script runs anything else."""
+    kind = script_kind(text, scripts)
+    return kind[1] if kind is not None and "installs" in kind[0] else None
+
+
+def script_kind(text: str, scripts: dict[str, str] | None = None, depth: int = 0) -> tuple[str, list[str]] | None:
+    """What a repository script does when it only installs, checks (lint, types, format) or builds the package or
+    docs: ("installs", requirement files), ("checks", []), ("builds", []) or a combination; None when it runs
+    anything else (tests, the application). The CI's own run of a check or a build is not the project's checks,
+    and offline the build cannot fetch its backend (httpx, starlette: `scripts/check`, `scripts/build`)."""
     values: dict[str, str] = {}
     found: list[str] = []
+    kinds: list[str] = []
     for raw in text.splitlines():
-        line = raw.strip()
+        line = _RUNNERS.sub(lambda m: m.group("open"), raw.strip())  # `uv run mkdocs build`
         if not line or line.startswith("#"):
             continue
-        for m in re.finditer(r"\b([A-Z_]+)=\"?([\w./-]+)\"?", line):
+        for m in re.finditer(r"\b([A-Z_]+)=\"?([\w./ -]+?)\"?(?:\s|$)", line):
             values[m.group(1)] = m.group(2)
         if _INSTALL_CALL.match(line):
             resolved = re.sub(r"\"?\$\{?([A-Z_]+)\}?\"?", lambda m: values.get(m.group(1), m.group(0)), line)
             found += [m.group("file") for m in _REQUIREMENTS.finditer(resolved)]
+            kinds.append("installs")
+            continue
+        if _RUNNER_CALL.search(line):
+            return None
+        if _BUILD_CALL.match(line):
+            kinds.append("builds")
+            continue
+        if _CHECK_RUN.search(_PREFIXED.sub("", line)) and not _SHELL_SCAFFOLD.match(line):
+            kinds.append("checks")
             continue
         if _SHELL_SCAFFOLD.match(line):
             continue
+        head = line.split(" ")[0]
+        nested = (scripts or {}).get(head) or (scripts or {}).get(head.removeprefix("./")) if depth < 2 else None
+        if nested is not None and (inner := script_kind(nested, scripts, depth + 1)) is not None:
+            kinds += inner[0].split(" and ")
+            found += inner[1]
+            continue
         return None
-    return found
+    if not kinds:
+        return None
+    return " and ".join(dict.fromkeys(kinds)), found
 
 
 def _reproducible(runs: list[dict[str, Any]], files: set[str] | None) -> bool:
@@ -594,10 +632,11 @@ def _job_plan(
             kept_lines = []
             for line in str(step["run"]).splitlines():
                 head = _RUNNERS.sub("", line.strip()).split(" ")[0]
-                installs = _install_script(scripts[head]) if head in scripts else None
-                if installs is not None:
-                    requirement_files += [r for r in installs if files is None or r in files]
-                    notes.append(f"left out, {head} only installs (the dependency image stands for it)")
+                kind = script_kind(scripts[head], scripts) if head in scripts else None
+                if kind is not None:
+                    requirement_files += [r for r in kind[1] if files is None or r in files]
+                    stands = " (the dependency image stands for it)" if "installs" in kind[0] else ""
+                    notes.append(f"left out, {head} only {kind[0]}{stands}")
                     continue
                 kept_lines.append(line)
             step["run"] = "\n".join(kept_lines)
