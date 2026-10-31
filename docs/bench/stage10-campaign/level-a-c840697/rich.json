@@ -1,0 +1,52 @@
+{
+ "repo": "/Users/david/rich",
+ "rev": "9d8f9a372cc5916fd4781fec207ced7ddac2f08f",
+ "stack": {
+  "python": "3.9",
+  "why": [
+   "python 3.9: from the CI's python-version (the oldest in its matrix)",
+   "pyproject tool.poetry python: >=3.9.0",
+   "poetry.lock metadata python-versions: >=3.8.0",
+   "the CI's python-version: 3.9, 3.10, 3.11, 3.12, 3.13, 3.14"
+  ],
+  "manifest": "poetry.lock",
+  "lockfile": "poetry.lock",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:ca02ef9a36b372a1",
+ "plan": {
+  "source": "CI pythonpackage.yml > build",
+  "scope": "matrix entry 1 of 17 (os=windows-latest, python-version=3.9)",
+  "partial": true,
+  "notes": [],
+  "services": [],
+  "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest tests -v --cov=./rich --cov-report=xml:./coverage.xml --cov-report term-missing"
+ },
+ "status": "passed",
+ "collected": 981,
+ "failed": [],
+ "why": null,
+ "wall_s": 19.9,
+ "image_notes": [
+  "python 3.9: from the CI's python-version (the oldest in its matrix)",
+  "pyproject tool.poetry python: >=3.9.0",
+  "poetry.lock metadata python-versions: >=3.8.0",
+  "the CI's python-version: 3.9, 3.10, 3.11, 3.12, 3.13, 3.14",
+  "image unbidden-deps-python:ca02ef9a36b372a1 on linux/arm64",
+  "the environment is seeded with pip and setuptools as of 2025-10-09T09:43:13+01:00 (the lockfile's era), as virtualenvs on Python 3.9 were"
+ ],
+ "python": "3.9",
+ "source": "CI pythonpackage.yml > build",
+ "scope": "matrix entry 1 of 17 (os=windows-latest, python-version=3.9)",
+ "partial": true,
+ "notes": [],
+ "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest tests -v --cov=./rich --cov-report=xml:./coverage.xml --cov-report term-missing"
+}

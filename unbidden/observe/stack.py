@@ -359,7 +359,7 @@ def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str]
                 requirements=poetry_requirements(_read(repo, rev, "poetry.lock")),
                 own=own_package(project),
             )
-    if "pyproject.toml" in files:
+    if "pyproject.toml" in files and _declares_project(tomllib.loads(_read(repo, rev, "pyproject.toml")), files):
         project = tomllib.loads(_read(repo, rev, "pyproject.toml"))
         members = _workspace_members(repo, rev, project, files)
         texts = [json.dumps(project)] + [
@@ -419,6 +419,16 @@ def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str]
             requirements=requirements,
         )
     return None
+
+
+def _declares_project(project: dict[str, Any], files: set[str]) -> bool:
+    """Whether a pyproject.toml is the project's manifest, or only its tools' configuration (TimeTracker, stage 10:
+    `[tool.black]` and friends, the dependencies in requirements.txt, which its CI installs). A file that declares
+    nothing to install, next to a requirements.txt, is not the manifest."""
+    declares = {"project", "dependency-groups", "build-system"} & project.keys() or {"poetry", "uv", "pdm"} & (
+        project.get("tool") or {}
+    ).keys()
+    return bool(declares) or "requirements.txt" not in files
 
 
 def ci_requirement_files(repo: Path, rev: str, files: set[str], manifest: str) -> tuple[str, ...]:

@@ -1,0 +1,53 @@
+{
+ "repo": "/Users/david/httpx",
+ "rev": "b5addb64f0161ff6bfe94c124ef76f6a1fba5254",
+ "stack": {
+  "python": "3.9",
+  "why": [
+   "python 3.9: from the CI's python-version (the oldest in its matrix)",
+   "pyproject requires-python: >=3.9",
+   "the CI's python-version: 3.9, 3.10, 3.11, 3.12, 3.13"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": null,
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": [
+   "pyproject.toml without uv.lock: dependencies resolved at provisioning time"
+  ]
+ },
+ "image": "unbidden-deps-python:3a249e1277e3e43e",
+ "plan": {
+  "source": "CI test-suite.yml > tests",
+  "scope": "matrix entry 1 of 5 (python-version=3.9)",
+  "partial": true,
+  "notes": [],
+  "services": [],
+  "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nscripts/install\ncd /work\nscripts/check\ncd /work\nscripts/build\ncd /work\nscripts/test\ncd /work\nscripts/coverage"
+ },
+ "status": "infra_failed",
+ "collected": null,
+ "failed": [
+  "<suite>"
+ ],
+ "why": "exit 1: ish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/hatchling/\n      ERROR: Could not find a version that satisfies the requirement hatchling (from versions: none)\n      ERROR: No matching distribution found for hatchling\n      [end of output]\n  \n  note: This error originates from a subprocess, and is likely not a problem with pip.\nerror: subprocess-exited-with-error\n\n\u00d7 pip subprocess to install build dependencies did not run successfully.\n\u2502 exit code: 1\n\u2570\u2500> See above for output.\n\nnote: This error originates from a subprocess, and is likely not a problem with pip.",
+ "wall_s": 38.0,
+ "image_notes": [
+  "python 3.9: from the CI's python-version (the oldest in its matrix)",
+  "pyproject requires-python: >=3.9",
+  "the CI's python-version: 3.9, 3.10, 3.11, 3.12, 3.13",
+  "image unbidden-deps-python:3a249e1277e3e43e on linux/arm64"
+ ],
+ "python": "3.9",
+ "source": "CI test-suite.yml > tests",
+ "scope": "matrix entry 1 of 5 (python-version=3.9)",
+ "partial": true,
+ "notes": [],
+ "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nscripts/install\ncd /work\nscripts/check\ncd /work\nscripts/build\ncd /work\nscripts/test\ncd /work\nscripts/coverage"
+}

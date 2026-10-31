@@ -336,6 +336,59 @@ def _system_setup(command: str) -> bool:
     return bool(lines) and all(_SETUP_LINE.match(ln) for ln in lines)
 
 
+_RUNNER_PREP = re.compile(
+    r"^\s*sudo\s+(?:rm|chmod|chown|mkdir|ln|cp|mv|touch|tee|sed|systemctl|service)\b[^\n]*(?:\s/(?:etc|usr|opt|var|root)/|$)"
+)
+_SUDO_INSTALL = re.compile(
+    r"^(?P<indent>\s*)sudo\s+(?=(?:yarn|npm|pnpm|bun)\s+(?:install|ci)\b|(?:python3?\s+-m\s+)?pip3?\s+install\b)"
+)
+
+
+def _without_runner_prep(run: str) -> tuple[str, list[str]]:
+    """The step without what it does to the CI runner's own system under `sudo` (stage 10, CTFd: `sudo rm -f
+    /etc/boto.cfg` before `make test`, `sudo yarn install`): the sandbox has no such file and no privileges, and the
+    line says nothing about the tests. A system path edited is dropped and said; an install run as root is the same
+    install without `sudo`. Any other `sudo` still makes the job irreproducible (`_reproducible`)."""
+    kept: list[str] = []
+    notes: list[str] = []
+    for line in run.splitlines():
+        if _RUNNER_PREP.match(line):
+            notes.append(f"left out, it edits the CI runner's own system: {line.strip()[:80]}")
+            continue
+        kept.append(_SUDO_INSTALL.sub(r"\g<indent>", line))
+    return "\n".join(kept), notes
+
+
+_SHELL_SCAFFOLD = re.compile(
+    r"^\s*(?:#|set\s|export\s|if\s|then\b|else\b|elif\s|fi\b|\[\s.*\]\s*&&|[A-Za-z_]\w*=|\"?\$?\{?[A-Z_]+\}?\"?\s+-m\s+venv\b|python3?\s+-m\s+venv\b)"
+)
+_INSTALL_CALL = re.compile(
+    r"^\s*(?:\"?\$\{?[A-Z_]*PIP[A-Z_]*\}?\"?|pip3?|python3?\s+-m\s+pip|uv\s+pip|uv\s+sync|poetry\s+install|pdm\s+install)\b"
+)
+
+
+def _install_script(text: str) -> list[str] | None:
+    """The requirement files a repository script installs, when installing is all it does (stage 10, httpx:
+    `scripts/install` runs `pip install -r requirements.txt`, which has no network in the sandbox; the dependency
+    image stands for it, as for a `pip install` step). None when the script runs anything else."""
+    values: dict[str, str] = {}
+    found: list[str] = []
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        for m in re.finditer(r"\b([A-Z_]+)=\"?([\w./-]+)\"?", line):
+            values[m.group(1)] = m.group(2)
+        if _INSTALL_CALL.match(line):
+            resolved = re.sub(r"\"?\$\{?([A-Z_]+)\}?\"?", lambda m: values.get(m.group(1), m.group(0)), line)
+            found += [m.group("file") for m in _REQUIREMENTS.finditer(resolved)]
+            continue
+        if _SHELL_SCAFFOLD.match(line):
+            continue
+        return None
+    return found
+
+
 def _reproducible(runs: list[dict[str, Any]], files: set[str] | None) -> bool:
     """Whether a job's steps can run in the sandbox: none raises privileges (`sudo`), and none works in a directory
     the repository does not have (one it downloads or generates while the job runs). Stage 9: LNbits' JMeter job,
@@ -397,6 +450,21 @@ def _job_plan(
             step["run"] = "\n".join(ln for ln in lines if not _WRITES_ENV.match(ln))
     runs = [s for s in runs if isinstance(s.get("run"), str) and str(s["run"]).strip()]
     runs = [s for s in runs if not _system_setup(str(s["run"]))]
+    for step in runs:
+        step["run"], prep_notes = _without_runner_prep(str(step["run"]))
+        notes += prep_notes
+        if scripts:  # a script that only installs: its requirement files are the job's, the call is left out
+            kept_lines = []
+            for line in str(step["run"]).splitlines():
+                head = _RUNNERS.sub("", line.strip()).split(" ")[0]
+                installs = _install_script(scripts[head]) if head in scripts else None
+                if installs is not None:
+                    requirement_files += [r for r in installs if files is None or r in files]
+                    notes.append(f"left out, {head} only installs (the dependency image stands for it)")
+                    continue
+                kept_lines.append(line)
+            step["run"] = "\n".join(kept_lines)
+    runs = [s for s in runs if str(s["run"]).strip()]
     if any(_PUBLISHES.search(_expand_tasks(str(s["run"]), tasks or {})) for s in runs):
         return None  # a job that publishes is never a test plan, whatever comes after its tests
     # The job's tests end at its last step that runs the test runner: what follows uploads, validates or reports
@@ -542,6 +610,9 @@ def _entries(job: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
     """The job's matrix entries, each as it runs; those whose service containers all have an image first (an entry
     with its database is what the lab can measure on), then in the matrix's own order."""
     out = []
+    # An engine a step starts with `docker compose up` (sqlmodel, stage 10: `docker compose up --wait "$DATABASE"`,
+    # no service container) does not run in the sandbox: the entries that name one come after those that need none.
+    composed = any(_COMPOSE_UP.search(str(s.get("run", ""))) for s in job.get("steps") or [] if isinstance(s, dict))
     for entry in _matrix(job):
         resolved = _entry_job(job, entry)
         images = [str((s or {}).get("image", "")) for s in (resolved.get("services") or {}).values()]
@@ -552,9 +623,13 @@ def _entries(job: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
         engines = {e for i in images for e in _ENGINES if e in i.lower()}
         values = " ".join(str(v) for v in entry.values()).lower()
         on_service = any(e in values for e in engines) if engines else False
-        out.append((0 if complete else 1, 0 if on_service else 1, _label(entry), resolved))
-    out.sort(key=lambda x: (x[0], x[1]))
-    return [(label, resolved) for _, _, label, resolved in out]
+        needs_compose = composed and not images and any(e in values for e in _ENGINES)
+        # The sandbox is Linux: an entry for another runner (sqlmodel: `os: windows-latest`) comes after Linux ones.
+        foreign_os = any(x in values for x in ("windows", "macos"))
+        out.append((0 if complete else 1, 0 if on_service else 1, 1 if needs_compose else 0, 1 if foreign_os else 0,
+                    _label(entry), resolved))  # fmt: skip
+    out.sort(key=lambda x: x[:4])
+    return [(label, resolved) for *_, label, resolved in out]
 
 
 _ENGINES = ("postgres", "mysql", "mariadb", "mongo", "redis")
@@ -857,6 +932,7 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
             str(s.get("run", "")) + str(s.get("uses", "")) for s in job.get("steps") or [] if isinstance(s, dict)
         )
         hint = _expand_tasks(hint, tasks) if tasks else hint
+        hint += " " + " ".join(scripts_of(job).values())  # a job of scripts is judged by what they run (httpx)
         if language == "python" and not re.search(r"python|pytest|uv |poetry", hint):
             continue
         if language == "node" and not re.search(r"node|npm|pnpm|yarn|bun", hint):

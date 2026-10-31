@@ -1,0 +1,47 @@
+{
+ "repo": "/Users/david/marshmallow",
+ "rev": "b762ea2d59ca52fe5df76b90de14bed7e5ec5607",
+ "stack": {
+  "python": "3.10",
+  "why": [
+   "python 3.10: no concrete version declared; the oldest the constraints admit (a choice, not something the project names)",
+   "pyproject requires-python: >=3.10"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": "uv.lock",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:4d9b369e785f1e18",
+ "plan": {
+  "source": "python -m pytest -q -p no:cacheprovider",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [],
+  "services": [],
+  "command": "python -m pytest -q -p no:cacheprovider"
+ },
+ "status": "passed",
+ "collected": 1192,
+ "failed": [],
+ "why": null,
+ "wall_s": 23.9,
+ "image_notes": [
+  "python 3.10: no concrete version declared; the oldest the constraints admit (a choice, not something the project names)",
+  "pyproject requires-python: >=3.10",
+  "image unbidden-deps-python:4d9b369e785f1e18 on linux/arm64"
+ ],
+ "python": "3.10",
+ "source": "python -m pytest -q -p no:cacheprovider",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [],
+ "command": "python -m pytest -q -p no:cacheprovider"
+}

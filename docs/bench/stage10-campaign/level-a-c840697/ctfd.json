@@ -1,0 +1,55 @@
+{
+ "repo": "/Users/david/CTFd",
+ "rev": "5f345fbaa424e6a22b51addf7f27430927879ae2",
+ "stack": {
+  "python": "3.11",
+  "why": [
+   "python 3.11: where the CI runs the checks and the project's Dockerfile both use it",
+   "the CI's python-version: 3.11",
+   "the project's Dockerfile: 3.11"
+  ],
+  "manifest": "requirements.txt",
+  "lockfile": "requirements.txt",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:7e9a1761d781e6a0",
+ "plan": {
+  "source": "python -m pytest -q -p no:cacheprovider",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [],
+  "services": [
+   "db",
+   "cache"
+  ],
+  "command": "python -m pytest -q -p no:cacheprovider"
+ },
+ "status": "failed",
+ "collected": 1,
+ "failed": [
+  "::tests.utils.test_uploaders"
+ ],
+ "why": null,
+ "wall_s": 37.9,
+ "image_notes": [
+  "python 3.11: where the CI runs the checks and the project's Dockerfile both use it",
+  "the CI's python-version: 3.11",
+  "the project's Dockerfile: 3.11",
+  "image unbidden-deps-python:7e9a1761d781e6a0 on linux/arm64",
+  "the environment is seeded with pip and setuptools as of 2026-10-21T21:22:37-04:00 (the lockfile's era), as virtualenvs on Python 3.11 were"
+ ],
+ "python": "3.11",
+ "source": "python -m pytest -q -p no:cacheprovider",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [],
+ "command": "python -m pytest -q -p no:cacheprovider"
+}

@@ -1,0 +1,36 @@
+{
+ "repo": "/Users/david/healthchecks",
+ "rev": "51a503531d845fc11d5ef270d576c59c300e3620",
+ "stack": {
+  "python": "3.14",
+  "why": [
+   "python 3.14: where the CI runs the checks and the project's Dockerfile both use it",
+   "the CI's python-version: 3.12, 3.13, 3.14, 3.15",
+   "the project's Dockerfile: 3.14",
+   "conflict: concrete sources disagree: the CI's python-version 3.12, 3.13, 3.14, 3.15; the project's Dockerfile 3.14"
+  ],
+  "manifest": "requirements.txt",
+  "lockfile": "requirements.txt",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:9d320148a3431727",
+ "status": "no_plan",
+ "why": "no test job to run (no CI job and no test files found)",
+ "wall_s": 10.2,
+ "image_notes": [
+  "python 3.14: where the CI runs the checks and the project's Dockerfile both use it",
+  "the CI's python-version: 3.12, 3.13, 3.14, 3.15",
+  "the project's Dockerfile: 3.14",
+  "conflict: concrete sources disagree: the CI's python-version 3.12, 3.13, 3.14, 3.15; the project's Dockerfile 3.14",
+  "image unbidden-deps-python:9d320148a3431727 on linux/arm64"
+ ],
+ "python": "3.14"
+}
