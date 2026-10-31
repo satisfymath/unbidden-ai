@@ -32,7 +32,7 @@ _SKIP = re.compile(
 )
 _COMPOSE_UP = re.compile(r"compose\s+up\b(?P<args>[^\n]*)")
 _EXPR = re.compile(r"\$\{\{[^}]*\}\}")
-_RUNNERS = re.compile(r"^(?:uv\s+run|poetry\s+run|pipenv\s+run|pdm\s+run)\s+(?:--[\w-]+\s+)*")
+_RUNNERS = re.compile(r"^(?P<open>\(?)(?:uv\s+run|poetry\s+run|pipenv\s+run|pdm\s+run)\s+(?:--[\w-]+\s+)*")
 
 
 @dataclass(frozen=True)
@@ -83,7 +83,7 @@ def _clean(command: str) -> str | None:
         line = line.strip()
         if not line or line.startswith("#") or _SKIP.search(line):
             continue
-        kept.append(_RUNNERS.sub("", line))
+        kept.append(_RUNNERS.sub(r"\g<open>", line))  # a make recipe line keeps its subshell
     return "\n".join(kept) or None
 
 
@@ -100,6 +100,11 @@ _PUBLISHES = re.compile(
     r"\btwine\s+upload\b|\b(npm|pnpm|yarn)\s+publish\b|\buv\s+publish\b"
 )
 _TASK_CALL = re.compile(r"^\s*task\s+(?P<name>[\w:.-]+)(?P<rest>.*)$")
+_MAKE_CALL = re.compile(r"^\s*make\s+(?P<args>[^;&|]*?)\s*$")
+_MAKE_RULE = re.compile(r"^(?P<target>[A-Za-z0-9_.-]+)\s*:(?!=)\s*(?P<deps>[^=#]*?)\s*$")
+# A JavaScript package manager's install or build inside a Python job (codex-lb builds its frontend before its tests).
+_FOREIGN_BUILD = re.compile(r"\b(bun|npm|pnpm|yarn)\s+(install|ci|i|run\s+build|build)\b")
+_MAKE_VAR = re.compile(r"^(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*(?::=|\?=|=)\s*(?P<value>.*?)\s*$")
 TASKFILES = ("Taskfile.yml", "Taskfile.yaml", "taskfile.yml", "taskfile.yaml")
 
 
@@ -133,10 +138,62 @@ def taskfile_tasks(repo: Path, rev: str) -> dict[str, list[str]]:
     return {}
 
 
+def make_targets(repo: Path, rev: str) -> dict[str, list[str]]:
+    """Each Makefile target's recipe, its prerequisites' recipes first, as `make:<target>` (stage 10, codex-lb: CI
+    runs `make test-unit`; the sandbox has no `make`, and the recipe is what runs). `$(VAR)` from the Makefile's own
+    assignments; `@`, `-` and `$$` as make reads them. A Makefile this cannot read gives nothing."""
+    text = _git(repo, "show", f"{rev}:Makefile")
+    if not text:
+        return {}
+    joined = re.sub(r"\\\n[ \t]*", " ", text)
+    variables: dict[str, str] = {}
+    rules: dict[str, tuple[list[str], list[str]]] = {}
+    current: str | None = None
+    for line in joined.splitlines():
+        if line.startswith("\t") and current is not None:
+            rules[current][1].append(line[1:].lstrip("@-").strip())
+            continue
+        current = None
+        if (var := _MAKE_VAR.match(line)) and ":" not in line.split("=", 1)[0].rstrip(":?"):
+            variables.setdefault(var.group("name"), var.group("value"))
+        elif (rule := _MAKE_RULE.match(line)) and not rule.group("target").startswith("."):
+            current = rule.group("target")
+            rules[current] = (rule.group("deps").split(), [])
+
+    def recipe(target: str, seen: set[str], depth: int = 0) -> list[str]:
+        if target not in rules or target in seen or depth > 6:
+            return []
+        seen.add(target)
+        deps, lines = rules[target]
+        out = [line for dep in deps for line in recipe(dep, seen, depth + 1)]
+        return out + [ln for ln in lines if ln]
+
+    return {f"make:{t}": [*recipe(t, set()), f"#vars {json.dumps(variables)}"] for t in rules}
+
+
+def _make_line(line: str, variables: dict[str, str]) -> str:
+    for _ in range(3):  # nested references, as far as they go
+        line = re.sub(r"\$\(([A-Za-z_][A-Za-z0-9_]*)\)", lambda m: variables.get(m.group(1), ""), line)
+    return line.replace("$$", "$")
+
+
 def _expand_tasks(command: str, tasks: dict[str, list[str]]) -> str:
     """`task py:test -- -k x` becomes the task's own commands, its CLI arguments in place of `{{ .CLI_ARGS }}`."""
     lines: list[str] = []
     for line in command.splitlines():
+        made = _MAKE_CALL.match(line)
+        if made is not None:
+            words = made.group("args").split()
+            targets = [w for w in words if "=" not in w and not w.startswith("-")]
+            overrides = dict(w.split("=", 1) for w in words if "=" in w and not w.startswith("-"))
+            if targets and all(f"make:{t}" in tasks for t in targets):
+                for target in targets:
+                    body = tasks[f"make:{target}"]
+                    variables = json.loads(body[-1].removeprefix("#vars ")) if body[-1].startswith("#vars ") else {}
+                    variables |= {k: v.strip("'\"") for k, v in overrides.items()}
+                    # Each recipe line runs in its own shell, as make runs it: a `cd` does not reach the next line.
+                    lines += [f"({_make_line(c, variables)})" for c in body if not c.startswith("#vars ")]
+                continue
         call = _TASK_CALL.match(line)
         if call is None or call.group("name") not in tasks:
             lines.append(line)
@@ -334,6 +391,12 @@ def _job_plan(
         command = _clean(run)
         if command is not None:
             command = "\n".join(line for line in command.splitlines() if not _CHECK_RUN.search(line))
+        if command is not None and language == "python":
+            foreign = [ln for ln in command.splitlines() if _FOREIGN_BUILD.search(ln)]
+            if foreign:
+                notes.append(f"left out, a JavaScript build in a Python job ({len(foreign)} line(s), e.g. "
+                             f"{foreign[0].strip()[:80]}): tests that read its output fail and say so")  # fmt: skip
+                command = "\n".join(ln for ln in command.splitlines() if not _FOREIGN_BUILD.search(ln))
         if command and downloads and files is not None:
             # A line that reads a file the repository does not have, in a job that downloads another job's artifacts,
             # needs that artifact (stage 10, Prefect: `test-durations.json`): left out, and said.
@@ -658,7 +721,7 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
             item[1],
         )
 
-    tasks = taskfile_tasks(repo, rev)
+    tasks = taskfile_tasks(repo, rev) | make_targets(repo, rev)
     files = set(_git(repo, "ls-tree", "-r", "--name-only", rev).splitlines())
 
     def scripts_of(job: dict[str, Any]) -> dict[str, str]:

@@ -70,7 +70,7 @@ def test_the_branch_that_runs_the_tests_is_taken_and_the_unknown_condition_said(
     )
     makefile = "test-unit:\n\tuv run pytest tests\n"
     commands, notes = _commands(_repo(tmp_path, jobs, makefile))
-    assert commands == ["make test-unit"]
+    assert commands == ["(pytest tests)"]  # the recipe, as make runs it, without make
     assert any("not known outside GitHub" in n and "backend=='true'" in n for n in notes)
 
 
@@ -104,3 +104,23 @@ def test_an_unknown_condition_without_another_branch_keeps_its_steps(tmp_path: P
 """
     commands, notes = _commands(_repo(tmp_path, jobs))
     assert commands == ["pytest tests"] and not any("not known" in n for n in notes)
+
+
+def test_a_make_target_runs_as_its_recipe_prerequisites_first_one_shell_a_line(tmp_path: Path) -> None:
+    # codex-lb: `make test-unit` (the sandbox has no make) depends on a frontend build; its pytest line uses
+    # $(PYTEST_ARGS); the frontend's `cd` must not reach the tests.
+    makefile = (
+        "PYTEST_ARGS := -q -ra\n"
+        "frontend-install:\n\tcd frontend && bun install --frozen-lockfile\n"
+        "frontend-build: frontend-install\n\tcd frontend && bun run build\n"
+        "prepare:\n\t@mkdir -p .cache\n"
+        "test-unit: frontend-build prepare\n\tuv sync --dev --frozen\n\tuv run pytest $(PYTEST_ARGS) tests\n"
+    )
+    jobs = """  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: make test-unit PYTEST_ARGS=-x
+"""
+    commands, notes = _commands(_repo(tmp_path, jobs, makefile))
+    assert commands == ["(mkdir -p .cache)\n(pytest -x tests)"]  # the override wins; the install left out
+    assert any("JavaScript build" in n for n in notes)
