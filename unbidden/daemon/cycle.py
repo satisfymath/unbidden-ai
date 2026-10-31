@@ -16,7 +16,7 @@ from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.experiment import Experiment, Proposal, ProposalStatus, Verdict
 from unbidden.contracts.jobs import Job
 from unbidden.contracts.opportunity import ActionKind, Decision, Opportunity, OpportunityStatus
-from unbidden.director.decide import Context, decide
+from unbidden.director.decide import MAX_DEFERRAL_REPEATS, Context, decide
 from unbidden.director.learn import Belief, beliefs, kind_of
 from unbidden.lab.fixlab import FixLab
 from unbidden.observe.ci import ci_commands
@@ -922,7 +922,6 @@ def checked_dirs(repo: Path, head: str) -> tuple[str, ...]:
 
 
 RETRY = timedelta(minutes=2)
-MAX_DEFERRAL_REPEATS = 1  # a measurement deferred by a busy host is repeated at most once per commit
 
 # A job that runs past its limit is cancelled and retried later, so one hung call never stops the worker. Lab work
 # (builds, test rounds on both sides) is long by nature; everything else should be quick.

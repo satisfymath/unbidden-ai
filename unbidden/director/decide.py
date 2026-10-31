@@ -67,6 +67,15 @@ class Context:
     tool_scopes: dict[str, tuple[str, ...]] | None = None  # tool -> the directories the team's CI checks with it
 
 
+MAX_DEFERRAL_REPEATS = 1  # a measurement deferred by a busy host is repeated at most once per commit
+
+
+def _deferred_once(opp: Opportunity, blocked: dict[str, Any]) -> bool:
+    """A block that was the host's, not the opportunity's, and has its one repeat still to come."""
+    deferred = str(blocked.get("why", "")).startswith("deferred:")
+    return deferred and int(opp.details.get("deferrals", 0)) <= MAX_DEFERRAL_REPEATS
+
+
 def outside_checked_scope(opp: Opportunity, checked_dirs: tuple[str, ...]) -> bool:
     """Style findings in code the team's own CI never looks at are not worth a person's review."""
     if opp.category not in LOW_VALUE or not checked_dirs or "." in checked_dirs:
@@ -218,7 +227,11 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
         reason = f"proven only to L{int(level)}; the mandate asks L{int(minimum)} before proposing"
         add(ActionKind.DECLINE, 0.0, 0.0, 0.0, reason)
         return _choose(opp, candidates, ActionKind.DECLINE)
-    elif (blocked := opp.details.get("blocked")) and blocked.get("rev") == opp.details.get("rev"):
+    elif (
+        (blocked := opp.details.get("blocked"))
+        and blocked.get("rev") == opp.details.get("rev")
+        and not _deferred_once(opp, blocked)
+    ):
         add(ActionKind.WAIT, 0.0, 0.0, 0.0, f"not measurable at this commit: {str(blocked.get('why', ''))[:200]}")
         return _choose(opp, candidates, ActionKind.WAIT)
     elif ctx.attempts >= MAX_LAB_ATTEMPTS:
