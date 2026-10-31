@@ -205,3 +205,22 @@ def test_the_image_installs_the_ci_test_requirements_after_the_manifest(tmp_path
         "-r /deps/requirements.txt && uv pip install --python /deps/.venv/bin/python -r /deps/test_requirements.txt"
         in (python_dockerfile(py))
     )
+
+
+def test_the_jobs_environment_reaches_the_run_without_service_containers(tmp_path: Path) -> None:
+    # rag-api, stage 10: its test step's OPENAI_API_KEY=test_key was dropped (only jobs with service containers kept
+    # the CI's environment), and importing the application failed.
+    from unbidden.lab.testsuite import test_plan
+    from unbidden.observe.stack import detect_stack
+
+    jobs = """  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run tests
+        env:
+          OPENAI_API_KEY: test_key
+        run: pytest tests
+"""
+    repo = _repo(tmp_path, jobs)
+    plan = test_plan(repo, "HEAD", detect_stack(repo), "python")
+    assert plan is not None and plan.env.get("OPENAI_API_KEY") == "test_key"

@@ -63,7 +63,9 @@ def test_plan(repo: Path, rev: str, stack: Stack, language: str) -> TestPlan | N
         ci_env = dict(ci.env)
         if own:
             ci_env = {k: _to_sidecars(v, own) for k, v in ci_env.items()}
-            env = {**env, **ci_env}
+        # The job's own environment, with or without service containers (rag-api, stage 10: the test step's
+        # OPENAI_API_KEY=test_key, without which importing the application fails).
+        env = {**env, **ci_env}
         notes = list(ci.notes)
         if ci.interpreters and language == "python" and stack.python is not None:
             # The job's own interpreter install, resolved when the image was provisioned (no download in the run).
