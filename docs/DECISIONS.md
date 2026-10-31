@@ -1222,3 +1222,36 @@ as recorded; promotions under v4 are new verdicts.
   with tests collected (the wait is recorded and shown); one sweep waits at a time; a check whose report is
   incomplete is a block, kept per commit, not a failed attempt (it had taught the Director that such fixes never
   work: 0.006).
+
+## D-062 · 2026-10-31 · Stage 10 closed on its frozen evaluation; the campaign to v1.0; the budget transfer
+
+**Decided.** Stage 10's frozen evaluation (`docs/bench/stage10-eval/`) is closed with its six original results:
+three applications prepared by a person, none of their test suites reproduced by Unbidden, zero experiments, three
+technical blocks, zero false promotions — which under those conditions says nothing about the evaluator's precision
+(that rests on `stage10-controls/0102ccb-run4`). Aegra's agreement on 200 assistants is a correct consistency result,
+separate from the improvement criterion. The three causes were fixed as development, each with a unit test that
+fails before it, and the three applications' checks now reproduce on one commit (`stage10-regression/checks`); every
+later run on them is a regression. v1.0 is not declared: no useful cycle on an independent application.
+
+**The campaign** (`docs/CAMPAIGN-v1.md`, one plan, linked from `PLAN.md`): scope (Python applications and libraries,
+pytest under GitHub Actions, PostgreSQL for performance work), seven capabilities in order (environment as product
+input; CI plan robustness; workloads from checkable resources; measurement with host-load deferral; discovery of
+non-FK queries and N+1 after the first three hold; consistency semantics; product closing), a 20-repository
+development corpus (`bench/repos/campaign-v1.yaml`, every repository used so far plus CTFd and TimeTracker chosen by
+a recorded rule) and a rule for 8 reserved applications, a preparation gate before the reserved set, the independent
+evaluation's four targets, fixed exit criteria, and stop conditions. Criteria do not move after results are known:
+a change is a new decision here, with its effect on earlier claims.
+
+**Who does what**, in every record: Claude as developer (changes Unbidden by hand from its failures; no
+self-improvement of the product), the harness (clone, compose, data, role, mandate: human preparation, counted),
+Unbidden (everything after the mandate), the independent checker (the author, after the runs).
+
+**Budget.** By David's instruction of 2026-10-31, US$5 of the unspent `s10-eval` moved to `s10-dev` before any
+further spend (`unbidden spend --envelopes`, `~/.unbidden/budget-history.jsonl`): `s10-dev` 13.00, `s10-eval` 3.50,
+`s10-close` 3.80; the cumulative cap US$37.2945 and the ledger unchanged (US$25.2986 spent at the transfer). An
+incremental request of US$8.30 (cap US$45.60) is prepared in the campaign document; nothing is spent against it.
+
+**Effect on earlier claims.** None withdrawn: stage 9's verdict ("experimental candidate") stands; fst's L4 is
+confirmed under perf-v4 with the content comparison of dec7ba2 (the comparison of 49d3259 is recorded as superseded,
+not relied on); mealie's L4 is unconfirmed; Prefect's L4s of B-r14/A-r15/A-r16 are outside its CI's tool scopes and
+do not count.
