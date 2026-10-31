@@ -385,6 +385,10 @@ async def _pursue_page(
     return _finish(store, run, run.status, run.notes[-1] if run.notes else run.status)
 
 
+def _as_key(value: Any) -> str | None:
+    return None if value is None else str(value)
+
+
 def _read(
     store: Store,
     mandate: Mandate,
@@ -426,19 +430,22 @@ def _read(
     if not db_whole:
         reasons.append(f"the read-only query returned its limit of {len(left)} rows")
     partial = "; ".join(reasons) or None
-    by_key = {r.get(key): r for r in right}
+    # Keys compared as text: the database gives a uuid or a number its own type, JSON a string (Prefect, stage 10:
+    # 10000 flow runs on each side and not one key in common).
+    by_key = {_as_key(r.get(key)): r for r in right}
     if not left or key not in left[0]:
         raise KeyError(f"the query's rows have no field {key!r}")
     joined = []
     for row in left:
-        other = by_key.get(row[key])
+        other = by_key.get(_as_key(row[key]))
         if other is not None:
             joined.append({**other, **{k: (float(v) if hasattr(v, "as_integer_ratio") else v) for k, v in row.items()}})
     # Keys with records in the API but no row in the query: nothing was ordered; their demand is zero. Only when the
     # query read everything: a query cut at its row limit did not read those keys, so they are not zero, they are
     # unknown, and are left out (stage 9: Conduit's goal reported 19,000 of 20,000 keys "short" that way).
+    seen = {_as_key(r[key]) for r in left}
     for k, other in by_key.items() if db_whole else []:
-        if k not in {r[key] for r in left}:
+        if k not in seen:
             joined.append({**other, **{c: 0 for c in left[0] if c != key}, key: k})
     run.reads.append({"joined": len(joined), "key": key, "partial": partial})
     return joined, partial

@@ -172,3 +172,24 @@ def test_a_build_that_raises_is_a_failed_attempt_not_a_need_left_building(store:
 
     after = asyncio.run(needs.build(store, mandate, need, lambda kind, source: [source], refusing))
     assert after.status is NeedStatus.FAILED and any("credential_assignment" in n for n in after.notes)
+
+
+def test_a_uuid_from_the_database_meets_the_same_id_as_text_from_the_api(
+    store: Store, mandate: Mandate, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Stage 10 on Prefect: psycopg gives a uuid.UUID, JSON a string; 10000 flow runs each side, no key in common."""
+    import uuid
+
+    from unbidden.connect.pages import Completeness, Read
+
+    ids = [uuid.uuid4() for _ in range(3)]
+    monkeypatch.setattr(goals, "query", lambda *a, **k: [{"id": i, "db_count": 2} for i in ids])
+    api = [{"id": str(i), "run_count": 1} for i in ids]
+    monkeypatch.setattr("unbidden.forge.api_client.read_collection",
+                        lambda *a, **k: Read(api, Completeness.COMPLETE, "whole", "offset", 1))  # fmt: skip
+    integration: Any = type("I", (), {"op": lambda self, op_id: type("O", (), {"id": op_id})()})()
+    conns: Any = {"db": type("D", (), {"id": "postgres:x"})(), "api": type("C", (), {"id": "http_api:x"})()}
+    plan = {"key": "id", "sql": {"connection": "db", "query": "q"}, "api": {"connection": "api", "operation": "l"},
+            "shortfall": "db_count - run_count"}  # fmt: skip
+    joined, _ = goals._read(store, mandate, plan, conns, {"api": integration}, GoalRun(goal="g"))  # pyright: ignore[reportPrivateUsage]
+    assert len(joined) == 3 and all(r["run_count"] == 1 and r["db_count"] == 2 for r in joined)
