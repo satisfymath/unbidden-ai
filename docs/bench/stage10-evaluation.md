@@ -228,3 +228,19 @@ files read through GitHub's API and raw files only (nothing cloned or run); "met
 
 **The set (first three that pass every criterion, in the search's order):** 1 `Soju06/codex-lb`, 2 `aegra/aegra`,
 3 `LibreChat-AI/rag-api`. Candidates 91-305 were not examined. The set is not changed after any run.
+
+## Preparation (human, counted; before any run)
+
+Each application cloned by the person to `~/<repo>` (SSH), copied to `~/unbidden-lab/<repo>` at its latest release,
+run with the project's own image (or built from its own Dockerfile where none is published), PostgreSQL as the
+project's compose uses it, ports on 127.0.0.1, owned resources; synthetic data and a read-only role. All in new files;
+the frozen product and runner are unchanged (hashes verified at d3ae234).
+
+| Application | Release, commit | Image | Data | Settings set by the person |
+|---|---|---|---|---|
+| codex-lb (`bench/ecosystem/codex_lb_lab.py`, 7bccebe) | v1.24.0, 84fde5a | ghcr.io/soju06/codex-lb:1.24.0 | SQL from its models: 2,000 accounts, 50 API keys, 300,000 request logs, 200,000 usage rows (its API cannot create accounts: ChatGPT OAuth) | dashboard auth `disabled` (its own mode); the schedulers that call ChatGPT off (usage, reset credits, quota planner, automations, auth guardian): synthetic accounts, nothing leaves the lab |
+| Aegra (`bench/ecosystem/aegra_lab.py`, 4faabe3) | v0.11.0, 46055c0 | built from deployments/docker/Dockerfile (none published), run as its compose runs it (`uvicorn aegra_api.main:app`) | 200 assistants and 20,000 threads through its API; 200,000 runs through SQL (its API would execute a graph, which calls a model) | `AUTH_TYPE=noop` and Redis off (its defaults); cron off; a placeholder model key |
+| rag-api (`bench/ecosystem/rag_api_lab.py`, d3ae234) | v0.9.0, 4985b37 | ghcr.io/danny-avila/librechat-rag-api-dev-lite:v0.9.0 | SQL from its models: 30,000 chunks of 3,000 files, tagged as it tags what it ingests, a placeholder 1536-dimension vector (its API embeds with a model) | no `JWT_SECRET` (no authentication); a placeholder embeddings key |
+
+Criteria 5 and 6, judged at selection, are confirmed for all three: each starts and serves its API with its database
+only, and reads without a credential. Data checked through each API (listings answer with the seeded records).
