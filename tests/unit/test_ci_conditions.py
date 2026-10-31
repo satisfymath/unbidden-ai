@@ -114,7 +114,8 @@ def test_a_make_target_runs_as_its_recipe_prerequisites_first_one_shell_a_line(t
         "frontend-install:\n\tcd frontend && bun install --frozen-lockfile\n"
         "frontend-build: frontend-install\n\tcd frontend && bun run build\n"
         "prepare:\n\t@mkdir -p .cache\n"
-        "test-unit: frontend-build prepare\n\tuv sync --dev --frozen\n\tuv run pytest $(PYTEST_ARGS) tests\n"
+        "test-unit: frontend-build prepare\n\tuv sync --dev --frozen\n"
+        "\tPYTHONFAULTHANDLER=1 uv run pytest $(PYTEST_ARGS) tests\n"
     )
     jobs = """  test:
     runs-on: ubuntu-latest
@@ -122,5 +123,6 @@ def test_a_make_target_runs_as_its_recipe_prerequisites_first_one_shell_a_line(t
       - run: make test-unit PYTEST_ARGS=-x
 """
     commands, notes = _commands(_repo(tmp_path, jobs, makefile))
-    assert commands == ["(mkdir -p .cache)\n(pytest -x tests)"]  # the override wins; the install left out
+    # The override wins; the install is left out; uv run goes, the assignment stays.
+    assert commands == ["(mkdir -p .cache)\n(PYTHONFAULTHANDLER=1 pytest -x tests)"]
     assert any("JavaScript build" in n for n in notes)

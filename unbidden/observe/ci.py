@@ -32,7 +32,11 @@ _SKIP = re.compile(
 )
 _COMPOSE_UP = re.compile(r"compose\s+up\b(?P<args>[^\n]*)")
 _EXPR = re.compile(r"\$\{\{[^}]*\}\}")
-_RUNNERS = re.compile(r"^(?P<open>\(?)(?:uv\s+run|poetry\s+run|pipenv\s+run|pdm\s+run)\s+(?:--[\w-]+\s+)*")
+# `uv run` and its peers in front of a command (after a subshell's paren and environment assignments,
+# `PYTHONFAULTHANDLER=1 uv run pytest`): the dependency image's environment is already first on PATH.
+_RUNNERS = re.compile(
+    r"^(?P<open>\(?(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*)(?:uv\s+run|poetry\s+run|pipenv\s+run|pdm\s+run)\s+(?:--[\w-]+\s+)*"
+)
 
 
 @dataclass(frozen=True)
