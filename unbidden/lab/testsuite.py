@@ -253,7 +253,11 @@ def _round(
 def _ended(result: SandboxResult) -> str:
     """How a run that reached no test report ended: its exit, and the last lines it printed."""
     how = "timed out" if result.timed_out else f"exit {result.exit_code}"
-    tail = (result.stderr.strip() or result.stdout.strip())[-1500:]
+    text = result.stderr.strip() or result.stdout.strip()
+    # pytest's own crash is reported where it happened, not at the end (TimeTracker, stage 10: 1500 characters of
+    # Alembic's log after an `internal error`): the first INTERNALERROR block is what explains the run.
+    internal = re.search(r"(?:^INTERNALERROR>.*\n?){1,40}", result.stdout, re.M)
+    tail = (internal.group(0)[:1500] + "\n...\n" if internal else "") + text[-1500:]
     return f"{how}: {tail}" if tail else f"{how}, nothing printed"
 
 

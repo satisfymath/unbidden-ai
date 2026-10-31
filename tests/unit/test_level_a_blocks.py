@@ -402,3 +402,17 @@ def test_a_host_without_a_port_goes_to_the_service_the_variable_names() -> None:
     two = (*both, service("redis", "redis:7", "6379"))
     assert _to_sidecars("localhost", two, "SOME_HOST") == "localhost"  # two databases, nothing to say which
     assert _to_sidecars("redis://localhost/0", two, "CACHE_URL") == "redis://redis/0"
+
+
+def test_a_pytest_internal_error_is_reported_where_it_happened() -> None:
+    """TimeTracker: `pytest::internal` with 1500 characters of Alembic's log as the only explanation."""
+    from unbidden.lab.testsuite import _ended  # pyright: ignore[reportPrivateUsage]
+    from unbidden.sandbox.runner import SandboxResult
+
+    out = "collected 112 items\nINTERNALERROR> Traceback (most recent call last):\nINTERNALERROR>   File x\n" + (
+        "INFO  [alembic.runtime.migration] Running upgrade\n" * 60
+    )
+    result = SandboxResult(exit_code=3, stdout=out, stderr="", timed_out=False, duration_s=1.0,
+                           stdout_truncated=False, stderr_truncated=False)  # fmt: skip
+    why = _ended(result)
+    assert why.startswith("exit 3: INTERNALERROR> Traceback") and "File x" in why and "alembic" in why
