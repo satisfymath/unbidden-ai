@@ -185,6 +185,35 @@ def query(
         return [dict(zip(columns, row, strict=True)) for row in cur.fetchall()]
 
 
+MAX_ROWS_WHOLE = 200_000
+
+
+def query_all(
+    conn: Connection, mandate: Mandate, sql: str, key: str, *, page: int = MAX_ROWS, max_rows: int = MAX_ROWS_WHOLE
+) -> tuple[list[dict[str, Any]], bool]:
+    """A whole read of a SELECT, by keyset pages on `key` (unique in the result; the pages are ordered by it), each
+    page bounded as `query` bounds it, up to `max_rows`. (rows, complete): complete is False when the ceiling was
+    reached (stage 10: a goal's 1,000-row read against an API read whole gave an inconclusive join; a count that
+    matches never shows the records agree, so the records are read)."""
+    statement = sql.strip().rstrip(";")
+    if not _SELECT.match(statement) or ";" in statement:
+        raise QueryRefused("only one SELECT or WITH statement is read")
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", key):
+        raise QueryRefused(f"the key {key!r} is not a plain column name")
+    rows: list[dict[str, Any]] = []
+    last: Any = None
+    while len(rows) < max_rows:
+        size = min(page, MAX_ROWS, max_rows - len(rows))
+        where = f' WHERE "{key}" > %(last)s' if last is not None else ""
+        paged = f'SELECT * FROM ({statement}) AS q{where} ORDER BY "{key}"'
+        got = query(conn, mandate, paged, {"last": last} if last is not None else None, limit=size)
+        rows += got
+        if len(got) < size:
+            return rows, True
+        last = got[-1][key]
+    return rows, False
+
+
 def catalog(conn: Connection, mandate: Mandate) -> list[dict[str, Any]]:
     """Tables the role can read, their estimated rows and columns."""
     rows = query(conn, mandate, _CATALOG, limit=MAX_ROWS)

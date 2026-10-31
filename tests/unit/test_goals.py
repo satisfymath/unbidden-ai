@@ -146,6 +146,7 @@ def test_keys_a_row_limited_query_did_not_read_are_not_taken_as_zero(
 
     rows = [{"slug": f"a{i}", "stored": 1} for i in range(1000)]
     monkeypatch.setattr(goals, "query", lambda *a, **k: rows)
+    monkeypatch.setattr(goals, "query_all", lambda *a, **k: (rows, False))  # the whole read hit its ceiling too
     api = [{"slug": f"a{i}", "shown": 1} for i in range(1500)]
     monkeypatch.setattr("unbidden.forge.api_client.read_collection",
                         lambda *a, **k: Read(api, Completeness.COMPLETE, "whole", "offset", 15))  # fmt: skip
@@ -193,3 +194,48 @@ def test_a_uuid_from_the_database_meets_the_same_id_as_text_from_the_api(
             "shortfall": "db_count - run_count"}  # fmt: skip
     joined, _ = goals._read(store, mandate, plan, conns, {"api": integration}, GoalRun(goal="g"))  # pyright: ignore[reportPrivateUsage]
     assert len(joined) == 3 and all(r["run_count"] == 1 and r["db_count"] == 2 for r in joined)
+
+
+def test_a_query_that_fills_its_first_page_is_read_whole_by_key_pages_up_to_a_ceiling(
+    store: Store, mandate: Mandate, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Stage 10, Prefect and rag-api: the goal's 1,000-row read against an API read whole left the join partial.
+    A full first page is followed by keyset pages on the plan's key; the ceiling leaves the read partial, and said."""
+    from unbidden.connect.pages import Completeness, Read
+
+    rows = [{"id": f"{i:05d}", "stored": 1} for i in range(2500)]
+    monkeypatch.setattr(goals, "query", lambda *a, **k: rows[:1000])
+    monkeypatch.setattr(goals, "query_all", lambda *a, **k: (rows, True))
+    api = [{"id": f"{i:05d}", "shown": 1} for i in range(2500)]
+    monkeypatch.setattr("unbidden.forge.api_client.read_collection",
+                        lambda *a, **k: Read(api, Completeness.COMPLETE, "whole", "offset", 25))  # fmt: skip
+    integration: Any = type("I", (), {"op": lambda self, op_id: type("O", (), {"id": op_id})()})()
+    conns: Any = {"db": type("D", (), {"id": "postgres:x"})(), "api": type("C", (), {"id": "http_api:x"})()}
+    plan = {"key": "id", "sql": {"connection": "db", "query": "q"}, "api": {"connection": "api", "operation": "l"},
+            "shortfall": "stored - shown"}  # fmt: skip
+    run = GoalRun(goal="g")
+    joined, partial = goals._read(store, mandate, plan, conns, {"api": integration}, run)  # pyright: ignore[reportPrivateUsage]
+    assert len(joined) == 2500 and partial is None and run.reads[0]["whole"] is True
+    monkeypatch.setattr(goals, "query_all", lambda *a, **k: (rows[:2000], False))  # the ceiling reached
+    run = GoalRun(goal="g")
+    joined, partial = goals._read(store, mandate, plan, conns, {"api": integration}, run)  # pyright: ignore[reportPrivateUsage]
+    assert len(joined) == 2000 and partial is not None and run.reads[0]["completeness"] == "incomplete"
+
+
+def test_keyset_pages_follow_the_key_and_stop_at_a_short_page_or_the_ceiling(monkeypatch: pytest.MonkeyPatch) -> None:
+    from unbidden.connect import postgres
+
+    seen: list[str] = []
+
+    def fake_query(conn: Any, mandate: Any, sql: str, params: Any = None, *, limit: int = 200) -> list[dict[str, Any]]:
+        seen.append(sql)
+        start = int(params["last"]) + 1 if params else 0
+        return [{"k": i} for i in range(start, min(start + limit, 2300))]
+
+    monkeypatch.setattr(postgres, "query", fake_query)
+    rows, whole = postgres.query_all(None, None, "SELECT k FROM t", "k", page=1000)  # type: ignore[arg-type]
+    assert len(rows) == 2300 and whole and len(seen) == 3 and 'ORDER BY "k"' in seen[0] and '"k" > %(last)s' in seen[1]
+    rows, whole = postgres.query_all(None, None, "SELECT k FROM t", "k", page=1000, max_rows=1500)  # type: ignore[arg-type]
+    assert len(rows) == 1500 and not whole
+    with pytest.raises(postgres.QueryRefused):
+        postgres.query_all(None, None, "SELECT k FROM t", "k; DROP", page=10)  # type: ignore[arg-type]

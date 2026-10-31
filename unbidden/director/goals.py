@@ -22,7 +22,7 @@ from pydantic import Field
 
 from unbidden.brain.prompts import load_prompt
 from unbidden.connect.base import Unavailable
-from unbidden.connect.postgres import QueryRefused, catalog, query
+from unbidden.connect.postgres import QueryRefused, catalog, query, query_all
 from unbidden.connect.registry import COLLECTION as CONNECTIONS
 from unbidden.contracts.action import Action, ActionStatus
 from unbidden.contracts.common import Contract, new_id, utc_now
@@ -405,7 +405,13 @@ def _read(
     if db is None or integration is None:
         raise KeyError("the plan names a connection that cannot be read")
     left = query(db, mandate, str(sql.get("query")), limit=1000)
-    run.reads.append({"connection": db.id, "query": sql.get("query"), "rows": len(left)})
+    db_whole = len(left) < 1000
+    if not db_whole:
+        # The first page filled: the rest is read by keyset pages on the plan's key, up to a ceiling, so the whole
+        # set is compared (never a count for the records); the ceiling leaves the read partial, and said.
+        left, db_whole = query_all(db, mandate, str(sql.get("query")), key)
+    run.reads.append({"connection": db.id, "query": sql.get("query"), "rows": len(left),
+                      "whole": db_whole})  # fmt: skip
     op = integration.op(str(api.get("operation")))
     conn = conns[str(api.get("connection"))]
     from unbidden.forge.api_client import Degraded, read_collection
@@ -418,7 +424,6 @@ def _read(
     read = read_collection(integration, conn, mandate, op.id, degraded=degraded)
     right = read.records
     run.reads.append({"connection": conn.id, "operation": op.id, **read.summary(), "deviations": degraded.log[:20]})
-    db_whole = len(left) < 1000
     run.reads[0]["completeness"] = "complete" if db_whole else "incomplete"
     if read.completeness.value == "incomplete":
         # A decision over a known-partial set would be about the part read as if it were the whole: not taken.
