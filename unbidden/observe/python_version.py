@@ -22,7 +22,8 @@ import tomllib
 from dataclasses import dataclass, field
 from typing import Any
 
-SUPPORTED = tuple(f"3.{m}" for m in range(8, 14))
+# 3.14 since stage 10: mealie requires it (>=3.14,<3.15), and the default could not match.
+SUPPORTED = tuple(f"3.{m}" for m in range(8, 15))
 DEFAULT = "3.12"
 
 

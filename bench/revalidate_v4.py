@@ -43,7 +43,7 @@ MANDATE = """mandate:
     use_new_capabilities: allow
     act_on_connections: deny
   egress:
-    package_registries: [pypi.org, files.pythonhosted.org, deb.debian.org]
+    package_registries: [{registries}]
     remote_models:
       destinations: [api.meta.ai]
       max_payload_bytes: 60000
@@ -53,6 +53,16 @@ MANDATE = """mandate:
     local_fallback: deny
     local_inference: deny
 """
+def registries(store: Path) -> list[str]:
+    """The package registries the original run's mandate allowed (stage 10: fst's frontend needs npm, which a fixed
+    Python-only list refused), with the ones every Python image needs."""
+    import yaml
+
+    original = yaml.safe_load((store.parent / "mandate.yaml").read_text()) or {}
+    allowed = ((original.get("mandate") or {}).get("egress") or {}).get("package_registries") or []
+    return list(dict.fromkeys([*map(str, allowed), "pypi.org", "files.pythonhosted.org", "deb.debian.org"]))
+
+
 CONFIG = (
     "# Overrides of unbidden's defaults.\nrouting:\n  code:\n    provider: meta\n    model: muse-spark-1.3\n"
     "    think_budget: 2048\n"
@@ -129,7 +139,9 @@ def main() -> None:
                          check=True).stdout.strip()  # fmt: skip
     subprocess.run(["uv", "run", "--project", str(product), "unbidden", "init"], cwd=clone, check=True,
                    capture_output=True)  # fmt: skip
-    (clone / ".unbidden" / "mandate.yaml").write_text(MANDATE.format(name=args.name))
+    (clone / ".unbidden" / "mandate.yaml").write_text(
+        MANDATE.format(name=args.name, registries=", ".join(registries(Path(args.store).expanduser())))
+    )
     (clone / ".unbidden" / "config.yaml").write_text(CONFIG)
     product_rev = subprocess.run(["git", "-C", str(product), "rev-parse", "HEAD"], capture_output=True, text=True,
                                  check=True).stdout.strip()  # fmt: skip

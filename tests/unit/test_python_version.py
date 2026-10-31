@@ -130,3 +130,9 @@ def test_the_projects_own_package_is_registered_as_uv_sync_would_install_it() ->
     assert "dist-info" not in python_dockerfile(PythonStack(version="3.12", lockfile="uv.lock",
                                                             manifest="pyproject.toml", ruff=False, pyright=False,
                                                             pytest=True))  # fmt: skip
+
+
+def test_a_project_that_requires_python_3_14_gets_3_14() -> None:
+    from unbidden.observe.python_version import SUPPORTED
+
+    assert "3.14" in SUPPORTED
