@@ -1,0 +1,33 @@
+candidate: index on shopping_list_items.food_id, written from the finding
+writing the workload (attempt 1)
+validating the workload at the base
+measuring 4 sessions per side, alternating
+host busy (load 3.41): measurement deferred
+host busy (load 2.60): measurement deferred
+host busy (load 2.55): measurement deferred
+host busy (load 1.80): measurement deferred
+host busy (load 1.83): measurement deferred
+host busy (load 2.35): measurement deferred
+host busy (load 2.48): measurement deferred
+host busy (load 2.58): measurement deferred
+host busy (load 2.18): measurement deferred
+host busy (load 2.05): measurement deferred
+host busy (load 1.87): measurement deferred
+host busy (load 1.54): measurement deferred
+host busy (load 1.57): measurement deferred
+host busy (load 1.93): measurement deferred
+host busy (load 1.79): measurement deferred
+host busy (load 1.75): measurement deferred
+host busy (load 2.20): measurement deferred
+host busy (load 2.34): measurement deferred
+host busy (load 2.42): measurement deferred
+host busy (load 1.72): measurement deferred
+host busy (load 1.85): measurement deferred
+host busy (load 2.16): measurement deferred
+host busy (load 1.91): measurement deferred
+host busy (load 1.54): measurement deferred
+host busy (load 1.58): measurement deferred
+host busy (load 1.53): measurement deferred
+host busy (load 1.56): measurement deferred
+running the CI test job on both sides
+{"name": "mealie-10704dc", "outcome": "no_relevant_change", "blocked": null, "usd": 0.0254}
