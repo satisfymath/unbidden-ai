@@ -1,0 +1,25 @@
+# Campaign to v1.0 (docs/CAMPAIGN-v1.md, section 3): the 20 development repositories, pinned. Every one has been
+# used before (stages 5-10) or was selected by the recorded rule (19, 20); none is independent evidence.
+# `path` is the person's clone (or the lab's copy); `commit` is the one every record of the campaign refers to.
+# `app` names the lab module (bench/ecosystem/<app>_lab.py) for the database applications; libraries have none.
+repos:
+  - {name: fst, path: ~/unbidden-lab/reval/fst-dec7ba2, commit: f4bcfaba7c85be3c6332cc74a20819f586dcdbc6, shape: app, db: postgres, app: null}
+  - {name: mealie, path: ~/mealie, commit: e31c5fcfd2892670158f4c189acdb06cde3180bf, shape: app, db: postgres, app: null}
+  - {name: conduit, path: ~/unbidden-lab/conduit, commit: 029eb7781c60d5f563ee8990a0cbfb79b244538c, shape: app, db: postgres, app: conduit}
+  - {name: lnbits, path: ~/unbidden-lab/lnbits, commit: 9349da153c223b008f7d80453b53a54e09c8ed3d, shape: app, db: postgres, app: lnbits}
+  - {name: spoolman, path: ~/unbidden-lab/spoolman, commit: bed3f14ee77a3a571d31b14215d54b0b88a7519c, shape: app, db: postgres, app: spoolman}
+  - {name: prefect, path: ~/unbidden-lab/prefect, commit: 1ef3e516d3b3449d19f65b30c45d1e0bff656396, shape: app, db: postgres, app: prefect}
+  - {name: codex-lb, path: ~/unbidden-lab/codex-lb, commit: 84fde5a1ed5e0d5a58ccb3ec4b82938b059bf8c5, shape: app, db: postgres, app: codex_lb}
+  - {name: aegra, path: ~/unbidden-lab/aegra, commit: 46055c0b9adffe51fb168974f79dfadaa6edd612, shape: app, db: postgres, app: aegra}
+  - {name: rag-api, path: ~/unbidden-lab/rag-api, commit: 4985b37b8b5d4519d68eceedfef1e63624012f9d, shape: app, db: postgres, app: rag_api}
+  - {name: healthchecks, path: ~/healthchecks, commit: 51a503531d845fc11d5ef270d576c59c300e3620, shape: app, db: postgres, app: null}
+  - {name: rich, path: ~/rich, commit: 9d8f9a372cc5916fd4781fec207ced7ddac2f08f, shape: library, db: none, app: null}
+  - {name: marshmallow, path: ~/marshmallow, commit: b762ea2d59ca52fe5df76b90de14bed7e5ec5607, shape: library, db: none, app: null}
+  - {name: pyjwt, path: ~/pyjwt, commit: 16231abfd1d8eab4953e8779b3017b859c88565e, shape: library, db: none, app: null}
+  - {name: humanize, path: ~/humanize, commit: 6b817b963dbb091b9ad20a746cb6a26653a93b95, shape: library, db: none, app: null}
+  - {name: starlette, path: ~/starlette, commit: 8aa828ceaff764a2e57932fb42fdf105a47c4c83, shape: library, db: none, app: null}
+  - {name: click, path: ~/click, commit: 2247b35ea1c47c727d7a06e51fa280e12a863ff6, shape: library, db: none, app: null}
+  - {name: httpx, path: ~/httpx, commit: b5addb64f0161ff6bfe94c124ef76f6a1fba5254, shape: library, db: none, app: null}
+  - {name: sqlmodel, path: ~/sqlmodel, commit: 462b59d9cd1cc3d9072735435330ef9ab6d15cbf, shape: library, db: none, app: null}
+  - {name: ctfd, path: ~/CTFd, commit: 5f345fbaa424e6a22b51addf7f27430927879ae2, shape: app, db: postgres, app: null}
+  - {name: timetracker, path: ~/TimeTracker, commit: 7ae6440d1b0930196609c6cefe3cf13948513f5b, shape: app, db: postgres, app: null}
