@@ -463,6 +463,37 @@ def _git(repo: Path, *args: str) -> str:
     return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, check=False).stdout
 
 
+def _down_revisions(text: str) -> tuple[str, ...]:
+    """A migration's parents, read as Python reads them: one, none, or a merge's tuple, on one line or several
+    (codex-lb, stage 10: its merge migrations' `down_revision = (...)` made every merged branch look like a head)."""
+    import ast
+
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        found = _DOWN.search(text)
+        return (found.group(1),) if found and found.group(1) else ()
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            targets, value_node = node.targets, node.value
+        elif isinstance(node, ast.AnnAssign) and node.value is not None:
+            targets, value_node = [node.target], node.value
+        else:
+            continue
+        if not any(isinstance(t, ast.Name) and t.id == "down_revision" for t in targets):
+            continue
+        try:
+            value = ast.literal_eval(value_node)
+        except ValueError:
+            return ()
+        if isinstance(value, str):
+            return (value,)
+        if isinstance(value, (tuple, list)):
+            return tuple(str(v) for v in value if v)
+        return ()
+    return ()
+
+
 def alembic_head(repo: Path, rev: str) -> tuple[str, str, str] | None:
     """(migrations directory, head revision, head file) of an Alembic history, read from git."""
     files = [
@@ -470,13 +501,13 @@ def alembic_head(repo: Path, rev: str) -> tuple[str, str, str] | None:
         for f in _git(repo, "ls-tree", "-r", "--name-only", rev).splitlines()
         if "/versions/" in f and f.endswith(".py")
     ]
-    revisions: dict[str, tuple[str, str]] = {}
+    revisions: dict[str, tuple[str, tuple[str, ...]]] = {}
     for path in files:
         text = _git(repo, "show", f"{rev}:{path}")
-        revision, down = _REVISION.search(text), _DOWN.search(text)
+        revision = _REVISION.search(text)
         if revision:
-            revisions[revision.group(1)] = (path, down.group(1) if down else "")
-    referenced = {down for _, down in revisions.values()}
+            revisions[revision.group(1)] = (path, _down_revisions(text))
+    referenced = {down for _, downs in revisions.values() for down in downs}
     heads = [r for r in revisions if r not in referenced]
     if len(heads) != 1:
         return None

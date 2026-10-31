@@ -217,3 +217,27 @@ def test_a_base_that_does_not_agree_with_itself_is_not_comparable() -> None:
                 _session("candidate", _listing([a2, a2, b2], 2))]  # fmt: skip
     ok, note = _same(sessions)
     assert ok is None and "base itself" in note
+
+
+def test_a_merge_migrations_parents_on_several_lines_leave_one_head(tmp_path: Path) -> None:
+    # codex-lb, stage 10: merge migrations write `down_revision = (\n "a",\n "b",\n)`; read as one string, every merged
+    # branch looked like a head, and the experiment was "not measurable: no single Alembic head".
+    import subprocess
+
+    from unbidden.lab.perf import alembic_head
+
+    versions = {
+        "a.py": 'revision = "a"\ndown_revision = None\n',
+        "b.py": 'revision = "b"\ndown_revision = "a"\n',
+        "c.py": 'revision = "c"\ndown_revision = "a"\n',
+        "m.py": 'revision: str = "m"\ndown_revision: tuple[str, str] = (\n    "b",\n    "c",\n)\n',
+    }
+    for name, text in versions.items():
+        (tmp_path / "alembic" / "versions").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "alembic" / "versions" / name).write_text(text)
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    head = alembic_head(tmp_path, "HEAD")
+    assert head is not None and head[1] == "m"
