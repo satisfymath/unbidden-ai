@@ -22,6 +22,7 @@ from pydantic import Field
 
 from unbidden.brain.prompts import load_prompt
 from unbidden.connect.base import Unavailable
+from unbidden.connect.pages import Completeness
 from unbidden.connect.postgres import QueryRefused, catalog, query, query_all
 from unbidden.connect.registry import COLLECTION as CONNECTIONS
 from unbidden.contracts.action import Action, ActionStatus
@@ -488,8 +489,15 @@ def _read(
     if not left or key not in left[0]:
         raise KeyError(f"the query's rows have no field {key!r}")
     joined = []
+    # A stored record the API does not report, when the API was read whole, is a discrepancy, not a row to skip
+    # (an equal total hides it): its API numbers are zero and the row is marked.
+    api_numbers = sorted({k for r in right for k, v in r.items() if k != key and isinstance(v, (int, float))
+                          and not isinstance(v, bool)})  # fmt: skip
+    api_whole = read.completeness is Completeness.COMPLETE
     for row in left:
         other = by_key.get(_as_key(row[key]))
+        if other is None and api_whole and api_numbers:
+            other = {k: 0 for k in api_numbers} | {"_absent_from_api": True}
         if other is not None:
             joined.append({**other, **{k: (float(v) if hasattr(v, "as_integer_ratio") else v) for k, v in row.items()}})
     # Keys with records in the API but no row in the query: nothing was ordered; their demand is zero. Only when the

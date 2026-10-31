@@ -133,7 +133,11 @@ def test_only_a_read_known_to_be_partial_blocks_everything(
             goals._read(store, mandate, plan, conns, {"api": integration}, run)  # pyright: ignore[reportPrivateUsage]
         return
     rows, partial = goals._read(store, mandate, plan, conns, {"api": integration}, run)  # pyright: ignore[reportPrivateUsage]
-    assert [r["slug"] for r in rows] == ["a"]  # only what was read is judged
+    if state == "complete":
+        # The API was read whole and does not report b: a stored record it lacks is a discrepancy, not a skipped row.
+        assert [r["slug"] for r in rows] == ["a", "b"] and rows[1].get("_absent_from_api") and rows[1]["shown"] == 0
+    else:
+        assert [r["slug"] for r in rows] == ["a"]  # only what was read is judged
     assert (partial is None) if outcome is None else partial == "why unknown"
 
 
@@ -286,3 +290,32 @@ def test_an_endpoint_declared_to_need_a_credential_is_probed_once_anonymously_ge
     assert answers_without_credential("http://127.0.0.1:1", "POST /v1/usage", client=client) is None
     assert answers_without_credential("http://127.0.0.1:1", "GET /v1/items/{id}", client=client) is None
     assert seen == ["GET /v1/usage -", "GET /v1/private -"]  # no credential ever sent
+
+
+def test_equal_totals_with_differing_records_filters_or_relations_are_discrepancies_not_agreement(
+    store: Store, mandate: Mandate, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A count that matches never shows the records agree: the comparison is record by record on the declared
+    quantity. Three shapes: a value differs; a filter hides one record and adds another (the same total); a
+    relation is attributed to another key (the same sum)."""
+    from unbidden.connect.pages import Completeness, Read
+    from unbidden.director.goals import evaluate
+
+    db = [{"id": "a", "n": 2}, {"id": "b", "n": 3}, {"id": "c", "n": 1}]  # total 6, three keys
+    api_value = [{"id": "a", "n": 2}, {"id": "b", "n": 2}, {"id": "c", "n": 2}]  # total 6, b and c differ
+    api_filter = [{"id": "a", "n": 2}, {"id": "b", "n": 3}, {"id": "d", "n": 1}]  # total 6, c hidden, d added
+    api_relation = [{"id": "a", "n": 3}, {"id": "b", "n": 2}, {"id": "c", "n": 1}]  # total 6, one unit moved
+    monkeypatch.setattr(goals, "query", lambda *a, **k: db)
+    integration: Any = type("I", (), {"op": lambda self, op_id: type("O", (), {"id": op_id})()})()
+    conns: Any = {"db": type("D", (), {"id": "postgres:x"})(), "api": type("C", (), {"id": "http_api:x"})()}
+    plan = {"key": "id", "sql": {"connection": "db", "query": "q"}, "api": {"connection": "api", "operation": "l"},
+            "shortfall": "n - n_api"}  # fmt: skip
+    for api, expected in ((api_value, {"b", "c"}), (api_filter, {"c", "d"}), (api_relation, {"a", "b"})):
+        records = [{"id": r["id"], "n_api": r["n"]} for r in api]
+        monkeypatch.setattr("unbidden.forge.api_client.read_collection",
+                            lambda *a, _r=records, **k: Read(_r, Completeness.COMPLETE, "whole", "offset", 1))  # fmt: skip
+        run = GoalRun(goal="g")
+        joined, _ = goals._read(store, mandate, plan, conns, {"api": integration}, run)  # pyright: ignore[reportPrivateUsage]
+        assert sum(r["n"] for r in db) == sum(r["n"] for r in api)  # the totals agree
+        differing = {r["id"] for r in joined if evaluate(plan["shortfall"], r) != 0}
+        assert differing == expected, (api, differing)
