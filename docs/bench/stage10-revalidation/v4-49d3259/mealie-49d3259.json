@@ -1,0 +1,37 @@
+{
+ "name": "mealie-49d3259",
+ "opportunity": "opp_8f2cf46bd8864983",
+ "title": "shopping_list_items.food_id is a foreign key without an index, filtered by 2 endpoint(s)",
+ "original_level": 4,
+ "base": "e31c5fcfd2892670158f4c189acdb06cde3180bf",
+ "product": "49d3259fb4a90b2588f66559333f893ba5204cbd",
+ "usd_before": 23.2629,
+ "verdict": null,
+ "experiment": null,
+ "blocked": "cannot measure: no workload was valid at the base after 5 attempts (workload attempt 5 not valid: the calls did not run a statement that reads shopping_list_items by food_id on every call (none on that table and column); only 0 rows were inserted into shopping_list_items; seed at least 200000; the request returned no data (first response: '[]'))",
+ "notes": [
+  "workload attempt 1 not valid: the calls did not run a statement that reads shopping_list_items by food_id on every call (none on that table and column); only 0 rows were inserted into shopping_list_items; seed at least 200000; the request returned no data (first response: '[]')",
+  "workload attempt 2 not valid: the calls did not run a statement that reads shopping_list_items by food_id on every call (none on that table and column); only 0 rows were inserted into shopping_list_items; seed at least 200000",
+  "workload attempt 3 not valid: the calls did not run a statement that reads shopping_list_items by food_id on every call (none on that table and column); only 0 rows were inserted into shopping_list_items; seed at least 200000",
+  "workload attempt 4 not valid: the calls did not run a statement that reads shopping_list_items by food_id on every call (none on that table and column); only 0 rows were inserted into shopping_list_items; seed at least 200000",
+  "workload attempt 5 not valid: the calls did not run a statement that reads shopping_list_items by food_id on every call (none on that table and column); only 0 rows were inserted into shopping_list_items; seed at least 200000; the request returned no data (first response: '[]')",
+  "cannot measure: no workload was valid at the base after 5 attempts (workload attempt 5 not valid: the calls did not run a statement that reads shopping_list_items by food_id on every call (none on that table and column); only 0 rows were inserted into shopping_list_items; seed at least 200000; the request returned no data (first response: '[]'))"
+ ],
+ "readiness": {
+  "checks_reproduced": {
+   "ok": false,
+   "why": "not recorded at this commit (the lab's own test runs decide)"
+  },
+  "environment_ready": {
+   "ok": true,
+   "why": "dependency image built; tests run by CI nightly.yml:backend-tests > tests (test-backend.yml) (its services: postgres); migrations at mealie/alembic/versions"
+  },
+  "workload_valid": {
+   "ok": false,
+   "why": "no workload was valid at the base after 5 attempts (workload attempt 5 not valid: the calls did not run a statement that reads shopping_list_items by food_id on every call (none on that table and column); only 0 rows were inserted into shopping_list_items; seed at least 200000; the request returned no data (first response: '[]'))"
+  }
+ },
+ "level_after": 1,
+ "usd_after": 23.3888,
+ "wall_s": 375.2
+}
