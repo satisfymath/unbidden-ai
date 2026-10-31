@@ -363,7 +363,9 @@ def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str]
         lock = "uv.lock" if "uv.lock" in files else None
         if lock is None:
             blind.append("pyproject.toml without uv.lock: dependencies resolved at provisioning time")
-        roots = tuple(dict.fromkeys([*members, "src", "."]))
+        # A member with a src layout imports from its src/ (Aegra, stage 10: libs/aegra-api/src/aegra_api).
+        member_src = [f"{m}/src" for m in members if any(f.startswith(f"{m}/src/") for f in files)]
+        roots = tuple(dict.fromkeys([*members, *member_src, "src", "."]))
         tests = _tests_under(files, (*members, "."))
         mypy = mypy_targets(_read(repo, rev, "pyproject.toml"), files, members) if '"mypy' in text else None
         uv = uv_settings(tomllib.loads(_read(repo, rev, "pyproject.toml")), version, files)

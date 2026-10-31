@@ -50,6 +50,22 @@ def test_uv_workspace_members_and_test_paths(tmp_path: Path) -> None:
     assert py.source_roots[0] == "backend" and py.test_paths == ("backend/tests",)
 
 
+def test_a_workspace_member_with_a_src_layout_imports_from_its_src(tmp_path: Path) -> None:
+    # Aegra, stage 10: libs/aegra-api/src/aegra_api; with only libs/aegra-api on the path, `import aegra_api` failed.
+    repo = commit(
+        tmp_path,
+        {
+            "pyproject.toml": '[project]\nname="root"\n[tool.uv.workspace]\nmembers=["libs/*"]\n',
+            "uv.lock": "",
+            "libs/api/pyproject.toml": '[project]\nname="api"\n',
+            "libs/api/src/api_pkg/__init__.py": "",
+            "libs/api/tests/test_a.py": "def test_a(): pass\n",
+        },
+    )
+    py = detect_stack(repo).python
+    assert py is not None and "libs/api/src" in py.source_roots
+
+
 def test_baseline_tool_when_no_linter_is_declared(tmp_path: Path) -> None:
     repo = commit(tmp_path, {"setup.py": "setup(install_requires=['x'])", "pkg/a.py": "y = undefined\n"})
     stack = detect_stack(repo)
