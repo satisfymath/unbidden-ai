@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
 
-from unbidden.lab.perf import index_candidate
+from unbidden.lab.perf import index_candidate, migration_name
 
 pytestmark = pytest.mark.unit
 
@@ -128,3 +129,20 @@ def test_a_table_kept_only_in_migrations_gets_the_migration_alone(tmp_path: Path
 
     ast.parse(migration, feature_version=(3, 8))  # valid syntax on every supported Python
     assert "|" not in migration  # no PEP 604 annotation: evaluated at import, a TypeError before 3.10
+
+
+def test_the_migration_is_named_as_the_project_names_its_own() -> None:
+    """codex-lb (stage 10, 3cf779d): its migration tests require ids like `20260816_000000_add_x` and files named
+    `<id>.py`; the hexadecimal candidate added three failures the base did not have."""
+    stamped = ("app/db/alembic/versions", "20260816_000000_add_model_source_embeddings",
+               "app/db/alembic/versions/20260816_000000_add_model_source_embeddings.py")  # fmt: skip
+    files = index_candidate(lambda _: MODELS, "shopping_list_items", "label_id", "app/models.py", stamped)
+    assert files is not None
+    (path,) = (p for p in files if p != "app/models.py")
+    assert path == "app/db/alembic/versions/20260816_000001_add_index_shopping_list_items_label_id.py"
+    assert 'revision = "20260816_000001_add_index_shopping_list_items_label_id"' in files[path]
+    assert 'down_revision = "20260816_000000_add_model_source_embeddings"' in files[path]
+    assert migration_name("t", "c", ("v", "013_add_dashboard", "v/013_add_dashboard.py")) == (
+        "014_add_index_t_c", "014_add_index_t_c.py")  # fmt: skip
+    revision, filename = migration_name("t", "c", HEAD)  # Alembic's default kept: a hexadecimal id, `<id>_<slug>.py`
+    assert re.fullmatch(r"[0-9a-f]{12}", revision) and filename == f"{revision}_add_index_t_c.py"

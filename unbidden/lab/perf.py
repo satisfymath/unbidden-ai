@@ -619,14 +619,36 @@ def index_candidate(
     if model and edited is None:
         return None
     migrations_dir, head_rev, _ = head
-    revision = hashlib.sha256(f"{table}.{column}:{head_rev}".encode()).hexdigest()[:12]
+    revision, filename = migration_name(table, column, head)
     name = f"ix_{table}_{column}"
     migration = _INDEX_MIGRATION.format(table=table, column=column, revision=revision, head_rev=head_rev, name=name)
     migration = in_house_style(migration, show(head[2]))
-    out = {f"{migrations_dir}/{revision}_add_index_{table}_{column}.py": migration}
+    out = {f"{migrations_dir}/{filename}": migration}
     if edited is not None:
         out[models_file] = edited
     return out
+
+
+_STAMPED_REVISION = re.compile(r"^(\d{8})_(\d{6})_[a-z0-9_]+$")
+_NUMBERED_REVISION = re.compile(r"^(\d+)_[a-z0-9_]+$")
+
+
+def migration_name(table: str, column: str, head: tuple[str, str, str]) -> tuple[str, str]:
+    """(revision id, file name) of the written migration in the project's own convention, read from its head as
+    `in_house_style` reads the head's style. Alembic's default is a hexadecimal id and `<id>_<slug>.py`; a project
+    that stamps its ids (`20260816_000000_add_x`: codex-lb, stage 10, whose migration tests check the id's shape
+    and that the file is named `<id>.py`) gets the head's stamp one second later and the slug in the id; a project
+    that numbers them (`013_add_x`) gets the next number. Deterministic: a rerun writes the same candidate."""
+    head_rev, head_file = head[1], Path(head[2]).name
+    slug = f"add_index_{table}_{column}"
+    if stamped := _STAMPED_REVISION.match(head_rev):
+        revision = f"{stamped.group(1)}_{int(stamped.group(2)) + 1:06d}_{slug}"
+    elif numbered := _NUMBERED_REVISION.match(head_rev):
+        revision = f"{int(numbered.group(1)) + 1:0{len(numbered.group(1))}d}_{slug}"
+    else:
+        revision = hashlib.sha256(f"{table}.{column}:{head_rev}".encode()).hexdigest()[:12]
+    filename = f"{revision}.py" if head_file == f"{head_rev}.py" or revision.endswith(slug) else f"{revision}_{slug}.py"
+    return revision, filename
 
 
 def _model_index(source: str, table: str, column: str) -> str | None:
