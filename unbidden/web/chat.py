@@ -608,7 +608,7 @@ class RulePlanner:
                             "title": title,
                             "dataRef": {"dataset": "experiment.samples", "params": {"experiment_id": exp.id}},
                             "view": {"kind": "distribution", "x": "ms", "series": "arm", "bins": 24},
-                            "entity": {"kind": "experiment", "id": exp.id},
+                            "entity": {"kind": "opportunity", "id": exp.opportunity_id},
                         },
                     )
                 ],

@@ -9,6 +9,14 @@ async function open(page: Page, ws = "demo:storefront-web") {
   await page.goto(`/?s=${TOKEN}`);
   await expect(page.locator(".widget").first()).toBeVisible({ timeout: 20_000 });
   await page.waitForTimeout(800);
+  await page.locator('button[aria-label="encuadrar todo"]').click(); // cards outside the viewport are not rendered
+  await page.waitForTimeout(700);
+}
+
+/** How many cards the canvas holds, rendered or not (only visible nodes are mounted). */
+async function cardCount(page: Page): Promise<number> {
+  const text = await page.locator(".saved-pill").textContent();
+  return Number(/(\d+) widgets/.exec(text ?? "")?.[1] ?? "0");
 }
 
 test("the page refuses to work without the session token and says so", async ({ page }) => {
@@ -22,7 +30,7 @@ test("open → understand → select → ask a chart → see it → evidence →
   await expect(page.locator(".topbar").getByText("UNBIDDEN")).toBeVisible();
   await expect(page.getByText("Demostración · datos ficticios")).toBeVisible();
   await expect(page.locator(".widget", { hasText: "Unbidden ahora" })).toBeVisible();
-  const before = await page.locator(".widget").count();
+  const before = await cardCount(page);
   expect(before).toBeGreaterThan(6);
 
   await page.locator(".widget-head", { hasText: "Hallazgo validado" }).click();
@@ -34,27 +42,27 @@ test("open → understand → select → ask a chart → see it → evidence →
   await expect(page.locator(".tool-line").first()).toContainText("create_widget", { timeout: 20_000 });
   await expect(page.locator(".msg.assistant").last()).toContainText("añadido");
   await page.keyboard.press("Escape");
-  await expect(page.locator(".widget")).toHaveCount(before + 1);
+  await expect(page.locator(".saved-pill")).toContainText(`${before + 1} widgets`);
   const chart = page.locator(".widget", { hasText: "Latencia antes y después" }).last();
   await expect(chart.locator(".recharts-bar")).toHaveCount(2, { timeout: 10_000 });
   await expect(chart.locator(".prov")).toContainText("demostración");
 
   await chart.locator('button[aria-label="menú de la tarjeta"]').click();
   await page.locator(".menu button", { hasText: "Inspeccionar" }).click();
-  const inspector = page.getByLabel("inspector");
+  const inspector = page.locator("aside.inspector");
   await expect(inspector).toBeVisible();
   await expect(inspector).toContainText("experiment.samples");
-  await expect(inspector).toContainText("experiment: exp_demo000000000001");
-  await expect(inspector).toContainText("verdict.recorded");
+  await expect(inspector).toContainText("opportunity: opp_demo000000000001");
+  await expect(inspector).toContainText("Veredicto registrado");
 
   await page.reload();
-  await expect(page.locator(".widget")).toHaveCount(before + 1, { timeout: 20_000 });
+  await expect(page.locator(".saved-pill")).toContainText(`${before + 1} widgets`, { timeout: 20_000 });
   await expect(page.locator(".widget", { hasText: "Latencia antes y después" }).last()).toBeVisible();
 });
 
 test("chat modifies, compares honestly and undoes; missing data is stated, not filled in", async ({ page }) => {
   await open(page);
-  const count = await page.locator(".widget").count();
+  const count = await cardCount(page);
   await page.keyboard.press("Meta+K");
   await page.locator(".dock input").fill("Grafica el gasto por corrida");
   await page.keyboard.press("Enter");
@@ -69,7 +77,8 @@ test("chat modifies, compares honestly and undoes; missing data is stated, not f
   await page.keyboard.press("Enter");
   await expect(page.locator(".msg.assistant").last()).toContainText("deshecho", { timeout: 20_000 });
   await page.keyboard.press("Escape");
-  await expect(page.locator(".widget")).toHaveCount(count + 1);
+  await expect(page.locator(".saved-pill")).toContainText(`${count + 1} widgets`);
+  await page.locator('button[aria-label="encuadrar todo"]').click();
   await expect(page.locator(".widget", { hasText: "Gasto por run" })).toHaveCount(1);
 });
 
@@ -104,6 +113,7 @@ test("drag, resize, zoom, multi-select, remove with undo, and scroll inside a ta
   await page.locator(".add-item", { hasText: "Tabla" }).click();
   const table = page.locator(".table-wrap").last();
   await expect(table).toBeVisible();
+  await page.waitForTimeout(1200); // the new card is focused with an animation; let the viewport settle first
   const vp = await page.evaluate(() => (document.querySelector(".react-flow__viewport") as HTMLElement).style.transform);
   const tb = (await table.boundingBox())!;
   await page.mouse.move(tb.x + 50, tb.y + 50);

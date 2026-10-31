@@ -7,6 +7,7 @@ Four APIs kept apart: read (`/summary`, `/opportunities`, `/data`...), presentat
 
 from __future__ import annotations
 
+import contextlib
 import json
 import mimetypes
 import re
@@ -696,10 +697,8 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
         do_GET = do_POST = do_PUT = do_DELETE = _handle
 
         def finish(self) -> None:
-            try:
+            with contextlib.suppress(BrokenPipeError, ConnectionResetError):  # the browser left mid-stream
                 super().finish()
-            except (BrokenPipeError, ConnectionResetError):  # the browser left mid-stream
-                pass
 
         def do_OPTIONS(self) -> None:  # no CORS preflight is ever granted: the page is same-origin
             self._send(Response(status=HTTPStatus.NO_CONTENT, raw=b"", content_type="text/plain"))

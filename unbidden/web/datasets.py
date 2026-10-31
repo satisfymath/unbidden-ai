@@ -18,7 +18,7 @@ from unbidden.contracts.connection import Connection
 from unbidden.contracts.experiment import Experiment, Proposal
 from unbidden.contracts.llm import ModelRun
 from unbidden.contracts.opportunity import Opportunity
-from unbidden.contracts.world import WorldModel
+from unbidden.contracts.world import Deployment, WorldModel
 from unbidden.director.activity import LEVELS
 from unbidden.web.contracts import Column, DataRef, DataResult, Transform
 
@@ -539,6 +539,12 @@ def _spend(source: Source, params: dict[str, Any]) -> tuple[list[Column], Rows, 
         for r in source.spend_rows()
     ]
     note = None if rows else "no remote call charged to this workspace in the machine's ledger"
+    if not rows and source.activity_override and (source.activity_override.get("spent") or {}).get("calls"):
+        spent = source.activity_override["spent"]
+        note = (
+            f"the published record keeps the total (US${spent.get('usd', 0):.4f} in {spent.get('calls')} calls), "
+            "not the ledger rows"
+        )
     return CATALOGUE["spend.calls"].fields, rows, note
 
 
@@ -711,9 +717,13 @@ def _connections(source: Source, params: dict[str, Any]) -> tuple[list[Column], 
     from unbidden.connect.registry import COLLECTION, summary
 
     rows = summary(source.store.list(COLLECTION, Connection))
+    note = None
+    if not rows and source.activity_override and source.activity_override.get("connections"):
+        rows = list(source.activity_override["connections"])  # the record's own summary, as the engine wrote it
+        note = "from the published summary; the connection documents themselves were not published"
     keep = [c.name for c in CATALOGUE["connections"].fields]
     rows = [{k: r.get(k) for k in keep} for r in rows]
-    return CATALOGUE["connections"].fields, rows, None if rows else "no connection surveyed yet"
+    return CATALOGUE["connections"].fields, rows, note if rows else "no connection surveyed yet"
 
 
 @dataset(
@@ -745,6 +755,42 @@ def _proposals(source: Source, params: dict[str, Any]) -> tuple[list[Column], Ro
         for p in source.store.list("proposals", Proposal)
     ]
     return CATALOGUE["proposals"].fields, rows, None if rows else "no proposal yet: nothing reached L4"
+
+
+@dataset(
+    "deployments",
+    "Deploys observed: which commit each set of containers ran, and how that is known",
+    [
+        ("index", "number", None),
+        ("environment", "string", None),
+        ("commit", "string", None),
+        ("commit_status", "string", None),
+        ("initiated_by", "string", None),
+        ("containers", "number", None),
+        ("seen_at", "datetime", None),
+        ("reason", "string", None),
+    ],
+)
+def _deployments(source: Source, params: dict[str, Any]) -> tuple[list[Column], Rows, str | None]:
+    rows = [
+        {
+            "index": d.index,
+            "environment": d.environment,
+            "commit": (d.commit or "")[:12],
+            "commit_status": d.commit_status,
+            "initiated_by": d.initiated_by,
+            "containers": len(d.containers),
+            "seen_at": _iso(d.seen_at),
+            "reason": d.commit_reason,
+        }
+        for d in source.store.list("deployments", Deployment)
+    ]
+    rows.sort(key=lambda r: r["index"])
+    return (
+        CATALOGUE["deployments"].fields,
+        rows,
+        None if rows else "no deploy observed (the ledger needs a running compose project)",
+    )
 
 
 @dataset(

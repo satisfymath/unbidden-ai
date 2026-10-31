@@ -34,8 +34,9 @@ that does it.
   `check_same_thread=False`, verifies `PRAGMA user_version <= SCHEMA_VERSION`, runs no migration, and inherits every
   read method, so `director.activity.build` runs unchanged on it. Every read is one short statement.
 - **`sources.py`**: a `Source` is a workspace in one of three modes, under the same contracts:
-  - `demo`: fixtures in `unbidden/web/fixtures/demo/` loaded through the real contracts into an in-memory `Store`;
-    labelled *demostración* everywhere.
+  - `demo`: fixtures built in code (`demo.py`, a fictional shop with a fixed seed) through the real contracts into an
+    in-memory `Store`; labelled *demostración* everywhere. `devseed.py` writes the same records through the engine's
+    `Store` into a development workspace, so the live reader and the event stream can be exercised without a run.
   - `historical`: a published record directory (`docs/bench/...`) loaded into an in-memory store; labelled
     *histórico* with the record's own timestamps; no event is ever presented as current.
   - `live`: a real workspace directory opened read-only; events stream from the `events` table by `seq`.
@@ -63,8 +64,14 @@ Layout: `src/shell/` (top bar, dock, inspector, mobile list), `src/canvas/` (flo
 `src/widgets/` (registry and one component per widget type), `src/data/` (API client, SSE client, dataset
 transforms), `src/chat/`, `src/contracts/` (zod schemas mirroring `docs/frontend/CONTRACTS.md`), `src/theme/`.
 
-Rendering budget: nodes outside the viewport render a light placeholder (`onlyRenderVisibleElements`), tables and
-logs are paginated and virtualised, charts cap their points and say so.
+Rendering budget: nodes outside the viewport are not mounted (`onlyRenderVisibleElements`), tables and logs are
+paginated and virtualised, charts cap their points and say so.
+
+Ownership on the canvas: React Flow owns the selection and mirrors it one way into the store (`onSelectionChange`);
+the store owns positions, sizes, edges and the viewport, saved debounced and serialised (one save in flight, each
+reading the version the previous one left). Rebuilding nodes from the store keeps each node's measured size and
+selected flag, so the two never ping-pong. A programmatic focus (a chat result, "Ver widget") selects in React Flow
+first and then fits the view to that card.
 
 ## Composition of the workspace
 

@@ -41,10 +41,18 @@ function Inner() {
   const fitted = useRef(false);
 
   const widgets = presentation?.widgets;
+  // React Flow owns the selection (mirrored one way into the store); the canvas owns positions and sizes. Rebuilding
+  // nodes from the store keeps each node's selected flag, so the two never ping-pong. On the first build (a mount,
+  // or a return to this tab) the store's selection seeds it.
+  const selectionRef = useRef(selection);
+  useEffect(() => {
+    selectionRef.current = selection;
+  }, [selection]);
   useEffect(() => {
     if (!widgets || dragging.current) return;
     setNodes((prev) => {
       const prevById = new Map(prev.map((n) => [n.id, n]));
+      const seed = prev.length === 0;
       return widgets.map((w) => {
         const p = prevById.get(w.id);
         return {
@@ -55,13 +63,14 @@ function Inner() {
           height: w.size.h,
           data: { spec: w },
           dragHandle: ".widget-handle",
-          zIndex: w.z + (selection.includes(w.id) ? 1000 : 0),
-          selected: selection.includes(w.id),
+          zIndex: w.z,
+          selected: p ? (p.selected ?? false) : seed && selectionRef.current.includes(w.id),
+          ...(p?.measured ? { measured: p.measured } : {}),
           ...(p && p.dragging ? { position: p.position } : {}),
         };
       });
     });
-  }, [widgets, selection]);
+  }, [widgets]);
 
   const edges = useMemo<LinkEdgeType[]>(() => {
     const byId = new Map((presentation?.widgets ?? []).map((w) => [w.id, w]));
@@ -99,6 +108,7 @@ function Inner() {
   useEffect(() => {
     if (!focusWidget) return;
     const t = window.setTimeout(() => {
+      setNodes((ns) => ns.map((n) => ({ ...n, selected: n.id === focusWidget })));
       void rf.fitView({ nodes: [{ id: focusWidget }], padding: { top: "140px", bottom: "140px", left: "200px", right: "200px" }, maxZoom: 1, duration: reducedMotion ? 0 : 500 });
       focus(null);
     }, 80);
