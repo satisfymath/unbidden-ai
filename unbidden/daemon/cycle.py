@@ -360,10 +360,12 @@ class Cycle:
                 # One experiment per attempt at each commit (a lab blocked at one commit runs again at the next) and
                 # per reopening: a reopened opportunity's attempts start again under a new key.
                 rev, reopened = str(opp.details.get("rev", ""))[:12], int(opp.details.get("reopened", 0))
+                # One repeat after a measurement deferred by a busy host (MAX_DEFERRAL_REPEATS), recorded as such.
+                deferrals = min(int(opp.details.get("deferrals", 0)), MAX_DEFERRAL_REPEATS)
                 if self.store.enqueue(
                     job(
                         "lab.experiment",
-                        f"{opp.id}:{rev}:r{reopened}:{attempts}",
+                        f"{opp.id}:{rev}:r{reopened}:{attempts}" + (f":d{deferrals}" if deferrals else ""),
                         {"id": opp.id},
                         correlation_id=opp.id,
                     )
@@ -557,6 +559,10 @@ class Cycle:
         elif blocked:
             # Nothing ran: what is missing is Unbidden's, not evidence against the opportunity.
             opp.details = {**opp.details, "blocked": {"rev": opp.details.get("rev"), "why": blocked}}
+            if str(blocked).startswith("deferred:"):
+                # The host was busy: the measurement is repeated once more at this commit (the sweep queues it
+                # under a new key), then stays deferred; the attempt is not counted against the opportunity.
+                opp.details = {**opp.details, "deferrals": int(opp.details.get("deferrals", 0)) + 1}
             self.store.put("opportunities", opp)
             self.log(f"{opp.id}: not measured ({blocked})")
         elif result.verdict is not None and result.verdict.improved:
@@ -916,6 +922,7 @@ def checked_dirs(repo: Path, head: str) -> tuple[str, ...]:
 
 
 RETRY = timedelta(minutes=2)
+MAX_DEFERRAL_REPEATS = 1  # a measurement deferred by a busy host is repeated at most once per commit
 
 # A job that runs past its limit is cancelled and retried later, so one hung call never stops the worker. Lab work
 # (builds, test rounds on both sides) is long by nature; everything else should be quick.

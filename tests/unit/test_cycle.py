@@ -78,3 +78,25 @@ async def test_one_sweep_waits_at_a_time(store: Store, mandate: Mandate) -> None
     for i in range(5):
         cycle._wake(f"after:{i}")  # pyright: ignore[reportPrivateUsage]
     assert len([j for j in store.jobs() if j.type == "director.sweep"]) == 1
+
+
+async def test_a_measurement_deferred_by_a_busy_host_is_repeated_once_then_stays_deferred(
+    store: Store, mandate: Mandate
+) -> None:
+    """Campaign to v1.0 (section 6): a predefined retry policy; an attempt the host prevented is not counted."""
+    _opps(store, 1)
+    cycle = make_cycle(store, mandate)
+    sweep = Job(type="director.sweep", idempotency_key="s")
+    await cycle.director_sweep(sweep)
+    assert len([j for j in store.jobs() if j.type == "lab.experiment"]) == 1
+    opp = store.list("opportunities", Opportunity)[0]
+    opp.details = {**opp.details, "blocked": {"why": "deferred: the host is busy"}, "deferrals": 1}
+    store.put("opportunities", opp, key=opp.dedup_key)
+    await cycle.director_sweep(sweep)
+    jobs = [j for j in store.jobs() if j.type == "lab.experiment"]
+    assert len(jobs) == 2 and jobs[-1].idempotency_key.endswith(":d1")  # one repeat
+    opp.details = {**opp.details, "deferrals": 2}
+    store.put("opportunities", opp, key=opp.dedup_key)
+    await cycle.director_sweep(sweep)
+    assert len([j for j in store.jobs() if j.type == "lab.experiment"]) == 2  # no third try at this commit
+    assert int(opp.details.get("attempts", 0)) == 0  # never counted as a failed attempt
