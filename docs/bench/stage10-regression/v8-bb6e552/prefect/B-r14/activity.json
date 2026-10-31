@@ -1,0 +1,422 @@
+{
+  "workspace": "prefect",
+  "at": "2026-10-31T05:21:01.718271+00:00",
+  "discovered": {
+    "total": 863,
+    "by_status": {
+      "open": 562,
+      "declined": 281,
+      "proposed": 3,
+      "experimenting": 17
+    }
+  },
+  "experimenting": [
+    {
+      "id": "opp_dae3699577fe476a",
+      "title": "1 pyright error in benches/bench_import.py",
+      "level": 4,
+      "status": "experimenting"
+    },
+    {
+      "id": "opp_238671d74c6b4d03",
+      "title": "1 pyright error in benches/bench_tasks.py",
+      "level": 4,
+      "status": "experimenting"
+    },
+    {
+      "id": "opp_8191874f63a1476e",
+      "title": "2 pyright errors in client/client_deploy.py",
+      "level": 4,
+      "status": "experimenting"
+    },
+    {
+      "id": "opp_acc9768dc36f4235",
+      "title": "7 pyright errors in examples/ai_database_cleanup_with_approval.py",
+      "level": 4,
+      "status": "experimenting"
+    },
+    {
+      "id": "opp_0644e01c73764f6a",
+      "title": "1 pyright error in examples/run_api_sourced_etl.py",
+      "level": 4,
+      "status": "experimenting"
+    },
+    {
+      "id": "opp_4444572c03804066",
+      "title": "1 pyright error in examples/run_dbt_with_prefect.py",
+      "level": 4,
+      "status": "experimenting"
+    },
+    {
+      "id": "opp_762b73a7cc8b407d",
+      "title": "1 pyright error in examples/simple_web_scraper.py",
+      "level": 4,
+      "status": "experimenting"
+    },
+    {
+      "id": "opp_b4d8f29ea4bf4565",
+      "title": "2 pyright errors in integration-tests/test_client_context_lifespan.py",
+      "level": 4,
+      "status": "experimenting"
+    },
+    {
+      "id": "opp_681e4b45c1cd406f",
+      "title": "2 pyright errors in integration-tests/test_flow_pauses.py",
+      "level": 4,
+      "status": "experimenting"
+    },
+    {
+      "id": "opp_3f9c828176104e8f",
+      "title": "1 pyright error in integration-tests/test_flow_results.py",
+      "level": 4,
+      "status": "experimenting"
+    },
+    {
+      "id": "opp_e39e602794ab4474",
+      "title": "3 pyright errors in integration-tests/test_flow_suspension.py",
+      "level": 4,
+      "status": "experimenting"
+    },
+    {
+      "id": "opp_4421411e99344897",
+      "title": "3 pyright errors in integration-tests/test_multiprocessing_flow.py",
+      "level": 4,
+      "status": "experimenting"
+    },
+    {
+      "id": "opp_5e58c33f83ab46a5",
+      "title": "1 pyright error in integration-tests/test_secret_block.py",
+      "level": 4,
+      "status": "experimenting"
+    },
+    {
+      "id": "opp_c5cb7e5e3a9b49ad",
+      "title": "1 pyright error in integration-tests/test_worker.py",
+      "level": 4,
+      "status": "experimenting"
+    },
+    {
+      "id": "opp_b7a246024f49419f",
+      "title": "4 pyright errors in scripts/generate_cli_docs.py",
+      "level": 4,
+      "status": "experimenting"
+    },
+    {
+      "id": "opp_dc3c27325c874c8a",
+      "title": "2 pyright errors in scripts/validate_collection_view_content.py",
+      "level": 4,
+      "status": "experimenting"
+    },
+    {
+      "id": "opp_15e1a0dae5cb47a0",
+      "title": "3 pyright errors in src/integrations/prefect-aws/infra/app.py",
+      "level": 4,
+      "status": "experimenting"
+    }
+  ],
+  "declined_because": [
+    [
+      "the team's CI does not run ruff: its style is not the team's standard",
+      281
+    ]
+  ],
+  "waiting_because": [
+    [
+      "investigation queued or running",
+      1
+    ]
+  ],
+  "proven": [
+    {
+      "id": "opp_00b58a88c42e4a86",
+      "title": "3 pyright errors in benches/bench_block_schemas.py",
+      "level": 4,
+      "status": "proposed",
+      "level_name": "validated",
+      "outcome": null,
+      "held_checks": 0,
+      "current_rules": null,
+      "pending_revalidation": null
+    },
+    {
+      "id": "opp_793025ab08534ea5",
+      "title": "4 pyright errors in benches/bench_count_flow_runs.py",
+      "level": 4,
+      "status": "proposed",
+      "level_name": "validated",
+      "outcome": null,
+      "held_checks": 0,
+      "current_rules": null,
+      "pending_revalidation": null
+    },
+    {
+      "id": "opp_ccd39966ee58475f",
+      "title": "1 pyright error in benches/bench_flows.py",
+      "level": 4,
+      "status": "proposed",
+      "level_name": "validated",
+      "outcome": null,
+      "held_checks": 0,
+      "current_rules": null,
+      "pending_revalidation": null
+    },
+    {
+      "id": "opp_dae3699577fe476a",
+      "title": "1 pyright error in benches/bench_import.py",
+      "level": 4,
+      "status": "experimenting",
+      "level_name": "validated",
+      "outcome": null,
+      "held_checks": 0,
+      "current_rules": null,
+      "pending_revalidation": null
+    },
+    {
+      "id": "opp_238671d74c6b4d03",
+      "title": "1 pyright error in benches/bench_tasks.py",
+      "level": 4,
+      "status": "experimenting",
+      "level_name": "validated",
+      "outcome": null,
+      "held_checks": 0,
+      "current_rules": null,
+      "pending_revalidation": null
+    },
+    {
+      "id": "opp_8191874f63a1476e",
+      "title": "2 pyright errors in client/client_deploy.py",
+      "level": 4,
+      "status": "experimenting",
+      "level_name": "validated",
+      "outcome": null,
+      "held_checks": 0,
+      "current_rules": null,
+      "pending_revalidation": null
+    },
+    {
+      "id": "opp_acc9768dc36f4235",
+      "title": "7 pyright errors in examples/ai_database_cleanup_with_approval.py",
+      "level": 4,
+      "status": "experimenting",
+      "level_name": "validated",
+      "outcome": null,
+      "held_checks": 0,
+      "current_rules": null,
+      "pending_revalidation": null
+    },
+    {
+      "id": "opp_0644e01c73764f6a",
+      "title": "1 pyright error in examples/run_api_sourced_etl.py",
+      "level": 4,
+      "status": "experimenting",
+      "level_name": "validated",
+      "outcome": null,
+      "held_checks": 0,
+      "current_rules": null,
+      "pending_revalidation": null
+    }
+  ],
+  "project_checks": {
+    "rev": "1ef3e516d3b3449d19f65b30c45d1e0bff656396",
+    "at": "2026-10-30T23:27:44.369822+00:00",
+    "status": "failed",
+    "collected": 1033,
+    "failed": [
+      "tests._internal.test_release_workflows::test_prerelease_tag_validation_does_not_execute_ref[.github/workflows/docker-images.yaml]",
+      "tests._internal.test_release_workflows::test_prerelease_tag_validation_does_not_execute_ref[.github/workflows/prefect-client-publish.yaml]",
+      "tests._internal.test_release_workflows::test_prerelease_tag_validation_does_not_execute_ref[.github/workflows/python-package.yaml]",
+      "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[-True]",
+      "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7-True]",
+      "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7.dev1-False]",
+      "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7.dev12-False]",
+      "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7.dev1;touch injected-True]",
+      "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7a1-True]",
+      "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7b1-True]",
+      "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7rc1-True]"
+    ],
+    "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nset +e\npytest tests --ignore=tests/typesafety  -m \"not windows\"  --numprocesses logical  --maxprocesses 6  --dist worksteal  --disable-",
+    "scope": "matrix entry 1 of 18 (group=1, database=postgres:14, python-version=3.12); pytest-split group 1 of 18",
+    "partial": true,
+    "notes": [
+      "2 step(s) after the tests left out (they run no tests)",
+      "left out, it needs another job's artifact (test-durations-1.json): duration_path=\"test-durations-1.json\"",
+      "left out, it needs another job's artifact (test-durations.json): jq '.\"__pytest_split_incomplete__\" = -1'  test-durations.json > \"$duration_path\""
+    ]
+  },
+  "experiments_wait": null,
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {
+    "ready": [
+      "fix: 3 pyright errors in benches/bench_block_schemas.py",
+      "fix: 4 pyright errors in benches/bench_count_flow_runs.py",
+      "fix: 1 pyright error in benches/bench_flows.py"
+    ]
+  },
+  "capabilities": {
+    "needs": {
+      "abandoned": 1
+    },
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 496,
+    "usd": 3.1367,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {
+    "pyright \u00b7 types \u00b7 python": {
+      "successes": 20,
+      "failures": 8,
+      "p": 0.71,
+      "prior": 0.6
+    }
+  },
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55470/prefect",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.agent",
+        "select public.alembic_version",
+        "select public.artifact",
+        "select public.artifact_collection",
+        "select public.automation",
+        "select public.automation_bucket",
+        "select public.automation_event_follower",
+        "select public.automation_held_event",
+        "select public.automation_related_resource",
+        "select public.block_document",
+        "select public.block_document_reference",
+        "select public.block_schema",
+        "select public.block_schema_reference",
+        "select public.block_type",
+        "select public.composite_trigger_child_firing",
+        "select public.concurrency_limit",
+        "select public.concurrency_limit_v2",
+        "select public.configuration",
+        "select public.csrf_token",
+        "select public.deployment",
+        "select public.deployment_schedule",
+        "select public.deployment_version",
+        "select public.event_resources",
+        "select public.events",
+        "select public.flow",
+        "select public.flow_run",
+        "select public.flow_run_input",
+        "select public.flow_run_state",
+        "select public.log",
+        "select public.saved_search",
+        "select public.task_run",
+        "select public.task_run_state",
+        "select public.task_run_state_cache",
+        "select public.variable",
+        "select public.work_pool",
+        "select public.work_queue",
+        "select public.worker"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-31T03:51:02.409976+00:00"
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18140",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "Prefect REST API: 187 operations documented, authenticated by nothing; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-31T03:51:02.428095+00:00"
+    }
+  ],
+  "needs_a_person": [],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [
+    {
+      "id": "int_048dffaad6094847",
+      "title": "Prefect REST API",
+      "on": "http_api:http://127.0.0.1:18140",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "read_account_events_page_events_filter_next_get": "read"
+      },
+      "oracle": {
+        "read_account_events_page_events_filter_next_get": "read failed: read_account_events_page_events_filter_next_get needs page-token; None, 0 records, read not at all (); ; without the key: None"
+      }
+    },
+    {
+      "id": "int_7ff9f185f70f4f91",
+      "title": "Prefect REST API",
+      "on": "http_api:http://127.0.0.1:18140",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "read_events_events_filter_post": "write",
+        "read_account_events_page_events_filter_next_get": "read"
+      },
+      "oracle": {
+        "read_account_events_page_events_filter_next_get": "read failed: read_account_events_page_events_filter_next_get needs page-token; None, 0 records, read not at all (); ; without the key: None",
+        "read_events_events_filter_post": "not exercised: the grant prefect-api allows ['read'], not write:events"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "consistency-opp_ecf8cbd5f16f4f20",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for prefect-api",
+      "at": "2026-10-30T23:29:10.473322+00:00"
+    }
+  ]
+}
