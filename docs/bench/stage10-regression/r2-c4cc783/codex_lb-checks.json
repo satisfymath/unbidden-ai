@@ -1,0 +1,28 @@
+{
+ "repo": "/Users/david/unbidden-lab/codex-lb",
+ "rev": "84fde5a1ed5e0d5a58ccb3ec4b82938b059bf8c5",
+ "image": "unbidden-deps-python:6c3e0e26af90c71e",
+ "image_notes": [
+  "python 3.13: from the CI's python-version",
+  "pyproject requires-python: >=3.13",
+  "the CI's python-version: 3.13",
+  "the project's Dockerfile: 3.14",
+  "conflict: concrete sources disagree: the CI's python-version 3.13; the project's Dockerfile 3.14",
+  "image unbidden-deps-python:6c3e0e26af90c71e on linux/arm64"
+ ],
+ "python": "3.13",
+ "status": "infra_failed",
+ "collected": null,
+ "failed": [
+  "<suite>"
+ ],
+ "why": "exit 2: Building codex-lb @ file:///work\nerror: Failed to build `codex-lb @ file:///work`\n  cause: Failed to resolve requirements from `build-system.requires`\n  cause: No solution found when resolving: `hatchling==1.32.0`\n  cause: Request failed after 3 retries in 10.6s\n  cause: Failed to fetch: https://pypi.org/simple/hatchling/\n  cause: error sending request for url (https://pypi.org/simple/hatchling/)\n  cause: client error (Connect)\n  cause: dns error\n  cause: error resolving DNS\n  cause: failed to lookup address information: Temporary failure in name resolution",
+ "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\n(PYTHONFAULTHANDLER=1 uv run pytest -q -ra -o faulthandler_timeout=300 -o faulthandler_exit_on_timeout=true --timeout=180 --timeout-method=thread --durations=20 tests/unit tests/test_request_logs_options_api.py)",
+ "scope": "matrix entry 1 of 3 (slice=unit)",
+ "partial": true,
+ "notes": [
+  "condition `needs.changes.outputs.backend=='true'` is not known outside GitHub: the branch that runs the tests is taken, its negation (1 step(s)) left out",
+  "left out, a JavaScript build in a Python job (2 line(s), e.g. (cd frontend && bun install --frozen-lockfile)): tests that read its output fail and say so"
+ ],
+ "wall_s": 18.8
+}

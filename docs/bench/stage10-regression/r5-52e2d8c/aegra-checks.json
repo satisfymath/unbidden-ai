@@ -1,0 +1,25 @@
+{
+ "repo": "/Users/david/unbidden-lab/aegra",
+ "rev": "46055c0b9adffe51fb168974f79dfadaa6edd612",
+ "image": "unbidden-deps-python:ec926d7f0c94b0ba",
+ "image_notes": [
+  "python 3.12: from .python-version",
+  "pyproject requires-python: >=3.12",
+  ".python-version: 3.12",
+  "image unbidden-deps-python:ec926d7f0c94b0ba on linux/arm64"
+ ],
+ "python": "3.12",
+ "status": "infra_failed",
+ "collected": null,
+ "failed": [
+  "<suite>"
+ ],
+ "why": "exit 4: ImportError while loading conftest '/work/libs/aegra-api/tests/conftest.py'.\nlibs/aegra-api/tests/conftest.py:13: in <module>\n    from tests.fixtures.clients import (\nlibs/aegra-api/tests/fixtures/clients.py:6: in <module>\n    from aegra_api.core.auth_deps import get_current_user, require_auth\nlibs/aegra-api/src/aegra_api/__init__.py:5: in <module>\n    __version__ = version(\"aegra-api\")\n                  ^^^^^^^^^^^^^^^^^^^^\nE   importlib.metadata.PackageNotFoundError: No package metadata was found for aegra-api",
+ "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest libs/aegra-api/tests/unit libs/aegra-api/tests/integration --cov=libs/aegra-api/src --cov-report=xml --cov-report=term",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [
+  "the job's `uv python install 3.12` is satisfied by the image's Python 3.12, chosen when it was provisioned"
+ ],
+ "wall_s": 3.2
+}

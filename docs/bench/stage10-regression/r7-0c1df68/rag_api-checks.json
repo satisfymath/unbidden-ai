@@ -1,0 +1,25 @@
+{
+ "repo": "/Users/david/unbidden-lab/rag-api",
+ "rev": "4985b37b8b5d4519d68eceedfef1e63624012f9d",
+ "image": "unbidden-deps-python:c3826707193716c8",
+ "image_notes": [
+  "python 3.12: where the CI runs the checks and the project's Dockerfile both use it",
+  "the CI's python-version: 3.12",
+  "the project's Dockerfile: 3.12",
+  "image unbidden-deps-python:c3826707193716c8 on linux/arm64"
+ ],
+ "python": "3.12",
+ "status": "infra_failed",
+ "collected": null,
+ "failed": [
+  "<suite>"
+ ],
+ "why": "exit 1: NAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.\n--------------- generated xml file: /work/test-results-unit.xml ----------------\n=========================== short test summary info ============================\nERROR tests/integration/test_database.py - openai.OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n=============================== 1 error in 3.86s ===============================",
+ "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest --maxfail=1 --disable-warnings --junitxml=test-results-unit.xml",
+ "scope": "the whole job, without its tests that need a container runtime",
+ "partial": false,
+ "notes": [
+  "left out, it needs a container runtime (tests/integration/conftest.py imports testcontainers): the sandbox has none and never gets the host's Docker socket: pytest -m integration --maxfail=3 --disable-warnings --junitxml=test-results-integration.xml"
+ ],
+ "wall_s": 290.9
+}
