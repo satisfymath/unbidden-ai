@@ -1,0 +1,558 @@
+{
+  "workspace": "codex_lb",
+  "at": "2026-10-31T19:47:51.306978+00:00",
+  "discovered": {
+    "total": 11,
+    "by_status": {
+      "open": 10,
+      "declined": 1
+    }
+  },
+  "experimenting": [],
+  "declined_because": [
+    [
+      "the numbers agree with the stored data over a whole read: 0 of 2000 keys differ",
+      1
+    ]
+  ],
+  "waiting_because": [
+    [
+      "failed: reads: \"the query's rows have no field 'id'\"",
+      2
+    ],
+    [
+      "investigation queued or running",
+      2
+    ],
+    [
+      "failed: reads: \"the query's rows have no field 'conversationId'\"",
+      1
+    ],
+    [
+      "blocked: GET /api/fleet/observability accepts http:bearer; the granted credential is not of that kind (without one it answers 401)",
+      1
+    ],
+    [
+      "failed: reads: 'the plan names a connection that cannot be read'",
+      1
+    ],
+    [
+      "failed: reads: \"the query's rows have no field 'key'\"",
+      1
+    ],
+    [
+      "not measurable at this commit: cannot measure: no workload was valid at the base after 5 attempts (workload attempt 5 failed: no output)",
+      1
+    ],
+    [
+      "blocked: GET /v1/usage accepts http:bearer; the granted credential is not of that kind (without one it answers 401)",
+      1
+    ]
+  ],
+  "proven": [],
+  "project_checks": {
+    "rev": "84fde5a1ed5e0d5a58ccb3ec4b82938b059bf8c5",
+    "at": "2026-10-31T19:34:44.068763+00:00",
+    "status": "failed",
+    "collected": 6422,
+    "failed": [
+      "tests.unit.test_cleanup_superseded_beta_prs::test_cleanup_script_dry_run_lists_superseded_pr",
+      "tests.unit.test_codex_review_wrapper::test_codex_review_wrapper_forwards_supported_arguments_without_removed_flags[base]",
+      "tests.unit.test_codex_review_wrapper::test_codex_review_wrapper_forwards_supported_arguments_without_removed_flags[commit]",
+      "tests.unit.test_codex_review_wrapper::test_codex_review_wrapper_forwards_supported_arguments_without_removed_flags[uncommitted]",
+      "tests.unit.test_guard_beta_release::test_pr_guard_accepts_dependency_only_package_json_edits_on_beta_base",
+      "tests.unit.test_guard_beta_release::test_pr_guard_accepts_dependency_only_release_managed_file_edits",
+      "tests.unit.test_guard_beta_release::test_pr_guard_accepts_invalid_beta_prefixed_branch_when_release_metadata_is_unchanged",
+      "tests.unit.test_guard_beta_release::test_pr_guard_accepts_noncanonical_noop_on_inconsistent_release_metadata_base",
+      "tests.unit.test_guard_beta_release::test_pr_guard_accepts_pep440_uv_lock_beta_version_on_dependency_edits",
+      "tests.unit.test_guard_beta_release::test_pr_guard_accepts_validated_canonical_beta_pr",
+      "tests.unit.test_guard_beta_release::test_pr_guard_rejects_beta_metadata_from_noncanonical_branch",
+      "tests.unit.test_guard_beta_release::test_pr_guard_rejects_canonical_beta_pr_without_validation_evidence",
+      "tests.unit.test_guard_beta_release::test_pr_guard_rejects_canonical_beta_pr_without_validation_evidence_when_metadata_unchanged",
+      "tests.unit.test_guard_beta_release::test_pr_guard_rejects_forked_canonical_beta_branch",
+      "tests.unit.test_guard_beta_release::test_pr_guard_rejects_inconsistent_release_managed_beta_metadata",
+      "tests.unit.test_guard_beta_release::test_pr_guard_rejects_pep440_beta_version_in_non_lock_release_file_on_beta_base[frontend/package.json-<lambda>]",
+      "tests.unit.test_guard_beta_release::test_pr_guard_rejects_pep440_beta_version_in_non_lock_release_file_on_beta_base[pyproject.toml-<lambda>]",
+      "tests.unit.test_guard_beta_release::test_publish_guard_accepts_validated_merged_canonical_beta_pr",
+      "tests.unit.test_guard_beta_release::test_publish_guard_rejects_forked_canonical_beta_branch",
+      "tests.unit.test_guard_beta_release::test_publish_guard_rejects_merge_tree_that_differs_from_validated_head",
+      "tests.unit.test_guard_beta_release::test_publish_guard_rejects_stale_candidate_sha_evidence",
+      "tests.unit.test_guard_stable_release::test_stable_guard_accepts_consistent_release_please_stable_pr",
+      "tests.unit.test_guard_stable_release::test_stable_guard_accepts_merge_queue_without_head_ref_after_pr_gate",
+      "tests.unit.test_guard_stable_release::test_stable_guard_allows_non_promotion_metadata_repair_branch",
+      "tests.unit.test_guard_stable_release::test_stable_guard_rejects_release_please_pr_missing_uv_lock_update",
+      "tests.unit.test_guard_stable_release::test_stable_guard_rejects_stable_promotion_from_non_release_please_branch",
+      "tests.unit.test_proxy_http_bridge::test_http_bridge_rejected_dead_owner_recovery_code_is_not_emitted_from_app",
+      "tests.unit.test_release_versions::test_next_beta_number_uses_existing_tags",
+      "tests.unit.test_release_versions::test_prepare_beta_release_creates_next_beta_for_feature_commit",
+      "tests.unit.test_release_versions::test_prepare_beta_release_skips_ci_only_commit_after_latest_beta",
+      "tests.unit.test_release_versions::test_releasable_commits_since_ignores_post_beta_ci_only_commit",
+      "tests.unit.test_release_versions::test_releasable_commits_since_keeps_post_beta_feature_commit",
+      "tests.unit.test_release_versions::test_tag_targets_head_detects_covered_beta_merge",
+      "tests.unit.test_repository_artifacts::test_codex_sandbox_symlink_is_not_tracked"
+    ],
+    "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\n(PYTHONFAULTHANDLER=1 pytest -q -ra -o faulthandler_timeout=300 -o faulthandler_exit_on_timeout=true --timeout=180 --timeout-method=thr",
+    "scope": "matrix entry 1 of 3 (slice=unit)",
+    "partial": true,
+    "notes": [
+      "condition `needs.changes.outputs.backend=='true'` is not known outside GitHub: the branch that runs the tests is taken, its negation (1 step(s)) left out",
+      "left out, a JavaScript build in a Python job (2 line(s), e.g. (cd frontend && bun install --frozen-lockfile)): tests that read its output fail and say so"
+    ]
+  },
+  "experiments_wait": null,
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {
+      "in_use": 5,
+      "abandoned": 2
+    },
+    "awaiting_approval": [],
+    "in_use": [
+      {
+        "kind": "api_client",
+        "source": "http_api:http://127.0.0.1:18150"
+      },
+      {
+        "kind": "api_extension",
+        "source": "http_api:http://127.0.0.1:18150#list_conversations_api_conversations_get"
+      },
+      {
+        "kind": "api_extension",
+        "source": "http_api:http://127.0.0.1:18150#get_overview_api_dashboard_overview_get"
+      },
+      {
+        "kind": "api_extension",
+        "source": "http_api:http://127.0.0.1:18150#get_reports_api_reports_get"
+      },
+      {
+        "kind": "api_extension",
+        "source": "http_api:http://127.0.0.1:18150#list_sticky_sessions_api_sticky_sessions_get"
+      }
+    ]
+  },
+  "spent": {
+    "calls": 355,
+    "usd": 2.0996,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18150",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "list_automations_api_automations_get",
+        "list_automations_runs_api_automations_runs_get",
+        "list_conversations_api_conversations_get",
+        "get_overview_api_dashboard_overview_get",
+        "get_reports_api_reports_get",
+        "list_sticky_sessions_api_sticky_sessions_get"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-31T19:47:50.514105+00:00"
+    },
+    {
+      "id": "postgres:127.0.0.1:55480/codex_lb",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.account_limit_warmups",
+        "select public.account_plan_downgrade_observations",
+        "select public.account_proxy_bindings",
+        "select public.account_refresh_claims",
+        "select public.account_usage_rollup_state",
+        "select public.account_usage_rollups",
+        "select public.accounts",
+        "select public.additional_usage_history",
+        "select public.alembic_version",
+        "select public.api_firewall_allowlist",
+        "select public.api_key_accounts",
+        "select public.api_key_limits",
+        "select public.api_key_model_sources",
+        "select public.api_key_usage_reservation_items",
+        "select public.api_key_usage_reservations",
+        "select public.api_key_usage_rollups",
+        "select public.api_keys",
+        "select public.audit_logs",
+        "select public.automation_job_accounts",
+        "select public.automation_jobs",
+        "select public.automation_run_cycle_accounts",
+        "select public.automation_run_cycles",
+        "select public.automation_runs",
+        "select public.bridge_ring_members",
+        "select public.cache_invalidation",
+        "select public.capability_lineage_markers",
+        "select public.dashboard_settings",
+        "select public.file_account_pins",
+        "select public.http_bridge_operation_events",
+        "select public.http_bridge_operations",
+        "select public.http_bridge_recovery_attempts",
+        "select public.http_bridge_retry_circuits",
+        "select public.http_bridge_session_aliases",
+        "select public.http_bridge_sessions",
+        "select public.model_registry_snapshot",
+        "select public.model_source_models",
+        "select public.model_sources",
+        "select public.oauth_device_flow_slots",
+        "select public.oauth_flow_states",
+        "select public.proxy_endpoints",
+        "select public.proxy_pool_members",
+        "select public.proxy_pools",
+        "select public.quota_planner_decisions",
+        "select public.quota_planner_settings",
+        "select public.quota_window_observations",
+        "select public.rate_limit_attempts",
+        "select public.request_conversation_hourly_rollups",
+        "select public.request_demand_quarter_rollups",
+        "select public.request_logs",
+        "select public.request_usage_hourly_error_rollups",
+        "select public.request_usage_hourly_rollups",
+        "select public.reset_credit_redeem_claims",
+        "select public.reset_credit_redeem_requests",
+        "select public.runtime_sentinels",
+        "select public.scheduler_leader",
+        "select public.sticky_sessions",
+        "select public.usage_history"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-31T19:47:50.499781+00:00"
+    }
+  ],
+  "needs_a_person": [],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [
+    {
+      "id": "int_89b16971bdd7413a",
+      "title": "codex-lb",
+      "on": "http_api:http://127.0.0.1:18150",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "list_automations_api_automations_get": "read",
+        "list_automation_runs_api_automations__automation_id__runs_get": "read"
+      },
+      "oracle": {
+        "list_automation_runs_api_automations__automation_id__runs_get": "no listed record carries its path parameters",
+        "list_automations_api_automations_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200"
+      }
+    },
+    {
+      "id": "int_2018515306724f1f",
+      "title": "codex-lb",
+      "on": "http_api:http://127.0.0.1:18150",
+      "status": "superseded",
+      "how": "built",
+      "operations": {
+        "list_automations_api_automations_get": "read",
+        "list_automations_runs_api_automations_runs_get": "read"
+      },
+      "oracle": {
+        "list_automations_api_automations_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_automations_runs_api_automations_runs_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200"
+      }
+    },
+    {
+      "id": "int_99ba40197a167586",
+      "title": "codex-lb",
+      "on": "http_api:http://127.0.0.1:18150",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "list_automations_api_automations_get": "read",
+        "list_automations_runs_api_automations_runs_get": "read",
+        "list_conversation_archive_records_api_conversation_archive_records_get": "read"
+      },
+      "oracle": {
+        "list_automations_api_automations_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_automations_runs_api_automations_runs_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_conversation_archive_records_api_conversation_archive_records_get": "read failed: list_conversation_archive_records_api_conversation_archive_records_get answered 400, which its document does not declare; 400, 0 records, read not at all (); ; without the key: 400"
+      }
+    },
+    {
+      "id": "int_500681cfa2c900b6",
+      "title": "codex-lb",
+      "on": "http_api:http://127.0.0.1:18150",
+      "status": "superseded",
+      "how": "built",
+      "operations": {
+        "list_automations_api_automations_get": "read",
+        "list_automations_runs_api_automations_runs_get": "read",
+        "list_conversations_api_conversations_get": "read"
+      },
+      "oracle": {
+        "list_automations_api_automations_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_automations_runs_api_automations_runs_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_conversations_api_conversations_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200"
+      }
+    },
+    {
+      "id": "int_c20e36a8b00a5a0a",
+      "title": "codex-lb",
+      "on": "http_api:http://127.0.0.1:18150",
+      "status": "superseded",
+      "how": "built",
+      "operations": {
+        "list_automations_api_automations_get": "read",
+        "list_automations_runs_api_automations_runs_get": "read",
+        "list_conversations_api_conversations_get": "read",
+        "get_overview_api_dashboard_overview_get": "read"
+      },
+      "oracle": {
+        "get_overview_api_dashboard_overview_get": "200, 2000 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "list_automations_api_automations_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_automations_runs_api_automations_runs_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_conversations_api_conversations_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200"
+      }
+    },
+    {
+      "id": "int_222da17373e0b235",
+      "title": "codex-lb",
+      "on": "http_api:http://127.0.0.1:18150",
+      "status": "superseded",
+      "how": "built",
+      "operations": {
+        "list_automations_api_automations_get": "read",
+        "list_automations_runs_api_automations_runs_get": "read",
+        "list_conversations_api_conversations_get": "read",
+        "get_overview_api_dashboard_overview_get": "read",
+        "get_reports_api_reports_get": "read"
+      },
+      "oracle": {
+        "get_overview_api_dashboard_overview_get": "200, 2000 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "get_reports_api_reports_get": "200, 1 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "list_automations_api_automations_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_automations_runs_api_automations_runs_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_conversations_api_conversations_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200"
+      }
+    },
+    {
+      "id": "int_806d2265facbd0ea",
+      "title": "codex-lb",
+      "on": "http_api:http://127.0.0.1:18150",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "list_automations_api_automations_get": "read",
+        "list_automations_runs_api_automations_runs_get": "read",
+        "list_conversations_api_conversations_get": "read",
+        "get_overview_api_dashboard_overview_get": "read",
+        "get_reports_api_reports_get": "read",
+        "list_request_logs_api_request_logs_get": "read"
+      },
+      "oracle": {
+        "get_overview_api_dashboard_overview_get": "200, 2000 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "get_reports_api_reports_get": "200, 1 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "list_automations_api_automations_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_automations_runs_api_automations_runs_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_conversations_api_conversations_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_request_logs_api_request_logs_get": "200, 100000 records, read incomplete (stopped at the read bound: 100000 records in 100 requests (bounds 100000, 2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 (incomplete); 899 differ; without the key: 200"
+      }
+    },
+    {
+      "id": "int_dc138171d99843d6",
+      "title": "codex-lb",
+      "on": "http_api:http://127.0.0.1:18150",
+      "status": "validated",
+      "how": "built",
+      "operations": {
+        "list_automations_api_automations_get": "read",
+        "list_automations_runs_api_automations_runs_get": "read",
+        "list_conversations_api_conversations_get": "read",
+        "get_overview_api_dashboard_overview_get": "read",
+        "get_reports_api_reports_get": "read",
+        "list_sticky_sessions_api_sticky_sessions_get": "read"
+      },
+      "oracle": {
+        "get_overview_api_dashboard_overview_get": "200, 2000 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "get_reports_api_reports_get": "200, 1 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "list_automations_api_automations_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_automations_runs_api_automations_runs_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_conversations_api_conversations_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_sticky_sessions_api_sticky_sessions_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "consistency-opp_2b2a13d082e349fe",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for codex_lb-api",
+      "at": "2026-10-31T19:37:15.339062+00:00"
+    },
+    {
+      "goal": "consistency-opp_ecd392a5e6cd4485",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for codex_lb-api",
+      "at": "2026-10-31T19:37:29.138846+00:00"
+    },
+    {
+      "goal": "consistency-opp_f225ea6177b246c4",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read list_conversation_archive_records_api_conversation_archive_records_get added to the integration (open)",
+      "at": "2026-10-31T19:37:44.167776+00:00"
+    },
+    {
+      "goal": "consistency-opp_2b2a13d082e349fe",
+      "status": "failed",
+      "short": 0,
+      "actions": 0,
+      "note": "reads: \"the query's rows have no field 'id'\"",
+      "at": "2026-10-31T19:37:50.306177+00:00"
+    },
+    {
+      "goal": "consistency-opp_ecd392a5e6cd4485",
+      "status": "failed",
+      "short": 0,
+      "actions": 0,
+      "note": "reads: \"the query's rows have no field 'id'\"",
+      "at": "2026-10-31T19:38:05.243847+00:00"
+    },
+    {
+      "goal": "consistency-opp_e8670a50dd364ccd",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read list_conversations_api_conversations_get added to the integration (open)",
+      "at": "2026-10-31T19:38:18.319519+00:00"
+    },
+    {
+      "goal": "consistency-opp_1371cfd965be4d53",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read get_overview_api_dashboard_overview_get added to the integration (open)",
+      "at": "2026-10-31T19:38:26.032318+00:00"
+    },
+    {
+      "goal": "consistency-opp_f225ea6177b246c4",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read list_conversation_archive_records_api_conversation_archive_records_get added to the integration (abandoned)",
+      "at": "2026-10-31T19:38:35.850646+00:00"
+    },
+    {
+      "goal": "consistency-opp_e8670a50dd364ccd",
+      "status": "failed",
+      "short": 0,
+      "actions": 0,
+      "note": "reads: \"the query's rows have no field 'conversationId'\"",
+      "at": "2026-10-31T19:38:45.814733+00:00"
+    },
+    {
+      "goal": "consistency-opp_1371cfd965be4d53",
+      "status": "investigated",
+      "short": 0,
+      "actions": 0,
+      "note": "0 of 2000 keys differ",
+      "at": "2026-10-31T19:38:52.572536+00:00"
+    },
+    {
+      "goal": "consistency-opp_211b373cf49f46b6",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read get_reports_api_reports_get added to the integration (open)",
+      "at": "2026-10-31T19:39:06.210636+00:00"
+    },
+    {
+      "goal": "consistency-opp_bd379b2da02d443a",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read list_request_logs_api_request_logs_get added to the integration (open)",
+      "at": "2026-10-31T19:39:17.154822+00:00"
+    },
+    {
+      "goal": "consistency-opp_5784685ad1a240ac",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read list_sticky_sessions_api_sticky_sessions_get added to the integration (open)",
+      "at": "2026-10-31T19:40:33.845996+00:00"
+    },
+    {
+      "goal": "consistency-opp_211b373cf49f46b6",
+      "status": "failed",
+      "short": 0,
+      "actions": 0,
+      "note": "reads: 'the plan names a connection that cannot be read'",
+      "at": "2026-10-31T19:41:48.418613+00:00"
+    },
+    {
+      "goal": "consistency-opp_bd379b2da02d443a",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read list_request_logs_api_request_logs_get added to the integration (abandoned)",
+      "at": "2026-10-31T19:41:56.409286+00:00"
+    },
+    {
+      "goal": "consistency-opp_5784685ad1a240ac",
+      "status": "failed",
+      "short": 0,
+      "actions": 0,
+      "note": "reads: \"the query's rows have no field 'key'\"",
+      "at": "2026-10-31T19:42:05.800901+00:00"
+    }
+  ]
+}
