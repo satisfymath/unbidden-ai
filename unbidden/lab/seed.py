@@ -276,6 +276,9 @@ def reads_by(query: str, table: str, column: str) -> bool:
     return False
 
 
+STATEMENT_CHARS = 8000
+
+
 def statements_using(psql: Psql, table: str, column: str, calls: int) -> list[dict[str, object]]:
     """The statements the measured calls ran that read `table` by `column` (a filter or a join on it), from
     pg_stat_statements: what the engine itself says the operation did."""
@@ -294,5 +297,8 @@ def statements_using(psql: Psql, table: str, column: str, calls: int) -> list[di
     out: list[dict[str, object]] = []
     for count, mean, query in rows:
         if reads_by(query, table, column):
-            out.append({"calls": int(count), "mean_ms": float(mean), "query": query[:400]})
+            # The statement whole (bounded): the validator reads it again, and a reference past a short cut was
+            # lost (mealie, stage 10: an EXISTS subquery on shopping_list_items 500 characters in; five valid
+            # workloads were refused). Notes and logs cut it themselves.
+            out.append({"calls": int(count), "mean_ms": float(mean), "query": query[:STATEMENT_CHARS]})
     return [s for s in out if int(s["calls"]) >= calls] or out  # type: ignore[call-overload]

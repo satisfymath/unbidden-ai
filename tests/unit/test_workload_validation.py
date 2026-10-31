@@ -324,3 +324,27 @@ def test_the_driver_goes_where_the_plans_pytest_collects_and_is_named_on_its_lin
     assert with_driver(plain, "tests/x.py") == plain  # no targets: the tree is collected
     files_only = ("bash", "-c", "pytest tests/api/test_a.py -k slow")
     assert driver_dir(files_only, "tests", lambda p: p == "tests/api/test_a.py") == "tests/api"
+
+
+def test_a_statement_whose_reference_sits_past_the_old_cut_still_validates() -> None:
+    # mealie, stage 10: GET /api/foods/empty reads shopping_list_items in an EXISTS subquery 500 characters into
+    # the statement; the record kept 400 and the validator, re-reading it, refused five valid workloads.
+    from unbidden.lab.seed import STATEMENT_CHARS, reads_by
+
+    head = "SELECT " + ", ".join(f"ingredient_foods.col{i}" for i in range(60)) + " FROM ingredient_foods WHERE "
+    tail = ("NOT (EXISTS (SELECT 1 FROM recipes_ingredients WHERE recipes_ingredients.food_id = ingredient_foods.id)) "
+            "AND NOT (EXISTS (SELECT shopping_list_items.id FROM shopping_list_items "
+            "WHERE shopping_list_items.food_id = ingredient_foods.id))")  # fmt: skip
+    statement = head + tail
+    assert len(head) > 400 and len(statement) < STATEMENT_CHARS
+    assert reads_by(statement, "shopping_list_items", "food_id")
+    assert not reads_by(statement[:400], "shopping_list_items", "food_id")  # what the old record kept
+    record = {
+        "samples_ms": [1.0] * SAMPLES,
+        "statements": [{"calls": SAMPLES + 3, "mean_ms": 1.0, "query": statement}],
+        "inserted": {"shopping_list_items": SEED_ROWS},
+        "digests": ["d"] * SAMPLES,
+        "sample": '[{"id": 1}]',
+    }
+    ok, problems, _ = validate_in_process(record, ("shopping_list_items", "food_id"), True)
+    assert ok, problems
