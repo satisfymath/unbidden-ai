@@ -52,6 +52,25 @@ PLAN_SCHEMA: dict[str, Any] = {
         },
         "key": {"type": "string"},
         "shortfall": {"type": "string"},
+        # What is compared, declared before any number is read (stage 10, Prefect: a plan compared states per run
+        # with the API's run count, two different quantities, and reported every key short).
+        "comparison": {
+            "type": "object",
+            "required": ["entity", "quantity", "sql_measures", "api_measures", "same_quantity", "correspondence"],
+            "properties": {
+                "entity": {"type": "string"},  # what one key identifies (a flow run, an order)
+                "quantity": {"type": "string"},  # what is counted or summed, in one unit
+                "population": {"type": "string"},  # which entities are in: all, or a filter, on both sides alike
+                "filters": {"type": "string"},  # the filters each side applies, or "none"
+                "instant": {"type": "string"},  # the time both sides describe (now, a period)
+                "unit": {"type": "string"},
+                "sql_measures": {"type": "string"},  # what the query's number is (its aggregation, over what rows)
+                "api_measures": {"type": "string"},  # what the API's field is, by its documentation or schema
+                "visibility": {"type": "string"},  # permissions or scopes that hide records on one side
+                "same_quantity": {"type": "boolean"},  # the two measure the same thing (else the plan is not usable)
+                "correspondence": {"type": "string"},  # the evidence: the documentation, the handler, the schema
+            },
+        },
         "page": {"type": "object", "required": ["url"], "properties": {"url": {"type": "string"}}},
         "act": {
             "type": "object",
@@ -259,6 +278,9 @@ async def pursue(
     except json.JSONDecodeError:
         return _finish(store, run, "failed", "the plan was not JSON")
     run.plan = plan
+    undeclared = comparison_problem(plan)
+    if undeclared:
+        return _finish(store, run, "inconclusive", undeclared)
     missing = [n for n in plan.get("needs") or [] if n in conns and conns[n].state not in USABLE]
     unbuilt = [n for n in missing if conns[n].state is ConnectionState.NEEDS_CAPABILITY]
     if unbuilt:
@@ -383,6 +405,31 @@ async def _pursue_page(
     except RuntimeError as exc:  # the confined browser could not load the page
         return _finish(store, run, "failed", f"page: {exc}")
     return _finish(store, run, run.status, run.notes[-1] if run.notes else run.status)
+
+
+def comparison_problem(plan: dict[str, Any]) -> str | None:
+    """Why a plan that compares a query with an API read may not be run: its comparison is not declared, or it says
+    the two sides do not measure the same quantity. Nothing is compared because both sides are numbers."""
+    if not (plan.get("sql") and plan.get("api")):
+        return None
+    declared = plan.get("comparison")
+    if not isinstance(declared, dict):
+        return "the comparison's semantics were not declared (entity, quantity, what each side measures, evidence)"
+    required = ("entity", "quantity", "sql_measures", "api_measures", "correspondence")
+    blank = [k for k in required if not str(declared.get(k) or "").strip()]
+    if blank:
+        return f"the comparison's semantics are incomplete: {', '.join(blank)} not declared"
+    if declared.get("same_quantity") is not True:
+        return (f"the two sides do not measure the same quantity ({declared['sql_measures']} against "
+                f"{declared['api_measures']}): not comparable")  # fmt: skip
+    sql_m, api_m = str(declared["sql_measures"]).lower(), str(declared["api_measures"]).lower()
+    kinds = ("count", "sum", "average", "max", "min", "latest", "distinct")
+    sql_kind = {k for k in kinds if k in sql_m}
+    api_kind = {k for k in kinds if k in api_m}
+    if sql_kind and api_kind and not sql_kind & api_kind:
+        return (f"the declared aggregations differ ({'/'.join(sorted(sql_kind))} against "
+                f"{'/'.join(sorted(api_kind))}): not comparable")  # fmt: skip
+    return None
 
 
 def _as_key(value: Any) -> str | None:

@@ -239,3 +239,50 @@ def test_keyset_pages_follow_the_key_and_stop_at_a_short_page_or_the_ceiling(mon
     assert len(rows) == 1500 and not whole
     with pytest.raises(postgres.QueryRefused):
         postgres.query_all(None, None, "SELECT k FROM t", "k; DROP", page=10)  # type: ignore[arg-type]
+
+
+def test_a_plan_without_a_declared_comparison_or_with_unlike_quantities_is_inconclusive() -> None:
+    """Stage 10, Prefect: a plan compared a count of states per run with the API's run count and reported every
+    key short. What is compared is declared before any number is read; two numbers are not enough."""
+    from unbidden.director.goals import comparison_problem
+
+    base = {"sql": {"connection": "db", "query": "q"}, "api": {"connection": "api", "operation": "l"}, "key": "id"}
+    assert comparison_problem({"needs": ["x"]}) is None  # nothing compared yet
+    assert "not declared" in str(comparison_problem(base))
+    partial = {**base, "comparison": {"entity": "a flow run", "quantity": "runs", "same_quantity": True}}
+    assert "incomplete" in str(comparison_problem(partial))
+    unlike = {**base, "comparison": {
+        "entity": "a flow run", "quantity": "runs", "sql_measures": "count of states per run",
+        "api_measures": "number of executions of the run", "same_quantity": False, "correspondence": "schema",
+    }}  # fmt: skip
+    assert "do not measure the same quantity" in str(comparison_problem(unlike))
+    mixed = {**base, "comparison": {
+        "entity": "an order", "quantity": "amount", "sql_measures": "sum of line amounts",
+        "api_measures": "count of lines", "same_quantity": True, "correspondence": "handler",
+    }}  # fmt: skip
+    assert "aggregations differ" in str(comparison_problem(mixed))
+    declared = {**base, "comparison": {
+        "entity": "an assistant", "quantity": "versions", "sql_measures": "count of assistant_versions rows",
+        "api_measures": "count of versions (documented total)", "same_quantity": True,
+        "correspondence": "the handler counts assistant_versions",
+    }}  # fmt: skip
+    assert comparison_problem(declared) is None
+
+
+def test_an_endpoint_declared_to_need_a_credential_is_probed_once_anonymously_get_only() -> None:
+    import httpx
+
+    from unbidden.research.anonymous import answers_without_credential
+
+    seen: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(f"{request.method} {request.url.path} {request.headers.get('authorization', '-')}")
+        return httpx.Response(200 if request.url.path == "/v1/usage" else 401, json={})
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    assert answers_without_credential("http://127.0.0.1:1/", "GET /v1/usage", client=client) == 200
+    assert answers_without_credential("http://127.0.0.1:1", "GET /v1/private", client=client) == 401
+    assert answers_without_credential("http://127.0.0.1:1", "POST /v1/usage", client=client) is None
+    assert answers_without_credential("http://127.0.0.1:1", "GET /v1/items/{id}", client=client) is None
+    assert seen == ["GET /v1/usage -", "GET /v1/private -"]  # no credential ever sent

@@ -25,4 +25,12 @@ cannot be used now, list its connection under `needs`. If the goal is about what
 page under `page.url` (one of the pages above, with the path the goal is about); the comparison you plan is then
 what the page should show, and nothing is written through the API.
 
+Before the comparison, declare under `comparison` what is compared: the entity one key identifies; the quantity and
+its unit; the population and filters each side applies (the same on both, or say how they differ); the instant or
+period both describe; what the query's number measures (its aggregation, over which rows) and what the API's field
+measures according to its documentation or schema; permissions that hide records on one side; and the evidence that
+the two are the same quantity (`correspondence`: the documentation, the handler's code, the schema). Set
+`same_quantity` to false when they are not the same thing (a count of states is not a count of runs; a number of
+items is not a sum of amounts): a plan whose sides measure different things is not run.
+
 Answer with JSON only, matching this schema: {{schema}}
