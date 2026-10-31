@@ -72,12 +72,24 @@ before the next measurements; C5 after C2/C3 hold on the development corpus; C7 
 | 16 | click | library | tox, pytest plugins |
 | 17 | httpx | library | scripts, async |
 | 18 | sqlmodel | library | Poetry/uv, SQLModel fixtures |
-| 19 | *to select*: a Flask or Django app on Postgres with tox and Poetry | app | tox + Poetry groups, Django/Flask server tests |
-| 20 | *to select*: an app with a pytest plugin (`pytest_plugins`) and a conftest at depth | app | plugins, conftest nesting, server tests |
+| 19 | CTFd (v3.8.9) | Flask + Postgres (MySQL/MariaDB/SQLite too) | uv with extras, `make test`, one workflow per database with a service container, flask-restx Swagger, tests that log in |
+| 20 | TimeTracker (v5.18.5) | Flask + Postgres | pip `requirements.txt` + `requirements-test.txt`, three manifests at the root, Postgres service container in CI, Redis opt-in |
 
-19 and 20 are chosen by a written rule before any run (the stage 10 rule with `topic:flask OR topic:django` added,
-first two that pass, inspections recorded as in `stage10-evaluation.md`), for the variants the table lacks, never for
-a defect or an easy win. The scale benchmark's other pilot/holdout repositories (TypeScript, Go, Ruby, Rust) stay in
+19 and 20 were chosen by a written rule before any run: the stage 10 rule's search with `topic:flask` (then
+`topic:django`, not needed), stars descending, stage 10's eight criteria, the first two that pass; never for a defect
+or an easy win. Inspections, in order (metadata unless files are named): 1 30-Days-Of-Python (no license, a course),
+2 superset (1395 MB), 3 flask (the framework), 4 dash and 5 peewee (frameworks/libraries), 6 simple-login/app
+(config.py, main.yml: sessions in Redis, a Redis service in its CI: criterion 5), **7 CTFd: passes** (pyproject.toml,
+Makefile, postgres.yml, config.py: Apache-2.0, uv, `make test` under a Postgres service, cache falls back to the
+filesystem without Redis, 122 test files, 44 MB), 8 eve and 11, 16, 27, 29, 40 (NOASSERTION), 9 ProxyPool and 33
+(no database), 10, 14, 21, 22, 31 (frameworks), 12, 13, 15, 17, 18, 23, 24, 28, 30, 35, 37, 39 (libraries), 19
+sqlite-web (SQLite only), 20 Zappa and 25 (tools/images), 26 openalgo (407 MB), 32 indico (config.py: `REDIS_CACHE_URL`
+and `CELERY_BROKER` required: criterion 5), 34 (475 MB), 36 and 38 (courses), 41-45, 48, 50-52, 54, 57, 58, 60, 61,
+65, 66, 68, 71, 73, 78 (libraries/tools), 46 FitTrackee (506 MB), 47, 49, 53, 55, 56, 62-64, 67, 72, 74-76, 79, 80
+(no database, NOASSERTION, tutorials or frameworks by metadata), 59 (323 MB), 70 Blogin (requirements.txt, compose:
+MySQL only, no CI tests), 77 asu (pyproject.toml: no database, Redis), **69 TimeTracker: passes** (config.py, ci.yml,
+docker-compose.yml: GPL-3.0, Flask on Postgres, Redis opt-in, `requirements-test.txt`, a Postgres service in CI, 28
+MB). The scale benchmark's other pilot/holdout repositories (TypeScript, Go, Ruby, Rust) stay in
 their records as denominators of stage 7; they are out of v1.0's scope.
 
 Controlled fixtures (`tests/unit/test_ci_conditions.py`, `test_stack_reach.py`, `test_workload_validation.py`,
