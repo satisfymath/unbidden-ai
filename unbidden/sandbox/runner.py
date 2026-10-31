@@ -76,6 +76,7 @@ def docker_argv(spec: SandboxSpec, work: Path, name: str) -> list[str]:
         "--network", spec.network,
         "--read-only",
         "--tmpfs", "/tmp:rw,noexec,nosuid,size=512m",
+        "--tmpfs", "/var/log:rw,noexec,nosuid,size=64m",  # an application's log directory (CTFd: /var/log/CTFd)
         "--cap-drop", "ALL",
         "--security-opt", "no-new-privileges",
         "--user", "1000:1000",

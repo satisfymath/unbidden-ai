@@ -393,7 +393,9 @@ def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str]
             member_packages=tuple(
                 pkg for m in members if (pkg := own_package(tomllib.loads(_read(repo, rev, f"{m}/pyproject.toml"))))
             ),
-            sync_flags=ci_sync_flags(repo, rev, files),
+            sync_flags=_with_requirement_extras(
+                ci_sync_flags(repo, rev, files), repo, rev, ci_requirement_files(repo, rev, files, "pyproject.toml")
+            ),
             system_packages=ci_system_packages(repo, rev, files),
             extra_requirements=ci_requirement_files(repo, rev, files, "pyproject.toml"),
             build_writes=() if members else build_writes(project, files),
@@ -448,6 +450,26 @@ def ci_requirement_files(repo: Path, rev: str, files: set[str], manifest: str) -
         return ()
     return tuple(f.removeprefix("./") for f in plan.requirement_files if f.removeprefix("./") in files
                  and f.removeprefix("./") != manifest)  # fmt: skip
+
+
+_SELF_EXTRAS = re.compile(r"^\s*(?:-e\s+)?\.\[(?P<extras>[^\]]+)\]")
+
+
+def _with_requirement_extras(
+    flags: tuple[str, ...] | None, repo: Path, rev: str, requirement_files: tuple[str, ...]
+) -> tuple[str, ...] | None:
+    """The project's extras a CI requirements file installs with the project itself (`-e .[cli]`, httpx): that line
+    is left out of the image's install, so its extras are synced instead."""
+    extras = [
+        e.strip()
+        for f in requirement_files
+        for line in _read(repo, rev, f).splitlines()
+        if (m := _SELF_EXTRAS.match(line))
+        for e in m.group("extras").split(",")
+    ]
+    if not extras:
+        return flags
+    return tuple(dict.fromkeys([*(flags or ("--all-groups",)), *(f"--extra {e}" for e in extras)]))
 
 
 def _ci_plan(repo: Path, rev: str, files: set[str]) -> Any:

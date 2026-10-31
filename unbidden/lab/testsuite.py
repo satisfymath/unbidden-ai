@@ -64,7 +64,7 @@ def test_plan(repo: Path, rev: str, stack: Stack, language: str) -> TestPlan | N
         own = tuple(s for s in own if s.image)
         ci_env = dict(ci.env)
         if own:
-            ci_env = {k: _to_sidecars(v, own) for k, v in ci_env.items()}
+            ci_env = {k: _to_sidecars(v, own, k) for k, v in ci_env.items()}
         # The job's own environment, with or without service containers (rag-api, stage 10: the test step's
         # OPENAI_API_KEY=test_key, without which importing the application fails).
         env = {**env, **ci_env}
@@ -100,9 +100,10 @@ def test_plan(repo: Path, rev: str, stack: Stack, language: str) -> TestPlan | N
                     report=lang.test_report)  # fmt: skip
 
 
-def _to_sidecars(value: str, services: tuple[Service, ...]) -> str:
+def _to_sidecars(value: str, services: tuple[Service, ...], key: str = "") -> str:
     """`localhost` (or 127.0.0.1) in a CI value, where the job reached its service containers, becomes the name of
-    the service that listens on that port (or the only one, when no port is written)."""
+    the service that listens on that port; without a port, the scheme's default port, then the engine the variable
+    names (`POSTGRES_SERVER=localhost` beside an LDAP container: mealie, stage 10), then the only service."""
 
     def host(match: re.Match[str]) -> str:
         port = match.group("port")
@@ -110,6 +111,12 @@ def _to_sidecars(value: str, services: tuple[Service, ...]) -> str:
         # beside a Redis service).
         known = port.lstrip(":") if port else _DEFAULT_PORTS.get((match.group("scheme") or "").split("+")[0], "")
         named = [s for s in services if known and known in s.ports]
+        hint = f"{key} {match.group('scheme') or ''}".lower()
+        if not named and hint.strip():
+            named = [s for s in services if (s.data_kind and s.data_kind in hint) or s.name.lower() in hint]
+            named = named or [s for s in services if s.data_kind == "postgres" and ("pg" in hint or "db" in hint)]
+        if not named and len(services) > 1:
+            named = [s for s in services if s.data_kind] if sum(1 for s in services if s.data_kind) == 1 else []
         target = named[0].name if named else (services[0].name if len(services) == 1 else match.group("host"))
         return (match.group("prefix") or "") + target + (port or "")
 
@@ -246,7 +253,7 @@ def _round(
 def _ended(result: SandboxResult) -> str:
     """How a run that reached no test report ended: its exit, and the last lines it printed."""
     how = "timed out" if result.timed_out else f"exit {result.exit_code}"
-    tail = (result.stderr.strip() or result.stdout.strip())[-600:]
+    tail = (result.stderr.strip() or result.stdout.strip())[-1500:]
     return f"{how}: {tail}" if tail else f"{how}, nothing printed"
 
 

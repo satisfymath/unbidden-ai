@@ -378,6 +378,27 @@ def test_requirement_files_the_job_installs_are_installed_after_the_sync_without
     })  # fmt: skip
     stack = detect_stack(repo, "HEAD")
     assert stack.python is not None and stack.python.extra_requirements == ("requirements.txt",)
+    assert stack.python.sync_flags == ("--all-groups", "--extra cli")  # `-e .[cli]`: the project's extra, synced
     docker = python_dockerfile(stack.python)
     assert "/deps/requirements.txt > /tmp/unbidden-extra-0.txt" in docker
     assert "uv pip install --python /deps/.venv/bin/python -r /tmp/unbidden-extra-0.txt" in docker
+
+
+def test_a_host_without_a_port_goes_to_the_service_the_variable_names() -> None:
+    """mealie: `POSTGRES_SERVER: localhost` beside an LDAP container; with two services the host stayed `localhost`
+    and the suite could not reach its database (run 5)."""
+    from unbidden.lab.testsuite import _to_sidecars  # pyright: ignore[reportPrivateUsage]
+    from unbidden.observe.compose import Service
+
+    def service(name: str, image: str, *ports: str) -> Service:
+        return Service(name=name, image=image, build_context=None, dockerfile=None, environment={}, depends_on=(),
+                       ports=ports)  # fmt: skip
+
+    both = (service("postgres", "postgres:15", "5432"), service("ldap", "rroemhild/test-openldap", "10389", "10636"))
+    assert _to_sidecars("localhost", both, "POSTGRES_SERVER") == "postgres"
+    assert _to_sidecars("ldap://localhost:10389", both, "LDAP_SERVER_URL") == "ldap://ldap:10389"
+    assert _to_sidecars("localhost", both, "LDAP_HOST") == "ldap"
+    assert _to_sidecars("localhost", both, "SOME_HOST") == "postgres"  # the only database
+    two = (*both, service("redis", "redis:7", "6379"))
+    assert _to_sidecars("localhost", two, "SOME_HOST") == "localhost"  # two databases, nothing to say which
+    assert _to_sidecars("redis://localhost/0", two, "CACHE_URL") == "redis://redis/0"
