@@ -1,0 +1,132 @@
+{
+ "repo": "/Users/david/CTFd",
+ "rev": "5f345fbaa424e6a22b51addf7f27430927879ae2",
+ "stack": {
+  "python": "3.11",
+  "why": [
+   "python 3.11: where the CI runs the checks and the project's Dockerfile both use it",
+   "the CI's python-version: 3.11",
+   "the project's Dockerfile: 3.11"
+  ],
+  "manifest": "requirements.txt",
+  "lockfile": "requirements.txt",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [
+   "development.txt"
+  ],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:25354f921aad29ed",
+ "plan": {
+  "source": "CI mariadb.yml > build (its services: mariadb, redis)",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [
+   "left out, it edits the CI runner's own system: sudo rm -f /etc/boto.cfg"
+  ],
+  "services": [
+   "mariadb",
+   "redis"
+  ],
+  "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\n(pytest -rf --cov=CTFd --cov-context=test --cov-report=xml  --ignore-glob=\"**/node_modules/\"  --ignore=node_modules/  -W ignore::sqlalchemy.exc.SADeprecationWarning  -W ignore::sqlalchemy.exc.SAWarning  -n auto)\n(bandit -r CTFd -x CTFd/uploads --skip B105,B322)\n(pipdeptree)"
+ },
+ "status": "failed",
+ "collected": 679,
+ "failed": [
+  "tests.admin.test_challenges::test_challenges_admin_only_as_user (needs network)",
+  "tests.admin.test_challenges::test_create_new_challenge (needs network)",
+  "tests.admin.test_challenges::test_hidden_challenge_is_reachable (needs network)",
+  "tests.admin.test_config::test_reset (needs network)",
+  "tests.admin.test_config::test_reset_team_mode (needs network)",
+  "tests.admin.test_csv::test_export_csv_works (needs network)",
+  "tests.admin.test_csv::test_export_scoreboard_frozen_csv (needs network)",
+  "tests.admin.test_csv::test_export_scoreboard_frozen_csv_without_freeze (needs network)",
+  "tests.admin.test_csv::test_export_scoreboard_unfrozen_csv (needs network)",
+  "tests.admin.test_csv::test_import_challenge_csv_with_json (needs network)",
+  "tests.admin.test_csv::test_import_csv_works (needs network)",
+  "tests.admin.test_fields::test_admin_view_fields (needs network)",
+  "tests.admin.test_fields::test_admin_view_team_fields (needs network)",
+  "tests.admin.test_pages::test_pages_with_link_target (needs network)",
+  "tests.admin.test_pages::test_previewing_page_with_format_works (needs network)",
+  "tests.admin.test_pages::test_previewing_pages_works (needs network)",
+  "tests.admin.test_scoreboard::test_admins_can_see_scores_with_hidden_scores (needs network)",
+  "tests.admin.test_submissions::test_browse_admin_submissions (needs network)",
+  "tests.admin.test_users::test_admin_user_ip_search (needs network)",
+  "tests.admin.test_views::test_admin_access (needs network)",
+  "tests.admin.test_views::test_get_admin_as_user (needs network)",
+  "tests.api.test_tokens::test_banned_team_token_access (needs network)",
+  "tests.api.test_tokens::test_banned_user_token_access (needs network)",
+  "tests.api.test_tokens::test_generate_user_token (needs network)",
+  "tests.api.test_tokens::test_lookup_user_token (needs network)",
+  "tests.api.test_tokens::test_token_api_file_upload (needs network)",
+  "tests.api.test_tokens::test_user_token_access (needs network)",
+  "tests.api.v1.challenges.requirements.test_requirements::test_api_challenges_admins_can_bypass_requirements (needs network)",
+  "tests.api.v1.challenges.requirements.test_requirements::test_api_challenges_challenge_with_requirements (needs network)",
+  "tests.api.v1.challenges.requirements.test_requirements::test_api_challenges_challenge_with_requirements_anonymize_preview (needs network)",
+  "tests.api.v1.challenges.requirements.test_requirements::test_api_challenges_challenge_with_requirements_anonymize_true (needs network)",
+  "tests.api.v1.challenges.requirements.test_requirements::test_api_challenges_challenge_with_requirements_banned_user (needs network)",
+  "tests.api.v1.challenges.requirements.test_requirements::test_api_challenges_challenge_with_requirements_hidden_user (needs network)",
+  "tests.api.v1.challenges.requirements.test_requirements::test_api_challenges_challenge_with_requirements_no_user (needs network)",
+  "tests.api.v1.statistics.test_scores::test_api_statistics_score_distribution (needs network)",
+  "tests.api.v1.statistics.test_scores::test_browse_admin_submissions (needs network)",
+  "tests.api.v1.teams.test_scoring::test_api_public_team_place_score_hidden_if_scores_hidden (needs network)",
+  "tests.api.v1.teams.test_scoring::test_api_team_place_score_hidden_if_scores_hidden (needs network)",
+  "tests.api.v1.teams.test_team_members::test_api_admin_can_change_captain (needs network)",
+  "tests.api.v1.teams.test_team_members::test_api_removing_members_deletes_information (needs network)",
+  "tests.api.v1.teams.test_team_members::test_api_team_get_members (needs network)",
+  "tests.api.v1.teams.test_team_members::test_api_team_remove_members (needs network)",
+  "tests.api.v1.teams.test_team_members::test_api_users_can_change_captain_on_self_team (needs network)",
+  "tests.api.v1.teams.test_teams::test_api_can_query_by_team_emails (needs network)",
+  "tests.api.v1.teams.test_teams::test_api_team_can_update_password_if_none_not_if_set (needs network)",
+  "tests.api.v1.test_awards::test_api_award_delete_admin (needs network)",
+  "tests.api.v1.test_awards::test_api_award_get_admin (needs network)",
+  "tests.api.v1.test_awards::test_api_awards_access_non_admin (needs network)",
+  "tests.api.v1.test_awards::test_api_awards_post_admin (needs network)",
+  "tests.api.v1.test_awards::test_api_awards_post_admin_teams_mode (needs network)"
+ ],
+ "why": "exit 1: on_user_list - sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, \"Can't connect to MySQL server on 'mariadb' ([Errno -3] Temporary failure in name resolution)\")\n(Background on this error at: https://sqlalche.me/e/14/e3q8)\nFAILED tests/users/test_fields.py::test_fields_properties - sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, \"Can't connect to MySQL server on 'mariadb' ([Errno -3] Temporary failure in name resolution)\")\n(Background on this error at: https://sqlalche.me/e/14/e3q8)\nFAILED tests/users/test_fields.py::test_boolean_checkbox_field - sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, \"Can't connect to MySQL server on 'mariadb' ([Errno -3] Temporary failure in name resolution)\")\n(Background on this error at: https://sqlalche.me/e/14/e3q8)\nFAILED tests/users/test_fields.py::test_new_fields_show_on_pages - sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, \"Can't connect to MySQL server on 'mariadb' ([Errno -3] Temporary failure in name resolution)\")\n(Background on this error at: https://sqlalche.me/e/14/e3q8)\nFAILED tests/users/test_fields.py::test_user_needs_all_required_fields - sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, \"Can't connect to MySQL server on 'mariadb' ([Errno -3] Temporary failure in name resolution)\")\n(Background on this error at: https://sqlalche.me/e/14/e3q8)\n=========== 636 failed, 43 passed, 652 warnings in 685.79s (0:11:25) ===========",
+ "failures": {
+  "tests.teams.test_challenges::test_challenge_team_submit": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.users.test_setup::test_ctfd_setup_redirect": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.teams.test_challenges::test_anonymous_users_view_public_challenges_without_team": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.users.test_profile::test_email_cannot_be_changed_without_password": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.users.test_users::test_num_users_limit": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.api.v1.user.test_challenges::test_api_challenges_solves_score_visibility": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.users.test_users::test_hidden_user_visibility": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.api.v1.user.test_challenges::test_api_challenge_user_ctftime": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.users.test_users::test_accessing_hidden_users": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.api.v1.user.test_challenges::test_api_challenge_404": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.users.test_users::test_api_users_post_admin_duplicate_admin_name": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.api.v1.user.test_challenges::test_api_challenge_solves_visibility": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.api.v1.test_files::test_api_file_delete_admin": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.api.v1.user.test_challenges::test_api_challenge_solves_verified_emails": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.api.v1.test_files::test_api_file_overwrite_by_location": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.api.v1.user.test_challenges::test_api_challenge_visibility": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.api.v1.test_files::test_api_files_post_admin": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.api.v1.user.test_challenges::test_api_challenge_verified_emails": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.api.v1.test_files::test_api_files_get_admin": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'",
+  "tests.api.v1.user.test_challenges::test_api_challenge_solves_user_ctftime": "PermissionError: [Errno 13] Permission denied: '/var/log/CTFd'"
+ },
+ "wall_s": 691.7,
+ "image_notes": [
+  "python 3.11: where the CI runs the checks and the project's Dockerfile both use it",
+  "the CI's python-version: 3.11",
+  "the project's Dockerfile: 3.11",
+  "image unbidden-deps-python:25354f921aad29ed on linux/arm64",
+  "the environment is seeded with pip and setuptools as of 2026-10-21T21:22:37-04:00 (the lockfile's era), as virtualenvs on Python 3.11 were"
+ ],
+ "python": "3.11",
+ "source": "CI mariadb.yml > build (its services: mariadb, redis)",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [
+  "left out, it edits the CI runner's own system: sudo rm -f /etc/boto.cfg"
+ ],
+ "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\n(pytest -rf --cov=CTFd --cov-context=test --cov-report=xml  --ignore-glob=\"**/node_modules/\"  --ignore=node_modules/  -W ignore::sqlalchemy.exc.SADeprecationWarning  -W ignore::sqlalchemy.exc.SAWarning  -n auto)\n(bandit -r CTFd -x CTFd/uploads --skip B105,B322)\n(pipdeptree)"
+}

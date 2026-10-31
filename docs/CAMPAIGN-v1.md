@@ -187,7 +187,11 @@ pyproject, tox environments, apt packages into the image, benchmark jobs last, `
 kept, every declared service container started, service-port expressions, `UV_NO_SYNC`, CI requirement files and
 extras for pyproject manifests, host mapping by the variable's engine, `/var/log` writable. Open at run 5: CTFd
 (name resolution of its sidecar under pytest), TimeTracker (unstable pytest internal error), healthchecks (Django's
-runner: out of scope). Run 6 at 647d714 pending; the gate (16) is not met.
+runner: out of scope). Run 6 at 647d714 (`level-a-647d714/README.md`): tool 19, **honest 17 of 20** under the stated
+rule (passed, or every failure explained as the sandbox's with its cause recorded: no git, no pager, no network,
+today's resolution); 8 pass outright. Criterion 1 of the gate is met under that rule and not under the strict one;
+both numbers are reported. Open: CTFd (fails only over its whole suite; being isolated), TimeTracker (pytest crash,
+text kept from 6e53da9), healthchecks (limit).
 
 ## 10. Independent evaluation
 

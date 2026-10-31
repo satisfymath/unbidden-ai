@@ -1,0 +1,60 @@
+{
+ "repo": "/Users/david/starlette",
+ "rev": "8aa828ceaff764a2e57932fb42fdf105a47c4c83",
+ "stack": {
+  "python": "3.11",
+  "why": [
+   "python 3.11: from the CI's python-version (the oldest in its matrix)",
+   "pyproject requires-python: >=3.11",
+   "the CI's python-version: 3.11, 3.12, 3.13, 3.14, 3.15"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": "uv.lock",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:d7b638e3b42ecbef",
+ "plan": {
+  "source": "CI main.yml > tests",
+  "scope": "matrix entry 1 of 5 (python-version=3.11)",
+  "partial": true,
+  "notes": [
+   "left out, scripts/install only installs (the dependency image stands for it)",
+   "left out, scripts/check only checks",
+   "left out, scripts/build only builds",
+   "left out, scripts/coverage only reports"
+  ],
+  "services": [],
+  "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nscripts/test"
+ },
+ "status": "passed",
+ "collected": 1416,
+ "failed": [],
+ "why": null,
+ "failures": {},
+ "wall_s": 14.1,
+ "image_notes": [
+  "python 3.11: from the CI's python-version (the oldest in its matrix)",
+  "pyproject requires-python: >=3.11",
+  "the CI's python-version: 3.11, 3.12, 3.13, 3.14, 3.15",
+  "image unbidden-deps-python:d7b638e3b42ecbef on linux/arm64"
+ ],
+ "python": "3.11",
+ "source": "CI main.yml > tests",
+ "scope": "matrix entry 1 of 5 (python-version=3.11)",
+ "partial": true,
+ "notes": [
+  "left out, scripts/install only installs (the dependency image stands for it)",
+  "left out, scripts/check only checks",
+  "left out, scripts/build only builds",
+  "left out, scripts/coverage only reports"
+ ],
+ "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nscripts/test"
+}
