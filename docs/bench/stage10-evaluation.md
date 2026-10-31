@@ -64,6 +64,24 @@ cases run on the frozen product, so a run that ends blocked is never read as pro
 such; it is not repeated inside the evaluation. A failure that needs a correction closes this version: the fix and
 any repeat are regressions.
 
+## Freeze (2026-10-31, before the first candidate is inspected)
+
+- **Product:** commit 0102ccb, the tree the evaluator controls passed on (7 of 7 on a quiet host,
+  `stage10-controls/0102ccb-run4`; the third run's inconclusive A/A on a noisy host is kept beside it). Frozen as
+  hashes: `unbidden/` tree 577c03c03025a89678495e8f5640f52d53f3aff7, `pyproject.toml` 6f1c60dd626db4358fa9a310ca9396268ae87ec9,
+  `uv.lock` 9c80aa6458810a803d0695888bc95ffa269d50f9. Every evaluation run is made from a worktree whose files have
+  exactly these hashes; a run on any other product is invalid.
+- **Harness:** commit 0fe4ecd: `bench/ecosystem/app_eval.py` f6b87cf79e5db8e911c1f9be980ae40f0e3a89e7,
+  `bench/ecosystem/cycle.py` 299991beb6bdce328b478b9a4581915d60a66b4f, `bench/ecosystem/conduit_eval.py`
+  0fef07d5c0ffa5a15c7ffaa9bb55673c1e1e4608. Each selected application adds its own preparation as new files only
+  (`bench/ecosystem/<app>_lab.py`, its compose file and data), recorded and counted as human preparation; no frozen
+  file changes.
+- **Protocol:** this document's sections above, as committed in 2f3da12 (blob 81620c54fa2ede92ef0540ac576c3d347f500fa0),
+  unchanged. Models: Meta's API only (Spark, `muse-spark-1.3`, the runner's config). Budget: envelope `s10-eval`,
+  US$8.50, untouched at the freeze (cumulative cap US$37.2945, spent US$24.2976).
+- **Host:** the runs are measured on the same machine as the controls; the controls showed that a busy host makes the
+  A/A control inconclusive, so each run records the host's load and the lab services running.
+
 ## Choice
 
 (to be filled, in order, before any run)
