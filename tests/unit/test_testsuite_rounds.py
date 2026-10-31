@@ -66,3 +66,10 @@ def test_xdist_starts_as_many_workers_as_the_sandbox_has_cpus(tmp_path: Path) ->
 
     run_suite(Recording(tmp_path, [(1, JUNIT)]), tmp_path, IMAGE, PYTEST, rounds=1)  # type: ignore[arg-type]
     assert seen[0]["PYTEST_XDIST_AUTO_NUM_WORKERS"] == str(int(SandboxSpec.cpus))
+
+
+def test_exit_zero_without_a_test_report_is_no_test_run_not_a_pass(tmp_path: Path) -> None:
+    # codex-lb, stage 10: the skip step's echo exited 0 and was recorded as checks "passed" with nothing collected.
+    summary = run_suite(FakeRunner(tmp_path, [(0, None)]), tmp_path, IMAGE, PYTEST, rounds=1)  # type: ignore[arg-type]
+    assert summary.round_status == ["not_collected"] and summary.collected_per_round == [0]
+    assert "no test ran" in str(summary.infra_why[0])

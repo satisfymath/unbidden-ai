@@ -156,6 +156,76 @@ _NEEDS_MORE = re.compile(r"e2e|browser|playwright|cypress|integration|smoke|depl
 
 
 _RUNNER_CALL = re.compile(r"\bpytest\b|-m (pytest|unittest)\b|\bgo test\b|\b(vitest|jest|mocha)\b")
+_SAYS = re.compile(r"^\s*(echo|printf|:|#)(\s|$)")
+
+
+def _commands(text: str) -> str:
+    """A step's text without what it only prints or comments: `echo "... pytest context satisfied"` runs no test
+    (stage 10, codex-lb: a skip step's message was taken for the test run)."""
+    kept = []
+    for line in text.splitlines():
+        # Quoted text is an argument, never a separator: `echo "unchanged; pytest satisfied"` is one echo.
+        bare = re.sub(r'"(?:[^"\\]|\\.)*"|\'[^\']*\'', '""', line)
+        parts = [p for p in re.split(r"&&|\|\||;", bare) if not _SAYS.match(p)]
+        kept.append(" && ".join(parts))
+    return "\n".join(kept)
+
+
+def _runs_tests(command: str) -> bool:
+    """Whether a step's commands (expanded, without what they only print) call a test runner or a test target."""
+    text = _commands(command)
+    return bool(_RUNNER_CALL.search(text) or _PY_TESTS.search(text))
+
+
+def _negation(condition: str) -> str:
+    """The same condition, negated, in the form a workflow writes its other branch: `a != 'x'` for `a == 'x'`,
+    `!(c)` and `!c` for `c`. Compared after removing spaces."""
+    c = re.sub(r"\s+", "", condition)
+    if "==" in c and c.count("==") == 1 and "&&" not in c and "||" not in c:
+        return c.replace("==", "!=")
+    if "!=" in c and c.count("!=") == 1 and "&&" not in c and "||" not in c:
+        return c.replace("!=", "==")
+    if c.startswith("!(") and c.endswith(")"):
+        return c[2:-1]
+    if c.startswith("!"):
+        return c[1:]
+    return f"!({c})"
+
+
+def _condition(step: dict[str, Any]) -> str | None:
+    if "if" not in step:
+        return None
+    return re.sub(r"\s+", "", re.sub(r"^\s*\$\{\{\s*(.*?)\s*\}\}\s*$", r"\1", str(step["if"]), flags=re.S))
+
+
+def _test_branch(steps: list[dict[str, Any]], tasks: dict[str, list[str]]) -> tuple[list[dict[str, Any]], list[str]]:
+    """Steps under a condition not known here (a `changes` job's output, the event) and steps under its negation are
+    two branches of one job; only one runs. The branch that runs the tests is the plan, the other is left out, and the
+    unknown condition is said (stage 10, codex-lb: `needs.changes.outputs.backend`). Nothing is guessed when neither
+    branch, or both, run tests."""
+    conditions = {c for s in steps if (c := _condition(s))}
+    notes: list[str] = []
+    dropped: set[int] = set()
+    for c in sorted(conditions):
+        other = _negation(c)
+        if other not in conditions or c > other:
+            continue
+
+        def tests(cond: str) -> bool:
+            return any(_condition(s) == cond and isinstance(s.get("run"), str)
+                       and _runs_tests(_expand_tasks(str(s["run"]), tasks)) for s in steps)  # fmt: skip
+
+        here, there = tests(c), tests(other)
+        if here == there:
+            continue
+        taken, left = (c, other) if here else (other, c)
+        left_out = [i for i, s in enumerate(steps) if _condition(s) == left]
+        dropped |= set(left_out)
+        notes.append(f"condition `{taken}` is not known outside GitHub: the branch that runs the tests is taken, "
+                     f"its negation ({len(left_out)} step(s)) left out")  # fmt: skip
+    return [s for i, s in enumerate(steps) if i not in dropped], notes
+
+
 _HTTP_TESTS = re.compile(r"\b(newman|postman)\b", re.I)
 
 
@@ -226,6 +296,8 @@ def _job_plan(
     services: list[str] = []
     notes: list[str] = []
     all_steps = [s for s in job.get("steps") or [] if isinstance(s, dict)]
+    all_steps, branch_notes = _test_branch(all_steps, tasks or {})
+    notes += branch_notes
     downloads = any(str(s.get("uses", "")).startswith("actions/download-artifact") for s in all_steps)
     runs = [_as_run(s) for s in all_steps]
     # What a step writes to `$GITHUB_ENV` is the environment of the steps after it (stage 10, Prefect: the database
@@ -244,8 +316,8 @@ def _job_plan(
         return None  # a job that publishes is never a test plan, whatever comes after its tests
     # The job's tests end at its last step that runs the test runner: what follows uploads, validates or reports
     # (stage 10, Prefect: a `jq` check of the durations file was taken for a test step).
-    last = max((i for i, s in enumerate(runs) if _RUNNER_CALL.search(_expand_tasks(str(s["run"]), tasks or {}))),
-               default=None)  # fmt: skip
+    last = max((i for i, s in enumerate(runs)
+                if _runs_tests(_expand_tasks(str(s["run"]), tasks or {}))), default=None)  # fmt: skip
     if last is not None and last + 1 < len(runs):
         notes.append(f"{len(runs) - last - 1} step(s) after the tests left out (they run no tests)")
         runs = runs[: last + 1]
@@ -278,7 +350,9 @@ def _job_plan(
             command = _SPLIT_BOOKKEEPING.sub("", command)
         if command and _parses(command):
             steps.append(CiStep(cwd=str(step.get("working-directory") or defaults), command=command))
-    text = " ".join(s.command for s in steps) + " " + " ".join((scripts or {}).values())
+    # The plan's own steps must run tests (what they call, expanded), not merely mention them.
+    text = _commands(" \n".join(_expand_tasks(s.command, tasks or {}) for s in steps))
+    text += " " + " ".join(_commands(v) for v in (scripts or {}).values())
     runs_tests = _PY_TESTS.search(text) if language == "python" else re.search(r"\btest\b", text)
     if not steps or not runs_tests:
         return None

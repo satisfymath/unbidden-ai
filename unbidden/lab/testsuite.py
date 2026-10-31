@@ -196,6 +196,10 @@ def _round(
     if report is None and plan.pytest and not result.ok:
         # Nothing reached pytest's report: setup failed or the run crashed. Retried once, then counted.
         return Round(None, INFRA_FAILED, None, _ended(result))
+    if report is None and plan.pytest:
+        # Exit 0 and no test report: the command ran no test (stage 10, codex-lb: a skip step's echo). An exit code
+        # is not evidence that tests ran; the report is.
+        return Round([], NOT_COLLECTED, 0, f"{_ended(result)} (no test report: no test ran)")
     names, collected = (report[0], report[1]) if report is not None else (None, None)
     if names and needs_network(result.stdout + result.stderr):
         names = [f"{n} (needs network)" for n in names]
