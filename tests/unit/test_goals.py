@@ -316,8 +316,8 @@ def test_equal_totals_with_differing_records_filters_or_relations_are_discrepanc
     }
     for api, expected in ((api_value, {"b", "c"}), (api_filter, {"c", "d"}), (api_relation, {"a", "b"})):
         records = [{"id": r["id"], "n_api": r["n"]} for r in api]
-        monkeypatch.setattr("unbidden.forge.api_client.read_collection",
-                            lambda *a, _r=records, **k: Read(_r, Completeness.COMPLETE, "whole", "offset", 1))  # fmt: skip
+        whole = Read(records, Completeness.COMPLETE, "whole", "offset", 1)
+        monkeypatch.setattr("unbidden.forge.api_client.read_collection", lambda *a, _w=whole, **k: _w)
         run = GoalRun(goal="g")
         joined, _ = goals._read(store, mandate, plan, conns, {"api": integration}, run)  # pyright: ignore[reportPrivateUsage]
         assert sum(r["n"] for r in db) == sum(r["n"] for r in api)  # the totals agree
