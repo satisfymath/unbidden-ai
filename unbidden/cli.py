@@ -1115,6 +1115,13 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         )
     else:
         checks.append(("workspace", False, "not initialized: `unbidden init`"))
+    try:
+        from unbidden.observe.scope import diagnose
+
+        for name, ok, note in diagnose(Workspace.find().repo):
+            checks.append((name, ok, note))
+    except WorkspaceError:
+        pass
     if args.fix and not rec.installed and rec.fits:
         console.print(f"pulling {rec.model.tag} ...")
         pulled = subprocess.run(["ollama", "pull", rec.model.tag], check=False).returncode == 0

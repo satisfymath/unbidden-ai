@@ -64,3 +64,22 @@ def test_a_block_is_the_finding_never_an_exception(tmp_path: Path, monkeypatch: 
     monkeypatch.setattr(prepare, "provision", refuse)
     record = prepare.checks_record(source, "HEAD", Mandate(workspace="t"))
     assert record["status"] == "blocked" and "allowlist" in str(record["why"]) and "stack" in record
+
+
+def test_the_scope_diagnosis_says_what_is_in_and_out_and_why(tmp_path: Path) -> None:
+    from unbidden.observe.scope import diagnose
+
+    checks = dict((n, (ok, why)) for n, ok, why in diagnose(_repo(tmp_path / "py")))
+    assert checks["scope: stack"][0] and "Python 3.12" in checks["scope: stack"][1]
+    assert checks["scope: tests"][0] and "ci.yml > test" in checks["scope: tests"][1]
+    assert not checks["scope: database"][0] and "no database service" in checks["scope: database"][1]
+    other = tmp_path / "go"
+    other.mkdir()
+    (other / "go.mod").write_text("module x\n")
+    (other / "main.go").write_text("package main\n")
+    git = ["git", "-C", str(other), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run(["git", "init", "-q", str(other)], check=True)
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    out = diagnose(other)
+    assert out[0][0] == "scope: stack" and not out[0][1] and "Python only" in out[0][2]
