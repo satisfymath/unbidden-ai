@@ -269,3 +269,35 @@ def test_a_busy_host_defers_the_measurement_and_then_blocks_it_never_a_noisy_res
     monkeypatch.setattr(perf, "HOST_WAIT_S", 0.0)
     sessions, error = lab._sessions(measure, {}, "seed", per_arm=1)  # pyright: ignore[reportPrivateUsage]
     assert sessions is None and "deferred: the host is busy" in error and "4.00" in error
+
+
+def test_the_rule_written_index_edits_a_declaration_that_spans_lines() -> None:
+    # codex-lb, stage 10: `endpoint_id: Mapped[str] = mapped_column(\n String,\n ForeignKey(...),\n nullable=False,\n)`;
+    # the one-line rule gave up, the model was asked, and its change added lint findings.
+    from unbidden.lab.perf import _model_index
+
+    source = (
+        "class ProxyPoolMember(Base):\n"
+        '    __tablename__ = "proxy_pool_members"\n\n'
+        '    pool_id: Mapped[str] = mapped_column(String, ForeignKey("proxy_pools.id"), nullable=False)\n'
+        "    endpoint_id: Mapped[str] = mapped_column(\n"
+        "        String,\n"
+        '        ForeignKey("proxy_endpoints.id", ondelete="CASCADE"),\n'
+        "        nullable=False,\n"
+        "    )\n"
+        "    weight: Mapped[int] = mapped_column(Integer, default=1)\n"
+    )
+    edited = _model_index(source, "proxy_pool_members", "endpoint_id")
+    assert edited is not None
+    assert "        nullable=False,\n        index=True,\n    )\n" in edited
+    assert edited.count("index=True") == 1 and "weight: Mapped[int] = mapped_column(Integer, default=1)" in edited
+    one_line = _model_index(source, "proxy_pool_members", "pool_id")
+    assert one_line is not None and 'ForeignKey("proxy_pools.id"), nullable=False, index=True)' in one_line
+    assert (
+        _model_index(
+            source.replace("nullable=False,\n    )", "nullable=False, index=True,\n    )"),
+            "proxy_pool_members",
+            "endpoint_id",
+        )
+        is None
+    )  # already indexed: not a guess, nothing to do

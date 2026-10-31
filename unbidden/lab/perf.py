@@ -585,11 +585,31 @@ def _model_index(source: str, table: str, column: str) -> str | None:
     ]
     if len(declared) != 1:
         return None
-    line = lines[declared[0]].rstrip("\n")
-    if "index=" in line or not line.rstrip().endswith(")") or line.count("(") != line.count(")"):
+    first = declared[0]
+    # The declaration may span lines (codex-lb, stage 10: `mapped_column(\n String,\n ForeignKey(...),\n)`): it ends
+    # where its parentheses balance.
+    depth, last = 0, None
+    for i in range(first, end):
+        depth += lines[i].count("(") - lines[i].count(")")
+        if depth == 0:
+            last = i
+            break
+    if last is None or any("index=" in lines[i] for i in range(first, last + 1)):
         return None
-    stripped = line.rstrip()
-    lines[declared[0]] = f"{stripped[:-1]}, index=True)\n"
+    closing = lines[last].rstrip("\n")
+    if not closing.rstrip().endswith(")"):
+        return None
+    if last == first:
+        lines[first] = f"{closing.rstrip()[:-1]}, index=True)\n"
+    elif closing.strip() == ")":
+        # One argument a line, the closing paren alone: a new line in the same style (trailing comma kept).
+        previous = lines[last - 1].rstrip("\n")
+        indent = previous[: len(previous) - len(previous.lstrip())]
+        if not previous.rstrip().endswith(","):
+            lines[last - 1] = previous.rstrip() + ",\n"
+        lines.insert(last, f"{indent}index=True,\n")
+    else:
+        lines[last] = f"{closing.rstrip()[:-1]}, index=True)\n"
     return "".join(lines)
 
 
