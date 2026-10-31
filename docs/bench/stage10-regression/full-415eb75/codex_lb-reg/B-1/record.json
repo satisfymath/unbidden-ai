@@ -1,0 +1,21 @@
+{
+ "app": "codex_lb",
+ "run": "B-1",
+ "mode": "proactive",
+ "restored": {
+  "commit": "84fde5a1ed5e0d5a58ccb3ec4b82938b059bf8c5",
+  "data": {
+   "accounts": 2000,
+   "api_keys": 50,
+   "request_logs": 300000,
+   "usage_history": 200000
+  }
+ },
+ "usd_before": 26.0846,
+ "interventions": [],
+ "wall_s": 440.4,
+ "repo_after": "",
+ "branches_after": [],
+ "usd_after": 26.323,
+ "workspace": "/Users/david/unbidden-lab/codex_lb-runs/codex_lb-reg-B-1"
+}
