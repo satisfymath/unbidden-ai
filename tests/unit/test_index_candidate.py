@@ -37,13 +37,15 @@ def test_the_index_goes_on_the_column_of_the_mapped_class_and_a_migration_follow
     compile(migration, "migration.py", "exec")
 
 
-def test_no_candidate_when_the_column_spans_lines_or_is_already_indexed() -> None:
+def test_a_column_that_spans_lines_gets_its_index_in_the_same_layout_and_an_indexed_one_no_candidate() -> None:
     multi = MODELS.replace(
         'mapped_column(GUID, ForeignKey("labels.id"))',
         'mapped_column(\n        GUID, ForeignKey("labels.id")\n    )',
         1,
     )
-    assert index_candidate(lambda _: multi, "shopping_list_items", "label_id", "m.py", HEAD) is None
+    spanned = index_candidate(lambda _: multi, "shopping_list_items", "label_id", "m.py", HEAD)
+    assert spanned is not None  # stage 10, codex-lb: one argument a line is the project's own style, not a guess
+    assert 'GUID, ForeignKey("labels.id"),\n        index=True,\n    )' in spanned["m.py"]
     indexed = MODELS.replace('ForeignKey("labels.id"))', 'ForeignKey("labels.id"), index=True)', 1)
     assert index_candidate(lambda _: indexed, "shopping_list_items", "label_id", "m.py", HEAD) is None
     assert index_candidate(lambda _: MODELS, "nope", "label_id", "m.py", HEAD) is None
