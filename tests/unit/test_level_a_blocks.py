@@ -11,7 +11,12 @@ from pathlib import Path
 
 import pytest
 
-from unbidden.observe.ci import _entries, _install_script, ci_test_plan  # pyright: ignore[reportPrivateUsage]
+from unbidden.observe.ci import (  # pyright: ignore[reportPrivateUsage]
+    _entries,
+    _install_script,
+    ci_test_plan,
+    tox_environments,
+)
 from unbidden.observe.stack import detect_stack
 
 pytestmark = pytest.mark.unit
@@ -138,3 +143,69 @@ def test_a_pyproject_of_tool_settings_only_is_not_the_manifest(tmp_path: Path) -
     })  # fmt: skip
     assert (declared_stack := detect_stack(declared, "HEAD").python) is not None
     assert declared_stack.manifest == "pyproject.toml"
+
+
+def test_a_tox_environment_is_expanded_to_its_commands_with_its_extras(tmp_path: Path) -> None:
+    """humanize: the test job runs `uvx --with tox-uv tox -e py`; a benchmark job that spells `pytest` was taken."""
+    repo = _repo(tmp_path, {
+        "pyproject.toml": '[project]\nname = "humanize"\nrequires-python = ">=3.11"\n'
+                          '[project.optional-dependencies]\ntests = ["pytest", "pytest-cov"]\n',
+        "tox.ini": "[testenv]\nextras =\n    tests\ncommands =\n    {envpython} -m pytest \\\n      --cov humanize \\\n"
+                   "      {posargs}\n\n[testenv:lint]\ndeps = -r requirements-lint.txt\ncommands = ruff check .\n",
+        "tests/test_a.py": "def test_a(): ...\n",
+        ".github/workflows/benchmark.yml": WORKFLOW + """  benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pytest tests/test_benchmarks.py --codspeed
+""",
+        ".github/workflows/test.yml": WORKFLOW + """  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: uvx --python 3.12 --with tox-uv tox -e py
+""",
+    })  # fmt: skip
+    envs = tox_environments(repo, "HEAD")
+    assert envs["tox:*"][0] == "python -m pytest --cov humanize"
+    assert envs["tox:lint"][-1] == '#env {"extras": ["tests"], "groups": [], "requirements": ["requirements-lint.txt"]}'
+    plan = ci_test_plan(repo, "HEAD", "python")
+    assert plan is not None and plan.workflow == "test.yml", plan
+    assert plan.steps[0].command == "(python -m pytest --cov humanize)"
+    assert plan.sync_flags == ("--all-groups", "--extra tests")
+
+
+def test_tox_in_pyproject_and_a_job_that_checks_out_another_repository(tmp_path: Path) -> None:
+    """click: `uv run tox run` with the environment in `TOX_ENV`, `[tool.tox]` in pyproject.toml; its nightly job
+    checks out Flask and runs Flask's suite, which is not click's checks."""
+    repo = _repo(tmp_path, {
+        "pyproject.toml": '[project]\nname = "click"\nrequires-python = ">=3.10"\n[dependency-groups]\n'
+                          'tests = ["pytest"]\n[tool.tox]\nenv_list = ["py3.14", "style"]\n[tool.tox.env_run_base]\n'
+                          'dependency_groups = ["tests"]\ncommands = [["pytest", "-v", "--tb=short", '
+                          '"--basetemp={env_tmp_dir}", {replace = "posargs", default = [], extend = true}]]\n'
+                          '[tool.tox.env.style]\ncommands = [["ruff", "check"]]\n',
+        "tests/test_a.py": "def test_a(): ...\n",
+        ".github/workflows/nightly.yaml": WORKFLOW + """  flask-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: pallets/flask
+      - run: uv run --no-sync -- pytest
+""",
+        ".github/workflows/tests.yaml": WORKFLOW + """  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: uv run --locked --no-default-groups --group dev tox run
+        env:
+          TOX_ENV: py3.14
+""",
+    })  # fmt: skip
+    envs = tox_environments(repo, "HEAD")
+    assert envs["tox:*"][0] == "pytest -v --tb=short --basetemp=/tmp/tox-tmp"
+    assert envs["tox:style"][0] == "ruff check"
+    plan = ci_test_plan(repo, "HEAD", "python")
+    assert plan is not None and plan.workflow == "tests.yaml", plan
+    assert plan.steps[0].command == "(pytest -v --tb=short --basetemp=/tmp/tox-tmp)"
+    assert plan.sync_flags is not None and "--group tests" in plan.sync_flags

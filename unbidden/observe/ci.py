@@ -201,6 +201,124 @@ def _make_line(line: str, variables: dict[str, str]) -> str:
     return line.replace("$$", "$")
 
 
+_TOX_CALL = re.compile(
+    r"^\s*(?:uvx\s+(?:(?!tox(?:\s|$))\S+\s+)*)?(?:python3?\s+-m\s+)?tox(?:\s+run)?(?P<args>(?:\s+\S+)*)\s*$"
+)
+_FACTOR = re.compile(r"^[\w.,!-]+:\s+(?!//)")  # a factor-conditional line of tox.ini (`crypto: crypto`, `py311: x`)
+_TOX_SUBST = {
+    "{envpython}": "python", "{env_python}": "python", "{toxinidir}": ".", "{tox_root}": ".",
+    "{envtmpdir}": "/tmp/tox-tmp", "{env_tmp_dir}": "/tmp/tox-tmp", "{envdir}": "/tmp/tox-env",
+    "{env_dir}": "/tmp/tox-env", "{envsitepackagesdir}": "/tmp/tox-env/site-packages",
+}  # fmt: skip
+
+
+def _tox_command(text: str) -> str:
+    out = re.sub(r"\{posargs(?::[^}]*)?\}", "", text)
+    for key, value in _TOX_SUBST.items():
+        out = out.replace(key, value)
+    return re.sub(r"\s+", " ", out).strip()
+
+
+def tox_environments(repo: Path, rev: str) -> dict[str, list[str]]:
+    """Each tox environment as the lines it runs (`tox:<name>`; `tox:*` the base every `py*` environment runs),
+    read from tox.ini or `[tool.tox]` in pyproject.toml, the way `make_targets` reads a Makefile. The last line
+    (`#env {...}`) carries the environment's extras, dependency groups and requirement files, which the image must
+    hold. Stage 10, level A: humanize's test job runs `uvx --with tox-uv tox -e py`, click's `uv run tox run`; a job
+    that only calls tox was passed over for a benchmark job or another project's suite."""
+    found: dict[str, list[str]] = {}
+
+    def record(name: str, commands: list[str], extras: list[str], groups: list[str], deps: list[str]) -> None:
+        # Commands under a factor condition run for some environments only: left out; extras and dependencies under
+        # one are installed anyway (a superset of what any environment needs, harmless offline).
+        lines = [c for c in (_tox_command(c) for c in commands if not _FACTOR.match(c)) if c]
+        if not lines:
+            return
+        extras = [_FACTOR.sub("", e) for e in extras]
+        groups = [_FACTOR.sub("", g) for g in groups]
+        files = [m.group("file") for d in deps for m in _REQUIREMENTS.finditer(_FACTOR.sub("", d))]
+        meta = {"extras": extras, "groups": groups, "requirements": files}
+        found[f"tox:{name}"] = [*lines, f"#env {json.dumps(meta)}"]
+
+    ini = _git(repo, "show", f"{rev}:tox.ini")
+    pyproject = _git(repo, "show", f"{rev}:pyproject.toml")
+    if not ini and pyproject and "legacy_tox_ini" in pyproject:  # tox.ini embedded in pyproject.toml (marshmallow)
+        try:
+            legacy = ((tomllib.loads(pyproject).get("tool") or {}).get("tox") or {}).get("legacy_tox_ini")
+        except tomllib.TOMLDecodeError:
+            legacy = None
+        ini = legacy if isinstance(legacy, str) else ""
+    if ini:
+        parser = configparser.ConfigParser(interpolation=None)
+        try:
+            parser.read_string(ini)
+        except configparser.Error:
+            parser = None
+        if parser is not None:
+
+            def listed(section: str, key: str, fallback: str | None = None) -> list[str]:
+                value = parser.get(section, key, fallback=None) if parser.has_section(section) else None
+                if value is None and fallback is not None and parser.has_section(fallback):
+                    value = parser.get(fallback, key, fallback=None)
+                joined = re.sub(r"\\\n\s*", " ", value or "")
+                return [ln.strip() for ln in joined.splitlines() if ln.strip()]
+
+            if parser.has_section("testenv"):
+                record("*", listed("testenv", "commands"), listed("testenv", "extras"),
+                       listed("testenv", "dependency_groups"), listed("testenv", "deps"))  # fmt: skip
+            for section in parser.sections():
+                if section.startswith("testenv:"):
+                    name = section.removeprefix("testenv:")
+                    record(name, listed(section, "commands", "testenv"), listed(section, "extras", "testenv"),
+                           listed(section, "dependency_groups", "testenv"),
+                           listed(section, "deps", "testenv"))  # fmt: skip
+    if pyproject and "[tool.tox" in pyproject and "legacy_tox_ini" not in pyproject:
+        try:
+            tox = (tomllib.loads(pyproject).get("tool") or {}).get("tox") or {}
+        except tomllib.TOMLDecodeError:
+            tox = {}
+
+        def words(commands: Any) -> list[str]:
+            out = []
+            for command in commands if isinstance(commands, list) else []:
+                parts = (
+                    [str(w) for w in command if isinstance(w, (str, int, float))] if isinstance(command, list) else []
+                )
+                if parts:
+                    out.append(" ".join(shlex.quote(w) if " " in w else w for w in parts))
+            return out
+
+        def strings(value: Any) -> list[str]:
+            return [str(v) for v in value] if isinstance(value, list) else []
+
+        base = tox.get("env_run_base") or {}
+        if isinstance(base, dict):
+            record("*", words(base.get("commands")), strings(base.get("extras")),
+                   strings(base.get("dependency_groups")), strings(base.get("deps")))  # fmt: skip
+        for name, env in (tox.get("env") or {}).items():
+            if isinstance(env, dict):
+                merged = {**base, **env} if isinstance(base, dict) else env
+                record(str(name), words(merged.get("commands")), strings(merged.get("extras")),
+                       strings(merged.get("dependency_groups")), strings(merged.get("deps")))  # fmt: skip
+    return found
+
+
+def tox_env_of(line: str, tasks: dict[str, list[str]]) -> tuple[str, dict[str, Any]] | None:
+    """(task key, its `#env` metadata) of the tox environment a line runs, or None when the line is not a tox call
+    the tasks know. `-e py`, `-e py3.14` or no `-e` (the `TOX_ENV` variable, a matrix value) run the base."""
+    call = _TOX_CALL.match(_RUNNERS.sub(lambda m: m.group("open"), line))  # `uv run --group dev tox run` (click)
+    if call is None:
+        return None
+    args = call.group("args").split()
+    env = next((args[i + 1] for i, a in enumerate(args[:-1]) if a == "-e"), None)
+    env = next((a.split("=", 1)[1] for a in args if a.startswith("-e=")), env)
+    key = f"tox:{env}" if env and f"tox:{env}" in tasks else "tox:*"
+    if key not in tasks:
+        return None
+    body = tasks[key]
+    meta = json.loads(body[-1].removeprefix("#env ")) if body[-1].startswith("#env ") else {}
+    return key, meta
+
+
 def _expand_tasks(command: str, tasks: dict[str, list[str]]) -> str:
     """`task py:test -- -k x` becomes the task's own commands, its CLI arguments in place of `{{ .CLI_ARGS }}`."""
     lines: list[str] = []
@@ -218,6 +336,9 @@ def _expand_tasks(command: str, tasks: dict[str, list[str]]) -> str:
                     # Each recipe line runs in its own shell, as make runs it: a `cd` does not reach the next line.
                     lines += [f"({_make_line(c, variables)})" for c in body if not c.startswith("#vars ")]
                 continue
+        if (tox := tox_env_of(line, tasks)) is not None:
+            lines += [f"({c})" for c in tasks[tox[0]] if not c.startswith("#env ")]
+            continue
         call = _TASK_CALL.match(line)
         if call is None or call.group("name") not in tasks:
             lines.append(line)
@@ -465,6 +586,13 @@ def _job_plan(
                 kept_lines.append(line)
             step["run"] = "\n".join(kept_lines)
     runs = [s for s in runs if str(s["run"]).strip()]
+    tox_flags: list[str] = []
+    for step in runs:
+        for line in str(step["run"]).splitlines():
+            if (tox := tox_env_of(line, tasks or {})) is not None:
+                requirement_files += [r for r in tox[1].get("requirements", []) if files is None or r in files]
+                tox_flags += [f"--extra {e}" for e in tox[1].get("extras", [])]
+                tox_flags += [f"--group {g}" for g in tox[1].get("groups", [])]
     if any(_PUBLISHES.search(_expand_tasks(str(s["run"]), tasks or {})) for s in runs):
         return None  # a job that publishes is never a test plan, whatever comes after its tests
     # The job's tests end at its last step that runs the test runner: what follows uploads, validates or reports
@@ -545,7 +673,8 @@ def _job_plan(
     return CiPlan(workflow=workflow, job=job_name, steps=tuple(steps), services=tuple(dict.fromkeys(services)),
                   containers=tuple(containers), env=tuple(sorted(env.items())), scope=scope,
                   notes=tuple(dict.fromkeys(notes)), interpreters=tuple(dict.fromkeys(interpreters)),
-                  requirement_files=tuple(dict.fromkeys(requirement_files)))  # fmt: skip
+                  requirement_files=tuple(dict.fromkeys(requirement_files)),
+                  sync_flags=tuple(dict.fromkeys(tox_flags)) or None)  # fmt: skip
 
 
 _BUILTIN_MARKS = {"parametrize", "skip", "skipif", "xfail", "asyncio", "usefixtures", "filterwarnings", "timeout"}
@@ -842,6 +971,17 @@ _SYNC_FLAG = re.compile(
 )
 
 
+def _checks_out_another(job: dict[str, Any]) -> bool:
+    """Whether the job checks out another repository (`actions/checkout` with `repository:`): its suite is that
+    project's, run against this one, not this project's checks."""
+    return any(
+        isinstance(step, dict)
+        and str(step.get("uses", "")).startswith("actions/checkout")
+        and (step.get("with") or {}).get("repository")
+        for step in job.get("steps") or []
+    )
+
+
 def _sync_flags(repo: Path, rev: str, job: dict[str, Any]) -> tuple[str, ...] | None:
     """The dependency groups and extras the test job installs, read from the `uv sync` its steps run, and those of
     the local composite actions it uses (`uses: ./.github/actions/prepare`). Stage 9 evaluation, Prefect: its test job
@@ -891,7 +1031,7 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
             item[1],
         )
 
-    tasks = taskfile_tasks(repo, rev) | make_targets(repo, rev)
+    tasks = taskfile_tasks(repo, rev) | make_targets(repo, rev) | tox_environments(repo, rev)
     files = set(_git(repo, "ls-tree", "-r", "--name-only", rev).splitlines())
 
     def scripts_of(job: dict[str, Any]) -> dict[str, str]:
@@ -908,6 +1048,7 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
 
     def executes(job: dict[str, Any]) -> str:
         runs = " ".join(str(_as_run(s).get("run", "")) for s in job.get("steps") or [] if isinstance(s, dict))
+        runs = _expand_tasks(runs, tasks) if tasks else runs  # `tox -e py`, `make test`: what they run
         return runs + " " + " ".join(scripts_of(job).values())
 
     def runner(item: tuple[str, str, dict[str, Any]]) -> tuple[int, int, int]:
@@ -937,6 +1078,8 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
             continue
         if language == "node" and not re.search(r"node|npm|pnpm|yarn|bun", hint):
             continue
+        if _checks_out_another(job):  # click's nightly job runs Flask's suite against click: not this project's
+            continue
         entries = _entries(job)
         label, resolved = entries[0]
         plan = _job_plan(name, job_name, resolved, language, tasks, scripts_of(resolved), files, container)
@@ -950,7 +1093,10 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
                 split = re.search(r"pytest-split group \d+ of (\d+)", plan.scope)
                 if len(groups) == 1 and split:  # a split without a matrix: the groups are pytest-split's own
                     groups = tuple(f"pytest-split group {i}" for i in range(1, int(split.group(1)) + 1))
-            return replace(plan, sync_flags=_sync_flags(repo, rev, job), groups=groups if len(groups) > 1 else (),
+            synced = _sync_flags(repo, rev, job)
+            if plan.sync_flags:  # a tox environment's extras and groups, on top of what the job syncs
+                synced = tuple(dict.fromkeys([*(synced or ("--all-groups",)), *plan.sync_flags]))
+            return replace(plan, sync_flags=synced, groups=groups if len(groups) > 1 else (),
                            scope="; ".join(parts) or plan.scope or "the whole job")  # fmt: skip
     return None
 
