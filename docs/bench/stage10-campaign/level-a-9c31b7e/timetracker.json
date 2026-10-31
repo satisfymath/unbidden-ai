@@ -1,0 +1,65 @@
+{
+ "repo": "/Users/david/TimeTracker",
+ "rev": "7ae6440d1b0930196609c6cefe3cf13948513f5b",
+ "stack": {
+  "python": "3.11",
+  "why": [
+   "python 3.11: where the CI runs the checks and the project's Dockerfile both use it",
+   "the CI's python-version: 3.11",
+   "the project's Dockerfile: 3.11, 3.12",
+   "conflict: concrete sources disagree: the CI's python-version 3.11; the project's Dockerfile 3.11, 3.12"
+  ],
+  "manifest": "requirements.txt",
+  "lockfile": "requirements.txt",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [
+   "requirements-test.txt"
+  ],
+  "build_writes": [],
+  "blind_spots": [
+   "package.json without a lockfile: dependencies resolved at provisioning time",
+   "Java/Kotlin (build.gradle) is not analyzed: no checks, probes or experiments for that code",
+   "Dart (pubspec.yaml) is not analyzed: no checks, probes or experiments for that code"
+  ]
+ },
+ "image": "unbidden-deps-python:462486a50b473dd5",
+ "plan": {
+  "source": "CI ci.yml > test (its services: postgres)",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [],
+  "services": [
+   "postgres"
+  ],
+  "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nflask db upgrade\ncd /work\npytest -n auto --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing tests/"
+ },
+ "status": "failed",
+ "collected": 113,
+ "failed": [
+  "pytest::internal"
+ ],
+ "why": "exit 3:  5 scaffolding).\nINFO  [alembic.runtime.migration] Running upgrade 198_add_oauth_applications -> 199_task_multi_assignees, Replace single task assigned_to with multi-assignee tables.\nINFO  [alembic.runtime.migration] Running upgrade 199_task_multi_assignees -> 200_scrub_sensitive_audit_log_values, Scrub sensitive field values from audit_logs (issue #801).\nINFO  [alembic.env] Connection still in transaction, explicitly committing...\nINFO  [alembic.env] Post-migration verification: Found 156 tables in database\nINFO  [alembic.env] \u2713 alembic_version table exists - migrations persisted successfully",
+ "failures": {
+  "pytest::internal": "internal error"
+ },
+ "wall_s": 69.8,
+ "image_notes": [
+  "python 3.11: where the CI runs the checks and the project's Dockerfile both use it",
+  "the CI's python-version: 3.11",
+  "the project's Dockerfile: 3.11, 3.12",
+  "conflict: concrete sources disagree: the CI's python-version 3.11; the project's Dockerfile 3.11, 3.12",
+  "image unbidden-deps-python:462486a50b473dd5 on linux/arm64",
+  "the environment is seeded with pip and setuptools as of 2026-10-28T06:09:11Z (the lockfile's era), as virtualenvs on Python 3.11 were"
+ ],
+ "python": "3.11",
+ "source": "CI ci.yml > test (its services: postgres)",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [],
+ "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nflask db upgrade\ncd /work\npytest -n auto --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing tests/"
+}

@@ -1,0 +1,58 @@
+{
+ "repo": "/Users/david/mealie",
+ "rev": "e31c5fcfd2892670158f4c189acdb06cde3180bf",
+ "stack": {
+  "python": "3.14",
+  "why": [
+   "python 3.14: where the CI runs the checks and the project's Dockerfile both use it",
+   "pyproject requires-python: >=3.14,<3.15",
+   "the CI's python-version: 3.14",
+   "the project's Dockerfile: 3.14"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": "uv.lock",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:ad3278313fc7906a",
+ "plan": {
+  "source": "CI nightly.yml:backend-tests > tests (test-backend.yml) (its services: postgres, ldap)",
+  "scope": "matrix entry 1 of 2 (Database=postgres)",
+  "partial": true,
+  "notes": [],
+  "services": [
+   "postgres",
+   "ldap"
+  ],
+  "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nenv -u UV_FROZEN uv lock --check\ncd /work\npytest -n auto --dist loadfile"
+ },
+ "status": "infra_failed",
+ "collected": null,
+ "failed": [
+  "<suite>"
+ ],
+ "why": "exit 4: Resolved 145 packages in 1ms\nImportError while loading conftest '/work/tests/conftest.py'.\ntests/conftest.py:53: in <module>\n    main()\nmealie/db/init_db.py:106: in main\n    raise ConnectionError(\"Database connection failed - exiting application.\")\nE   ConnectionError: Database connection failed - exiting application.",
+ "failures": {},
+ "wall_s": 44.6,
+ "image_notes": [
+  "python 3.14: where the CI runs the checks and the project's Dockerfile both use it",
+  "pyproject requires-python: >=3.14,<3.15",
+  "the CI's python-version: 3.14",
+  "the project's Dockerfile: 3.14",
+  "image unbidden-deps-python:ad3278313fc7906a on linux/arm64",
+  "a package is built from source: system build tools installed from Debian (build-essential, libsasl2-dev, libldap2-dev, libssl-dev)"
+ ],
+ "python": "3.14",
+ "source": "CI nightly.yml:backend-tests > tests (test-backend.yml) (its services: postgres, ldap)",
+ "scope": "matrix entry 1 of 2 (Database=postgres)",
+ "partial": true,
+ "notes": [],
+ "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nenv -u UV_FROZEN uv lock --check\ncd /work\npytest -n auto --dist loadfile"
+}
