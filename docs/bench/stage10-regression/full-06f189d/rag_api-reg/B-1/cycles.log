@@ -1,0 +1,45 @@
+== cycle 1 (exit 0)
+15:55:48 watching /Users/david/unbidden-lab/rag-api (ctrl-c to stop, `unbidden 
+kill` to freeze)
+15:55:48 HEAD is 4985b37b8b5d
+15:55:48 deploy procedure found, proposed only: docker compose up
+15:55:48 deploy procedure found, proposed only: docker compose -f 
+./db-compose.yaml up
+15:55:48 deploy procedure found, proposed only: docker compose -f 
+./api-compose.yaml up
+15:55:48 connections: postgres:127.0.0.1:55500/rag_api connected, 
+http_api:http://127.0.0.1:18170 needs_capability
+15:55:48 provisioning python dependencies
+15:55:48 running ruff-baseline
+15:55:49 scan of 4985b37b8b5d: 1 reports, 0 new opportunities
+15:55:50 map of 4985b37b8b5d: 27 resources, 2 blind spots
+<unknown>:85: SyntaxWarning: invalid escape sequence '\o'
+15:55:50 robustness probe at 4985b37b8b5d: investigate (probe app (29 public 
+functions sampled))
+15:56:01 the project's own checks at 4985b37b8b5d: failed (195 collected, 1 
+failed)
+15:56:02 writing property tests for app
+<unknown>:85: SyntaxWarning: invalid escape sequence '\o'
+15:56:11 running them offline
+15:56:17 robustness probe of app: the tests did not run (['1 error in 3.25s'])
+
+
+== cycle 2 (exit 0)
+15:56:17 watching /Users/david/unbidden-lab/rag-api (ctrl-c to stop, `unbidden 
+kill` to freeze)
+15:56:18 connections: postgres:127.0.0.1:55500/rag_api connected, 
+http_api:http://127.0.0.1:18170 needs_capability
+
+
+== cycle 3 (exit 0)
+15:56:20 watching /Users/david/unbidden-lab/rag-api (ctrl-c to stop, `unbidden 
+kill` to freeze)
+15:56:20 connections: postgres:127.0.0.1:55500/rag_api connected, 
+http_api:http://127.0.0.1:18170 needs_capability
+
+
+== cycle 4 (exit 0)
+15:56:20 watching /Users/david/unbidden-lab/rag-api (ctrl-c to stop, `unbidden 
+kill` to freeze)
+15:56:20 connections: postgres:127.0.0.1:55500/rag_api connected, 
+http_api:http://127.0.0.1:18170 needs_capability

@@ -1,0 +1,274 @@
+{
+  "workspace": "aegra",
+  "at": "2026-10-31T18:55:43.392010+00:00",
+  "discovered": {
+    "total": 2,
+    "by_status": {
+      "declined": 1,
+      "open": 1
+    }
+  },
+  "experimenting": [],
+  "declined_because": [
+    [
+      "the numbers agree with the stored data over a whole read: 0 of 200 keys differ",
+      1
+    ]
+  ],
+  "waiting_because": [
+    [
+      "inconclusive: no difference among the 1000 keys read, but the set's completeness is unknown (the read-only query returned its limit of 1000 rows): 'none' is not concluded",
+      1
+    ]
+  ],
+  "proven": [],
+  "project_checks": {
+    "rev": "46055c0b9adffe51fb168974f79dfadaa6edd612",
+    "at": "2026-10-31T18:53:31.872674+00:00",
+    "status": "failed",
+    "collected": 2429,
+    "failed": [
+      "tests.integration.test_api.test_event_streaming.TestStreamRoute::test_stream_emits_dual_sdk_interrupt_fields (needs network)",
+      "tests.integration.test_api.test_event_streaming.TestStreamRoute::test_stream_emits_v2_frames (needs network)",
+      "tests.integration.test_api.test_runs_crud.TestWaitForRunTimeouts::test_wait_for_run_timeout (needs network)",
+      "tests.integration.test_api.test_stateless_runs_crud.TestStatelessWaitForRun::test_delegates_to_threaded_wait (needs network)",
+      "tests.integration.test_cancel_run.TestCancelRun::test_cancel_already_completed_run_returns_true (needs network)",
+      "tests.integration.test_cancel_run.TestCancelRun::test_cancel_run_cancels_running_task (needs network)",
+      "tests.integration.test_cancel_run.TestCancelRun::test_interrupt_run_cancels_running_task (needs network)",
+      "tests.integration.test_cancel_run.TestCancelRunStatusNotOverwritten::test_cancelled_task_raises_cancelled_error (needs network)",
+      "tests.integration.test_streaming_errors.TestStreamingErrorHandling::test_error_during_event_processing_sent_to_frontend (needs network)",
+      "tests.unit.test_api.test_runs_streaming.TestRunsStreamingEndpoints::test_execute_run_async_error_handling (needs network)",
+      "tests.unit.test_api.test_runs_wait.TestWaitForRunExceptionPaths::test_wait_for_run_failed_status (needs network)",
+      "tests.unit.test_api.test_runs_wait.TestWaitForRunExceptionPaths::test_wait_for_run_interrupted_status (needs network)",
+      "tests.unit.test_api.test_runs_wait.TestWaitForRunExceptionPaths::test_wait_for_run_returns_streaming_response (needs network)",
+      "tests.unit.test_api.test_runs_wait.TestWaitForRunExceptionPaths::test_wait_for_run_success (needs network)",
+      "tests.unit.test_api.test_runs_wait.TestWaitForRunExceptionPaths::test_wait_for_run_timeout (needs network)",
+      "tests.unit.test_api.test_stateless_runs.TestCleanupAfterBackgroundRun::test_awaits_task_then_deletes (needs network)",
+      "tests.unit.test_api.test_stateless_runs.TestCleanupAfterBackgroundRun::test_deletes_thread_when_no_task_in_active_runs (needs network)",
+      "tests.unit.test_api.test_stateless_runs.TestCleanupAfterBackgroundRun::test_swallows_psycopg_error_from_thread_delete (needs network)",
+      "tests.unit.test_main::test_lifespan_registers_otel_provider (needs network)",
+      "tests.unit.test_main::test_lifespan_skips_migrations_when_disabled (needs network)",
+      "tests.unit.test_main::test_lifespan_starts_ttl_sweeper_when_configured (needs network)"
+    ],
+    "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest libs/aegra-api/tests/unit libs/aegra-api/tests/integration --cov=libs/aegra-api/src --cov-report=xml --cov-report=term",
+    "scope": "the whole job",
+    "partial": false,
+    "notes": [
+      "the job's `uv python install 3.12` is satisfied by the image's Python 3.12, chosen when it was provisioned"
+    ]
+  },
+  "experiments_wait": null,
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {
+      "in_use": 1
+    },
+    "awaiting_approval": [],
+    "in_use": [
+      {
+        "kind": "api_client",
+        "source": "http_api:http://127.0.0.1:18160"
+      }
+    ]
+  },
+  "spent": {
+    "calls": 184,
+    "usd": 0.6914,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18160",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "list_assistants_assistants_get",
+        "list_threads_threads_get"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-31T18:55:42.780370+00:00"
+    },
+    {
+      "id": "postgres:127.0.0.1:55490/aegra",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.alembic_version",
+        "select public.assistant",
+        "select public.assistant_versions",
+        "select public.checkpoint_blobs",
+        "select public.checkpoint_migrations",
+        "select public.checkpoint_writes",
+        "select public.checkpoints",
+        "select public.crons",
+        "select public.runs",
+        "select public.store",
+        "select public.store_migrations",
+        "select public.thread",
+        "select public.thread_ttl"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-31T18:55:42.763368+00:00"
+    }
+  ],
+  "needs_a_person": [
+    {
+      "proposal": "docker compose up -d",
+      "state": "proposed",
+      "what": "found in CLAUDE.md; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d",
+      "state": "proposed",
+      "what": "found in Makefile; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose up -d",
+      "state": "proposed",
+      "what": "found in Makefile; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.auth.yml up -d postgres aegra",
+      "state": "proposed",
+      "what": "found in Makefile; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose up",
+      "state": "proposed",
+      "what": "found in README.md; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.auth.yml up -d postgres aegra",
+      "state": "proposed",
+      "what": "found in docker-compose.auth.yml; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d",
+      "state": "proposed",
+      "what": "found in docker-compose.dev.yml; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose up -d",
+      "state": "proposed",
+      "what": "found in libs/aegra-api/tests/README.md; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.auth.yml up -d",
+      "state": "proposed",
+      "what": "found in libs/aegra-api/tests/e2e/manual_auth_tests/README.md; a proposal only: a person declares deploy steps in the mandate"
+    }
+  ],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [
+    {
+      "id": "int_c7f96d4753394a3f",
+      "title": "Custom Routes Example",
+      "on": "http_api:http://127.0.0.1:18160",
+      "status": "validated",
+      "how": "built",
+      "operations": {
+        "list_assistants_assistants_get": "read",
+        "list_threads_threads_get": "read"
+      },
+      "oracle": {
+        "list_assistants_assistants_get": "200, 200 records, read complete (200 distinct records, one response, no pagination declared; total = 200 on every page, equal to the distinct records read); no other page size to read with; without the key: 200",
+        "list_threads_threads_get": "200, 20000 records, read complete (20000 distinct records, one response, no pagination declared; total = 20000 on every page, equal to the distinct records read); no other page size to read with; without the key: 200"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "data-correct-and-fast",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for aegra-api",
+      "at": "2026-10-31T18:54:17.482258+00:00"
+    },
+    {
+      "goal": "data-correct-and-fast",
+      "status": "investigated",
+      "short": 0,
+      "actions": 0,
+      "note": "0 of 200 keys short; nothing to change",
+      "at": "2026-10-31T18:54:32.845501+00:00"
+    },
+    {
+      "goal": "consistency-opp_4dceb1b635984aed",
+      "status": "investigated",
+      "short": 0,
+      "actions": 0,
+      "note": "0 of 200 keys differ",
+      "at": "2026-10-31T18:54:45.789768+00:00"
+    },
+    {
+      "goal": "consistency-opp_600c30417fc646b2",
+      "status": "inconclusive",
+      "short": 0,
+      "actions": 0,
+      "note": "no difference among the 1000 keys read, but the set's completeness is unknown (the read-only query returned its limit of 1000 rows): 'none' is not concluded",
+      "at": "2026-10-31T18:54:57.943243+00:00"
+    },
+    {
+      "goal": "data-correct-and-fast",
+      "status": "investigated",
+      "short": 0,
+      "actions": 0,
+      "note": "0 of 200 keys short; nothing to change",
+      "at": "2026-10-31T18:55:24.652162+00:00"
+    }
+  ]
+}

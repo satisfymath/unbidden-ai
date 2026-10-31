@@ -1,0 +1,54 @@
+== cycle 1 (exit 0)
+15:56:23 watching /Users/david/unbidden-lab/rag-api (ctrl-c to stop, `unbidden 
+kill` to freeze)
+15:56:23 HEAD is 4985b37b8b5d
+15:56:23 deploy procedure found, proposed only: docker compose up
+15:56:23 deploy procedure found, proposed only: docker compose -f 
+./db-compose.yaml up
+15:56:23 deploy procedure found, proposed only: docker compose -f 
+./api-compose.yaml up
+15:56:23 connections: postgres:127.0.0.1:55500/rag_api connected, 
+http_api:http://127.0.0.1:18170 needs_capability
+15:56:23 provisioning python dependencies
+15:56:23 running ruff-baseline
+15:56:24 scan of 4985b37b8b5d: 1 reports, 0 new opportunities
+15:56:25 map of 4985b37b8b5d: 27 resources, 2 blind spots
+<unknown>:85: SyntaxWarning: invalid escape sequence '\o'
+15:56:25 robustness probe at 4985b37b8b5d: investigate (probe app (29 public 
+functions sampled))
+15:56:37 the project's own checks at 4985b37b8b5d: failed (195 collected, 1 
+failed)
+15:56:44 goal data-correct-and-fast: waiting_capability: needs an integration 
+for rag_api-api
+15:56:49 capability need api_client for http_api:http://127.0.0.1:18170: in_use
+15:57:01 goal data-correct-and-fast: inconclusive: no discrepancy among the 0 
+keys read, but the set's completeness is unknown (the read-only query returned 
+its limit of 1000 rows): 'none' is not concluded
+15:57:03 writing property tests for app
+<unknown>:85: SyntaxWarning: invalid escape sequence '\o'
+15:57:11 running them offline
+15:57:17 robustness probe of app: the tests did not run (['1 error in 3.31s'])
+
+
+== cycle 2 (exit 0)
+15:57:17 watching /Users/david/unbidden-lab/rag-api (ctrl-c to stop, `unbidden 
+kill` to freeze)
+15:57:18 connections: postgres:127.0.0.1:55500/rag_api connected, 
+http_api:http://127.0.0.1:18170 connected
+15:57:28 goal data-correct-and-fast: inconclusive: no discrepancy among the 0 
+keys read, but the set's completeness is unknown (the read-only query returned 
+its limit of 1000 rows): 'none' is not concluded
+
+
+== cycle 3 (exit 0)
+15:57:30 watching /Users/david/unbidden-lab/rag-api (ctrl-c to stop, `unbidden 
+kill` to freeze)
+15:57:31 connections: postgres:127.0.0.1:55500/rag_api connected, 
+http_api:http://127.0.0.1:18170 connected
+
+
+== cycle 4 (exit 0)
+15:57:32 watching /Users/david/unbidden-lab/rag-api (ctrl-c to stop, `unbidden 
+kill` to freeze)
+15:57:32 connections: postgres:127.0.0.1:55500/rag_api connected, 
+http_api:http://127.0.0.1:18170 connected

@@ -1,0 +1,19 @@
+{
+ "app": "rag_api",
+ "run": "B-1",
+ "mode": "proactive",
+ "restored": {
+  "commit": "4985b37b8b5d4519d68eceedfef1e63624012f9d",
+  "data": {
+   "chunks": 30000,
+   "files": 3000
+  }
+ },
+ "usd_before": 26.0266,
+ "interventions": [],
+ "wall_s": 32.9,
+ "repo_after": "",
+ "branches_after": [],
+ "usd_after": 26.0376,
+ "workspace": "/Users/david/unbidden-lab/rag_api-runs/rag_api-reg-B-1"
+}
