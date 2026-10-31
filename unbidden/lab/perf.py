@@ -77,6 +77,7 @@ def _status(r):
 def _digest(r):
     """The response's content, canonical: the same data gives the same digest, whatever the order of a list."""
     import hashlib
+    import re
     body = getattr(r, "content", None)
     if body is None or isinstance(r, int):
         return None, ""
@@ -85,11 +86,20 @@ def _digest(r):
     except ValueError:
         return hashlib.sha256(body).hexdigest(), body[:300].decode("utf-8", "replace")
 
+    # Identifiers and times the application generates differ between sessions with the same data (fst, stage 10:
+    # uuid4 ids and creation times made every base session answer differently): compared as "generated".
+    GENERATED = re.compile(
+        r"[0-9a-fA-F]{{8}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{12}}"
+        r"|\\d{{4}}-\\d{{2}}-\\d{{2}}[T ]\\d{{2}}:\\d{{2}}(:\\d{{2}}(\\.\\d+)?)?(Z|[+-]\\d{{2}}:?\\d{{2}})?"
+    )
+
     def norm(v):
         if isinstance(v, dict):
             return {{k: norm(x) for k, x in sorted(v.items())}}
         if isinstance(v, list):
             return sorted((norm(x) for x in v), key=lambda x: json.dumps(x, sort_keys=True))
+        if isinstance(v, str) and GENERATED.fullmatch(v):
+            return "<generated>"
         return v
 
     text = json.dumps(norm(value), sort_keys=True)
@@ -161,6 +171,7 @@ def _status(r):
 def _digest(r):
     """The response's content, canonical: the same data gives the same digest, whatever the order of a list."""
     import hashlib
+    import re
     body = getattr(r, "content", None)
     if body is None or isinstance(r, int):
         return None, ""
@@ -169,11 +180,20 @@ def _digest(r):
     except ValueError:
         return hashlib.sha256(body).hexdigest(), body[:300].decode("utf-8", "replace")
 
+    # Identifiers and times the application generates differ between sessions with the same data (fst, stage 10:
+    # uuid4 ids and creation times made every base session answer differently): compared as "generated".
+    GENERATED = re.compile(
+        r"[0-9a-fA-F]{{8}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{12}}"
+        r"|\\d{{4}}-\\d{{2}}-\\d{{2}}[T ]\\d{{2}}:\\d{{2}}(:\\d{{2}}(\\.\\d+)?)?(Z|[+-]\\d{{2}}:?\\d{{2}})?"
+    )
+
     def norm(v):
         if isinstance(v, dict):
             return {{k: norm(x) for k, x in sorted(v.items())}}
         if isinstance(v, list):
             return sorted((norm(x) for x in v), key=lambda x: json.dumps(x, sort_keys=True))
+        if isinstance(v, str) and GENERATED.fullmatch(v):
+            return "<generated>"
         return v
 
     text = json.dumps(norm(value), sort_keys=True)
@@ -1067,11 +1087,27 @@ class PerfLab:
         ancestors = {str(Path(*parts[:i])) if i else "." for i in range(len(parts) + 1)}
         conftests = [p for p in tracked if Path(p).name == "conftest.py" and str(Path(p).parent) in ancestors]
         texts = {p: self._show(rev, p) for p in conftests}
-        loaded = " ".join(texts.values())
-        for p in tracked:
-            module = p.removesuffix(".py").replace("/", ".")
-            if p.endswith(".py") and p not in texts and (module in loaded or module.split(".", 1)[-1] in loaded):
-                texts[p] = self._show(rev, p)
+
+        def module_of(path: str) -> str:
+            # A package's __init__.py is the package itself (mealie: `from tests.fixtures import *`).
+            return path.removesuffix(".py").removesuffix("/__init__").replace("/", ".")
+
+        modules = {module_of(p): p for p in tracked if p.endswith(".py")}
+        pending = list(texts)
+        while pending:  # what they load, and what that loads in turn (a package re-exporting its modules)
+            path = pending.pop()
+            text = texts[path]
+            package = module_of(path) if path.endswith("__init__.py") else module_of(path).rpartition(".")[0]
+            relative = {f"{package}.{m}" if package else m for m in re.findall(r"from\s+\.(\w[\w.]*)\s+import", text)}
+            for module, file in modules.items():
+                if file in texts:
+                    continue
+                # Without its top package (a conftest's `fixtures.x` for `tests.fixtures.x`) only from a conftest:
+                # followed further, so short a name would match nearly every module.
+                loose = path in conftests and module.split(".", 1)[-1] in text
+                if module in relative or module in text or loose:
+                    texts[file] = self._show(rev, file)
+                    pending.append(file)
         names = {
             m.group(2)
             for text in texts.values()

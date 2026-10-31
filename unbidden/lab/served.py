@@ -30,7 +30,7 @@ from unbidden.sandbox.sidecars import Sidecars, data_services
 LAB_DIR = ".unbidden-lab"
 READY_TIMEOUT_S = 240
 DRIVER = '''"""Unbidden's served driver: fixed code, never written by a model. Standard library only."""
-import hashlib, http.client, json, os, socket, sys, time, urllib.parse
+import hashlib, http.client, json, os, re, socket, sys, time, urllib.parse
 
 LAB = "/work/{lab}"
 port, warmup, samples = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
@@ -69,11 +69,20 @@ def canonical(data):
     except ValueError:
         return hashlib.sha256(data).hexdigest(), data[:300].decode("utf-8", "replace")
 
+    # Identifiers and times the application generates differ between sessions with the same data (fst, stage 10:
+    # uuid4 ids and creation times made every base session answer differently): compared as "generated".
+    GENERATED = re.compile(
+        r"[0-9a-fA-F]{{8}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{12}}"
+        r"|\\d{{4}}-\\d{{2}}-\\d{{2}}[T ]\\d{{2}}:\\d{{2}}(:\\d{{2}}(\\.\\d+)?)?(Z|[+-]\\d{{2}}:?\\d{{2}})?"
+    )
+
     def norm(v):
         if isinstance(v, dict):
             return {{k: norm(x) for k, x in sorted(v.items())}}
         if isinstance(v, list):
             return sorted((norm(x) for x in v), key=lambda x: json.dumps(x, sort_keys=True))
+        if isinstance(v, str) and GENERATED.fullmatch(v):
+            return "<generated>"
         return v
 
     text = json.dumps(norm(value), sort_keys=True)

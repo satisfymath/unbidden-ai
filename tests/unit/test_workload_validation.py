@@ -6,6 +6,8 @@ sides: the same responses, or the candidate is wrong, however fast."""
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from unbidden.lab.perf import BUILTIN_FIXTURES, SAMPLES, SEED_ROWS, _same, signature_problems, validate_in_process
@@ -115,3 +117,54 @@ def test_the_engine_statement_says_whether_the_table_is_looked_up_by_the_column(
     from unbidden.lab.seed import reads_by
 
     assert reads_by(query, table, column) is reads
+
+
+def test_fixtures_a_conftest_star_imports_through_a_package_are_visible(tmp_path: Path) -> None:
+    # mealie, stage 10: conftest.py does `from tests.fixtures import *`, whose __init__.py re-exports its modules with
+    # `from .fixture_users import *`; `unique_user` was taken as invisible and every workload was refused.
+    import subprocess
+
+    from unbidden.lab.perf import PerfLab
+
+    files = {
+        "tests/conftest.py": "from tests.fixtures import *  # noqa\n",
+        "tests/fixtures/__init__.py": "from .fixture_users import *\n",
+        "tests/fixtures/fixture_users.py": "import pytest\n\n@pytest.fixture\ndef unique_user():\n    pass\n",
+        "tests/data/x.py": "@pytest.fixture\ndef not_loaded():\n    pass\n",
+    }
+    for name, text in files.items():
+        (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / name).write_text(text)
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
+    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "x"], cwd=tmp_path, check=True)
+    lab = PerfLab.__new__(PerfLab)
+    lab.repo = tmp_path
+    lab._show = lambda rev, p: (tmp_path / p).read_text()  # type: ignore[method-assign]
+    visible = PerfLab._visible_fixtures(lab, "HEAD", "tests/unit")  # pyright: ignore[reportPrivateUsage]
+    assert "unique_user" in visible and "not_loaded" not in visible
+
+
+def test_generated_ids_and_times_do_not_make_two_sessions_with_the_same_data_differ() -> None:
+    # fst, stage 10: every base session answered with other uuid4 ids and creation times, so the base never agreed
+    # with itself and a 72% faster index stayed inconclusive. Values of that shape compare as "generated"; anything
+    # else still counts.
+    import json
+
+    from unbidden.lab import perf
+
+    start = perf.DRIVER.index("def _digest(r):")
+    namespace: dict[str, object] = {}
+    exec("import json\n" + perf.DRIVER[start : perf.DRIVER.index("\n\n\n", start)], namespace)
+    digest = namespace["_digest"]
+
+    class Response:
+        def __init__(self, value: object) -> None:
+            self.content = json.dumps(value).encode()
+
+    def of(ident: str, at: str, n: int) -> str:
+        return digest(Response([{"id": ident, "created_at": at, "n": n}]))[0]  # type: ignore[operator]
+
+    one = of("0e7be872-1111-4222-8333-444455556666", "2026-10-31T05:00:01.123456", 1)
+    assert one == of("9a1be872-1111-4222-8333-444455556666", "2026-10-30T01:02:03Z", 1)
+    assert one != of("9a1be872-1111-4222-8333-444455556666", "2026-10-30T01:02:03Z", 2)
