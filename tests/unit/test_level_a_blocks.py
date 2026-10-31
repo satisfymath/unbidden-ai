@@ -270,8 +270,9 @@ def test_scripts_that_only_check_or_build_are_left_out_and_a_benchmark_job_comes
     )
     scripts = {"scripts/check": check, "scripts/sync-version": "#!/bin/sh\nVERSION=1\nsed -i s/x/y/ a.py\n"}
     assert script_kind(check, scripts) is None  # sync-version edits a file: not only a check
-    scripts["scripts/sync-version"] = "#!/bin/sh\nruff check --select I .\n"
+    scripts["scripts/sync-version"] = 'V=$(grep -o x a.py)\necho "V: $V"\nif [ "$V" != "1" ]; then\n    exit 1\nfi\n'
     assert script_kind(check, scripts) == ("checks", [])
+    assert script_kind("set -x\n${PREFIX}coverage report --fail-under=100\n") == ("reports", [])
     assert script_kind("set -ex\nuv build\nmkdocs build\n") == ("builds", [])
     assert script_kind("set -ex\nuv run coverage run -m pytest $@\n") is None
     repo = _repo(tmp_path, {
@@ -280,6 +281,7 @@ def test_scripts_that_only_check_or_build_are_left_out_and_a_benchmark_job_comes
         "scripts/check": "#!/bin/sh\nset -ex\nuv run ruff check .\nuv run mypy .\n",
         "scripts/build": "#!/bin/sh\nset -ex\nuv build\nuv run mkdocs build\n",
         "scripts/test": "#!/bin/sh\nset -ex\nuv run coverage run -m pytest $@\n",
+        "scripts/coverage": "#!/bin/sh\nset -x\nuv run coverage report --fail-under=100\n",
         "tests/test_a.py": "def test_a(): ...\n",
         ".github/workflows/benchmark.yml": WORKFLOW + """  benchmarks:
     runs-on: ubuntu-latest
@@ -295,10 +297,12 @@ def test_scripts_that_only_check_or_build_are_left_out_and_a_benchmark_job_comes
       - run: scripts/check
       - run: scripts/build
       - run: scripts/test
+      - run: scripts/coverage
 """,
     })  # fmt: skip
     plan = ci_test_plan(repo, "HEAD", "python")
     assert plan is not None and plan.workflow == "main.yml", plan
     assert [s.command for s in plan.steps] == ["scripts/test"]
+    assert any("scripts/coverage only reports" in n for n in plan.notes)
     assert any("scripts/check only checks" in n for n in plan.notes)
     assert any("scripts/build only builds" in n for n in plan.notes)

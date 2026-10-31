@@ -500,8 +500,10 @@ def _without_runner_prep(run: str) -> tuple[str, list[str]]:
 
 
 _SHELL_SCAFFOLD = re.compile(
-    r"^\s*(?:#|set\s|export\s|if\s|then\b|else\b|elif\s|fi\b|\[\s.*\]\s*&&|[A-Za-z_]\w*=|\"?\$?\{?[A-Z_]+\}?\"?\s+-m\s+venv\b|python3?\s+-m\s+venv\b)"
+    r"^\s*(?:#|set\s|export\s|if\s|then\b|else\b|elif\s|fi\b|exit\b|echo\b|printf\b|\[\s.*\]\s*&&|[A-Za-z_]\w*="
+    r"|\"?\$?\{?[A-Z_]+\}?\"?\s+-m\s+venv\b|python3?\s+-m\s+venv\b)"
 )
+_REPORT_CALL = re.compile(r"^\s*(?:\$\{?PREFIX\}?)?(?:coverage\s+(?:report|html|xml|combine|json)|codecov|smokeshow)\b")
 _INSTALL_CALL = re.compile(
     r"^\s*(?:\"?\$\{?[A-Z_]*PIP[A-Z_]*\}?\"?|pip3?|python3?\s+-m\s+pip|uv\s+pip|uv\s+sync|poetry\s+install|pdm\s+install)\b"
 )
@@ -512,6 +514,19 @@ _BUILD_CALL = re.compile(
     r"|sphinx-build|twine\s+check)\b"
 )
 _PREFIXED = re.compile(r"^\s*\$\{?PREFIX\}?")  # `${PREFIX}ruff check` (httpx, starlette: a venv's bin when present)
+
+
+def _with_scripts(run: str, scripts: dict[str, str] | None) -> str:
+    """The step's text with the body of each repository script it calls, so what a step runs is judged by what its
+    scripts run (`scripts/test` runs pytest; `scripts/coverage` after it runs none)."""
+    if not scripts:
+        return run
+    out = []
+    for line in run.splitlines():
+        head = _RUNNERS.sub("", line.strip()).split(" ")[0]
+        body = scripts.get(head) or scripts.get(head.removeprefix("./")) or scripts.get("./" + head)
+        out.append(f"{line}\n{body}" if body else line)
+    return "\n".join(out)
 
 
 def _install_script(text: str, scripts: dict[str, str] | None = None) -> list[str] | None:
@@ -546,6 +561,9 @@ def script_kind(text: str, scripts: dict[str, str] | None = None, depth: int = 0
         if _BUILD_CALL.match(line):
             kinds.append("builds")
             continue
+        if _REPORT_CALL.match(line):
+            kinds.append("reports")
+            continue
         if _CHECK_RUN.search(_PREFIXED.sub("", line)) and not _SHELL_SCAFFOLD.match(line):
             kinds.append("checks")
             continue
@@ -558,8 +576,8 @@ def script_kind(text: str, scripts: dict[str, str] | None = None, depth: int = 0
             found += inner[1]
             continue
         return None
-    if not kinds:
-        return None
+    if not kinds:  # only shell scaffolding, prints and exits: a check of its own (httpx's `scripts/sync-version`)
+        return ("checks", []) if text.strip() else None
     return " and ".join(dict.fromkeys(kinds)), found
 
 
@@ -653,7 +671,8 @@ def _job_plan(
     # The job's tests end at its last step that runs the test runner: what follows uploads, validates or reports
     # (stage 10, Prefect: a `jq` check of the durations file was taken for a test step).
     last = max((i for i, s in enumerate(runs)
-                if _runs_tests(_expand_tasks(str(s["run"]), tasks or {}))), default=None)  # fmt: skip
+                if _runs_tests(_expand_tasks(_with_scripts(str(s["run"]), scripts), tasks or {}))),
+               default=None)  # fmt: skip
     if last is not None and last + 1 < len(runs):
         notes.append(f"{len(runs) - last - 1} step(s) after the tests left out (they run no tests)")
         runs = runs[: last + 1]
