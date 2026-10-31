@@ -73,6 +73,7 @@ class Cycle:
     log: Log = print
     _stacks: dict[str, tuple[Stack, dict[str, DependencyImage]]] = field(default_factory=dict)
     _ci: dict[str, tuple[str | None, dict[str, str], set[str], float]] = field(default_factory=dict)
+    _scopes: dict[str, dict[str, tuple[str, ...]]] = field(default_factory=dict)
 
     @property
     def store(self):
@@ -301,6 +302,7 @@ class Cycle:
         checked = self._checked_dirs()
         head = self.store.get_value("head")
         commands = ci_commands(self.runtime.workspace.repo, head) if head else ""
+        scopes = self._tool_scopes(head, commands)
         ci_status, per_tool, ci_problem = self._ci_verdicts(head, mandate)
         ready, not_ready = self._checks_ready(head)
         queued = 0
@@ -335,6 +337,7 @@ class Cycle:
                     ci_problem=ci_problem,
                     p_experiment=learned.get(kind_of(opp), Belief(0, 0)).mean,
                     capability_needs=needs,
+                    tool_scopes=scopes,
                 ),
             )
             if decision.chosen is ActionKind.PROPOSE_CHANGE:
@@ -456,6 +459,27 @@ class Cycle:
             self._ci[head] = cached
         assert cached is not None
         return cached[0], cached[1], None
+
+    def _tool_scopes(self, head: str | None, commands: str | None) -> dict[str, tuple[str, ...]]:
+        """Each analyzer's scope in the team's CI at HEAD (observe/ci.py tool_scope), read once per commit."""
+        if not head or not commands:
+            return {}
+        if head not in self._scopes:
+            from unbidden.observe.ci import tool_scope
+            from unbidden.sandbox.tools import TOOLS
+
+            repo = self.runtime.workspace.repo
+
+            def read(path: str) -> str | None:
+                shown = subprocess.run(["git", "-C", str(repo), "show", f"{head}:{path}"], capture_output=True,
+                                       text=True, check=False)  # fmt: skip
+                return shown.stdout if shown.returncode == 0 else None
+
+            listed = subprocess.run(["git", "-C", str(repo), "ls-tree", "-r", "--name-only", head], capture_output=True,
+                                    text=True, check=False).stdout.split()  # fmt: skip
+            found = {name: tool_scope(read, listed, commands, name) for name in TOOLS}
+            self._scopes[head] = {name: scope for name, scope in found.items() if scope}
+        return self._scopes[head]
 
     def _checked_dirs(self) -> tuple[str, ...]:
         head = self.store.get_value("head")

@@ -7,11 +7,14 @@ are dropped; the sandbox provides dependencies and services itself.
 
 from __future__ import annotations
 
+import configparser
 import functools
 import json
 import re
 import shlex
 import subprocess
+import tomllib
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -974,7 +977,10 @@ _LINTING = {"ruff": {None: True, "check": True, "format": False}, "biome": {"che
 CONFIG_FLAGS = {"-c", "--config", "--config-file", "-p", "--project", "--rcfile", "--settings-path", "--config-path"}
 _VALUE_FLAGS = CONFIG_FLAGS | {"-e", "--env", "-k", "--filter", "--format", "--output-format", "--reporter",
                                "--max-warnings", "--ext", "--target", "-t", "--python-version", "--select", "--ignore",
-                               "--extend-select", "--cache-dir", "--outdir", "--out-dir", "-f"}  # fmt: skip
+                               "--extend-select", "--cache-dir", "--outdir", "--out-dir", "-f", "--verifytypes",
+                               "--level"}  # fmt: skip
+# Flags that put a tool in a mode that reports on no source file: its run sets no scope for findings.
+_NO_FILES_MODES = {"pyright": {"--verifytypes", "--createstub"}}
 DEFAULT_CONFIGS = {
     "tsc": {"tsconfig.json"},
     "mypy": {"mypy.ini", ".mypy.ini", "pyproject.toml", "setup.cfg"},
@@ -1012,6 +1018,7 @@ class Invocation:
     config: str | None  # an explicit configuration file
     cwd: str  # from a preceding `cd <dir> &&`
     version: str | None = None  # pinned by the step itself (`bunx typescript@7.0.2`), not by the project
+    checks_files: bool = True  # False for a mode that checks no source files (`pyright --verifytypes <package>`)
 
     def scopes(self) -> list[str]:
         base = self.cwd.strip("./")
@@ -1081,8 +1088,63 @@ def _invocations(commands: str, tool: str) -> tuple[Invocation, ...]:
                         config = arg  # `tsc -b tsconfig.json`: a project file, not a path to check
                     elif arg not in (".", "./") and ("/" in arg or "." in arg or arg.isidentifier()):
                         paths.append(arg.removeprefix("./").rstrip("/"))
-                found.append(Invocation(subcommand, tuple(paths), config, cwd, version))
+                checks = not (set(args) & _NO_FILES_MODES.get(tool, set()))
+                found.append(Invocation(subcommand, tuple(paths), config, cwd, version, checks))
     return tuple(found)
+
+
+def tool_scope(
+    read: Callable[[str], str | None], tracked: Iterable[str], commands: str | None, tool: str
+) -> tuple[str, ...] | None:
+    """The directories the team's CI checks with `tool`: the paths its steps name, or the `include` (pyright) or
+    `files` (mypy) of the configuration file they pass. None when some step checks the whole tree, or the CI does not
+    run the tool, or its scope cannot be read (stage 10: Prefect's pyright checks `src/` through pyrightconfig-ci.json,
+    and Unbidden's own run fixed errors in `benches/`)."""
+    if not commands or not tool:
+        return None
+    files = set(tracked)
+    dirs = {str(d) for f in files for d in PurePosixPath(f).parents if str(d) != "."}
+
+    def exists(path: str) -> bool:
+        return path in files or path in dirs
+
+    runs = [inv for inv in tool_invocations(commands, tool) if inv.checks_files]
+    scope: list[str] = []
+    for inv in runs:
+        base = inv.cwd.strip("./")
+        named = [str(PurePosixPath(base) / p).strip("/") if base else p.strip("/") for p in inv.paths]
+        if named and not any(exists(p) for p in named):
+            continue  # words that only look like paths (a sentence that mentions the tool): not a run of it
+        paths = [p for p in named if exists(p)]
+        if not paths and inv.config:
+            paths = [str(PurePosixPath(base) / p).strip("/") if base else p for p in _config_scope(read, inv, tool)]
+        if not paths:
+            return None
+        scope += paths
+    return tuple(sorted(set(scope))) or None
+
+
+def _config_scope(read: Callable[[str], str | None], inv: Invocation, tool: str) -> list[str]:
+    assert inv.config is not None
+    path = str(PurePosixPath(inv.cwd.strip("./")) / inv.config) if inv.cwd.strip("./") else inv.config
+    text = read(path.removeprefix("./"))
+    if not text:
+        return []
+    try:
+        if path.endswith(".toml"):
+            section = tomllib.loads(text).get("tool", {}).get(tool, {})
+        elif path.endswith(".json"):
+            section = json.loads(re.sub(r"^\s*//.*$", "", text, flags=re.M))  # pyright allows comments
+        else:
+            ini = configparser.ConfigParser()
+            ini.read_string(text)
+            section = {"files": ini.get(tool, "files", fallback="")}
+    except (ValueError, configparser.Error):
+        return []
+    found = section.get("include" if tool == "pyright" else "files") if isinstance(section, dict) else None
+    if isinstance(found, str):
+        found = [f.strip() for f in found.split(",") if f.strip()]
+    return [str(f).removeprefix("./").rstrip("/") for f in found or [] if isinstance(f, str)]
 
 
 def runs_tool(commands: str | None, tool: str) -> bool:

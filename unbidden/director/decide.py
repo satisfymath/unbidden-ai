@@ -63,6 +63,7 @@ class Context:
     ci_problem: str | None = None  # why the CI's verdict could not be read, when ci_status is "unreadable"
     p_experiment: float = 0.6  # chance an experiment on this kind of opportunity succeeds, from the lab's history
     capability_needs: dict[str, str] | None = None  # need source -> status (forge/needs.py), for this workspace
+    tool_scopes: dict[str, tuple[str, ...]] | None = None  # tool -> the directories the team's CI checks with it
 
 
 def outside_checked_scope(opp: Opportunity, checked_dirs: tuple[str, ...]) -> bool:
@@ -115,6 +116,17 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
         )
         return _choose(opp, candidates, ActionKind.WAIT)
     tool = analyzer_tool(opp.details)
+    scope = (ctx.tool_scopes or {}).get(tool)
+    paths = [str(p) for p in opp.details.get("paths") or []]
+    if scope and paths and not any(p == d or p.startswith(f"{d}/") for p in paths for d in scope):
+        add(
+            ActionKind.DECLINE,
+            1.0,
+            0.0,
+            0.0,
+            f"the team's CI checks {tool} only in {', '.join(scope)}: these findings are outside what it holds to",
+        )
+        return _choose(opp, candidates, ActionKind.DECLINE)
     ran = runs_tool(ctx.ci_commands, tool)  # the CI runs this tool itself, read as argv, not as a substring
     if opp.category in LOW_VALUE and ctx.ci_commands and tool and not ran:
         add(

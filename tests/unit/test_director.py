@@ -348,3 +348,35 @@ def test_a_finished_verdict_is_reused_until_it_expires(
     now = time.monotonic()
     monkeypatch.setattr(cycle_module.time, "monotonic", lambda: now + cycle_module.CI_TTL_S["green"] + 1)
     assert cycle._ci_verdicts("abc", mandate)[0] == "red"  # pyright: ignore[reportPrivateUsage]  # a re-run changed it
+
+
+def test_type_errors_outside_what_the_ci_checks_with_that_tool_are_declined(mandate: Mandate) -> None:
+    # Prefect, stage 10: its CI runs `pyright -p pyrightconfig-ci.json`, which includes only src/; Unbidden's own
+    # pyright fixed errors in benches/ and reached L4 on code the team never holds to that standard.
+    def found(path: str) -> Opportunity:
+        return Opportunity(
+            source="pyright", category="types", title=f"pyright errors in {path}", summary="s",
+            dedup_key=f"pyright:{path}", evidence=[EvidenceRef(kind="file", locator=path)],
+            details={"tool": "pyright", "paths": [path]},
+        )  # fmt: skip
+
+    ctx = Context(open_pull_requests=0, attempts=0, ci_commands="pyright -p c.json", tool_scopes={"pyright": ("src",)})
+    outside = decide(found("benches/bench_flows.py"), mandate, ctx)
+    assert outside.chosen is ActionKind.DECLINE and "only in src" in outside.reason
+    assert decide(found("src/prefect/flows.py"), mandate, ctx).chosen is not ActionKind.DECLINE
+
+
+def test_a_tools_ci_scope_is_its_named_paths_or_its_configs_include_and_never_words_in_a_sentence() -> None:
+    from unbidden.observe.ci import tool_scope
+
+    tracked = ["src/pkg/a.py", "benches/b.py", "docs/x.md", "pyrightconfig-ci.json"]
+    configs = {"pyrightconfig-ci.json": '{\n  // only the package\n  "include": ["src/"]\n}'}
+    commands = (
+        "uv run pyright -p pyrightconfig-ci.json --level error --outputjson\n"
+        "uv run pyright --ignoreexternal --verifytypes prefect\n"
+        'echo "pyright exits non-zero when no files match its configuration"'
+    )
+    assert tool_scope(configs.get, tracked, commands, "pyright") == ("src",)
+    assert tool_scope(configs.get, tracked, "mypy src/pkg benches", "mypy") == ("benches", "src/pkg")
+    assert tool_scope(configs.get, tracked, "mypy .", "mypy") is None  # the whole tree
+    assert tool_scope(configs.get, tracked, "pytest", "pyright") is None  # not run at all
