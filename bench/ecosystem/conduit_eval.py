@@ -22,6 +22,7 @@ from typing import Any
 
 from bench.ecosystem import conduit_lab
 from bench.ecosystem.conduit_workspace import archive
+from bench.ecosystem.cycle import run_cycle
 
 LAB = Path.home() / "unbidden-lab"
 ENV: dict[str, str] = dict(os.environ)  # with the run's envelope and tag (stage 9: spend is split into envelopes)
@@ -60,13 +61,8 @@ def run(worktree: Path, name: str, mode: str, out: Path) -> dict[str, Any]:
     def cycles(numbers: tuple[int, ...]) -> None:
         for cycle in numbers:
             argv = ["uv", "run", "--project", str(worktree), "unbidden", "watch", "--once"]
-            try:
-                ran = subprocess.run(argv, cwd=repo, capture_output=True, text=True, timeout=5400,
-                                     env={**ENV, "UNBIDDEN_RUN": name})  # fmt: skip
-            except subprocess.TimeoutExpired as exc:  # recorded, and the run goes on to archive its workspace
-                logs.append(f"== cycle {cycle} (did not finish within {exc.timeout:.0f} s)")
-                continue
-            logs.append(f"== cycle {cycle} (exit {ran.returncode})\n{ran.stdout}{ran.stderr}")
+            # A cycle that outlives its bound is stopped whole; the run goes on to archive its workspace.
+            logs.append(run_cycle(argv, repo, {**ENV, "UNBIDDEN_RUN": name}, cycle))
 
     cycles((1, 2))
     # A person answers what Unbidden asked, and only that, from the answers this protocol declares a person gives:

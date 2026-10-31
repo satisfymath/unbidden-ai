@@ -23,6 +23,7 @@ from typing import Any
 
 from bench.ecosystem import lnbits_lab
 from bench.ecosystem.conduit_eval import ledger
+from bench.ecosystem.cycle import run_cycle
 
 LAB = Path.home() / "unbidden-lab"
 ENV: dict[str, str] = dict(os.environ)  # with the run's envelope and tag (stage 9: spend is split into envelopes)
@@ -112,13 +113,8 @@ def run(worktree: Path, name: str, out: Path) -> dict[str, Any]:
 
     def cycles(numbers: tuple[int, ...]) -> None:
         for cycle in numbers:
-            try:
-                ran = subprocess.run([*unbidden, "watch", "--once"], cwd=repo, capture_output=True, text=True,
-                                     timeout=5400, env={**ENV, "UNBIDDEN_RUN": name})  # fmt: skip
-            except subprocess.TimeoutExpired as exc:  # recorded, and the run goes on to archive its workspace
-                logs.append(f"== cycle {cycle} (did not finish within {exc.timeout:.0f} s)")
-                continue
-            logs.append(f"== cycle {cycle} (exit {ran.returncode})\n{ran.stdout}{ran.stderr}")
+            # A cycle that outlives its bound is stopped whole; the run goes on to archive its workspace.
+            logs.append(run_cycle([*unbidden, "watch", "--once"], repo, {**ENV, "UNBIDDEN_RUN": name}, cycle))
 
     cycles((1, 2))
     record["interventions"] = []
