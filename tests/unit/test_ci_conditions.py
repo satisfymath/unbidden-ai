@@ -126,3 +126,23 @@ def test_a_make_target_runs_as_its_recipe_prerequisites_first_one_shell_a_line(t
     # The override wins; the install is left out; uv run goes, the assignment stays.
     assert commands == ["(mkdir -p .cache)\n(PYTHONFAULTHANDLER=1 pytest -x tests)"]
     assert any("JavaScript build" in n for n in notes)
+
+
+def test_the_jobs_interpreter_install_is_resolved_at_provisioning_not_run_offline(tmp_path: Path) -> None:
+    # Aegra, stage 10: `uv python install 3.12` ran in the sandbox ("Python downloads are not allowed"), and
+    # `uv run --package aegra-api pytest` left `aegra-api pytest`.
+    from unbidden.observe.ci import ci_python_versions
+
+    jobs = """  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: uv python install 3.12
+      - run: uv sync --all-packages
+      - run: uv run --package aegra-api pytest libs/aegra-api/tests
+"""
+    repo = _repo(tmp_path, jobs)
+    plan = ci_test_plan(repo, "HEAD", "python")
+    assert plan is not None
+    assert [s.command for s in plan.steps] == ["pytest libs/aegra-api/tests"]
+    assert plan.interpreters == ("3.12",)
+    assert "3.12" in ci_python_versions(repo, "HEAD")  # the provisioning chooses it

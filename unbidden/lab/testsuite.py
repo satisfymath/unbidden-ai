@@ -64,6 +64,17 @@ def test_plan(repo: Path, rev: str, stack: Stack, language: str) -> TestPlan | N
         if own:
             ci_env = {k: _to_sidecars(v, own) for k, v in ci_env.items()}
             env = {**env, **ci_env}
+        notes = list(ci.notes)
+        if ci.interpreters and language == "python" and stack.python is not None:
+            # The job's own interpreter install, resolved when the image was provisioned (no download in the run).
+            have = stack.python.version
+            wanted = [v for v in ci.interpreters if re.match(r"^3\.\d+", v)]
+            if all(re.match(r"^3\.\d+", v).group(0) == have for v in wanted):  # type: ignore[union-attr]
+                notes.append(f"the job's `uv python install {' '.join(ci.interpreters)}` is satisfied by the image's "
+                             f"Python {have}, chosen when it was provisioned")  # fmt: skip
+            else:
+                notes.append(f"the job installs Python {' '.join(ci.interpreters)}; the image has {have}: not the "
+                             "CI's interpreter (the image could not be provisioned with it)")  # fmt: skip
         return TestPlan(
             argv=("bash", "-c", ci.script()),
             source=f"CI {ci.workflow} > {ci.job}"
@@ -73,7 +84,7 @@ def test_plan(repo: Path, rev: str, stack: Stack, language: str) -> TestPlan | N
             env=env,
             scope=ci.scope,
             partial=ci.partial,
-            notes=ci.notes,
+            notes=tuple(notes),
         )
     argv = _default_argv(stack, language)
     if argv is None:

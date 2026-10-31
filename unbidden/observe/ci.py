@@ -35,7 +35,10 @@ _EXPR = re.compile(r"\$\{\{[^}]*\}\}")
 # `uv run` and its peers in front of a command (after a subshell's paren and environment assignments,
 # `PYTHONFAULTHANDLER=1 uv run pytest`): the dependency image's environment is already first on PATH.
 _RUNNERS = re.compile(
-    r"^(?P<open>\(?(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*)(?:uv\s+run|poetry\s+run|pipenv\s+run|pdm\s+run)\s+(?:--[\w-]+\s+)*"
+    r"^(?P<open>\(?(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*)(?:uv\s+run|poetry\s+run|pipenv\s+run|pdm\s+run)\s+"
+    # its options, with the value of those that take one (`--package aegra-api`, Aegra's CI)
+    r"(?:(?:--(?:package|group|extra|with|directory|project|python|env-file|only-group|no-group)(?:=|\s+)\S+"
+    r"|--[\w-]+)\s+)*"
 )
 
 
@@ -61,6 +64,9 @@ class CiPlan:
     groups: tuple[str, ...] = ()
     scope: str = "the whole job"
     notes: tuple[str, ...] = ()
+    # Interpreters the job installs itself (`uv python install 3.12`): resolved when the image is provisioned, never
+    # downloaded in the offline run; the plan says whether the image's interpreter satisfies them.
+    interpreters: tuple[str, ...] = ()
 
     @property
     def partial(self) -> bool:
@@ -107,6 +113,7 @@ _TASK_CALL = re.compile(r"^\s*task\s+(?P<name>[\w:.-]+)(?P<rest>.*)$")
 _MAKE_CALL = re.compile(r"^\s*make\s+(?P<args>[^;&|]*?)\s*$")
 _MAKE_RULE = re.compile(r"^(?P<target>[A-Za-z0-9_.-]+)\s*:(?!=)\s*(?P<deps>[^=#]*?)\s*$")
 # A JavaScript package manager's install or build inside a Python job (codex-lb builds its frontend before its tests).
+_INTERPRETER = re.compile(r"^\s*\(?\s*uv\s+python\s+(?:install|pin)\s+(?P<v>[\w.+-]+(?:\s+[\w.+-]+)*)\s*\)?\s*$")
 _FOREIGN_BUILD = re.compile(r"\b(bun|npm|pnpm|yarn)\s+(install|ci|i|run\s+build|build)\b")
 _MAKE_VAR = re.compile(r"^(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*(?::=|\?=|=)\s*(?P<value>.*?)\s*$")
 TASKFILES = ("Taskfile.yml", "Taskfile.yaml", "taskfile.yml", "taskfile.yaml")
@@ -161,8 +168,9 @@ def make_targets(repo: Path, rev: str) -> dict[str, list[str]]:
         if (var := _MAKE_VAR.match(line)) and ":" not in line.split("=", 1)[0].rstrip(":?"):
             variables.setdefault(var.group("name"), var.group("value"))
         elif (rule := _MAKE_RULE.match(line)) and not rule.group("target").startswith("."):
-            current = rule.group("target")
-            rules[current] = (rule.group("deps").split(), [])
+            target = str(rule.group("target"))
+            rules[target] = (rule.group("deps").split(), [])
+            current = target
 
     def recipe(target: str, seen: set[str], depth: int = 0) -> list[str]:
         if target not in rules or target in seen or depth > 6:
@@ -356,6 +364,7 @@ def _job_plan(
     steps: list[CiStep] = []
     services: list[str] = []
     notes: list[str] = []
+    interpreters: list[str] = []
     all_steps = [s for s in job.get("steps") or [] if isinstance(s, dict)]
     all_steps, branch_notes = _test_branch(all_steps, tasks or {})
     notes += branch_notes
@@ -392,6 +401,10 @@ def _job_plan(
         run = _expand_tasks(str(step["run"]), tasks or {})
         for match in _COMPOSE_UP.finditer(run):
             services += [a for a in match.group("args").split() if not a.startswith("-")]
+        installs = [m.group("v").split() for ln in run.splitlines() if (m := _INTERPRETER.match(ln))]
+        if installs:
+            interpreters += [v for vs in installs for v in vs]
+            run = "\n".join(ln for ln in run.splitlines() if not _INTERPRETER.match(ln))
         command = _clean(run)
         if command is not None:
             command = "\n".join(line for line in command.splitlines() if not _CHECK_RUN.search(line))
@@ -438,7 +451,7 @@ def _job_plan(
     scope = f"pytest-split group {split.group('g')} of {split.group('n')}" if split else ""
     return CiPlan(workflow=workflow, job=job_name, steps=tuple(steps), services=tuple(dict.fromkeys(services)),
                   containers=tuple(containers), env=tuple(sorted(env.items())), scope=scope,
-                  notes=tuple(dict.fromkeys(notes)))  # fmt: skip
+                  notes=tuple(dict.fromkeys(notes)), interpreters=tuple(dict.fromkeys(interpreters)))  # fmt: skip
 
 
 def _entry_job(job: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
@@ -1090,7 +1103,9 @@ def ci_python_versions(repo: Path, rev: str) -> list[str]:
     for path in sorted(p for p in tracked if p.startswith(".github/workflows/") and p.endswith((".yml", ".yaml"))):
         text = _git(repo, "show", f"{rev}:{path}")
         for line in text.splitlines():
-            if re.search(r"python[-_]version|python:", line, re.IGNORECASE) and "${{" not in line:
+            if re.search(r"python[-_]version|python:|uv\s+python\s+(install|pin)\b", line, re.IGNORECASE) and (
+                "${{" not in line
+            ):
                 found |= {f"3.{m}" for m in _PY.findall(line)}
         # A matrix list on the lines below its key: `python-version:\n  - "3.10"`.
         for block in re.findall(r"python[-_]version\s*:\s*\n((?:\s+-\s*['\"]?3\.\d+['\"]?\s*\n)+)", text, re.I):
