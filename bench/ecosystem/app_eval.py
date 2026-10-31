@@ -111,7 +111,9 @@ def workspace(worktree: Path, app: str, lab: ModuleType, goal: bool) -> None:
         raise SystemExit(f"{repo / '.unbidden'} exists: archive it first")
     subprocess.run(["uv", "run", "--project", str(worktree), "unbidden", "init"], cwd=repo, check=True,
                    capture_output=True)  # fmt: skip
-    spec = APPS[app]
+    # An application of the frozen evaluation declares its own (its lab module's SPEC): the runner is not edited per
+    # application; the module is the person's preparation, counted as such.
+    spec = APPS.get(app) or dict(lab.SPEC)
     mandate = MANDATE.format(app=app, db_port=lab.DB_PORT, port=lab.PORT, goals=GOAL if goal else "", **spec)
     (repo / ".unbidden" / "mandate.yaml").write_text(mandate)
     (repo / ".unbidden" / "config.yaml").write_text(CONFIG)
@@ -178,7 +180,7 @@ def run(worktree: Path, app: str, name: str, out: Path) -> dict[str, Any]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("worktree")
-    parser.add_argument("--app", choices=sorted(APPS), required=True)
+    parser.add_argument("--app", required=True)  # one of APPS, or any app with a bench/ecosystem/<app>_lab.py
     parser.add_argument("--runs", default="B-1,A-1")
     parser.add_argument("--out", required=True)
     parser.add_argument("--envelope", required=True)
