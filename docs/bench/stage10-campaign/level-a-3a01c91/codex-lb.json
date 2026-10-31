@@ -1,0 +1,94 @@
+{
+ "repo": "/Users/david/unbidden-lab/codex-lb",
+ "rev": "84fde5a1ed5e0d5a58ccb3ec4b82938b059bf8c5",
+ "stack": {
+  "python": "3.13",
+  "why": [
+   "python 3.13: from the CI's python-version",
+   "pyproject requires-python: >=3.13",
+   "the CI's python-version: 3.13",
+   "the project's Dockerfile: 3.14",
+   "conflict: concrete sources disagree: the CI's python-version 3.13; the project's Dockerfile 3.14"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": "uv.lock",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:6c3e0e26af90c71e",
+ "plan": {
+  "source": "CI ci.yml > test",
+  "scope": "matrix entry 1 of 3 (slice=unit)",
+  "partial": true,
+  "notes": [
+   "condition `needs.changes.outputs.backend=='true'` is not known outside GitHub: the branch that runs the tests is taken, its negation (1 step(s)) left out",
+   "left out, a JavaScript build in a Python job (2 line(s), e.g. (cd frontend && bun install --frozen-lockfile)): tests that read its output fail and say so"
+  ],
+  "services": [],
+  "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\n(PYTHONFAULTHANDLER=1 pytest -q -ra -o faulthandler_timeout=300 -o faulthandler_exit_on_timeout=true --timeout=180 --timeout-method=thread --durations=20 tests/unit tests/test_request_logs_options_api.py)"
+ },
+ "status": "failed",
+ "collected": 6422,
+ "failed": [
+  "tests.unit.test_cleanup_superseded_beta_prs::test_cleanup_script_dry_run_lists_superseded_pr",
+  "tests.unit.test_codex_review_wrapper::test_codex_review_wrapper_forwards_supported_arguments_without_removed_flags[base]",
+  "tests.unit.test_codex_review_wrapper::test_codex_review_wrapper_forwards_supported_arguments_without_removed_flags[commit]",
+  "tests.unit.test_codex_review_wrapper::test_codex_review_wrapper_forwards_supported_arguments_without_removed_flags[uncommitted]",
+  "tests.unit.test_guard_beta_release::test_pr_guard_accepts_dependency_only_package_json_edits_on_beta_base",
+  "tests.unit.test_guard_beta_release::test_pr_guard_accepts_dependency_only_release_managed_file_edits",
+  "tests.unit.test_guard_beta_release::test_pr_guard_accepts_invalid_beta_prefixed_branch_when_release_metadata_is_unchanged",
+  "tests.unit.test_guard_beta_release::test_pr_guard_accepts_noncanonical_noop_on_inconsistent_release_metadata_base",
+  "tests.unit.test_guard_beta_release::test_pr_guard_accepts_pep440_uv_lock_beta_version_on_dependency_edits",
+  "tests.unit.test_guard_beta_release::test_pr_guard_accepts_validated_canonical_beta_pr",
+  "tests.unit.test_guard_beta_release::test_pr_guard_rejects_beta_metadata_from_noncanonical_branch",
+  "tests.unit.test_guard_beta_release::test_pr_guard_rejects_canonical_beta_pr_without_validation_evidence",
+  "tests.unit.test_guard_beta_release::test_pr_guard_rejects_canonical_beta_pr_without_validation_evidence_when_metadata_unchanged",
+  "tests.unit.test_guard_beta_release::test_pr_guard_rejects_forked_canonical_beta_branch",
+  "tests.unit.test_guard_beta_release::test_pr_guard_rejects_inconsistent_release_managed_beta_metadata",
+  "tests.unit.test_guard_beta_release::test_pr_guard_rejects_pep440_beta_version_in_non_lock_release_file_on_beta_base[frontend/package.json-<lambda>]",
+  "tests.unit.test_guard_beta_release::test_pr_guard_rejects_pep440_beta_version_in_non_lock_release_file_on_beta_base[pyproject.toml-<lambda>]",
+  "tests.unit.test_guard_beta_release::test_publish_guard_accepts_validated_merged_canonical_beta_pr",
+  "tests.unit.test_guard_beta_release::test_publish_guard_rejects_forked_canonical_beta_branch",
+  "tests.unit.test_guard_beta_release::test_publish_guard_rejects_merge_tree_that_differs_from_validated_head",
+  "tests.unit.test_guard_beta_release::test_publish_guard_rejects_stale_candidate_sha_evidence",
+  "tests.unit.test_guard_stable_release::test_stable_guard_accepts_consistent_release_please_stable_pr",
+  "tests.unit.test_guard_stable_release::test_stable_guard_accepts_merge_queue_without_head_ref_after_pr_gate",
+  "tests.unit.test_guard_stable_release::test_stable_guard_allows_non_promotion_metadata_repair_branch",
+  "tests.unit.test_guard_stable_release::test_stable_guard_rejects_release_please_pr_missing_uv_lock_update",
+  "tests.unit.test_guard_stable_release::test_stable_guard_rejects_stable_promotion_from_non_release_please_branch",
+  "tests.unit.test_proxy_http_bridge::test_http_bridge_rejected_dead_owner_recovery_code_is_not_emitted_from_app",
+  "tests.unit.test_release_versions::test_next_beta_number_uses_existing_tags",
+  "tests.unit.test_release_versions::test_prepare_beta_release_creates_next_beta_for_feature_commit",
+  "tests.unit.test_release_versions::test_prepare_beta_release_skips_ci_only_commit_after_latest_beta",
+  "tests.unit.test_release_versions::test_releasable_commits_since_ignores_post_beta_ci_only_commit",
+  "tests.unit.test_release_versions::test_releasable_commits_since_keeps_post_beta_feature_commit",
+  "tests.unit.test_release_versions::test_tag_targets_head_detects_covered_beta_merge",
+  "tests.unit.test_repository_artifacts::test_codex_sandbox_symlink_is_not_tracked"
+ ],
+ "why": null,
+ "wall_s": 146.2,
+ "image_notes": [
+  "python 3.13: from the CI's python-version",
+  "pyproject requires-python: >=3.13",
+  "the CI's python-version: 3.13",
+  "the project's Dockerfile: 3.14",
+  "conflict: concrete sources disagree: the CI's python-version 3.13; the project's Dockerfile 3.14",
+  "image unbidden-deps-python:6c3e0e26af90c71e on linux/arm64"
+ ],
+ "python": "3.13",
+ "source": "CI ci.yml > test",
+ "scope": "matrix entry 1 of 3 (slice=unit)",
+ "partial": true,
+ "notes": [
+  "condition `needs.changes.outputs.backend=='true'` is not known outside GitHub: the branch that runs the tests is taken, its negation (1 step(s)) left out",
+  "left out, a JavaScript build in a Python job (2 line(s), e.g. (cd frontend && bun install --frozen-lockfile)): tests that read its output fail and say so"
+ ],
+ "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\n(PYTHONFAULTHANDLER=1 pytest -q -ra -o faulthandler_timeout=300 -o faulthandler_exit_on_timeout=true --timeout=180 --timeout-method=thread --durations=20 tests/unit tests/test_request_logs_options_api.py)"
+}

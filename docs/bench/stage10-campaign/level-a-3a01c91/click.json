@@ -1,0 +1,51 @@
+{
+ "repo": "/Users/david/click",
+ "rev": "2247b35ea1c47c727d7a06e51fa280e12a863ff6",
+ "stack": {
+  "python": "3.14",
+  "why": [
+   "python 3.14: from the CI's python-version",
+   "pyproject requires-python: >=3.10",
+   "the CI's python-version: 3.14"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": "uv.lock",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:04380f05d4cbe3af",
+ "plan": {
+  "source": "CI nightly.yaml > flask-tests",
+  "scope": "matrix entry 1 of 2 (branch=main)",
+  "partial": true,
+  "notes": [],
+  "services": [],
+  "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\n-- pytest"
+ },
+ "status": "infra_failed",
+ "collected": null,
+ "failed": [
+  "<suite>"
+ ],
+ "why": "exit 127: bash: line 4: --: command not found",
+ "wall_s": 1.8,
+ "image_notes": [
+  "python 3.14: from the CI's python-version",
+  "pyproject requires-python: >=3.10",
+  "the CI's python-version: 3.14",
+  "image unbidden-deps-python:04380f05d4cbe3af on linux/arm64"
+ ],
+ "python": "3.14",
+ "source": "CI nightly.yaml > flask-tests",
+ "scope": "matrix entry 1 of 2 (branch=main)",
+ "partial": true,
+ "notes": [],
+ "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\n-- pytest"
+}
