@@ -179,9 +179,15 @@ repository stays in the denominator; per level: success, time, cost, human inter
 - every remaining block classified (environment / workload / consistency / credential / out of scope).
 If the gate is missed, the general causes are fixed; the corpus is not recomposed.
 
-Status (2026-10-31): level A run 1 at c840697 gave 13 of 20 (the tool's own count said 15: CTFd's single collected
-test and sqlmodel's entry without its database are not the projects' checks). Blocks classified in
-`stage10-campaign/level-a-c840697/README.md` (classes A-F); C-F fixed at 3a01c91; run 2 at 3a01c91 pending.
+Status (2026-11-01): level A runs 1-5 (`stage10-campaign/level-a-<sha>/README.md`): honest counts 13, 12, 14, 14,
+14 of 20 against the tool's 15, 16, 17, 17, 18 (the tool counts a suite that ran; the README counts the project's
+checks reproduced, with every failure explained as the sandbox's and recorded). Fixed generally along the way: sudo
+runner edits, install/check/build/report scripts, matrix entries (compose-started engines, other OS), tool-only
+pyproject, tox environments, apt packages into the image, benchmark jobs last, `GITHUB_ACTIONS`, failure messages
+kept, every declared service container started, service-port expressions, `UV_NO_SYNC`, CI requirement files and
+extras for pyproject manifests, host mapping by the variable's engine, `/var/log` writable. Open at run 5: CTFd
+(name resolution of its sidecar under pytest), TimeTracker (unstable pytest internal error), healthchecks (Django's
+runner: out of scope). Run 6 at 647d714 pending; the gate (16) is not met.
 
 ## 10. Independent evaluation
 
