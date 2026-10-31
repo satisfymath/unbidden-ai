@@ -416,3 +416,43 @@ def test_a_pytest_internal_error_is_reported_where_it_happened() -> None:
                            stdout_truncated=False, stderr_truncated=False)  # fmt: skip
     why = _ended(result)
     assert why.startswith("exit 3: INTERNALERROR> Traceback") and "File x" in why and "alembic" in why
+
+
+def test_a_crashed_pytest_is_a_round_that_told_nothing_and_is_retried_with_one_worker(tmp_path: Path) -> None:
+    """TimeTracker: the JUnit report names `pytest::internal` when pytest itself crashed (an xdist worker died)."""
+    from unittest.mock import patch
+
+    from unbidden.lab import testsuite
+    from unbidden.sandbox.runner import SandboxResult
+
+    xml = tmp_path / "r.xml"
+    xml.write_text(
+        '<testsuites><testsuite><testcase classname="pytest" name="internal"><error message="internal error"/>'
+        "</testcase></testsuite></testsuites>"
+    )
+    good = '<testsuites><testsuite><testcase classname="tests.a" name="t1"/></testsuite></testsuites>'
+    calls: list[dict[str, str] | None] = []
+
+    class Runner:
+        def run(self, spec, work):  # type: ignore[no-untyped-def]
+            calls.append(dict(spec.public_env))
+            (work / testsuite.JUNIT_DIR / f"round-{len(calls)}.xml").write_text(
+                xml.read_text() if len(calls) == 1 else good
+            )
+            return SandboxResult(exit_code=3 if len(calls) == 1 else 0, stdout="INTERNALERROR> Broken pipe\n",
+                                 stderr="", timed_out=False, duration_s=1.0, stdout_truncated=False,
+                                 stderr_truncated=False)  # fmt: skip
+
+    plan = testsuite.TestPlan(argv=("pytest",), source="x", pytest=True)
+    with (
+        patch.object(testsuite, "data_services", lambda *_a, **_k: __import__("contextlib").nullcontext(None)),
+        patch.object(
+            testsuite,
+            "sandbox_spec",
+            lambda image, argv, public_env, timeout_s, network: type("S", (), {"public_env": public_env})(),
+        ),
+    ):
+        summary = testsuite.run_suite(Runner(), tmp_path, None, plan, rounds=1)  # type: ignore[arg-type]
+    assert summary.failed_per_round == [[]] and summary.round_status == ["ran"]
+    assert calls[0]["PYTEST_XDIST_AUTO_NUM_WORKERS"] != "1" and calls[1]["PYTEST_XDIST_AUTO_NUM_WORKERS"] == "1"
+    assert summary.infra_why[0] is not None and "retried with one xdist worker" in summary.infra_why[0]

@@ -191,7 +191,13 @@ class Round:
 
 
 def _round(
-    runner: SandboxRunner, work: Path, image: DependencyImage, plan: TestPlan, n: int, timeout_s: float
+    runner: SandboxRunner,
+    work: Path,
+    image: DependencyImage,
+    plan: TestPlan,
+    n: int,
+    timeout_s: float,
+    workers: int | None = None,
 ) -> Round:
     """One round: failing test names, whether the suite ran and collected tests, and how many.
 
@@ -209,6 +215,8 @@ def _round(
         # `pytest -n auto` counts the host's CPUs, not the sandbox's: on a large machine it starts more workers than
         # the sandbox's memory holds, and the round dies of it (mealie, D-035). As many workers as the sandbox has CPUs.
         env.setdefault("PYTEST_XDIST_AUTO_NUM_WORKERS", str(int(SandboxSpec.cpus)))
+        if workers is not None:  # the retry of a round whose workers died: less parallelism, the same limits
+            env["PYTEST_XDIST_AUTO_NUM_WORKERS"] = str(workers)
     with data_services(list(plan.services)) as sidecars:
         spec = sandbox_spec(
             image,
@@ -238,6 +246,10 @@ def _round(
         return Round([], NOT_COLLECTED, 0, f"{_ended(result)} (no test report: no test ran)")
     names, collected = (report[0], report[1]) if report is not None else (None, None)
     messages = report[2] if report is not None else {}
+    if names and any(n == "pytest::internal" for n in names):
+        # pytest itself crashed (TimeTracker, stage 10: an xdist worker died at the sandbox's limits, `Broken pipe`
+        # to execnet): the run told nothing about the code; retried once with one worker.
+        return Round(None, INFRA_FAILED, None, _ended(result))
     if names and needs_network(result.stdout + result.stderr):
         names = [f"{n} (needs network)" for n in names]
     if names is None:
@@ -278,11 +290,17 @@ def run_suite(
     n = 0
     for _ in range(rounds):
         result = Round(None, INFRA_FAILED, None)
-        for _attempt in range(2):  # a round that tells nothing about the code is run once more
+        first_why = None
+        for attempt in range(2):  # a round that tells nothing about the code is run once more, with one worker
             n += 1
-            result = _round(runner, work, image, plan, n, timeout_s)
+            result = _round(runner, work, image, plan, n, timeout_s, workers=1 if attempt else None)
             if result.meaningful:
+                if first_why:
+                    result = Round(result.failed, result.status, result.collected,
+                                   f"first attempt told nothing ({first_why[:300]}); retried with one xdist worker",
+                                   result.messages)  # fmt: skip
                 break
+            first_why = result.why
         failed_per_round.append(result.failed if result.failed is not None else [SUITE])
         statuses.append(result.status)
         collected.append(result.collected)
