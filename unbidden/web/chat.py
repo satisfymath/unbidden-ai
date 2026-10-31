@@ -274,8 +274,7 @@ class ToolRuntime:
         """A chart's axes must be columns of its dataset. Returns the view, provenance and a status note."""
         if ref is None:
             return view, None, None
-        probe = ref.model_copy(update={"transform": ref.transform.model_copy(update={"limit": 50})})
-        result = datasets.resolve(self.source, probe)
+        result = datasets.resolve(self.source, ref)
         names = [c.name for c in result.columns]
         numeric = [c.name for c in result.columns if c.type == "number"]
         if view.kind in ("line", "bar", "scatter", "distribution"):

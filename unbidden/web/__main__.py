@@ -11,6 +11,7 @@ Prints one URL with the session token. Binds the loopback address only.
 from __future__ import annotations
 
 import argparse
+import os
 import secrets
 import sys
 import threading
@@ -99,7 +100,7 @@ def build(args: argparse.Namespace) -> tuple[App, list[Source]]:
     state_dir.mkdir(parents=True, exist_ok=True)
     presentation = PresentationStore(state_dir / "presentation.db")
     chat = ChatService(presentation, make_brain_for(args.planner, state_dir))
-    token = secrets.token_urlsafe(24)
+    token = args.token or secrets.token_urlsafe(24)
     port = free_port(args.host, args.port)
     if port != args.port:
         print(f"port {args.port} is taken; using {port} (nothing was stopped)", file=sys.stderr)
@@ -129,6 +130,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--no-tick", action="store_true", help="demo: do not append a synthetic event every 20 s")
     parser.add_argument("--open", action="store_true", help="open the browser")
     parser.add_argument("--log", action="store_true", help="log every request")
+    parser.add_argument(
+        "--token",
+        default=os.environ.get("UNBIDDEN_WEB_TOKEN"),
+        help="a fixed session token (tests and scripts); by default a random one is generated",
+    )
     args = parser.parse_args(argv)
     try:
         app, sources = build(args)

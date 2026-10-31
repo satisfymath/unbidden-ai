@@ -219,6 +219,27 @@ class Source:
             "spend_cap_usd": self.mandate.business_constraints.maximum_monthly_spend_usd,
         }
 
+    def highlights(self, limit: int = 4) -> list[dict[str, Any]]:
+        """The opportunities worth a card first: by level, then by having an experiment, then by priority."""
+        from unbidden.contracts.opportunity import Opportunity
+
+        opps = self.store.list("opportunities", Opportunity)
+        experiments = {e.opportunity_id for e in self.store.list("experiments", Experiment)}
+
+        def key(o: Opportunity) -> tuple[int, int, float]:
+            return (-int(o.evidence_level), 0 if o.id in experiments else 1, -o.priority_score)
+
+        return [
+            {
+                "id": o.id,
+                "title": o.title,
+                "level": int(o.evidence_level),
+                "status": o.status.value,
+                "has_experiment": o.id in experiments,
+            }
+            for o in sorted(opps, key=key)[:limit]
+        ]
+
     def summary(self) -> dict[str, Any]:
         with self.lock:
             activity = self.activity()
@@ -233,6 +254,8 @@ class Source:
                 "deployments": self.count("deployments"),
                 "needs": self.count("needs"),
                 "blocks": self.count("blocks"),
+                "spend_calls": len(self.spend_rows()),
+                "world": self.count("world"),
             }
             return {
                 "schema": SCHEMA,
@@ -255,6 +278,7 @@ class Source:
                 "counts": counts,
                 "jobs": self.job_counts(),
                 "capabilities": self.capabilities(),
+                "highlights": self.highlights(),
                 "timeline_lines": len(self.timeline),
                 "observed_at": (self.observed_at or datetime.now(UTC)).isoformat(),
                 "freshness": self.freshness,
@@ -436,8 +460,12 @@ def historical(path: Path, *, id_: str | None = None) -> Source:
                     notes.append(f"a deployment line could not be read: {str(exc)[:80]}")
     for extra in ("deploy-verdict.json", "outcome.json"):
         if (path / extra).exists():
-            try:
-                store.set_value(f"web_record:{extra.removesuffix('.json')}", json.loads((path / extra).read_text()))
+            text = (path / extra).read_text()
+            try:  # some records open with a one-line summary before the JSON
+                data = json.loads(text) if text.lstrip().startswith("{") else json.loads(text[text.index("{") :])
+                store.set_value(f"web_record:{extra.removesuffix('.json')}", data)
+                if extra == "outcome.json" and text.lstrip()[0] != "{":
+                    notes.append(text.splitlines()[0][:160])
             except ValueError:
                 notes.append(f"{extra} is not JSON")
     if activity is None and not timeline and not store.round_targets():

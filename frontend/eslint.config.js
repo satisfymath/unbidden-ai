@@ -12,6 +12,7 @@ export default tseslint.config(
     rules: {
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
       "react-hooks/exhaustive-deps": "warn",
+      "react-hooks/incompatible-library": "off",
     },
   },
 );
