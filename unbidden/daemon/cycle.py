@@ -137,40 +137,25 @@ class Cycle:
 
     async def observe_checks(self, j: Job) -> None:
         """The project's own checks at the base, once per commit, before any experiment (stage 9): whether its
-        environment is reproduced here is then known whatever the cycle finds, and an abstention rests on it. One round
-        of the CI's test job (the experiments run three on each side); a suite too long for its bound is said so."""
-        from unbidden.lab.testsuite import run_suite, test_plan
-        from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
+        environment is reproduced here is then known whatever the cycle finds, and an abstention rests on it. The
+        product's one preparation path (`observe.prepare.checks_record`); a suite too long for its bound is said so."""
+        from unbidden.observe.prepare import checks_record
 
         rev = j.payload["rev"]
         record: dict[str, Any] = {"rev": rev, "at": utc_now().isoformat()}
         try:
-            stack, images = await asyncio.to_thread(self._env, rev)
-            plan = test_plan(self.runtime.workspace.repo, rev, stack, "python") if stack.python else None
-            if plan is None:
-                record |= {"status": "no_plan", "why": "no test job to run (no CI job and no test files found)"}
-            else:
-                from unbidden.sandbox.provision import link_dependencies
-
-                work = snapshot(self.runtime.workspace.repo, rev)
-                try:
-                    link_dependencies(work, images["python"])
-                    summary = await asyncio.to_thread(run_suite, SandboxRunner(), work, images["python"], plan,
-                                                      rounds=1, timeout_s=CHECKS_TIMEOUT_S)  # fmt: skip
-                finally:
-                    discard(work)
-                ran = summary.status(0)
-                status = ("failed" if summary.failed_per_round[0] else "passed") if ran == "ran" else ran
-                record |= {"status": status, "collected": summary.collected_per_round[0] if
-                           summary.collected_per_round else None, "failed": summary.failed_per_round[0][:50],
-                           "command": " ".join(plan.argv)[:300], "scope": plan.scope, "partial": plan.partial,
-                           "notes": list(plan.notes)[:10]}  # fmt: skip
-                if ran != "ran" and summary.infra_why and summary.infra_why[0]:
-                    record["why"] = summary.infra_why[0]  # the checks did not run: say how, not only that
-        except Exception as exc:  # the environment could not be built: that is the finding
-            record |= {"status": "blocked", "why": f"{type(exc).__name__}: {str(exc)[:400]}"}
-            self.store.set_value("baseline_checks", record)
-            self._wake(f"checks:{rev[:12]}")
+            found = await asyncio.to_thread(checks_record, self.runtime.workspace.repo, rev,
+                                            self.runtime.workspace.mandate(), timeout_s=CHECKS_TIMEOUT_S)  # fmt: skip
+            plan = found.get("plan") or {}
+            record |= {k: found.get(k) for k in ("status", "collected", "failed", "why") if k in found}
+            record |= {"command": plan.get("command"), "scope": plan.get("scope"), "partial": plan.get("partial"),
+                       "notes": list(plan.get("notes") or [])[:10], "stack": found.get("stack"),
+                       "image": found.get("image")}  # fmt: skip
+            if record.get("status") == "blocked":
+                self.store.set_value("baseline_checks", record)
+                self._wake(f"checks:{rev[:12]}")
+                raise RuntimeError(str(record.get("why")))
+        except RuntimeError:
             raise
         self.store.set_value("baseline_checks", record)
         self._wake(f"checks:{rev[:12]}")  # experiments that waited for the checks may start now

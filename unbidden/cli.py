@@ -52,6 +52,51 @@ def cmd_init(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_prepare(args: argparse.Namespace) -> int:
+    """A repository and a mandate in; an isolated copy, its stack with provenance, the image, the CI's plan and the
+    project's own checks out, with every block said (campaign to v1.0, C1)."""
+    import re
+    from pathlib import Path
+
+    from unbidden.guardian.mandate import load_mandate
+    from unbidden.observe.prepare import checks_record, isolated_copy
+
+    into = Path(args.into).expanduser() if args.into else Path.home() / "unbidden-lab" / Path(args.source).name
+    if "://" in args.source or args.source.startswith("git@"):
+        host = re.sub(r"^[a-z+]+://|^git@", "", args.source).split("/")[0].split(":")[0]
+        allowed = (
+            {"github.com"} if args.mandate is None else set(load_mandate(Path(args.mandate)).egress.package_registries)
+        )
+        if host not in allowed and host != "github.com":
+            err.print(f"cloning from {host} is not allowed by the mandate's egress; add it, or clone by hand")
+            return 2
+    repo, commit = isolated_copy(args.source, into, args.rev)
+    ws = Workspace(repo)
+    ws.init()
+    if args.mandate:
+        ws.mandate_path.write_text(Path(args.mandate).read_text())
+    mandate = ws.mandate()
+    with console.status("preparing") as status:
+        status.update("the stack, the image, the plan, the checks")
+        record = {"source": args.source, "copy": str(repo), **checks_record(repo, commit, mandate)}
+    if _emit(args, record):
+        return 0
+    console.print(f"[bold]{record['copy']}[/] at {commit[:12]}")
+    stack = record.get("stack") or {}
+    if stack:
+        console.print(f"  python {stack.get('python')}: {'; '.join(stack.get('why') or [])[:200]}")
+    plan = record.get("plan") or {}
+    if plan:
+        console.print(f"  plan:  {plan.get('source')} ({plan.get('scope')})")
+        for note in plan.get("notes") or []:
+            console.print(f"         - {note}")
+    console.print(f"  checks: {record.get('status')}"
+                  + (f", {record.get('collected')} collected, {len(record.get('failed') or [])} failed"
+                     if record.get("collected") else "")
+                  + (f": {str(record.get('why'))[:300]}" if record.get("why") else ""))  # fmt: skip
+    return 0 if record.get("status") in ("passed", "failed") else 1
+
+
 def cmd_scan(args: argparse.Namespace) -> int:
     ws = Workspace.find()
     ws.require()
@@ -1566,6 +1611,12 @@ def build_parser() -> argparse.ArgumentParser:
             p.add_argument("--json", action="store_true", help="machine-readable output")
         return p
 
+    prepare = command("prepare", cmd_prepare, "copy a repository apart, read its stack and CI, build its image and "
+                                              "run its own checks; say every block")  # fmt: skip
+    prepare.add_argument("source", help="a repository path or URL")
+    prepare.add_argument("--rev", help="a commit, tag or branch (default: the head)")
+    prepare.add_argument("--into", help="where the isolated copy goes (default: ~/unbidden-lab/<name>)")
+    prepare.add_argument("--mandate", help="a mandate file to copy into the workspace (default: the generated one)")
     command("init", cmd_init, "set up unbidden in this repository")
     command("scan", cmd_scan, "run the repository's own checks in the sandbox and record opportunities")
     map_ = command("map", cmd_map, "discover the system and show what is known, how, and what cannot be seen")
