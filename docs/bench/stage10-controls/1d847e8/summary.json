@@ -1,0 +1,86 @@
+{
+ "product": "1d847e851c4b2d9e52c43a73ef38a9eb77d8dae5",
+ "rev": "f4bcfaba7c85be3c6332cc74a20819f586dcdbc6",
+ "cases": [
+  {
+   "case": "real_improvement",
+   "expected": "improved",
+   "outcome": "improved",
+   "passed": true,
+   "wall_s": 246.3,
+   "reasons": [
+    "session medians 11.36 -> 3.53 ms (+69% faster), permutation p = 0.0286 (slower: 1), 95% interval of the effect [+68%, +70%]",
+    "mechanism observed: 2048-2048 scans of an index on item.owner_id per candidate session (needed: 20)",
+    "A/A control: -3% between two sets of base sessions",
+    "confirmation: session medians 11.28 -> 3.49 ms (+69% faster), permutation p = 0.0286 (slower: 1), 95% interval of the effect [+68%, +71%]",
+    "the same 20 responses on both sides, in every session, up to one correspondence per session of the ids and times the application generated"
+   ]
+  },
+  {
+   "case": "unchanged",
+   "expected": "no_relevant_change",
+   "outcome": "no_relevant_change",
+   "passed": true,
+   "wall_s": 107.5,
+   "reasons": [
+    "session medians 11.64 -> 11.32 ms (+3% faster), permutation p = 0.114 (slower: 0.9), 95% interval of the effect [-1%, +15%]",
+    "no change of 20% or more either way"
+   ]
+  },
+  {
+   "case": "irrelevant_index",
+   "expected": "not improved; the index is not used",
+   "outcome": "no_relevant_change",
+   "passed": true,
+   "wall_s": 108.8,
+   "reasons": [
+    "session medians 11.32 -> 11.62 ms (-3% faster), permutation p = 0.957 (slower: 0.0714), 95% interval of the effect [-6%, +1%]",
+    "no change of 20% or more either way"
+   ]
+  },
+  {
+   "case": "workload_without_the_column",
+   "expected": "not improved",
+   "outcome": "not measured",
+   "passed": false,
+   "wall_s": 7.2,
+   "reasons": [
+    "ngs.warn(message, stacklevel=1)\n/work/backend/app/core/config.py:75: UserWarning: The value of DATABASE_URL password is \"changethis\", for security, please change it, at least for deployments.\n  warnings.warn(message, stacklevel=1)\n/work/backend/app/core/config.py:75: UserWarning: The value of FIRST_SUPERUSER_PASSWORD is \"changethis\", for security, please change it, at least for deployments.\n  warnings.warn(message, stacklevel=1)\nINFO:__main__:Creating initial data\nINFO:__main__:Initial data created\n+ bash scripts/test.sh 'Coverage for '\n+ FASTAPI_ENV=development\n+ coverage run -m pytest tests/"
+   ]
+  },
+  {
+   "case": "slower",
+   "expected": "regression",
+   "outcome": "regression",
+   "passed": true,
+   "wall_s": 95.4,
+   "reasons": [
+    "session medians 11.39 -> 22.37 ms (-96% faster), permutation p = 1 (slower: 0.0286), 95% interval of the effect [-104%, -86%]",
+    "the candidate is slower by 96%"
+   ]
+  },
+  {
+   "case": "near_threshold",
+   "expected": "not improved",
+   "outcome": "no_relevant_change",
+   "passed": true,
+   "wall_s": 100.5,
+   "reasons": [
+    "session medians 47.23 -> 40.15 ms (+15% faster), permutation p = 0.0286 (slower: 1), 95% interval of the effect [+12%, +19%]",
+    "no change of 20% or more either way"
+   ]
+  },
+  {
+   "case": "faster_wrong_answer",
+   "expected": "regression, the result differs",
+   "outcome": "regression",
+   "passed": true,
+   "wall_s": 96.9,
+   "reasons": [
+    "session medians 11.27 -> 3.56 ms (+68% faster), permutation p = 0.0286 (slower: 1), 95% interval of the effect [+67%, +70%]",
+    "mechanism observed: 2048-2048 scans of an index on item.owner_id per candidate session (needed: 20)",
+    "the result differs between base and candidate: the candidate's responses differ from the base's: call 1.data: 100 items against 99"
+   ]
+  }
+ ]
+}

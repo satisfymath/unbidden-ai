@@ -85,9 +85,11 @@ def cases(
     assert LISTED in route
     irrelevant = index_candidate(show, "item", "title", rev_head[2], rev_head, model=False) or {}
     wrong = {**patch, ROUTE: route.replace(LISTED, "    items = items[1:]\n" + LISTED, 1)}
+    # The listing as the superuser sees it (no owner filter): the data is built as before, with the ordinary user its
+    # fixture creates, and only the call is the superuser's.
     superuser = workload.replace("headers = normal_user_token_headers", "headers = superuser_token_headers")
-    superuser = superuser.replace("def build(client, db, normal_user_token_headers)",
-                                  "def build(client, db, superuser_token_headers)")  # fmt: skip
+    signature = "def build(client, db, normal_user_token_headers"
+    superuser = superuser.replace(f"{signature})", f"{signature}, superuser_token_headers)")
     assert superuser != workload
     return [
         Case(
