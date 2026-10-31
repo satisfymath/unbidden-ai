@@ -602,6 +602,7 @@ def _reproducible(runs: list[dict[str, Any]], files: set[str] | None) -> bool:
     return True
 
 
+_SERVICE_PORT = re.compile(r"\$\{\{\s*job\.services\.[\w-]+\.ports\[(?P<port>\d+)\]\s*\}\}")
 _WRITES_ENV = re.compile(
     r"""^\s*echo\s+["']?(?P<key>[A-Za-z_]\w*)=(?P<value>[^"'\n]*?)["']?\s*>>\s*"?\$\{?GITHUB_ENV\}?"?\s*$"""
 )
@@ -735,9 +736,17 @@ def _job_plan(
         own = tuple(sorted((str(k), str(v)) for k, v in (spec.get("env") or {}).items() if not _EXPR.search(str(v))))
         ports = tuple(int(str(p).split(":")[-1]) for p in spec.get("ports") or [] if str(p).split(":")[-1].isdigit())
         containers.append((str(name), str(spec["image"]), own, ports))
-    env: dict[str, str] = {str(k): str(v) for k, v in (job.get("env") or {}).items() if not _EXPR.search(str(v))}
+
+    # `${{ job.services.mariadb.ports[3306] }}` is the port the runner mapped the container's 3306 to; the sidecar
+    # listens on 3306 itself (CTFd, stage 10: its database URL was dropped as an expression, the tests ran on SQLite).
+    def literal(value: Any) -> str:
+        return _SERVICE_PORT.sub(lambda m: m.group("port"), str(value))
+
+    env: dict[str, str] = {
+        str(k): literal(v) for k, v in (job.get("env") or {}).items() if not _EXPR.search(literal(v))
+    }
     for step in runs:
-        env |= {str(k): str(v) for k, v in (step.get("env") or {}).items() if not _EXPR.search(str(v))}
+        env |= {str(k): literal(v) for k, v in (step.get("env") or {}).items() if not _EXPR.search(literal(v))}
     env |= written
     split = next((m for s in steps if (m := _SPLITS.search(s.command))), None)
     scope = f"pytest-split group {split.group('g')} of {split.group('n')}" if split else ""

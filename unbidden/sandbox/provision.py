@@ -251,6 +251,15 @@ def python_dockerfile(stack: PythonStack, *, system_build_tools: bool = False, h
             install += f" && uv pip install --python /deps/.venv/bin/python -r /deps/{extra}"
     else:
         install = _uv_sync(stack, "--no-install-project")
+    if stack.manifest == "pyproject.toml":
+        # The requirements files the CI's test job installs besides the project (httpx, stage 10: coverage and mypy
+        # in requirements.txt, `-e .[cli]` first): each after the sync, without the lines that name the project
+        # itself (it is linked from the snapshot at run time, not built here).
+        for i, extra in enumerate(stack.extra_requirements):
+            install += (
+                f" && (grep -vE '^\\s*(-e\\b|\\.(\\[|$)|\\./)' /deps/{extra} > /tmp/unbidden-extra-{i}.txt || true)"
+                f" && uv pip install --python /deps/.venv/bin/python -r /tmp/unbidden-extra-{i}.txt"
+            )
     uv = (
         f"uv{stack.uv_version if stack.uv_version[0] in '=<>!~' else '==' + stack.uv_version}"
         if stack.uv_version

@@ -59,7 +59,9 @@ def test_plan(repo: Path, rev: str, stack: Stack, language: str) -> TestPlan | N
                     ports=tuple(str(p) for p in ports))
             for n, image, e, ports in ci.containers
         )  # fmt: skip
-        own = tuple(s for s in own if s.data_kind)
+        # Every container the job declares, not only databases (mealie, stage 10: an LDAP server its login tests
+        # need, skipped in CI only where `GITHUB_ACTIONS` is unset).
+        own = tuple(s for s in own if s.image)
         ci_env = dict(ci.env)
         if own:
             ci_env = {k: _to_sidecars(v, own) for k, v in ci_env.items()}
@@ -192,6 +194,9 @@ def _round(
     junit.parent.mkdir(exist_ok=True)
     junit.parent.chmod(0o777)
     env = dict(plan.env)
+    # A repository script that says `uv run ...` (starlette's `scripts/test`) must not sync the project: the
+    # dependency image is the environment, and /work's build backend is not fetchable offline.
+    env.setdefault("UV_NO_SYNC", "1")
     if plan.pytest:
         env["PYTEST_ADDOPTS"] = f"--junitxml=/work/{JUNIT_DIR}/round-{n}.xml -p no:cacheprovider"
         # `pytest -n auto` counts the host's CPUs, not the sandbox's: on a large machine it starts more workers than

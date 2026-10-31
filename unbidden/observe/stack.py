@@ -395,6 +395,7 @@ def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str]
             ),
             sync_flags=ci_sync_flags(repo, rev, files),
             system_packages=ci_system_packages(repo, rev, files),
+            extra_requirements=ci_requirement_files(repo, rev, files, "pyproject.toml"),
             build_writes=() if members else build_writes(project, files),
             **uv,
         )

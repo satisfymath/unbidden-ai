@@ -326,3 +326,58 @@ def test_the_report_message_of_each_failure_is_kept(tmp_path: Path) -> None:
         "tests.a::t1": "AssertionError: 1 != 2",
         "tests.b::t3": "ImportError: no module named x\nmore\nlines\n4",
     }
+
+
+def test_a_service_port_expression_in_the_job_env_is_the_containers_port(tmp_path: Path) -> None:
+    """CTFd: `TESTING_DATABASE_URL: mysql+pymysql://...@localhost:${{ job.services.mariadb.ports[3306] }}/ctfd`
+    was dropped as an expression and the tests ran on SQLite (50 failures about `max_overflow`)."""
+    repo = _repo(tmp_path, {
+        "requirements.txt": "flask\n",
+        "tests/test_a.py": "def test_a(): ...\n",
+        ".github/workflows/mariadb.yml": WORKFLOW + """  build:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MYSQL_ROOT_PASSWORD: password
+        ports:
+          - 3306/tcp
+    steps:
+      - uses: actions/checkout@v5
+      - run: python -m pytest
+        env:
+          TESTING_DATABASE_URL: mysql+pymysql://root:password@localhost:${{ job.services.mariadb.ports[3306] }}/ctfd
+""",
+    })  # fmt: skip
+    plan = ci_test_plan(repo, "HEAD", "python")
+    assert plan is not None
+    assert dict(plan.env)["TESTING_DATABASE_URL"] == "mysql+pymysql://root:password@localhost:3306/ctfd"
+
+
+def test_requirement_files_the_job_installs_are_installed_after_the_sync_without_the_project_itself(
+    tmp_path: Path,
+) -> None:
+    """httpx: `scripts/install` runs `pip install -r requirements.txt` (`-e .[cli]`, then coverage, mypy); with a
+    pyproject manifest the file was ignored and `coverage: not found` ended the job."""
+    from unbidden.sandbox.provision import python_dockerfile
+
+    repo = _repo(tmp_path, {
+        "pyproject.toml": '[project]\nname = "httpx"\nrequires-python = ">=3.9"\n',
+        "requirements.txt": "-e .[cli]\ncoverage\nmypy\n",
+        "scripts/install": "#!/bin/sh\npip install -r requirements.txt\n",
+        "scripts/test": "#!/bin/sh\ncoverage run -m pytest\n",
+        "tests/test_a.py": "def test_a(): ...\n",
+        ".github/workflows/test-suite.yml": WORKFLOW + """  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/install
+      - run: scripts/test
+""",
+    })  # fmt: skip
+    stack = detect_stack(repo, "HEAD")
+    assert stack.python is not None and stack.python.extra_requirements == ("requirements.txt",)
+    docker = python_dockerfile(stack.python)
+    assert "/deps/requirements.txt > /tmp/unbidden-extra-0.txt" in docker
+    assert "uv pip install --python /deps/.venv/bin/python -r /tmp/unbidden-extra-0.txt" in docker
