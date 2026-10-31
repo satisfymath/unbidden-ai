@@ -1,0 +1,130 @@
+{
+  "workspace": "rag_api",
+  "at": "2026-10-31T17:03:10.944541+00:00",
+  "discovered": {
+    "total": 0,
+    "by_status": {}
+  },
+  "experimenting": [],
+  "declined_because": [],
+  "waiting_because": [],
+  "proven": [],
+  "project_checks": {
+    "rev": "4985b37b8b5d4519d68eceedfef1e63624012f9d",
+    "at": "2026-10-31T17:02:32.360669+00:00",
+    "status": "infra_failed",
+    "collected": null,
+    "failed": [
+      "<suite>"
+    ],
+    "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest --maxfail=1 --disable-warnings --junitxml=test-results-unit.xml\ncd /work\npytest -m integration --maxfail=3 --disable-warnings --",
+    "scope": "the whole job",
+    "partial": false,
+    "notes": [],
+    "why": "exit 1: dule\n    exec(co, module.__dict__)\ntests/integration/conftest.py:11: in <module>\n    from testcontainers.postgres import PostgresContainer\nE   ModuleNotFoundError: No module named 'testcontainers'\n--------------- generated xml file: /work/test-results-unit.xml ----------------\n=========================== short test summary info ============================\nERROR tests/integration - ModuleNotFoundError: No module named 'testcontainers'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n========================= 1 warning, 1 error in 0.29s =========================="
+  },
+  "experiments_wait": null,
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {},
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 1,
+    "usd": 0.0128,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55500/rag_api",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.langchain_pg_collection",
+        "select public.langchain_pg_embedding"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-31T17:03:10.410848+00:00"
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18170",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "FastAPI: 11 operations documented, authenticated by nothing; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-31T17:03:10.415047+00:00"
+    }
+  ],
+  "needs_a_person": [
+    {
+      "proposal": "docker compose up",
+      "state": "proposed",
+      "what": "found in README.md; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f ./db-compose.yaml up",
+      "state": "proposed",
+      "what": "found in README.md; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f ./api-compose.yaml up",
+      "state": "proposed",
+      "what": "found in README.md; a proposal only: a person declares deploy steps in the mandate"
+    }
+  ],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [],
+  "actions": [],
+  "acceptances": [],
+  "goals": []
+}

@@ -1,0 +1,252 @@
+{
+  "workspace": "codex_lb",
+  "at": "2026-10-31T16:50:43.635504+00:00",
+  "discovered": {
+    "total": 11,
+    "by_status": {
+      "open": 11
+    }
+  },
+  "experimenting": [],
+  "declined_because": [],
+  "waiting_because": [
+    [
+      "blocked: http_api:http://127.0.0.1:18150: list_request_logs_api_request_logs_get: 200, 100000 records, read incomplete (stopped at the read bound: 100000 records in 100 requests (bounds 100000, 2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 (incomplete); 899 differ; without the ke",
+      8
+    ],
+    [
+      "blocked: GET /api/fleet/observability accepts http:bearer; the granted credential is not of that kind",
+      1
+    ]
+  ],
+  "proven": [],
+  "project_checks": {
+    "rev": "84fde5a1ed5e0d5a58ccb3ec4b82938b059bf8c5",
+    "at": "2026-10-31T16:47:20.752818+00:00",
+    "status": "passed",
+    "collected": null,
+    "failed": [],
+    "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\necho \"Backend files unchanged; required pytest context satisfied.\"",
+    "scope": "matrix entry 1 of 3 (slice=unit)",
+    "partial": true,
+    "notes": [
+      "1 step(s) after the tests left out (they run no tests)"
+    ]
+  },
+  "experiments_wait": {
+    "rev": "84fde5a1ed5e0d5a58ccb3ec4b82938b059bf8c5",
+    "why": "the project's own checks were not reproduced at 84fde5a1ed5e (passed: )"
+  },
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {
+      "abandoned": 1
+    },
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 104,
+    "usd": 0.6105,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55480/codex_lb",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.account_limit_warmups",
+        "select public.account_plan_downgrade_observations",
+        "select public.account_proxy_bindings",
+        "select public.account_refresh_claims",
+        "select public.account_usage_rollup_state",
+        "select public.account_usage_rollups",
+        "select public.accounts",
+        "select public.additional_usage_history",
+        "select public.alembic_version",
+        "select public.api_firewall_allowlist",
+        "select public.api_key_accounts",
+        "select public.api_key_limits",
+        "select public.api_key_model_sources",
+        "select public.api_key_usage_reservation_items",
+        "select public.api_key_usage_reservations",
+        "select public.api_key_usage_rollups",
+        "select public.api_keys",
+        "select public.audit_logs",
+        "select public.automation_job_accounts",
+        "select public.automation_jobs",
+        "select public.automation_run_cycle_accounts",
+        "select public.automation_run_cycles",
+        "select public.automation_runs",
+        "select public.bridge_ring_members",
+        "select public.cache_invalidation",
+        "select public.capability_lineage_markers",
+        "select public.dashboard_settings",
+        "select public.file_account_pins",
+        "select public.http_bridge_operation_events",
+        "select public.http_bridge_operations",
+        "select public.http_bridge_recovery_attempts",
+        "select public.http_bridge_retry_circuits",
+        "select public.http_bridge_session_aliases",
+        "select public.http_bridge_sessions",
+        "select public.model_registry_snapshot",
+        "select public.model_source_models",
+        "select public.model_sources",
+        "select public.oauth_device_flow_slots",
+        "select public.oauth_flow_states",
+        "select public.proxy_endpoints",
+        "select public.proxy_pool_members",
+        "select public.proxy_pools",
+        "select public.quota_planner_decisions",
+        "select public.quota_planner_settings",
+        "select public.quota_window_observations",
+        "select public.rate_limit_attempts",
+        "select public.request_conversation_hourly_rollups",
+        "select public.request_demand_quarter_rollups",
+        "select public.request_logs",
+        "select public.request_usage_hourly_error_rollups",
+        "select public.request_usage_hourly_rollups",
+        "select public.reset_credit_redeem_claims",
+        "select public.reset_credit_redeem_requests",
+        "select public.runtime_sentinels",
+        "select public.scheduler_leader",
+        "select public.sticky_sessions",
+        "select public.usage_history"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-31T16:50:42.871682+00:00"
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18150",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "codex-lb: 136 operations documented, authenticated by http bearer; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-31T16:50:42.878992+00:00"
+    }
+  ],
+  "needs_a_person": [],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [
+    {
+      "id": "int_cf5fcd4ef17d47e5",
+      "title": "codex-lb",
+      "on": "http_api:http://127.0.0.1:18150",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "get_overview_api_dashboard_overview_get": "read",
+        "get_usage_summary_api_usage_summary_get": "read",
+        "list_request_logs_api_request_logs_get": "read",
+        "list_conversations_api_conversations_get": "read",
+        "list_accounts_api_accounts_get": "read",
+        "list_api_keys_api_api_keys__get": "read",
+        "list_automations_api_automations_get": "read",
+        "list_automations_runs_api_automations_runs_get": "read"
+      },
+      "oracle": {
+        "get_overview_api_dashboard_overview_get": "200, 2000 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "get_usage_summary_api_usage_summary_get": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "list_accounts_api_accounts_get": "200, 2000 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "list_api_keys_api_api_keys__get": "200, 50 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "list_automations_api_automations_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_automations_runs_api_automations_runs_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_conversations_api_conversations_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_request_logs_api_request_logs_get": "200, 100000 records, read incomplete (stopped at the read bound: 100000 records in 100 requests (bounds 100000, 2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 (incomplete); 899 differ; without the key: 200"
+      }
+    },
+    {
+      "id": "int_c189ca1acdc8415e",
+      "title": "codex-lb",
+      "on": "http_api:http://127.0.0.1:18150",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "get_overview_api_dashboard_overview_get": "read",
+        "get_usage_summary_api_usage_summary_get": "read",
+        "list_request_logs_api_request_logs_get": "read",
+        "list_conversations_api_conversations_get": "read",
+        "list_accounts_api_accounts_get": "read",
+        "list_api_keys_api_api_keys__get": "read"
+      },
+      "oracle": {
+        "get_overview_api_dashboard_overview_get": "200, 2000 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "get_usage_summary_api_usage_summary_get": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "list_accounts_api_accounts_get": "200, 2000 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "list_api_keys_api_api_keys__get": "200, 50 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "list_conversations_api_conversations_get": "200, 0 records, read unknown (no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); the same 0 records with page size 1; without the key: 200",
+        "list_request_logs_api_request_logs_get": "200, 100000 records, read incomplete (stopped at the read bound: 100000 records in 100 requests (bounds 100000, 2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 (incomplete); 899 differ; without the key: 200"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "data-correct-and-fast",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for codex_lb-api",
+      "at": "2026-10-31T16:47:23.086114+00:00"
+    },
+    {
+      "goal": "data-correct-and-fast",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "codex_lb-api: no integration could be validated (list_request_logs_api_request_logs_get: 200, 100000 records, read incomplete (stopped at the read bound: 100000 records in 100 requests (bounds 100000, 2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 (incomplete); 899 differ; without the key: 200)",
+      "at": "2026-10-31T16:49:55.557638+00:00"
+    }
+  ]
+}

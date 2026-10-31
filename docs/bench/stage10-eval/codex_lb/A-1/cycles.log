@@ -1,0 +1,169 @@
+== cycle 1 (exit 0)
+13:44:56 watching /Users/david/unbidden-lab/codex-lb (ctrl-c to stop, `unbidden 
+kill` to freeze)
+13:44:56 HEAD is 84fde5a1ed5e
+13:44:56 connections: postgres:127.0.0.1:55480/codex_lb connected, 
+http_api:http://127.0.0.1:18150 needs_capability
+13:44:57 provisioning python dependencies
+13:44:57 running ruff
+13:44:59 provisioning node dependencies of frontend
+13:44:59 scan of 84fde5a1ed5e: 1 reports, 0 new opportunities
+13:47:15 map of 84fde5a1ed5e: 218 resources, 3 blind spots
+13:47:20 robustness probe at 84fde5a1ed5e: investigate (probe app (80 public 
+functions sampled))
+13:47:23 the project's own checks at 84fde5a1ed5e: passed (None collected, 0 
+failed)
+13:47:30 goal data-correct-and-fast: waiting_capability: needs an integration 
+for codex_lb-api
+13:48:41 capability need api_client for http_api:http://127.0.0.1:18150: failed
+13:48:43 opp_4848545c92924638: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+13:48:43 experiments wait: the project's own checks were not reproduced at 
+84fde5a1ed5e (passed: )
+13:48:43 opp_0da6eafd07ce4673: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:48:43 opp_b2e23ba4c7dd4def: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:48:43 opp_7e7f25eaa5bc40bc: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:48:43 opp_6269dea77461447c: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:48:43 opp_990f054ce2594899: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:48:43 opp_2841edb378fd4029: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:48:43 opp_410d0b6c7e524cc4: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:48:43 opp_a1baa86d1ea245eb: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:48:43 opp_4d7a39426c4b4e9b: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:48:43 opp_c5a7c0b4f9224a5e: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:49:55 capability need api_client for http_api:http://127.0.0.1:18150: 
+abandoned
+13:50:03 goal data-correct-and-fast: blocked: codex_lb-api: no integration could
+be validated (list_request_logs_api_request_logs_get: 200, 100000 records, read 
+incomplete (stopped at the read bound: 100000 records in 100 requests (bounds 
+100000, 2000)); page size 1000: 100000 records (incomplete); page size 999: 
+100899 (incomplete); 899 differ; without the key: 200)
+13:50:03 opp_0da6eafd07ce4673: consistency of GET /api/automations: blocked 
+without a model call: http_api:http://127.0.0.1:18150: 
+list_request_logs_api_request_logs_get: 200, 100000 records, read incomplete 
+(stopped at the read bound: 100000 records in 100 requests (bounds 100000, 
+2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 
+(incomplete); 899 differ; without the key: 200
+13:50:03 opp_b2e23ba4c7dd4def: consistency of GET /api/automations/runs: blocked
+without a model call: http_api:http://127.0.0.1:18150: 
+list_request_logs_api_request_logs_get: 200, 100000 records, read incomplete 
+(stopped at the read bound: 100000 records in 100 requests (bounds 100000, 
+2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 
+(incomplete); 899 differ; without the key: 200
+13:50:03 opp_7e7f25eaa5bc40bc: consistency of GET 
+/api/conversation-archive/records: blocked without a model call: 
+http_api:http://127.0.0.1:18150: list_request_logs_api_request_logs_get: 200, 
+100000 records, read incomplete (stopped at the read bound: 100000 records in 
+100 requests (bounds 100000, 2000)); page size 1000: 100000 records 
+(incomplete); page size 999: 100899 (incomplete); 899 differ; without the key: 
+200
+13:50:05 opp_0da6eafd07ce4673: wait (blocked: http_api:http://127.0.0.1:18150: 
+list_request_logs_api_request_logs_get: 200, 100000 records, read incomplete 
+(stopped at the read bound: 100000 records in 100 requests (bounds 100000, 
+2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 
+(incomplete); 899 differ; without the ke)
+13:50:05 opp_b2e23ba4c7dd4def: wait (blocked: http_api:http://127.0.0.1:18150: 
+list_request_logs_api_request_logs_get: 200, 100000 records, read incomplete 
+(stopped at the read bound: 100000 records in 100 requests (bounds 100000, 
+2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 
+(incomplete); 899 differ; without the ke)
+13:50:05 opp_7e7f25eaa5bc40bc: wait (blocked: http_api:http://127.0.0.1:18150: 
+list_request_logs_api_request_logs_get: 200, 100000 records, read incomplete 
+(stopped at the read bound: 100000 records in 100 requests (bounds 100000, 
+2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 
+(incomplete); 899 differ; without the ke)
+13:50:05 opp_6269dea77461447c: consistency of GET /api/conversations: blocked 
+without a model call: http_api:http://127.0.0.1:18150: 
+list_request_logs_api_request_logs_get: 200, 100000 records, read incomplete 
+(stopped at the read bound: 100000 records in 100 requests (bounds 100000, 
+2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 
+(incomplete); 899 differ; without the key: 200
+13:50:05 opp_990f054ce2594899: consistency of GET /api/dashboard/overview: 
+blocked without a model call: http_api:http://127.0.0.1:18150: 
+list_request_logs_api_request_logs_get: 200, 100000 records, read incomplete 
+(stopped at the read bound: 100000 records in 100 requests (bounds 100000, 
+2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 
+(incomplete); 899 differ; without the key: 200
+13:50:05 opp_2841edb378fd4029: consistency of GET /api/fleet/observability: 
+blocked without a model call: it needs http:bearer
+13:50:05 writing property tests for app
+13:50:20 running them offline
+13:50:26 robustness probe of app: 1 failed, 7 passed in 1.75s; 0 crash(es), 0 
+new; 0 property violation(s) kept for a person (L1)
+
+
+== cycle 2 (exit 0)
+13:50:26 watching /Users/david/unbidden-lab/codex-lb (ctrl-c to stop, `unbidden 
+kill` to freeze)
+13:50:33 connections: postgres:127.0.0.1:55480/codex_lb connected, 
+http_api:http://127.0.0.1:18150 needs_capability
+13:50:34 opp_6269dea77461447c: wait (blocked: http_api:http://127.0.0.1:18150: 
+list_request_logs_api_request_logs_get: 200, 100000 records, read incomplete 
+(stopped at the read bound: 100000 records in 100 requests (bounds 100000, 
+2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 
+(incomplete); 899 differ; without the ke)
+13:50:34 opp_990f054ce2594899: wait (blocked: http_api:http://127.0.0.1:18150: 
+list_request_logs_api_request_logs_get: 200, 100000 records, read incomplete 
+(stopped at the read bound: 100000 records in 100 requests (bounds 100000, 
+2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 
+(incomplete); 899 differ; without the ke)
+13:50:34 opp_2841edb378fd4029: wait (blocked: GET /api/fleet/observability 
+accepts http:bearer; the granted credential is not of that kind)
+13:50:34 opp_410d0b6c7e524cc4: consistency of GET /api/reports: blocked without 
+a model call: http_api:http://127.0.0.1:18150: 
+list_request_logs_api_request_logs_get: 200, 100000 records, read incomplete 
+(stopped at the read bound: 100000 records in 100 requests (bounds 100000, 
+2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 
+(incomplete); 899 differ; without the key: 200
+13:50:34 opp_a1baa86d1ea245eb: consistency of GET /api/request-logs: blocked 
+without a model call: http_api:http://127.0.0.1:18150: 
+list_request_logs_api_request_logs_get: 200, 100000 records, read incomplete 
+(stopped at the read bound: 100000 records in 100 requests (bounds 100000, 
+2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 
+(incomplete); 899 differ; without the key: 200
+13:50:34 opp_4d7a39426c4b4e9b: consistency of GET /api/sticky-sessions: blocked 
+without a model call: http_api:http://127.0.0.1:18150: 
+list_request_logs_api_request_logs_get: 200, 100000 records, read incomplete 
+(stopped at the read bound: 100000 records in 100 requests (bounds 100000, 
+2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 
+(incomplete); 899 differ; without the key: 200
+
+
+== cycle 3 (exit 0)
+13:50:35 watching /Users/david/unbidden-lab/codex-lb (ctrl-c to stop, `unbidden 
+kill` to freeze)
+13:50:41 connections: postgres:127.0.0.1:55480/codex_lb connected, 
+http_api:http://127.0.0.1:18150 needs_capability
+13:50:42 opp_410d0b6c7e524cc4: wait (blocked: http_api:http://127.0.0.1:18150: 
+list_request_logs_api_request_logs_get: 200, 100000 records, read incomplete 
+(stopped at the read bound: 100000 records in 100 requests (bounds 100000, 
+2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 
+(incomplete); 899 differ; without the ke)
+13:50:42 opp_a1baa86d1ea245eb: wait (blocked: http_api:http://127.0.0.1:18150: 
+list_request_logs_api_request_logs_get: 200, 100000 records, read incomplete 
+(stopped at the read bound: 100000 records in 100 requests (bounds 100000, 
+2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 
+(incomplete); 899 differ; without the ke)
+13:50:42 opp_4d7a39426c4b4e9b: wait (blocked: http_api:http://127.0.0.1:18150: 
+list_request_logs_api_request_logs_get: 200, 100000 records, read incomplete 
+(stopped at the read bound: 100000 records in 100 requests (bounds 100000, 
+2000)); page size 1000: 100000 records (incomplete); page size 999: 100899 
+(incomplete); 899 differ; without the ke)
+13:50:42 opp_c5a7c0b4f9224a5e: consistency of GET /v1/usage: blocked without a 
+model call: it needs http:bearer
+
+
+== cycle 4 (exit 0)
+13:50:42 watching /Users/david/unbidden-lab/codex-lb (ctrl-c to stop, `unbidden 
+kill` to freeze)
+13:50:43 connections: postgres:127.0.0.1:55480/codex_lb connected, 
+http_api:http://127.0.0.1:18150 needs_capability

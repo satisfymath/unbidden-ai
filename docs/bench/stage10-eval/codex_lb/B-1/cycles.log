@@ -1,0 +1,153 @@
+== cycle 1 (exit 0)
+13:36:20 watching /Users/david/unbidden-lab/codex-lb (ctrl-c to stop, `unbidden 
+kill` to freeze)
+13:36:33 HEAD is 84fde5a1ed5e
+13:36:36 connections: postgres:127.0.0.1:55480/codex_lb connected, 
+http_api:http://127.0.0.1:18150 needs_capability
+13:36:36 provisioning python dependencies
+13:37:01 running ruff
+13:37:03 provisioning node dependencies of frontend
+13:37:03 scan of 84fde5a1ed5e: 1 reports, 0 new opportunities
+13:39:24 map of 84fde5a1ed5e: 218 resources, 3 blind spots
+13:39:29 robustness probe at 84fde5a1ed5e: investigate (probe app (80 public 
+functions sampled))
+13:39:32 the project's own checks at 84fde5a1ed5e: passed (None collected, 0 
+failed)
+13:39:33 opp_3fda1e7dd5da48a7: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+13:39:33 experiments wait: the project's own checks were not reproduced at 
+84fde5a1ed5e (passed: )
+13:39:33 opp_42a78b55cc874a6c: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:39:33 opp_e03d04e8bd964a21: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:39:33 opp_b2c47ea7d096484f: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:39:33 opp_74aaffc35c0c445d: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:39:33 opp_16d83558dd194ca2: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:39:33 opp_6473493cf116480f: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:39:33 opp_adaf9a8854924dba: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:39:33 opp_6bf2417986ef46ed: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:39:33 opp_7652e37b41a54bee: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:39:33 opp_803d048276304685: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:39:40 opp_42a78b55cc874a6c: consistency of GET /api/automations: 
+waiting_capability: needs an integration for codex_lb-api
+13:39:45 capability need api_client for http_api:http://127.0.0.1:18150: failed
+13:39:52 opp_e03d04e8bd964a21: consistency of GET /api/automations/runs: 
+waiting_capability: needs an integration for codex_lb-api
+13:39:57 capability need api_client for http_api:http://127.0.0.1:18150: in_use
+13:40:04 opp_b2c47ea7d096484f: consistency of GET 
+/api/conversation-archive/records: waiting_extension: needs the read 
+list_conversation_archive_records_api_conversation_archive_records_get added to 
+the integration (open)
+13:40:05 capability need api_extension for 
+http_api:http://127.0.0.1:18150#list_conversation_archive_records_api_conversati
+on_archive_records_get: failed
+13:40:16 opp_42a78b55cc874a6c: consistency of GET /api/automations: failed: 
+reads: "the query's rows have no field 'id'"
+13:40:21 opp_e03d04e8bd964a21: consistency of GET /api/automations/runs: failed:
+reads: "the query's rows have no field 'id'"
+13:40:22 opp_42a78b55cc874a6c: wait (failed: reads: "the query's rows have no 
+field 'id'")
+13:40:22 opp_e03d04e8bd964a21: wait (failed: reads: "the query's rows have no 
+field 'id'")
+13:40:22 opp_b2c47ea7d096484f: wait (investigation queued or running)
+13:40:22 capability need api_extension for 
+http_api:http://127.0.0.1:18150#list_conversation_archive_records_api_conversati
+on_archive_records_get: abandoned
+13:40:29 opp_74aaffc35c0c445d: consistency of GET /api/conversations: 
+waiting_extension: needs the read list_conversations_api_conversations_get added
+to the integration (open)
+13:40:29 capability need api_extension for 
+http_api:http://127.0.0.1:18150#list_conversations_api_conversations_get: in_use
+13:40:35 opp_16d83558dd194ca2: consistency of GET /api/dashboard/overview: 
+waiting_extension: needs the read get_overview_api_dashboard_overview_get added 
+to the integration (open)
+13:40:37 capability need api_extension for 
+http_api:http://127.0.0.1:18150#get_overview_api_dashboard_overview_get: in_use
+13:40:37 opp_6473493cf116480f: consistency of GET /api/fleet/observability: 
+blocked without a model call: it needs http:bearer
+13:40:45 opp_b2c47ea7d096484f: consistency of GET 
+/api/conversation-archive/records: waiting_extension: needs the read 
+list_conversation_archive_records_api_conversation_archive_records_get added to 
+the integration (abandoned)
+13:40:51 opp_74aaffc35c0c445d: consistency of GET /api/conversations: failed: 
+reads: "the query's rows have no field 'conversationId'"
+13:40:58 opp_16d83558dd194ca2: consistency of GET /api/dashboard/overview: 
+inconclusive: no difference among the 1000 keys read, but the set's completeness
+is unknown (the read-only query returned its limit of 1000 rows): 'none' is not 
+concluded
+13:41:00 opp_74aaffc35c0c445d: wait (failed: reads: "the query's rows have no 
+field 'conversationId'")
+13:41:00 opp_16d83558dd194ca2: wait (inconclusive: no difference among the 1000 
+keys read, but the set's completeness is unknown (the read-only query returned 
+its limit of 1000 rows): 'none' is not concluded)
+13:41:00 opp_6473493cf116480f: wait (blocked: GET /api/fleet/observability 
+accepts http:bearer; the granted credential is not of that kind)
+13:41:06 opp_adaf9a8854924dba: consistency of GET /api/reports: 
+waiting_extension: needs the read get_reports_api_reports_get added to the 
+integration (open)
+13:41:08 capability need api_extension for 
+http_api:http://127.0.0.1:18150#get_reports_api_reports_get: in_use
+13:41:21 opp_6bf2417986ef46ed: consistency of GET /api/request-logs: 
+waiting_extension: needs the read list_request_logs_api_request_logs_get added 
+to the integration (open)
+13:42:26 capability need api_extension for 
+http_api:http://127.0.0.1:18150#list_request_logs_api_request_logs_get: failed
+13:42:33 opp_7652e37b41a54bee: consistency of GET /api/sticky-sessions: 
+waiting_extension: needs the read list_sticky_sessions_api_sticky_sessions_get 
+added to the integration (open)
+13:43:36 capability need api_extension for 
+http_api:http://127.0.0.1:18150#list_request_logs_api_request_logs_get: 
+abandoned
+13:43:38 capability need api_extension for 
+http_api:http://127.0.0.1:18150#list_sticky_sessions_api_sticky_sessions_get: 
+in_use
+13:43:44 opp_adaf9a8854924dba: consistency of GET /api/reports: failed: reads: 
+'the plan names a connection that cannot be read'
+13:43:53 opp_6bf2417986ef46ed: consistency of GET /api/request-logs: 
+waiting_extension: needs the read list_request_logs_api_request_logs_get added 
+to the integration (abandoned)
+13:44:03 opp_7652e37b41a54bee: consistency of GET /api/sticky-sessions: failed: 
+reads: "the query's rows have no field 'key'"
+13:44:05 opp_adaf9a8854924dba: wait (failed: reads: 'the plan names a connection
+that cannot be read')
+13:44:05 opp_6bf2417986ef46ed: wait (investigation queued or running)
+13:44:05 opp_7652e37b41a54bee: wait (failed: reads: "the query's rows have no 
+field 'key'")
+13:44:05 opp_803d048276304685: consistency of GET /v1/usage: blocked without a 
+model call: it needs http:bearer
+13:44:05 writing property tests for app
+13:44:20 running them offline
+13:44:26 robustness probe of app: 1 failed, 7 passed in 1.82s; 0 crash(es), 0 
+new; 0 property violation(s) kept for a person (L1)
+
+
+== cycle 2 (exit 0)
+13:44:27 watching /Users/david/unbidden-lab/codex-lb (ctrl-c to stop, `unbidden 
+kill` to freeze)
+13:44:34 connections: postgres:127.0.0.1:55480/codex_lb connected, 
+http_api:http://127.0.0.1:18150 connected
+13:44:35 opp_803d048276304685: wait (blocked: GET /v1/usage accepts http:bearer;
+the granted credential is not of that kind)
+
+
+== cycle 3 (exit 0)
+13:44:36 watching /Users/david/unbidden-lab/codex-lb (ctrl-c to stop, `unbidden 
+kill` to freeze)
+13:44:42 connections: postgres:127.0.0.1:55480/codex_lb connected, 
+http_api:http://127.0.0.1:18150 connected
+
+
+== cycle 4 (exit 0)
+13:44:43 watching /Users/david/unbidden-lab/codex-lb (ctrl-c to stop, `unbidden 
+kill` to freeze)
+13:44:44 connections: postgres:127.0.0.1:55480/codex_lb connected, 
+http_api:http://127.0.0.1:18150 connected
