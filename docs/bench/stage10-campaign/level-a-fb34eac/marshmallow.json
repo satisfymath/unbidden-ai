@@ -1,0 +1,48 @@
+{
+ "repo": "/Users/david/marshmallow",
+ "rev": "b762ea2d59ca52fe5df76b90de14bed7e5ec5607",
+ "stack": {
+  "python": "3.10",
+  "why": [
+   "python 3.10: no concrete version declared; the oldest the constraints admit (a choice, not something the project names)",
+   "pyproject requires-python: >=3.10"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": "uv.lock",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:87892939e3a2bcaf",
+ "plan": {
+  "source": "CI build-release.yml > tests",
+  "scope": "matrix entry 1 of 4 (the job)",
+  "partial": true,
+  "notes": [],
+  "services": [],
+  "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\n(pytest)"
+ },
+ "status": "passed",
+ "collected": 1192,
+ "failed": [],
+ "why": null,
+ "failures": {},
+ "wall_s": 2.5,
+ "image_notes": [
+  "python 3.10: no concrete version declared; the oldest the constraints admit (a choice, not something the project names)",
+  "pyproject requires-python: >=3.10",
+  "image unbidden-deps-python:87892939e3a2bcaf on linux/arm64"
+ ],
+ "python": "3.10",
+ "source": "CI build-release.yml > tests",
+ "scope": "matrix entry 1 of 4 (the job)",
+ "partial": true,
+ "notes": [],
+ "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\n(pytest)"
+}
