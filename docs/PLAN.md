@@ -688,3 +688,12 @@ project's fixtures); (2) a pre-registered larger set of applications (several, f
 one block does not end the evaluation; (3) reads by `POST .../filter` declared read-only by the document or a
 person, and sharded CI suites run as their groups; (4) revalidate the remaining pending L4s (fst, mealie) under
 perf-v3; (5) Linux and x86-64 walks.
+
+## Campaign to v1.0 (2026-10-31)
+
+Stage 10's frozen evaluation closed with three technical blocks and no experiment (`docs/bench/stage10-eval/`);
+its causes were fixed as development and the three applications' checks now reproduce (`docs/bench/
+stage10-regression/checks/`). The plan from here is one document, **`CAMPAIGN-v1.md`**: scope, pending capabilities
+and their order, the 20-repository development corpus and the rule for 8 reserved applications, the preparation
+gate, the independent evaluation's targets, the fixed exit criteria, the budget (US$11.21 available of the US$37.29
+cap; an incremental request prepared), time and stop conditions. Criteria do not move after results are known.
