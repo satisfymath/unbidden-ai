@@ -38,7 +38,7 @@ until then it is "not tested", never "supported".
 | # | Capability | Depends on | Status 2026-10-31 |
 |---|---|---|---|
 | C1 | Environment as product input: repository + mandate + credential refs -> copy, stack, plan with provenance, image, checks, coverage and blocks (section 4) | — | `unbidden prepare` (826c8e3): copy, stack with provenance, image, plan, checks, blocks; one path with the daemon and the benchmark. Still the harness's: the lab compose, data, roles |
-| C2 | CI plan robustness: conditions, matrices, split suites, make, tox, interpreters, workspaces, test requirements, container runtimes | C1 | eight corrections in stage 10 (`stage10-regression/checks`), each tested; breadth unmeasured |
+| C2 | CI plan robustness: conditions, matrices, split suites, make, tox, interpreters, workspaces, test requirements, container runtimes | C1 | eight corrections in stage 10 (`stage10-regression/checks`), each tested; level A run 1 at c840697: 13 of 20 honest (`stage10-campaign/level-a-c840697`), six block classes, four fixed generally at 3a01c91 (sudo edits of the runner, install scripts, compose-started engines and other OS in matrices, tool-only pyproject); **tox not expanded yet** (humanize, click); Django's runner out of scope (healthchecks); run 2 pending |
 | C3 | Workloads from checkable resources: benchmark > tests/fixtures/clients > observed requests > documented operations + constrained data > model code last (section 5) | C2 | model-written first; validation strong (D-059), construction weak (mealie, Spoolman) |
 | C4 | Measurement and functional equivalence (perf-v4 + content comparison with correspondences; host-load deferral) | — | done: deferral (10c5cc0) with one recorded repeat per commit (9bcfc05, 1a2b969) |
 | C5 | Discovery A: non-FK relevant queries; B: N+1 (section 7) | C3 | not started; gated behind C2 and C3 |
@@ -178,6 +178,10 @@ repository stays in the denominator; per level: success, time, cost, human inter
 - repeatable full cycles on at least three development applications and two problem families;
 - every remaining block classified (environment / workload / consistency / credential / out of scope).
 If the gate is missed, the general causes are fixed; the corpus is not recomposed.
+
+Status (2026-10-31): level A run 1 at c840697 gave 13 of 20 (the tool's own count said 15: CTFd's single collected
+test and sqlmodel's entry without its database are not the projects' checks). Blocks classified in
+`stage10-campaign/level-a-c840697/README.md` (classes A-F); C-F fixed at 3a01c91; run 2 at 3a01c91 pending.
 
 ## 10. Independent evaluation
 
