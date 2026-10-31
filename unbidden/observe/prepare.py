@@ -79,6 +79,7 @@ def checks_record(repo: Path, rev: str, mandate: Mandate, *, timeout_s: float = 
                 "collected": summary.collected_per_round[0] if summary.collected_per_round else None,
                 "failed": summary.failed_per_round[0][:50],
                 "why": summary.infra_why[0] if summary.infra_why else None,
+                "failures": summary.failure_messages,
             }
     except Exception as exc:  # the environment could not be built: that is the finding
         record |= {"status": "blocked", "why": f"{type(exc).__name__}: {str(exc)[-1500:]}"}

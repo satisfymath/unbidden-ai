@@ -306,3 +306,23 @@ def test_scripts_that_only_check_or_build_are_left_out_and_a_benchmark_job_comes
     assert any("scripts/coverage only reports" in n for n in plan.notes)
     assert any("scripts/check only checks" in n for n in plan.notes)
     assert any("scripts/build only builds" in n for n in plan.notes)
+
+
+def test_the_report_message_of_each_failure_is_kept(tmp_path: Path) -> None:
+    """Run 3: CTFd's 50 and TimeTracker's 50 failures were names with no cause; the JUnit report had the messages."""
+    from unbidden.lab.testsuite import _junit  # pyright: ignore[reportPrivateUsage]
+
+    xml = tmp_path / "r.xml"
+    xml.write_text(
+        '<testsuites><testsuite><testcase classname="tests.a" name="t1"><failure message="AssertionError: 1 != 2">'
+        'long text</failure></testcase><testcase classname="tests.a" name="t2"/>'
+        '<testcase classname="tests.b" name="t3"><error>ImportError: no module named x\nmore\nlines\n4\n5\n6</error>'
+        "</testcase></testsuite></testsuites>"
+    )
+    report = _junit(xml)
+    assert report is not None
+    assert report[0] == ["tests.a::t1", "tests.b::t3"] and report[1] == 3
+    assert report[2] == {
+        "tests.a::t1": "AssertionError: 1 != 2",
+        "tests.b::t3": "ImportError: no module named x\nmore\nlines\n4",
+    }

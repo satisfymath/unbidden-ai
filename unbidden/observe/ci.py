@@ -510,9 +510,8 @@ _INSTALL_CALL = re.compile(
 
 
 _BUILD_CALL = re.compile(
-    r"^\s*(?:\$\{?PREFIX\}?)?(?:python3?\s+-m\s+build|uv\s+build|hatch\s+build|flit\s+build|pdm\s+build|mkdocs\s+build"
-    r"|sphinx-build|twine\s+check)\b"
-)
+    r"^\s*(?:\$\{?PREFIX\}?)?(?:python3?\s+-m\s+build\b|[\w.-]+\s+build(?:\s|$)|sphinx-build\b|twine\s+check\b)"
+)  # `uv build`, `mkdocs build`, `zensical build --clean` (starlette): a tool's `build` command builds
 _PREFIXED = re.compile(r"^\s*\$\{?PREFIX\}?")  # `${PREFIX}ruff check` (httpx, starlette: a venv's bin when present)
 
 
@@ -1112,13 +1111,22 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
     def scripts_of(job: dict[str, Any]) -> dict[str, str]:
         """Repository scripts the job's steps run (`./scripts/test`), so a job is judged by what they execute."""
         found: dict[str, str] = {}
-        for step in job.get("steps") or []:
-            for line in str(step.get("run", "") if isinstance(step, dict) else "").splitlines():
+
+        def read(text: str, depth: int) -> None:
+            for line in text.splitlines():
                 head = _RUNNERS.sub("", line.strip()).split(" ")[0]
-                if head.startswith("./") or (("/" in head) and not head.startswith(("/", "$", "-"))):
-                    text = _git(repo, "show", f"{rev}:{head.removeprefix('./')}")
-                    if text:
-                        found[head] = text
+                if head in found or not (
+                    head.startswith("./") or (("/" in head) and not head.startswith(("/", "$", "-")))
+                ):
+                    continue
+                body = _git(repo, "show", f"{rev}:{head.removeprefix('./')}")
+                if body:
+                    found[head] = body
+                    if depth < 2:  # a script's own scripts (httpx: `scripts/check` runs `./scripts/sync-version`)
+                        read(body, depth + 1)
+
+        for step in job.get("steps") or []:
+            read(str(step.get("run", "") if isinstance(step, dict) else ""), 0)
         return found
 
     def executes(job: dict[str, Any]) -> str:

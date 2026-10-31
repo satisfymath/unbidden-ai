@@ -144,18 +144,28 @@ def _junit_failures(path: Path) -> list[str] | None:
     return report[0] if report is not None else None
 
 
-def _junit(path: Path) -> tuple[list[str], int] | None:
-    """Failing test names and how many test cases the report holds, or None without a report."""
+MESSAGES_KEPT = 20
+
+
+def _junit(path: Path) -> tuple[list[str], int, dict[str, str]] | None:
+    """Failing test names, how many test cases the report holds, and each failure's message (its first lines, for
+    the first `MESSAGES_KEPT`), or None without a report."""
     if not path.exists():
         return None
     root = ET.parse(path).getroot()
     failed: list[str] = []
+    messages: dict[str, str] = {}
     cases = 0
     for case in root.iter("testcase"):
         cases += 1
-        if case.find("failure") is not None or case.find("error") is not None:
-            failed.append(f"{case.get('classname', '')}::{case.get('name', '')}")
-    return failed, cases
+        problem = case.find("failure") if case.find("failure") is not None else case.find("error")
+        if problem is not None:
+            name = f"{case.get('classname', '')}::{case.get('name', '')}"
+            failed.append(name)
+            if len(messages) < MESSAGES_KEPT:
+                text = (problem.get("message") or problem.text or "").strip()
+                messages[name] = "\n".join(text.splitlines()[:4])[:400]
+    return failed, cases, messages
 
 
 @dataclass(frozen=True)
@@ -164,6 +174,7 @@ class Round:
     status: str  # RAN, NOT_COLLECTED or INFRA_FAILED
     collected: int | None  # test cases the runner reported; None when it does not say
     why: str | None = None  # for a round that told nothing about the code: how the run ended, and its last output
+    messages: dict[str, str] = field(default_factory=dict[str, str])  # the report's message per failure (first ones)
 
     @property
     def meaningful(self) -> bool:
@@ -214,6 +225,7 @@ def _round(
         # is not evidence that tests ran; the report is.
         return Round([], NOT_COLLECTED, 0, f"{_ended(result)} (no test report: no test ran)")
     names, collected = (report[0], report[1]) if report is not None else (None, None)
+    messages = report[2] if report is not None else {}
     if names and needs_network(result.stdout + result.stderr):
         names = [f"{n} (needs network)" for n in names]
     if names is None:
@@ -223,7 +235,7 @@ def _round(
     status = NOT_COLLECTED if collected == 0 else RAN
     # What the run printed last, kept when something failed: the record then says why (stage 10, level A:
     # TimeTracker's `pytest::internal` and CTFd's 50 failures were names without a cause).
-    return Round(sorted(names), status, collected, _ended(result) if names else None)
+    return Round(sorted(names), status, collected, _ended(result) if names else None, messages)
 
 
 def _ended(result: SandboxResult) -> str:
@@ -246,6 +258,7 @@ def run_suite(
     statuses: list[str] = []
     collected: list[int | None] = []
     why: list[str | None] = []
+    messages: dict[str, str] = {}
     n = 0
     for _ in range(rounds):
         result = Round(None, INFRA_FAILED, None)
@@ -258,6 +271,7 @@ def run_suite(
         statuses.append(result.status)
         collected.append(result.collected)
         why.append(result.why)
+        messages = messages or dict(result.messages)
     shutil.rmtree(work / JUNIT_DIR, ignore_errors=True)
     return TestSummary(
         rounds=rounds,
@@ -265,4 +279,5 @@ def run_suite(
         round_status=statuses,
         collected_per_round=collected,
         infra_why=why,
+        failure_messages=messages,
     )
