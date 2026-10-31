@@ -308,8 +308,12 @@ def test_equal_totals_with_differing_records_filters_or_relations_are_discrepanc
     monkeypatch.setattr(goals, "query", lambda *a, **k: db)
     integration: Any = type("I", (), {"op": lambda self, op_id: type("O", (), {"id": op_id})()})()
     conns: Any = {"db": type("D", (), {"id": "postgres:x"})(), "api": type("C", (), {"id": "http_api:x"})()}
-    plan = {"key": "id", "sql": {"connection": "db", "query": "q"}, "api": {"connection": "api", "operation": "l"},
-            "shortfall": "n - n_api"}  # fmt: skip
+    plan = {
+        "key": "id",
+        "sql": {"connection": "db", "query": "q"},
+        "api": {"connection": "api", "operation": "l"},
+        "shortfall": "n - n_api",
+    }
     for api, expected in ((api_value, {"b", "c"}), (api_filter, {"c", "d"}), (api_relation, {"a", "b"})):
         records = [{"id": r["id"], "n_api": r["n"]} for r in api]
         monkeypatch.setattr("unbidden.forge.api_client.read_collection",
