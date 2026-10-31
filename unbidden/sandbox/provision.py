@@ -256,11 +256,14 @@ def python_dockerfile(stack: PythonStack, *, system_build_tools: bool = False, h
         if stack.uv_version
         else "uv"
     )
+    # Debian packages: the compiler and headers a failed build asked for, and those the project's own CI job installs
+    # (`headers` carries both; `system_build_tools` adds the compiler).
+    packages = tuple(dict.fromkeys((("build-essential",) if system_build_tools else ()) + headers))
     build_tools = (
         "RUN apt-get update && apt-get install -y --no-install-recommends "
-        + " ".join(("build-essential", *headers))
+        + " ".join(packages)
         + " && rm -rf /var/lib/apt/lists/*\n"
-        if system_build_tools
+        if packages
         else ""
     )
     return f"""{_own_build(stack, uv)}FROM node:22-slim AS node
@@ -494,8 +497,11 @@ def provision(
             "node dependencies were not installed: the lockfile depends on .pnpmfile.cjs, repository code that pnpm "
             "runs during install with network access; Unbidden does not run repository code outside the sandbox"
         )
+    # The Debian packages the project's CI test job installs itself (humanize: gettext), when the mandate allows
+    # Debian's archive; refused, the job's step that needs them fails and says so.
+    wanted = tuple(getattr(stack, "system_packages", ())) if system_build_tools else ()
     try:
-        return _provision(repo, rev, stack, docker=docker, system_build_tools=False)
+        return _provision(repo, rev, stack, docker=docker, system_build_tools=False, headers=wanted)
     except ProvisionError as exc:
         if isinstance(stack, PythonStack) and needs_system_build(str(exc)):
             if not system_build_tools:
@@ -503,7 +509,7 @@ def provision(
                     f"{exc}\nA package is built from source and needs a C compiler; system packages come from "
                     f"{', '.join(SYSTEM_REGISTRIES)}, which the mandate's package registries do not list."
                 ) from exc
-            headers: tuple[str, ...] = ()
+            headers: tuple[str, ...] = wanted
             for _ in range(MAX_SYSTEM_RETRIES):
                 try:
                     built = _provision(repo, rev, stack, docker=docker, system_build_tools=True, headers=headers)

@@ -209,3 +209,34 @@ def test_tox_in_pyproject_and_a_job_that_checks_out_another_repository(tmp_path:
     assert plan is not None and plan.workflow == "tests.yaml", plan
     assert plan.steps[0].command == "(pytest -v --tb=short --basetemp=/tmp/tox-tmp)"
     assert plan.sync_flags is not None and "--group tests" in plan.sync_flags
+
+
+def test_the_packages_the_job_installs_with_apt_go_into_the_image(tmp_path: Path) -> None:
+    """humanize: `sudo apt install gettext` before a script that runs `msgfmt`; the image stood for the step without
+    holding the package."""
+    from unbidden.observe.stack import PythonStack
+    from unbidden.sandbox.provision import python_dockerfile
+
+    repo = _repo(tmp_path, {
+        "pyproject.toml": '[project]\nname = "humanize"\nrequires-python = ">=3.11"\n',
+        "scripts/generate-translation-binaries.sh": "#!/bin/sh\nmsgfmt -o a.mo a.po\n",
+        "tests/test_a.py": "def test_a(): ...\n",
+        ".github/workflows/test.yml": WORKFLOW + """  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Linux dependencies
+        run: |
+          sudo apt install gettext
+      - run: scripts/generate-translation-binaries.sh
+      - run: python -m pytest
+""",
+    })  # fmt: skip
+    plan = ci_test_plan(repo, "HEAD", "python")
+    assert plan is not None and plan.system_packages == ("gettext",)
+    assert "apt" not in "\n".join(s.command for s in plan.steps)
+    stack = detect_stack(repo, "HEAD")
+    assert stack.python is not None and stack.python.system_packages == ("gettext",)
+    bare = PythonStack(version="3.12", lockfile=None, manifest="pyproject.toml", ruff=False, pyright=False, pytest=True)
+    assert "apt-get" not in python_dockerfile(bare)
+    assert "apt-get install -y --no-install-recommends gettext &&" in python_dockerfile(bare, headers=("gettext",))

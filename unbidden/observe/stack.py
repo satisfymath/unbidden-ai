@@ -74,6 +74,9 @@ class PythonStack:
     extra_requirements: tuple[str, ...] = ()
     # What the CI's `uv sync` installs (`--group test`, `--all-extras`, `--dev` ...); None when no CI step says it.
     sync_flags: tuple[str, ...] | None = None
+    # Debian packages the CI's test job installs with apt (humanize, stage 10: gettext for `msgfmt`): in the image
+    # when the mandate allows Debian's archive, since the job's own steps need them.
+    system_packages: tuple[str, ...] = ()
     # Files the project's build declares it writes (a version or build-info module) and the repository lacks: code
     # imports them, and `uv sync` leaves them in the tree. The image runs the build to have them (Prefect, stage 10).
     build_writes: tuple[str, ...] = ()
@@ -391,6 +394,7 @@ def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str]
                 pkg for m in members if (pkg := own_package(tomllib.loads(_read(repo, rev, f"{m}/pyproject.toml"))))
             ),
             sync_flags=ci_sync_flags(repo, rev, files),
+            system_packages=ci_system_packages(repo, rev, files),
             build_writes=() if members else build_writes(project, files),
             **uv,
         )
@@ -400,6 +404,7 @@ def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str]
             lockfile="requirements.txt",
             manifest="requirements.txt",
             extra_requirements=ci_requirement_files(repo, rev, files, "requirements.txt"),
+            system_packages=ci_system_packages(repo, rev, files),
             ruff=False,
             pyright=False,
             pytest=bool(_tests_under(files, (".",))) or any(f.endswith("_test.py") for f in files),
@@ -444,14 +449,24 @@ def ci_requirement_files(repo: Path, rev: str, files: set[str], manifest: str) -
                  and f.removeprefix("./") != manifest)  # fmt: skip
 
 
-def ci_sync_flags(repo: Path, rev: str, files: set[str]) -> tuple[str, ...] | None:
-    """What the CI's test job installs (`observe.ci._sync_flags`); None when there is none, or it runs no `uv sync`."""
+def _ci_plan(repo: Path, rev: str, files: set[str]) -> Any:
     if not any(f.startswith(".github/workflows/") for f in files):
         return None
     from unbidden.observe.ci import ci_test_plan
 
-    plan = ci_test_plan(repo, rev, "python")
+    return ci_test_plan(repo, rev, "python")
+
+
+def ci_sync_flags(repo: Path, rev: str, files: set[str]) -> tuple[str, ...] | None:
+    """What the CI's test job installs (`observe.ci._sync_flags`); None when there is none, or it runs no `uv sync`."""
+    plan = _ci_plan(repo, rev, files)
     return plan.sync_flags if plan is not None else None
+
+
+def ci_system_packages(repo: Path, rev: str, files: set[str]) -> tuple[str, ...]:
+    """The Debian packages the CI's test job installs with apt (`observe.ci.apt_packages`)."""
+    plan = _ci_plan(repo, rev, files)
+    return tuple(plan.system_packages) if plan is not None else ()
 
 
 def build_writes(project: dict[str, Any], files: Iterable[str]) -> tuple[str, ...]:

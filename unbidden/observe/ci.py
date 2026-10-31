@@ -70,6 +70,7 @@ class CiPlan:
     # Requirements files the job installs itself (`pip install -r test_requirements.txt`): its test dependencies,
     # installed into the image when it is provisioned, each as its own install, as the job does.
     requirement_files: tuple[str, ...] = ()
+    system_packages: tuple[str, ...] = ()  # Debian packages the job installs with apt (its own steps)
 
     @property
     def partial(self) -> bool:
@@ -449,6 +450,20 @@ _SETUP_LINE = re.compile(
 )
 
 
+_APT_INSTALL = re.compile(r"^\s*(?:sudo\s+)?apt(?:-get)?\s+install\s+(?P<args>.*)$")
+_DEB_NAME = re.compile(r"^[a-z0-9][a-z0-9.+-]*$")
+
+
+def apt_packages(command: str) -> tuple[str, ...]:
+    """The Debian packages a step installs with apt (`sudo apt install gettext`: humanize's `msgfmt`, stage 10),
+    named plainly; the dependency image installs them when the mandate allows Debian's archive."""
+    found = []
+    for line in command.splitlines():
+        if (m := _APT_INSTALL.match(line)) is not None:
+            found += [w for w in m.group("args").split() if _DEB_NAME.match(w) and not w.startswith("-")]
+    return tuple(dict.fromkeys(found))
+
+
 def _system_setup(command: str) -> bool:
     """A step that only installs system packages for the CI's runner (`sudo apt-get install postgresql-client-18`):
     the sandbox's image stands for it, so it is skipped like the runner's other preparation, not run and not held
@@ -570,6 +585,7 @@ def _job_plan(
                     written[m.group("key")] = m.group("value")
             step["run"] = "\n".join(ln for ln in lines if not _WRITES_ENV.match(ln))
     runs = [s for s in runs if isinstance(s.get("run"), str) and str(s["run"]).strip()]
+    system_packages = [pkg for s in runs for pkg in apt_packages(str(s["run"]))]
     runs = [s for s in runs if not _system_setup(str(s["run"]))]
     for step in runs:
         step["run"], prep_notes = _without_runner_prep(str(step["run"]))
@@ -674,7 +690,8 @@ def _job_plan(
                   containers=tuple(containers), env=tuple(sorted(env.items())), scope=scope,
                   notes=tuple(dict.fromkeys(notes)), interpreters=tuple(dict.fromkeys(interpreters)),
                   requirement_files=tuple(dict.fromkeys(requirement_files)),
-                  sync_flags=tuple(dict.fromkeys(tox_flags)) or None)  # fmt: skip
+                  sync_flags=tuple(dict.fromkeys(tox_flags)) or None,
+                  system_packages=tuple(dict.fromkeys(system_packages)))  # fmt: skip
 
 
 _BUILTIN_MARKS = {"parametrize", "skip", "skipif", "xfail", "asyncio", "usefixtures", "filterwarnings", "timeout"}
