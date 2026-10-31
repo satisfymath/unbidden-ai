@@ -89,6 +89,20 @@ and OrbStack install it for the user); for remote models, a Meta key in `~/.unbi
 (`unbidden doctor --fix` picks one that fits the machine). Without the key, everything local works and `doctor` says
 the remote route is off.
 
+## Preparing a project apart (campaign to v1.0)
+
+```
+uv run --project /path/to/unbidden-ai unbidden prepare /path/or/url --rev v1.2.3 --into ~/unbidden-lab/name
+```
+
+Copies the repository apart at a commit, reads its stack (and says why each version was chosen), builds the
+dependency image with network to the mandate's package registries only, reads the CI's test plan (what was left out
+and why), runs the project's own checks offline in the sandbox and prints the outcome with its evidence: tests
+collected and failed, or why none ran. A block is printed as the finding. `unbidden doctor` inside a repository adds
+the scope diagnosis: whether its stack, tests and database are inside what v1.0 supports, and why not when not. What
+a person still prepares for the lab (a compose file of the application, synthetic data, a read-only role) is not part
+of this command and is counted as human preparation in every record.
+
 ## A first run on a project
 
 ```sh
