@@ -86,24 +86,15 @@ def _digest(r):
     except ValueError:
         return hashlib.sha256(body).hexdigest(), body[:300].decode("utf-8", "replace")
 
-    # Identifiers and times the application generates differ between sessions with the same data (fst, stage 10:
-    # uuid4 ids and creation times made every base session answer differently): compared as "generated".
-    GENERATED = re.compile(
-        r"[0-9a-fA-F]{{8}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{12}}"
-        r"|\\d{{4}}-\\d{{2}}-\\d{{2}}[T ]\\d{{2}}:\\d{{2}}(:\\d{{2}}(\\.\\d+)?)?(Z|[+-]\\d{{2}}:?\\d{{2}})?"
-    )
-
     def norm(v):
         if isinstance(v, dict):
             return {{k: norm(x) for k, x in sorted(v.items())}}
         if isinstance(v, list):
-            return sorted((norm(x) for x in v), key=lambda x: json.dumps(x, sort_keys=True))
-        if isinstance(v, str) and GENERATED.fullmatch(v):
-            return "<generated>"
+            return [norm(x) for x in v]  # in its order: the order of a listing is part of its answer
         return v
 
     text = json.dumps(norm(value), sort_keys=True)
-    return hashlib.sha256(text.encode()).hexdigest(), text[:300]
+    return hashlib.sha256(text.encode()).hexdigest(), text
 
 
 def {DRIVER_TEST}(request):
@@ -116,7 +107,7 @@ def {DRIVER_TEST}(request):
     for _ in range({WARMUP}):
         status = _status(call())
         assert status == 200, f"warm-up returned HTTP {{status}}"
-    latencies, digests, sample = [], [], ""
+    latencies, digests, sample, responses = [], [], "", {{}}
     for _ in range({SAMPLES}):
         started = time.perf_counter()
         response = call()
@@ -125,7 +116,9 @@ def {DRIVER_TEST}(request):
         assert status == 200, f"sample returned HTTP {{status}}"
         digest, text = _digest(response)
         digests.append(digest)
-        sample = sample or text
+        sample = sample or text[:300]
+        if digest and digest not in responses and len(text) <= 300000:
+            responses[digest] = text  # each distinct answer whole: sessions are compared on content, not digests
     # The database engine the measurement ran on, from any fixture that holds a session or an engine.
     engine = None
     for value in fixtures.values():
@@ -135,7 +128,8 @@ def {DRIVER_TEST}(request):
         except Exception:
             pass
     Path("/work/{LAB_DIR}/result.json").write_text(json.dumps({{"latencies_ms": latencies, "engine": engine,
-                                                              "digests": digests, "sample": sample}}))
+                                                              "digests": digests, "sample": sample,
+                                                              "responses": responses}}))
 '''
 
 
@@ -180,24 +174,15 @@ def _digest(r):
     except ValueError:
         return hashlib.sha256(body).hexdigest(), body[:300].decode("utf-8", "replace")
 
-    # Identifiers and times the application generates differ between sessions with the same data (fst, stage 10:
-    # uuid4 ids and creation times made every base session answer differently): compared as "generated".
-    GENERATED = re.compile(
-        r"[0-9a-fA-F]{{8}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{12}}"
-        r"|\\d{{4}}-\\d{{2}}-\\d{{2}}[T ]\\d{{2}}:\\d{{2}}(:\\d{{2}}(\\.\\d+)?)?(Z|[+-]\\d{{2}}:?\\d{{2}})?"
-    )
-
     def norm(v):
         if isinstance(v, dict):
             return {{k: norm(x) for k, x in sorted(v.items())}}
         if isinstance(v, list):
-            return sorted((norm(x) for x in v), key=lambda x: json.dumps(x, sort_keys=True))
-        if isinstance(v, str) and GENERATED.fullmatch(v):
-            return "<generated>"
+            return [norm(x) for x in v]  # in its order: the order of a listing is part of its answer
         return v
 
     text = json.dumps(norm(value), sort_keys=True)
-    return hashlib.sha256(text.encode()).hexdigest(), text[:300]
+    return hashlib.sha256(text.encode()).hexdigest(), text
 
 
 
@@ -217,7 +202,7 @@ async def {DRIVER_TEST}({params}):
     for _ in range({WARMUP}):
         status = _status(await once())
         assert status == 200, f"warm-up returned HTTP {{status}}"
-    latencies, digests, sample = [], [], ""
+    latencies, digests, sample, responses = [], [], "", {{}}
     for _ in range({SAMPLES}):
         started = time.perf_counter()
         response = await once()
@@ -226,9 +211,12 @@ async def {DRIVER_TEST}({params}):
         assert status == 200, f"sample returned HTTP {{status}}"
         digest, text = _digest(response)
         digests.append(digest)
-        sample = sample or text
+        sample = sample or text[:300]
+        if digest and digest not in responses and len(text) <= 300000:
+            responses[digest] = text  # each distinct answer whole: sessions are compared on content, not digests
     Path("/work/{LAB_DIR}/result.json").write_text(json.dumps({{"latencies_ms": latencies, "engine": None,
-                                                              "digests": digests, "sample": sample}}))
+                                                              "digests": digests, "sample": sample,
+                                                              "responses": responses}}))
 '''
 
 
@@ -415,18 +403,48 @@ def _only_unused(problems: list[str]) -> bool:
 
 
 def _same(sessions: list[dict[str, Any]]) -> tuple[bool | None, str]:
-    """Whether base and candidate answered the same in every session: the sequence of response digests."""
-    base = {tuple(s.get("digests") or []) for s in sessions if s["arm"] == "base" and s.get("digests")}
-    cand = {tuple(s.get("digests") or []) for s in sessions if s["arm"] == "candidate" and s.get("digests")}
-    if not base or not cand or any(None in d for d in base | cand):
+    """Whether base and candidate answered the same in every session, call by call (lab/equivalence.py): equal, or
+    equal up to one session-wide correspondence of the ids and times the application generated. None when a side
+    recorded no content, or when the base itself did not agree from one session to the next."""
+    from unbidden.lab.equivalence import sessions_differ
+
+    def answers(session: dict[str, Any]) -> list[Any] | None:
+        digests, texts = session.get("digests") or [], session.get("responses") or {}
+        if not digests or None in digests or any(d not in texts for d in digests):
+            return None
+        try:
+            return [json.loads(texts[d]) for d in digests]
+        except ValueError:
+            return None  # not JSON: only the digests can say, below
+
+    base = [s for s in sessions if s["arm"] == "base"]
+    cand = [s for s in sessions if s["arm"] == "candidate"]
+    if not base or not cand or any(None in (s.get("digests") or [None]) for s in base + cand):
         return None, "no response content was recorded on one side"
-    if base == cand:
-        return True, f"the same {len(next(iter(base)))} responses on both sides, in every session"
-    if len(base) > 1:
-        return None, "the base itself answered differently from one session to the next: not comparable"
-    reference = next(iter(base))
-    differing = max(sum(1 for a, b in zip(reference, c, strict=False) if a != b) for c in cand)
-    return False, f"{differing} of {len(reference)} responses differ between base and candidate"
+    if len({tuple(s["digests"]) for s in base + cand}) == 1:
+        return True, f"the same {len(base[0]['digests'])} responses on both sides, in every session"
+    contents = [answers(s) for s in base + cand]
+    if any(c is None for c in contents):
+        # Without content only the digests can say: a base that agrees with itself and a candidate that does not
+        # is a difference; a base that does not agree with itself leaves nothing to compare against.
+        runs = {tuple(s["digests"]) for s in base}
+        if len(runs) > 1:
+            return None, "the base itself answered differently from one session to the next: not comparable"
+        reference = next(iter(runs))
+        differing = max(sum(1 for a, b in zip(reference, s["digests"], strict=False) if a != b) for s in cand)
+        return False, f"{differing} of {len(reference)} responses differ between base and candidate"
+    reference, *others = contents
+    assert reference is not None
+    for other in others[: len(base) - 1]:
+        found = sessions_differ(reference, other or [])
+        if found:
+            return None, f"the base itself answered differently from one session to the next ({found}): not comparable"
+    for other in others[len(base) - 1 :]:
+        found = sessions_differ(reference, other or [])
+        if found:
+            return False, f"the candidate's responses differ from the base's: {found}"
+    return True, (f"the same {len(base[0]['digests'])} responses on both sides, in every session, up to one "
+                  "correspondence per session of the ids and times the application generated")  # fmt: skip
 
 
 @dataclass
@@ -907,6 +925,7 @@ class PerfLab:
                 samples = [float(x) for x in data["latencies_ms"]]
                 return {"samples_ms": samples, "median_ms": statistics.median(samples), "index_scans": self.scans,
                         "digests": data.get("digests") or [], "sample": data.get("sample") or "",
+                        "responses": data.get("responses") or {},
                         "statements": statements, "inserted": inserted}, ""  # fmt: skip
             return None, failure_excerpt(result.stdout + result.stderr)
         finally:
@@ -932,6 +951,7 @@ class PerfLab:
                 return None, session.error
             return {"samples_ms": session.samples_ms, "median_ms": statistics.median(session.samples_ms),
                     "index_scans": session.scans, "digests": session.digests, "sample": session.sample,
+                    "responses": session.responses,
                     "statements": session.statements, "statuses": session.statuses, "data": session.data,
                     "data_ok": session.data_ok}, ""  # fmt: skip
         finally:
@@ -1559,7 +1579,7 @@ class PerfLab:
             candidate_tests=sides[1],
             samples_before_ms=[x for s in sessions if s["arm"] == "base" for x in s["samples_ms"]],
             samples_after_ms=[x for s in sessions if s["arm"] == "candidate" for x in s["samples_ms"]],
-            sessions=sessions,
+            sessions=[{k: v for k, v in s.items() if k != "responses"} for s in sessions],  # contents compared above
             workload_sha256=workload_sha,
             provenance=provenance(self.brain, list(self.images.values()), engine=self.engine),
             spec_id=spec.id,

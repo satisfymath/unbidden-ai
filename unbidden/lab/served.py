@@ -69,24 +69,15 @@ def canonical(data):
     except ValueError:
         return hashlib.sha256(data).hexdigest(), data[:300].decode("utf-8", "replace")
 
-    # Identifiers and times the application generates differ between sessions with the same data (fst, stage 10:
-    # uuid4 ids and creation times made every base session answer differently): compared as "generated".
-    GENERATED = re.compile(
-        r"[0-9a-fA-F]{{8}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{4}}-[0-9a-fA-F]{{12}}"
-        r"|\\d{{4}}-\\d{{2}}-\\d{{2}}[T ]\\d{{2}}:\\d{{2}}(:\\d{{2}}(\\.\\d+)?)?(Z|[+-]\\d{{2}}:?\\d{{2}})?"
-    )
-
     def norm(v):
         if isinstance(v, dict):
             return {{k: norm(x) for k, x in sorted(v.items())}}
         if isinstance(v, list):
-            return sorted((norm(x) for x in v), key=lambda x: json.dumps(x, sort_keys=True))
-        if isinstance(v, str) and GENERATED.fullmatch(v):
-            return "<generated>"
+            return [norm(x) for x in v]  # in its order: the order of a listing is part of its answer
         return v
 
     text = json.dumps(norm(value), sort_keys=True)
-    return hashlib.sha256(text.encode()).hexdigest(), text[:300]
+    return hashlib.sha256(text.encode()).hexdigest(), text
 
 
 def call(i):
@@ -110,7 +101,7 @@ for i in range(warmup):
     warm.append(status)
     if not 200 <= status < 300 and not failure:
         failure = "HTTP %d: %s" % (status, data[:300].decode("utf-8", "replace"))
-latencies, statuses, digests, first = [], [], [], ""
+latencies, statuses, digests, first, responses = [], [], [], "", {{}}
 for i in range(warmup, warmup + samples):
     started = time.perf_counter()
     status, data = call(i)
@@ -120,9 +111,11 @@ for i in range(warmup, warmup + samples):
         failure = "HTTP %d: %s" % (status, data[:300].decode("utf-8", "replace"))
     digest, text = canonical(data)
     digests.append(digest)
-    first = first or text
+    first = first or text[:300]
+    if digest not in responses and len(text) <= 300000:
+        responses[digest] = text  # each distinct answer whole: sessions are compared on content, not digests
 out({{"latencies_ms": latencies, "statuses": statuses, "warmup_statuses": warm, "digests": digests, "sample": first,
-     "failure": failure}})
+     "failure": failure, "responses": responses}})
 '''
 
 
@@ -160,6 +153,7 @@ class Session:
     data_ok: bool = False
     error: str = ""
     failure: str = ""  # the first call that did not succeed, with what the application answered
+    responses: dict[str, str] = field(default_factory=dict[str, str])  # digest -> canonical text, each distinct answer
 
 
 def run_session(
@@ -254,6 +248,7 @@ def run_session(
     session.samples_ms = [float(x) for x in data["latencies_ms"]]
     session.statuses = [int(s) for s in [*data.get("warmup_statuses", []), *data["statuses"]]]
     session.digests = list(data["digests"])
+    session.responses = {str(k): str(v) for k, v in (data.get("responses") or {}).items()}
     session.sample = str(data.get("sample", ""))
     session.failure = str(data.get("failure", ""))
     return session

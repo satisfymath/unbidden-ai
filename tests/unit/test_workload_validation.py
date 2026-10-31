@@ -145,26 +145,75 @@ def test_fixtures_a_conftest_star_imports_through_a_package_are_visible(tmp_path
     assert "unique_user" in visible and "not_loaded" not in visible
 
 
-def test_generated_ids_and_times_do_not_make_two_sessions_with_the_same_data_differ() -> None:
-    # fst, stage 10: every base session answered with other uuid4 ids and creation times, so the base never agreed
-    # with itself and a 72% faster index stayed inconclusive. Values of that shape compare as "generated"; anything
-    # else still counts.
+# Controls for the functional comparison (stage 10, fst): every session regenerates ids and times, and the comparison
+# must still see a changed owner, exchanged or altered dates, and a listing in another order.
+def _session(arm: str, items: list[dict[str, str]], calls: int = 2) -> dict[str, object]:
+    import hashlib
     import json
 
-    from unbidden.lab import perf
+    text = json.dumps({"count": len(items), "data": items}, sort_keys=True)
+    digest = hashlib.sha256(text.encode()).hexdigest()
+    return {"arm": arm, "digests": [digest] * calls, "responses": {digest: text}}
 
-    start = perf.DRIVER.index("def _digest(r):")
-    namespace: dict[str, object] = {}
-    exec("import json\n" + perf.DRIVER[start : perf.DRIVER.index("\n\n\n", start)], namespace)
-    digest = namespace["_digest"]
 
-    class Response:
-        def __init__(self, value: object) -> None:
-            self.content = json.dumps(value).encode()
+def _listing(owners: list[str], seed: int, *, dates: list[str] | None = None) -> list[dict[str, str]]:
+    import uuid
 
-    def of(ident: str, at: str, n: int) -> str:
-        return digest(Response([{"id": ident, "created_at": at, "n": n}]))[0]  # type: ignore[operator]
+    ids = [str(uuid.UUID(int=seed * 1000 + i)) for i in range(len(owners))]
+    times = dates or [f"2026-10-{10 + seed:02d}T05:00:{i:02d}.000001" for i in range(len(owners))]
+    return [{"id": i, "owner_id": o, "created_at": t, "title": f"item {n}"}
+            for n, (i, o, t) in enumerate(zip(ids, owners, times, strict=True))]  # fmt: skip
 
-    one = of("0e7be872-1111-4222-8333-444455556666", "2026-10-31T05:00:01.123456", 1)
-    assert one == of("9a1be872-1111-4222-8333-444455556666", "2026-10-30T01:02:03Z", 1)
-    assert one != of("9a1be872-1111-4222-8333-444455556666", "2026-10-30T01:02:03Z", 2)
+
+def _owners(seed: int) -> tuple[str, str]:
+    import uuid
+
+    return str(uuid.UUID(int=seed * 1000 + 900)), str(uuid.UUID(int=seed * 1000 + 901))
+
+
+def test_regenerated_ids_and_times_with_the_same_relations_are_the_same_answer() -> None:
+    sessions = []
+    for seed, arm in enumerate(("base", "candidate", "base", "candidate")):
+        a, b = _owners(seed)
+        sessions.append(_session(arm, _listing([a, a, b], seed)))
+    ok, note = _same(sessions)
+    assert ok is True and "correspondence" in note
+
+
+def test_an_item_given_to_another_owner_is_a_difference() -> None:
+    a0, b0 = _owners(0)
+    a1, b1 = _owners(1)
+    base, moved = _listing([a0, a0, b0], 0), _listing([a1, b1, b1], 1)  # the second item changed owner
+    ok, note = _same([_session("base", base), _session("candidate", moved)])
+    assert ok is False and "owner_id" in note
+
+
+def test_exchanged_or_altered_dates_are_a_difference() -> None:
+    a0, b0 = _owners(0)
+    a1, b1 = _owners(1)
+    base = _listing([a0, a0, b0], 0)
+    swapped = _listing([a1, a1, b1], 1, dates=["2026-10-11T05:00:01", "2026-10-11T05:00:00", "2026-10-11T05:00:02"])
+    ok, note = _same([_session("base", base), _session("candidate", swapped)])
+    assert ok is False and "out of order" in note
+    altered = [dict(item) for item in _listing([a1, a1, b1], 1)]
+    altered[0]["created_at"] = "not a date"
+    assert _same([_session("base", base), _session("candidate", altered)])[0] is False
+
+
+def test_a_listing_in_another_order_is_a_difference() -> None:
+    a0, b0 = _owners(0)
+    a1, b1 = _owners(1)
+    base = _listing([a0, a0, b0], 0)
+    reordered = list(reversed(_listing([b1, a1, a1], 1)))
+    ok, note = _same([_session("base", base), _session("candidate", reordered)])
+    assert ok is False and "data[0].title" in note
+
+
+def test_a_base_that_does_not_agree_with_itself_is_not_comparable() -> None:
+    a0, b0 = _owners(0)
+    a1, b1 = _owners(1)
+    a2, b2 = _owners(2)
+    sessions = [_session("base", _listing([a0, a0, b0], 0)), _session("base", _listing([a1, b1, b1], 1)),
+                _session("candidate", _listing([a2, a2, b2], 2))]  # fmt: skip
+    ok, note = _same(sessions)
+    assert ok is None and "base itself" in note
