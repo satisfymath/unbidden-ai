@@ -40,6 +40,27 @@ version: the corrections and any repeat are regressions, not part of this evalua
   environment: codex-lb's frontend build, Aegra's interpreter install, rag-api's test requirements and Docker for
   testcontainers). Pending; the evaluation's outcome does not depend on it, since Unbidden ran no experiment.
 
+## Closure (2026-10-31)
+
+This evaluation is closed with its six original results, as recorded above; nothing later changes them.
+
+- The three environments were prepared (human preparation, counted) and Unbidden built each dependency image, but
+  **no project's test suite was reproduced**: zero experiments; three applications technically blocked.
+- **Zero false promotions under these conditions does not show the evaluator's precision**: nothing reached the
+  stage where a promotion could be made. Its precision rests on the controls (`stage10-controls/0102ccb-run4`),
+  not on this evaluation.
+- Aegra's agreement on 200 assistants is a **correct consistency result**, separate from the improvement criterion;
+  it is not an improvement and not an experiment.
+- The independent checks still pending stay pending until done (the projects' tests as their CI runs them); when
+  done they say what each project requires and how that compares with what Unbidden tried, and do not change these
+  results.
+- The corrections that follow are development; their runs are regressions, recorded apart (`stage10-regression/`),
+  never as part of this evaluation.
+
+Budget after closing: cumulative US$25.2986 of US$37.2945. By David's instruction of 2026-10-31, US$5 of the unspent
+`s10-eval` moved to `s10-dev` before any further spend (envelopes s10-dev 13.00, s10-eval 3.50, s10-close 3.80; total
+US$20.30 and the cap unchanged; `~/.unbidden/budget-history.jsonl`).
+
 ## For v1.0
 
 The criteria are not met: no valid experiment on any of the three new applications. Not declared.
