@@ -37,12 +37,12 @@ until then it is "not tested", never "supported".
 
 | # | Capability | Depends on | Status 2026-10-31 |
 |---|---|---|---|
-| C1 | Environment as product input: repository + mandate + credential refs -> copy, stack, plan with provenance, image, checks, coverage and blocks (section 4) | — | partial: `observe.scan/checks` do it from a workspace; the clone and compose are the harness's |
+| C1 | Environment as product input: repository + mandate + credential refs -> copy, stack, plan with provenance, image, checks, coverage and blocks (section 4) | — | `unbidden prepare` (826c8e3): copy, stack with provenance, image, plan, checks, blocks; one path with the daemon and the benchmark. Still the harness's: the lab compose, data, roles |
 | C2 | CI plan robustness: conditions, matrices, split suites, make, tox, interpreters, workspaces, test requirements, container runtimes | C1 | eight corrections in stage 10 (`stage10-regression/checks`), each tested; breadth unmeasured |
 | C3 | Workloads from checkable resources: benchmark > tests/fixtures/clients > observed requests > documented operations + constrained data > model code last (section 5) | C2 | model-written first; validation strong (D-059), construction weak (mealie, Spoolman) |
-| C4 | Measurement and functional equivalence (perf-v4 + content comparison with correspondences; host-load deferral) | — | done except host-load deferral (section 6) |
+| C4 | Measurement and functional equivalence (perf-v4 + content comparison with correspondences; host-load deferral) | — | done: deferral (10c5cc0) with one recorded repeat per commit (9bcfc05, 1a2b969) |
 | C5 | Discovery A: non-FK relevant queries; B: N+1 (section 7) | C3 | not started; gated behind C2 and C3 |
-| C6 | Consistency semantics: what is compared is declared; bounded SQL reads are partial; bearer and POST reads (section 8) | — | partial: POST reads done; bounds and credential kinds block; one plan compared unlike quantities |
+| C6 | Consistency semantics: what is compared is declared; bounded SQL reads are partial; bearer and POST reads (section 8) | — | declared comparison before reading (unlike quantities inconclusive), whole SQL reads by key pages (4805759), stored records the whole API read lacks are discrepancies (5097c23), anonymous probe of endpoints declared to need a credential; open: API reads at their bounds (codex-lb's 100,000) |
 | C7 | Product closing: install walk, compatibility diagnosis, guided config, evidence report, cancel/recover/clean, demo, integration proposal (section 11) | C1 | stage 9's walk on one platform |
 
 Order: C1/C2 and C6's blocks first (deterministic, no model); C3 before any corpus-wide Level C; C4's deferral
@@ -55,7 +55,7 @@ before the next measurements; C5 after C2/C3 hold on the development corpus; C7 
 | # | Repository | Shape | Variants it exercises (claimed once run) |
 |---|---|---|---|
 | 1 | full-stack-fastapi-template (fork) | FastAPI + Postgres | uv, src-less package, linear Alembic, in-process tests |
-| 2 | mealie | FastAPI + Postgres | Poetry groups, Python 3.14, fixtures re-exported through a package, Alembic |
+| 2 | mealie | FastAPI + Postgres | Poetry groups, Python 3.14, fixtures re-exported through a package, Alembic, a database matrix (sqlite/postgres) with a Postgres service |
 | 3 | Conduit (realworld) | FastAPI + Postgres | async tests, served mode, POST reads |
 | 4 | LNbits | FastAPI + Postgres | tests needing network (said), bearer/oauth kinds |
 | 5 | Spoolman | FastAPI + Postgres | integration tests directory, Alembic conventions |
