@@ -37,6 +37,7 @@ from unbidden.lab.perfstats import (
     MIN_EFFECT,
     PROMOTION_CRITERIA,
     SESSIONS_PER_ARM,
+    Promotion,
     judge_promotion,
     judge_sessions,
 )
@@ -847,6 +848,52 @@ class PerfLab:
 
     # Measurement ----------------------------------------------------------------------------------------
 
+    def judge_v4(
+        self,
+        measure: Callable[[dict[str, str]], tuple[dict[str, Any] | None, str]],
+        candidate: dict[str, str],
+        sessions: list[dict[str, Any]],
+        key: str,
+        rev: str,
+        index: tuple[str, str] | None,
+    ) -> tuple[Promotion, list[dict[str, Any]], list[dict[str, Any]]]:
+        """Criteria perf-v4 on the first sessions: the mechanism, the same answers, then (only for a first pass that
+        improved with the same answers) the A/A control and the confirmation in new sessions. The one path every
+        verdict takes, the lab's and the evaluator's controls' (bench/promotion_cases.py)."""
+        base = [s["median_ms"] for s in sessions if s["arm"] == "base"]
+        cand = [s["median_ms"] for s in sessions if s["arm"] == "candidate"]
+        mechanism, mechanism_note = _mechanism(sessions, index)
+        functional, functional_note = _same(sessions)
+        first = judge_sessions(base, cand, mechanism=mechanism, mechanism_note=mechanism_note)
+        control: list[dict[str, Any]] = []
+        confirmation: list[dict[str, Any]] = []
+        family = 1
+        if first.improved and functional:
+            self.progress("A/A control: base against base")
+            control = self._sessions(measure, {}, f"{key}:control", CONTROL_SESSIONS, ("base-a", "base-b"))[0] or []
+            confirmed = list(self.store.get_value(f"confirmations:{rev}") or [])
+            family = len(dict.fromkeys([*confirmed, key]))
+            self.store.set_value(f"confirmations:{rev}", list(dict.fromkeys([*confirmed, key])))
+            per_arm = SESSIONS_PER_ARM if family <= 3 else SESSIONS_PER_ARM + 1
+            self.progress(f"confirming in {per_arm} new sessions per side ({family} candidate(s) at this commit)")
+            confirmation = self._sessions(measure, candidate, f"{key}:confirm", per_arm)[0] or []
+        aa = ([s["median_ms"] for s in control if s["arm"] == "base-a"],
+              [s["median_ms"] for s in control if s["arm"] == "base-b"]) if control else None  # fmt: skip
+        again = (
+            (
+                [s["median_ms"] for s in confirmation if s["arm"] == "base"],
+                [s["median_ms"] for s in confirmation if s["arm"] == "candidate"],
+            )
+            if confirmation
+            else None
+        )
+        promotion = judge_promotion(
+            (base, cand), mechanism=mechanism, mechanism_note=mechanism_note, functional_same=functional,
+            functional_note=functional_note, control=aa, confirmation=again,
+            confirmation_mechanism=_mechanism(confirmation, index)[0] if confirmation else None, family=family,
+        )  # fmt: skip
+        return promotion, control, confirmation
+
     def _sessions(
         self,
         measure: Callable[[dict[str, str]], tuple[dict[str, Any] | None, str]],
@@ -1521,38 +1568,7 @@ class PerfLab:
             self.store.put("opportunities", opp)
             return result
         ready("experiment_executed", True, f"{len(sessions)} sessions")
-        base = [s["median_ms"] for s in sessions if s["arm"] == "base"]
-        cand = [s["median_ms"] for s in sessions if s["arm"] == "candidate"]
-        mechanism, mechanism_note = _mechanism(sessions, index)
-        functional, functional_note = _same(sessions)
-        first = judge_sessions(base, cand, mechanism=mechanism, mechanism_note=mechanism_note)
-        control: list[dict[str, Any]] = []
-        confirmation: list[dict[str, Any]] = []
-        family = 1
-        if first.improved and functional:
-            self.progress("A/A control: base against base")
-            control = self._sessions(measure, {}, f"{opp.id}:control", CONTROL_SESSIONS, ("base-a", "base-b"))[0] or []
-            confirmed = list(self.store.get_value(f"confirmations:{rev}") or [])
-            family = len(dict.fromkeys([*confirmed, opp.id]))
-            self.store.set_value(f"confirmations:{rev}", list(dict.fromkeys([*confirmed, opp.id])))
-            per_arm = SESSIONS_PER_ARM if family <= 3 else SESSIONS_PER_ARM + 1
-            self.progress(f"confirming in {per_arm} new sessions per side ({family} candidate(s) at this commit)")
-            confirmation = self._sessions(measure, candidate.files, f"{opp.id}:confirm", per_arm)[0] or []
-        aa = ([s["median_ms"] for s in control if s["arm"] == "base-a"],
-              [s["median_ms"] for s in control if s["arm"] == "base-b"]) if control else None  # fmt: skip
-        again = (
-            (
-                [s["median_ms"] for s in confirmation if s["arm"] == "base"],
-                [s["median_ms"] for s in confirmation if s["arm"] == "candidate"],
-            )
-            if confirmation
-            else None
-        )
-        promotion = judge_promotion(
-            (base, cand), mechanism=mechanism, mechanism_note=mechanism_note, functional_same=functional,
-            functional_note=functional_note, control=aa, confirmation=again,
-            confirmation_mechanism=_mechanism(confirmation, index)[0] if confirmation else None, family=family,
-        )  # fmt: skip
+        promotion, control, confirmation = self.judge_v4(measure, candidate.files, sessions, opp.id, rev, index)
 
         self.progress("running the CI test job on both sides")
         image = self.images["python"]
