@@ -115,7 +115,7 @@ export function compose(summary: Summary): { widgets: WidgetSpec[]; edges: Edge[
       widget({
         id: "c_probes",
         type: "chart",
-        title: "Latencia en vivo por despliegue",
+        title: "Latencia de las sondas por despliegue",
         size: { w: 520, h: 300 },
         dataRef: { dataset: "probe.rounds", params: {}, transform: { filter: [], limit: 2000 } },
         view: { kind: "line", x: "ts", y: "p50_ms", series: "target", unit: "ms", options: {} },

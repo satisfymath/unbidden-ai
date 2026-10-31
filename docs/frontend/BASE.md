@@ -23,7 +23,7 @@ commit on `origin/feat/60-experiments`:
 
 | Path | What |
 |---|---|
-| `frontend/` | the web application (React + TypeScript + Vite) |
+| `frontend/` | the web application (React + TypeScript + Vite); `frontend/tests/unit` (vitest), `frontend/tests/e2e` and `frontend/playwright.config.ts` (Playwright) |
 | `unbidden/web/` | the local server, the read-only adapter, presentation store, chat planner, sources |
 | `tests/web/` | integration tests of the server and the adapters |
 | `docs/frontend/` | this documentation |
@@ -39,6 +39,12 @@ Integration points that would need a small shared change later (proposed, not do
 2. `brain/tasks.py`: a `web.chat` entry if the chat should ever be served by a remote model. Without it the engine's
    own rule applies: an unknown purpose is light and local-only, which is what this branch relies on.
 3. `pyproject.toml`: include `unbidden/web/static/**` in the wheel once a built distribution is shipped.
+
+## Commits on this branch
+
+`243a9e8` docs · `7d7b49e` server and adapters · `0475fb6` frontend · `081f7e2` selection fix, composer, e2e green ·
+then the closing commit of 2026-10-31. Engine checks at the closing commit: ruff, pyright and 806 unit tests pass
+(`bench/revalidate_v4.py` was already unformatted at the base; untouched).
 
 ## Development workspace
 
