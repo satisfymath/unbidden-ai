@@ -1,0 +1,111 @@
+{
+ "repo": "/Users/david/TimeTracker",
+ "rev": "7ae6440d1b0930196609c6cefe3cf13948513f5b",
+ "stack": {
+  "python": "3.11",
+  "why": [
+   "python 3.11: where the CI runs the checks and the project's Dockerfile both use it",
+   "the CI's python-version: 3.11",
+   "the project's Dockerfile: 3.11, 3.12",
+   "conflict: concrete sources disagree: the CI's python-version 3.11; the project's Dockerfile 3.11, 3.12"
+  ],
+  "manifest": "requirements.txt",
+  "lockfile": "requirements.txt",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [
+   "requirements-test.txt"
+  ],
+  "build_writes": [],
+  "blind_spots": [
+   "package.json without a lockfile: dependencies resolved at provisioning time",
+   "Java/Kotlin (build.gradle) is not analyzed: no checks, probes or experiments for that code",
+   "Dart (pubspec.yaml) is not analyzed: no checks, probes or experiments for that code"
+  ]
+ },
+ "image": "unbidden-deps-python:462486a50b473dd5",
+ "plan": {
+  "source": "CI ci.yml > test (its services: postgres)",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [],
+  "services": [
+   "postgres"
+  ],
+  "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nflask db upgrade\ncd /work\npytest -n auto --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing tests/"
+ },
+ "status": "failed",
+ "collected": 603,
+ "failed": [
+  "tests.test_admin_email_routes.TestAdminEmailRoutes::test_email_support_page_requires_login",
+  "tests.test_admin_settings_logo::test_settings_has_logo_file_not_exists",
+  "tests.test_bulk_task_operations::test_bulk_delete_permission_check",
+  "tests.test_calendar_routes::test_update_event_permission_denied",
+  "tests.test_enhanced_ui.TestEnhancedUI::test_enhanced_css_loaded",
+  "tests.test_enhanced_ui.TestEnhancedUI::test_filter_ajax_error_toast_message_in_enhanced_ui",
+  "tests.test_enhanced_ui.TestEnhancedUI::test_set_submit_button_loading_available",
+  "tests.test_enhanced_ui.TestPWA::test_manifest_linked_in_base",
+  "tests.test_invoice_email.TestInvoiceEmailModel::test_invoice_email_creation",
+  "tests.test_invoice_email.TestInvoiceEmailModel::test_invoice_email_mark_failed",
+  "tests.test_invoice_email.TestInvoiceEmailModel::test_invoice_email_mark_opened",
+  "tests.test_invoice_email.TestInvoiceEmailModel::test_invoice_email_to_dict",
+  "tests.test_invoice_email.TestInvoiceEmailRoutes::test_get_invoice_email_history",
+  "tests.test_invoice_email.TestInvoiceEmailRoutes::test_resend_invoice_email_route",
+  "tests.test_invoice_email.TestInvoiceEmailRoutes::test_send_invoice_email_route_success",
+  "tests.test_invoice_email.TestSendInvoiceEmail::test_send_invoice_email_creates_tracking_record",
+  "tests.test_invoice_email.TestSendInvoiceEmail::test_send_invoice_email_does_not_update_non_draft_status",
+  "tests.test_invoice_email.TestSendInvoiceEmail::test_send_invoice_email_failure_creates_failed_record",
+  "tests.test_invoice_email.TestSendInvoiceEmail::test_send_invoice_email_no_mail_server",
+  "tests.test_invoice_email.TestSendInvoiceEmail::test_send_invoice_email_pdf_generation_failure",
+  "tests.test_invoice_email.TestSendInvoiceEmail::test_send_invoice_email_success",
+  "tests.test_invoice_email.TestSendInvoiceEmail::test_send_invoice_email_updates_draft_status",
+  "tests.test_invoice_email.TestSendInvoiceEmail::test_send_invoice_email_with_custom_message",
+  "tests.test_invoice_email.TestSendInvoiceEmail::test_send_invoice_email_with_email_template",
+  "tests.test_invoice_email.TestSendInvoiceTemplateTestEmail::test_send_invoice_template_test_email_no_mail_server",
+  "tests.test_invoice_email.TestSendInvoiceTemplateTestEmail::test_send_invoice_template_test_email_success",
+  "tests.test_invoice_email.TestSendInvoiceTemplateTestEmail::test_send_invoice_template_test_email_template_missing",
+  "tests.test_invoice_numbering::test_invoice_sequence_increments_for_same_pattern",
+  "tests.test_models_extended::test_client_archive_activate_methods",
+  "tests.test_peppol_service::test_peppol_service_requires_client_endpoint",
+  "tests.test_permissions_routes::test_cannot_delete_system_role",
+  "tests.test_services.test_attendance_compliance_service.TestAttendanceComplianceService::test_add_missing_work_period_correction",
+  "tests.test_services.test_attendance_compliance_service.TestAttendanceComplianceService::test_correction_request_and_approve",
+  "tests.test_services.test_attendance_compliance_service.TestAttendanceComplianceService::test_time_off_sync_creates_absence_day",
+  "tests.test_services.test_attendance_compliance_service.TestAttendanceComplianceService::test_work_period_correction_updates_linked_workday_session",
+  "tests.test_services.test_comment_service.TestCommentService::test_create_comment_empty_content",
+  "tests.test_services.test_comment_service.TestCommentService::test_create_comment_invalid_project",
+  "tests.test_services.test_comment_service.TestCommentService::test_create_comment_no_target",
+  "tests.test_services.test_comment_service.TestCommentService::test_create_comment_success",
+  "tests.test_services.test_comment_service.TestCommentService::test_delete_comment_success",
+  "tests.test_services.test_comment_service.TestCommentService::test_get_project_comments",
+  "tests.test_services.test_export_service.TestExportService::test_export_invoices_csv",
+  "tests.test_services.test_export_service.TestExportService::test_export_projects_csv",
+  "tests.test_services.test_export_service.TestExportService::test_export_time_entries_csv",
+  "tests.test_services.test_payment_service.TestPaymentService::test_create_payment_invalid_amount",
+  "tests.test_services.test_payment_service.TestPaymentService::test_create_payment_invalid_invoice",
+  "tests.test_services.test_payment_service.TestPaymentService::test_create_payment_success",
+  "tests.test_services.test_payment_service.TestPaymentService::test_get_invoice_payments",
+  "tests.test_services.test_payment_service.TestPaymentService::test_get_total_paid",
+  "tests.test_services.test_project_service::test_create_project_success"
+ ],
+ "why": "exit 1:  5 scaffolding).\nINFO  [alembic.runtime.migration] Running upgrade 198_add_oauth_applications -> 199_task_multi_assignees, Replace single task assigned_to with multi-assignee tables.\nINFO  [alembic.runtime.migration] Running upgrade 199_task_multi_assignees -> 200_scrub_sensitive_audit_log_values, Scrub sensitive field values from audit_logs (issue #801).\nINFO  [alembic.env] Connection still in transaction, explicitly committing...\nINFO  [alembic.env] Post-migration verification: Found 156 tables in database\nINFO  [alembic.env] \u2713 alembic_version table exists - migrations persisted successfully",
+ "wall_s": 344.1,
+ "image_notes": [
+  "python 3.11: where the CI runs the checks and the project's Dockerfile both use it",
+  "the CI's python-version: 3.11",
+  "the project's Dockerfile: 3.11, 3.12",
+  "conflict: concrete sources disagree: the CI's python-version 3.11; the project's Dockerfile 3.11, 3.12",
+  "image unbidden-deps-python:462486a50b473dd5 on linux/arm64",
+  "the environment is seeded with pip and setuptools as of 2026-10-28T06:09:11Z (the lockfile's era), as virtualenvs on Python 3.11 were"
+ ],
+ "python": "3.11",
+ "source": "CI ci.yml > test (its services: postgres)",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [],
+ "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nflask db upgrade\ncd /work\npytest -n auto --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing tests/"
+}
