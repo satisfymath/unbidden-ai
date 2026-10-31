@@ -11,9 +11,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import statistics
 import subprocess
+import time
 from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -59,6 +61,10 @@ SAMPLES = 20
 WARMUP = 3
 SEED_ROWS = 200_000
 SEED_OWNERS = 2_000
+# Measurements wait for a quiet host: the controls (docs/bench/stage10-controls) passed 7 of 7 only below this load.
+HOST_LOAD_MAX = 1.5
+HOST_WAIT_S = 900.0
+HOST_POLL_S = 30.0
 Progress = Callable[[str], None]
 
 DRIVER_TEST = "test_unbidden_workload"
@@ -640,6 +646,8 @@ def downgrade():
 
 
 class PerfLab:
+    host_load: Callable[[], float] = staticmethod(lambda: os.getloadavg()[0])  # replaced in tests
+
     def __init__(
         self,
         repo: Path,
@@ -942,11 +950,28 @@ class PerfLab:
         second = arms[1] if first == arms[0] else arms[0]
         out: list[dict[str, Any]] = []
         for position, arm in enumerate([first, second] * per_arm):
+            load, waited = self._quiet_host()
+            if load > HOST_LOAD_MAX:
+                # A busy host makes the A/A control inconclusive and every effect noisy (stage 10's controls, run 3).
+                # The measurement is deferred up to HOST_WAIT_S and then not made: a recorded block, never a
+                # result shaped by noise; nothing else on the host is stopped for it.
+                return None, (f"deferred: the host is busy (1-minute load {load:.2f} > {HOST_LOAD_MAX}) after "
+                              f"waiting {waited:.0f} s before {arm} session {position + 1}")  # fmt: skip
             record, error = measure(candidate if arm == "candidate" else {})
             if record is None:
                 return None, f"{arm} session {position + 1}: {error}"
-            out.append({"arm": arm, "position": position, **record})
+            out.append({"arm": arm, "position": position, "host_load": load, "host_waited_s": waited, **record})
         return out, ""
+
+    def _quiet_host(self) -> tuple[float, float]:
+        """The host's 1-minute load once it is below HOST_LOAD_MAX, or after HOST_WAIT_S; and how long was waited."""
+        started = time.monotonic()
+        load = self.host_load()
+        while load > HOST_LOAD_MAX and time.monotonic() - started < HOST_WAIT_S:
+            self.progress(f"host busy (load {load:.2f}): measurement deferred")
+            time.sleep(HOST_POLL_S)
+            load = self.host_load()
+        return load, time.monotonic() - started
 
     def _measure(
         self,

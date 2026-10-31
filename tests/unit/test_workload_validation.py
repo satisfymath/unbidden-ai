@@ -241,3 +241,31 @@ def test_a_merge_migrations_parents_on_several_lines_leave_one_head(tmp_path: Pa
     subprocess.run([*git, "commit", "-qm", "x"], check=True)
     head = alembic_head(tmp_path, "HEAD")
     assert head is not None and head[1] == "m"
+
+
+def test_a_busy_host_defers_the_measurement_and_then_blocks_it_never_a_noisy_result(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Stage 10's controls, run 3: a busy host made the A/A control inconclusive. Sessions wait for a quiet host up
+    to a bound; past it the measurement is not made and the reason is recorded; each session records the load."""
+    from unbidden.lab import perf
+
+    lab = perf.PerfLab.__new__(perf.PerfLab)
+    lab.progress = lambda *_: None  # type: ignore[method-assign]
+    loads = iter([3.0, 2.5, 0.8, 0.7, 0.6, 0.5])
+    lab.host_load = lambda: next(loads)  # type: ignore[method-assign]
+    monkeypatch.setattr(perf.time, "sleep", lambda s: None)
+    calls: list[int] = []
+
+    def measure(files: dict[str, str]) -> tuple[dict[str, object] | None, str]:
+        calls.append(len(files))
+        return {"median_ms": 1.0, "samples_ms": [1.0]}, ""
+
+    sessions, error = lab._sessions(measure, {"x": "y"}, "seed", per_arm=2)  # pyright: ignore[reportPrivateUsage]
+    assert error == "" and sessions is not None and len(sessions) == 4
+    assert sessions[0]["host_load"] == 0.8 and all("host_waited_s" in s for s in sessions)
+    busy = iter([4.0] * 100)
+    lab.host_load = lambda: next(busy)  # type: ignore[method-assign]
+    monkeypatch.setattr(perf, "HOST_WAIT_S", 0.0)
+    sessions, error = lab._sessions(measure, {}, "seed", per_arm=1)  # pyright: ignore[reportPrivateUsage]
+    assert sessions is None and "deferred: the host is busy" in error and "4.00" in error
