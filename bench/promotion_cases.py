@@ -24,7 +24,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from bench.perf_v3_replay import added_files
 from unbidden.contracts.guardian import Autonomy, Mandate
 from unbidden.guardian.policy import PolicyEngine
 from unbidden.lab.perf import LAB_DIR, PROMOTION_CRITERIA, PerfLab, alembic_head, async_suite, index_candidate
@@ -43,11 +42,35 @@ class Case:
     name: str
     unit_test: str  # the test of tests/unit/test_promotion.py this case measures for real
     expected: str  # what that test asserts, in words
-    passes: Callable[[str, list[str]], bool]
+    passes: Callable[[str, list[str], list[dict[str, Any]]], bool]  # outcome, reasons, first sessions
     candidate: dict[str, str] = field(default_factory=dict[str, str])
     base: dict[str, str] = field(default_factory=dict[str, str])  # an overlay both arms get (the near-threshold case)
     index: tuple[str, str] | None = ("item", "owner_id")  # the mechanism the verdict checks
     workload: str | None = None  # another workload than the saved one
+
+
+def patched(repo: Path, rev: str, patch: str) -> dict[str, str]:
+    """The files a saved patch writes, whole: applied with `git apply` to the commit's own files (v3's `added_files`
+    kept only a patch's added lines, which broke a modified file: stage 10's first control run)."""
+    import re
+    import tempfile
+
+    touched = sorted(set(re.findall(r"^\+\+\+ b/(\S+)", patch, re.M)))
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        for path in touched:
+            shown = subprocess.run(["git", "-C", str(repo), "show", f"{rev}:{path}"], capture_output=True, text=True)
+            if shown.returncode == 0:
+                (root / path).parent.mkdir(parents=True, exist_ok=True)
+                (root / path).write_text(shown.stdout)
+        subprocess.run(["git", "apply", "-"], input=patch, text=True,
+                       cwd=root, check=True, capture_output=True)  # fmt: skip
+        return {path: (root / path).read_text() for path in touched}
+
+
+def _unused(sessions: list[dict[str, Any]]) -> bool:
+    scans = [s.get("index_scans") for s in sessions if s["arm"] == "candidate"]
+    return bool(scans) and all(x == 0 for x in scans)
 
 
 def _delay(route: str, seconds: float) -> str:
@@ -71,21 +94,21 @@ def cases(
             "real_improvement",
             "test_a_real_improvement_with_its_mechanism_function_control_and_confirmation_is_promoted",
             "improved",
-            lambda o, r: o == "improved",
+            lambda o, r, s: o == "improved",
             candidate=patch,
         ),
         Case(
             "unchanged",
             "test_the_unchanged_candidate_is_no_relevant_change",
             "no_relevant_change",
-            lambda o, r: o == "no_relevant_change",
+            lambda o, r, s: o == "no_relevant_change",
             candidate={},
         ),
         Case(
             "irrelevant_index",
             "test_an_irrelevant_index_is_not_promoted_even_if_faster",
             "not improved; the index is not used",
-            lambda o, r: o != "improved" and any(" 0-0 scans" in x or "0-0 scans" in x for x in r),
+            lambda o, r, s: o != "improved" and _unused(s),
             candidate=irrelevant,
             index=("item", "title"),
         ),
@@ -93,7 +116,7 @@ def cases(
             "workload_without_the_column",
             "test_a_workload_that_does_not_use_the_column_shows_no_mechanism",
             "not improved",
-            lambda o, r: o != "improved",
+            lambda o, r, s: o != "improved",
             candidate=patch,
             workload=superuser,
         ),
@@ -101,7 +124,7 @@ def cases(
             "slower",
             "test_a_slower_candidate_is_a_regression",
             "regression",
-            lambda o, r: o == "regression",
+            lambda o, r, s: o == "regression",
             candidate={ROUTE: _delay(route, 0.008)},
             index=None,
         ),
@@ -110,7 +133,7 @@ def cases(
             "near_threshold",
             "test_near_the_threshold_a_first_pass_is_not_enough",
             "not improved",
-            lambda o, r: o != "improved",
+            lambda o, r, s: o != "improved",
             base={ROUTE: _delay(route, 0.030)},
             candidate={ROUTE: _delay(route, 0.023)},
             index=None,
@@ -119,7 +142,7 @@ def cases(
             "faster_wrong_answer",
             "test_a_faster_wrong_answer_is_a_regression",
             "regression, the result differs",
-            lambda o, r: o == "regression" and any("differ" in x for x in r),
+            lambda o, r, s: o == "regression" and any("differ" in x for x in r),
             candidate=wrong,
         ),
     ]
@@ -146,7 +169,7 @@ def main() -> None:
     head = alembic_head(repo, rev)
     assert head is not None
     saved = Path(args.workload).read_text()
-    selected = [c for c in cases(show, head, added_files(Path(args.patch).read_text()), saved)
+    selected = [c for c in cases(show, head, patched(repo, rev, Path(args.patch).read_text()), saved)
                 if not args.case or c.name in args.case]  # fmt: skip
     mandate = Mandate(workspace="controls")
     mandate.autonomy.provision_dependencies = Autonomy.ALLOW
@@ -190,7 +213,7 @@ def main() -> None:
             strip = lambda rows: [{k: v for k, v in s.items() if k != "responses"} for s in rows]  # noqa: E731
             report |= {
                 "outcome": promotion.outcome, "reasons": promotion.reasons,
-                "passed": case.passes(promotion.outcome, promotion.reasons),
+                "passed": case.passes(promotion.outcome, promotion.reasons, sessions),
                 "sessions": strip(sessions), "control": strip(control), "confirmation": strip(confirmation),
             }  # fmt: skip
         report["wall_s"] = round(time.monotonic() - started, 1)
