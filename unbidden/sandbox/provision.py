@@ -205,21 +205,26 @@ def _seed(stack: PythonStack) -> str:
 def _own(stack: PythonStack) -> str:
     """The project itself, installed the way `uv sync` installs it, editable: its metadata in the environment and its
     source (the run's snapshot, at /work) on the path. Its code is not in the image; the metadata is enough for
-    `importlib.metadata.version(...)` and entry points that the project reads at import."""
-    if stack.own is None:
-        return ""
-    name, version = stack.own
-    dist = re.sub(r"[-_.]+", "_", name)
-    if not re.fullmatch(r"\w+", dist) or not re.fullmatch(r"[\w.+!-]+", version):
-        return ""
-    info = f'"$SP/{dist}-{version}.dist-info"'
-    roots = "\\n".join(f"/work/{r}".rstrip("/.") or "/work" for r in stack.source_roots)
-    return (
-        " && SP=$(/deps/.venv/bin/python -c \"import sysconfig; print(sysconfig.get_paths()['purelib'])\")"
-        f" && mkdir -p {info}"
-        f" && printf 'Metadata-Version: 2.1\\nName: {name}\\nVersion: {version}\\n' > {info}/METADATA"
-        f" && echo unbidden > {info}/INSTALLER && printf '{roots}\\n' > \"$SP/_unbidden_{dist}.pth\""
-    )
+    `importlib.metadata.version(...)` and entry points that the project reads at import. A workspace's members the
+    same way, each with its own metadata (the source roots already hold their code)."""
+    packages = [stack.own] if stack.own is not None else list(stack.member_packages)
+    out = ""
+    for name, version in packages:
+        dist = re.sub(r"[-_.]+", "_", name)
+        if not re.fullmatch(r"\w+", dist) or not re.fullmatch(r"[\w.+!-]+", version):
+            continue
+        info = f'"$SP/{dist}-{version}.dist-info"'
+        out += (
+            " && SP=$(/deps/.venv/bin/python -c \"import sysconfig; print(sysconfig.get_paths()['purelib'])\")"
+            f" && mkdir -p {info}"
+            f" && printf 'Metadata-Version: 2.1\\nName: {name}\\nVersion: {version}\\n' > {info}/METADATA"
+            f" && echo unbidden > {info}/INSTALLER"
+        )
+    if stack.own is not None and out:
+        roots = "\\n".join(f"/work/{r}".rstrip("/.") or "/work" for r in stack.source_roots)
+        dist = re.sub(r"[-_.]+", "_", stack.own[0])
+        out += f" && printf '{roots}\\n' > \"$SP/_unbidden_{dist}.pth\""
+    return out
 
 
 def python_dockerfile(stack: PythonStack, *, system_build_tools: bool = False, headers: tuple[str, ...] = ()) -> str:

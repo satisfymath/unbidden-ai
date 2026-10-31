@@ -400,3 +400,22 @@ def test_the_lab_keeps_every_finding_where_the_scan_keeps_the_cap() -> None:
     with every_finding():
         whole = parse_pyright(result, ["pyright"])
     assert whole.can_resolve and len(whole.findings) == MAX_FINDINGS + 5
+
+
+def test_a_workspaces_members_get_their_metadata_in_the_image(tmp_path: Path) -> None:
+    # Aegra, stage 10: aegra_api reads version("aegra-api") at import; only a single project's metadata was written.
+    from unbidden.sandbox.provision import python_dockerfile
+
+    repo = commit(
+        tmp_path,
+        {
+            "pyproject.toml": '[project]\nname="root"\n[tool.uv.workspace]\nmembers=["libs/*"]\n',
+            "uv.lock": "",
+            "libs/api/pyproject.toml": '[project]\nname="aegra-api"\nversion="0.11.0"\n'
+            '[build-system]\nrequires=["x"]\n',
+            "libs/api/src/aegra_api/__init__.py": "",
+        },
+    )
+    py = detect_stack(repo).python
+    assert py is not None and py.member_packages == (("aegra-api", "0.11.0"),)
+    assert "aegra_api-0.11.0.dist-info" in python_dockerfile(py)

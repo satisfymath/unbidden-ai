@@ -66,6 +66,9 @@ class PythonStack:
     version_notes: tuple[str, ...] = ()  # why this interpreter: the rule, the project's declarations, conflicts
     lock_date: str | None = None  # when the lockfile (or manifest) was last committed: the environment's era
     own: tuple[str, str] | None = None  # (name, version) of the project's own package, installed by `uv sync`
+    # A uv workspace's members as packages, (name, version) each: `uv sync --all-packages` installs them, and code
+    # reads their metadata (Aegra, stage 10: `version("aegra-api")` at import).
+    member_packages: tuple[tuple[str, str], ...] = ()
     # What the CI's `uv sync` installs (`--group test`, `--all-extras`, `--dev` ...); None when no CI step says it.
     sync_flags: tuple[str, ...] | None = None
     # Files the project's build declares it writes (a version or build-info module) and the repository lacks: code
@@ -381,6 +384,9 @@ def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str]
             test_paths=tests if members else (),
             mypy=mypy,
             own=None if members else own_package(project),
+            member_packages=tuple(
+                pkg for m in members if (pkg := own_package(tomllib.loads(_read(repo, rev, f"{m}/pyproject.toml"))))
+            ),
             sync_flags=ci_sync_flags(repo, rev, files),
             build_writes=() if members else build_writes(project, files),
             **uv,
