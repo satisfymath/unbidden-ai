@@ -118,13 +118,21 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
     tool = analyzer_tool(opp.details)
     scope = (ctx.tool_scopes or {}).get(tool)
     paths = [str(p) for p in opp.details.get("paths") or []]
-    if scope and paths and not any(p == d or p.startswith(f"{d}/") for p in paths for d in scope):
+
+    def under(path: str, d: str) -> bool:
+        return path == d or path.startswith(f"{d}/")
+
+    held = [d for d in scope or () if not d.startswith("!")]
+    exempt = [d[1:] for d in scope or () if d.startswith("!")]
+    if scope and paths and not any(under(p, d) and not any(under(p, e) for e in exempt) for p in paths for d in held):
         add(
             ActionKind.DECLINE,
             1.0,
             0.0,
             0.0,
-            f"the team's CI checks {tool} only in {', '.join(scope)}: these findings are outside what it holds to",
+            f"the team's CI checks {tool} only in {', '.join(held)}"
+            + (f", except {', '.join(exempt[:4])}{' ...' if len(exempt) > 4 else ''}" if exempt else "")
+            + ": these findings are outside what it holds to",
         )
         return _choose(opp, candidates, ActionKind.DECLINE)
     ran = runs_tool(ctx.ci_commands, tool)  # the CI runs this tool itself, read as argv, not as a substring

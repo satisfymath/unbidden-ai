@@ -1097,9 +1097,9 @@ def tool_scope(
     read: Callable[[str], str | None], tracked: Iterable[str], commands: str | None, tool: str
 ) -> tuple[str, ...] | None:
     """The directories the team's CI checks with `tool`: the paths its steps name, or the `include` (pyright) or
-    `files` (mypy) of the configuration file they pass. None when some step checks the whole tree, or the CI does not
-    run the tool, or its scope cannot be read (stage 10: Prefect's pyright checks `src/` through pyrightconfig-ci.json,
-    and Unbidden's own run fixed errors in `benches/`)."""
+    `files` (mypy) of the configuration file they pass, with what pyright's config excludes or ignores as "!path".
+    None when some step checks the whole tree, or the CI does not run the tool, or its scope cannot be read (stage 10:
+    Prefect's pyright checks `src/` through pyrightconfig-ci.json; Unbidden's own run fixed errors in `benches/`)."""
     if not commands or not tool:
         return None
     files = set(tracked)
@@ -1117,7 +1117,14 @@ def tool_scope(
             continue  # words that only look like paths (a sentence that mentions the tool): not a run of it
         paths = [p for p in named if exists(p)]
         if not paths and inv.config:
-            paths = [str(PurePosixPath(base) / p).strip("/") if base else p for p in _config_scope(read, inv, tool)]
+            paths = [
+                (f"!{PurePosixPath(base) / p[1:]}" if p.startswith("!") else str(PurePosixPath(base) / p))
+                if base
+                else p
+                for p in _config_scope(read, inv, tool)
+            ]
+        if paths and all(p.startswith("!") for p in paths):
+            return None
         if not paths:
             return None
         scope += paths
@@ -1141,10 +1148,20 @@ def _config_scope(read: Callable[[str], str | None], inv: Invocation, tool: str)
             section = {"files": ini.get(tool, "files", fallback="")}
     except (ValueError, configparser.Error):
         return []
-    found = section.get("include" if tool == "pyright" else "files") if isinstance(section, dict) else None
-    if isinstance(found, str):
-        found = [f.strip() for f in found.split(",") if f.strip()]
-    return [str(f).removeprefix("./").rstrip("/") for f in found or [] if isinstance(f, str)]
+    if not isinstance(section, dict):
+        return []
+
+    def listed(key: str) -> list[str]:
+        found = section.get(key)
+        if isinstance(found, str):
+            found = [f.strip() for f in found.split(",") if f.strip()]
+        return [str(f).removeprefix("./").rstrip("/") for f in found or [] if isinstance(f, str) and "*" not in f]
+
+    included = listed("include" if tool == "pyright" else "files")
+    # What pyright's config leaves out (`exclude`) or silences (`ignore`) is outside the standard too, written
+    # "!path" (Prefect, stage 10: `ignore` holds src/integrations/, where three more L4 fixes landed).
+    exempt = [f"!{e}" for e in listed("exclude") + listed("ignore")] if tool == "pyright" and included else []
+    return included + exempt
 
 
 def runs_tool(commands: str | None, tool: str) -> bool:
