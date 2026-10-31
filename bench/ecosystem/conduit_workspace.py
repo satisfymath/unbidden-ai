@@ -16,6 +16,7 @@ import argparse
 import os
 import shutil
 import subprocess
+import time
 from pathlib import Path
 
 from bench.ecosystem.conduit_lab import DB_PORT, PORT, repo_dir
@@ -107,6 +108,8 @@ def archive(lab: Path, name: str) -> Path:
     repo = repo_dir(lab)
     target = lab / "conduit-runs" / name
     target.parent.mkdir(parents=True, exist_ok=True)
+    if target.exists():  # another run with the same name (an earlier regression): never archived onto it
+        target = target.with_name(f"{target.name}-{time.strftime('%Y%m%dT%H%M%S')}")
     shutil.move(str(repo / ".unbidden"), str(target))
     return target
 

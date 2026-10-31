@@ -170,6 +170,8 @@ def run(worktree: Path, app: str, name: str, out: Path) -> dict[str, Any]:
     (where / "cycles.log").write_text("\n\n".join(logs))
     (where / "activity.json").write_text(activity)
     target = LAB / f"{app}-runs" / f"{out.name}-{name}"
+    if target.exists():  # another run with the same names (an earlier regression): never archived onto it
+        target = target.with_name(f"{target.name}-{time.strftime('%Y%m%dT%H%M%S')}")
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.move(str(repo / ".unbidden"), str(target))
     record["workspace"] = str(target)
