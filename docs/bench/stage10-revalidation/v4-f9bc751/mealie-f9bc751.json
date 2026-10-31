@@ -1,0 +1,37 @@
+{
+ "name": "mealie-f9bc751",
+ "opportunity": "opp_8f2cf46bd8864983",
+ "title": "shopping_list_items.food_id is a foreign key without an index, filtered by 2 endpoint(s)",
+ "original_level": 4,
+ "base": "e31c5fcfd2892670158f4c189acdb06cde3180bf",
+ "product": "f9bc751ae819a19554bb54914e9078fb8565b7fc",
+ "usd_before": 27.2068,
+ "verdict": null,
+ "experiment": null,
+ "blocked": null,
+ "notes": [
+  "workload attempt 1 not valid: the calls did not run a statement that reads shopping_list_items by food_id on every call (SELECT $1 AS anon_1, ingredient_foods.id, ingredient_foods.group_id, ingredient_foods.name, ingredient_foods.plural_name, ingredient_foods.description, ingredie); the request returned no data (first response: ",
+  "workload attempt 2 not valid: the calls did not run a statement that reads shopping_list_items by food_id on every call (SELECT $1 AS anon_1, ingredient_foods.id, ingredient_foods.group_id, ingredient_foods.name, ingredient_foods.plural_name, ingredient_foods.description, ingredie)",
+  "workload attempt 3 failed: E       DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(date",
+  "workload attempt 4 not valid: the calls did not run a statement that reads shopping_list_items by food_id on every call (SELECT $1 AS anon_1, ingredient_foods.id, ingredient_foods.group_id, ingredient_foods.name, ingredient_foods.plural_name, ingredient_foods.description, ingredie); the request returned no data (first response: ",
+  "workload attempt 5 not valid: the calls did not run a statement that reads shopping_list_items by food_id on every call (SELECT $1 AS anon_1, ingredient_foods.id, ingredient_foods.group_id, ingredient_foods.name, ingredient_foods.plural_name, ingredient_foods.description, ingredie)",
+  "no opportunity here: 2 requests to the endpoints that use shopping_list_items.food_id ran and answered, and the engine shows none of them looks shopping_list_items up by food_id (GET /api/foods/empty: SELECT $1 AS anon_1, ingredient_foods.id, ingredient_foods.group_id, ingredient_foods.name, ingredient_foods.plural_name, ingredient_foods.description, ingredient_foods.label_id, ingredient_foods.name | GET /api/foods/empty: SELECT $1 AS anon_1, ingredient_foods.id, ingredient_foods.group_id, ingredient_foods.name, ingredient_foods.plural_name, ingredient_foods.description, ingredient_foods.label_id, ingredient_foods.name)"
+ ],
+ "readiness": {
+  "checks_reproduced": {
+   "ok": false,
+   "why": "not recorded at this commit (the lab's own test runs decide)"
+  },
+  "environment_ready": {
+   "ok": true,
+   "why": "dependency image built; tests run by CI nightly.yml:backend-tests > tests (test-backend.yml) (its services: postgres); migrations at mealie/alembic/versions"
+  },
+  "workload_valid": {
+   "ok": false,
+   "why": "2 requests to the endpoints that use shopping_list_items.food_id ran and answered, and the engine shows none of them looks shopping_list_items up by food_id (GET /api/foods/empty: SELECT $1 AS anon_1, ingredient_foods.id, ingredient_foods.group_id, ingredient_foods.name, ingredient_foods.plural_name, ingredient_foods.description, ingredient_foods.label_id, ingredient_foods.name | GET /api/foods/em"
+  }
+ },
+ "level_after": 1,
+ "usd_after": 27.3527,
+ "wall_s": 246.3
+}
