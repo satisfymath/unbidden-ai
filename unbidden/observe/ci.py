@@ -67,6 +67,9 @@ class CiPlan:
     # Interpreters the job installs itself (`uv python install 3.12`): resolved when the image is provisioned, never
     # downloaded in the offline run; the plan says whether the image's interpreter satisfies them.
     interpreters: tuple[str, ...] = ()
+    # Requirements files the job installs itself (`pip install -r test_requirements.txt`): its test dependencies,
+    # installed into the image when it is provisioned, each as its own install, as the job does.
+    requirement_files: tuple[str, ...] = ()
 
     @property
     def partial(self) -> bool:
@@ -114,6 +117,10 @@ _MAKE_CALL = re.compile(r"^\s*make\s+(?P<args>[^;&|]*?)\s*$")
 _MAKE_RULE = re.compile(r"^(?P<target>[A-Za-z0-9_.-]+)\s*:(?!=)\s*(?P<deps>[^=#]*?)\s*$")
 # A JavaScript package manager's install or build inside a Python job (codex-lb builds its frontend before its tests).
 _INTERPRETER = re.compile(r"^\s*\(?\s*uv\s+python\s+(?:install|pin)\s+(?P<v>[\w.+-]+(?:\s+[\w.+-]+)*)\s*\)?\s*$")
+_REQUIREMENTS = re.compile(r"(?:-r|--requirement)[ =](?P<file>[\w./-]+\.(?:txt|in))")
+_PIP_INSTALL = re.compile(r"\b(?:pip3?|uv\s+pip)\s+install\b")
+# A container runtime, which tests that start their own containers need (testcontainers' PostgresContainer).
+_CONTAINER_LIBS = re.compile(r"^\s*(?:from|import)\s+(testcontainers|docker|pytest_docker)\b", re.M)
 _FOREIGN_BUILD = re.compile(r"\b(bun|npm|pnpm|yarn)\s+(install|ci|i|run\s+build|build)\b")
 _MAKE_VAR = re.compile(r"^(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*(?::=|\?=|=)\s*(?P<value>.*?)\s*$")
 TASKFILES = ("Taskfile.yml", "Taskfile.yaml", "taskfile.yml", "taskfile.yaml")
@@ -359,12 +366,15 @@ _DATA_FILE = re.compile(r"(?<![\w$/.-])(?P<path>[\w./-]+\.(?:json|xml|txt|csv|ya
 def _job_plan(
     workflow: str, job_name: str, job: dict[str, Any], language: str, tasks: dict[str, list[str]] | None = None,
     scripts: dict[str, str] | None = None, files: set[str] | None = None,
+    container_tests: tuple[tuple[str, ...], tuple[str, ...], str] = ((), (), ""),
 ) -> CiPlan | None:  # fmt: skip
     defaults = ((job.get("defaults") or {}).get("run") or {}).get("working-directory", ".")
     steps: list[CiStep] = []
     services: list[str] = []
     notes: list[str] = []
     interpreters: list[str] = []
+    requirement_files: list[str] = []
+    without_runtime = False
     all_steps = [s for s in job.get("steps") or [] if isinstance(s, dict)]
     all_steps, branch_notes = _test_branch(all_steps, tasks or {})
     notes += branch_notes
@@ -401,6 +411,14 @@ def _job_plan(
         run = _expand_tasks(str(step["run"]), tasks or {})
         for match in _COMPOSE_UP.finditer(run):
             services += [a for a in match.group("args").split() if not a.startswith("-")]
+        requirement_files += [m.group("file") for ln in run.splitlines() if _PIP_INSTALL.search(ln)
+                              for m in _REQUIREMENTS.finditer(ln)]  # fmt: skip
+        if command_needs_runtime(run, container_tests):
+            without_runtime = True
+            notes.append(f"left out, it needs a container runtime ({container_tests[2]}): the sandbox has none and "
+                         "never gets the host's Docker socket: "
+                         f"{_commands(run).strip()[:120]}")  # fmt: skip
+            continue
         installs = [m.group("v").split() for ln in run.splitlines() if (m := _INTERPRETER.match(ln))]
         if installs:
             interpreters += [v for vs in installs for v in vs]
@@ -449,9 +467,55 @@ def _job_plan(
     env |= written
     split = next((m for s in steps if (m := _SPLITS.search(s.command))), None)
     scope = f"pytest-split group {split.group('g')} of {split.group('n')}" if split else ""
+    if without_runtime:
+        scope = f"{scope or 'the whole job'}, without its tests that need a container runtime"
     return CiPlan(workflow=workflow, job=job_name, steps=tuple(steps), services=tuple(dict.fromkeys(services)),
                   containers=tuple(containers), env=tuple(sorted(env.items())), scope=scope,
-                  notes=tuple(dict.fromkeys(notes)), interpreters=tuple(dict.fromkeys(interpreters)))  # fmt: skip
+                  notes=tuple(dict.fromkeys(notes)), interpreters=tuple(dict.fromkeys(interpreters)),
+                  requirement_files=tuple(dict.fromkeys(requirement_files)))  # fmt: skip
+
+
+_BUILTIN_MARKS = {"parametrize", "skip", "skipif", "xfail", "asyncio", "usefixtures", "filterwarnings", "timeout"}
+
+
+def container_runtime_tests(repo: Path, rev: str, files: set[str]) -> tuple[tuple[str, ...], tuple[str, ...], str]:
+    """The test directories whose tests or conftest import a container runtime library, the pytest markers those
+    tests carry, and what was found: the tests that start their own containers (stage 10, rag-api: its integration
+    tests' conftest starts a pgvector container through testcontainers)."""
+    dirs: set[str] = set()
+    markers: set[str] = set()
+    found = ""
+    candidates = [f for f in files if f.endswith(".py") and ("test" in f.split("/")[-1] or "conftest" in f)
+                  and re.search(r"(^|/)tests?/", f)]  # fmt: skip
+    for path in candidates:
+        text = _git(repo, "show", f"{rev}:{path}")
+        lib = _CONTAINER_LIBS.search(text)
+        if lib:
+            directory = path.rsplit("/", 1)[0] if "/" in path else "."
+            dirs.add(directory)
+            found = found or f"{path} imports {lib.group(1)}"
+    for path in candidates:
+        if any(path.startswith(f"{d}/") for d in dirs):
+            text = _git(repo, "show", f"{rev}:{path}")
+            markers |= set(re.findall(r"pytest\.mark\.(\w+)", text)) - _BUILTIN_MARKS
+    return tuple(sorted(dirs)), tuple(sorted(markers)), found
+
+
+def command_needs_runtime(command: str, container: tuple[tuple[str, ...], tuple[str, ...], str]) -> bool:
+    """Whether a step's pytest selects the tests that start containers: by a marker expression that names one of
+    their markers without negating it (`-m integration`, not `-m "not integration"`), or by their directory."""
+    dirs, markers, _ = container
+    if not dirs:
+        return False
+    for line in _commands(command).splitlines():
+        if not re.search(r"\bpytest\b|-m\s+pytest", line):
+            continue
+        expression = re.search(r"\s-m\s+(?P<q>['\"]?)(?P<e>.+?)(?P=q)(?:\s|$)", line)
+        if expression and any(re.search(rf"(?<!not )\b{re.escape(m)}\b", expression.group("e")) for m in markers):
+            return True
+        if any(re.search(rf"(?:^|\s){re.escape(d)}(?:/|\s|$)", line) for d in dirs):
+            return True
+    return False
 
 
 def _entry_job(job: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
@@ -771,6 +835,9 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
         return (0 if explicit else 1, 1 if served else 0, 1 if secret else 0)
 
     jobs.sort(key=lambda item: (*runner(item), *rank(item)))
+    container = (
+        container_runtime_tests(repo, rev, files) if files is not None and language == "python" else ((), (), "")
+    )
     for name, job_name, job in jobs:
         hint = " ".join(
             str(s.get("run", "")) + str(s.get("uses", "")) for s in job.get("steps") or [] if isinstance(s, dict)
@@ -782,7 +849,7 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
             continue
         entries = _entries(job)
         label, resolved = entries[0]
-        plan = _job_plan(name, job_name, resolved, language, tasks, scripts_of(resolved), files)
+        plan = _job_plan(name, job_name, resolved, language, tasks, scripts_of(resolved), files, container)
         if plan is not None:
             from dataclasses import replace
 
@@ -790,9 +857,9 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
             parts = [f"matrix entry 1 of {len(groups)} ({label})"] if len(groups) > 1 else []
             if plan.scope:
                 parts.append(plan.scope)
-                if len(groups) == 1:  # a split without a matrix: the groups are pytest-split's own
-                    n = int(re.search(r"of (\d+)", plan.scope).group(1))  # type: ignore[union-attr]
-                    groups = tuple(f"pytest-split group {i}" for i in range(1, n + 1))
+                split = re.search(r"pytest-split group \d+ of (\d+)", plan.scope)
+                if len(groups) == 1 and split:  # a split without a matrix: the groups are pytest-split's own
+                    groups = tuple(f"pytest-split group {i}" for i in range(1, int(split.group(1)) + 1))
             return replace(plan, sync_flags=_sync_flags(repo, rev, job), groups=groups if len(groups) > 1 else (),
                            scope="; ".join(parts) or plan.scope or "the whole job")  # fmt: skip
     return None

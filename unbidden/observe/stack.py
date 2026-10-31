@@ -69,6 +69,9 @@ class PythonStack:
     # A uv workspace's members as packages, (name, version) each: `uv sync --all-packages` installs them, and code
     # reads their metadata (Aegra, stage 10: `version("aegra-api")` at import).
     member_packages: tuple[tuple[str, str], ...] = ()
+    # Other requirements files the CI's test job installs (`pip install -r test_requirements.txt`, rag-api, stage 10):
+    # its test dependencies; each installed after the manifest's own, as its own install, as the job does.
+    extra_requirements: tuple[str, ...] = ()
     # What the CI's `uv sync` installs (`--group test`, `--all-extras`, `--dev` ...); None when no CI step says it.
     sync_flags: tuple[str, ...] | None = None
     # Files the project's build declares it writes (a version or build-info module) and the repository lacks: code
@@ -396,6 +399,7 @@ def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str]
             version=version,
             lockfile="requirements.txt",
             manifest="requirements.txt",
+            extra_requirements=ci_requirement_files(repo, rev, files, "requirements.txt"),
             ruff=False,
             pyright=False,
             pytest=bool(_tests_under(files, (".",))) or any(f.endswith("_test.py") for f in files),
@@ -415,6 +419,19 @@ def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str]
             requirements=requirements,
         )
     return None
+
+
+def ci_requirement_files(repo: Path, rev: str, files: set[str], manifest: str) -> tuple[str, ...]:
+    """The requirements files the CI's test job installs besides the manifest, that the repository has."""
+    if not any(f.startswith(".github/workflows/") for f in files):
+        return ()
+    from unbidden.observe.ci import ci_test_plan
+
+    plan = ci_test_plan(repo, rev, "python")
+    if plan is None:
+        return ()
+    return tuple(f.removeprefix("./") for f in plan.requirement_files if f.removeprefix("./") in files
+                 and f.removeprefix("./") != manifest)  # fmt: skip
 
 
 def ci_sync_flags(repo: Path, rev: str, files: set[str]) -> tuple[str, ...] | None:

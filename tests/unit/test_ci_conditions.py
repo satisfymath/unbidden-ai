@@ -146,3 +146,62 @@ def test_the_jobs_interpreter_install_is_resolved_at_provisioning_not_run_offlin
     assert [s.command for s in plan.steps] == ["pytest libs/aegra-api/tests"]
     assert plan.interpreters == ("3.12",)
     assert "3.12" in ci_python_versions(repo, "HEAD")  # the provisioning chooses it
+
+
+def _rag_like(tmp_path: Path, steps: str) -> Path:
+    jobs = f"""  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          pip install -r requirements.txt
+          pip install -r test_requirements.txt
+{steps}"""
+    repo = _repo(tmp_path, jobs)
+    files = {
+        "requirements.txt": "fastapi\n",
+        "test_requirements.txt": "pytest\ntestcontainers[postgres]\n",
+        "tests/integration/__init__.py": "",
+        "tests/integration/conftest.py": "from testcontainers.postgres import PostgresContainer\n",
+        "tests/integration/test_db.py": "import pytest\n\n@pytest.mark.integration\ndef test_db(): ...\n",
+    }
+    for path, text in files.items():
+        (repo / path).parent.mkdir(parents=True, exist_ok=True)
+        (repo / path).write_text(text)
+    git = ["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "y"], check=True)
+    return repo
+
+
+def test_the_jobs_test_requirements_are_found_and_container_runtime_tests_left_out(tmp_path: Path) -> None:
+    # rag-api, stage 10: test_requirements.txt (testcontainers) was not installed, and its integration step starts a
+    # pgvector container; the sandbox has no container runtime and never gets the host's Docker socket.
+    repo = _rag_like(tmp_path, "      - run: pytest --maxfail=1\n      - run: pytest -m integration --maxfail=3\n")
+    plan = ci_test_plan(repo, "HEAD", "python")
+    assert plan is not None
+    assert plan.requirement_files == ("requirements.txt", "test_requirements.txt")
+    assert [s.command for s in plan.steps] == ["pytest --maxfail=1"]
+    assert any("container runtime" in n and "testcontainers" in n for n in plan.notes)
+    assert "container runtime" in plan.scope
+
+
+def test_excluding_the_container_tests_by_marker_or_selecting_their_directory_is_read_as_such(tmp_path: Path) -> None:
+    repo = _rag_like(tmp_path, '      - run: pytest -m "not integration"\n      - run: pytest tests/integration\n')
+    plan = ci_test_plan(repo, "HEAD", "python")
+    assert plan is not None and [s.command for s in plan.steps] == ['pytest -m "not integration"']
+
+
+def test_the_image_installs_the_ci_test_requirements_after_the_manifest(tmp_path: Path) -> None:
+    from unbidden.observe.stack import detect_stack
+    from unbidden.sandbox.provision import python_dockerfile
+
+    repo = _rag_like(tmp_path, "      - run: pytest\n")
+    (repo / "pyproject.toml").unlink()
+    git = ["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "commit", "-qam", "no pyproject"], check=True)
+    py = detect_stack(repo).python
+    assert py is not None and py.manifest == "requirements.txt" and py.extra_requirements == ("test_requirements.txt",)
+    assert (
+        "-r /deps/requirements.txt && uv pip install --python /deps/.venv/bin/python -r /deps/test_requirements.txt"
+        in (python_dockerfile(py))
+    )

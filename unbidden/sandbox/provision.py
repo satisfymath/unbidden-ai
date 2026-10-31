@@ -245,6 +245,10 @@ def python_dockerfile(stack: PythonStack, *, system_build_tools: bool = False, h
             f"uv venv /deps/.venv{_seed(stack)} && uv pip install --python /deps/.venv/bin/python "
             "-r /deps/requirements.txt"
         )
+        # The CI's test requirements, each as its own install after the first, as the job installs them (together,
+        # rag-api's two files do not resolve: httpx pinned in one, a newer one required in the other).
+        for extra in stack.extra_requirements:
+            install += f" && uv pip install --python /deps/.venv/bin/python -r /deps/{extra}"
     else:
         install = _uv_sync(stack, "--no-install-project")
     uv = (
@@ -346,7 +350,7 @@ def _manifests(repo: Path, rev: str, stack: NodeStack | PythonStack) -> list[str
         return sorted({f for f in wanted if "node_modules/" not in f})
     if stack.manifest in ("setup.py", "poetry.lock"):
         return []
-    wanted = [stack.manifest] + ([stack.lockfile] if stack.lockfile else [])
+    wanted = [stack.manifest] + ([stack.lockfile] if stack.lockfile else []) + list(stack.extra_requirements)
     wanted += [f"{m}/pyproject.toml" for m in stack.members]
     # Build backends read the documents a manifest declares (hatchling refuses a missing `readme`) even when only the
     # metadata is built. Documents, never code.
