@@ -1049,9 +1049,10 @@ def cmd_doctor(args: argparse.Namespace) -> int:
             "GITHUB_TOKEN set" if broker().has("GITHUB_TOKEN") else "no GITHUB_TOKEN: proposals stay local branches",
         )
     )
+    mandate_for_doctor = None
     if ws.initialized:
         try:
-            mandate = ws.mandate()
+            mandate = mandate_for_doctor = ws.mandate()
             checks.append(
                 ("mandate", True, f"profile {mandate.models.profile}, PRs {mandate.autonomy.open_pull_requests.value}")
             )
@@ -1073,11 +1074,33 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         console.print(f"pulling {rec.model.tag} ...")
         pulled = subprocess.run(["ollama", "pull", rec.model.tag], check=False).returncode == 0
         checks.append(("fix", pulled, f"{'pulled' if pulled else 'could not pull'} {rec.model.tag}"))
-    if _emit(args, [{"check": n, "ok": ok, "detail": d} for n, ok, d in checks]):
-        return 0
+    # Required or optional follows the option the mandate chose: `api` needs no Ollama, `local` needs no key.
+    from unbidden.setup.requirements import doctor_requirements, explain
+
+    needs = doctor_requirements(mandate_for_doctor)
+    required = {name for name, need in needs.items() if need == "required"}
+    failed_required = [name for name, ok, _ in checks if not ok and name in required]
+    if _emit(
+        args,
+        {
+            "checks": [{"check": n, "ok": ok, "required": n in required, "detail": d} for n, ok, d in checks],
+            "requirements": explain(needs, mandate_for_doctor),
+            "ok": not failed_required,
+            "failed_required": failed_required,
+        },
+    ):
+        return 0 if not failed_required else 1
+    console.print(f"[dim]{explain(needs, mandate_for_doctor)}[/]")
     for name, ok, detail in checks:
-        console.print(f"  {'[green]ok[/]' if ok else '[yellow]!![/]'}  {name:12} {detail}")
-    return 0 if all(ok for name, ok, _ in checks if name in ("ollama", "local model", "docker")) else 1
+        if ok:
+            mark = "[green]ok[/]"
+        elif name in required:
+            mark = "[red]!![/]"
+        else:
+            mark = "[yellow]--[/]"
+        tag = "" if ok else (" (required)" if name in required else " (optional)")
+        console.print(f"  {mark}  {name:12} {detail}{tag}")
+    return 0 if not failed_required else 1
 
 
 def cmd_map(args: argparse.Namespace) -> int:
@@ -1553,10 +1576,106 @@ def cmd_resume(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_setup(args: argparse.Namespace) -> int:
+    """The guided configuration: project, priorities, models, credentials, autonomy, connections, budget, dashboard.
+    Deterministic, resumable, shows the diff before writing; `--non-interactive` takes the answers from flags."""
+    from unbidden.setup.wizard import Options, SetupError, run
+
+    ws = Workspace.find()
+    opts = Options(
+        non_interactive=args.non_interactive,
+        yes=args.yes,
+        section=args.section,
+        redo_all=args.all,
+        show=args.show,
+        models=args.models,
+        private_code=args.private_code,
+        mode=args.mode,
+        act_on_connections=args.act_on_connections,
+        priorities=[p.strip() for p in args.priorities.split(",") if p.strip()] if args.priorities else None,
+        budget=args.budget,
+        dashboard=args.dashboard,
+        model_key_stdin=args.model_key_stdin,
+        github_token_stdin=args.github_token_stdin,
+        credentials_stdin=args.credential or [],
+        connections=args.connection or [],
+        pull_model=args.pull_model,
+        probe=args.probe,
+        json=getattr(args, "json", False),
+    )
+    try:
+        return run(ws, opts, err if opts.json else console)  # with --json, stdout carries only the JSON
+    except SetupError as exc:
+        err.print(f"[red]unbidden setup:[/] {exc}")
+        return 2
+
+
+def cmd_home(args: argparse.Namespace) -> int:
+    """What `unbidden` shows with no command: the project's state, blocks and the next action."""
+    from unbidden.brain.spend import SpendLedger
+    from unbidden.setup.text import t
+
+    try:
+        ws = Workspace.find()
+    except WorkspaceError:
+        if _emit(args, {"workspace": None, "next": "cd into a git repository"}):
+            return 0
+        console.print(t("home.nogit"))
+        return 2
+    if not ws.initialized:
+        if _emit(args, {"repo": str(ws.repo), "initialized": False, "next": "unbidden setup"}):
+            return 0
+        console.print(t("home.unset"))
+        return 0
+    store = ws.store()
+    mandate = ws.mandate()
+    opps = store.list("opportunities", Opportunity)
+    counts: dict[str, int] = {}
+    for o in opps:
+        counts[o.status.value] = counts.get(o.status.value, 0) + 1
+    ledger = SpendLedger().status()
+    last_scan = store.get_value("last_scan")
+    killed = ws.killswitch().engaged
+    if killed:
+        nxt = "unbidden resume"
+    elif last_scan is None:
+        nxt = "unbidden scan"
+    elif counts.get("proposed") or counts.get("validated"):
+        nxt = "unbidden inbox"
+    else:
+        nxt = "unbidden activity"
+    data = {
+        "repo": str(ws.repo),
+        "head": head_sha(ws.repo),
+        "mode": _current_mode(mandate.autonomy.model_dump(mode="json")),
+        "profile": mandate.models.profile,
+        "local_inference": mandate.models.local_inference,
+        "kill_switch": killed,
+        "last_scan": last_scan,
+        "opportunities": counts,
+        "spend": {"spent_usd": round(ledger.spent_usd, 4), "available_usd": round(ledger.available_usd, 4)},
+        "next": nxt,
+    }
+    if _emit(args, data):
+        return 0
+    title = t("home.title", repo=ws.repo.name, head=data["head"][:12], mode=data["mode"], profile=data["profile"])
+    console.print(f"[bold]{title}[/]")
+    if killed:
+        console.print(f"[red]{t('home.kill')}[/]")
+    console.print(t("home.opps", counts=counts or "none yet"))
+    console.print(t("home.scan", when=last_scan) if last_scan else t("home.scan.none"))
+    console.print(t("home.spend", spent=ledger.spent_usd, available=ledger.available_usd))
+    console.print(f"[bold]{t('home.next', action=nxt)}[/]")
+    console.print(f"[dim]{t('home.commands')}[/]")
+    store.close()
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="unbidden", description="Intelligence that doesn't wait for instructions.")
     parser.add_argument("--version", action="version", version=f"unbidden {__version__}")
-    sub = parser.add_subparsers(dest="command", required=True)
+    parser.add_argument("--json", action="store_true", help="machine-readable output (with no command: the state)")
+    sub = parser.add_subparsers(dest="command", required=False)
 
     def command(name: str, handler: Any, help_text: str, *, json_out: bool = True) -> argparse.ArgumentParser:
         p = sub.add_parser(name, help=help_text)
@@ -1572,6 +1691,30 @@ def build_parser() -> argparse.ArgumentParser:
     prepare.add_argument("--into", help="where the isolated copy goes (default: ~/unbidden-lab/<name>)")
     prepare.add_argument("--mandate", help="a mandate file to copy into the workspace (default: the generated one)")
     command("init", cmd_init, "set up unbidden in this repository")
+    setup = command("setup", cmd_setup, "guided configuration: models, credentials, autonomy, connections, budget")
+    setup.add_argument("section", nargs="?", choices=["project", "priorities", "models", "credentials", "autonomy",
+                                                      "connections", "budget", "dashboard"],
+                       help="redo one section (default: the ones not answered yet)")  # fmt: skip
+    setup.add_argument("--all", action="store_true", help="walk every section again")
+    setup.add_argument("--show", action="store_true", help="the effective configuration, no questions")
+    setup.add_argument("--non-interactive", action="store_true", help="answers from flags; --yes applies them")
+    setup.add_argument("--yes", action="store_true", help="apply without asking (shows the diff either way)")
+    setup.add_argument("--models", choices=["local", "mixed", "api"], help="where model calls may go")
+    setup.add_argument("--private-code", choices=["deny", "allow"], help="private code to Meta's API un-renamed")
+    setup.add_argument("--mode", choices=sorted(MODES), help="supervised, autopilot or autonomous")
+    setup.add_argument("--act-on-connections", choices=["deny", "require_approval", "allow"])
+    setup.add_argument("--priorities", help="comma-separated, e.g. correctness,performance")
+    setup.add_argument("--budget", type=float, help="monthly cap for this project in US$")
+    setup.add_argument("--dashboard", choices=["now", "later", "never"])
+    setup.add_argument("--model-key-stdin", action="store_true", help="read MODEL_API_KEY from the first stdin line")
+    setup.add_argument("--github-token-stdin", action="store_true", help="read GITHUB_TOKEN from the next stdin line")
+    setup.add_argument("--credential", action="append", metavar="NAME",
+                       help="a connection credential whose value follows on stdin (repeatable, in order)")  # fmt: skip
+    setup.add_argument("--connection", action="append", metavar="SPEC",
+                       help="id=..,kind=postgres|http_api,location=..[,environment=..,credential_ref=..,username=..,"
+                            "docs=..,permissions=read+write:x]")  # fmt: skip
+    setup.add_argument("--pull-model", action="store_true", help="download the recommended local model if missing")
+    setup.add_argument("--probe", action="store_true", help="run the one paid inference test (shows its max cost)")
     command("scan", cmd_scan, "run the repository's own checks in the sandbox and record opportunities")
     map_ = command("map", cmd_map, "discover the system and show what is known, how, and what cannot be seen")
     map_.add_argument("--cached", action="store_true", help="show the last map without discovering again")
@@ -1675,11 +1818,28 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.command is None:  # `unbidden` alone: the assistant the first time, the project's state after
+        return _no_command(args)
     try:
         return int(args.handler(args))
     except (WorkspaceError, ScanDenied) as exc:
         err.print(f"[red]unbidden:[/] {exc}")
         return 2
+
+
+def _no_command(args: argparse.Namespace) -> int:
+    try:
+        ws = Workspace.find()
+    except WorkspaceError:
+        return cmd_home(args)
+    if not ws.initialized:
+        args.non_interactive = args.yes = args.all = args.show = False
+        args.section = args.models = args.private_code = args.mode = args.act_on_connections = None
+        args.priorities = args.budget = args.dashboard = None
+        args.model_key_stdin = args.github_token_stdin = args.pull_model = args.probe = False
+        args.credential = args.connection = None
+        return cmd_setup(args)
+    return cmd_home(args)
 
 
 if __name__ == "__main__":

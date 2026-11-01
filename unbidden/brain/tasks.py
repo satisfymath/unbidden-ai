@@ -44,6 +44,8 @@ TASKS: dict[str, TaskSpec] = {
     "director.page_check": TaskSpec("heavy"),
     "lab.page_fix": TaskSpec("heavy"),
     "director.goal_plan": TaskSpec("heavy"),
+    # The setup assistant's optional paid test: one short call where heavy work would go; never a silent fallback.
+    "setup.probe": TaskSpec("heavy", escalate=False),
 }
 
 
