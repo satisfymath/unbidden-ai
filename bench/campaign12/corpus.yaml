@@ -7,7 +7,7 @@ candidate: 2f7eee504dd24d763a72079686161c8247416226
 wheel_sha256: e8c7cc8a2ef849f25930b402393ddc18b04d5972206d1ee247ebe9796568856c
 version: 0.9.0
 repos:
-  - name: fst
+- name: fst
   url: https://github.com/fastapi/full-stack-fastapi-template
   commit: f4bcfaba7c85be3c6332cc74a20819f586dcdbc6
   license: MIT
@@ -21,7 +21,7 @@ repos:
   level_b: true
   lab: fst
   why: FastAPI + Postgres with compose; uv; the reference application
-  - name: conduit
+- name: conduit
   url: https://github.com/nsidnev/fastapi-realworld-example-app
   commit: 029eb7781c60d5f563ee8990a0cbfb79b244538c
   license: MIT
@@ -34,7 +34,7 @@ repos:
   exposure: stage 7-10; lab conduit
   level_b: false
   why: 'an old Poetry app; its lab exists but the application has no health endpoint, which the rollback drill needs: Level A only (recorded as a product limit to show)'
-  - name: spoolman
+- name: spoolman
   url: https://github.com/Donkie/Spoolman
   commit: bed3f14ee77a3a571d31b14215d54b0b88a7519c
   license: MIT
@@ -48,7 +48,7 @@ repos:
   level_b: true
   lab: spoolman
   why: integration tests directory, Alembic; lab exists
-  - name: codex-lb
+- name: codex-lb
   url: https://github.com/Soju06/codex-lb
   commit: 84fde5a1ed5e0d5a58ccb3ec4b82938b059bf8c5
   license: MIT
@@ -61,7 +61,7 @@ repos:
   exposure: stage 10; lab codex_lb
   level_b: false
   why: 'CI if: branches, make recipes, a bun build in a Python job'
-  - name: aegra
+- name: aegra
   url: https://github.com/aegra/aegra
   commit: 46055c0b9adffe51fb168974f79dfadaa6edd612
   license: MIT
@@ -74,7 +74,7 @@ repos:
   exposure: stage 10; lab aegra
   level_b: false
   why: uv workspace with src layouts, pgvector
-  - name: ctfd
+- name: ctfd
   url: https://github.com/CTFd/CTFd
   commit: 5f345fbaa424e6a22b51addf7f27430927879ae2
   license: Apache-2.0
@@ -87,7 +87,7 @@ repos:
   exposure: campaign v1 level A
   level_b: false
   why: Flask; make test under a Postgres service; one workflow per database
-  - name: timetracker
+- name: timetracker
   url: https://github.com/DRYTRIX/TimeTracker
   commit: 7ae6440d1b0930196609c6cefe3cf13948513f5b
   license: GPL-3.0
@@ -100,7 +100,7 @@ repos:
   exposure: campaign v1 level A
   level_b: false
   why: pip requirements + requirements-test; Postgres service container in CI
-  - name: rich
+- name: rich
   url: https://github.com/Textualize/rich
   commit: 9d8f9a372cc5916fd4781fec207ced7ddac2f08f
   license: MIT
@@ -112,7 +112,7 @@ repos:
   exposure: stage 5 (L4 fix), product walk 2026-11-01
   level_b: true
   why: library; property probes; the product walk's repository
-  - name: marshmallow
+- name: marshmallow
   url: https://github.com/marshmallow-code/marshmallow
   commit: b762ea2d59ca52fe5df76b90de14bed7e5ec5607
   license: MIT
@@ -124,7 +124,7 @@ repos:
   exposure: stage 7 (the false L4), demo
   level_b: true
   why: tox envlist; CI parity
-  - name: pyjwt
+- name: pyjwt
   url: https://github.com/jpadilla/pyjwt
   commit: 16231abfd1d8eab4953e8779b3017b859c88565e
   license: MIT
@@ -136,7 +136,7 @@ repos:
   exposure: stage 7 pilot
   level_b: false
   why: tox, extras
-  - name: humanize
+- name: humanize
   url: https://github.com/python-humanize/humanize
   commit: 6b817b963dbb091b9ad20a746cb6a26653a93b95
   license: MIT
@@ -148,7 +148,7 @@ repos:
   exposure: stage 7 pilot (KeyError probe)
   level_b: false
   why: hatch
-  - name: sqlmodel
+- name: sqlmodel
   url: https://github.com/fastapi/sqlmodel
   commit: 462b59d9cd1cc3d9072735435330ef9ab6d15cbf
   license: MIT
@@ -160,7 +160,7 @@ repos:
   exposure: level A holdout (stage 7)
   level_b: false
   why: Poetry/uv library on SQLAlchemy
-  - name: mimirq
+- name: mimirq
   url: https://github.com/skygazer42/MimirQ
   commit: 5d08b54beb8011a17ce274319fb79a5f121568c9
   license: Apache-2.0
@@ -180,7 +180,7 @@ repos:
   stars: 575
   preparation: postgres + redis + minio from CI service containers; copy .env.example; no real secrets (mock LLM)
   risk: 449 MB (near the 500 MB cap); redis + minio also required; Chinese-first docs; a separate live-core gate exists that would need real provider keys but is not the pytest job
-  - name: mediacms
+- name: mediacms
   url: https://github.com/mediacms-io/mediacms
   commit: 9bf46be5f4dc00005dd66e868f1d1d23371acadb
   license: AGPL-3.0
@@ -199,7 +199,7 @@ repos:
   stars: 5177
   preparation: postgres + redis via the project's docker-compose-dev.yaml; no secrets
   risk: tests run through docker compose (not a bare pytest invocation); mixed React frontend built in a separate job
-  - name: misago
+- name: misago
   url: https://github.com/rafalp/Misago
   commit: 4a37d19d3d9f74064c75cdda6856350b2daea5df
   license: GPL-2.0
@@ -217,7 +217,7 @@ repos:
   stars: 2781
   preparation: postgres service container from CI; COVERALLS_REPO_TOKEN is only used to upload coverage, not to run tests
   risk: large history; React frontend present but not needed for the Python tests
-  - name: brightbean-studio
+- name: brightbean-studio
   url: https://github.com/brightbeanxyz/brightbean-studio
   commit: 1d11c52007a3f714979ff1b071d153e69a8c274a
   license: AGPL-3.0
@@ -235,7 +235,7 @@ repos:
   stars: 2608
   preparation: PostgreSQL 16 (runner service or compose); env secrets are test placeholders in CI
   risk: young project; apps/ layout; social-media connectors are not exercised by the suite
-  - name: traefik-manager
+- name: traefik-manager
   url: https://github.com/chr0nzz/traefik-manager
   commit: ebf6a8435efa0b344bf25c7027448b2b064e8be0
   license: GPL-3.0
@@ -252,7 +252,7 @@ repos:
   stars: 1656
   preparation: none (no database)
   risk: 489 MB (near the 500 MB cap); polyglot (Go + a JS/TS part) though the Python test job is self-contained
-  - name: oauthlib
+- name: oauthlib
   url: https://github.com/oauthlib/oauthlib
   commit: 179287a5f9067aac7b1c0d71c4c5e083ccbf58f2
   license: BSD-3-Clause
@@ -269,7 +269,7 @@ repos:
   stars: 2986
   preparation: none
   risk: none notable
-  - name: rdflib
+- name: rdflib
   url: https://github.com/RDFLib/rdflib
   commit: f87db10f58264d619e5b55f1567bfdca4bb02afc
   license: BSD-3-Clause
@@ -286,7 +286,7 @@ repos:
   stars: 2543
   preparation: none
   risk: a devcontainer docker-compose exists but is not used by the test job
-  - name: graphtage
+- name: graphtage
   url: https://github.com/trailofbits/graphtage
   commit: afa9b34ce09327bcd37bb40e9e61ca97c1baa80d
   license: LGPL-3.0
@@ -303,7 +303,7 @@ repos:
   stars: 2495
   preparation: none
   risk: none notable
-  - name: python-progressbar
+- name: python-progressbar
   url: https://github.com/wolph/python-progressbar
   commit: 05a60c9a2c8fe88570a4bed734579320f9a2cfe8
   license: BSD-3-Clause
@@ -320,7 +320,7 @@ repos:
   stars: 879
   preparation: none
   risk: terminal-oriented; CI runs pytest headless without issue
-  - name: python-mss
+- name: python-mss
   url: https://github.com/BoboTiG/python-mss
   commit: 6c00e6e9c735d4e65c8b72f2a732e463078a901e
   license: MIT
@@ -337,7 +337,7 @@ repos:
   stars: 1292
   preparation: a virtual display (Xvfb) is needed for the screen-capture tests on Linux
   risk: tests exercise screen capture and may need a headless display (Xvfb); no network or paid service
-  - name: reader
+- name: reader
   url: https://github.com/lemon24/reader
   commit: 4bac04ef9965930896c9acfc3bac01af0f4cbc96
   license: BSD-3-Clause
@@ -354,7 +354,7 @@ repos:
   stars: 559
   preparation: none (SQLite is file-based, no service)
   risk: none notable
-  - name: harlequin
+- name: harlequin
   url: https://github.com/tconbeer/harlequin
   commit: ad3ecef4ff12bc4c89b15fb9c6a628c424afb6e2
   license: MIT
@@ -371,7 +371,7 @@ repos:
   stars: 6498
   preparation: none for the default suite (its SQLite/DuckDB adapters are in-process; the postgres adapter is optional)
   risk: TUI app; the default tests use in-process databases, so no service container is required
-  - name: dooit
+- name: dooit
   url: https://github.com/dooit-org/dooit
   commit: ba2a7efdbb56297ee7ed9273232cce265e3254da
   license: MIT
@@ -388,7 +388,7 @@ repos:
   stars: 2964
   preparation: none
   risk: TUI app tested headless in CI
-  - name: pipx
+- name: pipx
   url: https://github.com/pypa/pipx
   commit: 2ccbdf4c879c04f0dda457b47cb6a051146231bb
   license: MIT
@@ -405,7 +405,7 @@ repos:
   stars: 12984
   preparation: none for unit tests; some integration tests install packages
   risk: part of the suite installs real packages (network); unit markers run offline
-  - name: librephotos
+- name: librephotos
   url: https://github.com/LibrePhotos/librephotos
   commit: 8def36a24cd0435dc7338abde36d51ed9e8a7ad3
   license: MIT
@@ -424,7 +424,7 @@ repos:
   checks: image build workflows + api-client.yml (npm); backend tests are not a bare pytest CI job
   size_kb: 206248
   stars: 8123
-  - name: netbox
+- name: netbox
   url: https://github.com/netbox-community/netbox
   commit: ddcfe22db6147b59a0c0d5a904dcda8bfeb9398b
   license: Apache-2.0
@@ -445,7 +445,7 @@ repos:
   checks: 'ci.yml > (python matrix; services: postgres:18, redis:8) `python netbox/manage.py test --parallel` and `coverage run netbox/manage.py test` -- NOT pytest'
   size_kb: 230713
   stars: 21829
-  - name: archery
+- name: archery
   url: https://github.com/hhyo/Archery
   commit: a2675e236da8395940d7316483cdc54b177d2702
   license: Apache-2.0
@@ -468,7 +468,7 @@ repos:
   checks: 'django.yml > (python 3.11/3.12; services: mysql:8.0, redis) `pytest --cov`; compose ships mysql:5.7 + redis + goinception'
   size_kb: 25863
   stars: 7085
-  - name: resumeio-to-pdf
+- name: resumeio-to-pdf
   url: https://github.com/felipeall/resumeio-to-pdf
   commit: 108b5cf2586a2e1d38d97adbfd4558efa9994d9f
   license: MIT
@@ -487,7 +487,7 @@ repos:
   checks: ruff.yml only (lint). No pytest job despite a tests/ directory in the repo.
   size_kb: 239
   stars: 819
-  - name: ai-avatar-system
+- name: ai-avatar-system
   url: https://github.com/PunithVT/ai-avatar-system
   commit: 0dee976c229b2b6d274f8d04784d7e5be964d7b6
   license: MIT
@@ -508,7 +508,7 @@ repos:
   checks: 'ci.yml > backend `pytest tests/ --cov=app` (services: postgres:15, redis:7; env DATABASE_URL/REDIS/CELERY/SECRET provided) AND frontend npm lint/typecheck/build in the same workflow'
   size_kb: 2788
   stars: 563
-  - name: zod
+- name: zod
   url: https://github.com/colinhacks/zod
   commit: 2554b70c3d4a80273381e61d527d820720626440
   license: MIT
@@ -526,7 +526,7 @@ repos:
   checks: n/a (TypeScript project)
   size_kb: 27098
   stars: 44241
-  - name: gin
+- name: gin
   url: https://github.com/gin-gonic/gin
   commit: 0f09c3a9b4626d9fe9979cf4d0521d6ae32ab646
   license: MIT
@@ -544,7 +544,7 @@ repos:
   checks: n/a (Go project; `go test`)
   size_kb: 10657
   stars: 89467
-  - name: weblate
+- name: weblate
   url: https://github.com/WeblateOrg/weblate
   commit: 80852ad7530516a32ebac7a40052f1c432ab4b73
   license: GPL-3.0
