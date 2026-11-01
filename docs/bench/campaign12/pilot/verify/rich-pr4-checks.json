@@ -1,0 +1,73 @@
+{
+ "slug": "satisfymath/rich",
+ "number": 4,
+ "title": "fix: 3 ruff-baseline F811 findings in tests/",
+ "base": "9d8f9a372cc5916fd4781fec207ced7ddac2f08f",
+ "head": "544963387f241651ff7e3d28394e95df6e65164c",
+ "claims": [
+  {
+   "file": "tests/test_console.py",
+   "line": "604",
+   "rule": "F811"
+  },
+  {
+   "file": "tests/test_console.py",
+   "line": "968",
+   "rule": "F811"
+  },
+  {
+   "file": "tests/test_win32_console.py",
+   "line": "140",
+   "rule": "F811"
+  }
+ ],
+ "changed_files": [
+  "tests/test_console.py",
+  "tests/test_win32_console.py"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [
+  {
+   "file": "tests/test_console.py",
+   "line": "604",
+   "rule": "F811",
+   "at_base": [
+    "tests/test_console.py:604:5: F811 Redefinition of unused `test_soft_wrap` from line 48: `test_soft_wrap` redefined here",
+    "tests/test_console.py:968:5: F811 Redefinition of unused `test_force_color` from line 953: `test_force_color` redefined here"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/test_console.py",
+   "line": "968",
+   "rule": "F811",
+   "at_base": [
+    "tests/test_console.py:604:5: F811 Redefinition of unused `test_soft_wrap` from line 48: `test_soft_wrap` redefined here",
+    "tests/test_console.py:968:5: F811 Redefinition of unused `test_force_color` from line 953: `test_force_color` redefined here"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/test_win32_console.py",
+   "line": "140",
+   "rule": "F811",
+   "at_base": [
+    "tests/test_win32_console.py:140:9: F811 Redefinition of unused `test_write_styled_reverse` from line 123: `test_write_styled_reverse` redefined here"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  }
+ ],
+ "change_matches_problem": true,
+ "project_checks_on_head": {
+  "status": "passed",
+  "collected": 981,
+  "failed": [],
+  "why": null,
+  "scope": "matrix entry 1 of 17 (os=ubuntu-latest, python-version=3.9)"
+ },
+ "verdict": "verified"
+}

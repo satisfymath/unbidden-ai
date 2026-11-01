@@ -79,3 +79,7 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
 - 2026-11-01 · Level B pilot, spoolman B1 · the first open opportunity ("spool, 100000 rows, read 122 times in 5
   min") may count the agent's own probe traffic as application load; to verify in phase 5 before it is read as a
   finding · to verify · open.
+- 2026-11-01 · verification, rich B1 · the three pull requests verified apart from the agent: each named finding
+  present at the base and gone at the head (ruff run by the verifier), only the named files changed, no test file
+  removed, no skip added; PR 4 (F811 in test files) re-checked in a fresh sandbox: the suite passes with the same 981
+  tests collected as the base · verified (3/3) · recorded.
