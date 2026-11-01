@@ -80,6 +80,11 @@ def checks_record(repo: Path, rev: str, mandate: Mandate, *, timeout_s: float = 
                 "failed": summary.failed_per_round[0][:50],
                 "why": summary.infra_why[0] if summary.infra_why else None,
                 "failures": summary.failure_messages,
+                # the environment's, apart from the code's failures: how many tests, which tools the image lacks
+                "could_not_run": {
+                    "tests": len(summary.could_not_run),
+                    "lacks": sorted(set(summary.could_not_run.values())),
+                },
             }
     except Exception as exc:  # the environment could not be built: that is the finding
         record |= {"status": "blocked", "why": f"{type(exc).__name__}: {str(exc)[-1500:]}"}

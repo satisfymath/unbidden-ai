@@ -41,6 +41,9 @@ class TestSummary(Contract):
     # The report's message of each failure of the first round (first lines, at most 20 tests): what failed and why,
     # so a record of names can be read (stage 10, level A: CTFd's 50 and TimeTracker's 50 had no cause recorded).
     failure_messages: dict[str, str] = Field(default_factory=dict[str, str])
+    # Tests of the first round that could not run because the sandbox image lacks an executable (test -> tool,
+    # campaign 12: codex-lb's `git`): the environment's, never counted among the code's failures.
+    could_not_run: dict[str, str] = Field(default_factory=dict[str, str])
 
     def status(self, i: int) -> str:
         """A round's status; for an older record, an unattributed failure is taken as a suite that did not run."""

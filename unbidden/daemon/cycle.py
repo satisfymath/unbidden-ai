@@ -147,7 +147,7 @@ class Cycle:
             found = await asyncio.to_thread(checks_record, self.runtime.workspace.repo, rev,
                                             self.runtime.workspace.mandate(), timeout_s=CHECKS_TIMEOUT_S)  # fmt: skip
             plan = found.get("plan") or {}
-            record |= {k: found.get(k) for k in ("status", "collected", "failed", "why") if k in found}
+            record |= {k: found.get(k) for k in ("status", "collected", "failed", "why", "could_not_run") if k in found}
             record |= {"command": plan.get("command"), "scope": plan.get("scope"), "partial": plan.get("partial"),
                        "notes": list(plan.get("notes") or [])[:10], "stack": found.get("stack"),
                        "image": found.get("image")}  # fmt: skip
@@ -159,8 +159,10 @@ class Cycle:
             raise
         self.store.set_value("baseline_checks", record)
         self._wake(f"checks:{rev[:12]}")  # experiments that waited for the checks may start now
+        cnr = record.get("could_not_run") or {}
+        apart = f", {cnr['tests']} could not run: the image lacks {', '.join(cnr['lacks'])}" if cnr.get("tests") else ""
         self.log(f"the project's own checks at {rev[:12]}: {record.get('status')} "
-                 f"({record.get('collected')} collected, {len(record.get('failed') or [])} failed)")  # fmt: skip
+                 f"({record.get('collected')} collected, {len(record.get('failed') or [])} failed{apart})")  # fmt: skip
 
     async def world_refresh(self, _: Job) -> None:
         """The running system, mapped again without waiting for a commit: data grows, a migration is applied, a
