@@ -65,7 +65,10 @@ def test_an_action_is_refused_and_pointed_at_the_panel_or_the_cli_nothing_queued
         jobs_before = src.job_counts()
         reply = _turn(c, "Aprueba la propuesta opp_demo000000000001")
         assert reply["route"]["intent"] == "act" and reply["route"]["action"] == "approve"
-        assert reply["results"][0]["error"]["code"] == "refused" and "unbidden approve" in reply["results"][0]["error"]["need"]
+        assert (
+            reply["results"][0]["error"]["code"] == "refused"
+            and "unbidden approve" in reply["results"][0]["error"]["need"]
+        )
         assert "No lo hago desde el chat" in reply["content"] and reply["tool_calls"] == []
         assert src.job_counts() == jobs_before
         reply = _turn(c, "Lanza un experimento sobre esto")

@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import replace
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Any, NoReturn
 
 from jsonschema import Draft202012Validator
@@ -22,7 +22,7 @@ from unbidden.brain.route_policy import NEVER_REMOTE, RouteDecision, decide_rout
 from unbidden.brain.spend import SpendLedger, SpendRefused, worst_cost
 from unbidden.brain.tasks import task_for
 from unbidden.config import Config, Route
-from unbidden.contracts.common import Cost, utc_now
+from unbidden.contracts.common import Cost
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import ActionRequest, EgressAttempt, EgressVerdict, Mandate
 from unbidden.contracts.llm import ContentLabel, LLMRequest, LLMResponse, Message, ModelRun, Tier, Usage

@@ -9,6 +9,7 @@ from typing import Any
 
 import pytest
 
+from unbidden.contracts.common import utc_now
 from unbidden.contracts.guardian import Mandate
 from unbidden.daemon import loop
 from unbidden.daemon.cycle import retry_after, timeout_for
@@ -156,3 +157,79 @@ def test_effects_check_the_switch_immediately_before_acting(tmp_path: Path, mand
     with pytest.raises(Cancelled):
         deploy(tmp_path, store, mandate, "a" * 40, reason="t")
     assert store.get_value("deploys", []) == []
+
+
+def test_a_stop_puts_the_running_job_back_without_spending_an_attempt(
+    store: Store, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`unbidden stop`: the job running is cancelled like the kill switch does, goes back to the queue due now with
+    its attempt given back, no new job is claimed, and `_work` returns."""
+    from unbidden.daemon.cycle import job
+
+    monkeypatch.setattr(loop, "kill_containers", lambda *_: 0)
+    stopping = asyncio.Event()
+    ran: list[str] = []
+
+    async def sleeps(_: Any) -> None:
+        ran.append("sleeps")
+        asyncio.get_running_loop().call_later(0.2, stopping.set)
+        await asyncio.sleep(30)
+
+    async def never(_: Any) -> None:
+        ran.append("never")
+
+    store.enqueue(job("observe.head", "a"))  # priority: observe.head runs first, director.sweep after
+
+    class Switch:
+        engaged = False
+
+    began = time.monotonic()
+    asyncio.run(
+        loop._work(  # pyright: ignore[reportPrivateUsage]
+            None,  # type: ignore[arg-type]
+            None,  # type: ignore[arg-type]
+            dict.fromkeys(("director.sweep", "github.poll", "world.refresh", "connect.survey"), never)
+            | {"observe.head": sleeps},
+            store,
+            Switch(),
+            lambda _: None,
+            3600,
+            timedelta(minutes=5),
+            False,
+            stopping=stopping,
+        )
+    )
+    assert time.monotonic() - began < 5  # neither the 30 s job nor the 3600 s interval was waited for
+    assert ran[-1] == "sleeps"  # nothing claimed once the stop was asked: the rest of the cycle is still queued
+    untouched = [j for j in store.jobs() if j.type != "observe.head" and j.attempts == 0]
+    assert untouched and all(j.status.value == "queued" for j in untouched)
+    stopped = next(j for j in store.jobs() if j.idempotency_key == "observe.head:a")
+    assert stopped.status.value == "queued" and stopped.attempts == 0 and stopped.last_error == "stopped: unbidden stop"
+    assert stopped.run_at <= utc_now()
+
+
+def test_an_idle_loop_returns_as_soon_as_a_stop_is_asked(store: Store) -> None:
+    stopping = asyncio.Event()
+
+    async def quick(_: Any) -> None:
+        asyncio.get_running_loop().call_later(0.1, stopping.set)
+
+    class Switch:
+        engaged = False
+
+    began = time.monotonic()
+    asyncio.run(
+        loop._work(  # pyright: ignore[reportPrivateUsage]
+            None,  # type: ignore[arg-type]
+            None,  # type: ignore[arg-type]
+            dict.fromkeys(("observe.head", "director.sweep", "github.poll", "world.refresh", "connect.survey"), quick),
+            store,
+            Switch(),
+            lambda _: None,
+            3600,
+            timedelta(minutes=5),
+            False,
+            stopping=stopping,
+        )
+    )
+    assert time.monotonic() - began < 5
