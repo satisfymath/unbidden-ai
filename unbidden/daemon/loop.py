@@ -76,10 +76,13 @@ async def watch(
     interval_s: float = 30,
     poll_every: timedelta = timedelta(minutes=5),
     once: bool = False,
+    stopping: asyncio.Event | None = None,
 ) -> None:
     """Observe HEAD every `interval_s`, follow pull requests every `poll_every`, and work the queue in between.
 
     With `once`, run until the queue is empty and return: one full cycle, useful for demos and tests.
+    `stopping`, once set (SIGTERM, SIGINT: `unbidden stop`), ends the loop cleanly: no new job is claimed, the job
+    running is cancelled like the kill switch does and put back without spending an attempt, and `watch` returns.
     """
     cycle = Cycle(runtime, log=log)
     handlers = cycle.handlers()
@@ -93,26 +96,37 @@ async def watch(
     if not once:
         threading.Thread(target=_probe_forever, args=(runtime, log, stop), name="unbidden-probes", daemon=True).start()
     try:
-        await _work(runtime, cycle, handlers, store, killswitch, log, interval_s, poll_every, once)
+        await _work(runtime, cycle, handlers, store, killswitch, log, interval_s, poll_every, once, stopping=stopping)
     finally:
         stop.set()
 
 
 class Stopped(Exception):
-    """A job stopped from outside: past its time, or by the kill switch."""
+    """A job stopped from outside: past its time, by the kill switch, or by `unbidden stop`."""
 
-    def __init__(self, why: str, *, drained: bool) -> None:
+    def __init__(self, why: str, *, drained: bool, by_stop: bool = False) -> None:
         tail = "" if drained else f"; its threads were still working after {DRAIN_S:.0f} s, so it is not retried"
         super().__init__(why + tail)
         self.drained = drained
+        self.by_stop = by_stop  # the process is ending: the job resumes on the next start, no attempt spent
+
+
+STOP_WHY = "unbidden stop"
 
 
 DRAIN_S = 30.0
 KILL_POLL_S = 1.0
 
 
-async def run_job(handler: Any, claimed: Any, scope: JobScope, killswitch: Any, timeout_s: float) -> None:
-    """Run one job under its scope. On timeout or kill switch: cancel the scope (its code stops at the next
+async def run_job(
+    handler: Any,
+    claimed: Any,
+    scope: JobScope,
+    killswitch: Any,
+    timeout_s: float,
+    stopping: asyncio.Event | None = None,
+) -> None:
+    """Run one job under its scope. On timeout, kill switch or stop: cancel the scope (its code stops at the next
     checkpoint), kill the sandbox containers it started, cancel the task, and wait for its threads to end."""
     token = CURRENT.set(scope)
     try:
@@ -120,19 +134,30 @@ async def run_job(handler: Any, claimed: Any, scope: JobScope, killswitch: Any, 
     finally:
         CURRENT.reset(token)
     deadline = time.monotonic() + timeout_s
-    while not task.done():
-        await asyncio.wait({task}, timeout=min(KILL_POLL_S, max(0.0, deadline - time.monotonic())))
-        if task.done():
-            break
-        if killswitch.engaged:
-            scope.cancel("the kill switch was engaged")
-        elif time.monotonic() >= deadline:
-            scope.cancel(f"ran past {timeout_s:g} s")
-        if scope.cancelled.is_set():
-            await asyncio.to_thread(kill_containers, scope.job_id)
-            task.cancel()
-            await asyncio.gather(task, return_exceptions=True)
-            raise Stopped(f"stopped: {scope.why}", drained=await _drained(scope))
+    waited: set[asyncio.Future[Any]] = {task}
+    stop_waiter = asyncio.ensure_future(stopping.wait()) if stopping is not None else None
+    if stop_waiter is not None:
+        waited.add(stop_waiter)  # a stop wakes this loop at once, not at the next poll
+    try:
+        while not task.done():
+            timeout = min(KILL_POLL_S, max(0.0, deadline - time.monotonic()))
+            await asyncio.wait(waited, timeout=timeout, return_when=asyncio.FIRST_COMPLETED)
+            if task.done():
+                break
+            if killswitch.engaged:
+                scope.cancel("the kill switch was engaged")
+            elif stopping is not None and stopping.is_set():
+                scope.cancel(STOP_WHY)
+            elif time.monotonic() >= deadline:
+                scope.cancel(f"ran past {timeout_s:g} s")
+            if scope.cancelled.is_set():
+                await asyncio.to_thread(kill_containers, scope.job_id)
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+                raise Stopped(f"stopped: {scope.why}", drained=await _drained(scope), by_stop=scope.why == STOP_WHY)
+    finally:
+        if stop_waiter is not None:
+            stop_waiter.cancel()
     task.result()
 
 
@@ -153,7 +178,11 @@ async def _work(
     interval_s: float,
     poll_every: timedelta,
     once: bool,
+    stopping: asyncio.Event | None = None,
 ) -> None:
+    def stop_asked() -> bool:
+        return stopping is not None and stopping.is_set()
+
     while True:
         now = utc_now()
         bucket = int(now.timestamp() // interval_s)
@@ -170,6 +199,8 @@ async def _work(
         for met in release(store, runtime.workspace.mandate()) if runtime is not None else []:
             log(f"unblocked: {met.needs}; {len(met.jobs)} job(s) run again")
         while True:
+            if stop_asked():
+                break  # no new job once a stop was asked; the queue waits for the next start
             if killswitch.engaged:
                 log("kill switch engaged; waiting")
                 break
@@ -182,11 +213,15 @@ async def _work(
                 continue
             scope = JobScope(claimed.id)
             try:
-                await run_job(handler, claimed, scope, killswitch, timeout_for(claimed.type))
+                await run_job(handler, claimed, scope, killswitch, timeout_for(claimed.type), stopping)
             except Stopped as stop:
                 log(f"{claimed.type}: {stop}")
                 # Retried only once every thread it started has ended: never two copies of a job at once.
                 retry = retry_after(claimed.attempts) if stop.drained else None
+                if stop.by_stop:
+                    # The process ends here, its threads with it: the job resumes on the next start, due at once,
+                    # and the interruption is not the job's own failure, so no attempt is spent.
+                    claimed.attempts, retry = claimed.attempts - 1, timedelta(0)
                 store.finish(claimed, error=str(stop), retry_in=retry)
             except Exception as exc:
                 log(f"{claimed.type} failed: {exc}")
@@ -204,6 +239,13 @@ async def _work(
                              retry_in=retry)  # fmt: skip
             else:
                 store.finish(claimed)
-        if once:
+        if once or stop_asked():
             return
-        await asyncio.sleep(interval_s)
+        if stopping is None:
+            await asyncio.sleep(interval_s)
+            continue
+        try:
+            await asyncio.wait_for(stopping.wait(), interval_s)
+        except TimeoutError:
+            continue
+        return  # stopped while idle

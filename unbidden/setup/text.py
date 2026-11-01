@@ -118,8 +118,14 @@ T: dict[str, str] = {
     "home.scan": "last scan: {when}",
     "home.spend": "spend: US${spent:.4f} spent on this machine · US${available:.4f} available under the cap",
     "home.next": "next: {action}",
+    "home.agent.running": "agent: running pid {pid} since {since}, log {log}",
+    "home.agent.stopped": "agent: not running",
+    "home.agent.stale": (
+        "agent: not running; the last run (pid {pid}) ended without 'unbidden stop'; {jobs} job(s) resume on start"
+    ),
     "home.commands": (
-        "commands: setup · doctor · scan · inbox · activity · mode · models · spend · kill/resume · --json on each"
+        "commands: setup · doctor · scan · start · stop · status · inbox · activity · mode · models · spend · "
+        "kill/resume · --json on each"
     ),
     "home.unset": "No workspace here yet: run `unbidden setup` (or `unbidden init` for the defaults).",
     "home.nogit": "`unbidden` works inside a git repository: cd into your project first.",

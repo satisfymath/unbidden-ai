@@ -36,6 +36,15 @@ def _emit(args: argparse.Namespace, data: Any) -> bool:
     return False
 
 
+def _own(ws: Workspace, command: str) -> Any:
+    """The engine lock, for the commands that execute jobs or effects in this process (daemon/owner.py). Decisions
+    (`approve`, `mode`, `kill`, ...) do not take it: they are short transactions the loop reads on its next cycle."""
+    from unbidden.daemon.owner import EngineLock
+
+    ws.require()
+    return EngineLock.acquire(ws.dir, command)
+
+
 def cmd_init(args: argparse.Namespace) -> int:
     ws = Workspace.find()
     created = ws.init()
@@ -100,7 +109,14 @@ def cmd_prepare(args: argparse.Namespace) -> int:
 
 def cmd_scan(args: argparse.Namespace) -> int:
     ws = Workspace.find()
-    ws.require()
+    lock = _own(ws, "scan")
+    try:
+        return _scan(args, ws)
+    finally:
+        lock.release()
+
+
+def _scan(args: argparse.Namespace, ws: Workspace) -> int:
     store = ws.store()
     rev = head_sha(ws.repo)
     with console.status("scanning") as status:
@@ -171,12 +187,21 @@ def cmd_show(args: argparse.Namespace) -> int:
 
 def cmd_try(args: argparse.Namespace) -> int:
     """Run one experiment now, in the foreground."""
+    ws = Workspace.find()
+    lock = _own(ws, "try")
+    try:
+        return _try(args, ws)
+    finally:
+        lock.release()
+
+
+def _try(args: argparse.Namespace, ws: Workspace) -> int:
     import asyncio
 
     from unbidden.lab.fixlab import FixLab
     from unbidden.runtime import Runtime
 
-    runtime = Runtime.open(Workspace.find())
+    runtime = Runtime.open(ws)
     opp = runtime.store.get("opportunities", args.id, Opportunity)
     if opp is None:
         err.print(f"no opportunity {args.id}")
@@ -237,23 +262,134 @@ def cmd_try(args: argparse.Namespace) -> int:
 
 
 def cmd_watch(args: argparse.Namespace) -> int:
-    """Run in the foreground until interrupted (or one full cycle with --once)."""
+    """Run in the foreground until stopped (SIGTERM, SIGINT), or one full cycle with --once. This process owns
+    the workspace's jobs while it runs (daemon/owner.py); `--ui` is accepted here and served by delivery D."""
     import asyncio
+    import signal
 
-    from unbidden.daemon.loop import watch
     from unbidden.runtime import Runtime
 
-    runtime = Runtime.open(Workspace.find())
+    ws = Workspace.find()
+    lock = _own(ws, "watch")
 
-    def log(message: str) -> None:
-        console.print(f"[dim]{datetime.now():%H:%M:%S}[/] {message}")
+    # From the moment this process owns the workspace, a stop ends it cleanly: before the loop runs (while the
+    # runtime opens) a SIGTERM is a KeyboardInterrupt, caught below; inside the loop, the event loop's handlers.
+    def stop_early(*_: object) -> None:
+        raise KeyboardInterrupt
 
-    log(f"watching {runtime.workspace.repo} (ctrl-c to stop, `unbidden kill` to freeze)")
+    previous = signal.signal(signal.SIGTERM, stop_early)
     try:
-        asyncio.run(watch(runtime, log=log, interval_s=args.interval, once=args.once))
+        runtime = Runtime.open(ws)
+
+        def log(message: str) -> None:
+            console.print(f"[dim]{datetime.now():%H:%M:%S}[/] {message}")
+
+        log(
+            f"watching {runtime.workspace.repo} in the foreground: this ends with the terminal; "
+            "background: unbidden start · freeze: unbidden kill"
+        )
+        try:
+            asyncio.run(_watch_until_stopped(runtime, log, lock, interval_s=args.interval, once=args.once))
+        except KeyboardInterrupt:
+            log("stopped")
+        return 0
     except KeyboardInterrupt:
+        console.print("stopped before the first cycle")
+        return 0
+    finally:
+        signal.signal(signal.SIGTERM, previous)
+        lock.release()
+
+
+async def _watch_until_stopped(runtime: Any, log: Any, lock: Any, *, interval_s: float, once: bool) -> None:
+    """`watch` with SIGTERM and SIGINT turned into a clean stop; a second signal ends the process at once (130)."""
+    import asyncio
+    import os
+    import signal
+
+    from unbidden.daemon.loop import watch
+
+    stopping = asyncio.Event()
+    loop = asyncio.get_running_loop()
+    asked = 0
+
+    def on_signal(signum: int) -> None:
+        nonlocal asked
+        asked += 1
+        if asked > 1:
+            log("stopping now")
+            lock.release()
+            os._exit(130)
+        log(f"{signal.Signals(signum).name}: stopping after the current job (send it again to exit at once)")
+        stopping.set()
+
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        loop.add_signal_handler(sig, on_signal, sig)
+    try:
+        await watch(runtime, log=log, interval_s=interval_s, once=once, stopping=stopping)
+    finally:
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            loop.remove_signal_handler(sig)
+    if stopping.is_set():
         log("stopped")
+
+
+def cmd_start(args: argparse.Namespace) -> int:
+    """Run the agent in the background: `unbidden watch` in its own session, logging to .unbidden/logs/agent.log."""
+    from unbidden.daemon import service
+
+    ws = Workspace.find()
+    ws.require()
+    result = service.start(ws, interval_s=args.interval, extra_args=["--ui"] if args.ui else [])
+    ok = bool(result.get("started")) or "already" in result
+    if _emit(args, result):
+        return 0 if ok else 1
+    if result.get("started"):
+        console.print(
+            f"agent started: pid {result['pid']} · log {result['log']} · see: unbidden status · stop: unbidden stop"
+        )
+        return 0
+    if "already" in result:
+        h = result["already"]
+        console.print(f"already running: pid {h.get('pid')} since {h.get('started_at')} (unbidden {h.get('command')})")
+        return 0
+    exit_code = result.get("exit")
+    ended = f"exited with code {exit_code}" if exit_code is not None else str(result.get("note"))
+    err.print(f"[red]the agent {ended} before it owned the workspace[/]; the end of its log:")
+    for line in result.get("log_tail", []):
+        err.print(f"  {line}", markup=False, highlight=False)
+    return 1
+
+
+def cmd_stop(args: argparse.Namespace) -> int:
+    """End the background agent cleanly. The kill switch is not touched: nothing stays frozen."""
+    from unbidden.daemon import service
+
+    ws = Workspace.find()
+    ws.require()
+    result = service.stop(ws, timeout_s=args.timeout)
+    if _emit(args, result):
+        return 0
+    _print_stop(result)
     return 0
+
+
+def _print_stop(result: dict[str, Any]) -> None:
+    if result.get("stopped"):
+        console.print(f"agent stopped (pid {result['pid']}, {result['waited_s']:.1f} s)")
+        left = int(result.get("jobs_left_running") or 0)
+        if left:
+            console.print(f"{left} job(s) were still running; they resume on the next start")
+        if result.get("forced"):
+            console.print(f"[yellow]forced after {result['timeout_s']:g} s[/]")
+        return
+    console.print("agent is not running")
+    if result.get("stale"):
+        last = result.get("last") or {}
+        console.print(
+            f"the last run (pid {last.get('pid')}) ended without 'unbidden stop'; "
+            f"{result.get('jobs_running', 0)} job(s) resume on start"
+        )
 
 
 def _proposal_for(store: Any, opportunity_id: str) -> Proposal | None:
@@ -395,12 +531,19 @@ def cmd_mode(args: argparse.Namespace) -> int:
 def cmd_deploy(args: argparse.Namespace) -> int:
     """Deploy a local commit or branch (a proposal not published, say) with the mandate's steps, as the merge path
     would: the same Guardian checks and rate limit, the same ledger binding, the same event the live watcher judges."""
+    ws = Workspace.find()
+    lock = _own(ws, "deploy")
+    try:
+        return _deploy(args, ws)
+    finally:
+        lock.release()
+
+
+def _deploy(args: argparse.Namespace, ws: Workspace) -> int:
     import subprocess
 
     from unbidden.operate.deploy import OperationRefused, deploy
 
-    ws = Workspace.find()
-    ws.require()
     found = subprocess.run(["git", "-C", str(ws.repo), "rev-parse", "--verify", f"{args.ref}^{{commit}}"],
                            capture_output=True, text=True, check=False)  # fmt: skip
     if found.returncode != 0:
@@ -423,13 +566,20 @@ def cmd_deploy(args: argparse.Namespace) -> int:
 
 def cmd_drill(args: argparse.Namespace) -> int:
     """Prove rollback works: deploy the previous version with the team's steps, check health, deploy back."""
+    ws = Workspace.find()
+    lock = _own(ws, "drill")
+    try:
+        return _drill(args, ws)
+    finally:
+        lock.release()
+
+
+def _drill(args: argparse.Namespace, ws: Workspace) -> int:
     import subprocess
 
     from unbidden.contracts.world import WorldModel
     from unbidden.operate.deploy import drill
 
-    ws = Workspace.find()
-    ws.require()
     store = ws.store()
     world = store.get("world", "world", WorldModel)
     health = next(
@@ -659,14 +809,25 @@ def cmd_why(args: argparse.Namespace) -> int:
 
 
 def cmd_forge(args: argparse.Namespace) -> int:
-    """Build, list or approve capabilities Unbidden made for itself."""
+    """Build, list or approve capabilities Unbidden made for itself. Building and reading stats execute work in this
+    process, so they own the workspace meanwhile; listing, approving and disabling are short writes."""
+    ws = Workspace.find()
+    lock = _own(ws, f"forge {args.action}") if args.action in ("build", "stats") else None
+    try:
+        return _forge(args, ws)
+    finally:
+        if lock is not None:
+            lock.release()
+
+
+def _forge(args: argparse.Namespace, ws: Workspace) -> int:
     import asyncio
 
     from unbidden.forge.adapter import LogAdapter
     from unbidden.forge.build import Forge, compose_logs
     from unbidden.runtime import Runtime
 
-    runtime = Runtime.open(Workspace.find())
+    runtime = Runtime.open(ws)
     store = runtime.store
     if args.action == "stats":
         return _forge_stats(runtime, args.target)
@@ -829,12 +990,21 @@ def cmd_logs(args: argparse.Namespace) -> int:
 
 def cmd_investigate(args: argparse.Namespace) -> int:
     """Explain a failure between a healthy and a failed version, read-only, with the local model."""
+    ws = Workspace.find()
+    lock = _own(ws, "investigate")
+    try:
+        return _investigate(args, ws)
+    finally:
+        lock.release()
+
+
+def _investigate(args: argparse.Namespace, ws: Workspace) -> int:
     import asyncio
 
     from unbidden.research.investigate import Investigation
     from unbidden.runtime import Runtime
 
-    runtime = Runtime.open(Workspace.find())
+    runtime = Runtime.open(ws)
     incident = args.incident or f"version {args.bad[:12]} failed where {args.good[:12]} worked"
     investigation = Investigation(
         runtime.workspace.repo,
@@ -865,12 +1035,21 @@ def cmd_investigate(args: argparse.Namespace) -> int:
 
 def cmd_probe(args: argparse.Namespace) -> int:
     """Look for crashes in a package with property-based tests a model writes, run offline."""
+    ws = Workspace.find()
+    lock = _own(ws, "probe")
+    try:
+        return _probe(args, ws)
+    finally:
+        lock.release()
+
+
+def _probe(args: argparse.Namespace, ws: Workspace) -> int:
     import asyncio
 
     from unbidden.research.robustness import RobustnessProbe, parse_crashes, probe_package, property_violations
     from unbidden.runtime import Runtime
 
-    runtime = Runtime.open(Workspace.find())
+    runtime = Runtime.open(ws)
     rev = head_sha(runtime.workspace.repo)
     _, images = runtime.stack_and_images(rev)
     if "python" not in images:
@@ -1104,30 +1283,44 @@ def cmd_doctor(args: argparse.Namespace) -> int:
 
 
 def cmd_map(args: argparse.Namespace) -> int:
-    """Discover the system (repository, running containers, live API, database) and show the World Model."""
+    """Discover the system (repository, running containers, live API, database) and show the World Model.
+    Discovering runs connectors in this process, so it owns the workspace meanwhile; --cached and --scope only read."""
+    if args.connectors:
+        return _map_connectors(args)
+    ws = Workspace.find()
+    lock = None if (args.cached or args.scope) else _own(ws, "map")
+    try:
+        return _map(args, ws)
+    finally:
+        if lock is not None:
+            lock.release()
+
+
+def _map_connectors(args: argparse.Namespace) -> int:
+    from unbidden.world.connectors import CONNECTORS, NOT_COVERED
+
+    if _emit(args, {"connectors": [c.model_dump() for c in CONNECTORS], "not_covered": NOT_COVERED}):
+        return 0
+    for c in CONNECTORS:
+        console.print(f"[bold]{c.ref}[/] ({c.capability}, {'read-only' if c.read_only else 'writes'}) {c.purpose}")
+        console.print(
+            f"    discovers {', '.join(c.discovers)}" + (f"; measures {', '.join(c.measures)}" if c.measures else "")
+        )
+        console.print(f"    cost: {c.cost}\n    scope: {c.scope}")
+    console.print("\n[bold]Not covered[/]")
+    for what, why in NOT_COVERED.items():
+        console.print(f"  - {what}: {why}")
+    return 0
+
+
+def _map(args: argparse.Namespace, ws: Workspace) -> int:
     import asyncio
 
     from unbidden.contracts.world import WorldModel
     from unbidden.runtime import Runtime
     from unbidden.world.discover import discover
 
-    if args.connectors:
-        from unbidden.world.connectors import CONNECTORS, NOT_COVERED
-
-        if _emit(args, {"connectors": [c.model_dump() for c in CONNECTORS], "not_covered": NOT_COVERED}):
-            return 0
-        for c in CONNECTORS:
-            console.print(f"[bold]{c.ref}[/] ({c.capability}, {'read-only' if c.read_only else 'writes'}) {c.purpose}")
-            console.print(
-                f"    discovers {', '.join(c.discovers)}"
-                + (f"; measures {', '.join(c.measures)}" if c.measures else "")
-            )
-            console.print(f"    cost: {c.cost}\n    scope: {c.scope}")
-        console.print("\n[bold]Not covered[/]")
-        for what, why in NOT_COVERED.items():
-            console.print(f"  - {what}: {why}")
-        return 0
-    runtime = Runtime.open(Workspace.find())
+    runtime = Runtime.open(ws)
     repo = runtime.workspace.repo
     if args.cached or args.scope:
         world = runtime.store.get("world", "world", WorldModel)
@@ -1336,6 +1529,8 @@ def cmd_errors(args: argparse.Namespace) -> int:
 
 
 def cmd_status(args: argparse.Namespace) -> int:
+    from unbidden.daemon import service
+
     ws = Workspace.find()
     ws.require()
     store = ws.store()
@@ -1343,21 +1538,35 @@ def cmd_status(args: argparse.Namespace) -> int:
     counts: dict[str, int] = {}
     for o in opps:
         counts[o.status.value] = counts.get(o.status.value, 0) + 1
+    agent = service.status(ws)
     data = {
         "repo": str(ws.repo),
         "head": head_sha(ws.repo),
         "kill_switch": ws.killswitch().engaged,
+        "agent": agent,
+        "stale": agent["stale"],
         "last_scan": store.get_value("last_scan"),
         "opportunities": counts,
     }
     if _emit(args, data):
         return 0
     console.print(f"[bold]{ws.repo.name}[/] head {data['head'][:12]}")
+    console.print(_agent_line(agent))
     if data["kill_switch"]:
         console.print("[red]kill switch engaged[/]: nothing runs until `unbidden resume`")
     console.print(f"opportunities: {counts or 'none yet'}")
     store.close()
     return 0
+
+
+def _agent_line(agent: dict[str, Any]) -> str:
+    from unbidden.setup.text import t
+
+    if agent["running"]:
+        return t("home.agent.running", pid=agent["pid"], since=agent["started_at"], log=agent["log"])
+    if agent["stale"]:
+        return t("home.agent.stale", pid=agent["pid"], jobs=agent["jobs_running"])
+    return t("home.agent.stopped")
 
 
 def meta_api_status(key: bool, get: Any = None) -> tuple[bool, str]:
@@ -1561,10 +1770,16 @@ def cmd_activity(args: argparse.Namespace) -> int:
 
 
 def cmd_kill(args: argparse.Namespace) -> int:
+    """Freeze: no job, effect or model call, in any process, until `unbidden resume`. With --stop, also end the
+    background agent (which `stop` alone would do without freezing anything)."""
     ws = Workspace.find()
     ws.require()
     ws.killswitch().engage(args.reason)
     console.print("Kill switch engaged. No job starts and no model is called until `unbidden resume`.")
+    if getattr(args, "stop", False):
+        from unbidden.daemon import service
+
+        _print_stop(service.stop(ws))
     return 0
 
 
@@ -1614,6 +1829,7 @@ def cmd_setup(args: argparse.Namespace) -> int:
 def cmd_home(args: argparse.Namespace) -> int:
     """What `unbidden` shows with no command: the project's state, blocks and the next action."""
     from unbidden.brain.spend import SpendLedger
+    from unbidden.daemon import service
     from unbidden.setup.text import t
 
     try:
@@ -1637,10 +1853,13 @@ def cmd_home(args: argparse.Namespace) -> int:
     ledger = SpendLedger().status()
     last_scan = store.get_value("last_scan")
     killed = ws.killswitch().engaged
+    agent = service.status(ws)
     if killed:
         nxt = "unbidden resume"
     elif last_scan is None:
         nxt = "unbidden scan"
+    elif not agent["running"]:
+        nxt = "unbidden start"
     elif counts.get("proposed") or counts.get("validated"):
         nxt = "unbidden inbox"
     else:
@@ -1652,6 +1871,7 @@ def cmd_home(args: argparse.Namespace) -> int:
         "profile": mandate.models.profile,
         "local_inference": mandate.models.local_inference,
         "kill_switch": killed,
+        "agent": agent,
         "last_scan": last_scan,
         "opportunities": counts,
         "spend": {"spent_usd": round(ledger.spent_usd, 4), "available_usd": round(ledger.available_usd, 4)},
@@ -1663,6 +1883,7 @@ def cmd_home(args: argparse.Namespace) -> int:
     console.print(f"[bold]{title}[/]")
     if killed:
         console.print(f"[red]{t('home.kill')}[/]")
+    console.print(_agent_line(agent))
     console.print(t("home.opps", counts=counts or "none yet"))
     console.print(t("home.scan", when=last_scan) if last_scan else t("home.scan.none"))
     console.print(t("home.spend", spent=ledger.spent_usd, available=ledger.available_usd))
@@ -1752,9 +1973,15 @@ def build_parser() -> argparse.ArgumentParser:
     try_ = command("try", cmd_try, "run an experiment on one opportunity now")
     try_.add_argument("id")
     try_.add_argument("--bridge", action="store_true", help="go straight to Muse Spark through the privacy bridge")
-    watch = command("watch", cmd_watch, "keep working in the background of this terminal", json_out=False)
+    watch = command("watch", cmd_watch, "keep working in the foreground of this terminal", json_out=False)
     watch.add_argument("--interval", type=float, default=30, help="seconds between looks at HEAD")
     watch.add_argument("--once", action="store_true", help="run one full cycle and exit")
+    watch.add_argument("--ui", action="store_true", help="also serve the dashboard from this process (delivery D)")
+    start = command("start", cmd_start, "run the agent in the background (log in .unbidden/logs/agent.log)")
+    start.add_argument("--interval", type=float, default=30, help="seconds between looks at HEAD")
+    start.add_argument("--ui", action="store_true", help="also serve the dashboard from the agent (delivery D)")
+    stop = command("stop", cmd_stop, "end the background agent cleanly; the kill switch is not touched")
+    stop.add_argument("--timeout", type=float, default=60, help="seconds to wait before SIGKILL")
     approve = command("approve", cmd_approve, "allow the pull request of a proven opportunity", json_out=False)
     approve.add_argument("id")
     approve.add_argument("--hours", type=float, default=24, help="how long the approval stays valid")
@@ -1819,8 +2046,9 @@ def build_parser() -> argparse.ArgumentParser:
     why.add_argument("--payload", action="store_true", help="print each outbound payload byte for byte")
     show = command("show", cmd_show, "one opportunity with its full history")
     show.add_argument("id")
-    kill = command("kill", cmd_kill, "stop everything now", json_out=False)
+    kill = command("kill", cmd_kill, "freeze everything now, in every process, until `unbidden resume`", json_out=False)
     kill.add_argument("reason", nargs="?", default="engaged from the CLI")
+    kill.add_argument("--stop", action="store_true", help="also end the background agent")
     command("resume", cmd_resume, "release the kill switch", json_out=False)
     return parser
 
