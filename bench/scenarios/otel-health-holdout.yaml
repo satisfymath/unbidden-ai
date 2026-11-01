@@ -1,0 +1,10 @@
+# Holdout faults for health criteria, fixed on 2026-10-27 02:47 (-03:00), before they were run and before
+# health-v2-candidate is compared with health-v1 on them. Neither criteria version is changed after this run.
+# Each fault: 8 minutes on, then 8 minutes off; a 10-minute clean control first. Both criteria are judged by
+# replaying the same Prometheus history (bench/health_calibration.py), so they see exactly the same data.
+control_minutes: 10
+faults:
+  - {flag: paymentUnreachable, variant: "on", expect: payment}
+  - {flag: recommendationCacheFailure, variant: "on", expect: recommendation}
+  - {flag: imageSlowLoad, variant: 5sec, expect: image-provider}
+pass: the expected service degraded within 5 minutes; services reported that the fault cannot reach are false alarms

@@ -28,6 +28,9 @@ Every number above was measured during the event. How it was measured, and what 
 
 ## Install
 
+The current release candidate, what it supports, its limits and a walked install from a clean checkout:
+[`docs/RELEASE.md`](docs/RELEASE.md). The commands below install from `main`.
+
 Requirements:
 - Python 3.12 and [uv](https://docs.astral.sh/uv/)
 - Docker
@@ -107,20 +110,24 @@ A claim's confidence is capped by its level. Only L4 and above becomes a pull re
 
 | Command | What it does |
 |---|---|
-| `init`, `doctor`, `status`, `map` | Set up, check the machine, see what Unbidden knows and cannot see |
+| `init`, `doctor`, `status`, `map` | Set up, check the machine, see what Unbidden knows and cannot see. `map --scope <id>` walks from one component to what it rests on, with each fact's source and age; `map --connectors` says what each connector reads and costs |
+| `health` | Each service's errors and latency against its own baseline (from the project's Prometheus), where a degradation starts, and whether traces agree |
 | `scan`, `inbox`, `show`, `try`, `why` | Find opportunities, inspect them, run an experiment, see every decision and payload behind it |
+| `decide` | What the Director would do with each open opportunity, and why, without doing it |
 | `review`, `approve`, `reject` | Decide on waiting proposals |
 | `watch` | The background agent |
-| `mode`, `drill`, `deploys`, `hold`, `kill`, `resume` | Autonomy and operations |
+| `mode`, `drill`, `deploys`, `hold`, `kill`, `resume` | Autonomy and operations. `deploys` says which commit each deploy runs and how that is known (verified, observed, inferred, unknown); `deploys --commit <sha>` finds the deploys that ran it |
 | `probe` | Property-based crash search on a Python package |
 | `investigate` | Read-only explanation of a failure between two versions |
-| `forge`, `logs` | Capabilities Unbidden builds for itself (log adapters), judged by an oracle before use |
+| `forge`, `logs` | Capabilities Unbidden builds for itself (log adapters; readers for text metrics endpoints with `forge stats <url>`), judged by an oracle with no model before use, and disabled with `forge disable` |
 | `models`, `route`, `egress` | Model profile, routing explanation, outbound audit |
 
 Every command accepts `--json`.
 
 ## Documentation
 
+- [`docs/EVIDENCE.md`](docs/EVIDENCE.md): every result at the level it reached, the cross-repository benchmark and its
+  frozen holdout, the negatives, and the cost.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): how the pieces fit, and what is guaranteed and what is not.
 - [`docs/DECISIONS.md`](docs/DECISIONS.md): every design decision, with the measurement behind it.
 - [`docs/bench/`](docs/bench): benchmarks and calibrations.

@@ -1,0 +1,79 @@
+{
+ "repo": "/Users/david/unbidden-lab/prefect",
+ "rev": "1ef3e516d3b3449d19f65b30c45d1e0bff656396",
+ "stack": {
+  "python": "3.14",
+  "why": [
+   "python 3.14: where the CI runs the checks and the project's Dockerfile both use it",
+   "pyproject requires-python: >=3.11,<3.16",
+   "the CI's python-version: 3.11, 3.12, 3.13, 3.14, 3.15",
+   "the project's Dockerfile: 3.14",
+   "conflict: concrete sources disagree: the CI's python-version 3.11, 3.12, 3.13, 3.14, 3.15; the project's Dockerfile 3.14"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": "uv.lock",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [
+   "src/prefect/_build_info.py",
+   "src/prefect/_internal/analytics/_config.py"
+  ],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:f6319b2aba050a56",
+ "plan": {
+  "source": "CI python-tests.yaml > run-canonical-tests (its services: redis, postgres)",
+  "scope": "matrix entry 1 of 18 (group=1, database=postgres:14, python-version=3.12); pytest-split group 1 of 18",
+  "partial": true,
+  "notes": [
+   "2 step(s) after the tests left out (they run no tests)",
+   "left out, it needs another job's artifact (test-durations-1.json): duration_path=\"test-durations-1.json\"",
+   "left out, it needs another job's artifact (test-durations.json): jq '.\"__pytest_split_incomplete__\" = -1'  test-durations.json > \"$duration_path\""
+  ],
+  "services": [
+   "redis",
+   "postgres"
+  ],
+  "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nset +e\npytest tests --ignore=tests/typesafety  -m \"not windows\"  --numprocesses logical  --maxprocesses 6  --dist worksteal  --disable-docker-image-builds  --exclude-service kubernetes  --exclude-service docker  --durations 26  --splits 18  --group \"1\"    \npytest_exit_code=$?\nset -e\necho \"exit_code=${pytest_exit_code}\" >> \"$GITHUB_OUTPUT\"\nexit \"$pytest_exit_code\""
+ },
+ "status": "failed",
+ "collected": 1033,
+ "failed": [
+  "tests._internal.test_release_workflows::test_prerelease_tag_validation_does_not_execute_ref[.github/workflows/docker-images.yaml]",
+  "tests._internal.test_release_workflows::test_prerelease_tag_validation_does_not_execute_ref[.github/workflows/prefect-client-publish.yaml]",
+  "tests._internal.test_release_workflows::test_prerelease_tag_validation_does_not_execute_ref[.github/workflows/python-package.yaml]",
+  "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[-True]",
+  "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7-True]",
+  "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7.dev1-False]",
+  "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7.dev12-False]",
+  "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7.dev1;touch injected-True]",
+  "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7a1-True]",
+  "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7b1-True]",
+  "tests._internal.test_release_workflows::test_python_package_build_selects_release_distributions[3.8.7rc1-True]"
+ ],
+ "why": "exit 1: experimental/bundles/test_include_files_integration.py:336: could not import 'prefect_aws': No module named 'prefect_aws'\nSKIPPED [1] tests/_experimental/bundles/test_path_resolver.py:229: Windows-only test\nSKIPPED [1] tests/_internal/compatibility/test_backports.py:29: Test requires Python version less than 3.11\nSKIPPED [1] tests/_internal/concurrency/test_waiters.py:137: This test is flaky and should be rewritten\nSKIPPED [1] tests/_internal/concurrency/test_waiters.py:204: This test hangs and should be rewritten\n============ 11 failed, 1012 passed, 8 skipped, 2 xfailed in 50.87s ============",
+ "wall_s": 75.9,
+ "image_notes": [
+  "python 3.14: where the CI runs the checks and the project's Dockerfile both use it",
+  "pyproject requires-python: >=3.11,<3.16",
+  "the CI's python-version: 3.11, 3.12, 3.13, 3.14, 3.15",
+  "the project's Dockerfile: 3.14",
+  "conflict: concrete sources disagree: the CI's python-version 3.11, 3.12, 3.13, 3.14, 3.15; the project's Dockerfile 3.14",
+  "image unbidden-deps-python:f6319b2aba050a56 on linux/arm64"
+ ],
+ "python": "3.14",
+ "source": "CI python-tests.yaml > run-canonical-tests (its services: redis, postgres)",
+ "scope": "matrix entry 1 of 18 (group=1, database=postgres:14, python-version=3.12); pytest-split group 1 of 18",
+ "partial": true,
+ "notes": [
+  "2 step(s) after the tests left out (they run no tests)",
+  "left out, it needs another job's artifact (test-durations-1.json): duration_path=\"test-durations-1.json\"",
+  "left out, it needs another job's artifact (test-durations.json): jq '.\"__pytest_split_incomplete__\" = -1'  test-durations.json > \"$duration_path\""
+ ],
+ "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nset +e\npytest tests --ignore=tests/typesafety  -m \"not windows\"  --numprocesses logical  --maxprocesses 6  --dist worksteal  --disable-docker-image-builds  --exclude-service kubernetes  --exclude-service docker  --durations 26  --splits 18  --group \"1\"    \npytest_exit_code=$?\nset -e\necho \"exit_code=${pytest_exit_code}\" >> \"$GITHUB_OUTPUT\"\nexit \"$pytest_exit_code\""
+}

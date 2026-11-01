@@ -1,0 +1,164 @@
+{
+  "run": "method-check-5",
+  "manifest": "bench/repos/scale.yaml",
+  "unbidden_commit": "c50db50cdfa02b33a29e02279be90ee1796b4ffe",
+  "settings": {
+    "split": "pilot",
+    "workers": 1,
+    "minutes": 30.0,
+    "repo_budget": 0.3,
+    "profile": "frontier"
+  },
+  "rows": [
+    {
+      "name": "humanize",
+      "run": "method-check-5",
+      "tag": "bench:method-check-5:humanize",
+      "meta": {
+        "url": "https://github.com/python-humanize/humanize",
+        "commit": "6b817b963dbb091b9ad20a746cb6a26653a93b95",
+        "split": "pilot",
+        "license": "MIT",
+        "language": "Python",
+        "shape": "library",
+        "database": "none",
+        "domain": "text formatting"
+      },
+      "started_at": "2026-10-27T23:19:27.667772+00:00",
+      "steps": {
+        "checkout": {
+          "code": 0,
+          "seconds": 1.4,
+          "stderr": ""
+        },
+        "init": {
+          "code": 0,
+          "seconds": 0.2,
+          "timed_out": false,
+          "max_rss_mb": 39.1,
+          "log_tail": "{\n  \"repo\": \"/Users/david/unbidden-bench/method-check-5/humanize\",\n  \"created\": true,\n  \"mandate\": \"/Users/david/unbidden-bench/method-check-5/humanize/.unbidden/mandate.yaml\"\n}",
+          "stderr": ""
+        },
+        "map": {
+          "code": 0,
+          "seconds": 1.2,
+          "timed_out": false,
+          "max_rss_mb": 58.0,
+          "log_tail": "      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"commit\",\n          \"locator\": \"6b817b963dbb091b9ad20a746cb6a26653a93b95\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-10-27T23:19:30.122505Z\"\n        }\n      ],\n      \"source\": \"git-static@1\",\n      \"observed_at\": \"2026-10-27T23:19:30.122540Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"6b817b963dbb091b9ad20a746cb6a26653a93b95\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"id\": \"repo:humanize\",\n      \"kind\": \"repo\",\n      \"name\": \"humanize\",\n      \"attributes\": {\n        \"rev\": \"6b817b963dbb091b9ad20a746cb6a26653a93b95\",\n        \"languages\": [\n          \"python\"\n        ]\n      }\n    }\n  },\n  \"relations\": [],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"the running system\",\n      \"why\": \"no container of this compose project is running\"\n    }\n  ],\n  \"updated_at\": \"2026-10-27T23:19:30.039070Z\"\n}",
+          "stderr": ""
+        },
+        "watch": {
+          "code": 0,
+          "seconds": 18.2,
+          "timed_out": false,
+          "max_rss_mb": 125.8,
+          "log_tail": "20:19:30 watching /Users/david/unbidden-bench/method-check-5/humanize (ctrl-c to\nstop, `unbidden kill` to freeze)\n20:19:30 HEAD is 6b817b963dbb\n20:19:31 provisioning python dependencies\n20:19:31 running ruff\n20:19:31 running mypy\n20:19:31 scan of 6b817b963dbb: 2 reports, 0 new opportunities\n20:19:32 map of 6b817b963dbb: 1 resources, 2 blind spots\n20:19:32 robustness probe at 6b817b963dbb: investigate (probe src/humanize (15 \npublic functions sampled))\n20:19:32 writing property tests for src/humanize\n20:19:46 running them offline\n20:19:48 robustness probe of src/humanize: 3 failed, 5 passed in 1.26s; 0 \ncrash(es), 0 new; 0 property violation(s) kept for a person (L1)",
+          "stderr": ""
+        }
+      },
+      "state": {
+        "head": "6b817b963dbb091b9ad20a746cb6a26653a93b95",
+        "probe": {
+          "rev": "6b817b963dbb091b9ad20a746cb6a26653a93b95",
+          "package": "src/humanize",
+          "ran": true,
+          "summary": "3 failed, 5 passed in 1.26s",
+          "crashes": 0,
+          "opened": 0,
+          "violations": 0
+        },
+        "languages": [
+          "python"
+        ],
+        "blind_spots": [
+          "pyproject.toml without uv.lock: dependencies resolved at provisioning time"
+        ],
+        "problems": [],
+        "analyzers": [
+          {
+            "tool": "ruff",
+            "completeness": "complete",
+            "findings": 0,
+            "error": ""
+          },
+          {
+            "tool": "mypy",
+            "completeness": "failed",
+            "findings": 0,
+            "error": "/deps/.venv/bin/python: No module named mypy"
+          }
+        ],
+        "opportunities": [],
+        "decisions": {},
+        "probe_decisions": [
+          {
+            "chosen": "investigate",
+            "kind": "robustness_probe",
+            "reason": "probe src/humanize (15 public functions sampled)",
+            "rev": "6b817b963dbb091b9ad20a746cb6a26653a93b95",
+            "targets": [
+              [
+                "src/humanize",
+                15
+              ]
+            ],
+            "ts": "2026-10-27T23:19:32.078640+00:00"
+          }
+        ],
+        "verdicts": [],
+        "experiments": 0,
+        "proposals": [],
+        "capabilities_built": 0,
+        "model_runs_by_tier": {
+          "code": {
+            "calls": 1,
+            "ok": 1,
+            "tokens_in": 822,
+            "tokens_out": 3297,
+            "compute_s": 13.682770290994085
+          }
+        },
+        "policy_denied": {},
+        "egress_blocked": 0
+      },
+      "finished_at": "2026-10-27T23:19:48.700323+00:00",
+      "seconds": 21.0,
+      "outcome": "nothing found"
+    }
+  ],
+  "spend": {
+    "by_repo": {
+      "bench:method-check-5:humanize": {
+        "calls": 1,
+        "retries": 0,
+        "failed": 0,
+        "tokens_in": 822,
+        "tokens_out": 3297,
+        "usd": 0.01503975,
+        "unreported": 0
+      }
+    },
+    "by_model": {
+      "muse-spark-1.3": {
+        "calls": 1,
+        "retries": 0,
+        "failed": 0,
+        "tokens_in": 822,
+        "tokens_out": 3297,
+        "usd": 0.01503975,
+        "unreported": 0
+      }
+    },
+    "by_purpose": {
+      "research.robustness": {
+        "calls": 1,
+        "retries": 0,
+        "failed": 0,
+        "tokens_in": 822,
+        "tokens_out": 3297,
+        "usd": 0.01503975,
+        "unreported": 0
+      }
+    }
+  }
+}

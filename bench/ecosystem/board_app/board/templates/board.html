@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Restock board</title>
+<link rel="stylesheet" href="/board.css">
+</head>
+<body>
+<header class="top"><h1>Restock board</h1><p class="sub">Bins whose last 7 days of picks exceed what they can supply</p></header>
+<main>
+<table class="board">
+<thead><tr><th>Bin</th><th>Zone</th><th>Supply</th><th>Picks (7 d)</th><th>State</th></tr></thead>
+<tbody>
+{{rows}}
+</tbody>
+</table>
+</main>
+<footer class="summary">{{short}} of {{total}} bins short</footer>
+</body>
+</html>

@@ -1,0 +1,76 @@
+{
+ "run": "B-2",
+ "mode": "proactive",
+ "restored": {
+  "commit": "029eb7781c60d5f563ee8990a0cbfb79b244538c",
+  "data": {
+   "users": 2000,
+   "articles": 20000,
+   "comments": 300000,
+   "favorites": 20000
+  }
+ },
+ "usd_before": 6.1204,
+ "interventions": [
+  {
+   "answered": {
+    "blocked": "research.probe",
+    "state": "pending_person",
+    "what": "add deb.debian.org to egress.package_registries (system build tools: a compiler and the C headers a package builds against) (then: research.probe runs again)"
+   },
+   "granted": [
+    "deb.debian.org"
+   ],
+   "at": 1793285163.558075
+  },
+  {
+   "answered": {
+    "blocked": "lab.experiment opp_e8e056214c5d4e86",
+    "state": "pending_person",
+    "what": "add deb.debian.org to egress.package_registries (system build tools: a compiler and the C headers a package builds against) (then: lab.experiment runs again)"
+   },
+   "granted": [
+    "deb.debian.org"
+   ],
+   "at": 1793285163.5581691
+  },
+  {
+   "answered": {
+    "blocked": "lab.experiment opp_3bc94b445f6c4ac6",
+    "state": "pending_person",
+    "what": "add deb.debian.org to egress.package_registries (system build tools: a compiler and the C headers a package builds against) (then: lab.experiment runs again)"
+   },
+   "granted": [
+    "deb.debian.org"
+   ],
+   "at": 1793285163.558232
+  },
+  {
+   "answered": {
+    "blocked": "lab.experiment opp_20855e41a0d74836",
+    "state": "pending_person",
+    "what": "add deb.debian.org to egress.package_registries (system build tools: a compiler and the C headers a package builds against) (then: lab.experiment runs again)"
+   },
+   "granted": [
+    "deb.debian.org"
+   ],
+   "at": 1793285163.558294
+  },
+  {
+   "answered": {
+    "blocked": "lab.experiment opp_00430c9037724921",
+    "state": "pending_person",
+    "what": "add deb.debian.org to egress.package_registries (system build tools: a compiler and the C headers a package builds against) (then: lab.experiment runs again)"
+   },
+   "granted": [
+    "deb.debian.org"
+   ],
+   "at": 1793285163.5583518
+  }
+ ],
+ "wall_s": 197.1,
+ "repo_after": "",
+ "branches_after": [],
+ "usd_after": 6.1204,
+ "workspace": "/Users/david/unbidden-lab/conduit-runs/reg8-B-2"
+}

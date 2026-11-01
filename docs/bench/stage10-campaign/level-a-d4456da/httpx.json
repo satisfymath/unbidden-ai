@@ -1,0 +1,61 @@
+{
+ "repo": "/Users/david/httpx",
+ "rev": "b5addb64f0161ff6bfe94c124ef76f6a1fba5254",
+ "stack": {
+  "python": "3.9",
+  "why": [
+   "python 3.9: from the CI's python-version (the oldest in its matrix)",
+   "pyproject requires-python: >=3.9",
+   "the CI's python-version: 3.9, 3.10, 3.11, 3.12, 3.13"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": null,
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": [
+   "pyproject.toml without uv.lock: dependencies resolved at provisioning time"
+  ]
+ },
+ "image": "unbidden-deps-python:3a249e1277e3e43e",
+ "plan": {
+  "source": "CI test-suite.yml > tests",
+  "scope": "matrix entry 1 of 5 (python-version=3.9)",
+  "partial": true,
+  "notes": [
+   "left out, scripts/install only installs (the dependency image stands for it)",
+   "left out, scripts/build only builds",
+   "left out, scripts/coverage only reports"
+  ],
+  "services": [],
+  "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nscripts/check\ncd /work\nscripts/test"
+ },
+ "status": "infra_failed",
+ "collected": null,
+ "failed": [
+  "<suite>"
+ ],
+ "why": "exit 127: + ./scripts/sync-version\ngrep: warning: ? at start of expression\ngrep: warning: ? at start of expression\ngrep: warning: ? at start of expression\ngrep: warning: ? at start of expression\ngrep: warning: ? at start of expression\ngrep: warning: ? at start of expression\n+ ruff format httpx tests --diff\n60 files already formatted\n+ mypy httpx tests\nscripts/check: 13: mypy: not found",
+ "wall_s": 1.9,
+ "image_notes": [
+  "python 3.9: from the CI's python-version (the oldest in its matrix)",
+  "pyproject requires-python: >=3.9",
+  "the CI's python-version: 3.9, 3.10, 3.11, 3.12, 3.13",
+  "image unbidden-deps-python:3a249e1277e3e43e on linux/arm64"
+ ],
+ "python": "3.9",
+ "source": "CI test-suite.yml > tests",
+ "scope": "matrix entry 1 of 5 (python-version=3.9)",
+ "partial": true,
+ "notes": [
+  "left out, scripts/install only installs (the dependency image stands for it)",
+  "left out, scripts/build only builds",
+  "left out, scripts/coverage only reports"
+ ],
+ "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nscripts/check\ncd /work\nscripts/test"
+}

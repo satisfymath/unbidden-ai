@@ -1,0 +1,590 @@
+[
+ {
+  "state": "healthy",
+  "case": "healthy",
+  "variants": [],
+  "wrong": [],
+  "healthy": true,
+  "method": "dom",
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 64.6,
+  "model_calls": 6,
+  "usd": 0.0435,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 0,
+  "problems_after": []
+ },
+ {
+  "state": "healthy",
+  "case": "healthy",
+  "variants": [],
+  "wrong": [],
+  "healthy": true,
+  "method": "vision",
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 56.3,
+  "model_calls": 6,
+  "usd": 0.0478,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 0,
+  "problems_after": []
+ },
+ {
+  "state": "healthy",
+  "case": "healthy",
+  "variants": [],
+  "wrong": [],
+  "healthy": true,
+  "method": "vision_sam",
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 81.0,
+  "model_calls": 7,
+  "usd": 0.0664,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 4,
+  "problems_after": []
+ },
+ {
+  "state": "overlay",
+  "case": "overlay",
+  "variants": [],
+  "wrong": [
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "method": "dom",
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "8ba3897 unbidden: board-flags: The fixed 190px footer covers the bottom rows so their red SHORT badges exist in the DOM but cannot be seen or read."
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 95.5,
+  "model_calls": 8,
+  "usd": 0.067,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 0,
+  "problems_after": []
+ },
+ {
+  "state": "overlay",
+  "case": "overlay",
+  "variants": [],
+  "wrong": [
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "method": "vision",
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "9000ec1 unbidden: board-flags: The footer was made `position: fixed` with a tall height so it overlays and hides the bottom rows' red SHORT badges inst"
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 97.0,
+  "model_calls": 9,
+  "usd": 0.0834,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 0,
+  "problems_after": []
+ },
+ {
+  "state": "overlay",
+  "case": "overlay",
+  "variants": [],
+  "wrong": [
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "method": "vision_sam",
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "218dc63 unbidden: board-flags: The fixed footer overlays the bottom rows so their SHORT badges are present but not visible, so the footer must be resto"
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 104.1,
+  "model_calls": 8,
+  "usd": 0.0729,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 4,
+  "problems_after": []
+ },
+ {
+  "state": "overlay-partial",
+  "case": "overlay_partial",
+  "variants": [],
+  "wrong": [
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "method": "dom",
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "d25d50e unbidden: board-flags: The added fixed-position help aside overlays the table and covers the SHORT badges on rows B21 and B22 so they are not m"
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 98.6,
+  "model_calls": 8,
+  "usd": 0.0693,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 0,
+  "problems_after": []
+ },
+ {
+  "state": "overlay-partial",
+  "case": "overlay_partial",
+  "variants": [],
+  "wrong": [
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "method": "vision",
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "1eec733 unbidden: board-flags: The fixed `aside.help` overlay covers the SHORT badges on rows B21 and B22 so they are never mostly visible."
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 93.7,
+  "model_calls": 8,
+  "usd": 0.0793,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 0,
+  "problems_after": []
+ },
+ {
+  "state": "overlay-partial",
+  "case": "overlay_partial",
+  "variants": [],
+  "wrong": [
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "method": "vision_sam",
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "6aaf891 unbidden: board-flags: The fixed-position `aside.help` overlays the bottom table rows so the SHORT badges on B21 and B22 are never mostly visib"
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 105.1,
+  "model_calls": 8,
+  "usd": 0.0778,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 5,
+  "problems_after": []
+ },
+ {
+  "state": "formula",
+  "case": "formula",
+  "variants": [],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B09",
+   "B10",
+   "B11",
+   "B12",
+   "B14",
+   "B15",
+   "B16",
+   "B18",
+   "B19",
+   "B21",
+   "B22",
+   "B23",
+   "B24"
+  ],
+  "healthy": false,
+  "method": "dom",
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "5fde563 unbidden: board-flags: The board undercounts shortfalls because `supply()` stopped subtracting reserved stock."
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 104.1,
+  "model_calls": 8,
+  "usd": 0.0802,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 0,
+  "problems_after": []
+ },
+ {
+  "state": "formula",
+  "case": "formula",
+  "variants": [],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B09",
+   "B10",
+   "B11",
+   "B12",
+   "B14",
+   "B15",
+   "B16",
+   "B18",
+   "B19",
+   "B21",
+   "B22",
+   "B23",
+   "B24"
+  ],
+  "healthy": false,
+  "method": "vision",
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "f44033d unbidden: board-flags: The supply calculation omitted reserved stock, inflating supply and hiding or shrinking shortfalls."
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 97.0,
+  "model_calls": 8,
+  "usd": 0.0795,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 0,
+  "problems_after": []
+ },
+ {
+  "state": "formula",
+  "case": "formula",
+  "variants": [],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B09",
+   "B10",
+   "B11",
+   "B12",
+   "B14",
+   "B15",
+   "B16",
+   "B18",
+   "B19",
+   "B21",
+   "B22",
+   "B23",
+   "B24"
+  ],
+  "healthy": false,
+  "method": "vision_sam",
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "e54b565 unbidden: board-flags: The supply calculation dropped the reserved subtraction, inflating supply and hiding or shrinking shortfalls."
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 107.0,
+  "model_calls": 8,
+  "usd": 0.0838,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 4,
+  "problems_after": []
+ },
+ {
+  "state": "style",
+  "case": "style",
+  "variants": [],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "method": "dom",
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "ce63e74 unbidden: board-flags: The tidy-layout commit recolored the SHORT badge green identical to OK, so short bins are no longer red and distinct."
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 93.8,
+  "model_calls": 8,
+  "usd": 0.0642,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 0,
+  "problems_after": []
+ },
+ {
+  "state": "style",
+  "case": "style",
+  "variants": [],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "method": "vision",
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "a991509 unbidden: board-flags: The short badges lost their red flag styling when the last tidy commit made `.badge.short` identical to `.badge.ok`."
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 84.2,
+  "model_calls": 8,
+  "usd": 0.0716,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 0,
+  "problems_after": []
+ },
+ {
+  "state": "style",
+  "case": "style",
+  "variants": [],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "method": "vision_sam",
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "e739c85 unbidden: board-flags: The tidy-layout commit changed `.badge.short` from red/white to the same green as `.badge.ok`, so short bins lost their"
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 98.1,
+  "model_calls": 8,
+  "usd": 0.0771,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 4,
+  "problems_after": []
+ }
+]

@@ -1,0 +1,72 @@
+== cycle 1 (exit 0)
+11:50:24 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+11:50:38 HEAD is bed3f14ee77a
+11:50:40 deploy procedure found, proposed only: docker compose -f 
+tests_frontend/docker-compose.yml up -d --wait
+11:50:40 deploy procedure found, proposed only: docker compose -f 
+tests_frontend_v2/docker-compose.yml up -d --wait
+11:50:40 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability
+11:50:40 provisioning python dependencies
+11:50:41 running ruff
+11:50:41 scan of bed3f14ee77a: 1 reports, 0 new opportunities
+11:54:48 map of bed3f14ee77a: 67 resources, 4 blind spots
+11:54:49 robustness probe at bed3f14ee77a: investigate (probe tests_integration 
+(80 public functions sampled))
+11:54:51 the project's own checks at bed3f14ee77a: passed (278 collected, 0 
+failed)
+11:54:52 opp_de833a9ba4834135: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+11:54:52 opp_a546d7b05f1c4628: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+11:55:01 opp_a546d7b05f1c4628: consistency of GET /api/v1/spool/group: 
+waiting_capability: needs an integration for spoolman-api
+11:57:29 capability need api_client for http_api:http://127.0.0.1:18130: in_use
+11:57:52 opp_a546d7b05f1c4628: consistency of GET /api/v1/spool/group: 
+waiting_extension: needs the read Find_spool_groups_spool_group_get added to the
+integration (open)
+11:59:03 capability need api_extension for 
+http_api:http://127.0.0.1:18130#Find_spool_groups_spool_group_get: failed
+11:59:04 opp_a546d7b05f1c4628: wait (investigation queued or running)
+12:00:16 capability need api_extension for 
+http_api:http://127.0.0.1:18130#Find_spool_groups_spool_group_get: abandoned
+12:00:27 opp_a546d7b05f1c4628: consistency of GET /api/v1/spool/group: 
+waiting_extension: needs the read Find_spool_groups_spool_group_get added to the
+integration (abandoned)
+12:00:27 writing property tests for tests_integration
+12:00:46 running them offline
+12:00:48 robustness probe of tests_integration: 1 failed, 2 passed in 1.02s; 0 
+crash(es), 0 new; 0 property violation(s) kept for a person (L1)
+12:00:50 asking the local model for the schema change (attempt 1)
+12:01:32 asking the local model for the schema change (attempt 2)
+12:02:17 opp_de833a9ba4834135: no proven fix (the local model gave no schema 
+change that keeps the repository's checks clean)
+12:02:18 opp_de833a9ba4834135: run_experiment (reproduce it and measure a 
+candidate offline (p 0.20 from the lab's history of this kind))
+12:02:20 asking the local model for the schema change (attempt 1)
+12:02:43 asking the local model for the schema change (attempt 2)
+12:03:23 opp_de833a9ba4834135: no proven fix (the local model gave no schema 
+change that keeps the repository's checks clean)
+12:03:24 opp_de833a9ba4834135: decline (2 experiments found no proven fix)
+
+
+== cycle 2 (exit 0)
+12:03:24 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+12:04:18 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 connected
+
+
+== cycle 3 (exit 0)
+12:04:20 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+12:05:08 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 connected
+
+
+== cycle 4 (exit 0)
+12:05:09 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+12:05:57 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 connected

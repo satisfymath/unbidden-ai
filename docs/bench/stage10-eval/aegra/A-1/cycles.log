@@ -1,0 +1,72 @@
+== cycle 1 (exit 0)
+13:54:59 watching /Users/david/unbidden-lab/aegra (ctrl-c to stop, `unbidden 
+kill` to freeze)
+13:55:00 HEAD is 46055c0b9adf
+13:55:00 deploy procedure found, proposed only: docker compose up -d
+13:55:00 deploy procedure found, proposed only: docker compose -f 
+docker-compose.yml -f docker-compose.dev.yml up -d
+13:55:00 deploy procedure found, proposed only: docker compose up -d
+13:55:00 deploy procedure found, proposed only: docker compose -f 
+docker-compose.yml -f docker-compose.dev.yml -f docker-compose.auth.yml up -d 
+postgres aegra
+13:55:00 deploy procedure found, proposed only: docker compose up
+13:55:00 deploy procedure found, proposed only: docker compose -f 
+docker-compose.yml -f docker-compose.dev.yml -f docker-compose.auth.yml up -d 
+postgres aegra
+13:55:00 deploy procedure found, proposed only: docker compose -f 
+docker-compose.yml -f docker-compose.dev.yml up -d
+13:55:00 deploy procedure found, proposed only: docker compose up -d
+13:55:00 deploy procedure found, proposed only: docker compose -f 
+docker-compose.yml -f docker-compose.dev.yml -f docker-compose.auth.yml up -d
+13:55:00 connections: postgres:127.0.0.1:55490/aegra connected, 
+http_api:http://127.0.0.1:18160 needs_capability
+13:55:00 provisioning python dependencies
+13:55:01 running ruff
+13:55:01 scan of 46055c0b9adf: 1 reports, 0 new opportunities
+13:56:54 map of 46055c0b9adf: 80 resources, 2 blind spots
+13:56:54 robustness probe at 46055c0b9adf: decline (no importable package with 
+public functions under the source roots)
+13:56:55 the project's own checks at 46055c0b9adf: infra_failed (None collected,
+1 failed)
+13:57:02 goal data-correct-and-fast: waiting_capability: needs an integration 
+for aegra-api
+13:57:14 capability need api_client for http_api:http://127.0.0.1:18160: in_use
+13:57:25 goal data-correct-and-fast: investigated: 0 of 200 keys short; nothing 
+to change
+13:57:25 opp_9b34232a33324abb: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:57:25 opp_7ce74c43be2c4a46: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+13:57:35 opp_9b34232a33324abb: consistency of GET /assistants: investigated: 0 
+of 200 keys differ
+13:57:47 opp_7ce74c43be2c4a46: consistency of GET /threads: inconclusive: no 
+difference among the 1000 keys read, but the set's completeness is unknown (the 
+read-only query returned its limit of 1000 rows): 'none' is not concluded
+13:57:48 opp_9b34232a33324abb: decline (the numbers agree with the stored data 
+over a whole read: 0 of 200 keys differ)
+13:57:48 opp_7ce74c43be2c4a46: wait (inconclusive: no difference among the 1000 
+keys read, but the set's completeness is unknown (the read-only query returned 
+its limit of 1000 rows): 'none' is not concluded)
+
+
+== cycle 2 (exit 0)
+13:57:48 watching /Users/david/unbidden-lab/aegra (ctrl-c to stop, `unbidden 
+kill` to freeze)
+13:57:50 connections: postgres:127.0.0.1:55490/aegra connected, 
+http_api:http://127.0.0.1:18160 connected
+13:58:01 goal data-correct-and-fast: investigated: 0 of 200 keys short; nothing 
+to change
+
+
+== cycle 3 (exit 0)
+13:58:02 watching /Users/david/unbidden-lab/aegra (ctrl-c to stop, `unbidden 
+kill` to freeze)
+13:58:04 connections: postgres:127.0.0.1:55490/aegra connected, 
+http_api:http://127.0.0.1:18160 connected
+
+
+== cycle 4 (exit 0)
+13:58:05 watching /Users/david/unbidden-lab/aegra (ctrl-c to stop, `unbidden 
+kill` to freeze)
+13:58:05 connections: postgres:127.0.0.1:55490/aegra connected, 
+http_api:http://127.0.0.1:18160 connected

@@ -18,8 +18,10 @@ import httpx
 from unbidden.contracts.common import utc_now
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import ActionRequest, Mandate
+from unbidden.guardian.killswitch import before_effect
 from unbidden.guardian.policy import PolicyEngine
 from unbidden.operate.holds import active
+from unbidden.operate.ledger import bind_after_deploy, steps_build
 from unbidden.store import Store
 
 
@@ -56,6 +58,24 @@ def check(store: Store, mandate: Mandate, capability: str, purpose: str, *, rate
         raise OperationRefused(f"{capability}: {limit} already in the last hour")
 
 
+def merged_evidence(repo: Path, store: Store, proposal_id: str | None, target: str) -> None:
+    """An autonomous deploy ships a change Unbidden merged on evidence: the proposal merged at L4 or better, and the
+    commit to deploy contains its merge. Raises when it does not; a person's own deploy is not judged here."""
+    from unbidden.contracts.common import EvidenceLevel
+    from unbidden.contracts.experiment import Proposal, ProposalStatus
+
+    proposal = store.get("proposals", proposal_id, Proposal) if proposal_id else None
+    if proposal is None:
+        raise OperationRefused("no merged proposal names this deploy")
+    if proposal.status is not ProposalStatus.MERGED:
+        raise OperationRefused(f"proposal {proposal.id} is {proposal.status.value}, not merged")
+    if proposal.evidence_level < EvidenceLevel.FUNCTIONAL_VALIDATION:
+        raise OperationRefused(f"proposal {proposal.id} was merged at L{int(proposal.evidence_level)}, below L4")
+    merged = proposal.merge_sha or proposal.commit_sha
+    if _git(repo, "merge-base", "--is-ancestor", merged, target).returncode != 0:
+        raise OperationRefused(f"{target[:12]} does not contain the merge {merged[:12]}")
+
+
 def run_steps(repo: Path, mandate: Mandate, commit: str, *, detach: bool) -> DeployResult:
     steps = mandate.operations.deploy_steps
     if not steps:
@@ -81,7 +101,11 @@ def deploy(
     capability = "deploy.rollback" if rollback else "deploy.run"
     key = "rollbacks" if rollback else "deploys"
     check(store, mandate, capability, reason, rate_key=key, limit=mandate.operations.max_deploys_per_hour + rollback)
+    before_effect(store, f"{capability} of {commit[:12]}")
+    started = utc_now()
     result = run_steps(repo, mandate, commit, detach=rollback)
+    rebuilt = steps_build(mandate.operations.deploy_steps)
+    bound = bind_after_deploy(repo, store, commit, started, rebuilt=rebuilt) if result.ok else {}
     store.set_value(key, [*_recent(store, key, timedelta(hours=24)), utc_now().isoformat()])
     store.append_event(
         Event(
@@ -94,6 +118,7 @@ def deploy(
                 "ok": result.ok,
                 "reason": reason,
                 "log_tail": result.log[-1500:],
+                "images": bound,
             },
         )
     )
@@ -117,11 +142,17 @@ def drill(repo: Path, store: Store, mandate: Mandate, previous: str, health_url:
     """Prove rollback works before autonomy may rely on it: go back one version, check health, come back."""
     current = _git(repo, "rev-parse", "HEAD").stdout.strip()
     branch = _git(repo, "branch", "--show-current").stdout.strip()
+    started = utc_now()
     back = run_steps(repo, mandate, previous, detach=True)
     back_ok = back.ok and healthy(health_url)
+    if back.ok:
+        bind_after_deploy(repo, store, previous, started, rebuilt=steps_build(mandate.operations.deploy_steps))
     _git(repo, "checkout", branch or current)
+    started = utc_now()
     forth = run_steps(repo, mandate, current, detach=not branch)
     forth_ok = forth.ok and healthy(health_url)
+    if forth.ok:
+        bind_after_deploy(repo, store, current, started, rebuilt=steps_build(mandate.operations.deploy_steps))
     record = {
         "at": utc_now().isoformat(),
         "from": current,

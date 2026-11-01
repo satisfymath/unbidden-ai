@@ -1,0 +1,2271 @@
+== cycle 1 (exit 0)
+19:38:10 watching /Users/david/unbidden-lab/prefect (ctrl-c to stop, `unbidden 
+kill` to freeze)
+19:38:10 HEAD is 1ef3e516d3b3
+19:38:11 connections: postgres:127.0.0.1:55470/prefect connected, 
+http_api:http://127.0.0.1:18140 needs_capability
+19:38:12 provisioning python dependencies
+19:38:13 running ruff
+19:38:16 running pyright
+19:38:36 running mypy
+19:38:41 scan of 1ef3e516d3b3: 3 reports, 508 new opportunities
+19:42:51 map of 1ef3e516d3b3: 248 resources, 4 blind spots
+19:43:02 robustness probe at 1ef3e516d3b3: investigate (probe src/prefect (80 
+public functions sampled))
+19:44:26 the project's own checks at 1ef3e516d3b3: failed (1033 collected, 11 
+failed)
+19:44:39 goal data-correct-and-fast: waiting_capability: needs an integration 
+for prefect-api
+19:45:46 capability need api_client for http_api:http://127.0.0.1:18140: failed
+19:45:53 opp_26de0fe44d9045a8: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_c54389fe60a743a7: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_14b4767f32e84f40: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_001e4f01066241aa: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_d9c4aa67c2884d9c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_39b3403886bf4d51: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_3198e06cb5ca4097: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_8804b637f38548aa: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_e0844a0356e94f78: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_6105afb48c6c4544: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_fac37b4afbdb42ca: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_1da910a823de4448: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_d4f43e4df2d74bff: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_61aba2c1e6674e10: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_3ce15b7e9cb2413e: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_6921372ff2704261: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_bbd56f3a511e4832: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_ee030962bd4f4605: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_6f3c31dfb1f44bfe: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_d278435d350941b8: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_15bc922fe14f473b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_b378be5cf95649c1: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_2ec5339f7aaa423f: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_76585cb900034bdf: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_aed74f2aa42e4355: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_fc19915f448b460c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_8bbe22e838024222: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_667b553b7536428a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_84c836c94d53487d: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_c0d2cb15b0cf4cfb: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_7efc58b7225b434b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_bdb8e3069b4b47f7: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_c6c156c6d8694c00: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_95b83e4de2d2415b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_8e0beb0e5c534445: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_ca03ad2bd4e944b2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_78215d229a9a41c6: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_21f14d6454af4a62: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_c8b3a63263114f53: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_49fbc0d20c6740e1: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_abe27e08d7e84b4a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_2b19d69c87f54929: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_bd3659e2f9334436: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_b2d8e523a4cc4fba: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_8a808921696642dd: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_178bd92392cd4696: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_65014ef63efe4d99: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_de4444917fdb4047: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_fff309d984184106: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_049d8fbdab46467c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_df54d0570eb84ba9: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_6bd725c78dd74af5: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_275d7370a0164f20: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_e01246ef273f446d: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_6594669684fa4441: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_85ec73d9406f4f08: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_179f76c4746a4f98: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_cda1ad5785874fdb: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_b91c7af0d7d64cb4: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_06029da1afc8473c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_b1443a5cc9894f90: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_c4f06fd889d146c4: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_76f4d920124c4ad0: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_08b636e30ed24f11: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_950cbf759a0f42c3: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_606268f45ac94f5a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_d59eee340dfe4103: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_7c5acdef96ba4b3d: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_15c8c86b26874cbe: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_a10d8816840949ab: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_7f583b7a38c34ae5: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_7d28c9e4d8b747d3: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_7ef69265438f45a0: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_c59adbefdfcb4466: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_827c4f55b2ca4366: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_0fd953f0724f49f3: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_d093ef7be4b54991: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_f64536fb044b4555: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_830e1b309ba045e9: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_273eee29749c4aab: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_5bbd8292c0c2430c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_7ea3bcf4d1534d6b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_199da66bf9214329: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_55d40c7e2bc04e77: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_d4d48f524a3f4ed2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_dd032271cbc04226: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_999b7e63ffd44068: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_298091ca56824580: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_e6dd7814fa114580: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_eabeadc584f7403f: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_0a4e19bd49e943b7: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_c56332750371433d: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_af66f013fe284c8d: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_89126620ddcd45c5: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_30d80099039845f5: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_8a1213d478304e4f: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_3e6a2b35e09844e8: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_a01b4ae8d3394cbf: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_ea79d03b909c4bd8: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_bc74080d8bb44dfe: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_a4040e668a6e44de: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_8ff85a173734438e: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_681bad8e51244096: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_c6e8716caab54774: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_ada55dbe73484668: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_314bcbfd332d45ed: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_d665b374e4b64fdc: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_a9c51b09137c4ba7: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_048c3ddd6c274264: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_c5966e4931284670: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_0d70c64021ba42da: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_ed5f8963a8c84e54: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_b3fadf077d254db1: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_0908e52206af4432: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_10d4efc7e8604bf2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_7493563fb1754db7: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_81f61252ddb74dd2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_c044265291c64189: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_76c44c8c447c4197: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_81ed6011eb7a4693: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_e7e90a22b2d44c36: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_995d6d8c499e4311: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_bdc6c2cbf49149f3: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_bd07a20c86324679: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_214d224c193f44cf: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_ba641ab33c994a76: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_ed6e1c6c324040ad: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_33f6116df75d4dc3: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_397235d804994509: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_9cc1f8df8d364828: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_d861c1e40a924290: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_527d0ab1ea4c4c52: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_3843ffcbbf25426b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_d7226e49bf024df2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_d357059b43474aa5: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_f97609ae5e244ed5: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_48831e95be684641: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_a932ceb4fb5a4204: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_141764439b3845bc: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_d1a7ba45b3004e47: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_03c21ff279794a92: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_8d3d6320599d4634: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_6375b45bfbeb4ba5: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_a5629318066949c4: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_8526509a1f6646a4: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_3c40305ab95b46a0: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_b06f87c998cf4451: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_32a71cb66c3c4a6d: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_7d7e776e5ed24308: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_6de4b6464344478b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_2d611479e6134f2d: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_ab0ff8952485463a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_a15c1360bc8f4932: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_52771f42594e4d3b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_d1f48de76ee54b06: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_97c515dddb8e4160: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_48bb7b4ffbd04520: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_63920b4c25934ec0: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_f464c312d76b4d3c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_83784bb732404e27: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_0dd5bbd58b614f61: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_c0753af1e354429f: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_1bd1560f28b1447c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_94715f830acf4097: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_c2b4e468ab1a422e: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_231ace19f6774e69: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_dc543126c31b484b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_64fb1fd43f7e46f5: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_fc219af68aeb4669: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_43b23629a9d548d4: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_d8730101ffa04d7c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_601b598873ad4c8f: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_fd1a3fac9e8f4cbe: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_c6974eb4098840fc: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_e1d4f139555248d7: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_30636f55f8874d38: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_795ca0b01dec4e02: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_9acd45bb25fa4aee: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_36bebe97abf546a3: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_02b8c90d785c4842: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_dadc560f224c4f08: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_3e254fe4e328471f: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_057ab7e5b02246a3: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_b63b13d2dd6d43ea: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_bec71077234e49d6: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_bf863fcc846841e5: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_6ab9ce169c754a4a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_7b5bcbb7de4843ef: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_486580dbc86d4c81: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_c188271f014f49d2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_9717ecea75a142e6: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_2bef5b5d5d12400e: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_80113be403fe456f: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_dadb7b88157a49ea: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_5bb4110701524b60: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_2d2342ef39804e67: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_b03155c0cb104d27: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_bbf73ced3f5c4722: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_aba51403c50f4e17: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_b87caf2a0ce74dc5: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_8017502f879947e7: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_76cb1c95c24e4e61: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_9c37657337a54695: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_0979142ae4544802: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_aa565818f22f4dc5: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_a07ceeb379444387: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_8ac70d861a854a76: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_7541330170ac4c60: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_f521ba3c5e4d4565: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_f7147d2c2b6044cf: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_ff8209fef0824de2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_c21ec25bf1e6441f: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_7eb9f968d0104a0c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_c7534a02efae4536: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_c6455b1b30f248b2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_5748c3ecb08a4899: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_b60769ed0ea34cb5: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_e77eb49dfeec4ba2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_e9b1dc37fabe4fe7: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_e69f9599711e4e25: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_86d7203a666a498f: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_035a63f3f95e4024: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_957448e7b38842c5: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_9b96d629ba5d45ac: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_792690876e424ee3: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_ffa36ed6d1f74acb: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_b70e09a38acf4776: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_bb430bb74fb74db9: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_fa74463f04234db7: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+19:45:53 opp_ca6f32d1faeb4322: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_2755ee6afa9e4266: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_c856297f60a942ba: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_980c8cc84e284948: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_97ef3d942c924550: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_20e5a396a9a74557: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_83746c0991bc40d6: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_c95f134bd386415a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_2ff16fd62a4c4441: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_6efd1df2136f4ceb: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_8e5e30b5bbc74208: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_194b9aa33dc244eb: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_578a2b724f0c4352: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_4bbbc3e007d446eb: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_1313665177ef4924: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_c61eae6761c04b67: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_3d7f21ac077d4ee1: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_92a01ec963e6417d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_3ebbca21be6646f8: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_6b8c7786277647cb: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_f495c96e93f84d05: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_67762913eb5f4441: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_6cd4ded8f7a34f7e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_b873e9b7b47e4440: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_77260791bc814561: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_f54b6d8ff9f54f12: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_87eb0189f32d4a13: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_af2fceb8b1c44f1a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_2ab4eb751971420f: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_f55aa1b5d5a046de: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_072df085f7044a61: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_2a2c2d3c3cfe4f47: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_33ffd1af3b5641c5: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_04b10a7f3fd34761: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_fca7e7ebb67a4a63: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_0bd127442bf74576: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_3044ebe2f1024566: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_c2b7c4f03f6e48b5: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_1eb4b62fa4b74235: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_db186f9eb1e8492a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_aa4cf087e30641ad: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_8624e283bb984bce: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_8ba70e52366b4294: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_59652e432b894a92: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_c6fc251489914837: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_3e199ff98df844fb: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_45a9a58482224d4f: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_2cc95530295540b5: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_2145dfc2542f4534: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_3b89ef884a564997: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_1ce27c0abeaa444a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_c646b294ce6c4e93: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_e70d6076ab064436: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_cd822aa3051447cd: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_7bce334c7f9a4aab: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_421e587b34554a2a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_71d2bad7cd624402: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_7a02a80c11764c73: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_259cf7de1e9f4ac6: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_3c075a9c19ef47b2: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_4ea98c252c1449cc: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_287b8a5188224b8b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_a4a0cb62f8fd4ea8: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_f48a9bb1f8ec47ae: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_acc0cffccef64c2d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_440a91a825fb4dd4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_fe33265244da41ac: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_3efb5eb616ae4ced: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_a50ae43cc2bb482d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_6ac2b629550a44bc: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_949b78d7ae7c499c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_862baea3edc04b90: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_bdcf309009e34367: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_de8f4782b6b44761: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_052fce50a58749ec: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_f3a8560c32414510: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_706c06486fc24cad: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_b43d56bd15cd452c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_5acf0ff93a004b3e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_b6f5c00be1c5463d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_79e857e6d2674df3: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_9b6515a2056c4165: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_ce8edbfe48f144c9: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_c7d5df7ba8d1422b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_f2485716ee324024: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_155bd1155d544382: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_1b8d67ce14a24fa8: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_7a5668ef66a84b37: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_5771e2e6db3d40f0: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_e2d12042bb4343d7: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_283c67ff65d54b7c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_f5aba605fb894bfb: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_696ea65946434fca: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_5c3a3edb36af42b0: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_d29b2bd007064686: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_0feff875d98c4db3: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_21acc390f93b4909: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_c1593493d49c4a4f: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_1bc217092e9843ab: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_3725a85b15434290: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_4a55a280aa5547f7: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_3b5209cea6fa4b64: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_a4397a25eca0420f: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_ac658f9565e045f1: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_2fd37300de344f44: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_f3137eca36e84417: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_13c71db8a8844484: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_5b3b8e872ad34f98: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_2bc55850cd864a7e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_737129cdd4e74494: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_c480a6e4d5ea4a7b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_1d4b17cfd4ad4f8e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_d0aa9908a55741a4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_64d736187bac4493: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_5d609824654e4587: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_b6edb13b07ec43af: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_88c0638ba7854068: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_b6b05ab7801143fc: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_99e692ce647b451f: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_12cfa685066c4ff2: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_c8438fbdf6154d9a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_e539655de00e4a4d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_be8459ce63674250: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_75b4812d4bb74e28: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_0bf61fdc6f7a4189: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_06a92dbbdad04d41: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_d1b2e5063c0e48f6: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_0c64dbfca327449a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_59fb3a19498b4aff: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_06ec88b69f614733: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_588682eb72d94a3b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_32fd0157cc2c4b92: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_815f0276e1084bfa: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_68d4de270446462a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_9228b4bb595840d9: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_f6cb083336f84111: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_a9f5d01b19684ffc: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_0920f4447a624866: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_f6f4845d066748a3: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_3cd9ea0632844933: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_f996b73807af4c7e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_e6b80e2a1e534a50: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_65c89302845246d5: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_483ceb6de384498b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_4376687367464208: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_5101ada5763b48b4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_e0b4557af7ae44f9: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_781cb09190744536: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_52ef556f47104937: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_79aabfa3bd844d42: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_20ac24dba39b483e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_ab53efa7a81c4f7d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_e084191793d8419c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_844379adc45d4e4e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_0477a94dd68b4c35: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_8f066c3350bd4e2f: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_2e22e6b9734447ae: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_2ea9fc22d6274cca: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_f8fda5bf0b84453d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_2c35cd6290324b5b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_23eff7b408544bb7: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_fc453d9c4c52415d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_d3eb746add8541cc: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_dedefeebf7674485: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_147ccb6acc064241: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_7796eda5231f48a6: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_b6867dc20aa34cc7: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_184b98ec29db409f: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_550ee6a001ee49f5: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_0cfee78885ad4333: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_0c4944b9c92e4d84: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_115774a8dbf54095: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_e742260f6d464b78: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_08a856c76df74ca2: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_e000dfd1f97b4298: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_36aa38dd3881429f: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_d6cc03c544b34512: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_2e4650d41a2445e4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_25bb520ba4144c58: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_62fc8a11caaf4802: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_33e6c28cfb4648a8: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_20e1a9168def4cba: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_865654aed9d74ae5: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_0bf4c77f196d475b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_453a61210c0946ac: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_16380dec4e0e4ee8: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_da8383587a8c407e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_eec9752914434dab: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_88aaf791aae246ad: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_f37cd6305a27418d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_4a6d7d384f8b495d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_136c3a643f5d454f: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_f46a49b50a5b452c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_671afeeea3a34cfb: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_2483adfc6ea94115: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_9fab76f71e774091: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_2d406e307ca3407c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_6f226b2f2a544916: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_8d60c4032ddf4e55: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_dd6a6716aada4543: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_08111c34616e4b85: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_cc0aab45909b472b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_52039ab5aef847e6: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_590f359d130743f5: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_84923bf96d4c4697: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_c14c905c999c4485: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_a80d430b17804bfc: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_7724b36de1e34a91: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_229269f4ed5240ac: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_4c058df99e724d4b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_3ef3705c110044d4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_9ec349118f3a41ca: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_dd65f30fea7f46f0: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_fc4af1bd37754711: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_8415a37b8c7340b4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_8fef7c49ef5a462e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_971a6ae3281d499e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_c86cb43a24094ac2: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_8fd6b50678c94ef8: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_5d1e19dd06314545: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_2615d6076db54bac: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_0d0b60cec59e42eb: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_c195592c9b5e474a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_08f0aec8498043df: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_7ecbebc0b0fd438d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_73375eb971e3421d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_caac1474e6604267: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_3121683ae7264dcf: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_dd057b0c68e84081: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_e843482668ad4b85: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_55481fb3706d4b40: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_565760ecfd4642c7: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_3291862067274d34: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_6aeeca07b8f3437b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_32f6a5e17aa64450: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_8fdc8dc0ab9147de: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_686947dc296247fd: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_cc334d4aefd9466e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_3d7d75961f4a43e4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_3709434d4bde492a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_6749196ab81e425c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_55bad36535624ed1: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_0d8df2f823424013: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_7de2ca33ae6f4782: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_e5ba3260e3624b4f: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_c3a86054c0bc4779: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_4f0775de67264457: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_aad682d531ac4eb0: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_62a27948c6eb440f: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_4da45094c86f46f4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_b881646d8a6c4c85: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_2545f3b9d5b6460f: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_9970e34874c64621: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_5ae6fc3f79734964: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_c4ae448175c549e1: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_de58d2a9eb5644b6: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_f660aa9ce00b404a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_e768e353a7074ff8: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_a8022531899842b7: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_8b98aca415a54b53: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_30e2535f1be443da: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_e4f64f56920246e0: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_4e9e14c116974965: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_5771de1c57db42fc: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_cb91955e81284aed: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_756cd8be057d448b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_1be166c044f3455c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_9b89f1761a9b4324: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_40b0d737e5a947b8: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_b2792bde876b4fc6: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_36021b6895fc443f: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_3489a3faf484433a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_415bb64c0df04a42: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_bf0f470c8a164066: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_46f20d9d5bde4830: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_d117440950f14f21: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_c41ea936be3644ed: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_4b569fdae8244abf: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_a98b1e6a1db346ec: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_08ce6507553e42f0: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_f56ef0549e3341c4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+19:45:53 opp_457ca81c0f2540cd: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+19:46:05 capability need api_client for http_api:http://127.0.0.1:18140: 
+abandoned
+19:46:15 goal data-correct-and-fast: blocked: prefect-api: no integration could 
+be validated (no documented read operation was chosen)
+19:46:15 opp_457ca81c0f2540cd: consistency of GET /events/filter/next: blocked 
+without a model call: http_api:http://127.0.0.1:18140: no documented read 
+operation was chosen
+19:46:21 opp_457ca81c0f2540cd: wait (blocked: http_api:http://127.0.0.1:18140: 
+no documented read operation was chosen)
+19:46:21 writing property tests for src/prefect
+19:46:38 running them offline
+19:46:56 robustness probe of src/prefect: 8 passed in 9.96s; 0 crash(es), 0 new;
+0 property violation(s) kept for a person (L1)
+19:46:58 reproducing 3 mypy errors in 
+src/prefect/_internal/compatibility/backports.py
+19:47:26 opp_26de0fe44d9045a8: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:47:31 opp_26de0fe44d9045a8: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:47:32 reproducing 4 mypy errors in src/prefect/_internal/git.py
+19:47:32 opp_c54389fe60a743a7: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:47:38 opp_c54389fe60a743a7: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:47:39 reproducing 23 mypy errors in src/prefect/utilities/annotations.py
+19:47:39 opp_14b4767f32e84f40: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:47:44 opp_14b4767f32e84f40: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:47:45 reproducing 1 mypy error in src/prefect/utilities/dispatch.py
+19:47:45 opp_001e4f01066241aa: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:47:51 opp_001e4f01066241aa: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:47:52 reproducing 2 mypy errors in 
+src/prefect/_internal/pydantic/v2_schema.py
+19:47:52 opp_d9c4aa67c2884d9c: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:47:57 opp_d9c4aa67c2884d9c: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:47:58 reproducing 1 mypy error in 
+src/prefect/_internal/concurrency/inspection.py
+19:47:58 opp_39b3403886bf4d51: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:48:03 opp_39b3403886bf4d51: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:48:04 reproducing 88 mypy errors in src/prefect/utilities/collections.py
+19:48:04 opp_3198e06cb5ca4097: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:48:08 opp_3198e06cb5ca4097: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:48:09 reproducing 6 mypy errors in src/prefect/_vendor/croniter/croniter.py
+19:48:09 opp_8804b637f38548aa: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:48:13 opp_8804b637f38548aa: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:48:14 reproducing 1 mypy error in src/prefect/_internal/plugins/spec.py
+19:48:14 opp_e0844a0356e94f78: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:48:18 opp_e0844a0356e94f78: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:48:19 reproducing 3 mypy errors in src/prefect/settings/sources.py
+19:48:19 opp_6105afb48c6c4544: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:48:23 opp_6105afb48c6c4544: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:48:24 reproducing 5 mypy errors in 
+src/prefect/utilities/processutils/__init__.py
+19:48:24 opp_fac37b4afbdb42ca: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:48:28 opp_fac37b4afbdb42ca: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:48:29 reproducing 1 mypy error in src/prefect/types/_datetime.py
+19:48:29 opp_1da910a823de4448: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:48:33 opp_1da910a823de4448: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:48:35 reproducing 1 mypy error in src/prefect/_experimental/sla/objects.py
+19:48:35 opp_d4f43e4df2d74bff: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:48:40 opp_d4f43e4df2d74bff: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:48:42 reproducing 2 mypy errors in src/prefect/_experimental/sla/client.py
+19:48:42 opp_61aba2c1e6674e10: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:48:47 opp_61aba2c1e6674e10: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:48:48 reproducing 1 mypy error in src/prefect/settings/base.py
+19:48:48 opp_3ce15b7e9cb2413e: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:48:54 opp_3ce15b7e9cb2413e: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:48:55 reproducing 5 mypy errors in src/prefect/logging/filters.py
+19:48:55 opp_6921372ff2704261: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:49:01 opp_6921372ff2704261: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:49:02 reproducing 9 mypy errors in src/prefect/client/utilities.py
+19:49:02 opp_bbd56f3a511e4832: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:49:08 opp_bbd56f3a511e4832: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:49:09 reproducing 1 mypy error in src/prefect/_internal/_logging.py
+19:49:09 opp_ee030962bd4f4605: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:49:15 opp_ee030962bd4f4605: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:49:16 reproducing 1 mypy error in src/prefect/__init__.py
+19:49:16 opp_6f3c31dfb1f44bfe: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:49:21 opp_6f3c31dfb1f44bfe: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:49:23 reproducing 2 mypy errors in 
+src/prefect/settings/models/server/services.py
+19:49:23 opp_d278435d350941b8: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:49:28 opp_d278435d350941b8: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:49:29 reproducing 3 mypy errors in src/prefect/logging/loggers.py
+19:49:29 opp_15bc922fe14f473b: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:49:35 opp_15bc922fe14f473b: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:49:36 reproducing 5 mypy errors in 
+src/prefect/client/orchestration/_flow_runs/client.py
+19:49:36 opp_b378be5cf95649c1: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:49:42 opp_b378be5cf95649c1: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:49:43 reproducing 1 mypy error in src/prefect/_internal/analytics/client.py
+19:49:43 opp_2ec5339f7aaa423f: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:49:48 opp_2ec5339f7aaa423f: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:49:49 reproducing 1 mypy error in src/prefect/utilities/importtools.py
+19:49:49 opp_76585cb900034bdf: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:49:53 opp_76585cb900034bdf: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:49:54 reproducing 2 mypy errors in src/prefect/_internal/metrics.py
+19:49:54 opp_aed74f2aa42e4355: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:49:59 opp_aed74f2aa42e4355: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:49:59 reproducing 6 mypy errors in 
+src/prefect/_internal/concurrency/cancellation.py
+19:49:59 opp_fc19915f448b460c: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:50:04 opp_fc19915f448b460c: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:50:04 reproducing 5 mypy errors in src/prefect/utilities/pydantic.py
+19:50:04 opp_8bbe22e838024222: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:50:09 opp_8bbe22e838024222: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:50:10 reproducing 11 mypy errors in 
+src/prefect/utilities/callables/__init__.py
+19:50:10 opp_667b553b7536428a: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:50:14 opp_667b553b7536428a: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:50:15 reproducing 14 mypy errors in src/prefect/runner/_process_manager.py
+19:50:15 opp_84c836c94d53487d: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:50:19 opp_84c836c94d53487d: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:50:20 reproducing 5 mypy errors in 
+src/prefect/_internal/schemas/validators.py
+19:50:20 opp_c0d2cb15b0cf4cfb: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:50:24 opp_c0d2cb15b0cf4cfb: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:50:25 reproducing 27 mypy errors in 
+src/prefect/_internal/concurrency/calls.py
+19:50:25 opp_7efc58b7225b434b: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:50:29 opp_7efc58b7225b434b: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:50:30 reproducing 1 mypy error in src/prefect/settings/models/root.py
+19:50:30 opp_bdb8e3069b4b47f7: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:50:34 opp_bdb8e3069b4b47f7: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:50:35 reproducing 9 mypy errors in src/prefect/server/schemas/schedules.py
+19:50:35 opp_c6c156c6d8694c00: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:50:39 opp_c6c156c6d8694c00: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:50:39 reproducing 1 mypy error in src/prefect/client/schemas/schedules.py
+19:50:39 opp_95b83e4de2d2415b: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:50:44 opp_95b83e4de2d2415b: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:50:44 reproducing 18 mypy errors in 
+src/prefect/_internal/concurrency/waiters.py
+19:50:44 opp_8e0beb0e5c534445: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:50:48 opp_8e0beb0e5c534445: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:50:49 reproducing 9 mypy errors in 
+src/prefect/_internal/concurrency/threads.py
+19:50:49 opp_ca03ad2bd4e944b2: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:50:53 opp_ca03ad2bd4e944b2: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:50:54 reproducing 10 mypy errors in 
+src/prefect/_internal/compatibility/deprecated.py
+19:50:54 opp_78215d229a9a41c6: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:50:58 opp_78215d229a9a41c6: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:50:59 reproducing 3 mypy errors in src/prefect/settings/context.py
+19:50:59 opp_21f14d6454af4a62: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:51:05 opp_21f14d6454af4a62: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:51:07 reproducing 1 mypy error in src/prefect/server/services/base.py
+19:51:07 opp_c8b3a63263114f53: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:51:12 opp_c8b3a63263114f53: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:51:13 reproducing 77 mypy errors in src/prefect/_internal/concurrency/api.py
+19:51:13 opp_49fbc0d20c6740e1: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:51:19 opp_49fbc0d20c6740e1: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:51:20 reproducing 31 mypy errors in 
+src/prefect/utilities/asyncutils/__init__.py
+19:51:20 opp_abe27e08d7e84b4a: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:51:26 opp_abe27e08d7e84b4a: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:51:27 reproducing 4 mypy errors in src/prefect/settings/legacy.py
+19:51:27 opp_2b19d69c87f54929: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:51:33 opp_2b19d69c87f54929: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:51:34 reproducing 4 mypy errors in 
+src/prefect/server/concurrency/lease_storage/__init__.py
+19:51:34 opp_bd3659e2f9334436: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:51:40 opp_bd3659e2f9334436: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:51:41 reproducing 9 mypy errors in 
+src/prefect/_internal/concurrency/services.py
+19:51:41 opp_b2d8e523a4cc4fba: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:51:47 opp_b2d8e523a4cc4fba: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:51:48 reproducing 1 mypy error in src/prefect/settings/profiles.py
+19:51:48 opp_8a808921696642dd: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:51:54 opp_8a808921696642dd: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:51:55 reproducing 2 mypy errors in src/prefect/bundles/execute.py
+19:51:55 opp_178bd92392cd4696: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:52:00 opp_178bd92392cd4696: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:52:01 reproducing 1 mypy error in src/prefect/utilities/urls.py
+19:52:01 opp_65014ef63efe4d99: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:52:07 opp_65014ef63efe4d99: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:52:08 reproducing 3 mypy errors in src/prefect/utilities/services.py
+19:52:08 opp_de4444917fdb4047: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:52:14 opp_de4444917fdb4047: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:52:15 reproducing 3 mypy errors in src/prefect/server/task_queue.py
+19:52:15 opp_fff309d984184106: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:52:21 opp_fff309d984184106: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:52:22 reproducing 41 mypy errors in src/prefect/server/utilities/database.py
+19:52:22 opp_049d8fbdab46467c: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:52:27 opp_049d8fbdab46467c: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:52:29 reproducing 4 mypy errors in 
+src/prefect/server/utilities/messaging/__init__.py
+19:52:29 opp_df54d0570eb84ba9: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:52:34 opp_df54d0570eb84ba9: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:52:35 reproducing 2 mypy errors in src/prefect/server/schemas/actions.py
+19:52:35 opp_6bd725c78dd74af5: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:52:41 opp_6bd725c78dd74af5: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:52:42 reproducing 2 mypy errors in src/prefect/server/api/dependencies.py
+19:52:42 opp_275d7370a0164f20: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:52:48 opp_275d7370a0164f20: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:52:49 reproducing 5 mypy errors in src/prefect/runner/server.py
+19:52:49 opp_e01246ef273f446d: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:52:55 opp_e01246ef273f446d: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:52:56 reproducing 1 mypy error in src/prefect/runner/_starter_engine.py
+19:52:56 opp_6594669684fa4441: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:53:02 opp_6594669684fa4441: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:53:03 reproducing 4 mypy errors in src/prefect/logging/configuration.py
+19:53:03 opp_85ec73d9406f4f08: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:53:09 opp_85ec73d9406f4f08: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:53:10 reproducing 2 mypy errors in src/prefect/events/schemas/events.py
+19:53:10 opp_179f76c4746a4f98: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:53:16 opp_179f76c4746a4f98: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:53:17 reproducing 1 mypy error in src/prefect/docker/docker_image.py
+19:53:17 opp_cda1ad5785874fdb: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:53:22 opp_cda1ad5785874fdb: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:53:24 reproducing 9 mypy errors in src/prefect/client/schemas/objects.py
+19:53:24 opp_b91c7af0d7d64cb4: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:53:29 opp_b91c7af0d7d64cb4: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:53:31 reproducing 2 mypy errors in src/prefect/_internal/version_checking.py
+19:53:31 opp_06029da1afc8473c: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:53:37 opp_06029da1afc8473c: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:53:38 reproducing 21 mypy errors in src/prefect/states.py
+19:53:38 opp_b1443a5cc9894f90: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:53:44 opp_b1443a5cc9894f90: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:53:45 reproducing 1 mypy error in 
+src/prefect/server/utilities/messaging/memory.py
+19:53:45 opp_c4f06fd889d146c4: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:53:50 opp_c4f06fd889d146c4: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:53:52 reproducing 2 mypy errors in src/prefect/server/schemas/states.py
+19:53:52 opp_76f4d920124c4ad0: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:53:57 opp_76f4d920124c4ad0: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:53:58 reproducing 2 mypy errors in 
+src/prefect/server/events/schemas/events.py
+19:53:58 opp_08b636e30ed24f11: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:54:04 opp_08b636e30ed24f11: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:54:05 reproducing 6 mypy errors in src/prefect/logging/clients.py
+19:54:05 opp_950cbf759a0f42c3: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:54:11 opp_950cbf759a0f42c3: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:54:12 reproducing 5 mypy errors in src/prefect/events/related.py
+19:54:12 opp_606268f45ac94f5a: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:54:18 opp_606268f45ac94f5a: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:54:19 reproducing 11 mypy errors in src/prefect/events/clients.py
+19:54:19 opp_d59eee340dfe4103: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:54:25 opp_d59eee340dfe4103: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:54:26 reproducing 14 mypy errors in src/prefect/client/base.py
+19:54:26 opp_7c5acdef96ba4b3d: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:54:32 opp_7c5acdef96ba4b3d: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:54:33 reproducing 1 mypy error in src/prefect/client/schemas/responses.py
+19:54:33 opp_15c8c86b26874cbe: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:54:38 opp_15c8c86b26874cbe: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:54:40 reproducing 2 mypy errors in src/prefect/client/schemas/actions.py
+19:54:40 opp_a10d8816840949ab: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:54:46 opp_a10d8816840949ab: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:54:47 reproducing 1 mypy error in src/prefect/task_runs.py
+19:54:47 opp_7f583b7a38c34ae5: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:54:54 opp_7f583b7a38c34ae5: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:54:55 reproducing 7 mypy errors in 
+src/prefect/server/worker_communication/cleanup_queue/__init__.py
+19:54:55 opp_7d28c9e4d8b747d3: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:55:02 opp_7d28c9e4d8b747d3: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:55:03 reproducing 3 mypy errors in src/prefect/server/schemas/core.py
+19:55:03 opp_7ef69265438f45a0: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:55:09 opp_7ef69265438f45a0: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:55:11 reproducing 1 mypy error in src/prefect/server/events/messaging.py
+19:55:11 opp_c59adbefdfcb4466: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:55:18 opp_c59adbefdfcb4466: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:55:19 reproducing 1 mypy error in 
+src/prefect/server/events/services/event_logger.py
+19:55:19 opp_827c4f55b2ca4366: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:55:26 opp_827c4f55b2ca4366: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:55:28 reproducing 6 mypy errors in 
+src/prefect/server/database/configurations.py
+19:55:28 opp_0fd953f0724f49f3: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:55:35 opp_0fd953f0724f49f3: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:55:37 reproducing 7 mypy errors in src/prefect/events/worker.py
+19:55:37 opp_d093ef7be4b54991: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:55:44 opp_d093ef7be4b54991: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:55:45 reproducing 2 mypy errors in src/prefect/deployments/steps/core.py
+19:55:45 opp_f64536fb044b4555: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:55:51 opp_f64536fb044b4555: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:55:53 reproducing 1 mypy error in src/prefect/_internal/waiters.py
+19:55:53 opp_830e1b309ba045e9: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:55:59 opp_830e1b309ba045e9: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:56:00 reproducing 7 mypy errors in src/prefect/_internal/states.py
+19:56:00 opp_273eee29749c4aab: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:56:06 opp_273eee29749c4aab: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:56:07 reproducing 1 mypy error in 
+src/prefect/_internal/analytics/milestones.py
+19:56:07 opp_5bbd8292c0c2430c: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:56:13 opp_5bbd8292c0c2430c: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:56:15 reproducing 1 mypy error in src/prefect/server/schemas/responses.py
+19:56:15 opp_7ea3bcf4d1534d6b: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:56:20 opp_7ea3bcf4d1534d6b: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:56:22 reproducing 27 mypy errors in 
+src/prefect/client/orchestration/__init__.py
+19:56:22 opp_199da66bf9214329: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:56:27 opp_199da66bf9214329: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:56:29 reproducing 11 mypy errors in src/prefect/futures.py
+19:56:29 opp_55d40c7e2bc04e77: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:56:35 opp_55d40c7e2bc04e77: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:56:36 reproducing 1 mypy error in src/prefect/server/events/jinja_filters.py
+19:56:36 opp_d4d48f524a3f4ed2: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:56:42 opp_d4d48f524a3f4ed2: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:56:43 reproducing 15 mypy errors in src/prefect/logging/handlers.py
+19:56:43 opp_dd032271cbc04226: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:56:49 opp_dd032271cbc04226: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:56:51 reproducing 2 mypy errors in src/prefect/concurrency/services.py
+19:56:51 opp_999b7e63ffd44068: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:56:56 opp_999b7e63ffd44068: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:56:57 reproducing 29 mypy errors in src/prefect/task_runners.py
+19:56:57 opp_298091ca56824580: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:57:01 opp_298091ca56824580: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:57:02 reproducing 6 mypy errors in src/prefect/blocks/core.py
+19:57:02 opp_e6dd7814fa114580: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:57:06 opp_e6dd7814fa114580: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:57:07 reproducing 1 mypy error in 
+src/prefect/_internal/_observation_delivery.py
+19:57:07 opp_eabeadc584f7403f: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:57:11 opp_eabeadc584f7403f: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:57:12 reproducing 73 mypy errors in src/prefect/filesystems.py
+19:57:12 opp_0a4e19bd49e943b7: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:57:16 opp_0a4e19bd49e943b7: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:57:17 reproducing 1 mypy error in src/prefect/_internal/observers.py
+19:57:17 opp_c56332750371433d: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:57:21 opp_c56332750371433d: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:57:22 reproducing 3 mypy errors in src/prefect/server/events/actions.py
+19:57:22 opp_af66f013fe284c8d: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:57:27 opp_af66f013fe284c8d: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:57:27 reproducing 5 mypy errors in src/prefect/runner/storage.py
+19:57:27 opp_89126620ddcd45c5: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:57:32 opp_89126620ddcd45c5: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:57:33 reproducing 21 mypy errors in src/prefect/results.py
+19:57:33 opp_30d80099039845f5: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:57:37 opp_30d80099039845f5: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:57:38 reproducing 1 mypy error in 
+src/prefect/server/events/services/actions.py
+19:57:38 opp_8a1213d478304e4f: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:57:42 opp_8a1213d478304e4f: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:57:43 reproducing 9 mypy errors in 
+src/prefect/server/events/schemas/automations.py
+19:57:43 opp_3e6a2b35e09844e8: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:57:47 opp_3e6a2b35e09844e8: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:57:48 reproducing 23 mypy errors in src/prefect/deployments/runner.py
+19:57:48 opp_a01b4ae8d3394cbf: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:57:52 opp_a01b4ae8d3394cbf: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:57:53 reproducing 44 mypy errors in src/prefect/flows.py
+19:57:53 opp_ea79d03b909c4bd8: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:57:57 opp_ea79d03b909c4bd8: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:57:58 reproducing 1 mypy error in src/prefect/context.py
+19:57:58 opp_bc74080d8bb44dfe: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:58:02 opp_bc74080d8bb44dfe: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:58:03 reproducing 1 mypy error in src/prefect/cache_policies.py
+19:58:03 opp_a4040e668a6e44de: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:58:07 opp_a4040e668a6e44de: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:58:08 reproducing 3 mypy errors in 
+src/prefect/server/database/alembic_commands.py
+19:58:08 opp_8ff85a173734438e: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:58:12 opp_8ff85a173734438e: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:58:13 reproducing 80 mypy errors in 
+src/prefect/server/database/dependencies.py
+19:58:13 opp_681bad8e51244096: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:58:17 opp_681bad8e51244096: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:58:18 reproducing 78 mypy errors in src/prefect/tasks.py
+19:58:18 opp_c6e8716caab54774: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:58:22 opp_c6e8716caab54774: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:58:23 reproducing 6 mypy errors in 
+src/prefect/server/services/task_run_recorder.py
+19:58:23 opp_ada55dbe73484668: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:58:27 opp_ada55dbe73484668: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:58:28 reproducing 2 mypy errors in src/prefect/server/services/db_vacuum.py
+19:58:28 opp_314bcbfd332d45ed: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:58:32 opp_314bcbfd332d45ed: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:58:33 reproducing 3 mypy errors in src/prefect/server/models/variables.py
+19:58:33 opp_d665b374e4b64fdc: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:58:37 opp_d665b374e4b64fdc: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:58:38 reproducing 3 mypy errors in src/prefect/server/models/flows.py
+19:58:38 opp_a9c51b09137c4ba7: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:58:42 opp_a9c51b09137c4ba7: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:58:43 reproducing 1 mypy error in src/prefect/server/models/configuration.py
+19:58:43 opp_048c3ddd6c274264: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:58:47 opp_048c3ddd6c274264: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:58:48 reproducing 3 mypy errors in 
+src/prefect/server/models/concurrency_limits_v2.py
+19:58:48 opp_c5966e4931284670: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:58:52 opp_c5966e4931284670: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:58:53 reproducing 3 mypy errors in 
+src/prefect/server/models/concurrency_limits.py
+19:58:53 opp_0d70c64021ba42da: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:58:57 opp_0d70c64021ba42da: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:58:58 reproducing 3 mypy errors in src/prefect/server/models/artifacts.py
+19:58:58 opp_ed5f8963a8c84e54: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:59:02 opp_ed5f8963a8c84e54: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:59:03 reproducing 2 mypy errors in src/prefect/server/events/filters.py
+19:59:03 opp_b3fadf077d254db1: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:59:07 opp_b3fadf077d254db1: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:59:08 reproducing 1 mypy error in src/prefect/server/events/counting.py
+19:59:08 opp_0908e52206af4432: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:59:12 opp_0908e52206af4432: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:59:13 reproducing 3 mypy errors in src/prefect/concurrency/_asyncio.py
+19:59:13 opp_10d4efc7e8604bf2: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:59:17 opp_10d4efc7e8604bf2: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:59:18 reproducing 4 mypy errors in src/prefect/utilities/engine/__init__.py
+19:59:18 opp_7493563fb1754db7: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:59:22 opp_7493563fb1754db7: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:59:23 reproducing 1 mypy error in src/prefect/server/services/telemetry.py
+19:59:23 opp_81f61252ddb74dd2: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:59:27 opp_81f61252ddb74dd2: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:59:28 reproducing 9 mypy errors in src/prefect/server/orchestration/rules.py
+19:59:28 opp_c044265291c64189: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:59:32 opp_c044265291c64189: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:59:33 reproducing 1 mypy error in src/prefect/server/models/events.py
+19:59:33 opp_76c44c8c447c4197: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:59:37 opp_76c44c8c447c4197: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:59:38 reproducing 3 mypy errors in src/prefect/server/models/block_types.py
+19:59:38 opp_81ed6011eb7a4693: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:59:42 opp_81ed6011eb7a4693: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:59:43 reproducing 5 mypy errors in 
+src/prefect/server/models/block_documents.py
+19:59:43 opp_e7e90a22b2d44c36: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:59:47 opp_e7e90a22b2d44c36: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:59:48 reproducing 7 mypy errors in src/prefect/server/models/workers.py
+19:59:48 opp_995d6d8c499e4311: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:59:52 opp_995d6d8c499e4311: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:59:53 reproducing 11 mypy errors in src/prefect/server/models/deployments.py
+19:59:53 opp_bdc6c2cbf49149f3: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+19:59:57 opp_bdc6c2cbf49149f3: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+19:59:58 reproducing 2 mypy errors in src/prefect/server/models/block_schemas.py
+19:59:58 opp_bd07a20c86324679: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:00:04 opp_bd07a20c86324679: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:00:05 reproducing 14 mypy errors in 
+src/prefect/server/orchestration/global_policy.py
+20:00:05 opp_214d224c193f44cf: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:00:11 opp_214d224c193f44cf: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:00:12 reproducing 6 mypy errors in src/prefect/server/models/work_queues.py
+20:00:12 opp_ba641ab33c994a76: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:00:18 opp_ba641ab33c994a76: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:00:19 reproducing 78 mypy errors in 
+src/prefect/server/orchestration/core_policy.py
+20:00:19 opp_ed6e1c6c324040ad: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:00:25 opp_ed6e1c6c324040ad: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:00:26 reproducing 2 mypy errors in src/prefect/server/models/task_runs.py
+20:00:26 opp_33f6116df75d4dc3: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:00:32 opp_33f6116df75d4dc3: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:00:33 reproducing 5 mypy errors in src/prefect/server/models/flow_runs.py
+20:00:33 opp_397235d804994509: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:00:39 opp_397235d804994509: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:00:40 reproducing 4 mypy errors in src/prefect/server/events/stream.py
+20:00:40 opp_9cc1f8df8d364828: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:00:46 opp_9cc1f8df8d364828: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:00:47 reproducing 1 mypy error in 
+src/prefect/server/events/storage/__init__.py
+20:00:47 opp_d861c1e40a924290: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:00:53 opp_d861c1e40a924290: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:00:54 reproducing 3 mypy errors in 
+src/prefect/server/events/models/automations.py
+20:00:54 opp_527d0ab1ea4c4c52: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:01:00 opp_527d0ab1ea4c4c52: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:01:01 reproducing 1 mypy error in src/prefect/transactions.py
+20:01:01 opp_3843ffcbbf25426b: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:01:07 opp_3843ffcbbf25426b: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:01:08 reproducing 1 mypy error in 
+src/prefect/server/utilities/worker_channel.py
+20:01:08 opp_d7226e49bf024df2: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:01:14 opp_d7226e49bf024df2: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:01:15 reproducing 2 mypy errors in src/prefect/server/services/foreman.py
+20:01:15 opp_d357059b43474aa5: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:01:21 opp_d357059b43474aa5: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:01:22 reproducing 2 mypy errors in 
+src/prefect/server/services/cancellation_cleanup.py
+20:01:22 opp_f97609ae5e244ed5: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:01:29 opp_f97609ae5e244ed5: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:01:30 reproducing 13 mypy errors in src/prefect/server/events/triggers.py
+20:01:30 opp_48831e95be684641: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:01:36 opp_48831e95be684641: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:01:37 reproducing 1 mypy error in 
+src/prefect/server/events/storage/database.py
+20:01:37 opp_a932ceb4fb5a4204: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:01:43 opp_a932ceb4fb5a4204: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:01:44 reproducing 2 mypy errors in 
+src/prefect/server/database/query_components.py
+20:01:44 opp_141764439b3845bc: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:01:50 opp_141764439b3845bc: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:01:51 reproducing 2 mypy errors in src/prefect/server/api/run_history.py
+20:01:51 opp_d1a7ba45b3004e47: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:01:57 opp_d1a7ba45b3004e47: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:01:58 reproducing 1 mypy error in src/prefect/runner/_hook_runner.py
+20:01:58 opp_03c21ff279794a92: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:02:04 opp_03c21ff279794a92: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:02:05 reproducing 62 mypy errors in src/prefect/task_engine.py
+20:02:05 opp_8d3d6320599d4634: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:02:11 opp_8d3d6320599d4634: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:02:12 reproducing 59 mypy errors in src/prefect/flow_engine.py
+20:02:12 opp_6375b45bfbeb4ba5: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:02:18 opp_6375b45bfbeb4ba5: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:02:19 reproducing 1 mypy error in src/prefect/engine.py
+20:02:19 opp_a5629318066949c4: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:02:25 opp_a5629318066949c4: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:02:26 reproducing 1 mypy error in 
+src/prefect/server/events/services/triggers.py
+20:02:26 opp_8526509a1f6646a4: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:02:32 opp_8526509a1f6646a4: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:02:33 reproducing 1 mypy error in 
+src/prefect/server/events/services/event_persister.py
+20:02:33 opp_3c40305ab95b46a0: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:02:39 opp_3c40305ab95b46a0: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:02:40 reproducing 3 mypy errors in src/prefect/server/api/workers.py
+20:02:40 opp_b06f87c998cf4451: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:02:46 opp_b06f87c998cf4451: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:02:48 reproducing 8 mypy errors in src/prefect/server/api/task_runs.py
+20:02:48 opp_32a71cb66c3c4a6d: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:02:53 opp_32a71cb66c3c4a6d: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:02:55 reproducing 4 mypy errors in src/prefect/runner/_flow_run_executor.py
+20:02:55 opp_7d7e776e5ed24308: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:03:01 opp_7d7e776e5ed24308: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:03:02 reproducing 9 mypy errors in src/prefect/task_worker.py
+20:03:02 opp_6de4b6464344478b: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:03:08 opp_6de4b6464344478b: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:03:09 reproducing 1 mypy error in src/prefect/server/api/flow_runs.py
+20:03:09 opp_2d611479e6134f2d: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:03:13 opp_2d611479e6134f2d: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:03:14 reproducing 1 mypy error in src/prefect/runner/_starter_direct.py
+20:03:14 opp_ab0ff8952485463a: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:03:18 opp_ab0ff8952485463a: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:03:19 reproducing 2 mypy errors in 
+src/prefect/runner/_scheduled_run_poller.py
+20:03:19 opp_a15c1360bc8f4932: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:03:23 opp_a15c1360bc8f4932: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:03:24 reproducing 6 mypy errors in src/prefect/bundles/__init__.py
+20:03:24 opp_52771f42594e4d3b: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:03:28 opp_52771f42594e4d3b: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:03:29 reproducing 20 mypy errors in src/prefect/runner/runner.py
+20:03:29 opp_d1f48de76ee54b06: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:03:34 opp_d1f48de76ee54b06: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:03:34 reproducing 17 mypy errors in src/prefect/server/api/server.py
+20:03:34 opp_97c515dddb8e4160: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:03:39 opp_97c515dddb8e4160: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:03:40 reproducing 2 mypy errors in src/prefect/variables.py
+20:03:40 opp_48bb7b4ffbd04520: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:03:44 opp_48bb7b4ffbd04520: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:03:45 reproducing 1 mypy error in src/prefect/workers/_cleanup.py
+20:03:45 opp_63920b4c25934ec0: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:03:49 opp_63920b4c25934ec0: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:03:50 reproducing 10 mypy errors in src/prefect/server/api/flows.py
+20:03:50 opp_f464c312d76b4d3c: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:03:54 opp_f464c312d76b4d3c: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:03:55 reproducing 4 mypy errors in src/prefect/server/api/deployments.py
+20:03:55 opp_83784bb732404e27: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:03:59 opp_83784bb732404e27: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:04:00 reproducing 1 mypy error in src/prefect/server/api/csrf_token.py
+20:04:00 opp_0dd5bbd58b614f61: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:04:04 opp_0dd5bbd58b614f61: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:04:05 reproducing 20 mypy errors in src/prefect/server/api/artifacts.py
+20:04:05 opp_c0753af1e354429f: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:04:09 opp_c0753af1e354429f: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:04:10 reproducing 1 mypy error in src/prefect/server/api/ui/schemas.py
+20:04:10 opp_1bd1560f28b1447c: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:04:14 opp_1bd1560f28b1447c: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:04:15 reproducing 1 mypy error in src/prefect/server/api/ui/flows.py
+20:04:15 opp_94715f830acf4097: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:04:19 opp_94715f830acf4097: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:04:20 reproducing 5 mypy errors in src/prefect/server/api/ui/flow_runs.py
+20:04:20 opp_c2b4e468ab1a422e: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:04:24 opp_c2b4e468ab1a422e: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:04:25 reproducing 1 mypy error in src/prefect/runtime/task_run.py
+20:04:25 opp_231ace19f6774e69: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:04:29 opp_231ace19f6774e69: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:04:30 reproducing 30 mypy errors in src/prefect/runtime/flow_run.py
+20:04:30 opp_dc543126c31b484b: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:04:34 opp_dc543126c31b484b: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:04:35 reproducing 4 mypy errors in src/prefect/client/cloud.py
+20:04:35 opp_64fb1fd43f7e46f5: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:04:39 opp_64fb1fd43f7e46f5: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:04:40 reproducing 9 mypy errors in src/prefect/blocks/notifications.py
+20:04:40 opp_fc219af68aeb4669: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:04:44 opp_fc219af68aeb4669: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:04:45 reproducing 1 mypy error in src/prefect/_internal/plugins/startup.py
+20:04:45 opp_43b23629a9d548d4: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:04:49 opp_43b23629a9d548d4: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:04:50 reproducing 4 mypy errors in src/prefect/server/api/events.py
+20:04:50 opp_d8730101ffa04d7c: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:04:54 opp_d8730101ffa04d7c: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:04:55 reproducing 2 mypy errors in 
+src/prefect/server/api/concurrency_limits.py
+20:04:55 opp_601b598873ad4c8f: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:04:59 opp_601b598873ad4c8f: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:05:00 reproducing 4 mypy errors in src/prefect/runtime/deployment.py
+20:05:00 opp_fd1a3fac9e8f4cbe: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:05:04 opp_fd1a3fac9e8f4cbe: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:05:05 reproducing 9 mypy errors in src/prefect/input/run_input.py
+20:05:05 opp_c6974eb4098840fc: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:05:09 opp_c6974eb4098840fc: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:05:10 reproducing 37 mypy errors in src/prefect/flow_runs.py
+20:05:10 opp_e1d4f139555248d7: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:05:14 opp_e1d4f139555248d7: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:05:15 reproducing 1 mypy error in src/prefect/main.py
+20:05:15 opp_30636f55f8874d38: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:05:19 opp_30636f55f8874d38: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:05:20 reproducing 14 mypy errors in src/prefect/workers/base.py
+20:05:20 opp_795ca0b01dec4e02: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:05:24 opp_795ca0b01dec4e02: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:05:25 reproducing 7 mypy errors in src/prefect/automations.py
+20:05:25 opp_9acd45bb25fa4aee: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:05:29 opp_9acd45bb25fa4aee: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:05:30 reproducing 10 mypy errors in src/prefect/artifacts.py
+20:05:30 opp_36bebe97abf546a3: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:05:34 opp_36bebe97abf546a3: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:05:35 reproducing 3 mypy errors in src/prefect/testing/utilities.py
+20:05:35 opp_02b8c90d785c4842: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:05:39 opp_02b8c90d785c4842: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:05:40 reproducing 5 mypy errors in src/prefect/testing/fixtures.py
+20:05:40 opp_dadc560f224c4f08: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:05:44 opp_dadc560f224c4f08: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:05:45 reproducing 12 mypy errors in 
+src/prefect/server/worker_communication/cleanup_queue/memory.py
+20:05:45 opp_3e254fe4e328471f: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:05:49 opp_3e254fe4e328471f: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:05:50 reproducing 1 mypy error in 
+src/prefect/server/events/ordering/memory.py
+20:05:50 opp_057ab7e5b02246a3: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:05:54 opp_057ab7e5b02246a3: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:05:55 reproducing 3 mypy errors in src/prefect/server/events/ordering/db.py
+20:05:55 opp_b63b13d2dd6d43ea: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:05:59 opp_b63b13d2dd6d43ea: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:06:00 reproducing 2 mypy errors in 
+src/prefect/server/database/_migrations/env.py
+20:06:00 opp_bec71077234e49d6: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:06:04 opp_bec71077234e49d6: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:06:05 reproducing 3 mypy errors in src/prefect/runner/_workspace_resolver.py
+20:06:05 opp_bf863fcc846841e5: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:06:09 opp_bf863fcc846841e5: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:06:10 reproducing 1 mypy error in src/prefect/locking/memory.py
+20:06:10 opp_6ab9ce169c754a4a: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:06:14 opp_6ab9ce169c754a4a: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:06:15 reproducing 2 mypy errors in src/prefect/locking/filesystem.py
+20:06:15 opp_7b5bcbb7de4843ef: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:06:20 opp_7b5bcbb7de4843ef: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:06:21 reproducing 17 mypy errors in src/prefect/deployments/flow_runs.py
+20:06:21 opp_486580dbc86d4c81: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:06:27 opp_486580dbc86d4c81: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:06:28 reproducing 4 mypy errors in src/prefect/deployments/base.py
+20:06:28 opp_c188271f014f49d2: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:06:34 opp_c188271f014f49d2: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:06:35 reproducing 1 mypy error in src/prefect/concurrency/v1/services.py
+20:06:35 opp_9717ecea75a142e6: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:06:41 opp_9717ecea75a142e6: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:06:42 reproducing 5 mypy errors in src/prefect/cli/_cloud_utils.py
+20:06:42 opp_2bef5b5d5d12400e: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:06:47 opp_2bef5b5d5d12400e: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:06:49 reproducing 2 mypy errors in src/prefect/blocks/redis.py
+20:06:49 opp_80113be403fe456f: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:06:54 opp_80113be403fe456f: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:06:55 reproducing 4 mypy errors in src/prefect/deployments/__init__.py
+20:06:55 opp_dadb7b88157a49ea: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:07:01 opp_dadb7b88157a49ea: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:07:02 reproducing 2 mypy errors in src/prefect/concurrency/v1/_asyncio.py
+20:07:02 opp_5bb4110701524b60: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:07:08 opp_5bb4110701524b60: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:07:09 reproducing 1 mypy error in src/prefect/cli/_worker_utils.py
+20:07:09 opp_2d2342ef39804e67: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:07:15 opp_2d2342ef39804e67: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:07:16 reproducing 3 mypy errors in src/prefect/workers/process.py
+20:07:16 opp_b03155c0cb104d27: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:07:21 opp_b03155c0cb104d27: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:07:23 reproducing 2 mypy errors in src/prefect/testing/cli.py
+20:07:23 opp_bbf73ced3f5c4722: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:07:28 opp_bbf73ced3f5c4722: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:07:30 reproducing 2 mypy errors in src/prefect/cli/version.py
+20:07:30 opp_aba51403c50f4e17: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:07:35 opp_aba51403c50f4e17: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:07:37 reproducing 1 mypy error in src/prefect/cli/task.py
+20:07:37 opp_b87caf2a0ce74dc5: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:07:43 opp_b87caf2a0ce74dc5: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:07:44 reproducing 6 mypy errors in src/prefect/cli/shell.py
+20:07:44 opp_8017502f879947e7: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:07:50 opp_8017502f879947e7: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:07:51 reproducing 1 mypy error in src/prefect/cli/flow.py
+20:07:51 opp_76cb1c95c24e4e61: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:07:57 opp_76cb1c95c24e4e61: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:07:58 reproducing 1 mypy error in src/prefect/cli/events.py
+20:07:58 opp_9c37657337a54695: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:08:03 opp_9c37657337a54695: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:08:05 reproducing 3 mypy errors in src/prefect/cli/dev.py
+20:08:05 opp_0979142ae4544802: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:08:10 opp_0979142ae4544802: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:08:11 reproducing 2 mypy errors in src/prefect/cli/config.py
+20:08:11 opp_aa565818f22f4dc5: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:08:17 opp_aa565818f22f4dc5: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:08:18 reproducing 2 mypy errors in src/prefect/cli/api.py
+20:08:18 opp_a07ceeb379444387: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:08:24 opp_a07ceeb379444387: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:08:25 reproducing 2 mypy errors in src/prefect/cli/_prompts.py
+20:08:25 opp_8ac70d861a854a76: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:08:31 opp_8ac70d861a854a76: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:08:32 reproducing 10 mypy errors in src/prefect/cli/_transfer_utils.py
+20:08:32 opp_7541330170ac4c60: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:08:38 opp_7541330170ac4c60: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:08:39 reproducing 19 mypy errors in 
+src/prefect/infrastructure/provisioners/ecs.py
+20:08:39 opp_f521ba3c5e4d4565: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:08:45 opp_f521ba3c5e4d4565: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:08:46 reproducing 18 mypy errors in 
+src/prefect/infrastructure/provisioners/container_instance.py
+20:08:46 opp_f7147d2c2b6044cf: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:08:52 opp_f7147d2c2b6044cf: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:08:53 reproducing 1 mypy error in 
+src/prefect/infrastructure/provisioners/cloud_run.py
+20:08:53 opp_ff8209fef0824de2: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:08:59 opp_ff8209fef0824de2: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:09:00 reproducing 1 mypy error in src/prefect/cli/worker.py
+20:09:00 opp_c21ec25bf1e6441f: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:09:05 opp_c21ec25bf1e6441f: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:09:07 reproducing 8 mypy errors in src/prefect/cli/flow_run.py
+20:09:07 opp_7eb9f968d0104a0c: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:09:12 opp_7eb9f968d0104a0c: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:09:14 reproducing 12 mypy errors in src/prefect/cli/deployment.py
+20:09:14 opp_c7534a02efae4536: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:09:19 opp_c7534a02efae4536: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:09:21 reproducing 1 mypy error in src/prefect/cli/block.py
+20:09:21 opp_c6455b1b30f248b2: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:09:26 opp_c6455b1b30f248b2: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:09:28 reproducing 10 mypy errors in src/prefect/cli/automation.py
+20:09:28 opp_5748c3ecb08a4899: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:09:34 opp_5748c3ecb08a4899: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:09:35 reproducing 2 mypy errors in src/prefect/cli/artifact.py
+20:09:35 opp_b60769ed0ea34cb5: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:09:41 opp_b60769ed0ea34cb5: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:09:42 reproducing 1 mypy error in src/prefect/cli/_server_utils.py
+20:09:42 opp_e77eb49dfeec4ba2: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:09:48 opp_e77eb49dfeec4ba2: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:09:49 reproducing 3 mypy errors in src/prefect/cli/deploy/_schedules.py
+20:09:49 opp_e9b1dc37fabe4fe7: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:09:55 opp_e9b1dc37fabe4fe7: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:09:56 reproducing 8 mypy errors in src/prefect/cli/deploy/_config.py
+20:09:56 opp_e69f9599711e4e25: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:10:02 opp_e69f9599711e4e25: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:10:03 reproducing 7 mypy errors in src/prefect/cli/deploy/_actions.py
+20:10:03 opp_86d7203a666a498f: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:10:09 opp_86d7203a666a498f: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:10:10 reproducing 1 mypy error in src/prefect/cli/server.py
+20:10:10 opp_035a63f3f95e4024: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:10:15 opp_035a63f3f95e4024: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:10:16 reproducing 13 mypy errors in src/prefect/cli/deploy/_core.py
+20:10:16 opp_957448e7b38842c5: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:10:20 opp_957448e7b38842c5: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:10:21 reproducing 2 mypy errors in src/prefect/cli/cloud/__init__.py
+20:10:21 opp_9b96d629ba5d45ac: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:10:25 opp_9b96d629ba5d45ac: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:10:26 reproducing 8 mypy errors in src/prefect/cli/work_pool.py
+20:10:26 opp_792690876e424ee3: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:10:30 opp_792690876e424ee3: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:10:31 reproducing 1 mypy error in src/prefect/cli/deploy/_commands.py
+20:10:31 opp_ffa36ed6d1f74acb: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:10:35 opp_ffa36ed6d1f74acb: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:10:36 reproducing 5 mypy errors in src/prefect/cli/work_queue.py
+20:10:36 opp_b70e09a38acf4776: not measured (cannot judge: incomplete reports 
+from ruff, pyright)
+20:10:40 opp_b70e09a38acf4776: wait (not measurable at this commit: cannot 
+judge: incomplete reports from ruff, pyright)
+20:10:53 opp_bb430bb74fb74db9: not measured (cannot measure: no a single Alembic
+head)
+20:10:57 opp_bb430bb74fb74db9: wait (not measurable at this commit: cannot 
+measure: no a single Alembic head)
+20:11:09 opp_fa74463f04234db7: not measured (cannot measure: no a single Alembic
+head)
+20:11:13 opp_fa74463f04234db7: wait (not measurable at this commit: cannot 
+measure: no a single Alembic head)
+
+
+== cycle 2 (exit 0)
+20:11:13 watching /Users/david/unbidden-lab/prefect (ctrl-c to stop, `unbidden 
+kill` to freeze)
+20:11:14 connections: postgres:127.0.0.1:55470/prefect connected, 
+http_api:http://127.0.0.1:18140 needs_capability
+20:11:25 goal data-correct-and-fast: blocked: prefect-api: no integration could 
+be validated (no documented read operation was chosen)
+
+
+== cycle 3 (exit 0)
+20:11:29 watching /Users/david/unbidden-lab/prefect (ctrl-c to stop, `unbidden 
+kill` to freeze)
+20:11:29 connections: postgres:127.0.0.1:55470/prefect connected, 
+http_api:http://127.0.0.1:18140 needs_capability
+
+
+== cycle 4 (exit 0)
+20:11:29 watching /Users/david/unbidden-lab/prefect (ctrl-c to stop, `unbidden 
+kill` to freeze)
+20:11:30 connections: postgres:127.0.0.1:55470/prefect connected, 
+http_api:http://127.0.0.1:18140 needs_capability

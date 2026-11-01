@@ -1,0 +1,125 @@
+{
+ "goal_runs": [
+  {
+   "status": "waiting_capability",
+   "note": "needs an integration for board-api",
+   "evidence": {}
+  },
+  {
+   "status": "page_ok",
+   "note": "the page shows what the data says (36 keys)",
+   "evidence": {
+    "before": {
+     "cause": "none",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_122abd77a6704c16/before",
+     "discrepancies": [],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 5.47,
+      "tier": "code",
+      "tokens": [
+       8392,
+       663
+      ],
+      "usd": 0.01330775
+     },
+     "perception": "vision",
+     "problems": [],
+     "sam": [],
+     "screenshots": {
+      "step-00": "b98b1b227cc594173079cca7f022e151689463eef314ebaa0ccdad6aada67253",
+      "step-01": "4589e66d588bdbe965ecab471313aace7c9fe88af9f698f9c18634b68b8f8456",
+      "step-02": "1fd7cecfd063f6971d95e788122c7c6387c70750377fcb4403a8b0988c2e1e63"
+     }
+    },
+    "perception": "vision",
+    "url": "http://127.0.0.1:18096/"
+   }
+  },
+  {
+   "status": "page_ok",
+   "note": "the page shows what the data says (36 keys)",
+   "evidence": {
+    "before": {
+     "cause": "none",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_c15e99143f094b55/before",
+     "discrepancies": [],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 5.31,
+      "tier": "code",
+      "tokens": [
+       8392,
+       861
+      ],
+      "usd": 0.01414925
+     },
+     "perception": "vision",
+     "problems": [],
+     "sam": [],
+     "screenshots": {
+      "step-00": "b98b1b227cc594173079cca7f022e151689463eef314ebaa0ccdad6aada67253",
+      "step-01": "4589e66d588bdbe965ecab471313aace7c9fe88af9f698f9c18634b68b8f8456",
+      "step-02": "1fd7cecfd063f6971d95e788122c7c6387c70750377fcb4403a8b0988c2e1e63"
+     }
+    },
+    "perception": "vision",
+    "url": "http://127.0.0.1:18096/"
+   }
+  }
+ ],
+ "model_runs": [
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.01034525,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "forge.api_client",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0042105,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0070005,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.01330775,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0068815,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.01414925,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  }
+ ]
+}

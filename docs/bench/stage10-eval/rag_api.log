@@ -1,0 +1,2 @@
+{"app": "rag_api", "run": "B-1", "usd_before": 25.2385, "usd_after": 25.2512, "wall_s": 300.5}
+{"app": "rag_api", "run": "A-1", "usd_before": 25.2512, "usd_after": 25.2986, "wall_s": 62.3}

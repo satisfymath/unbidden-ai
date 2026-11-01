@@ -1,0 +1,25 @@
+{
+ "repo": "/Users/david/unbidden-lab/rag-api",
+ "rev": "4985b37b8b5d4519d68eceedfef1e63624012f9d",
+ "image": "unbidden-deps-python:c3826707193716c8",
+ "image_notes": [
+  "python 3.12: where the CI runs the checks and the project's Dockerfile both use it",
+  "the CI's python-version: 3.12",
+  "the project's Dockerfile: 3.12",
+  "image unbidden-deps-python:c3826707193716c8 on linux/arm64"
+ ],
+ "python": "3.12",
+ "status": "failed",
+ "collected": 195,
+ "failed": [
+  "tests.utils.test_lazy_load::test_lazy_load_returns_documents[md]"
+ ],
+ "why": null,
+ "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest --maxfail=1 --disable-warnings",
+ "scope": "the whole job, without its tests that need a container runtime",
+ "partial": false,
+ "notes": [
+  "left out, it needs a container runtime (tests/integration/conftest.py imports testcontainers): the sandbox has none and never gets the host's Docker socket: pytest -m integration --maxfail=3 --disable-warnings --junitxml=test-results-integration.xml"
+ ],
+ "wall_s": 11.2
+}

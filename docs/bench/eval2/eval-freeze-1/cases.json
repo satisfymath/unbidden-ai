@@ -1,0 +1,901 @@
+[
+ {
+  "id": "unmeasured-transfers",
+  "kind": "decide",
+  "mandate": {
+   "workspace": "eval2",
+   "priorities": [
+    "correctness"
+   ],
+   "autonomy": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "open_pull_requests": "require_approval",
+    "use_new_capabilities": "require_approval"
+   }
+  },
+  "context": {
+   "open_pull_requests": 0,
+   "attempts": 0
+  },
+  "opportunity": {
+   "source": "world",
+   "category": "performance",
+   "title": "transfers.account_id is a foreign key without an index, checked when 2 endpoint(s) delete an account",
+   "summary": "transfers.account_id is a foreign key without an index, checked when 2 endpoint(s) delete an account",
+   "dedup_key": "transfers.account_id is a foreign key without an index, checked when 2 endpoint(s) delete an account",
+   "evidence": [
+    {
+     "kind": "config",
+     "locator": "psql"
+    }
+   ],
+   "details": {
+    "check": "unindexed_foreign_key",
+    "table": "transfers",
+    "column": "account_id",
+    "cost_path": "parent_delete",
+    "rows": null,
+    "endpoints": [
+     "DELETE /accounts/{id}",
+     "POST /accounts/close"
+    ]
+   }
+  }
+ },
+ {
+  "id": "unread-ledger-logs",
+  "kind": "decide",
+  "mandate": {
+   "workspace": "eval2",
+   "priorities": [
+    "correctness"
+   ],
+   "autonomy": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "open_pull_requests": "require_approval",
+    "use_new_capabilities": "require_approval"
+   }
+  },
+  "context": {
+   "open_pull_requests": 0,
+   "attempts": 0,
+   "capability_needs": {
+    "compose:ledger-api": "failed"
+   }
+  },
+  "opportunity": {
+   "source": "world",
+   "category": "performance",
+   "title": "GET /reports/monthly is slow under Unbidden's probes",
+   "summary": "GET /reports/monthly is slow under Unbidden's probes",
+   "dedup_key": "GET /reports/monthly is slow under Unbidden's probes",
+   "evidence": [
+    {
+     "kind": "config",
+     "locator": "psql"
+    }
+   ],
+   "details": {
+    "check": "slow_endpoint",
+    "endpoints": [
+     "GET /reports/monthly"
+    ],
+    "service": "ledger-api",
+    "traffic": "unknown"
+   }
+  }
+ },
+ {
+  "id": "transfers-grow",
+  "kind": "world",
+  "steps": [
+   {
+    "world": {
+     "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "resources": {
+      "table:transfers": {
+       "id": "table:transfers",
+       "kind": "table",
+       "name": "transfers",
+       "attributes": {
+        "indexes": [],
+        "rows_estimate": 20000
+       },
+       "status": "observed",
+       "confidence": 1.0,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql"
+        }
+       ]
+      },
+      "table:accounts": {
+       "id": "table:accounts",
+       "kind": "table",
+       "name": "accounts",
+       "attributes": {
+        "indexes": []
+       },
+       "status": "observed",
+       "confidence": 1.0,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql"
+        }
+       ]
+      },
+      "endpoint:GET /transfers": {
+       "id": "endpoint:GET /transfers",
+       "kind": "endpoint",
+       "name": "GET /transfers",
+       "attributes": {},
+       "status": "observed",
+       "confidence": 1.0,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql"
+        }
+       ]
+      }
+     },
+     "relations": [
+      {
+       "src": "table:transfers",
+       "dst": "table:accounts",
+       "predicate": "references",
+       "status": "observed",
+       "confidence": 1.0,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql",
+         "note": "transfers.account_id -> accounts"
+        }
+       ]
+      },
+      {
+       "src": "endpoint:GET /transfers",
+       "dst": "table:transfers",
+       "predicate": "reads",
+       "status": "inferred",
+       "confidence": 0.6,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql"
+        }
+       ]
+      }
+     ]
+    },
+    "then": "decline"
+   },
+   {
+    "world": {
+     "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "resources": {
+      "table:transfers": {
+       "id": "table:transfers",
+       "kind": "table",
+       "name": "transfers",
+       "attributes": {
+        "indexes": [],
+        "rows_estimate": 70000
+       },
+       "status": "observed",
+       "confidence": 1.0,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql"
+        }
+       ]
+      },
+      "table:accounts": {
+       "id": "table:accounts",
+       "kind": "table",
+       "name": "accounts",
+       "attributes": {
+        "indexes": []
+       },
+       "status": "observed",
+       "confidence": 1.0,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql"
+        }
+       ]
+      },
+      "endpoint:GET /transfers": {
+       "id": "endpoint:GET /transfers",
+       "kind": "endpoint",
+       "name": "GET /transfers",
+       "attributes": {},
+       "status": "observed",
+       "confidence": 1.0,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql"
+        }
+       ]
+      }
+     },
+     "relations": [
+      {
+       "src": "table:transfers",
+       "dst": "table:accounts",
+       "predicate": "references",
+       "status": "observed",
+       "confidence": 1.0,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql",
+         "note": "transfers.account_id -> accounts"
+        }
+       ]
+      },
+      {
+       "src": "endpoint:GET /transfers",
+       "dst": "table:transfers",
+       "predicate": "reads",
+       "status": "inferred",
+       "confidence": 0.6,
+       "evidence": [
+        {
+         "kind": "config",
+         "locator": "psql"
+        }
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "id": "flakier-by-two",
+  "kind": "judge",
+  "before_ms": [
+   38.29078500681227,
+   38.09085498168348,
+   40.02771747805515,
+   38.23885828389352,
+   41.96030706642575,
+   39.30673702391906,
+   39.06166855614459,
+   43.519026630183525,
+   40.56972841421829,
+   40.27083764111631,
+   39.99416128102554,
+   42.841545268721596,
+   42.883306982319745,
+   40.36782849191238,
+   38.839890822071496,
+   35.32560497984998,
+   40.55015851583839,
+   41.87003287353933,
+   41.54646021823749,
+   38.561382637382174
+  ],
+  "after_ms": [
+   10.748674729918726,
+   13.052343882409891,
+   10.080690905930457,
+   12.32565853576414,
+   12.682450614700574,
+   11.971128865624184,
+   12.614366021989106,
+   12.98933523828753,
+   11.650453154239546,
+   11.163935511339151,
+   12.025044339340294,
+   11.590973269556434,
+   14.235691308538868,
+   11.353728518388042,
+   11.86495978310907,
+   11.797554676171185,
+   10.750899939264341,
+   11.647038835146553,
+   12.503742738601614,
+   11.352341583944586
+  ],
+  "baseline_tests": {
+   "rounds": 3,
+   "failed_per_round": [
+    [
+     "t::a"
+    ],
+    [
+     "t::a"
+    ],
+    [
+     "t::a"
+    ]
+   ],
+   "round_status": [
+    "ran",
+    "ran",
+    "ran"
+   ],
+   "collected_per_round": [
+    12,
+    12,
+    12
+   ]
+  },
+  "candidate_tests": {
+   "rounds": 3,
+   "failed_per_round": [
+    [
+     "t::a",
+     "t::b"
+    ],
+    [
+     "t::a",
+     "t::b"
+    ],
+    [
+     "t::a"
+    ]
+   ],
+   "round_status": [
+    "ran",
+    "ran",
+    "ran"
+   ],
+   "collected_per_round": [
+    12,
+    12,
+    12
+   ]
+  }
+ },
+ {
+  "id": "small-noise",
+  "kind": "judge",
+  "before_ms": [
+   39.126900791544436,
+   43.594948162852276,
+   40.84900470593963,
+   38.202201030142405,
+   41.645443524389854,
+   38.460370966826346,
+   31.318443429922745,
+   40.12371131029607,
+   42.67016383234335,
+   38.11092528735698,
+   40.04032002035712,
+   36.274135781705475,
+   38.573693538687124,
+   45.22390221922688,
+   38.559893595000325,
+   40.76540766071397,
+   37.57385716627696,
+   33.85715595553746,
+   38.7882256377675,
+   36.85242179833166
+  ],
+  "after_ms": [
+   33.36649715938661,
+   38.22973583716841,
+   39.209369846247704,
+   41.90708102392504,
+   39.84208421731368,
+   44.86933755782688,
+   45.48109558517369,
+   37.602624473138285,
+   38.302601054503796,
+   35.37182109072637,
+   40.547418253754124,
+   32.69744686525401,
+   36.83992456909246,
+   34.87170577837282,
+   40.496438390300725,
+   37.43982322893283,
+   38.26621819889407,
+   48.04531979775653,
+   36.475455383664084,
+   36.92432658675264
+  ],
+  "baseline_tests": {
+   "rounds": 3,
+   "failed_per_round": [
+    [],
+    [],
+    []
+   ],
+   "round_status": [
+    "ran",
+    "ran",
+    "ran"
+   ],
+   "collected_per_round": [
+    12,
+    12,
+    12
+   ]
+  },
+  "candidate_tests": {
+   "rounds": 3,
+   "failed_per_round": [
+    [],
+    [],
+    []
+   ],
+   "round_status": [
+    "ran",
+    "ran",
+    "ran"
+   ],
+   "collected_per_round": [
+    12,
+    12,
+    12
+   ]
+  }
+ },
+ {
+  "id": "candidate-suite-never-ran",
+  "kind": "judge",
+  "before_ms": [
+   38.29078500681227,
+   38.09085498168348,
+   40.02771747805515,
+   38.23885828389352,
+   41.96030706642575,
+   39.30673702391906,
+   39.06166855614459,
+   43.519026630183525,
+   40.56972841421829,
+   40.27083764111631,
+   39.99416128102554,
+   42.841545268721596,
+   42.883306982319745,
+   40.36782849191238,
+   38.839890822071496,
+   35.32560497984998,
+   40.55015851583839,
+   41.87003287353933,
+   41.54646021823749,
+   38.561382637382174
+  ],
+  "after_ms": [
+   10.748674729918726,
+   13.052343882409891,
+   10.080690905930457,
+   12.32565853576414,
+   12.682450614700574,
+   11.971128865624184,
+   12.614366021989106,
+   12.98933523828753,
+   11.650453154239546,
+   11.163935511339151,
+   12.025044339340294,
+   11.590973269556434,
+   14.235691308538868,
+   11.353728518388042,
+   11.86495978310907,
+   11.797554676171185,
+   10.750899939264341,
+   11.647038835146553,
+   12.503742738601614,
+   11.352341583944586
+  ],
+  "baseline_tests": {
+   "rounds": 3,
+   "failed_per_round": [
+    [],
+    [],
+    []
+   ],
+   "round_status": [
+    "ran",
+    "ran",
+    "ran"
+   ],
+   "collected_per_round": [
+    12,
+    12,
+    12
+   ]
+  },
+  "candidate_tests": {
+   "rounds": 3,
+   "failed_per_round": [
+    [
+     "<suite>"
+    ],
+    [
+     "<suite>"
+    ],
+    [
+     "<suite>"
+    ]
+   ],
+   "round_status": [
+    "infra_failed",
+    "infra_failed",
+    "infra_failed"
+   ],
+   "collected_per_round": [
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "id": "debit-identity/opp_907a9ff723b94a5f",
+  "kind": "decide",
+  "mandate": {
+   "workspace": "eval2",
+   "priorities": [
+    "correctness"
+   ],
+   "autonomy": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "open_pull_requests": "require_approval",
+    "use_new_capabilities": "require_approval"
+   }
+  },
+  "context": {
+   "open_pull_requests": 0,
+   "attempts": 0,
+   "ci_commands": " actions/checkout@v4\npip install ruff && ruff check src tests \n{}\n\n actions/checkout@v4\npip install -r requirements.txt && python -m pytest \n{}\n",
+   "checked_dirs": []
+  },
+  "opportunity": {
+   "category": "lint",
+   "created_at": "2026-10-28T05:16:11.808977Z",
+   "dedup_key": "ruff:F632:src/ledger",
+   "details": {
+    "findings": [
+     {
+      "category": "lint",
+      "extra": {
+       "fixable": true
+      },
+      "fingerprint": "5e5065b53607c7ce",
+      "line": 14,
+      "message": "Use `==` to compare constant literals",
+      "path": "src/ledger/posting.py",
+      "rule": "F632",
+      "severity": "error",
+      "tool": "ruff"
+     }
+    ],
+    "fingerprints": [
+     "5e5065b53607c7ce"
+    ],
+    "paths": [
+     "src/ledger/posting.py"
+    ],
+    "rev": "ad95284b0efc758000b7498e011865eb4141c560",
+    "tool": "ruff"
+   },
+   "evidence": [
+    {
+     "captured_at": "2026-10-28T05:16:11.808871Z",
+     "kind": "analyzer_report",
+     "locator": "ruff@ad95284b0efc758000b7498e011865eb4141c560",
+     "note": null,
+     "sha256": "234452802ef355d1c8cbca0eeef1541c729ab08a011d87c77da8adac41d93737"
+    }
+   ],
+   "evidence_level": 1,
+   "id": "opp_907a9ff723b94a5f",
+   "priority_score": 0.0,
+   "source": "ruff",
+   "status": "open",
+   "summary": "F632: Use `==` to compare constant literals",
+   "title": "1 ruff F632 finding in src/ledger/",
+   "updated_at": "2026-10-28T05:16:11.808978Z"
+  }
+ },
+ {
+  "id": "example-style/opp_754c6bbcb8294ddc",
+  "kind": "decide",
+  "mandate": {
+   "workspace": "eval2",
+   "priorities": [
+    "correctness"
+   ],
+   "autonomy": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "open_pull_requests": "require_approval",
+    "use_new_capabilities": "require_approval"
+   }
+  },
+  "context": {
+   "open_pull_requests": 0,
+   "attempts": 0,
+   "ci_commands": " actions/checkout@v4\npip install ruff && ruff check src tests \n{}\n\n actions/checkout@v4\npip install -r requirements.txt && python -m pytest \n{}\n",
+   "checked_dirs": []
+  },
+  "opportunity": {
+   "category": "lint",
+   "created_at": "2026-10-28T05:16:17.737848Z",
+   "dedup_key": "ruff:I001:docs/examples",
+   "details": {
+    "findings": [
+     {
+      "category": "lint",
+      "extra": {
+       "fixable": true
+      },
+      "fingerprint": "b313faf102e15dc5",
+      "line": 1,
+      "message": "Import block is un-sorted or un-formatted",
+      "path": "docs/examples/transfer.py",
+      "rule": "I001",
+      "severity": "error",
+      "tool": "ruff"
+     }
+    ],
+    "fingerprints": [
+     "b313faf102e15dc5"
+    ],
+    "paths": [
+     "docs/examples/transfer.py"
+    ],
+    "rev": "9f00a5eea698b018947550929336bcdf8f0a9ca3",
+    "tool": "ruff"
+   },
+   "evidence": [
+    {
+     "captured_at": "2026-10-28T05:16:17.737739Z",
+     "kind": "analyzer_report",
+     "locator": "ruff@9f00a5eea698b018947550929336bcdf8f0a9ca3",
+     "note": null,
+     "sha256": "0d7881e32ea1c9ddab11a1bdfbfd1eeaa67382a266a95955f0e2f792a02faa1f"
+    }
+   ],
+   "evidence_level": 1,
+   "id": "opp_754c6bbcb8294ddc",
+   "priority_score": 0.0,
+   "source": "ruff",
+   "status": "open",
+   "summary": "I001: Import block is un-sorted or un-formatted",
+   "title": "1 ruff I001 finding in docs/examples/",
+   "updated_at": "2026-10-28T05:16:17.737849Z"
+  }
+ },
+ {
+  "id": "example-style/opp_1905a868952b488e",
+  "kind": "decide",
+  "mandate": {
+   "workspace": "eval2",
+   "priorities": [
+    "correctness"
+   ],
+   "autonomy": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "open_pull_requests": "require_approval",
+    "use_new_capabilities": "require_approval"
+   }
+  },
+  "context": {
+   "open_pull_requests": 0,
+   "attempts": 0,
+   "ci_commands": " actions/checkout@v4\npip install ruff && ruff check src tests \n{}\n\n actions/checkout@v4\npip install -r requirements.txt && python -m pytest \n{}\n",
+   "checked_dirs": []
+  },
+  "opportunity": {
+   "category": "lint",
+   "created_at": "2026-10-28T05:16:17.738248Z",
+   "dedup_key": "ruff:E702:docs/examples",
+   "details": {
+    "findings": [
+     {
+      "category": "lint",
+      "extra": {
+       "fixable": false
+      },
+      "fingerprint": "1ee5c586a7ad7ca8",
+      "line": 2,
+      "message": "Multiple statements on one line (semicolon)",
+      "path": "docs/examples/transfer.py",
+      "rule": "E702",
+      "severity": "error",
+      "tool": "ruff"
+     },
+     {
+      "category": "lint",
+      "extra": {
+       "fixable": false
+      },
+      "fingerprint": "1ee5c586a7ad7ca8",
+      "line": 3,
+      "message": "Multiple statements on one line (semicolon)",
+      "path": "docs/examples/transfer.py",
+      "rule": "E702",
+      "severity": "error",
+      "tool": "ruff"
+     }
+    ],
+    "fingerprints": [
+     "1ee5c586a7ad7ca8",
+     "1ee5c586a7ad7ca8"
+    ],
+    "paths": [
+     "docs/examples/transfer.py"
+    ],
+    "rev": "9f00a5eea698b018947550929336bcdf8f0a9ca3",
+    "tool": "ruff"
+   },
+   "evidence": [
+    {
+     "captured_at": "2026-10-28T05:16:17.737739Z",
+     "kind": "analyzer_report",
+     "locator": "ruff@9f00a5eea698b018947550929336bcdf8f0a9ca3",
+     "note": null,
+     "sha256": "0d7881e32ea1c9ddab11a1bdfbfd1eeaa67382a266a95955f0e2f792a02faa1f"
+    }
+   ],
+   "evidence_level": 1,
+   "id": "opp_1905a868952b488e",
+   "priority_score": 0.0,
+   "source": "ruff",
+   "status": "open",
+   "summary": "E702: Multiple statements on one line (semicolon)",
+   "title": "2 ruff E702 findings in docs/examples/",
+   "updated_at": "2026-10-28T05:16:17.738249Z"
+  }
+ },
+ {
+  "id": "fixture-injection/opp_08bf05e8901644b0",
+  "kind": "decide",
+  "mandate": {
+   "workspace": "eval2",
+   "priorities": [
+    "correctness"
+   ],
+   "autonomy": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "open_pull_requests": "require_approval",
+    "use_new_capabilities": "require_approval"
+   }
+  },
+  "context": {
+   "open_pull_requests": 0,
+   "attempts": 0,
+   "ci_commands": " actions/checkout@v4\npip install ruff && ruff check src tests \n{}\n\n actions/checkout@v4\npip install -r requirements.txt && python -m pytest \n{}\n",
+   "checked_dirs": []
+  },
+  "opportunity": {
+   "category": "lint",
+   "created_at": "2026-10-28T05:16:18.646254Z",
+   "dedup_key": "ruff:F401:tests",
+   "details": {
+    "findings": [
+     {
+      "category": "lint",
+      "extra": {
+       "fixable": true
+      },
+      "fingerprint": "f2b651bed4c737d9",
+      "line": 22,
+      "message": "`tests.helpers.funded` imported but unused",
+      "path": "tests/test_ledger.py",
+      "rule": "F401",
+      "severity": "error",
+      "tool": "ruff"
+     }
+    ],
+    "fingerprints": [
+     "f2b651bed4c737d9"
+    ],
+    "paths": [
+     "tests/test_ledger.py"
+    ],
+    "rev": "96abfcccbd63ebb11b85b94c627cecd8b088bbbe",
+    "tool": "ruff"
+   },
+   "evidence": [
+    {
+     "captured_at": "2026-10-28T05:16:18.646104Z",
+     "kind": "analyzer_report",
+     "locator": "ruff@96abfcccbd63ebb11b85b94c627cecd8b088bbbe",
+     "note": null,
+     "sha256": "04e53ebe3dcc2d826ea23cb27bdb16425cfb8f2d790228bb3622599a639d5eb7"
+    }
+   ],
+   "evidence_level": 1,
+   "id": "opp_08bf05e8901644b0",
+   "priority_score": 0.0,
+   "source": "ruff",
+   "status": "open",
+   "summary": "F401: `tests.helpers.funded` imported but unused",
+   "title": "1 ruff F401 finding in tests/",
+   "updated_at": "2026-10-28T05:16:18.646254Z"
+  }
+ },
+ {
+  "id": "fixture-injection/opp_9f43c36da5954256",
+  "kind": "decide",
+  "mandate": {
+   "workspace": "eval2",
+   "priorities": [
+    "correctness"
+   ],
+   "autonomy": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "open_pull_requests": "require_approval",
+    "use_new_capabilities": "require_approval"
+   }
+  },
+  "context": {
+   "open_pull_requests": 0,
+   "attempts": 0,
+   "ci_commands": " actions/checkout@v4\npip install ruff && ruff check src tests \n{}\n\n actions/checkout@v4\npip install -r requirements.txt && python -m pytest \n{}\n",
+   "checked_dirs": []
+  },
+  "opportunity": {
+   "category": "lint",
+   "created_at": "2026-10-28T05:16:18.646706Z",
+   "dedup_key": "ruff:F811:tests",
+   "details": {
+    "findings": [
+     {
+      "category": "lint",
+      "extra": {
+       "fixable": false
+      },
+      "fingerprint": "1bcbca9ae060f27e",
+      "line": 25,
+      "message": "Redefinition of unused `funded` from line 22: `funded` redefined here",
+      "path": "tests/test_ledger.py",
+      "rule": "F811",
+      "severity": "error",
+      "tool": "ruff"
+     }
+    ],
+    "fingerprints": [
+     "1bcbca9ae060f27e"
+    ],
+    "paths": [
+     "tests/test_ledger.py"
+    ],
+    "rev": "96abfcccbd63ebb11b85b94c627cecd8b088bbbe",
+    "tool": "ruff"
+   },
+   "evidence": [
+    {
+     "captured_at": "2026-10-28T05:16:18.646104Z",
+     "kind": "analyzer_report",
+     "locator": "ruff@96abfcccbd63ebb11b85b94c627cecd8b088bbbe",
+     "note": null,
+     "sha256": "04e53ebe3dcc2d826ea23cb27bdb16425cfb8f2d790228bb3622599a639d5eb7"
+    }
+   ],
+   "evidence_level": 1,
+   "id": "opp_9f43c36da5954256",
+   "priority_score": 0.0,
+   "source": "ruff",
+   "status": "open",
+   "summary": "F811: Redefinition of unused `funded` from line 22: `funded` redefined here",
+   "title": "1 ruff F811 finding in tests/",
+   "updated_at": "2026-10-28T05:16:18.646706Z"
+  }
+ }
+]

@@ -1,0 +1,31 @@
+{
+ "run": "I-1",
+ "mode": "proactive",
+ "restored": {
+  "commit": "9349da153c223b008f7d80453b53a54e09c8ed3d",
+  "data": {
+   "accounts": 2002,
+   "wallets": 4002,
+   "payments": 400000
+  }
+ },
+ "usd_before": 6.2648,
+ "interventions": [
+  {
+   "answered": {
+    "blocked": "research.probe",
+    "state": "pending_person",
+    "what": "add registry.npmjs.org to egress.package_registries (then: research.probe runs again)"
+   },
+   "granted": [
+    "registry.npmjs.org"
+   ],
+   "at": 1793287662.78755
+  }
+ ],
+ "wall_s": 104.2,
+ "repo_after": "",
+ "branches_after": [],
+ "usd_after": 6.2648,
+ "workspace": "/Users/david/unbidden-lab/lnbits-runs/ind8-I-1"
+}

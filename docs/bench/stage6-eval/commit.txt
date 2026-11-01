@@ -1,0 +1,1 @@
+94765da style(bench): the board goal's statement within the line length (same text)

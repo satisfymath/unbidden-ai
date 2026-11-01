@@ -1,0 +1,211 @@
+{
+  "workspace": "lnbits",
+  "at": "2026-10-30T06:16:47.396686+00:00",
+  "discovered": {
+    "total": 19,
+    "by_status": {
+      "open": 19
+    }
+  },
+  "experimenting": [],
+  "declined_because": [],
+  "waiting_because": [
+    [
+      "blocked: GET /api/v1/assets/paginated accepts oauth2 or http:bearer; the granted credential is not of that kind",
+      1
+    ],
+    [
+      "blocked: GET /api/v1/extension/reviews/tags accepts oauth2 or http:bearer; the granted credential is not of that kind",
+      1
+    ],
+    [
+      "blocked: GET /api/v1/extension/wasm/invocations accepts oauth2 or http:bearer; the granted credential is not of that kind",
+      1
+    ],
+    [
+      "blocked: GET /api/v1/extension/wasm/invocations/current accepts oauth2 or http:bearer; the granted credential is not of that kind",
+      1
+    ],
+    [
+      "blocked: GET /api/v1/extension/wasm/invocations/stats accepts oauth2 or http:bearer; the granted credential is not of that kind",
+      1
+    ],
+    [
+      "blocked: GET /api/v1/payments/all/paginated accepts oauth2 or http:bearer; the granted credential is not of that kind",
+      1
+    ]
+  ],
+  "proven": [],
+  "project_checks": {
+    "rev": "9349da153c223b008f7d80453b53a54e09c8ed3d",
+    "at": "2026-10-30T06:14:52.291218+00:00",
+    "status": "failed",
+    "collected": 272,
+    "failed": [
+      "tests.api.test_api::test_create_invoice_fiat_amount (needs network)",
+      "tests.api.test_api::test_fiat_tracking (needs network)"
+    ],
+    "command": "bash -c set -e\ncd /work\npytest tests/api"
+  },
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {
+      "abandoned": 1
+    },
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 294,
+    "usd": 1.4044,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55450/lnbits",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.accounts",
+        "select public.apipayments",
+        "select public.assets",
+        "select public.audit",
+        "select public.balance_check",
+        "select public.balance_notify",
+        "select public.balances",
+        "select public.dbversions",
+        "select public.extensions",
+        "select public.installed_extensions",
+        "select public.system_settings",
+        "select public.tiny_url",
+        "select public.wallets",
+        "select public.wasm_invocations",
+        "select public.webpush_subscriptions"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T06:16:04.061287+00:00"
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18120",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "LNbits API: 178 operations documented, authenticated by oauth2, http bearer, apiKey X-API-KEY, apiKey api-key; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T06:16:04.071428+00:00"
+    }
+  ],
+  "needs_a_person": [
+    {
+      "proposal": "docker compose up -d --remove-orphans",
+      "state": "proposed",
+      "what": "found in docker/regtest/docker-scripts.sh; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose up --remove-orphans",
+      "state": "proposed",
+      "what": "found in docker/regtest/docker-scripts.sh; a proposal only: a person declares deploy steps in the mandate"
+    }
+  ],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [
+    {
+      "id": "int_c85b754d47e84f85",
+      "title": "LNbits API",
+      "on": "http_api:http://127.0.0.1:18120",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "Payment_List_api_v1_payments_paginated_get": "read",
+        "api_payment_api_v1_payments__payment_hash__get": "read"
+      },
+      "oracle": {
+        "Payment_List_api_v1_payments_paginated_get": "200, 5000 records, read unknown (total changed during the read (0 to 5000): the collection changed (an empty page at offset 5000)); page size 100: 5000 records (unknown); page size 99: 5000 (complete); 0 differ; without the key: 401",
+        "api_payment_api_v1_payments__payment_hash__get": "200; agrees with the listed record: True"
+      }
+    },
+    {
+      "id": "int_32ceef35af864631",
+      "title": "LNbits API",
+      "on": "http_api:http://127.0.0.1:18120",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "Payment_List_api_v1_payments_paginated_get": "read",
+        "Get_wallet_payment_total_breakdown_api_v1_payments_stats_breakdown_get": "read"
+      },
+      "oracle": {
+        "Get_wallet_payment_total_breakdown_api_v1_payments_stats_breakdown_get": "200, 1 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 401",
+        "Payment_List_api_v1_payments_paginated_get": "read failed: Payment_List_api_v1_payments_paginated_get answered 429, which its document does not declare; 429, 5000 records, read unknown (total changed during the read (0 to 5000): the collection changed (an empty page at offset 5000)); ; without the key: 429"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "consistency-opp_4e8c87f443a3495d",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for lnbits-api",
+      "at": "2026-10-30T06:16:05.818537+00:00"
+    },
+    {
+      "goal": "consistency-opp_a5b032b548c54b5b",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for lnbits-api",
+      "at": "2026-10-30T06:16:27.300662+00:00"
+    }
+  ]
+}

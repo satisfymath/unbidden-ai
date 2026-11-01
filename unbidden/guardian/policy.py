@@ -23,10 +23,17 @@ CAPABILITIES: dict[str, CapabilityRule] = {
     "model.local": CapabilityRule("run_experiments"),
     "sandbox.provision": CapabilityRule("provision_dependencies", network="package_registries"),
     "model.remote.synthetic": CapabilityRule("delegate_synthetic", network="remote_models"),
+    "model.remote.screenshot": CapabilityRule("delegate_synthetic", network="remote_models"),
+    # Read-only: the status of the team's own checks on a commit of the mandate's repository.
+    "github.read": CapabilityRule("observe", network="github"),
     "github.push_branch": CapabilityRule("open_pull_requests", network="github"),
     "github.open_pull_request": CapabilityRule("open_pull_requests", network="github"),
     "github.merge_pull_request": CapabilityRule("merge_pull_requests", network="github"),
+    "capability.build": CapabilityRule("run_experiments"),  # Forge builds a reader with the local model
     "capability.use": CapabilityRule("use_new_capabilities"),  # turn on an adapter Forge built and validated
+    # A granted connection: reading (checks, bounded queries, GETs) and writing (typed actions it permits).
+    "connection.read": CapabilityRule("observe", network="connections"),
+    "connection.write": CapabilityRule("act_on_connections", network="connections"),
     "deploy.run": CapabilityRule("deploy"),
     "deploy.rollback": CapabilityRule("rollback"),
 }
@@ -40,8 +47,16 @@ def _allowlist(mandate: Mandate, network: str) -> list[str]:
             return mandate.egress.remote_models.destinations
         case "github":
             return list(GITHUB_HOSTS) if mandate.egress.github.repository else []
+        case "connections":
+            return [grant_host(g.location) for g in mandate.connections]
         case _:
             return []
+
+
+def grant_host(location: str) -> str:
+    """The host:port a grant's location names (`host:port/db`, `http://host:port/base`, `owner/name` as itself)."""
+    rest = location.split("://", 1)[-1]
+    return rest.split("/", 1)[0] if "://" in location or ":" in rest.split("/", 1)[0] else location
 
 
 class PolicyEngine:

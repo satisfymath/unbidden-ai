@@ -16,6 +16,7 @@ from typing import Any
 from pydantic import Field
 
 from unbidden.contracts.common import Contract, new_id, utc_now
+from unbidden.forge.bounded import Pattern, Unbounded, compile_untrusted
 
 FIELDS = ("method", "path", "status", "level", "message")
 METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
@@ -57,9 +58,9 @@ def admit(pattern: str) -> list[str]:
     if _NESTED.search(pattern):
         problems.append("nests quantifiers (catastrophic backtracking)")
     try:
-        compiled = re.compile(pattern)
-    except re.error as exc:
-        return [*problems, f"does not compile: {exc}"]
+        compiled = compile_untrusted(pattern)
+    except Unbounded as exc:
+        return [*problems, str(exc)]
     if compiled.groups > MAX_GROUPS:
         problems.append(f"more than {MAX_GROUPS} groups")
     unknown = set(compiled.groupindex) - set(FIELDS)
@@ -70,7 +71,7 @@ def admit(pattern: str) -> list[str]:
     return problems
 
 
-def parse_line(compiled: re.Pattern[str], line: str) -> dict[str, str] | None:
+def parse_line(compiled: Pattern, line: str) -> dict[str, str] | None:
     match = compiled.search(line)
     return None if match is None else {k: v for k, v in match.groupdict().items() if v is not None}
 
@@ -89,7 +90,7 @@ VARIANT_STATUSES = ("500", "201", "502", "304")
 VARIANT_METHODS = ("POST", "DELETE", "PATCH")
 
 
-def metamorphic(compiled: re.Pattern[str], access: list[str], samples: int = 10) -> list[str]:
+def metamorphic(compiled: Pattern, access: list[str], samples: int = 10) -> list[str]:
     """An adapter must read values it has not seen: real lines with another status or method must parse to
     those values. This catches patterns fitted to the sample (a status list of 200|403|404, say)."""
     problems: list[str] = []
@@ -116,7 +117,7 @@ def metamorphic(compiled: re.Pattern[str], access: list[str], samples: int = 10)
 
 def oracle(pattern: str, heldout: list[str]) -> OracleResult:
     """Judge an adapter with code only, on lines the model never saw."""
-    compiled = re.compile(pattern)
+    compiled = compile_untrusted(pattern)
     access = [ln for ln in heldout if re.search(r'"[A-Z]+ /\S* HTTP/[\d.]+"', ln)]
     problems: list[str] = []
     if len(access) < MIN_HELDOUT:

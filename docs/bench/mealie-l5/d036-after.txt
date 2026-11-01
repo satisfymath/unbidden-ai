@@ -1,0 +1,6 @@
+55141c7fdaa3 mealie Exited (0) 6 hours ago mealie:dev
+b6d2d666aef0 mealie-postgres-1 Exited (0) 6 hours ago postgres:16
+mealie_mealie-data
+mealie_mealie-pg
+sha256:104b3e466e3aff80ee3b34756a1ad9ff026f61998507ef649940f25bf5884f53 2026-10-27T19:39:29.79256501-03:00
+mealie_default

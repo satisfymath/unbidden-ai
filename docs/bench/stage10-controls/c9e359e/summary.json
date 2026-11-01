@@ -1,0 +1,80 @@
+{
+ "product": "c9e359e9bcba3bb9b058bd9c18fa554e998fdd2b",
+ "rev": "f4bcfaba7c85be3c6332cc74a20819f586dcdbc6",
+ "cases": [
+  {
+   "case": "real_improvement",
+   "expected": "improved",
+   "outcome": "not measured",
+   "passed": false,
+   "wall_s": 3.7,
+   "reasons": [
+    "/alembic/util/pyfiles.py\", line 132, in load_module_py\n    spec.loader.exec_module(module)  # type: ignore\n    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^\n  File \"<frozen importlib._bootstrap_external>\", line 763, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 491, in _call_with_frames_removed\n  File \"/work/backend/app/alembic/env.py\", line 22, in <module>\n    from app.models import SQLModel  # noqa\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/work/backend/app/models.py\", line 2\n    description: str | None = Field(default=None, min_length=1, max_length=255)\nIndentationError: unexpected indent"
+   ]
+  },
+  {
+   "case": "unchanged",
+   "expected": "no_relevant_change",
+   "outcome": "no_relevant_change",
+   "passed": true,
+   "wall_s": 107.3,
+   "reasons": [
+    "session medians 11.56 -> 11.04 ms (+4% faster), permutation p = 0.1 (slower: 0.929), 95% interval of the effect [-1%, +12%]",
+    "no change of 20% or more either way"
+   ]
+  },
+  {
+   "case": "irrelevant_index",
+   "expected": "not improved; the index is not used",
+   "outcome": "no_relevant_change",
+   "passed": false,
+   "wall_s": 109.0,
+   "reasons": [
+    "session medians 11.52 -> 12.00 ms (-4% faster), permutation p = 1 (slower: 0.0286), 95% interval of the effect [-9%, -1%]",
+    "no change of 20% or more either way"
+   ]
+  },
+  {
+   "case": "workload_without_the_column",
+   "expected": "not improved",
+   "outcome": "not measured",
+   "passed": false,
+   "wall_s": 3.7,
+   "reasons": [
+    "/alembic/util/pyfiles.py\", line 132, in load_module_py\n    spec.loader.exec_module(module)  # type: ignore\n    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^\n  File \"<frozen importlib._bootstrap_external>\", line 763, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 491, in _call_with_frames_removed\n  File \"/work/backend/app/alembic/env.py\", line 22, in <module>\n    from app.models import SQLModel  # noqa\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/work/backend/app/models.py\", line 2\n    description: str | None = Field(default=None, min_length=1, max_length=255)\nIndentationError: unexpected indent"
+   ]
+  },
+  {
+   "case": "slower",
+   "expected": "regression",
+   "outcome": "regression",
+   "passed": true,
+   "wall_s": 95.7,
+   "reasons": [
+    "session medians 11.13 -> 22.29 ms (-100% faster), permutation p = 1 (slower: 0.0286), 95% interval of the effect [-106%, -88%]",
+    "the candidate is slower by 100%"
+   ]
+  },
+  {
+   "case": "near_threshold",
+   "expected": "not improved",
+   "outcome": "inconclusive",
+   "passed": true,
+   "wall_s": 100.7,
+   "reasons": [
+    "session medians 50.07 -> 40.80 ms (+19% faster), permutation p = 0.0286 (slower: 1), 95% interval of the effect [+11%, +25%]",
+    "median improvement 19% is below 20%"
+   ]
+  },
+  {
+   "case": "faster_wrong_answer",
+   "expected": "regression, the result differs",
+   "outcome": "not measured",
+   "passed": false,
+   "wall_s": 17.4,
+   "reasons": [
+    "/alembic/util/pyfiles.py\", line 132, in load_module_py\n    spec.loader.exec_module(module)  # type: ignore\n    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^\n  File \"<frozen importlib._bootstrap_external>\", line 763, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 491, in _call_with_frames_removed\n  File \"/work/backend/app/alembic/env.py\", line 22, in <module>\n    from app.models import SQLModel  # noqa\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/work/backend/app/models.py\", line 2\n    description: str | None = Field(default=None, min_length=1, max_length=255)\nIndentationError: unexpected indent"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,198 @@
+{
+  "workspace": "spoolman",
+  "at": "2026-10-30T07:37:46.690018+00:00",
+  "discovered": {
+    "total": 2,
+    "by_status": {
+      "open": 2
+    }
+  },
+  "experimenting": [],
+  "declined_because": [],
+  "waiting_because": [
+    [
+      "not measurable at this commit: cannot measure: no workload ran at the base after 5 attempts (workload attempt 5 failed: E       AttributeError: 'NoneType' object has no attribute 'execute')",
+      1
+    ],
+    [
+      "not measurable at this commit: cannot measure: no test database known to enforce foreign keys",
+      1
+    ]
+  ],
+  "proven": [],
+  "project_checks": {
+    "rev": "bed3f14ee77a3a571d31b14215d54b0b88a7519c",
+    "at": "2026-10-30T07:30:26.975567+00:00",
+    "status": "passed",
+    "collected": 278,
+    "failed": [],
+    "command": "python -m pytest -q -p no:cacheprovider"
+  },
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {
+      "abandoned": 1
+    },
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 201,
+    "usd": 1.4418,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55460/spoolman",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.alembic_version",
+        "select public.filament",
+        "select public.filament_field",
+        "select public.setting",
+        "select public.spool",
+        "select public.spool_field",
+        "select public.tag",
+        "select public.vendor",
+        "select public.vendor_field"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T07:37:46.099244+00:00"
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18130",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "Spoolman REST API v1: 47 operations documented, authenticated by nothing; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T07:37:46.105601+00:00"
+    }
+  ],
+  "needs_a_person": [
+    {
+      "proposal": "docker compose -f tests_frontend/docker-compose.yml up -d --wait",
+      "state": "proposed",
+      "what": "found in .github/workflows/ci.yml; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f tests_frontend_v2/docker-compose.yml up -d --wait",
+      "state": "proposed",
+      "what": "found in .github/workflows/ci.yml; a proposal only: a person declares deploy steps in the mandate"
+    }
+  ],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [
+    {
+      "id": "int_8a9fa8a84cc442f4",
+      "title": "Spoolman REST API v1",
+      "on": "http_api:http://127.0.0.1:18130",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "info_info_get": "read",
+        "Find_filaments_filament_get": "read",
+        "Find_spool_spool_get": "read",
+        "Find_vendor_vendor_get": "read",
+        "Find_spool_groups_spool_group_get": "read"
+      },
+      "oracle": {
+        "Find_filaments_filament_get": "200, 5000 records, read unknown (no total confirmed (no count beside the records); 5000 distinct records, an empty page at offset 5000); the same 5000 records with page size 99; without the key: 200",
+        "Find_spool_groups_spool_group_get": "read failed: Find_spool_groups_spool_group_get needs group_by; None, 0 records, read not at all (); ; without the key: None",
+        "Find_spool_spool_get": "200, 90000 records, read unknown (no total confirmed (no count beside the records); 90000 distinct records, an empty page at offset 90000); the same 90000 records with page size 99; without the key: 200",
+        "Find_vendor_vendor_get": "200, 200 records, read unknown (no total confirmed (no count beside the records); 200 distinct records, an empty page at offset 200); the same 200 records with page size 66; without the key: 200",
+        "info_info_get": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200"
+      }
+    },
+    {
+      "id": "int_6d1a11ed987c4fd3",
+      "title": "Spoolman REST API v1",
+      "on": "http_api:http://127.0.0.1:18130",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "info_info_get": "read",
+        "Find_filaments_filament_get": "read",
+        "Find_spool_spool_get": "read",
+        "Find_vendor_vendor_get": "read",
+        "Find_spool_groups_spool_group_get": "read"
+      },
+      "oracle": {
+        "Find_filaments_filament_get": "200, 5000 records, read unknown (no total confirmed (no count beside the records); 5000 distinct records, an empty page at offset 5000); the same 5000 records with page size 99; without the key: 200",
+        "Find_spool_groups_spool_group_get": "read failed: Find_spool_groups_spool_group_get needs group_by; None, 0 records, read not at all (); ; without the key: None",
+        "Find_spool_spool_get": "200, 90000 records, read unknown (no total confirmed (no count beside the records); 90000 distinct records, an empty page at offset 90000); the same 90000 records with page size 99; without the key: 200",
+        "Find_vendor_vendor_get": "200, 200 records, read unknown (no total confirmed (no count beside the records); 200 distinct records, an empty page at offset 200); the same 200 records with page size 66; without the key: 200",
+        "info_info_get": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "data-correct-and-fast",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for spoolman-api",
+      "at": "2026-10-30T07:30:29.375543+00:00"
+    },
+    {
+      "goal": "data-correct-and-fast",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "spoolman-api: no integration could be validated (Find_spool_groups_spool_group_get: read failed: Find_spool_groups_spool_group_get needs group_by; None, 0 records, read not at all (); ; without the key: None Find_spool_groups_spool_group_get needs group_by)",
+      "at": "2026-10-30T07:33:13.130944+00:00"
+    }
+  ]
+}

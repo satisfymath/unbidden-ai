@@ -7,7 +7,6 @@ so a key never travels with a request object, an event or a log line.
 from __future__ import annotations
 
 import json
-import os
 import time
 from typing import Any
 
@@ -15,10 +14,19 @@ import httpx
 
 from unbidden.brain.providers import ProviderError, ProviderRejected, ProviderThrottled
 from unbidden.contracts.llm import LLMRequest, LLMResponse, Message, ToolCall, Usage
+from unbidden.guardian.credentials import broker
 
 
 def _message(m: Message) -> dict[str, Any]:
     out: dict[str, Any] = {"role": m.role, "content": m.content}
+    if m.images:
+        out["content"] = [
+            {"type": "text", "text": m.content},
+            *(
+                {"type": "image_url", "image_url": {"url": f"data:{i.media_type};base64,{i.data_b64}"}}
+                for i in m.images
+            ),
+        ]
     if m.tool_calls:
         out["tool_calls"] = [
             {"id": c.id, "type": "function", "function": {"name": c.name, "arguments": json.dumps(c.arguments)}}
@@ -55,10 +63,10 @@ class OpenAICompatProvider:
         return httpx.URL(self.base_url).host
 
     def has_key(self) -> bool:
-        return bool(os.environ.get(self.key_env))
+        return broker().has(self.key_env)
 
     def _headers(self) -> dict[str, str]:
-        key = os.environ.get(self.key_env)
+        key = broker().get(self.key_env, "model.remote")
         if not key:
             raise ProviderError(f"{self.key_env} is not set")
         return {"Authorization": f"Bearer {key}"}

@@ -1,0 +1,948 @@
+"""Integrations with HTTP APIs, built from their own documentation, accepted only against the live service.
+
+An integration is data, never code: the operations a need requires, copied from the API's OpenAPI document with
+their parameter, body and response schemas, each marked read or write, plus the credential's *reference*, the
+destination, limits, the checks it passed, its version and provenance. One fixed executor (`call`) runs it, and the
+connection gate and the broker apply there, at each call, so nothing built here can widen what it may reach or do.
+
+The local model's part is small and checked: choosing which documented operations a goal needs. It cannot invent
+one (ids are checked against the document) nor change a schema (schemas come from the document). Acceptance is the
+oracle's, without the model: calls against the live service, responses validated against the document's own
+schemas, list and get agreeing, the key's absence refused as documented, and, only where the mandate grants writes
+in a non-production environment, each write made, repeated with its idempotency key, and undone by its
+compensation, each step observed. A write whose undo was not observed is never enabled.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import re
+import time
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any
+from urllib.parse import quote
+
+import httpx
+import jsonschema
+from pydantic import Field
+
+from unbidden.connect.base import Unavailable, purpose, require
+from unbidden.contracts.common import Contract, new_id, utc_now
+from unbidden.contracts.connection import Ability, Connection
+from unbidden.contracts.guardian import ConnectionGrant, Mandate
+from unbidden.forge.oas_schema import validate
+from unbidden.guardian.credentials import broker
+
+COLLECTION = "integrations"
+# 3: reads may degrade past accessory deviations, recorded; 2: complete reads cross-checked; writes judged by
+# observed, documented effects
+ORACLE_VERSION = 3
+RATE_LIMIT_RETRIES = 6  # on reads: Retry-After, else 1, 2, 4 ... s, each at most 30 s
+MAX_PAGES = 10
+METHODS = ("get", "post", "put", "patch", "delete")
+
+
+class Operation(Contract):
+    id: str
+    method: str
+    path: str
+    summary: str = ""
+    description: str = ""
+    effect: str  # read | write
+    scope: str  # the resource it acts on ("reorders"), what a grant's `write:<scope>` names
+    parameters: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
+    body_schema: dict[str, Any] | None = None
+    responses: dict[str, dict[str, Any] | None] = Field(default_factory=dict[str, dict[str, Any] | None])
+    undo: str | None = None  # the operation that compensates this write, when one was observed to
+    # What a write was observed to do, by the oracle: the record it changes (matched on body fields), the field and
+    # the body field whose amount it adds. The postcondition of every later call of this operation.
+    observed_effect: dict[str, Any] | None = None
+    why: str = ""
+    # The document's security requirements for it (the operation's own, else the document's): any one of the lists
+    # suffices, each list's schemes all needed; [] is public; None when the document says nothing.
+    security: list[list[str]] | None = None
+    # Why a POST is read as a read (stage 10): what the document says, then what was observed; "" for a GET.
+    read_by: str = ""
+
+    @property
+    def paging_parameters(self) -> list[dict[str, Any]]:
+        """The parameters a reader pages with: a read by POST pages through its body (`offset`, `limit`, a
+        cursor), declared there instead of in the query."""
+        if self.method == "GET" or not self.body_schema:
+            return self.parameters
+        props = self.body_schema.get("properties") or {}
+        return [*self.parameters, *({"name": k, "in": "query", "schema": v, "body": True}
+                                    for k, v in props.items() if k in PAGING_FIELDS)]  # fmt: skip
+
+    def reachable(self, scheme: str | None) -> bool:
+        """Whether a credential of this one scheme (or none) can call it, as the document says."""
+        if self.security is None or self.security == [] or any(r == [] for r in self.security):
+            return True
+        return scheme is not None and any(set(r) <= {scheme} for r in self.security)
+
+
+class ApiIntegration(Contract):
+    id: str = Field(default_factory=lambda: new_id("int"))
+    kind: str = "api_client"
+    source: str  # the connection it was validated against
+    title: str
+    api_version: str
+    document_url: str
+    document_sha256: str
+    signature: str  # what makes another instance compatible: title, major version, the operations' shapes
+    auth: dict[str, str]  # {"type": "apiKey", "in": "header", "name": ...}; the value stays with the broker
+    operations: list[Operation]
+    # The document's `servers` path, under which its paths live (`/api/v1`): calls go to the granted location plus
+    # this, never to another host (stage 9 evaluation, Spoolman: every read reached the web page at the root).
+    base_path: str = ""
+    limits: dict[str, float] = Field(default_factory=lambda: {"timeout_s": 10.0, "retries": 2.0})
+    version: int = 1
+    status: str = "validated"  # validated | rejected | approved | disabled | superseded
+    # Every operation the document declares (id, method, path, summary, effect): what an extension may add.
+    documented: list[dict[str, str]] = Field(default_factory=list[dict[str, str]])
+    superseded_by: str | None = None
+    # Where the service's responses differ from its document (stage 8): per operation and field, the declared
+    # contract, what was observed, when, and what it decided. The document itself is kept as published.
+    deviations: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
+    approved_by: str | None = None
+    quality: dict[str, Any] = Field(default_factory=dict[str, Any])
+    provenance: dict[str, Any] = Field(default_factory=dict[str, Any])
+    disable_when: list[str] = Field(
+        default_factory=lambda: [
+            "the document's signature changes (checked at each survey)",
+            "an oracle re-run fails",
+            "a person disables it",
+        ]
+    )
+    created_at: datetime = Field(default_factory=utc_now)
+
+    def op(self, op_id: str) -> Operation:
+        found = next((o for o in self.operations if o.id == op_id), None)
+        if found is None:
+            raise Unavailable(f"{self.id} has no operation {op_id}")
+        return found
+
+
+# Leading path segments that name where an API lives, not what it changes: `/api/v2/transfers` writes transfers.
+API_PREFIXES = {"api", "apis", "rest", "public"}
+
+
+def _scope(path: str) -> str:
+    """The resource an operation changes, as grants name it (`write:<scope>`): the first segment of its path that
+    is not a parameter, a version (`v2`, `v1.1`) or a conventional API prefix (`api`, `rest`)."""
+    parts = [
+        p for p in path.split("/")
+        if p and not p.startswith("{") and not re.fullmatch(r"v\d+(\.\d+)*", p) and p.lower() not in API_PREFIXES
+    ]  # fmt: skip
+    return parts[0] if parts else "root"
+
+
+PAGING_FIELDS = frozenset({"limit", "offset", "page", "page_size", "per_page", "cursor", "after", "before",
+                           "page_token", "pageToken"})  # fmt: skip
+QUERY_FIELDS = PAGING_FIELDS | {"sort", "sort_by", "order", "order_by", "filter", "filters", "where", "q", "query",
+                                "search", "fields", "expand"}  # fmt: skip
+_READ_WORDS = re.compile(r"(?i)\b(read|reads|list|lists|filter|filters|search|query|count|counts|find|get|history)\b")
+_WRITE_WORDS = re.compile(
+    r"(?i)\b(create|creates|update|updates|delete|deletes|remove|set|sets|insert|upsert|cancel|resume|pause|"
+    r"trigger|run|schedule|apply|reset|clear|bulk|write|modify|patch|replace|claim|lease|increment|decrement|"
+    r"heartbeat|login|logout|token|secret|secrets)\b"
+)
+
+
+def post_read_evidence(method: str, path: str, spec: dict[str, Any], body: dict[str, Any] | None,
+                       responses: dict[str, dict[str, Any] | None]) -> str:  # fmt: skip
+    """Why a POST only reads, from its document alone, or "" (then it is a write: the restrictive reading). All of:
+    an answer 200 (not 201) that is a list of records, an object holding one, or a count; a body made only of query
+    fields (paging, sorting, and objects the document describes as filters), none of them required; read words in
+    its summary or id and no word of a change. Prefect reads this way (`POST /flow_runs/filter`, stage 9's block);
+    `POST /block_documents/filter` takes `include_secrets` and is not read as a read."""
+    if method != "post" or "201" in responses or "202" in responses:
+        return ""
+    ok = responses.get("200")
+    kind = (ok or {}).get("type")
+    listing = kind == "array" or (kind == "object" and any(
+        (v or {}).get("type") == "array" for v in ((ok or {}).get("properties") or {}).values()))  # fmt: skip
+    if not (listing or kind in ("integer", "number")):
+        return ""
+    props = (body or {}).get("properties") or {}
+    if (body or {}).get("required"):
+        return ""
+    for name, schema in props.items():
+        text = json.dumps(schema)
+        if name not in QUERY_FIELDS and not re.search(r"(?i)\bfilter", text):
+            return ""
+    words = f"{spec.get('summary', '')} {spec.get('operationId', '')} {path.rsplit('/', 1)[-1]}".replace("_", " ")
+    if not _READ_WORDS.search(words) or _WRITE_WORDS.search(f"{words} {path}".replace("_", " ").replace("/", " ")):
+        return ""
+    shape = "a count" if kind in ("integer", "number") else "a listing"
+    return (
+        f"documented as a read: answers 200 with {shape}, its body only filters and pages "
+        f"({', '.join(sorted(props)) or 'empty'}), its summary says {spec.get('summary', '')!r}"
+    )
+
+
+def documented(document: dict[str, Any]) -> list[Operation]:
+    """Every operation the document declares, typed from it. Schemas are read by the document's OpenAPI version and
+    kept as JSON Schema 2020-12 (`oas_schema`); a document or schema that cannot be read faithfully raises
+    `UnsupportedSchema` with why."""
+    from unbidden.forge import oas_schema
+
+    v = oas_schema.version(document)
+
+    def parameter(p: Any) -> dict[str, Any]:
+        param = oas_schema.resolve(document, p, v)
+        if isinstance(param, dict) and "schema" in param:
+            param = {**param, "schema": oas_schema.read(document, param["schema"], "request")}
+        return param
+
+    found = []
+    for path, item in (document.get("paths") or {}).items():
+        for method in METHODS:
+            spec = item.get(method)
+            if not isinstance(spec, dict):
+                continue
+            body = (((spec.get("requestBody") or {}).get("content") or {}).get("application/json") or {}).get("schema")
+            responses = {
+                code: oas_schema.read(
+                    document, ((r.get("content") or {}).get("application/json") or {}).get("schema"), "response"
+                )
+                for code, r in (spec.get("responses") or {}).items()
+            }
+            body_schema = oas_schema.read(document, body, "request") if body else None
+            read_by = post_read_evidence(method, path, spec, body_schema, responses)
+            found.append(
+                Operation(
+                    id=spec.get("operationId") or f"{method} {path}",
+                    method=method.upper(),
+                    path=path,
+                    summary=spec.get("summary", ""),
+                    description=spec.get("description", ""),
+                    effect="read" if method == "get" or read_by else "write",
+                    read_by=read_by,
+                    scope=_scope(path),
+                    parameters=[parameter(p) for p in spec.get("parameters") or []],
+                    body_schema=body_schema,
+                    responses=responses,
+                    security=_security(spec.get("security", document.get("security"))),
+                )
+            )
+    return found
+
+
+def _security(requirements: Any) -> list[list[str]] | None:
+    if not isinstance(requirements, list):
+        return None
+    return [sorted(str(k) for k in r) for r in requirements if isinstance(r, dict)]
+
+
+def base_path(document: dict[str, Any], location: str) -> str:
+    """The path every operation lives under, from the document's first server: a relative URL as it is; an absolute
+    one only on the granted host (its path); anything else is ignored, so a call never leaves the granted host."""
+    from urllib.parse import urlparse
+
+    servers = document.get("servers") or []
+    url = str((servers[0] or {}).get("url", "")) if servers and isinstance(servers[0], dict) else ""
+    if not url or "{" in url:
+        return ""
+    parsed, granted = urlparse(url), urlparse(location)
+    if parsed.netloc and (parsed.hostname, parsed.port) != (granted.hostname, granted.port):
+        return ""
+    path = (parsed.path if parsed.netloc else url).rstrip("/")
+    return "" if path in ("", "/") else "/" + path.lstrip("/")
+
+
+def signature(document: dict[str, Any], operations: list[Operation]) -> str:
+    info = document.get("info") or {}
+    shapes = sorted(
+        (o.method, o.path, json.dumps(o.responses, sort_keys=True), json.dumps(o.body_schema, sort_keys=True))
+        for o in operations
+    )
+    major = str(info.get("version", "0")).split(".")[0]
+    return hashlib.sha256(json.dumps([info.get("title"), major, shapes]).encode()).hexdigest()[:16]
+
+
+SELECTION_SCHEMA = {
+    "type": "object",
+    "required": ["operations"],
+    "properties": {
+        "operations": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["id", "use", "why"],
+                "properties": {"id": {"type": "string"}, "use": {"enum": ["read", "write"]}, "why": {"type": "string"}},
+            },
+        }
+    },
+}
+
+
+def selection_prompt(goals: str, permissions: list[str], operations: list[Operation]) -> dict[str, str]:
+    listing = "\n".join(
+        f"- {o.id}: {o.method} {o.path} — {o.summary} (parameters: "
+        f"{', '.join(p.get('name', '?') for p in o.parameters) or 'none'}{'; body' if o.body_schema else ''})"
+        for o in operations
+    )
+    return {
+        "goals": goals,
+        "permissions": ", ".join(permissions),
+        "operations": listing,
+        "schema": json.dumps(SELECTION_SCHEMA),
+    }
+
+
+def choose(
+    answer: dict[str, Any], operations: list[Operation], grant: ConnectionGrant
+) -> tuple[list[Operation], list[str]]:
+    """The model's choice, checked: documented ids only; a write only where the grant allows its scope, and only
+    with the operation that undoes it (a DELETE on the written resource) when the document has one."""
+    by_id = {o.id: o for o in operations}
+    notes: list[str] = []
+    chosen: dict[str, Operation] = {}
+    for pick in answer.get("operations") or []:
+        op = by_id.get(str(pick.get("id")))
+        if op is None:
+            notes.append(f"ignored {pick.get('id')!r}: not in the document")
+            continue
+        if op.effect == "write" and f"write:{op.scope}" not in grant.permissions and "write" not in grant.permissions:
+            notes.append(f"ignored {op.id}: the grant does not allow writing {op.scope}")
+            continue
+        chosen[op.id] = op.model_copy(update={"why": str(pick.get("why", ""))[:200]})
+    for op in list(chosen.values()):
+        if op.effect == "write" and op.method == "POST":
+            undo = next((o for o in operations if o.method == "DELETE" and o.path.startswith(op.path + "/{")), None)
+            if undo is not None:
+                chosen.setdefault(undo.id, undo.model_copy(update={"why": f"undoes {op.id}"}))
+                chosen[op.id] = chosen[op.id].model_copy(update={"undo": undo.id})
+    return list(chosen.values()), notes
+
+
+# The executor -----------------------------------------------------------------------------------------------------
+
+
+class CallFailed(RuntimeError):
+    def __init__(self, status: int | None, message: str) -> None:
+        super().__init__(message)
+        self.status = status
+
+
+class DeviationBlocked(CallFailed):
+    """A response deviates from its document on a field a conclusion needs (an identity, a relation, a count, a
+    compared value): the read is not used."""
+
+
+def _headers(integration: ApiIntegration, grant: ConnectionGrant, *, with_key: bool = True) -> dict[str, str]:
+    headers = {"Accept": "application/json", "User-Agent": "unbidden"}
+    if with_key and integration.auth.get("in") == "header":
+        key = broker().get(grant.credential_ref or "", purpose(grant.id))
+        if not key:
+            raise Unavailable(f"{grant.credential_ref} is not held by the broker")
+        headers[integration.auth["name"]] = key
+    return headers
+
+
+def _validate_params(op: Operation, params: dict[str, Any]) -> None:
+    declared = {p["name"]: p for p in op.parameters}
+    unknown = set(params) - set(declared)
+    if unknown:
+        raise CallFailed(None, f"{op.id} has no parameters {sorted(unknown)}")
+    for name, p in declared.items():
+        if name not in params:
+            if p.get("required") and p.get("in") != "header":
+                raise CallFailed(None, f"{op.id} needs {name}")
+            continue
+        validate(params[name], p.get("schema") or {})
+
+
+@dataclass
+class Degraded:
+    """A read allowed to continue past a document's deviations that touch no critical field (stage 8). `critical`:
+    names whose deviation blocks (the identity, relation and count fields always do; a goal adds the fields it
+    compares). Every deviation met is appended to `log`, with what it means for the reading."""
+
+    critical: set[str] = field(default_factory=set[str])
+    log: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
+
+    def note(self, entry: dict[str, Any]) -> None:
+        """One entry per (operation, field, observed value, decision), counted: the same null on every page of a
+        listing is one deviation seen many times (stage 8 regression: 102 entries for one), first and last seen."""
+        key = tuple(entry.get(k) for k in ("operation", "field", "observed", "decision"))
+        for kept in self.log:
+            if tuple(kept.get(k) for k in ("operation", "field", "observed", "decision")) == key:
+                kept["count"] = kept.get("count", 1) + 1
+                kept["last_at"] = entry.get("at")
+                return
+        self.log.append({**entry, "count": 1})
+
+
+def call(
+    integration: ApiIntegration,
+    conn: Connection,
+    mandate: Mandate,
+    op_id: str,
+    params: dict[str, Any] | None = None,
+    body: dict[str, Any] | None = None,
+    *,
+    idempotency_key: str | None = None,
+    with_key: bool = True,
+    transport: httpx.BaseTransport | None = None,
+    gate: bool = True,
+    store: Any = None,
+    intent: str | None = None,
+    degraded: Degraded | None = None,
+) -> tuple[int, Any]:
+    """One call of one integration operation. The gate checks the connection, the checked ability, the grant and
+    the policy at this moment; the request is built from the document's operation only; the response is validated
+    against the document. Returns (status, body); raises `Unavailable` or `CallFailed`.
+
+    A mutating operation is the one place every effect leaves from: it needs the workspace's `store`, is authorized
+    (`connect.effects.authorize`) immediately before it is sent, and recorded once sent, whatever came back. It is
+    sent once: retrying a write is the caller's decision, after reading whether the first one took effect, and goes
+    through this authorization again. `gate=False` (the oracle, before an ability is observed) skips only the
+    connection's checked-ability gate, never this authorization."""
+    op = integration.op(op_id)
+    mutating = op.effect != "read"
+    if mutating and store is None:
+        raise Unavailable(f"{op.id} changes {conn.id}: it is sent only with its send-time authorization")
+    if gate:
+        from unbidden.connect.effects import approved
+
+        by_person = approved(store, conn) if mutating and store is not None else False
+        require(conn, mandate, op.effect, op.id, f"{op.id} on {conn.id}", scope=op.scope, approved=by_person)
+    grant = next((g for g in mandate.connections if g.id == conn.grant), None)
+    if grant is None:
+        raise Unavailable(f"{conn.id} is not granted")
+    params = dict(params or {})
+    if op.method != "GET" and op.effect == "read":
+        # A read by POST pages and filters through its body: what a reader passes as parameters goes there.
+        fields = set((op.body_schema or {}).get("properties") or {})
+        body = {**(body or {}), **{k: params.pop(k) for k in list(params) if k in fields}}
+    _validate_params(op, params)
+    if op.body_schema is not None:
+        validate(body, op.body_schema)
+    path = op.path
+    query: dict[str, Any] = {}
+    headers = _headers(integration, grant, with_key=with_key)
+    for p in op.parameters:
+        name, where = p["name"], p.get("in")
+        if where == "header" and name.lower() == "idempotency-key":
+            headers[name] = idempotency_key or ""
+        elif name in params and where == "path":
+            path = path.replace("{" + name + "}", quote(str(params[name]), safe=""))
+        elif name in params and where == "query":
+            query[name] = params[name]
+    url = conn.location.rstrip("/") + integration.base_path + path
+    timeout = float(integration.limits.get("timeout_s", 10.0))
+    response: httpx.Response | None = None
+    retries = 0 if mutating else int(integration.limits.get("retries", 2))
+    # A rate limit is waited out on reads, longer than a transient error: LNbits limits requests per minute, and the
+    # oracle's two full reads of 5,000 records met its 429 (stage 9). Writes are still sent once.
+    limited = 0 if mutating else RATE_LIMIT_RETRIES
+    why = intent or f"{op.id} on {conn.id}"
+    from unbidden.connect.effects import authorize, record_attempt
+
+    for attempt in range(retries + limited + 1):
+        if mutating:
+            assert store is not None
+            ok, refused = authorize(store, mandate, conn, op.scope, why)
+            if not ok:
+                raise Unavailable(refused)
+        sent: int | None = None
+        error = ""
+        try:
+            with httpx.Client(timeout=timeout, transport=transport) as client:
+                response = client.request(op.method, url, params=query, json=body, headers=headers)
+            sent = response.status_code
+        except httpx.HTTPError as exc:
+            error = f"{type(exc).__name__}: {exc}"[:200]
+            raise CallFailed(None, f"{op.id}: {exc}") from exc
+        finally:
+            if mutating:
+                assert store is not None
+                record_attempt(store, conn, op.id, idempotency_key, why, sent, error)
+        if response.status_code == 429 and attempt < retries + limited:
+            after = response.headers.get("Retry-After", "")
+            time.sleep(min(float(after) if after.replace(".", "", 1).isdigit() else 2.0**attempt, 30.0))
+            continue
+        if response.status_code == 503 and attempt < retries:
+            time.sleep(min(float(response.headers.get("Retry-After", "1") or 1), 5.0))
+            continue
+        break
+    assert response is not None
+    status = response.status_code
+    try:
+        data: Any = response.json()
+    except ValueError:
+        data = response.text
+    schema = op.responses.get(str(status))
+    if str(status) not in op.responses:
+        raise CallFailed(status, f"{op.id} answered {status}, which its document does not declare")
+    if schema is not None:
+        try:
+            validate(data, schema)
+        except jsonschema.ValidationError as exc:
+            if degraded is None or mutating:  # writes, and reads not allowed to degrade, stay strict
+                raise CallFailed(
+                    status, f"{op.id} answered {status} outside its documented schema: {exc.message}"
+                ) from exc
+            from unbidden.forge.oas_schema import IDENTITY, deviations, leaf
+
+            found = deviations(data, schema)
+            blocking = [
+                d
+                for d in found
+                if d["degradable"] != "yes"
+                or IDENTITY.search(leaf(d["field"]))
+                or leaf(d["field"]) in degraded.critical
+            ]
+            seen = {(d["field"].split("/")[0], leaf(d["field"]), d["observed"]) for d in found}
+            for top, name, observed in sorted(seen):
+                degraded.note({
+                    "operation": op.id, "field": f"{top}/../{name}" if top != name else name, "observed": observed,
+                    "declared": next(d["declared"] for d in found if leaf(d["field"]) == name),
+                    "at": utc_now().isoformat(), "source": f"{op.method} {op.path} answered {status}",
+                    "decision": "blocks the read" if any(leaf(b["field"]) == name for b in blocking)
+                    else "read continues without this field; nothing is inferred from it",
+                })  # fmt: skip
+            if blocking:
+                why = "; ".join(
+                    f"{b['field']}: declared {b['declared']}, observed {b['observed']}" for b in blocking[:3]
+                )
+                raise DeviationBlocked(
+                    status,
+                    f"{op.id} answered {status} outside its documented schema, on what a conclusion needs: {why}",
+                ) from exc
+    if status >= 400:
+        # Documented or not, an error is not data: a refused key read as an empty answer would look like nothing to do.
+        raise CallFailed(status, f"{op.id} answered {status}: {str(data)[:200]}")
+    return status, data
+
+
+def read_collection(
+    integration: ApiIntegration,
+    conn: Connection,
+    mandate: Mandate,
+    op_id: str,
+    *,
+    gate: bool = True,
+    transport: httpx.BaseTransport | None = None,
+    page_size: int | None = None,
+    degraded: Degraded | None = None,
+) -> Any:
+    """A whole collection through a listing operation, with how complete the read is (`connect/pages.py`)."""
+    from unbidden.connect.pages import read_all
+
+    op = integration.op(op_id)
+    counter = count_of(integration, op)
+
+    def counted() -> int | None:
+        if counter is None:
+            return None
+        try:
+            value = call(integration, conn, mandate, counter.id, gate=gate, transport=transport, degraded=degraded)[1]
+        except (CallFailed, Unavailable):
+            return None
+        return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+    before = counted()
+    read = read_all(
+        lambda params: call(
+            integration, conn, mandate, op_id, params=params, gate=gate, transport=transport, degraded=degraded
+        )[1],
+        op.paging_parameters,
+        page_size=page_size,
+    )
+    if counter is not None:
+        from unbidden.connect.pages import confirm_total
+
+        read = confirm_total(read, before, counted(), counter.id)
+    return read
+
+
+def count_of(integration: ApiIntegration, op: Operation) -> Operation | None:
+    """The documented count of the same collection, read the same way (`POST /flow_runs/filter` and
+    `POST /flow_runs/count`): an independent statement of how many records there are, read before and after."""
+    if not op.path.endswith(("/filter", "/search", "/query")):
+        return None
+    sibling = op.path.rsplit("/", 1)[0] + "/count"
+    return next((o for o in integration.operations if o.path == sibling and o.effect == "read"
+                 and (o.responses.get("200") or {}).get("type") == "integer"), None)  # fmt: skip
+
+
+def observe_post_read(
+    integration: ApiIntegration, conn: Connection, mandate: Mandate, op: Operation, *,
+    transport: httpx.BaseTransport | None = None,
+) -> tuple[bool, str]:  # fmt: skip
+    """Whether a POST the document calls a read behaves as one: the same request twice gives the same answer, and the
+    documented count of the collection (when there is one) is the same before and after."""
+    counter = count_of(integration, op) if op.path.endswith(("/filter", "/search", "/query")) else None
+    body = {"limit": 1} if "limit" in ((op.body_schema or {}).get("properties") or {}) else {}
+
+    def once(target: Operation, payload: dict[str, Any] | None) -> Any:
+        return call(integration, conn, mandate, target.id, body=payload, gate=False, transport=transport)[1]
+
+    try:
+        before = once(counter, {}) if counter is not None else None
+        first, second = once(op, body), once(op, body)
+        after = once(counter, {}) if counter is not None else None
+    except (CallFailed, Unavailable, jsonschema.ValidationError) as exc:
+        return False, f"could not be observed ({str(exc)[:160]})"
+    if json.dumps(first, sort_keys=True, default=str) != json.dumps(second, sort_keys=True, default=str):
+        return False, "the same request answered differently twice"
+    if counter is not None and before != after:
+        return False, f"{counter.id} went from {before} to {after} around it"
+    confirmed = f"; {counter.id} unchanged ({before})" if counter is not None else "; no count to confirm by"
+    return True, f"the same answer twice{confirmed}"
+
+
+# The oracle -------------------------------------------------------------------------------------------------------
+
+
+def _list_items(data: Any) -> list[dict[str, Any]]:
+    if isinstance(data, list):
+        return [x for x in data if isinstance(x, dict)]
+    if isinstance(data, dict):
+        for value in data.values():
+            if isinstance(value, list) and value and isinstance(value[0], dict):
+                return value
+    return []
+
+
+def oracle(
+    integration: ApiIntegration,
+    conn: Connection,
+    mandate: Mandate,
+    *,
+    store: Any,
+    transport: httpx.BaseTransport | None = None,
+) -> dict[str, Any]:
+    """Judge an integration against the live service, without a model. Returns per-operation results; an
+    operation passes only on what was observed. Its writes are effects like any other: each mutating request is
+    authorized immediately before it is sent (`connect/effects.py`) and recorded."""
+    from unbidden.connect.effects import authorize
+
+    results: dict[str, Any] = {}
+    seen: list[dict[str, Any]] = []
+    reads = [o for o in integration.operations if o.effect == "read"]
+    listing = [o for o in reads if not any(p.get("in") == "path" for p in o.parameters)]
+    keyed = [o for o in reads if any(p.get("in") == "path" for p in o.parameters)]
+
+    # Reads may continue past an undeclared null or an absent value on an accessory field; never past one on an
+    # identity, relation or count field, nor on a path parameter a keyed operation needs.
+    degraded = Degraded(critical={p["name"] for o in keyed for p in o.parameters if p.get("in") == "path"})
+
+    def run(op: Operation, **kw: Any) -> tuple[int | None, Any, str | None]:
+        try:
+            status, data = call(integration, conn, mandate, op.id, gate=False, transport=transport, degraded=degraded,
+                                **kw)  # fmt: skip
+            return status, data, None
+        except (CallFailed, Unavailable, jsonschema.ValidationError) as exc:
+            return getattr(exc, "status", None), None, str(exc)[:300]
+
+    from unbidden.connect.pages import Completeness, cross_check
+
+    for op in [o for o in reads if o.read_by]:
+        observed = observe_post_read(integration, conn, mandate, op, transport=transport)
+        op.read_by = f"{op.read_by}; observed: {observed[1]}"
+        if not observed[0]:
+            # The document said read; what was observed does not back it: a write again, as the restrictive reading.
+            op.effect = "write"
+            results[op.id] = {"passed": False, "why": f"not a read after all: {observed[1]}"}
+    reads = [o for o in integration.operations if o.effect == "read"]
+    listing = [o for o in reads if not any(p.get("in") == "path" for p in o.parameters)]
+    for op in listing:
+        error, items, completeness, agrees, why, read_why = None, [], None, False, "", ""
+        try:
+            first = read_collection(integration, conn, mandate, op.id, gate=False, transport=transport,
+                                    degraded=degraded)  # fmt: skip
+            items, completeness, read_why = first.records, first.completeness, first.why
+            # Independent of the reader: the same collection with another page size must hold the same records.
+            agrees, why = cross_check(
+                first,
+                lambda params, op=op: call(
+                    integration, conn, mandate, op.id, params=params, gate=False, transport=transport,
+                    degraded=degraded,
+                )[1],
+                op.paging_parameters,
+            )  # fmt: skip
+        except (CallFailed, Unavailable, jsonschema.ValidationError) as exc:
+            error = str(exc)[:300]
+            status = getattr(exc, "status", None)
+        else:
+            status = 200
+        seen += items
+        anonymous = None
+        try:
+            anonymous = call(integration, conn, mandate, op.id, gate=False, with_key=False, transport=transport)[0]
+        except CallFailed as exc:
+            anonymous = exc.status
+        except Unavailable:
+            anonymous = None
+        if anonymous == 200:
+            # Declared secured, answered without the key (an optional authentication the document marks required):
+            # the reads are still the service's own; recorded as the deviation it is, not a failure.
+            degraded.note(
+                {
+                    "operation": op.id,
+                    "field": "(security)",
+                    "declared": "requires the key",
+                    "observed": "answers without it",
+                    "at": utc_now().isoformat(),
+                    "source": f"{op.method} {op.path} without the key answered 200",
+                    "decision": "reads continue with the key; nothing depends on that refusal",
+                }
+            )
+        results[op.id] = {
+            # Unknown completeness validates a listing (what it reads is the service's own, and agrees across
+            # page sizes); conclusions that need the whole set check it themselves. Incomplete does not (stage 9).
+            "passed": error is None and completeness in (Completeness.COMPLETE, Completeness.UNKNOWN) and agrees,
+            "completeness": completeness.value if completeness else None,
+            "observed": (
+                # A failed read says why first: that is the block a person has to act on.
+                (f"read failed: {error}; " if error else "")
+                + f"{status}, {len(items)} records, read {completeness.value if completeness else 'not at all'} "
+                f"({read_why}); {why}; without the key: {anonymous}"
+            ),
+            "error": error,
+            "status": status,
+        }
+    for op in keyed:
+        names = [p["name"] for p in op.parameters if p.get("in") == "path"]
+        sample = next((i for i in seen if all(n in i for n in names)), None)
+        if sample is None:
+            results[op.id] = {
+                "passed": False,
+                "observed": "no listed record carries its path parameters",
+                "error": None,
+            }
+            continue
+        status, data, error = run(op, params={n: sample[n] for n in names})
+        agrees = isinstance(data, dict) and all(data.get(k) == v for k, v in sample.items() if k in data)
+        results[op.id] = {
+            "passed": error is None and status == 200 and agrees,
+            "observed": f"{status}; agrees with the listed record: {agrees}",
+            "error": error,
+        }
+    writes = [o for o in integration.operations if o.effect == "write" and o.method == "POST"]
+    allowed: dict[str, bool] = {}
+    for op in writes:
+        ok, why = authorize(store, mandate, conn, op.scope, f"oracle probe of {op.id} on {conn.id}")
+        allowed[op.id] = ok
+        if not ok:
+            results[op.id] = {"passed": False, "observed": f"not exercised: {why}", "error": None}
+            continue
+        results[op.id] = _exercise_write(integration, conn, mandate, op, seen, transport, store)
+        if results[op.id].get("effect"):
+            op.observed_effect = results[op.id]["effect"]  # the postcondition of every later call
+        if op.undo:
+            results[op.undo] = {
+                "passed": results[op.id]["passed"],
+                "observed": f"undid {op.id}: {results[op.id]['observed']}",
+                "error": results[op.id]["error"],
+            }
+    integration.deviations = degraded.log
+    return {
+        "version": ORACLE_VERSION,
+        "deviations": len(degraded.log),
+        "at": utc_now().isoformat(),
+        "operations": results,
+        # Reads must pass; a write counts only where it was authorized to be exercised (otherwise it stays disabled).
+        "passed": all(
+            r["passed"]
+            for k, r in results.items()
+            if integration.op(k).effect == "read" or allowed.get(k) or allowed.get(_undone_by(integration, k), False)
+        ),
+    }
+
+
+def _undone_by(integration: ApiIntegration, op_id: str) -> str:
+    """The write an undo operation compensates, when it is one."""
+    return next((o.id for o in integration.operations if o.undo == op_id), "")
+
+
+def _exercise_write(
+    integration: ApiIntegration,
+    conn: Connection,
+    mandate: Mandate,
+    op: Operation,
+    seen: list[dict[str, Any]],
+    transport: httpx.BaseTransport | None,
+    store: Any,
+) -> dict[str, Any]:
+    """Make the smallest valid write and observe what it did, then repeat it and undo it, observing each step.
+
+    Passes only when, read back from the service: exactly one field of the affected record changed, by the amount
+    written, and it is the field the documentation describes for this operation; the repeat with the same key
+    changed nothing more; the undo restored the record exactly. A success status alone proves none of it."""
+    from unbidden.connect.effects import record_effect
+    from unbidden.contracts.action import ActionStatus
+
+    schema = op.body_schema or {}
+    properties = schema.get("properties") or {}
+    body: dict[str, Any] = {}
+    for name in schema.get("required") or []:
+        prop = properties.get(name) or {}
+        if prop.get("type") == "integer":
+            body[name] = int(prop.get("minimum", 1))
+        elif any(name in i for i in seen):
+            body[name] = next(i[name] for i in seen if name in i)
+        else:
+            return {"passed": False, "observed": f"no value known for {name}", "error": None}
+    match = {k: v for k, v in body.items() if isinstance(v, str)}
+    amounts = {k: v for k, v in body.items() if isinstance(v, int) and not isinstance(v, bool)}
+    listing = next(
+        (
+            o
+            for o in integration.operations
+            if o.effect == "read" and not any(p.get("in") == "path" for p in o.parameters)
+        ),
+        None,
+    )
+    if listing is None or not match or len(amounts) != 1:
+        return {
+            "passed": False,
+            "observed": "its effect cannot be observed: no listing read, or no single amount",
+            "error": None,
+        }
+    key = f"unbidden-oracle-{uuid.uuid4().hex[:12]}"
+
+    def look() -> dict[str, Any] | None:
+        read = read_collection(integration, conn, mandate, listing.id, gate=False, transport=transport)
+        found = [r for r in read.records if all(r.get(k) == v for k, v in match.items())]
+        return found[0] if len(found) == 1 and read.completeness.value == "complete" else None
+
+    def send(operation: Operation, **kw: Any) -> tuple[int, Any]:
+        """One mutating request: `call` authorizes it as it leaves (revocation, kill switch, approval, budget) and
+        records the attempt; the probe is kept as an action too."""
+        try:
+            status, data = call(
+                integration, conn, mandate, operation.id, gate=False, transport=transport, store=store,
+                intent=f"oracle probe of {operation.id}", **kw,
+            )  # fmt: skip
+        except CallFailed as exc:
+            record_effect(
+                store,
+                conn,
+                operation.id,
+                kw.get("body"),
+                kind="oracle_probe",
+                status=ActionStatus.FAILED,
+                result={"status": exc.status},
+                reason=str(exc)[:200],
+                key=key,
+            )
+            raise
+        record_effect(
+            store,
+            conn,
+            operation.id,
+            kw.get("body"),
+            kind="oracle_probe",
+            status=ActionStatus.EXECUTED,
+            result={"status": status, "body": data},
+            reason=f"oracle probe of {integration.id}",
+            key=key,
+        )
+        return status, data
+
+    ((amount_field, amount),) = amounts.items()
+    try:
+        before = look()
+        first = send(op, body=body, idempotency_key=key)
+        after = look()
+        again = send(op, body=body, idempotency_key=key)
+        after_repeat = look()
+        undone, restored = None, None
+        if op.undo:
+            undo = integration.op(op.undo)
+            names = [p["name"] for p in undo.parameters if p.get("in") == "path"]
+            created = first[1].get(names[0]) if isinstance(first[1], dict) and names else None
+            if created is not None:
+                undone = send(undo, params={names[0]: created})
+                restored = look()
+    except (CallFailed, Unavailable, jsonschema.ValidationError) as exc:
+        return {"passed": False, "observed": "write failed or stopped", "error": str(exc)[:300]}
+    if before is None or after is None:
+        return {
+            "passed": False,
+            "observed": "the affected record could not be read whole before and after",
+            "error": None,
+        }
+    changed = {k: (before.get(k), after.get(k)) for k in set(before) | set(after) if before.get(k) != after.get(k)}
+    grown = [k for k, (b, a) in changed.items() if isinstance(a, int) and isinstance(b, int) and a - b == amount]
+    effect_field = grown[0] if len(changed) == 1 and len(grown) == 1 else None
+    documented_field = effect_field is not None and _documents(op, effect_field, integration)
+    ids = [k for k in (first[1] or {}) if k == "id" or k.endswith("_id")] if isinstance(first[1], dict) else []
+    same_record = bool(ids) and isinstance(again[1], dict) and all(first[1].get(k) == again[1].get(k) for k in ids)
+    repeated_safely = after_repeat == after and same_record
+    reverted = restored == before
+    observed = (
+        f"changed {changed or 'nothing'}; documented: {documented_field}; repeat applied again: "
+        f"{after_repeat != after}, same record returned: {same_record}; "
+        f"undo {undone[0] if undone else 'not sent'}, restored: {reverted}"
+    )
+    passed = documented_field and repeated_safely and reverted and first[0] in (200, 201)
+    result: dict[str, Any] = {"passed": passed, "observed": observed, "error": None, "body": body}
+    if passed:
+        result["effect"] = {
+            "field": effect_field,
+            "amount_from": amount_field,
+            "match": sorted(match),
+            "observed": f"{effect_field} +{amount} on the record matched by {sorted(match)}",
+        }
+    return result
+
+
+def _documents(op: Operation, field: str, integration: ApiIntegration) -> bool:
+    """Whether the operation's documentation describes this field as what it changes: the field's name (or a word
+    of it) in the operation's summary or description, or the field's own description naming what the operation
+    writes. An observed change the documentation does not describe is not accepted as the operation's effect."""
+    text = f"{op.summary} {op.description}".lower()
+    words = [w for w in re.split(r"[^a-z]+", field.lower()) if len(w) >= 4]
+    if field.lower() in text or any(w in text for w in words):
+        return True
+    for other in integration.operations:
+        for schema in other.responses.values():
+            described = _field_description(schema or {}, field).lower()
+            if described and (op.scope.lower() in described or op.scope.rstrip("s").lower() in described):
+                return True
+    return False
+
+
+def _field_description(schema: dict[str, Any], field: str) -> str:
+    if not isinstance(schema, dict):
+        return ""
+    properties = schema.get("properties") or {}
+    if field in properties and isinstance(properties[field], dict):
+        return str(properties[field].get("description", ""))
+    nested = [*properties.values(), *([schema["items"]] if isinstance(schema.get("items"), dict) else [])]
+    for value in nested:
+        found = _field_description(value, field) if isinstance(value, dict) and value else ""
+        if found:
+            return found
+    return ""
+
+
+def abilities(integration: ApiIntegration, verdict: dict[str, Any]) -> list[Ability]:
+    passed = {k for k, r in verdict["operations"].items() if r["passed"]}
+    found = []
+    reads = [o.id for o in integration.operations if o.effect == "read" and o.id in passed]
+    if reads:
+        found.append(
+            Ability(
+                kind="read", operations=reads, known_by=f"checked: oracle v{ORACLE_VERSION} on {integration.source}"
+            )
+        )
+    writes = [o.id for o in integration.operations if o.effect == "write" and o.id in passed]
+    if writes:
+        found.append(
+            Ability(
+                kind="write",
+                operations=writes,
+                known_by="checked: written, repeated with its idempotency key and undone, each observed",
+            )
+        )
+    return found

@@ -1,0 +1,286 @@
+{
+ "goal_runs": [
+  {
+   "status": "waiting_capability",
+   "note": "needs an integration for board-api",
+   "evidence": {}
+  },
+  {
+   "status": "page_fixed",
+   "note": "18 discrepancies fixed by 8b4e3bcba02b: The SHORT badges are transparent and unreadable because the stylesheet dims them with `opacity: 0.3`.",
+   "evidence": {
+    "attempts": [
+     {
+      "after": {
+       "cause": "none",
+       "conclusive": true,
+       "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_17250b4c590a42cc/after-1",
+       "discrepancies": [],
+       "model": {
+        "model": "muse-spark-1.3",
+        "route": "profile frontier; synthetic may leave; label synthetic",
+        "seconds": 5.58,
+        "tier": "code",
+        "tokens": [
+         4539,
+         1376
+        ],
+        "usd": 0.01152175
+       },
+       "perception": "dom",
+       "problems": [],
+       "sam": [],
+       "screenshots": {
+        "step-00": "b98b1b227cc594173079cca7f022e151689463eef314ebaa0ccdad6aada67253",
+        "step-01": "4589e66d588bdbe965ecab471313aace7c9fe88af9f698f9c18634b68b8f8456",
+        "step-02": "1fd7cecfd063f6971d95e788122c7c6387c70750377fcb4403a8b0988c2e1e63"
+       }
+      },
+      "attempt": 1,
+      "cause": "The SHORT badges are transparent and unreadable because the stylesheet dims them with `opacity: 0.3`.",
+      "checks": {
+       "log": "$ python -m unittest -> 0\n..\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+       "ok": true
+      },
+      "commit": "8b4e3bcba02b932a32a1a1e7ff00858fbf58363b",
+      "deploy": {
+       "log": "t: 2B done\n#4 DONE 0.0s\n\n#5 [internal] load build context\n#5 transferring context: 1.26kB done\n#5 DONE 0.0s\n\n#6 [1/5] FROM docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704\n#6 resolve docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704 0.0s done\n#6 DONE 0.0s\n\n#7 [4/5] RUN pip install --no-cache-dir -r requirements.txt\n#7 CACHED\n\n#8 [2/5] WORKDIR /app\n#8 CACHED\n\n#9 [3/5] COPY requirements.txt .\n#9 CACHED\n\n#10 [5/5] COPY board ./board\n#10 CACHED\n\n#11 exporting to image\n#11 exporting layers done\n#11 exporting manifest sha256:1c487266d8f1786206c2dc25a9048ae8bd2d3cbde8d8f3f4612b97e2f0af728e done\n#11 exporting config sha256:4acdbc683ce43c76da3351e24f40bc05cb243861f06de72333285e648fecf62c done\n#11 exporting attestation manifest sha256:4ed07d85a75b2b420e112d982dce2a18a7f81a7f930b1f0f507fd3df5f7f1bba done\n#11 exporting manifest list sha256:dfcde6aca50ae46d91dbf95e43495077c0b3e45478fcd5cfa5e5560a7716749c done\n#11 naming to docker.io/library/boardapp-staging-board:latest done\n#11 unpacking to docker.io/library/boardapp-staging-board:latest 0.0s done\n#11 DONE 0.1s\n\n#12 resolving provenance for metadata file\n#12 DONE 0.0s\n Image boardapp-staging-board Building \n Image boardapp-staging-board Built \n Container boardapp-staging-board-1 Recreate \n Container boardapp-staging-board-1 Recreated \n Container boardapp-staging-board-1 Starting \n Container boardapp-staging-board-1 Started \n",
+       "ok": true
+      },
+      "model": {
+       "model": "muse-spark-1.3",
+       "route": "profile frontier; private_code may leave; label private_code",
+       "seconds": 3.45,
+       "tier": "code",
+       "tokens": [
+        7654,
+        742
+       ],
+       "usd": 0.012721
+      },
+      "patch": "--- a/board/static/board.css\n+++ b/board/static/board.css\n@@ -9,6 +9,6 @@\n .board td { padding: 12px; border-bottom: 1px solid #e3e7eb; }\n .board .num { font-variant-numeric: tabular-nums; }\n .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 14px; }\n-.badge.short { background: #c62828; color: #ffffff; opacity: 0.3; }\n+.badge.short { background: #c62828; color: #ffffff; }\n .badge.ok { background: #e3f1e5; color: #1f5f2c; }\n .summary { padding: 16px 32px; background: #f2f4f6; border-top: 1px solid #d8dde2; }\n",
+      "patch_sha256": "4e137347f2ad02a0f7768d2b37ab8aafdfabf1d7a8a6d476cb968dc5bbf54f68",
+      "result": "the discrepancies are gone"
+     }
+    ],
+    "before": {
+     "cause": "All SHORT badges share CSS with opacity 0.3, making the red alert badges transparent/faded and not readable as an alert.",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_17250b4c590a42cc/before",
+     "discrepancies": [
+      {
+       "evidence": "row 0 mark 'SHORT 13' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B01",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "row 5 mark 'SHORT 18' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B06",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "row 6 mark 'SHORT 16' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B07",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "row 7 mark 'SHORT 3' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B08",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "row 11 mark 'SHORT 2' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B12",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "row 12 mark 'SHORT 8' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B13",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "row 13 mark 'SHORT 1' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B14",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "row 15 mark 'SHORT 2' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B16",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "row 16 mark 'SHORT 10' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B17",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "row 18 mark 'SHORT 14' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B19",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "row 20 mark 'SHORT 19' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B21",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "row 22 mark 'SHORT 11' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B23",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "row 23 mark 'SHORT 5' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B24",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "row 25 mark 'SHORT 12' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B26",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "row 28 mark 'SHORT 3' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B29",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "row 29 mark 'SHORT 20' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B30",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "row 34 mark 'SHORT 1' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B35",
+       "kind": "not_flagged"
+      },
+      {
+       "evidence": "row 35 mark 'SHORT 2' bg rgb(198, 40, 40) fg rgb(255, 255, 255) has opacity 0.3, transparent",
+       "key": "B36",
+       "kind": "not_flagged"
+      }
+     ],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 8.02,
+      "tier": "code",
+      "tokens": [
+       4629,
+       2340
+      ],
+      "usd": 0.01573125
+     },
+     "perception": "dom",
+     "problems": [],
+     "sam": [],
+     "screenshots": {
+      "step-00": "53b314bffde397fd06bc723325bc167e49b53a6c05258c547822e63af53f814d",
+      "step-01": "3a75cf200f52606553738ac9a5a6abfafd5a41e153e959dbcfee5f1e31ce013e",
+      "step-02": "231b449190f98777e81afcc4da6ce77c6ebe1bad8ac0dc752abc2bc774217cea"
+     }
+    },
+    "perception": "dom",
+    "url": "http://127.0.0.1:18096/"
+   }
+  },
+  {
+   "status": "page_ok",
+   "note": "the page shows what the data says (36 keys)",
+   "evidence": {
+    "before": {
+     "cause": "none",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_a22da2824eea49ad/before",
+     "discrepancies": [],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 5.75,
+      "tier": "code",
+      "tokens": [
+       4539,
+       1079
+      ],
+      "usd": 0.0102595
+     },
+     "perception": "dom",
+     "problems": [],
+     "sam": [],
+     "screenshots": {
+      "step-00": "b98b1b227cc594173079cca7f022e151689463eef314ebaa0ccdad6aada67253",
+      "step-01": "4589e66d588bdbe965ecab471313aace7c9fe88af9f698f9c18634b68b8f8456",
+      "step-02": "1fd7cecfd063f6971d95e788122c7c6387c70750377fcb4403a8b0988c2e1e63"
+     }
+    },
+    "perception": "dom",
+    "url": "http://127.0.0.1:18096/"
+   }
+  }
+ ],
+ "model_runs": [
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.01221525,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "forge.api_client",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.004389,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0068985,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.01573125,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "lab.page_fix",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.012721,
+   "route": "profile frontier; private_code may leave; label private_code"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.01152175,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.005496,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0102595,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  }
+ ]
+}

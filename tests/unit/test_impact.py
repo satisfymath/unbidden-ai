@@ -44,3 +44,13 @@ def test_overall_verdict() -> None:
     degraded = judge_endpoint("b", rounds(20, 15, 1), rounds(60, 17, 2), 15)
     assert overall([healthy, degraded]) is Impact.DEGRADED
     assert overall([healthy]) is Impact.HEALTHY
+
+
+def test_a_degradation_that_outlives_its_deploys_is_found_against_the_oldest_samples() -> None:
+    from unbidden.observe.impact import sustained
+
+    baseline = [40.0, 42.0, 38.0, 41.0, 39.0, 43.0, 40.0, 41.0]
+    assert sustained(baseline, [2500.0, 2480.0, 2510.0]) is not None  # raciona: 2.5 s for hours
+    assert sustained(baseline, [2500.0, 41.0, 2510.0]) is None  # not persistent
+    assert sustained(baseline, [70.0, 72.0, 71.0]) is None  # +30 ms: under the absolute floor
+    assert sustained(baseline[:3], [2500.0] * 3) is None  # too little history to judge

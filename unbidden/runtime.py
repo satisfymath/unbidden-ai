@@ -54,6 +54,23 @@ def build_providers(config: Config) -> dict[str, LLMProvider]:
     return providers
 
 
+def _grant_model_keys(config: Config, store: Store) -> None:
+    """Each remote model's key may be used to call that model, nothing else (granted again here for runtimes opened
+    without load_env); every use is audited, never the value."""
+    from unbidden.contracts.events import AuditEntry
+    from unbidden.guardian.credentials import broker
+
+    held = broker()
+    for provider in config.providers.values():
+        if provider.key_env:
+            held.grant(provider.key_env, "model.remote")
+    held.audit = lambda name, purpose, given: store.append_audit(
+        AuditEntry(
+            actor="guardian", kind="credential.use", summary=f"{name} for {purpose}: {'given' if given else 'refused'}"
+        )
+    )
+
+
 @dataclass
 class Runtime:
     workspace: Workspace
@@ -68,6 +85,7 @@ class Runtime:
         config = workspace.config()
         resolve_local_model(config)
         store = workspace.store()
+        _grant_model_keys(config, store)
         brain = Brain(config, build_providers(config), store, workspace.mandate(), killswitch=workspace.killswitch())
         brain.repo_public = workspace.repo_public(store)
         return cls(workspace, config, store, brain)
@@ -86,6 +104,31 @@ class Runtime:
         return PrivacyBridge(self.brain, repo_name=self.workspace.repo.name)
 
     def stack_and_images(self, rev: str) -> tuple[Stack, dict[str, DependencyImage]]:
+        from unbidden.guardian.policy import PolicyEngine
+
         stack = detect_stack(self.workspace.repo, rev)
-        images = {lang: provision(self.workspace.repo, rev, getattr(stack, lang)) for lang in stack.languages}
+        policy = PolicyEngine(self.workspace.mandate())
+        images = Images()
+        for lang in stack.languages:
+            try:
+                images[lang] = provision(self.workspace.repo, rev, stack.part(lang), policy=policy)
+            except Exception as exc:  # that language's work fails with this cause; the others go on
+                images.failed[lang] = exc
+        if not images and images.failed:
+            raise next(iter(images.failed.values()))
         return stack, images
+
+
+class Images(dict[str, DependencyImage]):
+    """Dependency images by language. A language whose image could not be provisioned is left out, and asking for it
+    raises that cause (a registry the mandate does not list is then a request to a person). Found on LNbits (stage 8
+    independent run): its frontend's npm registry blocked a probe of its Python code, which needed no Node."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.failed: dict[str, Exception] = {}
+
+    def __missing__(self, language: str) -> DependencyImage:
+        if language in self.failed:
+            raise self.failed[language]
+        raise KeyError(language)

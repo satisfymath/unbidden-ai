@@ -1,0 +1,35 @@
+{
+ "case": "workload_without_the_column",
+ "unit_test": "tests/unit/test_promotion.py::test_a_workload_that_does_not_use_the_column_shows_no_mechanism",
+ "expected": "not improved",
+ "product": "1d847e851c4b2d9e52c43a73ef38a9eb77d8dae5",
+ "rev": "f4bcfaba7c85be3c6332cc74a20819f586dcdbc6",
+ "criteria": {
+  "version": "perf-v4",
+  "unit": "session median (each session: a fresh database, the same data, warm-up then samples)",
+  "sessions_per_arm": 4,
+  "order": "alternating base and candidate, which goes first drawn from a seed",
+  "test": "exact one-sided permutation test on session medians",
+  "alpha": 0.05,
+  "min_median_improvement": 0.2,
+  "regression_if_slower_by": 0.1,
+  "no_relevant_change": "the 95% bootstrap interval of the relative effect over sessions lies inside +-20%",
+  "mechanism": "when the change declares one (an index), the engine must show it used during the measured calls",
+  "functional": "every measured call succeeds and returns the same result on both sides (canonical JSON digest)",
+  "control": "A/A: 2 base sessions against 2 more, |effect| below 10%",
+  "confirmation": "4 new sessions per arm in a new order, improved again at alpha 0.05 / (candidates confirmed at this commit)",
+  "scope": "the declared operation, data and engine; no claim about other endpoints or production"
+ },
+ "candidate_files": [
+  "backend/app/alembic/versions/3c9d5e2a1b4f_add_item_owner_id_created_at_index.py",
+  "backend/app/models.py"
+ ],
+ "base_overlay": [],
+ "candidate_sha256": "862002271ff34779e6fe74fb0ef8a30c070a0838ea3ddb4201d511cb5103bcd1",
+ "workload_sha256": "e647eb544b4e138c6cacafb164a8c673b6e1f5c10fbfd0ce7e8ba7b65229b733",
+ "image": "unbidden-deps-python:bb6e594caaed1a02",
+ "error": "ngs.warn(message, stacklevel=1)\n/work/backend/app/core/config.py:75: UserWarning: The value of DATABASE_URL password is \"changethis\", for security, please change it, at least for deployments.\n  warnings.warn(message, stacklevel=1)\n/work/backend/app/core/config.py:75: UserWarning: The value of FIRST_SUPERUSER_PASSWORD is \"changethis\", for security, please change it, at least for deployments.\n  warnings.warn(message, stacklevel=1)\nINFO:__main__:Creating initial data\nINFO:__main__:Initial data created\n+ bash scripts/test.sh 'Coverage for '\n+ FASTAPI_ENV=development\n+ coverage run -m pytest tests/",
+ "outcome": "not measured",
+ "passed": false,
+ "wall_s": 7.2
+}

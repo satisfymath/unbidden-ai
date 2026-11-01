@@ -7,21 +7,39 @@ are dropped; the sandbox provides dependencies and services itself.
 
 from __future__ import annotations
 
+import configparser
+import functools
+import json
 import re
+import shlex
 import subprocess
+import tomllib
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 import yaml
 
+# Commands the sandbox's image stands for, in command position (stage 10: `--exclude-service docker`, a pytest option
+# of Prefect's, dropped its test command once continued lines were read whole).
 _SKIP = re.compile(
-    r"(?ix)\b(docker|compose|pip\s+install|uv\s+sync|uv\s+pip|poetry\s+install|npm\s+(ci|install)|pnpm\s+install"
-    r"|yarn\s+install|apt-get|brew|curl|wget|codecov|coverage\s+report|coverage\s+html|smokeshow|git\s+)"
+    r"(?ix)(?:^|[;&|(]\s*|\b(?:sudo|then|do)\s+)(?:(?:uv|poetry|pipenv|pdm)\s+run\s+(?:--[\w-]+\s+)*)?(?:python3?\s+-m\s+)?"
+    r"(docker|docker-compose|compose|pip3?\s+install|uv\s+sync|uv\s+lock|uv\s+pip|poetry\s+install|npm\s+(ci|install)"
+    r"|pnpm\s+install|yarn\s+install|apt-get|brew|curl|wget|codecov|coverage\s+report|coverage\s+html|smokeshow|git)\b"
+    # Activating a virtualenv: the dependency image already puts its environment first.
+    r"|^\s*(source|\.)\s+\S*(venv|VENV|activate)\S*\s*$"
 )
 _COMPOSE_UP = re.compile(r"compose\s+up\b(?P<args>[^\n]*)")
 _EXPR = re.compile(r"\$\{\{[^}]*\}\}")
-_RUNNERS = re.compile(r"^(?:uv\s+run|poetry\s+run|pipenv\s+run|pdm\s+run)\s+(?:--[\w-]+\s+)*")
+# `uv run` and its peers in front of a command (after a subshell's paren and environment assignments,
+# `PYTHONFAULTHANDLER=1 uv run pytest`): the dependency image's environment is already first on PATH.
+_RUNNERS = re.compile(
+    r"^(?P<open>\(?(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*)(?:uv\s+run|poetry\s+run|pipenv\s+run|pdm\s+run)\s+"
+    # its options, with the value of those that take one (`--package aegra-api`, Aegra's CI)
+    r"(?:(?:--(?:package|group|extra|with|directory|project|python|env-file|only-group|no-group)(?:=|\s+)\S+"
+    r"|--[\w-]+)\s+)*"
+)
 
 
 @dataclass(frozen=True)
@@ -36,9 +54,33 @@ class CiPlan:
     job: str
     steps: tuple[CiStep, ...]
     services: tuple[str, ...]  # compose services the job starts before testing
+    # The job's own service containers (GitHub Actions `services:`): name, image, environment, container ports.
+    containers: tuple[tuple[str, str, tuple[tuple[str, str], ...], tuple[int, ...]], ...] = ()
+    env: tuple[tuple[str, str], ...] = ()  # the job's and its test steps' environment, as the team wrote it
+    # What the job's `uv sync` installs (its own steps, and the local composite actions it uses); None: no `uv sync`.
+    sync_flags: tuple[str, ...] | None = None
+    # A job the CI runs as several groups (matrix entries, pytest-split groups): every group's label, which one this
+    # plan runs, and what was left out (the group's share of the suite is all the plan claims).
+    groups: tuple[str, ...] = ()
+    scope: str = "the whole job"
+    notes: tuple[str, ...] = ()
+    # Interpreters the job installs itself (`uv python install 3.12`): resolved when the image is provisioned, never
+    # downloaded in the offline run; the plan says whether the image's interpreter satisfies them.
+    interpreters: tuple[str, ...] = ()
+    # Requirements files the job installs itself (`pip install -r test_requirements.txt`): its test dependencies,
+    # installed into the image when it is provisioned, each as its own install, as the job does.
+    requirement_files: tuple[str, ...] = ()
+    system_packages: tuple[str, ...] = ()  # Debian packages the job installs with apt (its own steps)
+
+    @property
+    def partial(self) -> bool:
+        return len(self.groups) > 1
 
     def script(self) -> str:
-        lines = ["set -e"]
+        # Steps write to the runner's files (`>> "$GITHUB_OUTPUT"`); here they are scratch files, read by nothing.
+        lines = ["set -e", "export GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output "
+                 "GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary "
+                 "GITHUB_PATH=/tmp/github_path"]  # fmt: skip
         for step in self.steps:
             target = "/work" if step.cwd in ("", ".") else f"/work/{step.cwd}"
             lines.append(f"cd {target}")
@@ -50,34 +92,997 @@ def _git(repo: Path, *args: str) -> str:
     return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, check=False).stdout
 
 
+# A report path of the CI's own: on pytest's command line it wins over the lab's (PYTEST_ADDOPTS), and the lab's
+# report, which names each failure, is never written (rag-api, stage 10: `--junitxml=test-results-unit.xml`).
+_OWN_REPORT = re.compile(r"\s--junit-?xml(?:=|\s+)\S+")
+
+
 def _clean(command: str) -> str | None:
     kept: list[str] = []
-    for line in _EXPR.sub("", command).splitlines():
+    for line in _EXPR.sub("", re.sub(r"\\\n\s*", " ", command)).splitlines():
         line = line.strip()
         if not line or line.startswith("#") or _SKIP.search(line):
             continue
-        kept.append(_RUNNERS.sub("", line))
+        kept.append(_OWN_REPORT.sub("", _RUNNERS.sub(r"\g<open>", line)))  # a make recipe line keeps its subshell
     return "\n".join(kept) or None
 
 
-def _job_plan(workflow: str, job_name: str, job: dict[str, Any], language: str) -> CiPlan | None:
+# A Python job tests when it runs a test runner, not when the word "test" appears (`codespell --skip tests`).
+_PY_TESTS = re.compile(
+    r"\bpytest\b|-m (pytest|unittest)\b|\b(make|tox|nox|hatch run|poetry run|uv run)\s+[\w:-]*test"
+    r"|[\w./-]*test[\w-]*\.(sh|py)\b"
+)
+# Checks the scan already runs, offline and pinned; in a test plan they only add time and network needs.
+_CHECK_RUN = re.compile(r"\b(pre-commit|mypy|pyright|semgrep|ruff|flake8|black|isort|pylint|codespell)\b")
+# A job that does any of this publishes something: never run as a test plan, whatever else it does.
+_PUBLISHES = re.compile(
+    r"\bgh\s+(pr|release|issue|api)\b|\bgit\s+push\b|\b(docker|helm)\s+push\b|"
+    r"\btwine\s+upload\b|\b(npm|pnpm|yarn)\s+publish\b|\buv\s+publish\b"
+)
+_TASK_CALL = re.compile(r"^\s*task\s+(?P<name>[\w:.-]+)(?P<rest>.*)$")
+_MAKE_CALL = re.compile(r"^\s*make\s+(?P<args>[^;&|]*?)\s*$")
+_MAKE_RULE = re.compile(r"^(?P<target>[A-Za-z0-9_.-]+)\s*:(?!=)\s*(?P<deps>[^=#]*?)\s*$")
+# A JavaScript package manager's install or build inside a Python job (codex-lb builds its frontend before its tests).
+_INTERPRETER = re.compile(r"^\s*\(?\s*uv\s+python\s+(?:install|pin)\s+(?P<v>[\w.+-]+(?:\s+[\w.+-]+)*)\s*\)?\s*$")
+_REQUIREMENTS = re.compile(r"(?:-r|--requirement)[ =](?P<file>[\w./-]+\.(?:txt|in))")
+_PIP_INSTALL = re.compile(r"\b(?:pip3?|uv\s+pip)\s+install\b")
+# A container runtime, which tests that start their own containers need (testcontainers' PostgresContainer).
+_CONTAINER_LIBS = re.compile(r"^\s*(?:from|import)\s+(testcontainers|docker|pytest_docker)\b", re.M)
+_FOREIGN_BUILD = re.compile(r"\b(bun|npm|pnpm|yarn)\s+(install|ci|i|run\s+build|build)\b")
+_MAKE_VAR = re.compile(r"^(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*(?::=|\?=|=)\s*(?P<value>.*?)\s*$")
+TASKFILES = ("Taskfile.yml", "Taskfile.yaml", "taskfile.yml", "taskfile.yaml")
+
+
+def taskfile_tasks(repo: Path, rev: str) -> dict[str, list[str]]:
+    """The commands of each task in the repository's Taskfile (go-task), nested `task:` calls expanded once."""
+    for name in TASKFILES:
+        text = _git(repo, "show", f"{rev}:{name}")
+        if not text:
+            continue
+        try:
+            tasks = (yaml.safe_load(text) or {}).get("tasks") or {}
+        except yaml.YAMLError:
+            return {}
+        raw: dict[str, list[Any]] = {
+            str(k): (v.get("cmds") or []) if isinstance(v, dict) else [v] if isinstance(v, str) else []
+            for k, v in tasks.items()
+        }
+
+        def commands(cmds: list[Any], depth: int = 0, raw: dict[str, list[Any]] = raw) -> list[str]:
+            out: list[str] = []
+            for cmd in cmds:
+                if isinstance(cmd, str):
+                    out.append(cmd)
+                elif isinstance(cmd, dict) and isinstance(cmd.get("cmd"), str):
+                    out.append(str(cmd["cmd"]))
+                elif isinstance(cmd, dict) and isinstance(cmd.get("task"), str) and depth < 2:
+                    out += commands(raw.get(str(cmd["task"]), []), depth + 1)
+            return out
+
+        return {k: commands(v) for k, v in raw.items()}
+    return {}
+
+
+def make_targets(repo: Path, rev: str) -> dict[str, list[str]]:
+    """Each Makefile target's recipe, its prerequisites' recipes first, as `make:<target>` (stage 10, codex-lb: CI
+    runs `make test-unit`; the sandbox has no `make`, and the recipe is what runs). `$(VAR)` from the Makefile's own
+    assignments; `@`, `-` and `$$` as make reads them. A Makefile this cannot read gives nothing."""
+    text = _git(repo, "show", f"{rev}:Makefile")
+    if not text:
+        return {}
+    joined = re.sub(r"\\\n[ \t]*", " ", text)
+    variables: dict[str, str] = {}
+    rules: dict[str, tuple[list[str], list[str]]] = {}
+    current: str | None = None
+    for line in joined.splitlines():
+        if line.startswith("\t") and current is not None:
+            rules[current][1].append(line[1:].lstrip("@-").strip())
+            continue
+        current = None
+        if (var := _MAKE_VAR.match(line)) and ":" not in line.split("=", 1)[0].rstrip(":?"):
+            variables.setdefault(var.group("name"), var.group("value"))
+        elif (rule := _MAKE_RULE.match(line)) and not rule.group("target").startswith("."):
+            target = str(rule.group("target"))
+            rules[target] = (rule.group("deps").split(), [])
+            current = target
+
+    def recipe(target: str, seen: set[str], depth: int = 0) -> list[str]:
+        if target not in rules or target in seen or depth > 6:
+            return []
+        seen.add(target)
+        deps, lines = rules[target]
+        out = [line for dep in deps for line in recipe(dep, seen, depth + 1)]
+        return out + [ln for ln in lines if ln]
+
+    return {f"make:{t}": [*recipe(t, set()), f"#vars {json.dumps(variables)}"] for t in rules}
+
+
+def _make_line(line: str, variables: dict[str, str]) -> str:
+    for _ in range(3):  # nested references, as far as they go
+        line = re.sub(r"\$\(([A-Za-z_][A-Za-z0-9_]*)\)", lambda m: variables.get(m.group(1), ""), line)
+    return line.replace("$$", "$")
+
+
+_TOX_CALL = re.compile(
+    r"^\s*(?:uvx\s+(?:(?!tox(?:\s|$))\S+\s+)*)?(?:python3?\s+-m\s+)?tox(?:\s+run)?(?P<args>(?:\s+\S+)*)\s*$"
+)
+_FACTOR = re.compile(r"^[\w.,!-]+:\s+(?!//)")  # a factor-conditional line of tox.ini (`crypto: crypto`, `py311: x`)
+_TOX_SUBST = {
+    "{envpython}": "python", "{env_python}": "python", "{toxinidir}": ".", "{tox_root}": ".",
+    "{envtmpdir}": "/tmp/tox-tmp", "{env_tmp_dir}": "/tmp/tox-tmp", "{envdir}": "/tmp/tox-env",
+    "{env_dir}": "/tmp/tox-env", "{envsitepackagesdir}": "/tmp/tox-env/site-packages",
+}  # fmt: skip
+
+
+def _tox_command(text: str) -> str:
+    out = re.sub(r"\{posargs(?::[^}]*)?\}", "", text)
+    for key, value in _TOX_SUBST.items():
+        out = out.replace(key, value)
+    return re.sub(r"\s+", " ", out).strip()
+
+
+def tox_environments(repo: Path, rev: str) -> dict[str, list[str]]:
+    """Each tox environment as the lines it runs (`tox:<name>`; `tox:*` the base every `py*` environment runs),
+    read from tox.ini or `[tool.tox]` in pyproject.toml, the way `make_targets` reads a Makefile. The last line
+    (`#env {...}`) carries the environment's extras, dependency groups and requirement files, which the image must
+    hold. Stage 10, level A: humanize's test job runs `uvx --with tox-uv tox -e py`, click's `uv run tox run`; a job
+    that only calls tox was passed over for a benchmark job or another project's suite."""
+    found: dict[str, list[str]] = {}
+
+    def record(name: str, commands: list[str], extras: list[str], groups: list[str], deps: list[str]) -> None:
+        # Commands under a factor condition run for some environments only: left out; extras and dependencies under
+        # one are installed anyway (a superset of what any environment needs, harmless offline).
+        lines = [c for c in (_tox_command(c) for c in commands if not _FACTOR.match(c)) if c]
+        if not lines:
+            return
+        extras = [_FACTOR.sub("", e) for e in extras]
+        groups = [_FACTOR.sub("", g) for g in groups]
+        files = [m.group("file") for d in deps for m in _REQUIREMENTS.finditer(_FACTOR.sub("", d))]
+        meta = {"extras": extras, "groups": groups, "requirements": files}
+        found[f"tox:{name}"] = [*lines, f"#env {json.dumps(meta)}"]
+
+    ini = _git(repo, "show", f"{rev}:tox.ini")
+    pyproject = _git(repo, "show", f"{rev}:pyproject.toml")
+    if not ini and pyproject and "legacy_tox_ini" in pyproject:  # tox.ini embedded in pyproject.toml (marshmallow)
+        try:
+            legacy = ((tomllib.loads(pyproject).get("tool") or {}).get("tox") or {}).get("legacy_tox_ini")
+        except tomllib.TOMLDecodeError:
+            legacy = None
+        ini = legacy if isinstance(legacy, str) else ""
+    if ini:
+        parser = configparser.ConfigParser(interpolation=None)
+        try:
+            parser.read_string(ini)
+        except configparser.Error:
+            parser = None
+        if parser is not None:
+
+            def listed(section: str, key: str, fallback: str | None = None) -> list[str]:
+                value = parser.get(section, key, fallback=None) if parser.has_section(section) else None
+                if value is None and fallback is not None and parser.has_section(fallback):
+                    value = parser.get(fallback, key, fallback=None)
+                joined = re.sub(r"\\\n\s*", " ", value or "")
+                return [ln.strip() for ln in joined.splitlines() if ln.strip()]
+
+            if parser.has_section("testenv"):
+                record("*", listed("testenv", "commands"), listed("testenv", "extras"),
+                       listed("testenv", "dependency_groups"), listed("testenv", "deps"))  # fmt: skip
+            for section in parser.sections():
+                if section.startswith("testenv:"):
+                    name = section.removeprefix("testenv:")
+                    record(name, listed(section, "commands", "testenv"), listed(section, "extras", "testenv"),
+                           listed(section, "dependency_groups", "testenv"),
+                           listed(section, "deps", "testenv"))  # fmt: skip
+    if pyproject and "[tool.tox" in pyproject and "legacy_tox_ini" not in pyproject:
+        try:
+            tox = (tomllib.loads(pyproject).get("tool") or {}).get("tox") or {}
+        except tomllib.TOMLDecodeError:
+            tox = {}
+
+        def words(commands: Any) -> list[str]:
+            out = []
+            for command in commands if isinstance(commands, list) else []:
+                parts = (
+                    [str(w) for w in command if isinstance(w, (str, int, float))] if isinstance(command, list) else []
+                )
+                if parts:
+                    out.append(" ".join(shlex.quote(w) if " " in w else w for w in parts))
+            return out
+
+        def strings(value: Any) -> list[str]:
+            return [str(v) for v in value] if isinstance(value, list) else []
+
+        base = tox.get("env_run_base") or {}
+        if isinstance(base, dict):
+            record("*", words(base.get("commands")), strings(base.get("extras")),
+                   strings(base.get("dependency_groups")), strings(base.get("deps")))  # fmt: skip
+        for name, env in (tox.get("env") or {}).items():
+            if isinstance(env, dict):
+                merged = {**base, **env} if isinstance(base, dict) else env
+                record(str(name), words(merged.get("commands")), strings(merged.get("extras")),
+                       strings(merged.get("dependency_groups")), strings(merged.get("deps")))  # fmt: skip
+    return found
+
+
+def tox_env_of(line: str, tasks: dict[str, list[str]]) -> tuple[str, dict[str, Any]] | None:
+    """(task key, its `#env` metadata) of the tox environment a line runs, or None when the line is not a tox call
+    the tasks know. `-e py`, `-e py3.14` or no `-e` (the `TOX_ENV` variable, a matrix value) run the base."""
+    call = _TOX_CALL.match(_RUNNERS.sub(lambda m: m.group("open"), line))  # `uv run --group dev tox run` (click)
+    if call is None:
+        return None
+    args = call.group("args").split()
+    env = next((args[i + 1] for i, a in enumerate(args[:-1]) if a == "-e"), None)
+    env = next((a.split("=", 1)[1] for a in args if a.startswith("-e=")), env)
+    key = f"tox:{env}" if env and f"tox:{env}" in tasks else "tox:*"
+    if key not in tasks:
+        return None
+    body = tasks[key]
+    meta = json.loads(body[-1].removeprefix("#env ")) if body[-1].startswith("#env ") else {}
+    return key, meta
+
+
+def _expand_tasks(command: str, tasks: dict[str, list[str]]) -> str:
+    """`task py:test -- -k x` becomes the task's own commands, its CLI arguments in place of `{{ .CLI_ARGS }}`."""
+    lines: list[str] = []
+    for line in command.splitlines():
+        made = _MAKE_CALL.match(line)
+        if made is not None:
+            words = made.group("args").split()
+            targets = [w for w in words if "=" not in w and not w.startswith("-")]
+            overrides = dict(w.split("=", 1) for w in words if "=" in w and not w.startswith("-"))
+            if targets and all(f"make:{t}" in tasks for t in targets):
+                for target in targets:
+                    body = tasks[f"make:{target}"]
+                    variables = json.loads(body[-1].removeprefix("#vars ")) if body[-1].startswith("#vars ") else {}
+                    variables |= {k: v.strip("'\"") for k, v in overrides.items()}
+                    # Each recipe line runs in its own shell, as make runs it: a `cd` does not reach the next line.
+                    lines += [f"({_make_line(c, variables)})" for c in body if not c.startswith("#vars ")]
+                continue
+        if (tox := tox_env_of(line, tasks)) is not None:
+            lines += [f"({c})" for c in tasks[tox[0]] if not c.startswith("#env ")]
+            continue
+        call = _TASK_CALL.match(line)
+        if call is None or call.group("name") not in tasks:
+            lines.append(line)
+            continue
+        args = call.group("rest").partition("--")[2].strip()
+        lines += [re.sub(r"\{\{\s*\.CLI_ARGS\s*\}\}", args, c) for c in tasks[call.group("name")]]
+    return "\n".join(lines)
+
+
+def _parses(command: str) -> bool:
+    """Whether a cleaned step is still valid shell: dropping lines can leave an empty `if ... then else fi`."""
+    return subprocess.run(["bash", "-n"], input=command, capture_output=True, text=True, check=False).returncode == 0
+
+
+# Jobs that need more than the repository: a browser, a deployed system, another operating system.
+_NEEDS_MORE = re.compile(
+    r"e2e|browser|playwright|cypress|integration|smoke|deploy|release|\bwin|windows|macos|bench"
+)  # a benchmark job times, it does not check (starlette, humanize: taken before the test job, stage 10)
+
+
+_RUNNER_CALL = re.compile(r"\bpytest\b|-m (pytest|unittest)\b|\bgo test\b|\b(vitest|jest|mocha)\b")
+_SAYS = re.compile(r"^\s*(echo|printf|:|#)(\s|$)")
+
+
+def _commands(text: str) -> str:
+    """A step's text without what it only prints or comments: `echo "... pytest context satisfied"` runs no test
+    (stage 10, codex-lb: a skip step's message was taken for the test run)."""
+    kept = []
+    for line in text.splitlines():
+        # Quoted text is an argument, never a separator: `echo "unchanged; pytest satisfied"` is one echo.
+        bare = re.sub(r'"(?:[^"\\]|\\.)*"|\'[^\']*\'', '""', line)
+        parts = [p for p in re.split(r"&&|\|\||;", bare) if not _SAYS.match(p)]
+        kept.append(" && ".join(parts))
+    return "\n".join(kept)
+
+
+def _runs_tests(command: str) -> bool:
+    """Whether a step's commands (expanded, without what they only print) call a test runner or a test target."""
+    text = _commands(command)
+    return bool(_RUNNER_CALL.search(text) or _PY_TESTS.search(text))
+
+
+def _negation(condition: str) -> str:
+    """The same condition, negated, in the form a workflow writes its other branch: `a != 'x'` for `a == 'x'`,
+    `!(c)` and `!c` for `c`. Compared after removing spaces."""
+    c = re.sub(r"\s+", "", condition)
+    if "==" in c and c.count("==") == 1 and "&&" not in c and "||" not in c:
+        return c.replace("==", "!=")
+    if "!=" in c and c.count("!=") == 1 and "&&" not in c and "||" not in c:
+        return c.replace("!=", "==")
+    if c.startswith("!(") and c.endswith(")"):
+        return c[2:-1]
+    if c.startswith("!"):
+        return c[1:]
+    return f"!({c})"
+
+
+def _condition(step: dict[str, Any]) -> str | None:
+    if "if" not in step:
+        return None
+    return re.sub(r"\s+", "", re.sub(r"^\s*\$\{\{\s*(.*?)\s*\}\}\s*$", r"\1", str(step["if"]), flags=re.S))
+
+
+def _test_branch(steps: list[dict[str, Any]], tasks: dict[str, list[str]]) -> tuple[list[dict[str, Any]], list[str]]:
+    """Steps under a condition not known here (a `changes` job's output, the event) and steps under its negation are
+    two branches of one job; only one runs. The branch that runs the tests is the plan, the other is left out, and the
+    unknown condition is said (stage 10, codex-lb: `needs.changes.outputs.backend`). Nothing is guessed when neither
+    branch, or both, run tests."""
+    conditions = {c for s in steps if (c := _condition(s))}
+    notes: list[str] = []
+    dropped: set[int] = set()
+    for c in sorted(conditions):
+        other = _negation(c)
+        if other not in conditions or c > other:
+            continue
+
+        def tests(cond: str) -> bool:
+            return any(_condition(s) == cond and isinstance(s.get("run"), str)
+                       and _runs_tests(_expand_tasks(str(s["run"]), tasks)) for s in steps)  # fmt: skip
+
+        here, there = tests(c), tests(other)
+        if here == there:
+            continue
+        taken, left = (c, other) if here else (other, c)
+        left_out = [i for i, s in enumerate(steps) if _condition(s) == left]
+        dropped |= set(left_out)
+        notes.append(f"condition `{taken}` is not known outside GitHub: the branch that runs the tests is taken, "
+                     f"its negation ({len(left_out)} step(s)) left out")  # fmt: skip
+    return [s for i, s in enumerate(steps) if i not in dropped], notes
+
+
+_HTTP_TESTS = re.compile(r"\b(newman|postman)\b", re.I)
+
+
+_ACTION_COMMAND = re.compile(r"^\s*(?:(?:uv|poetry|pipenv|pdm)\s+run\s+|python3?\s+-m\s+)?pytest\b")
+
+
+def _as_run(step: dict[str, Any]) -> dict[str, Any]:
+    """A step that calls an action whose inputs carry the test command (`pavelzw/pytest-action`'s `custom-pytest:
+    uv run pytest tests/unit`) is read as that command (stage 9: LNbits' tests run this way)."""
+    if isinstance(step.get("run"), str) or not step.get("uses"):
+        return step
+    command = next((str(v) for v in (step.get("with") or {}).values() if _ACTION_COMMAND.search(str(v))), None)
+    return {**step, "run": command} if command else step
+
+
+_SETUP_LINE = re.compile(
+    r"^\s*(?:sudo\s+)?(?:apt(?:-get)?\s+(?:update|install|upgrade)|brew\s+install|yum\s+install|dnf\s+install|"
+    r"apk\s+add|.*>>\s*\"?\$GITHUB_(?:PATH|ENV)\"?|.*\.sh\s+-y)\b.*$"
+)
+
+
+_APT_INSTALL = re.compile(r"^\s*(?:sudo\s+)?apt(?:-get)?\s+install\s+(?P<args>.*)$")
+_DEB_NAME = re.compile(r"^[a-z0-9][a-z0-9.+-]*$")
+
+
+def apt_packages(command: str) -> tuple[str, ...]:
+    """The Debian packages a step installs with apt (`sudo apt install gettext`: humanize's `msgfmt`, stage 10),
+    named plainly; the dependency image installs them when the mandate allows Debian's archive."""
+    found = []
+    for line in command.splitlines():
+        if (m := _APT_INSTALL.match(line)) is not None:
+            found += [w for w in m.group("args").split() if _DEB_NAME.match(w) and not w.startswith("-")]
+    return tuple(dict.fromkeys(found))
+
+
+def _system_setup(command: str) -> bool:
+    """A step that only installs system packages for the CI's runner (`sudo apt-get install postgresql-client-18`):
+    the sandbox's image stands for it, so it is skipped like the runner's other preparation, not run and not held
+    against the job."""
+    lines = [ln for ln in command.splitlines() if ln.strip() and not ln.strip().startswith("#")]
+    return bool(lines) and all(_SETUP_LINE.match(ln) for ln in lines)
+
+
+_RUNNER_PREP = re.compile(
+    r"^\s*sudo\s+(?:rm|chmod|chown|mkdir|ln|cp|mv|touch|tee|sed)\b[^\n]*\s/(?:etc|usr|opt|var|root|dev|sys)/"
+    r"|^\s*sudo\s+(?:systemctl|service)\b"
+)
+_SUDO_INSTALL = re.compile(
+    r"^(?P<indent>\s*)sudo\s+(?=(?:yarn|npm|pnpm|bun)\s+(?:install|ci)\b|(?:python3?\s+-m\s+)?pip3?\s+install\b)"
+)
+
+
+def _without_runner_prep(run: str) -> tuple[str, list[str]]:
+    """The step without what it does to the CI runner's own system under `sudo` (stage 10, CTFd: `sudo rm -f
+    /etc/boto.cfg` before `make test`, `sudo yarn install`): the sandbox has no such file and no privileges, and the
+    line says nothing about the tests. A system path edited is dropped and said; an install run as root is the same
+    install without `sudo`. Any other `sudo` still makes the job irreproducible (`_reproducible`)."""
+    kept: list[str] = []
+    notes: list[str] = []
+    for line in run.splitlines():
+        if _RUNNER_PREP.match(line):
+            notes.append(f"left out, it edits the CI runner's own system: {line.strip()[:80]}")
+            continue
+        kept.append(_SUDO_INSTALL.sub(r"\g<indent>", line))
+    return "\n".join(kept), notes
+
+
+_SHELL_SCAFFOLD = re.compile(
+    r"^\s*(?:#|set\s|export\s|if\s|then\b|else\b|elif\s|fi\b|exit\b|echo\b|printf\b|\[\s.*\]\s*&&|[A-Za-z_]\w*="
+    r"|\"?\$?\{?[A-Z_]+\}?\"?\s+-m\s+venv\b|python3?\s+-m\s+venv\b)"
+)
+_REPORT_CALL = re.compile(r"^\s*(?:\$\{?PREFIX\}?)?(?:coverage\s+(?:report|html|xml|combine|json)|codecov|smokeshow)\b")
+_INSTALL_CALL = re.compile(
+    r"^\s*(?:\"?\$\{?[A-Z_]*PIP[A-Z_]*\}?\"?|pip3?|python3?\s+-m\s+pip|uv\s+pip|uv\s+sync|poetry\s+install|pdm\s+install)\b"
+)
+
+
+_BUILD_CALL = re.compile(
+    r"^\s*(?:\$\{?PREFIX\}?)?(?:python3?\s+-m\s+build\b|[\w.-]+\s+build(?:\s|$)|sphinx-build\b|twine\s+check\b)"
+)  # `uv build`, `mkdocs build`, `zensical build --clean` (starlette): a tool's `build` command builds
+_PREFIXED = re.compile(r"^\s*\$\{?PREFIX\}?")  # `${PREFIX}ruff check` (httpx, starlette: a venv's bin when present)
+
+
+def _with_scripts(run: str, scripts: dict[str, str] | None) -> str:
+    """The step's text with the body of each repository script it calls, so what a step runs is judged by what its
+    scripts run (`scripts/test` runs pytest; `scripts/coverage` after it runs none)."""
+    if not scripts:
+        return run
+    out = []
+    for line in run.splitlines():
+        head = _RUNNERS.sub("", line.strip()).split(" ")[0]
+        body = scripts.get(head) or scripts.get(head.removeprefix("./")) or scripts.get("./" + head)
+        out.append(f"{line}\n{body}" if body else line)
+    return "\n".join(out)
+
+
+def _install_script(text: str, scripts: dict[str, str] | None = None) -> list[str] | None:
+    """The requirement files a repository script installs, when installing is all it does (stage 10, httpx:
+    `scripts/install` runs `pip install -r requirements.txt`, which has no network in the sandbox; the dependency
+    image stands for it, as for a `pip install` step). None when the script runs anything else."""
+    kind = script_kind(text, scripts)
+    return kind[1] if kind is not None and "installs" in kind[0] else None
+
+
+def script_kind(text: str, scripts: dict[str, str] | None = None, depth: int = 0) -> tuple[str, list[str]] | None:
+    """What a repository script does when it only installs, checks (lint, types, format) or builds the package or
+    docs: ("installs", requirement files), ("checks", []), ("builds", []) or a combination; None when it runs
+    anything else (tests, the application). The CI's own run of a check or a build is not the project's checks,
+    and offline the build cannot fetch its backend (httpx, starlette: `scripts/check`, `scripts/build`)."""
+    values: dict[str, str] = {}
+    found: list[str] = []
+    kinds: list[str] = []
+    for raw in text.splitlines():
+        line = _RUNNERS.sub(lambda m: m.group("open"), raw.strip())  # `uv run mkdocs build`
+        if not line or line.startswith("#"):
+            continue
+        for m in re.finditer(r"\b([A-Z_]+)=\"?([\w./ -]+?)\"?(?:\s|$)", line):
+            values[m.group(1)] = m.group(2)
+        if _INSTALL_CALL.match(line):
+            resolved = re.sub(r"\"?\$\{?([A-Z_]+)\}?\"?", lambda m: values.get(m.group(1), m.group(0)), line)
+            found += [m.group("file") for m in _REQUIREMENTS.finditer(resolved)]
+            kinds.append("installs")
+            continue
+        if _RUNNER_CALL.search(line):
+            return None
+        if _BUILD_CALL.match(line):
+            kinds.append("builds")
+            continue
+        if _REPORT_CALL.match(line):
+            kinds.append("reports")
+            continue
+        if _CHECK_RUN.search(_PREFIXED.sub("", line)) and not _SHELL_SCAFFOLD.match(line):
+            kinds.append("checks")
+            continue
+        if _SHELL_SCAFFOLD.match(line):
+            continue
+        head = line.split(" ")[0]
+        nested = (scripts or {}).get(head) or (scripts or {}).get(head.removeprefix("./")) if depth < 2 else None
+        if nested is not None and (inner := script_kind(nested, scripts, depth + 1)) is not None:
+            kinds += inner[0].split(" and ")
+            found += inner[1]
+            continue
+        return None
+    if not kinds:  # only shell scaffolding, prints and exits: a check of its own (httpx's `scripts/sync-version`)
+        return ("checks", []) if text.strip() else None
+    return " and ".join(dict.fromkeys(kinds)), found
+
+
+def _reproducible(runs: list[dict[str, Any]], files: set[str] | None) -> bool:
+    """Whether a job's steps can run in the sandbox: none raises privileges (`sudo`), and none works in a directory
+    the repository does not have (one it downloads or generates while the job runs). Stage 9: LNbits' JMeter job,
+    taken for its tests, ran `sudo update-java-alternatives` and `cd lnbits-extensions`."""
+    for step in runs:
+        text = "\n".join(ln for ln in str(step["run"]).splitlines() if not _SETUP_LINE.match(ln))
+        if re.search(r"(^|[\s;&|])sudo\s", text):
+            return False
+        # A step that fetches from the network while the job runs (stage 9, Prefect: a compatibility job downloads a
+        # schema with `curl https://...`) cannot run where tests have no network.
+        if re.search(r"\b(?:curl|wget)\b[^\n]*\bhttps?://|\bgit\s+clone\b", text):
+            return False
+        if files is not None:
+            for target in re.findall(r"(?:^|[\s;&|])cd\s+([\w./-]+)", text):
+                target = target.strip("/").removeprefix("./")
+                if target in ("", ".", "..", "/work") or target.startswith(("$", "~", "/")):
+                    continue
+                if not any(f == target or f.startswith(target + "/") for f in files):
+                    return False
+    return True
+
+
+_SERVICE_PORT = re.compile(r"\$\{\{\s*job\.services\.[\w-]+\.ports\[(?P<port>\d+)\]\s*\}\}")
+_WRITES_ENV = re.compile(
+    r"""^\s*echo\s+["']?(?P<key>[A-Za-z_]\w*)=(?P<value>[^"'\n]*?)["']?\s*>>\s*"?\$\{?GITHUB_ENV\}?"?\s*$"""
+)
+_SPLIT_BOOKKEEPING = re.compile(
+    r"\s--(?:durations-path|splitting-algorithm)(?:\s+|=)(?:\"[^\"]*\"|\S+)|\s--(?:store|clean)-durations\b"
+)
+_SPLITS = re.compile(r"--splits(?:\s+|=)[\"']?(?P<n>\d+)[\"']?\s+--group(?:\s+|=)[\"']?(?P<g>\d+)[\"']?")
+_DATA_FILE = re.compile(r"(?<![\w$/.-])(?P<path>[\w./-]+\.(?:json|xml|txt|csv|ya?ml|tar|zip|gz))\b")
+
+
+def _job_plan(
+    workflow: str, job_name: str, job: dict[str, Any], language: str, tasks: dict[str, list[str]] | None = None,
+    scripts: dict[str, str] | None = None, files: set[str] | None = None,
+    container_tests: tuple[tuple[str, ...], tuple[str, ...], str] = ((), (), ""),
+) -> CiPlan | None:  # fmt: skip
     defaults = ((job.get("defaults") or {}).get("run") or {}).get("working-directory", ".")
     steps: list[CiStep] = []
     services: list[str] = []
-    for step in job.get("steps") or []:
-        run = step.get("run") if isinstance(step, dict) else None
-        if not isinstance(run, str):
+    notes: list[str] = []
+    interpreters: list[str] = []
+    requirement_files: list[str] = []
+    without_runtime = False
+    all_steps = [s for s in job.get("steps") or [] if isinstance(s, dict)]
+    all_steps, branch_notes = _test_branch(all_steps, tasks or {})
+    notes += branch_notes
+    downloads = any(str(s.get("uses", "")).startswith("actions/download-artifact") for s in all_steps)
+    runs = [_as_run(s) for s in all_steps]
+    # What a step writes to `$GITHUB_ENV` is the environment of the steps after it (stage 10, Prefect: the database
+    # URL); kept as environment, and the line itself dropped.
+    written: dict[str, str] = {}
+    for step in runs:
+        if isinstance(step.get("run"), str):
+            lines = str(step["run"]).splitlines()
+            for line in lines:
+                if (m := _WRITES_ENV.match(line)) and "$" not in m.group("value"):
+                    written[m.group("key")] = m.group("value")
+            step["run"] = "\n".join(ln for ln in lines if not _WRITES_ENV.match(ln))
+    runs = [s for s in runs if isinstance(s.get("run"), str) and str(s["run"]).strip()]
+    system_packages = [pkg for s in runs for pkg in apt_packages(str(s["run"]))]
+    runs = [s for s in runs if not _system_setup(str(s["run"]))]
+    for step in runs:
+        step["run"], prep_notes = _without_runner_prep(str(step["run"]))
+        notes += prep_notes
+        if scripts:  # a script that only installs: its requirement files are the job's, the call is left out
+            kept_lines = []
+            for line in str(step["run"]).splitlines():
+                head = _RUNNERS.sub("", line.strip()).split(" ")[0]
+                kind = script_kind(scripts[head], scripts) if head in scripts else None
+                if kind is not None:
+                    requirement_files += [r for r in kind[1] if files is None or r in files]
+                    stands = " (the dependency image stands for it)" if "installs" in kind[0] else ""
+                    notes.append(f"left out, {head} only {kind[0]}{stands}")
+                    continue
+                kept_lines.append(line)
+            step["run"] = "\n".join(kept_lines)
+    runs = [s for s in runs if str(s["run"]).strip()]
+    tox_flags: list[str] = []
+    for step in runs:
+        for line in str(step["run"]).splitlines():
+            if (tox := tox_env_of(line, tasks or {})) is not None:
+                requirement_files += [r for r in tox[1].get("requirements", []) if files is None or r in files]
+                tox_flags += [f"--extra {e}" for e in tox[1].get("extras", [])]
+                tox_flags += [f"--group {g}" for g in tox[1].get("groups", [])]
+    if any(_PUBLISHES.search(_expand_tasks(str(s["run"]), tasks or {})) for s in runs):
+        return None  # a job that publishes is never a test plan, whatever comes after its tests
+    # The job's tests end at its last step that runs the test runner: what follows uploads, validates or reports
+    # (stage 10, Prefect: a `jq` check of the durations file was taken for a test step).
+    last = max((i for i, s in enumerate(runs)
+                if _runs_tests(_expand_tasks(_with_scripts(str(s["run"]), scripts), tasks or {}))),
+               default=None)  # fmt: skip
+    if last is not None and last + 1 < len(runs):
+        notes.append(f"{len(runs) - last - 1} step(s) after the tests left out (they run no tests)")
+        runs = runs[: last + 1]
+    if any(_PUBLISHES.search(_expand_tasks(str(s["run"]), tasks or {})) for s in runs):
+        return None
+    if not _reproducible(runs, files):
+        return None
+    for step in runs:
+        if step.get("continue-on-error") is True:  # optional by the team's own account (a cache check)
             continue
+        run = _expand_tasks(str(step["run"]), tasks or {})
         for match in _COMPOSE_UP.finditer(run):
             services += [a for a in match.group("args").split() if not a.startswith("-")]
+        requirement_files += [m.group("file") for ln in run.splitlines() if _PIP_INSTALL.search(ln)
+                              for m in _REQUIREMENTS.finditer(ln)]  # fmt: skip
+        if command_needs_runtime(run, container_tests):
+            without_runtime = True
+            notes.append(f"left out, it needs a container runtime ({container_tests[2]}): the sandbox has none and "
+                         "never gets the host's Docker socket: "
+                         f"{_commands(run).strip()[:120]}")  # fmt: skip
+            continue
+        installs = [m.group("v").split() for ln in run.splitlines() if (m := _INTERPRETER.match(ln))]
+        if installs:
+            interpreters += [v for vs in installs for v in vs]
+            run = "\n".join(ln for ln in run.splitlines() if not _INTERPRETER.match(ln))
         command = _clean(run)
         if command is not None:
+            command = "\n".join(line for line in command.splitlines() if not _CHECK_RUN.search(line))
+        if command is not None and language == "python":
+            foreign = [ln for ln in command.splitlines() if _FOREIGN_BUILD.search(ln)]
+            if foreign:
+                notes.append(f"left out, a JavaScript build in a Python job ({len(foreign)} line(s), e.g. "
+                             f"{foreign[0].strip()[:80]}): tests that read its output fail and say so")  # fmt: skip
+                command = "\n".join(ln for ln in command.splitlines() if not _FOREIGN_BUILD.search(ln))
+        if command and downloads and files is not None:
+            # A line that reads a file the repository does not have, in a job that downloads another job's artifacts,
+            # needs that artifact (stage 10, Prefect: `test-durations.json`): left out, and said.
+            kept_lines = []
+            for line in command.splitlines():
+                missing = [m.group("path") for m in _DATA_FILE.finditer(line)
+                           if m.group("path").lstrip("./") not in files and not _RUNNER_CALL.search(line)]  # fmt: skip
+                if missing and not line.lstrip().startswith(("echo ", "exit ", "set ")):
+                    notes.append(f"left out, it needs another job's artifact ({missing[0]}): {line.strip()[:120]}")
+                    continue
+                kept_lines.append(line)
+            command = "\n".join(kept_lines)
+        if command:
+            command = _SPLIT_BOOKKEEPING.sub("", command)
+        if command and _parses(command):
             steps.append(CiStep(cwd=str(step.get("working-directory") or defaults), command=command))
-    text = " ".join(s.command for s in steps)
-    runs_tests = "pytest" in text or "test" in text if language == "python" else re.search(r"\btest\b", text)
+    # The plan's own steps must run tests (what they call, expanded), not merely mention them.
+    text = _commands(" \n".join(_expand_tasks(s.command, tasks or {}) for s in steps))
+    text += " " + " ".join(_commands(v) for v in (scripts or {}).values())
+    runs_tests = _PY_TESTS.search(text) if language == "python" else re.search(r"\btest\b", text)
     if not steps or not runs_tests:
         return None
-    return CiPlan(workflow=workflow, job=job_name, steps=tuple(steps), services=tuple(dict.fromkeys(services)))
+    containers = []
+    for name, spec in (job.get("services") or {}).items():
+        if not isinstance(spec, dict) or not spec.get("image"):
+            continue
+        own = tuple(sorted((str(k), str(v)) for k, v in (spec.get("env") or {}).items() if not _EXPR.search(str(v))))
+        ports = tuple(int(str(p).split(":")[-1]) for p in spec.get("ports") or [] if str(p).split(":")[-1].isdigit())
+        containers.append((str(name), str(spec["image"]), own, ports))
+
+    # `${{ job.services.mariadb.ports[3306] }}` is the port the runner mapped the container's 3306 to; the sidecar
+    # listens on 3306 itself (CTFd, stage 10: its database URL was dropped as an expression, the tests ran on SQLite).
+    def literal(value: Any) -> str:
+        return _SERVICE_PORT.sub(lambda m: m.group("port"), str(value))
+
+    env: dict[str, str] = {
+        str(k): literal(v) for k, v in (job.get("env") or {}).items() if not _EXPR.search(literal(v))
+    }
+    for step in runs:
+        env |= {str(k): literal(v) for k, v in (step.get("env") or {}).items() if not _EXPR.search(literal(v))}
+    env |= written
+    split = next((m for s in steps if (m := _SPLITS.search(s.command))), None)
+    scope = f"pytest-split group {split.group('g')} of {split.group('n')}" if split else ""
+    if without_runtime:
+        scope = f"{scope or 'the whole job'}, without its tests that need a container runtime"
+    return CiPlan(workflow=workflow, job=job_name, steps=tuple(steps), services=tuple(dict.fromkeys(services)),
+                  containers=tuple(containers), env=tuple(sorted(env.items())), scope=scope,
+                  notes=tuple(dict.fromkeys(notes)), interpreters=tuple(dict.fromkeys(interpreters)),
+                  requirement_files=tuple(dict.fromkeys(requirement_files)),
+                  sync_flags=tuple(dict.fromkeys(tox_flags)) or None,
+                  system_packages=tuple(dict.fromkeys(system_packages)))  # fmt: skip
+
+
+_BUILTIN_MARKS = {"parametrize", "skip", "skipif", "xfail", "asyncio", "usefixtures", "filterwarnings", "timeout"}
+
+
+def container_runtime_tests(repo: Path, rev: str, files: set[str]) -> tuple[tuple[str, ...], tuple[str, ...], str]:
+    """The test directories whose tests or conftest import a container runtime library, the pytest markers those
+    tests carry, and what was found: the tests that start their own containers (stage 10, rag-api: its integration
+    tests' conftest starts a pgvector container through testcontainers)."""
+    dirs: set[str] = set()
+    markers: set[str] = set()
+    found = ""
+    candidates = [f for f in files if f.endswith(".py") and ("test" in f.split("/")[-1] or "conftest" in f)
+                  and re.search(r"(^|/)tests?/", f)]  # fmt: skip
+    for path in candidates:
+        text = _git(repo, "show", f"{rev}:{path}")
+        lib = _CONTAINER_LIBS.search(text)
+        if lib:
+            directory = path.rsplit("/", 1)[0] if "/" in path else "."
+            dirs.add(directory)
+            found = found or f"{path} imports {lib.group(1)}"
+    for path in candidates:
+        if any(path.startswith(f"{d}/") for d in dirs):
+            text = _git(repo, "show", f"{rev}:{path}")
+            markers |= set(re.findall(r"pytest\.mark\.(\w+)", text)) - _BUILTIN_MARKS
+    return tuple(sorted(dirs)), tuple(sorted(markers)), found
+
+
+def command_needs_runtime(command: str, container: tuple[tuple[str, ...], tuple[str, ...], str]) -> bool:
+    """Whether a step's pytest selects the tests that start containers: by a marker expression that names one of
+    their markers without negating it (`-m integration`, not `-m "not integration"`), or by their directory."""
+    dirs, markers, _ = container
+    if not dirs:
+        return False
+    for line in _commands(command).splitlines():
+        if not re.search(r"\bpytest\b|-m\s+pytest", line):
+            continue
+        expression = re.search(r"\s-m\s+(?P<q>['\"]?)(?P<e>.+?)(?P=q)(?:\s|$)", line)
+        if expression and any(re.search(rf"(?<!not )\b{re.escape(m)}\b", expression.group("e")) for m in markers):
+            return True
+        if any(re.search(rf"(?:^|\s){re.escape(d)}(?:/|\s|$)", line) for d in dirs):
+            return True
+    return False
+
+
+def _entry_job(job: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
+    """The job as one matrix entry runs it: its expressions resolved where known, steps whose `if:` is known to be
+    false left out."""
+    context = {"matrix": entry}
+    steps = []
+    for step in job.get("steps") or []:
+        if isinstance(step, dict) and "if" in step:
+            condition = re.sub(r"^\s*\$\{\{\s*(.*?)\s*\}\}\s*$", r"\1", str(step["if"]), flags=re.S)
+            value = gh_expression(condition, context)
+            if value is not None and value in (False, "", 0):
+                continue
+        steps.append(step)
+    return _resolve({**job, "steps": steps}, context)
+
+
+def _entries(job: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
+    """The job's matrix entries, each as it runs; those whose service containers all have an image first (an entry
+    with its database is what the lab can measure on), then in the matrix's own order."""
+    out = []
+    # An engine a step starts with `docker compose up` (sqlmodel, stage 10: `docker compose up --wait "$DATABASE"`,
+    # no service container) does not run in the sandbox: the entries that name one come after those that need none.
+    composed = any(_COMPOSE_UP.search(str(s.get("run", ""))) for s in job.get("steps") or [] if isinstance(s, dict))
+    for entry in _matrix(job):
+        resolved = _entry_job(job, entry)
+        images = [str((s or {}).get("image", "")) for s in (resolved.get("services") or {}).values()]
+        complete = bool(images) and all(i and "${{" not in i for i in images)
+        # An entry whose values name the engine of one of the job's service containers runs the suite on that
+        # engine, the one the lab measures on (mealie, stage 10: `DB_ENGINE: ${{ matrix.Database }}` over sqlite and
+        # postgres, both with a postgres service; the sqlite entry came first and seeded a database nobody read).
+        engines = {e for i in images for e in _ENGINES if e in i.lower()}
+        values = " ".join(str(v) for v in entry.values()).lower()
+        on_service = any(e in values for e in engines) if engines else False
+        needs_compose = composed and not images and any(e in values for e in _ENGINES)
+        # The sandbox is Linux: an entry for another runner (sqlmodel: `os: windows-latest`) comes after Linux ones.
+        foreign_os = any(x in values for x in ("windows", "macos"))
+        out.append((0 if complete else 1, 0 if on_service else 1, 1 if needs_compose else 0, 1 if foreign_os else 0,
+                    _label(entry), resolved))  # fmt: skip
+    out.sort(key=lambda x: x[:4])
+    return [(label, resolved) for *_, label, resolved in out]
+
+
+_ENGINES = ("postgres", "mysql", "mariadb", "mongo", "redis")
+
+
+_TOKEN = re.compile(
+    r"\s*(?:(?P<str>'(?:[^']|'')*')|(?P<num>-?\d+(?:\.\d+)?)|(?P<op>&&|\|\||==|!=|!|\(|\)|,)"
+    r"|(?P<name>[A-Za-z_][\w-]*(?:\.[A-Za-z_*][\w-]*)*))"
+)
+_UNKNOWN = object()
+
+
+def gh_expression(expr: str, context: dict[str, Any]) -> Any:
+    """The value of a GitHub Actions expression where only literals and `context` (the matrix, a reusable
+    workflow's inputs) are known; None when it depends on anything else (a secret, a step's output, the runner's
+    state). A small parser over the documented grammar: nothing in the repository's text is ever run as code."""
+    tokens: list[tuple[str, str]] = []
+    pos = 0
+    while pos < len(expr):
+        if expr[pos:].strip() == "":
+            break
+        m = _TOKEN.match(expr, pos)
+        if m is None:
+            return None
+        kind = str(m.lastgroup)
+        tokens.append((kind, m.group(kind)))
+        pos = m.end()
+    at = 0
+
+    def peek() -> tuple[str, str] | None:
+        return tokens[at] if at < len(tokens) else None
+
+    def take() -> tuple[str, str]:
+        nonlocal at
+        at += 1
+        return tokens[at - 1]
+
+    def truthy(v: Any) -> bool:
+        return v not in (None, False, "", 0) and v is not _UNKNOWN
+
+    def primary() -> Any:
+        tok = take()
+        if tok == ("op", "!"):
+            v = primary()
+            return _UNKNOWN if v is _UNKNOWN else not truthy(v)
+        if tok == ("op", "("):
+            v = disjunction()
+            take()
+            return v
+        kind, text = tok
+        if kind == "str":
+            return text[1:-1].replace("''", "'")
+        if kind == "num":
+            return float(text) if "." in text else int(text)
+        if text in ("true", "false", "null"):
+            return {"true": True, "false": False, "null": None}[text]
+        if peek() == ("op", "("):  # a function call
+            take()
+            args: list[Any] = []
+            while peek() != ("op", ")"):
+                args.append(disjunction())
+                if peek() == ("op", ","):
+                    take()
+            take()
+            if any(a is _UNKNOWN for a in args) or text not in ("startsWith", "endsWith", "contains", "format"):
+                return _UNKNOWN
+            a = [str(x) if not isinstance(x, (list, dict)) else x for x in args]
+            if text == "format":
+                return re.sub(r"\{(\d+)\}", lambda m: str(a[int(m.group(1)) + 1]), str(a[0]))
+            if text == "contains":
+                return str(a[1]).lower() in (a[0] if isinstance(a[0], list) else str(a[0]).lower())
+            subject, part = str(a[0]).lower(), str(a[1]).lower()
+            return subject.startswith(part) if text == "startsWith" else subject.endswith(part)
+        value: Any = context
+        for part in text.split("."):
+            if not isinstance(value, dict) or part not in value:
+                return _UNKNOWN
+            value = value[part]
+        return value
+
+    def comparison() -> Any:
+        left = primary()
+        while peek() in (("op", "=="), ("op", "!=")):
+            op = take()[1]
+            right = primary()
+            if left is _UNKNOWN or right is _UNKNOWN:
+                left = _UNKNOWN
+            else:
+                same = str(left).lower() == str(right).lower()
+                left = same if op == "==" else not same
+        return left
+
+    def conjunction() -> Any:
+        left = comparison()
+        while peek() == ("op", "&&"):
+            take()
+            right = comparison()
+            if left is _UNKNOWN:
+                left = _UNKNOWN if truthy(right) or right is _UNKNOWN else right
+            else:
+                left = right if truthy(left) else left
+        return left
+
+    def disjunction() -> Any:
+        left = conjunction()
+        while peek() == ("op", "||"):
+            take()
+            right = conjunction()
+            left = _UNKNOWN if left is _UNKNOWN else left if truthy(left) else right
+        return left
+
+    try:
+        value = disjunction()
+    except IndexError:
+        return None
+    if at != len(tokens) or value is _UNKNOWN:
+        return None
+    return value
+
+
+def _matrix(job: dict[str, Any]) -> list[dict[str, Any]]:
+    """Every entry of a job's matrix, as GitHub Actions expands it: the product of its lists, `exclude` removed,
+    `include` added. One empty entry for a job without a matrix (or with a matrix built by an expression)."""
+    matrix = (job.get("strategy") or {}).get("matrix")
+    if not isinstance(matrix, dict):
+        return [{}]
+    axes = {k: v for k, v in matrix.items() if k not in ("include", "exclude") and isinstance(v, list)}
+    entries: list[dict[str, Any]] = [{}]
+    for key, values in axes.items():
+        entries = [{**e, key: v} for e in entries for v in values]
+
+    def matches(entry: dict[str, Any], pattern: dict[str, Any]) -> bool:
+        return all(entry.get(k) == v for k, v in pattern.items())
+
+    excluded = [x for x in matrix.get("exclude") or [] if isinstance(x, dict)]
+    entries = [e for e in entries if not any(matches(e, x) for x in excluded)]
+    for extra in [x for x in matrix.get("include") or [] if isinstance(x, dict)]:
+        hit = [e for e in entries if all(e.get(k) == v for k, v in extra.items() if k in axes)]
+        if hit and any(k in axes for k in extra):
+            for e in hit:
+                e.update({k: v for k, v in extra.items() if k not in axes})
+        else:
+            entries.append(dict(extra))
+    return entries or [{}]
+
+
+def _label(entry: dict[str, Any]) -> str:
+    def short(v: Any) -> str:
+        return str(v.get("id") or v.get("name") or v) if isinstance(v, dict) else str(v)
+
+    return ", ".join(f"{k}={short(v)}" for k, v in entry.items()) or "the job"
+
+
+def _resolve(node: Any, context: dict[str, Any]) -> Any:
+    """Every `${{ ... }}` whose value is known replaced by it; the others left for `_clean` to drop as before."""
+    if isinstance(node, str):
+
+        def one(m: re.Match[str]) -> str:
+            value = gh_expression(m.group(1), context)
+            if value is None:
+                return m.group(0)
+            return " ".join(str(v) for v in value) if isinstance(value, list) else str(value)
+
+        return re.sub(r"\$\{\{\s*(.*?)\s*\}\}", one, node, flags=re.S)
+    if isinstance(node, list):
+        return [_resolve(x, context) for x in node]
+    if isinstance(node, dict):
+        return {k: _resolve(v, context) for k, v in node.items()}
+    return node
+
+
+def _fill(node: Any, values: dict[str, Any]) -> Any:
+    """`${{ inputs.x }}` replaced by the caller's value; anything else left as it is."""
+    if isinstance(node, str):
+        return re.sub(r"\$\{\{\s*inputs\.([\w-]+)\s*\}\}", lambda m: str(values.get(m.group(1), m.group(0))), node)
+    if isinstance(node, list):
+        return [_fill(x, values) for x in node]
+    if isinstance(node, dict):
+        return {k: _fill(v, values) for k, v in node.items()}
+    return node
+
+
+def _called(repo: Path, rev: str, jobs: list[tuple[str, str, dict[str, Any]]]) -> list[tuple[str, str, dict[str, Any]]]:
+    """Jobs of local reusable workflows (`uses: ./.github/workflows/tests.yml` with `with:` inputs), with each
+    `${{ inputs.x }}` replaced by what the caller passes or the input's default; what stays an expression (a matrix
+    value) is left out as before."""
+    out: list[tuple[str, str, dict[str, Any]]] = []
+    for name, job_name, job in jobs:
+        uses = str(job.get("uses", ""))
+        if not uses.startswith("./.github/workflows/"):
+            continue
+        try:
+            called = yaml.safe_load(_git(repo, "show", f"{rev}:{uses.removeprefix('./')}")) or {}
+        except yaml.YAMLError:
+            continue
+        trigger = (called.get("on") or called.get(True) or {}) if isinstance(called, dict) else {}
+        declared = ((trigger.get("workflow_call") or {}).get("inputs") or {}) if isinstance(trigger, dict) else {}
+        values = {k: (v or {}).get("default") for k, v in declared.items() if isinstance(v, dict)}
+        values |= {str(k): v for k, v in (job.get("with") or {}).items()}
+
+        for inner_name, inner in (called.get("jobs") or {}).items():
+            if isinstance(inner, dict):
+                out.append((f"{name}:{job_name}", f"{inner_name} ({uses.rsplit('/', 1)[-1]})", _fill(inner, values)))
+    return out
+
+
+_SYNC_FLAG = re.compile(
+    r"--(?:all-extras|all-groups|dev|no-dev|only-dev|no-default-groups)\b"
+    r"|--(?:group|extra|only-group|no-group)[= ]+[\w.-]+"
+)
+
+
+def _checks_out_another(job: dict[str, Any]) -> bool:
+    """Whether the job checks out another repository (`actions/checkout` with `repository:`): its suite is that
+    project's, run against this one, not this project's checks."""
+    return any(
+        isinstance(step, dict)
+        and str(step.get("uses", "")).startswith("actions/checkout")
+        and (step.get("with") or {}).get("repository")
+        for step in job.get("steps") or []
+    )
+
+
+def _sync_flags(repo: Path, rev: str, job: dict[str, Any]) -> tuple[str, ...] | None:
+    """The dependency groups and extras the test job installs, read from the `uv sync` its steps run, and those of
+    the local composite actions it uses (`uses: ./.github/actions/prepare`). Stage 9 evaluation, Prefect: its test job
+    runs `uv sync --locked`; Unbidden installed every group, one of them a package from GitHub, and the image did
+    not build. None when the job runs no `uv sync` (the previous rule, every group, stands)."""
+    texts = [str(s.get("run", "")) for s in job.get("steps") or [] if isinstance(s, dict)]
+    for step in job.get("steps") or []:
+        uses = str(step.get("uses", "")) if isinstance(step, dict) else ""
+        if uses.startswith("./"):
+            for name in ("action.yml", "action.yaml"):
+                text = _git(repo, "show", f"{rev}:{uses.removeprefix('./').rstrip('/')}/{name}")
+                if text:
+                    texts.append(text)
+                    break
+    lines = [ln for text in texts for ln in re.findall(r"\buv\s+sync\b([^\n]*)", text)]
+    if not lines:
+        return None
+    return tuple(dict.fromkeys(m.group(0).replace("=", " ") for ln in lines for m in _SYNC_FLAG.finditer(ln)))
 
 
 def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
@@ -87,25 +1092,104 @@ def ci_test_plan(repo: Path, rev: str, language: str) -> CiPlan | None:
         for n in _git(repo, "ls-tree", "--name-only", f"{rev}:.github/workflows").split()
         if n.endswith((".yml", ".yaml"))
     ]
-    names.sort(key=lambda n: (0 if "test" in n else 1, n))
+    jobs: list[tuple[str, str, dict[str, Any]]] = []
     for name in names:
         try:
             workflow = yaml.safe_load(_git(repo, "show", f"{rev}:.github/workflows/{name}")) or {}
         except yaml.YAMLError:
             continue
-        for job_name, job in (workflow.get("jobs") or {}).items():
-            if not isinstance(job, dict) or "test" not in f"{name} {job_name}".lower():
-                continue
-            hint = " ".join(
-                str(s.get("run", "")) + str(s.get("uses", "")) for s in job.get("steps") or [] if isinstance(s, dict)
-            )
-            if language == "python" and not re.search(r"python|pytest|uv |poetry", hint):
-                continue
-            if language == "node" and not re.search(r"node|npm|pnpm|yarn|bun", hint):
-                continue
-            plan = _job_plan(name, str(job_name), job, language)
-            if plan is not None:
-                return plan
+        jobs += [(name, str(j), job) for j, job in (workflow.get("jobs") or {}).items() if isinstance(job, dict)]
+    jobs += _called(repo, rev, jobs)
+
+    # A job is judged by what its steps run, not by its name (rich tests in `pythonpackage.yml`, job `build`); jobs
+    # named for tests are tried first.
+    def rank(item: tuple[str, str, dict[str, Any]]) -> tuple[int, int, int, str, str]:
+        label = f"{item[0]} {item[1]} {item[2].get('runs-on', '')}".lower()
+        canonical = item[0].rsplit(".", 1)[0].lower() in ("test", "tests", "ci", "check", "checks")
+        return (
+            1 if _NEEDS_MORE.search(label) else 0,
+            0 if canonical else 1,
+            0 if "test" in label else 1,
+            item[0],
+            item[1],
+        )
+
+    tasks = taskfile_tasks(repo, rev) | make_targets(repo, rev) | tox_environments(repo, rev)
+    files = set(_git(repo, "ls-tree", "-r", "--name-only", rev).splitlines())
+
+    def scripts_of(job: dict[str, Any]) -> dict[str, str]:
+        """Repository scripts the job's steps run (`./scripts/test`), so a job is judged by what they execute."""
+        found: dict[str, str] = {}
+
+        def read(text: str, depth: int) -> None:
+            for line in text.splitlines():
+                head = _RUNNERS.sub("", line.strip()).split(" ")[0]
+                if head in found or not (
+                    head.startswith("./") or (("/" in head) and not head.startswith(("/", "$", "-")))
+                ):
+                    continue
+                body = _git(repo, "show", f"{rev}:{head.removeprefix('./')}")
+                if body:
+                    found[head] = body
+                    if depth < 2:  # a script's own scripts (httpx: `scripts/check` runs `./scripts/sync-version`)
+                        read(body, depth + 1)
+
+        for step in job.get("steps") or []:
+            read(str(step.get("run", "") if isinstance(step, dict) else ""), 0)
+        return found
+
+    def executes(job: dict[str, Any]) -> str:
+        runs = " ".join(str(_as_run(s).get("run", "")) for s in job.get("steps") or [] if isinstance(s, dict))
+        runs = _expand_tasks(runs, tasks) if tasks else runs  # `tox -e py`, `make test`: what they run
+        return runs + " " + " ".join(scripts_of(job).values())
+
+    def runner(item: tuple[str, str, dict[str, Any]]) -> tuple[int, int, int]:
+        text = executes(item[2])
+        explicit = _RUNNER_CALL.search(text) is not None
+        # A job that starts the app in the background and tests it over HTTP needs ports and often the network.
+        served = bool(re.search(r"&\s*$", text, re.M)) or bool(_HTTP_TESTS.search(text))
+        # A job whose steps or environment need the repository's secrets (a profiling token) fails without them
+        # (stage 9, Prefect); reports uploaded by an action (`uses:` with a token) do not count.
+        job = item[2]
+        own = [job.get("env") or {}, *[{"run": s.get("run"), "env": s.get("env")} for s in job.get("steps") or []
+                                         if isinstance(s, dict) and not s.get("uses")]]  # fmt: skip
+        secret = "secrets." in json.dumps(own, default=str)
+        return (0 if explicit else 1, 1 if served else 0, 1 if secret else 0)
+
+    jobs.sort(key=lambda item: (*runner(item), *rank(item)))
+    container = (
+        container_runtime_tests(repo, rev, files) if files is not None and language == "python" else ((), (), "")
+    )
+    for name, job_name, job in jobs:
+        hint = " ".join(
+            str(s.get("run", "")) + str(s.get("uses", "")) for s in job.get("steps") or [] if isinstance(s, dict)
+        )
+        hint = _expand_tasks(hint, tasks) if tasks else hint
+        hint += " " + " ".join(scripts_of(job).values())  # a job of scripts is judged by what they run (httpx)
+        if language == "python" and not re.search(r"python|pytest|uv |poetry", hint):
+            continue
+        if language == "node" and not re.search(r"node|npm|pnpm|yarn|bun", hint):
+            continue
+        if _checks_out_another(job):  # click's nightly job runs Flask's suite against click: not this project's
+            continue
+        entries = _entries(job)
+        label, resolved = entries[0]
+        plan = _job_plan(name, job_name, resolved, language, tasks, scripts_of(resolved), files, container)
+        if plan is not None:
+            from dataclasses import replace
+
+            groups = tuple(lbl for lbl, _ in entries)
+            parts = [f"matrix entry 1 of {len(groups)} ({label})"] if len(groups) > 1 else []
+            if plan.scope:
+                parts.append(plan.scope)
+                split = re.search(r"pytest-split group \d+ of (\d+)", plan.scope)
+                if len(groups) == 1 and split:  # a split without a matrix: the groups are pytest-split's own
+                    groups = tuple(f"pytest-split group {i}" for i in range(1, int(split.group(1)) + 1))
+            synced = _sync_flags(repo, rev, job)
+            if plan.sync_flags:  # a tox environment's extras and groups, on top of what the job syncs
+                synced = tuple(dict.fromkeys([*(synced or ("--all-groups",)), *plan.sync_flags]))
+            return replace(plan, sync_flags=synced, groups=groups if len(groups) > 1 else (),
+                           scope="; ".join(parts) or plan.scope or "the whole job")  # fmt: skip
     return None
 
 
@@ -149,3 +1233,562 @@ def ci_lint_packages(repo: Path, rev: str, packages: dict[str, str], root_script
             dirs.add(".")  # a lint run over the whole repository
         dirs.update(packages[n] for n in filtered if n in packages)
     return dirs
+
+
+def ci_commands(repo: Path, rev: str) -> str | None:
+    """Everything the repository's workflows run, lowercased; None when it has no workflow Unbidden can read."""
+    names = [
+        n
+        for n in _git(repo, "ls-tree", "--name-only", f"{rev}:.github/workflows").split()
+        if n.endswith((".yml", ".yaml"))
+    ]
+    runs: list[str] = []
+    for name in names:
+        try:
+            workflow = yaml.safe_load(_git(repo, "show", f"{rev}:.github/workflows/{name}")) or {}
+        except yaml.YAMLError:
+            continue
+        for job in (workflow.get("jobs") or {}).values():
+            for step in (job.get("steps") or []) if isinstance(job, dict) else []:
+                if isinstance(step, dict):
+                    runs.append(f"{step.get('run', '')} {step.get('uses', '')}")
+            # `tox -e ${{ matrix.tox }}` runs whatever the matrix names: its values are part of what the job runs.
+            matrix = ((job.get("strategy") or {}).get("matrix") or {}) if isinstance(job, dict) else {}
+            if isinstance(matrix, dict):
+                runs.append(yaml.safe_dump(matrix, default_flow_style=True))
+    if not runs:
+        return None
+    text = "\n".join(runs)
+    # One level of indirection: what the workflows call is part of what they run (`bash scripts/lint.sh` runs ruff).
+    tracked = set(_git(repo, "ls-tree", "-r", "--name-only", rev).split())
+    called = {t.lstrip("./") for t in re.findall(r"[\w./-]+\.(?:sh|py|bash)\b", text)} & tracked
+    if re.search(r"\bmake\b", text):
+        called |= {"Makefile"} & tracked
+    if "pre-commit" in text:
+        called |= {".pre-commit-config.yaml"} & tracked
+    if re.search(r"\btox\b", text):
+        called |= {"tox.ini", "setup.cfg", "pyproject.toml"} & tracked  # where tox's environments are defined
+    if re.search(r"\bnox\b", text):
+        called |= {"noxfile.py"} & tracked
+    extra = [_git(repo, "show", f"{rev}:{path}")[:20000] for path in sorted(called)]
+    scripts = package_scripts_run(repo, rev, "\n".join([text, *extra]))
+    return "\n".join([text, *extra, *scripts]).lower()
+
+
+_PACKAGE_SCRIPT_CALL = re.compile(
+    r"\b(?:(?:pnpm|yarn|bun)(?:\s+-\S+)*(?:\s+run)?|npm(?:\s+-\S+)*\s+run(?:-script)?)\s+([@\w:.-]+)"
+    r"|\bnpm\s+(test|start)\b"
+)
+
+
+def package_scripts_run(repo: Path, rev: str, text: str, depth: int = 3) -> list[str]:
+    """The package.json scripts a CI's commands call (`pnpm check`, `npm run lint`, `yarn test`), and the scripts those
+    call in turn, as their command lines: `pnpm check` that runs `tsc -b` is a CI that runs tsc."""
+    shown = subprocess.run(["git", "-C", str(repo), "show", f"{rev}:package.json"], capture_output=True, text=True)
+    try:
+        scripts = json.loads(shown.stdout).get("scripts", {}) if shown.returncode == 0 else {}
+    except ValueError:
+        return []
+    if not isinstance(scripts, dict):
+        return []
+    found: list[str] = []
+    seen: set[str] = set()
+    frontier = text
+    for _ in range(depth):
+        names = {a or b for a, b in _PACKAGE_SCRIPT_CALL.findall(frontier)} - seen
+        commands = [str(scripts[n]) for n in sorted(names) if isinstance(scripts.get(n), str)]
+        seen |= names
+        if not commands:
+            break
+        found += commands
+        frontier = "\n".join(commands)
+    return found
+
+
+UNREADABLE = "unreadable"
+
+
+MAX_PAGES = 5  # 500 check runs per commit at most; more is a monorepo whose jobs are not all read, said as unknown
+
+# A check run's state, from GitHub's status and conclusion.
+SUCCESS, FAILURE, PENDING, SKIPPED, CANCELLED, NEUTRAL, UNKNOWN = (
+    "success",
+    "failure",
+    "pending",
+    "skipped",
+    "cancelled",
+    "neutral",
+    "unknown",
+)
+_FAILED = {"failure", "timed_out", "action_required", "startup_failure"}
+# A commit's (or a tool's jobs') verdict: GREEN only when everything that ran succeeded and nothing is still running.
+GREEN, RED, PENDING_CI, UNKNOWN_CI = "green", "red", "pending", "unknown"
+
+
+def run_state(run: dict[str, Any]) -> str:
+    if run.get("status") != "completed":
+        return PENDING
+    conclusion = str(run.get("conclusion"))
+    if conclusion in _FAILED:
+        return FAILURE
+    return {"success": SUCCESS, "skipped": SKIPPED, "cancelled": CANCELLED, "neutral": NEUTRAL}.get(conclusion, UNKNOWN)
+
+
+def verdict_of(states: list[str]) -> str | None:
+    """None without runs; RED on any failure; PENDING while any run is not finished (a partial picture); UNKNOWN
+    when a run was cancelled, neutral or of unknown conclusion (it said nothing); GREEN only when at least one run
+    succeeded and every other one succeeded or was skipped."""
+    if not states:
+        return None
+    if FAILURE in states:
+        return RED
+    if PENDING in states:
+        return PENDING_CI
+    if any(s in (CANCELLED, NEUTRAL, UNKNOWN) for s in states):
+        return UNKNOWN_CI
+    return GREEN if SUCCESS in states else UNKNOWN_CI
+
+
+def fetch_runs(
+    slug: str, sha: str, token: str | None = None, *, timeout_s: float = 10.0
+) -> tuple[list[dict[str, Any]] | None, str | None]:
+    """Every check run of a commit, finished or not, across pages; or None and why GitHub could not be read.
+
+    "No checks" (an empty list) and "could not ask" (None) are different answers: the Director may act on the first
+    and must not on the second."""
+    import httpx
+
+    headers = {"Accept": "application/vnd.github+json", **({"Authorization": f"Bearer {token}"} if token else {})}
+    runs: list[dict[str, Any]] = []
+    for page in range(1, MAX_PAGES + 1):
+        try:
+            response = httpx.get(
+                f"https://api.github.com/repos/{slug}/commits/{sha}/check-runs",
+                params={"per_page": "100", "page": str(page)},
+                headers=headers,
+                timeout=timeout_s,
+            )
+        except httpx.HTTPError as exc:
+            return None, f"GitHub could not be reached: {type(exc).__name__}"
+        if response.status_code != 200:
+            why = f"GitHub answered {response.status_code} for {slug}@{sha[:12]}"
+            if response.headers.get("x-ratelimit-remaining") == "0":
+                why += " (rate limit exhausted" + (", no token was used)" if not token else ")")
+            return None, why
+        data = response.json()
+        batch = data.get("check_runs", [])
+        runs += batch
+        if len(runs) >= int(data.get("total_count", 0)) or len(batch) < 100:
+            return runs, None
+    # More runs than were read: what was not read could be anything.
+    return [*runs, {"name": "(unread runs)", "status": "completed", "conclusion": "unknown"}], None
+
+
+def ci_status(slug: str, sha: str, token: str | None = None, *, timeout_s: float = 10.0) -> str | None:
+    """The commit's verdict (see verdict_of); None when it has no runs or GitHub cannot be read."""
+    runs, _ = fetch_runs(slug, sha, token, timeout_s=timeout_s)
+    return verdict_of([run_state(r) for r in runs]) if runs is not None else None
+
+
+def check_runs(slug: str, sha: str, token: str | None = None, *, timeout_s: float = 10.0) -> dict[str, str]:
+    """name -> state of each check run on the commit; empty when GitHub cannot be read."""
+    runs, _ = fetch_runs(slug, sha, token, timeout_s=timeout_s)
+    return {str(r.get("name")): run_state(r) for r in runs or []}
+
+
+def tool_status(repo: Path, rev: str, tool: str, runs: dict[str, str]) -> str | None:
+    """'green' when every job whose steps run `tool` (or a script that does) finished successfully on the commit,
+    'red' when one failed, None when no such job's run is known. A red check elsewhere does not count."""
+    names = [
+        n
+        for n in _git(repo, "ls-tree", "--name-only", f"{rev}:.github/workflows").split()
+        if n.endswith((".yml", ".yaml"))
+    ]
+    tracked = set(_git(repo, "ls-tree", "-r", "--name-only", rev).split())
+    jobs: list[str] = []
+    for name in names:
+        try:
+            workflow = yaml.safe_load(_git(repo, "show", f"{rev}:.github/workflows/{name}")) or {}
+        except yaml.YAMLError:
+            continue
+        for key, job in (workflow.get("jobs") or {}).items():
+            if not isinstance(job, dict):
+                continue
+            text = " ".join(str(s.get("run", "")) for s in job.get("steps") or [] if isinstance(s, dict))
+            called = {t.lstrip("./") for t in re.findall(r"[\w./-]+\.(?:sh|py|bash)\b", text)} & tracked
+            text += " ".join(_git(repo, "show", f"{rev}:{c}")[:20000] for c in sorted(called))
+            if tool in text.lower():
+                jobs.append(str(job.get("name") or key))
+    # A matrix job's runs are named "<job> (<values>)".
+    states = [c for job in jobs for run, c in runs.items() if run == job or run.startswith(f"{job} (")]
+    return verdict_of(states)
+
+
+def ci_verdicts(
+    repo: Path, rev: str, slug: str, token: str | None, tools: set[str]
+) -> tuple[str | None, dict[str, str], str | None]:
+    """The team's CI on this commit: the whole commit's status ('green', 'red', None for no checks, or UNREADABLE),
+    per tool the status of the jobs that run it, and why it could not be read. Used by the Director wherever it
+    decides, so `unbidden decide` and the autonomous cycle judge alike."""
+    runs, problem = fetch_runs(slug, rev, token)
+    if not runs and (parent := fork_parent(slug, token)) is not None:
+        # A fork runs no checks on the commits it shares with its parent; the parent's CI judged them.
+        runs, problem = fetch_runs(parent, rev, token)
+    if runs is None:
+        return UNREADABLE, {}, problem
+    named = {str(r.get("name")): run_state(r) for r in runs}
+    per_tool = {t: v for t in sorted(tools) if t and (v := tool_status(repo, rev, t, named)) is not None}
+    return verdict_of([run_state(r) for r in runs]), per_tool, None
+
+
+def analyzer_tool(details: dict[str, object]) -> str:
+    """The tool an analyzer finding came from, without the baseline suffix or a scope after the colon."""
+    return str(details.get("tool", "")).split(":")[0].removesuffix("-baseline")
+
+
+def fork_parent(slug: str, token: str | None = None, *, timeout_s: float = 10.0) -> str | None:
+    """owner/name of the repository `slug` was forked from, or None (not a fork, or GitHub cannot be read)."""
+    import httpx
+
+    headers = {"Accept": "application/vnd.github+json", **({"Authorization": f"Bearer {token}"} if token else {})}
+    try:
+        response = httpx.get(f"https://api.github.com/repos/{slug}", headers=headers, timeout=timeout_s)
+    except httpx.HTTPError:
+        return None
+    if response.status_code != 200 or not response.json().get("fork"):
+        return None
+    parent = response.json().get("parent") or {}
+    return str(parent["full_name"]) if parent.get("full_name") else None
+
+
+_PY = re.compile(r"\b3\.(\d{1,2})\b")
+
+
+def _expand_tox(envlist: str) -> list[str]:
+    """`py{310,311}`, `py3{10-12}`, `py310`, `py3.12` -> minor versions as "3.N". Anything unreadable is skipped."""
+
+    def minor(item: str, short: bool) -> int | None:
+        item = item.strip().removeprefix("3.") if "." in item else item.strip()
+        if not item.isdigit():
+            return None
+        value = (
+            int(item) if short or "." in item else int(item[1:]) if item.startswith("3") and len(item) >= 2 else None
+        )
+        return value if value is not None and 6 <= value <= 30 else None
+
+    out: list[int] = []
+    for three, body in re.findall(r"py(3?)\{([^}]*)\}", envlist):
+        for item in body.split(","):
+            if "-" in item:
+                lo, _, hi = item.partition("-")
+                a, b = minor(lo, bool(three)), minor(hi, bool(three))
+                if a is not None and b is not None and b - a <= 10:
+                    out += list(range(a, b + 1))
+            elif (m := minor(item, bool(three))) is not None:
+                out.append(m)
+    out += [int(m) for m in re.findall(r"\bpy3\.?(\d{1,2})\b", envlist)]
+    return [f"3.{m}" for m in out]
+
+
+def ci_python_versions(repo: Path, rev: str) -> list[str]:
+    """The Python versions the team's CI runs on: setup-python values and matrices in the workflows, tox's envlist,
+    nox sessions and `.python-version`. Read as data; sorted oldest first. Empty when none is named."""
+    found: set[str] = set()
+    tracked = set(_git(repo, "ls-tree", "-r", "--name-only", rev).split())
+    for path in sorted(p for p in tracked if p.startswith(".github/workflows/") and p.endswith((".yml", ".yaml"))):
+        text = _git(repo, "show", f"{rev}:{path}")
+        for line in text.splitlines():
+            if re.search(r"python[-_]version|python:|uv\s+python\s+(install|pin)\b", line, re.IGNORECASE) and (
+                "${{" not in line
+            ):
+                found |= {f"3.{m}" for m in _PY.findall(line)}
+        # A matrix list on the lines below its key: `python-version:\n  - "3.10"`.
+        for block in re.findall(r"python[-_]version\s*:\s*\n((?:\s+-\s*['\"]?3\.\d+['\"]?\s*\n)+)", text, re.I):
+            found |= {f"3.{m}" for m in _PY.findall(block)}
+    for path in ("tox.ini", "pyproject.toml", "setup.cfg"):
+        if path in tracked:
+            text = _git(repo, "show", f"{rev}:{path}")
+            for envlist in re.findall(r"env_?list\s*=\s*(.+(?:\n[ \t]+.+)*)", text):
+                found |= set(_expand_tox(envlist))
+    if "noxfile.py" in tracked:
+        text = _git(repo, "show", f"{rev}:noxfile.py")
+        for args in re.findall(r"python\s*=\s*\[([^\]]+)\]", text):
+            found |= {f"3.{m}" for m in _PY.findall(args)}
+    if ".python-version" in tracked:
+        found |= {f"3.{m}" for m in _PY.findall(_git(repo, "show", f"{rev}:.python-version"))}
+    return sorted(found, key=lambda v: int(v.split(".")[1]))
+
+
+# Reading a tool's invocations in the CI's commands as argv, not as a substring: `cp tsconfig.json` does not run tsc,
+# `tox -e mypy` names an environment, `[tool.mypy]` configures a tool something else may or may not run.
+_INVOKERS = {"npx", "pnpm", "yarn", "bunx", "bun", "uv", "uvx", "poetry", "pdm", "hatch", "pipx", "exec", "run", "x",
+            "dlx", "=", "commands"}  # fmt: skip
+_LINTING = {"ruff": {None: True, "check": True, "format": False}, "biome": {"check": True, "lint": True, "ci": True,
+            "format": False}}  # fmt: skip
+CONFIG_FLAGS = {"-c", "--config", "--config-file", "-p", "--project", "--rcfile", "--settings-path", "--config-path"}
+_VALUE_FLAGS = CONFIG_FLAGS | {"-e", "--env", "-k", "--filter", "--format", "--output-format", "--reporter",
+                               "--max-warnings", "--ext", "--target", "-t", "--python-version", "--select", "--ignore",
+                               "--extend-select", "--cache-dir", "--outdir", "--out-dir", "-f", "--verifytypes",
+                               "--level"}  # fmt: skip
+# Flags that put a tool in a mode that reports on no source file: its run sets no scope for findings.
+_NO_FILES_MODES = {"pyright": {"--verifytypes", "--createstub"}}
+DEFAULT_CONFIGS = {
+    "tsc": {"tsconfig.json"},
+    "mypy": {"mypy.ini", ".mypy.ini", "pyproject.toml", "setup.cfg"},
+    "ruff": {"ruff.toml", ".ruff.toml", "pyproject.toml"},
+    "pyright": {"pyrightconfig.json", "pyproject.toml"},
+    "eslint": {"eslint.config.js", "eslint.config.mjs", "eslint.config.cjs", "eslint.config.ts", ".eslintrc",
+               ".eslintrc.json", ".eslintrc.js", ".eslintrc.cjs", ".eslintrc.yml", ".eslintrc.yaml"},
+    "biome": {"biome.json", "biome.jsonc"},
+}  # fmt: skip
+
+
+# Packages whose name is not the command they run, as `npx`/`bunx`/`pnpm dlx`/`uvx` name them.
+PACKAGE_TOOLS = {"typescript": "tsc", "@biomejs/biome": "biome"}
+
+
+def _tool_of(token: str, *, via_runner: bool) -> tuple[str, str | None]:
+    """The tool a token runs and the version it pins: `tsc`, `./node_modules/.bin/tsc`, and, through a package
+    runner, `typescript@7.0.2` or `ruff==0.6.0` (a pinned version, possibly not the project's)."""
+    if not via_runner:
+        return PurePosixPath(token).name.removesuffix(".exe"), None
+    name, version = token, None
+    if "==" in token:
+        name, version = token.split("==", 1)
+    elif "@" in token.lstrip("@"):
+        at = token.rindex("@")
+        name, version = token[:at], token[at + 1 :]
+    name = name if name.startswith("@") else PurePosixPath(name).name.removesuffix(".exe")
+    return PACKAGE_TOOLS.get(name, name), version or None
+
+
+@dataclass(frozen=True)
+class Invocation:
+    subcommand: str | None
+    paths: tuple[str, ...]  # where it runs, relative to the repository; empty: its whole working directory
+    config: str | None  # an explicit configuration file
+    cwd: str  # from a preceding `cd <dir> &&`
+    version: str | None = None  # pinned by the step itself (`bunx typescript@7.0.2`), not by the project
+    checks_files: bool = True  # False for a mode that checks no source files (`pyright --verifytypes <package>`)
+
+    def scopes(self) -> list[str]:
+        base = self.cwd.strip("./")
+        if not self.paths:
+            return [base]
+        return [str(PurePosixPath(base) / p).strip("./") if base else p for p in self.paths]
+
+
+def _tokens(segment: str) -> list[str]:
+    try:
+        return shlex.split(segment)
+    except ValueError:
+        return segment.split()
+
+
+def tool_invocations(commands: str, tool: str) -> list[Invocation]:
+    """Every step in the CI's commands that runs `tool` itself, with its subcommand, paths, config and directory."""
+    return list(_invocations(commands, tool))
+
+
+@functools.lru_cache(maxsize=64)
+def _invocations(commands: str, tool: str) -> tuple[Invocation, ...]:
+    # Read once per CI text and tool: every sweep asks it for each opportunity, and tokenizing a large CI is slow
+    # (stage 10: Prefect's, about 0.4 s a call, made each sweep of 229 opportunities last about 40 s).
+    found: list[Invocation] = []
+    for line in commands.splitlines():
+        cwd = ""
+        for segment in re.split(r"&&|\|\||;|\|", line):
+            tokens = _tokens(segment)
+            if len(tokens) >= 2 and tokens[0] == "cd":
+                cwd = tokens[1]
+                continue
+            for i, token in enumerate(tokens):
+                before = tokens[i - 1] if i else ""
+                named, version = _tool_of(token, via_runner=before in _INVOKERS)
+                if named != tool:
+                    continue
+                runs_it = (
+                    i == 0
+                    or before in _INVOKERS
+                    or before.endswith(":")  # a YAML or Makefile-style key
+                    or (before == "-m" and i >= 2 and tokens[i - 2].startswith("python"))
+                )
+                if not runs_it:
+                    continue
+                rest = tokens[i + 1 :]
+                subcommand = (
+                    rest[0] if rest and not rest[0].startswith("-") and rest[0] in _LINTING.get(tool, {}) else None
+                )
+                args = rest[1:] if subcommand else rest
+                paths: list[str] = []
+                config: str | None = None
+                awaiting: str | None = None  # a flag whose value is the next token
+                for arg in args:
+                    if awaiting is not None:
+                        config = arg if awaiting in CONFIG_FLAGS else config
+                        awaiting = None
+                    elif arg in (">", ">>", "2>", "2>&1"):
+                        break
+                    elif arg.startswith("-"):
+                        flag, eq, value = arg.partition("=")
+                        if flag in CONFIG_FLAGS and eq:
+                            config = value
+                        elif flag in _VALUE_FLAGS and not eq:
+                            awaiting = flag
+                    elif tool == "tsc" and arg.endswith(".json"):
+                        config = arg  # `tsc -b tsconfig.json`: a project file, not a path to check
+                    elif arg not in (".", "./") and ("/" in arg or "." in arg or arg.isidentifier()):
+                        paths.append(arg.removeprefix("./").rstrip("/"))
+                checks = not (set(args) & _NO_FILES_MODES.get(tool, set()))
+                found.append(Invocation(subcommand, tuple(paths), config, cwd, version, checks))
+    return tuple(found)
+
+
+def tool_scope(
+    read: Callable[[str], str | None], tracked: Iterable[str], commands: str | None, tool: str
+) -> tuple[str, ...] | None:
+    """The directories the team's CI checks with `tool`: the paths its steps name, or the `include` (pyright) or
+    `files` (mypy) of the configuration file they pass, with what pyright's config excludes or ignores as "!path".
+    None when some step checks the whole tree, or the CI does not run the tool, or its scope cannot be read (stage 10:
+    Prefect's pyright checks `src/` through pyrightconfig-ci.json; Unbidden's own run fixed errors in `benches/`)."""
+    if not commands or not tool:
+        return None
+    files = set(tracked)
+    dirs = {str(d) for f in files for d in PurePosixPath(f).parents if str(d) != "."}
+    scope: list[str] = []
+    if "pre-commit" in commands:
+        # A hook runs the tool on the files its `files` pattern matches, minus `exclude` (pre-commit's own
+        # re.search on each path), written "re:..." and "!re:..." (Prefect, stage 10: mypy runs on four directories).
+        config = read(".pre-commit-config.yaml") or ""
+        hooks = _hooks_of(config, tool)
+        if hooks is not None:
+            commands = commands.replace(config.lower()[:20000], "")  # the hooks are read here, not as commands
+            for hook in hooks:
+                if not hook.get("files"):
+                    return None  # this hook runs on every file
+                scope.append(f"re:{_pattern(hook['files'])}")
+                if hook.get("exclude"):
+                    scope.append(f"!re:{_pattern(hook['exclude'])}")
+
+    def exists(path: str) -> bool:
+        return path in files or path in dirs
+
+    runs = [inv for inv in tool_invocations(commands, tool) if inv.checks_files]
+    for inv in runs:
+        base = inv.cwd.strip("./")
+        named = [str(PurePosixPath(base) / p).strip("/") if base else p.strip("/") for p in inv.paths]
+        if named and not any(exists(p) for p in named):
+            continue  # words that only look like paths (a sentence that mentions the tool): not a run of it
+        paths = [p for p in named if exists(p)]
+        if not paths and inv.config:
+            paths = [
+                (f"!{PurePosixPath(base) / p[1:]}" if p.startswith("!") else str(PurePosixPath(base) / p))
+                if base
+                else p
+                for p in _config_scope(read, inv, tool)
+            ]
+        if paths and all(p.startswith("!") for p in paths):
+            return None
+        if not paths:
+            return None
+        scope += paths
+    return tuple(sorted(set(scope))) or None
+
+
+def _hooks_of(config: str, tool: str) -> list[dict[str, Any]] | None:
+    """The pre-commit hooks that run `tool`, or None when the config has none (or cannot be read)."""
+    try:
+        loaded = yaml.safe_load(config) or {}
+    except yaml.YAMLError:
+        return None
+    hooks = [
+        h
+        for r in loaded.get("repos") or []
+        if isinstance(r, dict)
+        for h in r.get("hooks") or []
+        if isinstance(h, dict) and (h.get("id") == tool or str(h.get("entry", "")).split()[:1] == [tool])
+    ]
+    return hooks or None
+
+
+def _pattern(value: object) -> str:
+    """A pre-commit pattern as Python reads it; `(?x)` verbose patterns keep their flag."""
+    return str(value).strip()
+
+
+def _config_scope(read: Callable[[str], str | None], inv: Invocation, tool: str) -> list[str]:
+    assert inv.config is not None
+    path = str(PurePosixPath(inv.cwd.strip("./")) / inv.config) if inv.cwd.strip("./") else inv.config
+    text = read(path.removeprefix("./"))
+    if not text:
+        return []
+    try:
+        if path.endswith(".toml"):
+            section = tomllib.loads(text).get("tool", {}).get(tool, {})
+        elif path.endswith(".json"):
+            section = json.loads(re.sub(r"^\s*//.*$", "", text, flags=re.M))  # pyright allows comments
+        else:
+            ini = configparser.ConfigParser()
+            ini.read_string(text)
+            section = {"files": ini.get(tool, "files", fallback="")}
+    except (ValueError, configparser.Error):
+        return []
+    if not isinstance(section, dict):
+        return []
+
+    def listed(key: str) -> list[str]:
+        found = section.get(key)
+        if isinstance(found, str):
+            found = [f.strip() for f in found.split(",") if f.strip()]
+        return [str(f).removeprefix("./").rstrip("/") for f in found or [] if isinstance(f, str) and "*" not in f]
+
+    included = listed("include" if tool == "pyright" else "files")
+    # What pyright's config leaves out (`exclude`) or silences (`ignore`) is outside the standard too, written
+    # "!path" (Prefect, stage 10: `ignore` holds src/integrations/, where three more L4 fixes landed).
+    exempt = [f"!{e}" for e in listed("exclude") + listed("ignore")] if tool == "pyright" and included else []
+    return included + exempt
+
+
+def runs_tool(commands: str | None, tool: str) -> bool:
+    """Whether the CI's commands run `tool` itself, in a mode that reports what Unbidden's run of it reports."""
+    if not commands or not tool:
+        return False
+    return any(_LINTING.get(tool, {}).get(inv.subcommand, True) for inv in tool_invocations(commands, tool))
+
+
+SAME, UNRELATED, DIFFERS = "same", "unrelated", "differs"
+
+
+def environment_equivalence(
+    commands: str | None, tool: str, paths: list[str], *, source: str, own_rules: bool
+) -> tuple[str, str]:
+    """What a green CI run of `tool` says about these findings, and why:
+    SAME: the same tool and mode, over these paths, with its default configuration, at the project's own version;
+    a finding the CI does not report is then Unbidden's environment. UNRELATED: the CI's run does not cover them
+    (another rule set, other files): it says nothing either way. DIFFERS: it covers them differently (another
+    version or configuration): a discrepancy to investigate, never a reason to decline."""
+    if own_rules:
+        return UNRELATED, f"{tool} ran with Unbidden's own rule set, which the team's CI does not run"
+    invocations = [i for i in tool_invocations(commands or "", tool) if _LINTING.get(tool, {}).get(i.subcommand, True)]
+    if not invocations:
+        return UNRELATED, f"no step of the team's CI runs {tool} itself"
+    wanted = [p.lower() for p in paths]
+
+    def covers(inv: Invocation) -> bool:
+        return all(any(not s or p == s or p.startswith(f"{s}/") for s in inv.scopes()) for p in wanted)
+
+    covering = [i for i in invocations if covers(i)]
+    if not covering:
+        scopes = sorted({s or "." for i in invocations for s in i.scopes()})
+        return UNRELATED, f"the team's CI runs {tool} on {', '.join(scopes)}, not on {paths[0] if paths else 'them'}"
+    if source != "project":
+        return DIFFERS, f"Unbidden ran its own {tool}, whose version may differ from the CI's"
+    pinned = [i for i in covering if i.version]
+    if len(pinned) == len(covering):
+        return DIFFERS, f"the team's CI runs {tool} {pinned[0].version}, a version it pins itself"
+    defaults = [
+        i for i in covering if i.config is None or PurePosixPath(i.config).name in DEFAULT_CONFIGS.get(tool, ())
+    ]
+    if not defaults:
+        return DIFFERS, f"the team's CI runs {tool} with {covering[0].config}, not the configuration Unbidden used"
+    return SAME, ""

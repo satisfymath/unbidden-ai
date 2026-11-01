@@ -1,0 +1,24 @@
+{
+ "mode": "perception",
+ "set": "dev",
+ "states": [
+  "healthy",
+  "healthy-dark",
+  "healthy-red-zone",
+  "healthy-red-text",
+  "healthy-state-first",
+  "healthy-by-shortfall",
+  "overlay",
+  "overlay-reordered",
+  "overlay-partial",
+  "overlay-partial-big",
+  "formula",
+  "formula-state-first",
+  "style",
+  "style-red-zone"
+ ],
+ "methods": "dom,vision,vision_sam",
+ "policy": "spark",
+ "reps": 1,
+ "commit": "5cabaec2526380cc9f7e8b3fc021c8fa1cf5985c"
+}

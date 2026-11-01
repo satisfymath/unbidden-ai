@@ -10,6 +10,7 @@ from __future__ import annotations
 import ast
 import re
 import subprocess
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -21,6 +22,7 @@ from unbidden.contracts.common import EvidenceLevel, EvidenceRef
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.llm import LLMRequest, Message, Tier
 from unbidden.contracts.opportunity import Opportunity
+from unbidden.observe.stack import PythonStack
 from unbidden.sandbox.provision import DependencyImage, link_dependencies, sandbox_spec
 from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
 from unbidden.store import Store
@@ -71,7 +73,11 @@ def public_functions(repo: Path, rev: str, package: str) -> list[str]:
     ).stdout.split()
     texty: dict[str, list[str]] = {}
     other: dict[str, list[str]] = {}
-    for path in sorted(f for f in files if f.endswith(".py") and not Path(f).name.startswith("_")):
+    # Private modules (`_native.py`) are skipped; a package's `__init__.py` is where many define their public API.
+    public = (
+        f for f in files if f.endswith(".py") and (Path(f).name == "__init__.py" or not Path(f).name.startswith("_"))
+    )
+    for path in sorted(public):
         source = subprocess.run(
             ["git", "-C", str(repo), "show", f"{rev}:{path}"], capture_output=True, text=True
         ).stdout
@@ -79,7 +85,10 @@ def public_functions(repo: Path, rev: str, package: str) -> list[str]:
             tree = ast.parse(source)
         except SyntaxError:
             continue
-        module = path.removesuffix(".py").replace("/", ".")
+        # A package under a source root (src/click) is imported by its own name (click).
+        root = str(Path(package).parent)
+        module = path.removeprefix(f"{root}/" if root != "." else "").removesuffix(".py").replace("/", ".")
+        module = module.removesuffix(".__init__")
         for node in tree.body:
             entries: list[tuple[str, ast.FunctionDef]] = []
             if isinstance(node, ast.FunctionDef) and not node.name.startswith("_"):
@@ -141,16 +150,28 @@ def _group_crashes(name: str, body: str, package: str) -> list[Crash]:
     return crashes
 
 
+def _enclosing_def(before: str) -> str:
+    """The function whose source pytest printed just above a frame line."""
+    names = re.findall(r"^\s*(?:async\s+)?def (\w+)\(", before.rsplit("_ _ _", 1)[-1], re.MULTILINE)
+    return names[-1] if names else "?"
+
+
 def parse_crashes(output: str, package: str) -> list[Crash]:
     crashes: list[Crash] = []
+    # The summary repeats every failure's one-line reason; left in the last section it would be read as that test's.
+    output = re.split(r"^=+ short test summary info =+$", output, maxsplit=1, flags=re.MULTILINE)[0]
     sections = _FAIL_HEADER.split(output)
     for name, body in zip(sections[1::2], sections[2::2], strict=False):
         if "ExceptionGroup" in body:
             crashes.extend(_group_crashes(name, body, package))
             continue
         exc = re.findall(r"^E\s+(\w+(?:Error|Exception))\b:?\s*(.*)$", body, re.MULTILINE)
-        frames = re.findall(rf"^({re.escape(package)}/[\w/]+\.py):(\d+): in (\w+)", body, re.MULTILINE)
-        example = re.search(r"Falsifying example: (.+?)(?:\n\n|\n[A-Z_]{2,})", body, re.DOTALL)
+        # pytest writes `path:line: in function` or, in newer versions, `path:line:` under the function's source.
+        found = list(re.finditer(rf"^({re.escape(package)}/[\w/]+\.py):(\d+):(?: in (\w+))?", body, re.MULTILINE))
+        frames = [(m.group(1), m.group(2), m.group(3) or _enclosing_def(body[: m.start()])) for m in found]
+        example = re.search(r"Falsifying example: (.+?)(?:\n\n|\n[A-Z_]{2,})", body, re.DOTALL) or re.search(
+            r"Failing test case: (.+?\n)E?\s*\)", body, re.DOTALL
+        )
         if not exc or not frames:
             continue
         exception, message = exc[-1]
@@ -163,7 +184,7 @@ def parse_crashes(output: str, package: str) -> list[Crash]:
                 exception,
                 message.strip()[:300],
                 f"{path}:{line} in {function}",
-                example.group(1).strip()[:600] if example else "",
+                re.sub(r"^E {0,11}", "", example.group(1), flags=re.MULTILINE).strip()[:600] if example else "",
                 body[-2500:],
             )
         )
@@ -202,7 +223,8 @@ class RobustnessProbe:
                     ],
                 )
             )
-        except (BrainError, ProviderError):
+        except (BrainError, ProviderError) as exc:  # said, not mistaken for an answer without tests (stage 9 walk)
+            self.refused = f"no model answered: {type(exc).__name__}: {str(exc)[:240]}"
             return None
         self.last_answer = response.content
         try:
@@ -238,11 +260,14 @@ class RobustnessProbe:
             return None
         return parse_files(response.content).get(PROBE_FILE)
 
-    def run_tests(self, rev: str, tests: str, *, timeout_s: float = 900) -> str:
+    def run_tests(self, rev: str, tests: str, *, timeout_s: float = 900, seed: int = 0) -> str:
         work = snapshot(self.repo, rev)
         try:
             (work / PROBE_FILE).parent.mkdir(parents=True, exist_ok=True)
-            (work / PROBE_FILE).write_text(tests)
+            # Environment, not the model's tests: a Django project's modules cannot even be imported before its settings
+            # are configured, so the settings module its own manage.py names is set first. The stored tests are
+            # kept as written.
+            (work / PROBE_FILE).write_text(django_preamble(work) + tests)
             link_dependencies(work, self.image)
             argv = [
                 "python",
@@ -255,7 +280,7 @@ class RobustnessProbe:
                 "--tb=long",
                 "-o",
                 "addopts=",
-                "--hypothesis-seed=0",
+                f"--hypothesis-seed={seed}",
             ]
             result = self.runner.run(sandbox_spec(self.image, argv, timeout_s=timeout_s), work)
             return result.stdout + result.stderr
@@ -300,3 +325,93 @@ class RobustnessProbe:
             )
             opened.append(opp)
         return opened
+
+
+# Directories that hold a package's tests, docs or tooling rather than the code its users import.
+NOT_PRODUCT = {"tests", "test", "testing", "docs", "doc", "examples", "example", "scripts", "benchmarks", "bench",
+               "tools", "migrations", "alembic", "build", "dist", "site-packages", "node_modules"}  # fmt: skip
+
+
+_TEST_NAME = re.compile(r"(?i)(^|_)(tests?|testing|testutils|fixtures|conftest)($|_)")
+
+
+def not_product(name: str) -> bool:
+    """A directory that is not the product: tooling by name, and any test package however it is called (stage 10:
+    Spoolman's `tests_integration` was probed, and a fix to a helper of its conftest was promoted to L4)."""
+    return name in NOT_PRODUCT or bool(_TEST_NAME.search(name))
+
+
+def probe_targets(repo: Path, rev: str, python: PythonStack) -> list[tuple[str, int]]:
+    """The repository's own importable packages (a directory with `__init__.py` directly under a source root), with
+    how many public functions each exposes, most first. Found from the tree, never named by a person."""
+    files = subprocess.run(
+        ["git", "-C", str(repo), "ls-tree", "-r", "--name-only", rev], capture_output=True, text=True, check=False
+    ).stdout.split()
+    roots = [r.strip("./") for r in python.source_roots]
+    packages: set[str] = set()
+    for f in files:
+        parts = f.split("/")
+        if parts[-1] != "__init__.py":
+            continue
+        for root in roots:
+            prefix = root.split("/") if root else []
+            if parts[: len(prefix)] == prefix and len(parts) == len(prefix) + 2:
+                name = parts[len(prefix)]
+                package = "/".join([*prefix, name])
+                if not_product(name) or name.startswith((".", "_")) or f"{package}/conftest.py" in files:
+                    continue
+                packages.add(package)
+    counted = [(p, len(public_functions(repo, rev, p))) for p in sorted(packages)]
+    return sorted((c for c in counted if c[1] > 0), key=lambda c: -c[1])
+
+
+Progress = Callable[[str], None]
+
+
+async def probe_package(
+    probe: RobustnessProbe,
+    rev: str,
+    package: str,
+    *,
+    count: int = 8,
+    refine: int = 2,
+    run: Callable[[str, str], Awaitable[str]],
+    progress: Progress = lambda _: None,
+) -> tuple[str, str] | None:
+    """Write property tests, run them offline, send assertion failures back to be narrowed (`refine` rounds), and
+    return the final tests with their output. `run` executes tests off the event loop."""
+    progress(f"writing property tests for {package}")
+    tests = await probe.write_tests(rev, package, count)
+    if tests is None:
+        return None
+    progress("running them offline")
+    output = await run(rev, tests)
+    for round_ in range(refine):
+        violations = property_violations(output)
+        if not violations:
+            break
+        progress(f"round {round_ + 1}: {len(violations)} property violation(s) sent back")
+        refined = await probe.refine(tests, output)
+        if refined is None:
+            break
+        tests = refined
+        output = await run(rev, tests)
+    return tests, output
+
+
+_DJANGO_SETTINGS = re.compile(r"""os\.environ\.setdefault\(\s*["']DJANGO_SETTINGS_MODULE["']\s*,\s*["']([\w.]+)["']""")
+
+
+def django_preamble(work: Path) -> str:
+    """Lines that configure Django before a test module imports the project, when its manage.py names a settings
+    module (read as text, never run); empty otherwise."""
+    manage = work / "manage.py"
+    if not manage.is_file():
+        return ""
+    found = _DJANGO_SETTINGS.search(manage.read_text(errors="replace"))
+    if found is None:
+        return ""
+    return (
+        f'import os\nos.environ.setdefault("DJANGO_SETTINGS_MODULE", "{found.group(1)}")\n'
+        "import django\ndjango.setup()\n\n"
+    )

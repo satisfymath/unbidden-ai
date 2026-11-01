@@ -1,14 +1,14 @@
 """Probes: the running system observed from outside, the way a user meets it.
 
 Every round sends a few GET requests to each observed endpoint without path parameters and records each
-latency and status with the version that served it. A version is the repository commit the serving container
-was started from, recorded the first time that container is seen. Login, when the live API declares OAuth2
+latency and status with the version that served it. A version is the commit the deploy ledger resolved for the
+serving containers, with how it is known (`operate/ledger.py`); it is no longer assumed to be HEAD. Login,
+when the live API declares OAuth2
 password flow, uses credentials read from unbidden's own environment.
 """
 
 from __future__ import annotations
 
-import os
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -17,7 +17,8 @@ from typing import Any
 import httpx
 
 from unbidden.contracts.guardian import ProbeAuth
-from unbidden.contracts.world import WorldModel
+from unbidden.contracts.world import Deployment, WorldModel
+from unbidden.operate import ledger
 from unbidden.store import Store
 from unbidden.workspace import head_sha
 from unbidden.world.runtime import fetch_openapi, host_ports, running_containers
@@ -45,21 +46,16 @@ class Prober:
         services = {r.attributes.get("service") for r in self.world.of_kind("endpoint")}
         return {c["Service"]: c for c in running_containers(self.repo) if c.get("Service") in services}
 
+    def deployment(self) -> Deployment | None:
+        """The deploy the app containers belong to, recorded in the ledger the first time they are seen."""
+        services = {r.attributes.get("service") for r in self.world.of_kind("endpoint")}
+        containers = [c for c in ledger.snapshot(self.repo) if c.service in services]
+        return ledger.observe(self.store, containers, head_sha(self.repo))
+
     def version(self) -> str | None:
-        """The commit the app containers were started from; None when no app container runs."""
-        containers = self.app_containers()
-        if not containers:
-            return None
-        key = ",".join(sorted(c.get("ID", "") for c in containers.values()))
-        known: dict[str, str] = self.store.get_value("container_versions", {})
-        if key not in known:
-            known[key] = head_sha(self.repo)
-            self.store.set_value("container_versions", known)
-            # Every new set of containers is a deploy, even of a version seen before (a rollback).
-            sequence: list[str] = self.store.get_value("deploy_sequence", [])
-            if not sequence or sequence[-1] != known[key]:
-                self.store.set_value("deploy_sequence", [*sequence, known[key]])
-        return known[key]
+        """The version probe rounds are tagged with; None when no app container runs."""
+        deployment = self.deployment()
+        return ledger.version_of(deployment) if deployment is not None else None
 
     def targets(self) -> list[Target]:
         found: list[Target] = []
@@ -74,7 +70,10 @@ class Prober:
     def _login(self, client: httpx.Client) -> str | None:
         if self.auth is None:
             return None
-        user, password = os.environ.get(self.auth.username_env), os.environ.get(self.auth.password_env)
+        from unbidden.guardian.credentials import broker
+
+        user = broker().get(self.auth.username_env, "probe")
+        password = broker().get(self.auth.password_env, "probe")
         if not user or not password:
             return None
         for container in self.app_containers().values():
@@ -99,9 +98,10 @@ class Prober:
 
     def round(self) -> int:
         """One pass over every target. Returns the number of requests sent."""
-        version = self.version()
-        if version is None:
+        deployment = self.deployment()
+        if deployment is None:
             return 0
+        version = ledger.version_of(deployment)
         sent = 0
         with httpx.Client(timeout=10.0) as client:
             for target in self.targets():
@@ -123,7 +123,6 @@ class Prober:
                     statuses.append(status)
                     if status == 401:
                         self._token = None
-                deploy = len(self.store.get_value("deploy_sequence", [])) - 1
-                self.store.add_round(target.label, version, statuses, latencies, deploy=deploy)
+                self.store.add_round(target.label, version, statuses, latencies, deploy=deployment.index)
                 sent += len(statuses)
         return sent

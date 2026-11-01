@@ -18,6 +18,7 @@ from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.experiment import Proposal, ProposalStatus
 from unbidden.contracts.guardian import EgressAttempt
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
+from unbidden.guardian.credentials import broker
 from unbidden.observe.scan import ScanDenied, scan
 from unbidden.workspace import Workspace, WorkspaceError, head_sha
 
@@ -49,6 +50,51 @@ def cmd_init(args: argparse.Namespace) -> int:
         console.print(f"{ws.repo} already has a workspace.")
     store.close()
     return 0
+
+
+def cmd_prepare(args: argparse.Namespace) -> int:
+    """A repository and a mandate in; an isolated copy, its stack with provenance, the image, the CI's plan and the
+    project's own checks out, with every block said (campaign to v1.0, C1)."""
+    import re
+    from pathlib import Path
+
+    from unbidden.guardian.mandate import load_mandate
+    from unbidden.observe.prepare import checks_record, isolated_copy
+
+    into = Path(args.into).expanduser() if args.into else Path.home() / "unbidden-lab" / Path(args.source).name
+    if "://" in args.source or args.source.startswith("git@"):
+        host = re.sub(r"^[a-z+]+://|^git@", "", args.source).split("/")[0].split(":")[0]
+        allowed = (
+            {"github.com"} if args.mandate is None else set(load_mandate(Path(args.mandate)).egress.package_registries)
+        )
+        if host not in allowed and host != "github.com":
+            err.print(f"cloning from {host} is not allowed by the mandate's egress; add it, or clone by hand")
+            return 2
+    repo, commit = isolated_copy(args.source, into, args.rev)
+    ws = Workspace(repo)
+    ws.init()
+    if args.mandate:
+        ws.mandate_path.write_text(Path(args.mandate).read_text())
+    mandate = ws.mandate()
+    with console.status("preparing") as status:
+        status.update("the stack, the image, the plan, the checks")
+        record = {"source": args.source, "copy": str(repo), **checks_record(repo, commit, mandate)}
+    if _emit(args, record):
+        return 0
+    console.print(f"[bold]{record['copy']}[/] at {commit[:12]}")
+    stack = record.get("stack") or {}
+    if stack:
+        console.print(f"  python {stack.get('python')}: {'; '.join(stack.get('why') or [])[:200]}")
+    plan = record.get("plan") or {}
+    if plan:
+        console.print(f"  plan:  {plan.get('source')} ({plan.get('scope')})")
+        for note in plan.get("notes") or []:
+            console.print(f"         - {note}")
+    console.print(f"  checks: {record.get('status')}"
+                  + (f", {record.get('collected')} collected, {len(record.get('failed') or [])} failed"
+                     if record.get("collected") else "")
+                  + (f": {str(record.get('why'))[:300]}" if record.get("why") else ""))  # fmt: skip
+    return 0 if record.get("status") in ("passed", "failed") else 1
 
 
 def cmd_scan(args: argparse.Namespace) -> int:
@@ -387,6 +433,35 @@ def cmd_mode(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_deploy(args: argparse.Namespace) -> int:
+    """Deploy a local commit or branch (a proposal not published, say) with the mandate's steps, as the merge path
+    would: the same Guardian checks and rate limit, the same ledger binding, the same event the live watcher judges."""
+    import subprocess
+
+    from unbidden.operate.deploy import OperationRefused, deploy
+
+    ws = Workspace.find()
+    ws.require()
+    found = subprocess.run(["git", "-C", str(ws.repo), "rev-parse", "--verify", f"{args.ref}^{{commit}}"],
+                           capture_output=True, text=True, check=False)  # fmt: skip
+    if found.returncode != 0:
+        err.print(f"no commit named {args.ref}")
+        return 2
+    commit = found.stdout.strip()
+    try:
+        with console.status(f"deploying {commit[:12]} with the mandate's steps"):
+            result = deploy(ws.repo, ws.store(), ws.mandate(), commit, reason=args.reason or f"deploy {args.ref}")
+    except OperationRefused as exc:
+        err.print(f"deploy refused: {exc}")
+        return 2
+    if _emit(args, {"commit": commit, "ok": result.ok, "log": result.log[-3000:]}):
+        return 0 if result.ok else 1
+    console.print(f"deployed {commit[:12]}: {'[green]ok[/]' if result.ok else '[red]FAILED[/]'}")
+    if not result.ok:
+        console.print(result.log[-3000:])
+    return 0 if result.ok else 1
+
+
 def cmd_drill(args: argparse.Namespace) -> int:
     """Prove rollback works: deploy the previous version with the team's steps, check health, deploy back."""
     import subprocess
@@ -439,23 +514,137 @@ def cmd_hold(args: argparse.Namespace) -> int:
 
 
 def cmd_deploys(args: argparse.Namespace) -> int:
-    """Every deploy unbidden has seen, with its verdict."""
-    from unbidden.observe.live import DeployVerdict
+    """Every deploy unbidden has seen: the code it ran, how that is known, and its verdict."""
+    from unbidden.observe.live import DeployVerdict, contains
+    from unbidden.operate import ledger
 
     ws = Workspace.find()
     ws.require()
     store = ws.store()
-    verdicts = store.list("deploy_verdicts", DeployVerdict)
-    if _emit(args, [v.model_dump(mode="json") for v in verdicts]):
+    verdicts = {v.id.split(":")[0]: v for v in store.list("deploy_verdicts", DeployVerdict)}
+    if args.commit:
+        found = ledger.ran_commit(store, args.commit, lambda version, c: contains(ws.repo, version, c))
+        data = [{"deployment": d.model_dump(mode="json"), "relation": why} for d, why in found]
+        if _emit(args, data):
+            return 0
+        if not found:
+            console.print(f"No deploy seen ran {args.commit[:12]} or a descendant of it.")
+        for d, why in found:
+            verdict = verdicts.get(d.id)
+            console.print(
+                f"[bold]deploy {d.id}[/] {why}: {(d.commit or '?')[:12]} {d.commit_status} ({d.commit_reason}); "
+                f"by {d.initiated_by}, seen {d.seen_at:%Y-%m-%d %H:%M}"
+                + (f"; judged {verdict.impact.value}" if verdict else "")
+            )
+            for c in d.containers:
+                console.print(f"    {c.service:14} {c.name:28} image {c.image_id.removeprefix('sha256:')[:12]}")
         return 0
-    for v in verdicts:
+    deployments = ledger.deployments(store)
+    if _emit(
+        args,
+        {
+            "deployments": [d.model_dump(mode="json") for d in deployments],
+            "verdicts": [v.model_dump(mode="json") for v in verdicts.values()],
+        },
+    ):
+        return 0
+    for d in deployments:
+        commit = (d.commit or "?")[:12]
+        verdict = verdicts.get(d.id)
         console.print(
-            f"[bold]{v.id.split(':')[0]}[/] {v.id.split(':', 1)[1][:12]} (after {v.previous[:12]}): {v.impact.value}"
+            f"[bold]{d.id}[/] {commit} {d.commit_status:9} by {d.initiated_by:9} "
+            f"{verdict.impact.value if verdict else 'not judged'}  [dim]{d.commit_reason}[/]"
         )
+    for key, v in verdicts.items():
+        if any(d.id == key for d in deployments):
+            continue
+        console.print(f"[bold]{key}[/] {v.id.split(':', 1)[1][:12]} (before the ledger) {v.impact.value}")
+    for v in verdicts.values():
+        console.print(f"[bold]verdict {v.id.split(':')[0]}[/] after {v.previous[:12]}: {v.impact.value}")
         for e in v.endpoints:
             console.print(f"    {e['target']:36} {e['impact']:22} {'; '.join(e['reasons'])}")
-    if not verdicts:
-        console.print("No deploy judged yet.")
+    if not deployments and not verdicts:
+        console.print("No deploy seen yet.")
+    return 0
+
+
+def cmd_decide(args: argparse.Namespace) -> int:
+    """What the Director would do with each open opportunity now, and why; nothing is queued or changed."""
+    from unbidden.contracts.experiment import Proposal, ProposalStatus
+    from unbidden.contracts.guardian import ActionRequest
+    from unbidden.daemon.cycle import checked_dirs
+    from unbidden.director.decide import Context, decide
+    from unbidden.guardian.policy import PolicyEngine
+    from unbidden.observe.ci import analyzer_tool, ci_commands, ci_verdicts
+
+    ws = Workspace.find()
+    ws.require()
+    ws.load_env()  # the GitHub token, for the CI's verdicts: without it GitHub's anonymous limit decides
+    store = ws.store()
+    mandate = ws.mandate()
+    head = head_sha(ws.repo)
+    dirs = checked_dirs(ws.repo, head)
+    commands = ci_commands(ws.repo, head)
+    status = None
+    ci_problem: str | None = None
+    per_tool: dict[str, str] = {}
+    slug = mandate.egress.github.repository
+    if slug and PolicyEngine(mandate).evaluate(ActionRequest(capability="github.read", purpose="CI status")).allowed:
+        token = broker().get(mandate.egress.github.token_env, "github")
+        tools = {analyzer_tool(o.details) for o in store.list("opportunities", Opportunity)}
+        status, per_tool, ci_problem = ci_verdicts(ws.repo, head, slug, token, tools)
+    open_prs = len(store.list("proposals", Proposal, status=ProposalStatus.PR_OPENED.value))
+    live = (OpportunityStatus.OPEN, OpportunityStatus.EXPERIMENTING, OpportunityStatus.PROPOSED)
+    rows = []
+    for opp in store.list("opportunities", Opportunity):
+        if opp.status not in live:
+            continue
+        d = decide(
+            opp,
+            mandate,
+            Context(
+                open_pull_requests=open_prs,
+                attempts=int(opp.details.get("attempts", 0)),
+                checked_dirs=dirs,
+                ci_commands=commands,
+                ci_status=status,
+                tool_status=per_tool,
+                ci_problem=ci_problem,
+            ),
+        )
+        rows.append(
+            {
+                "id": opp.id,
+                "category": opp.category,
+                "level": int(opp.evidence_level),
+                "chosen": d.chosen.value,
+                "reason": d.reason,
+            }
+        )
+    counts: dict[str, int] = {}
+    reasons: dict[str, int] = {}
+    for r in rows:
+        counts[r["chosen"]] = counts.get(r["chosen"], 0) + 1
+        if r["chosen"] in ("decline", "wait"):
+            key = r["reason"].split(" (")[0][:90]
+            reasons[key] = reasons.get(key, 0) + 1
+    data = {
+        "checked_dirs": list(dirs),
+        "ci_status": status,
+        "ci_problem": ci_problem,
+        "tool_status": per_tool,
+        "open": len(rows),
+        "chosen": counts,
+        "declined_or_waiting_because": reasons,
+        "decisions": rows,
+    }
+    if _emit(args, data):
+        return 0
+    console.print(f"{len(rows)} open opportunities; CI checks {', '.join(dirs) or 'the whole repository'}")
+    for kind, n in sorted(counts.items(), key=lambda kv: -kv[1]):
+        console.print(f"  {kind:16} {n}")
+    for reason, n in sorted(reasons.items(), key=lambda kv: -kv[1]):
+        console.print(f"    {n:4}  {reason}")
     return 0
 
 
@@ -475,6 +664,7 @@ def cmd_why(args: argparse.Namespace) -> int:
         "opportunity": opp.model_dump(mode="json", exclude={"details"}),
         "decision": opp.details.get("decision"),
         "verdict": opp.details.get("verdict"),
+        "outcome": opp.details.get("outcome"),
         "egress": [a.model_dump(mode="json") for a in attempts],
         "events": [e.model_dump(mode="json") for e in events],
     }
@@ -488,6 +678,15 @@ def cmd_why(args: argparse.Namespace) -> int:
         console.print(f"verdict: {'improved' if verdict['improved'] else 'not improved'} · tests {verdict['tests']}")
         for reason in verdict["reasons"] + verdict["caveats"]:
             console.print(f"  - {reason}")
+    outcome = data["outcome"]
+    if outcome:
+        result = outcome.get("result", "recorded before results were classified")
+        console.print(f"outcome after deploy {outcome['deploy']}: {result}")
+        for reason in outcome.get("why", []):
+            console.print(f"  - {reason}")
+        for confounder in outcome.get("confounders", []):
+            detail = confounder["detail"] if isinstance(confounder, dict) else confounder
+            console.print(f"  confounder: {detail}")
     for attempt in attempts:
         state = "[green]sent[/]" if attempt.status == "allowed_sent" else f"[red]{attempt.status}[/]"
         console.print(
@@ -510,13 +709,39 @@ def cmd_forge(args: argparse.Namespace) -> int:
 
     runtime = Runtime.open(Workspace.find())
     store = runtime.store
+    if args.action == "stats":
+        return _forge_stats(runtime, args.target)
+    if args.action == "disable":
+        from unbidden.forge import stats_build
+
+        disabled = stats_build.disable(store, args.target or "", why=f"disabled by person:{getpass.getuser()}")
+        if disabled is None:
+            log_adapter = store.get("capabilities", args.target or "", LogAdapter)
+            if log_adapter is None:
+                err.print(f"no capability {args.target}")
+                return 1
+            log_adapter.status = "disabled"
+            store.put("capabilities", log_adapter)
+        console.print(f"disabled {args.target}: nothing reads through it any more")
+        return 0
     if args.action == "approve":
-        adapter = store.get("capabilities", args.target, LogAdapter)
+        from unbidden.forge.api_client import COLLECTION as INTEGRATIONS
+        from unbidden.forge.api_client import ApiIntegration
+        from unbidden.forge.stats import StatsAdapter
+        from unbidden.forge.stats_build import COLLECTION as STATS
+
+        found: LogAdapter | StatsAdapter | ApiIntegration | None = store.get("capabilities", args.target, LogAdapter)
+        collection = "capabilities"
+        if found is None:
+            found, collection = store.get(STATS, args.target, StatsAdapter), STATS
+        if found is None:
+            found, collection = store.get(INTEGRATIONS, args.target, ApiIntegration), INTEGRATIONS
+        adapter = found
         if adapter is None or adapter.status != "validated":
             err.print("only a validated capability can be approved")
             return 1
         adapter.status, adapter.approved_by = "approved", f"person:{getpass.getuser()}"
-        store.put("capabilities", adapter)
+        store.put(collection, adapter)
         store.append_event(
             Event(
                 type=EventType.CAPABILITY_APPROVED,
@@ -526,6 +751,10 @@ def cmd_forge(args: argparse.Namespace) -> int:
             )
         )
         console.print(f"approved {adapter.id} ({adapter.source} v{adapter.version})")
+        from unbidden.forge.needs import approved
+
+        for need in approved(store, adapter.id):
+            console.print(f"  need {need.kind} for {need.source}: {need.status.value}")
         return 0
     if args.action == "build":
         service = args.target or "backend"
@@ -542,11 +771,72 @@ def cmd_forge(args: argparse.Namespace) -> int:
         console.print(f"{a.id} {a.source} v{a.version}: [bold]{a.status}[/] · {a.quality}")
         console.print(f"  pattern: {a.pattern}", markup=False)
         return 0
+    from unbidden.forge.stats import StatsAdapter
+
     adapters = store.list("capabilities", LogAdapter)
-    if _emit(args, [a.model_dump(mode="json") for a in adapters]):
+    stats = store.list("stats_capabilities", StatsAdapter)
+    if _emit(args, [a.model_dump(mode="json") for a in [*adapters, *stats]]):
         return 0
     for a in adapters:
-        console.print(f"{a.id}  {a.source} v{a.version}  {a.status:10} coverage {a.quality.get('coverage')}")
+        console.print(f"{a.id}  log    {a.source} v{a.version}  {a.status:10} coverage {a.quality.get('coverage')}")
+    for a in stats:
+        console.print(f"{a.id}  stats  {a.source} v{a.version}  {a.status:10} coverage {a.quality.get('coverage')}")
+    return 0
+
+
+def _forge_stats(runtime: Any, url: str | None) -> int:
+    """Build (or decline to build) a reader for a text metrics endpoint of the project, then read it twice."""
+    import asyncio
+    import time
+
+    from unbidden.contracts.guardian import ActionRequest
+    from unbidden.forge import stats_build
+    from unbidden.forge.stats import deltas, read
+    from unbidden.guardian.policy import PolicyEngine
+
+    if not url or not url.startswith("http://127.0.0.1:"):
+        err.print("give the endpoint as http://127.0.0.1:<published port>/<path> of a container of this project")
+        return 2
+    verdict = PolicyEngine(runtime.workspace.mandate()).evaluate(ActionRequest(capability="runtime.read", purpose=url))
+    if not verdict.allowed:
+        err.print(f"runtime.read: {'; '.join(verdict.reasons)}")
+        return 1
+    store = runtime.store
+    adapter = stats_build.latest(store, url)  # a person asked for this read: their command is the approval
+    if adapter is None:
+        lines = stats_build.fetch(url)
+        with console.status(f"forging a stats reader for {url} from {len(lines)} lines"):
+            private = None
+            if runtime.bridge() is not None:
+                from unbidden.contracts.world import WorldModel
+                from unbidden.world.discover import sensitive_terms
+
+                world = store.get("world", "world", WorldModel)
+                private = set(sensitive_terms(world).terms) if world else None
+            result = asyncio.run(
+                stats_build.build(runtime.brain, store, url, lines, permissions=["runtime.read"], private=private)
+            )
+        for note in result.notes:
+            console.print(f"  [dim]{note}[/]")
+        console.print(f"decision: [bold]{result.decision}[/]")
+        if result.adapter is None:
+            return 0 if result.decision.startswith("reuse") else 1
+        adapter = result.adapter
+        console.print(f"{adapter.id} v{adapter.version}: {adapter.status} · {adapter.quality}")
+        console.print(f"  line:   {adapter.line}\n  entity: {adapter.entity}", markup=False)
+    else:
+        console.print(
+            f"reusing {adapter.id} v{adapter.version} ({adapter.status}), built {adapter.created_at:%Y-%m-%d %H:%M}"
+        )
+    before = stats_build.fetch(url)
+    time.sleep(20)
+    after = stats_build.fetch(url)
+    metrics = sorted({r.metric for r in read(adapter, after) if r.metric})
+    console.print(f"{len(read(adapter, after))} readings, {len(metrics)} metric kinds; changes over 20 s:")
+    for metric in [m for m in metrics if "5xx" in m or "rq_total" in m or "error" in m][:6]:
+        moved = {e: d for e, d in deltas(adapter, before, after, metric).items() if d}
+        if moved:
+            console.print(f"  {metric}: {moved}")
     return 0
 
 
@@ -618,7 +908,7 @@ def cmd_probe(args: argparse.Namespace) -> int:
     """Look for crashes in a package with property-based tests a model writes, run offline."""
     import asyncio
 
-    from unbidden.research.robustness import RobustnessProbe, parse_crashes, property_violations
+    from unbidden.research.robustness import RobustnessProbe, parse_crashes, probe_package, property_violations
     from unbidden.runtime import Runtime
 
     runtime = Runtime.open(Workspace.find())
@@ -633,26 +923,18 @@ def cmd_probe(args: argparse.Namespace) -> int:
 
     async def session() -> tuple[str, str] | None:
         # One event loop for every model call: the HTTP clients belong to it.
-        with console.status(f"writing property tests for {args.package}"):
-            tests = await probe.write_tests(rev, args.package, args.count)
+        with console.status("probing") as status:
+            outcome = await probe_package(
+                probe,
+                rev,
+                args.package,
+                count=args.count,
+                refine=args.refine,
+                run=lambda r, tests: asyncio.to_thread(probe.run_tests, r, tests),
+                progress=lambda m: status.update(m),
+            )
         (artifacts / f"robustness-{rev[:12]}.answer.md").write_text(probe.last_answer)
-        if tests is None:
-            return None
-        with console.status("running them offline"):
-            output = await asyncio.to_thread(probe.run_tests, rev, tests)
-        for round_ in range(args.refine):
-            violations = property_violations(output)
-            if not violations:
-                break
-            console.print(f"[dim]round {round_ + 1}: {len(violations)} property violation(s) sent back[/]")
-            with console.status("refining the properties"):
-                refined = await probe.refine(tests, output)
-            if refined is None:
-                break
-            tests = refined
-            with console.status("running them again"):
-                output = await asyncio.to_thread(probe.run_tests, rev, tests)
-        return tests, output
+        return outcome
 
     outcome = asyncio.run(session())
     if outcome is None:
@@ -778,11 +1060,8 @@ def cmd_egress(args: argparse.Namespace) -> int:
 
 def cmd_doctor(args: argparse.Namespace) -> int:
     """Everything unbidden needs here, checked: machine and local model, Ollama, Docker, Meta API, GitHub, mandate."""
-    import os
     import shutil
     import subprocess
-
-    import httpx
 
     from unbidden.brain.hardware import detect, recommend
     from unbidden.runtime import installed_models
@@ -814,36 +1093,13 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         shutil.which("docker") and subprocess.run(["docker", "info"], capture_output=True, check=False).returncode == 0
     )
     checks.append(("docker", bool(docker), "running" if docker else "not running: the sandbox needs Docker"))
-    key = bool(os.environ.get("MODEL_API_KEY"))
-    reachable = False
-    if key:
-        try:
-            reachable = (
-                httpx.get(
-                    "https://api.meta.ai/v1/models",
-                    timeout=8,
-                    headers={"Authorization": f"Bearer {os.environ['MODEL_API_KEY']}"},
-                ).status_code
-                == 200
-            )
-        except httpx.HTTPError:
-            reachable = False
-    checks.append(
-        (
-            "meta api",
-            key and reachable,
-            "key set, API reachable"
-            if key and reachable
-            else "key set, API not reachable"
-            if key
-            else "no MODEL_API_KEY: frontier models are off",
-        )
-    )
+    key = broker().has("MODEL_API_KEY")
+    checks.append(("meta api", *meta_api_status(key)))
     checks.append(
         (
             "github",
-            bool(os.environ.get("GITHUB_TOKEN")),
-            "GITHUB_TOKEN set" if os.environ.get("GITHUB_TOKEN") else "no GITHUB_TOKEN: proposals stay local branches",
+            broker().has("GITHUB_TOKEN"),
+            "GITHUB_TOKEN set" if broker().has("GITHUB_TOKEN") else "no GITHUB_TOKEN: proposals stay local branches",
         )
     )
     if ws.initialized:
@@ -859,6 +1115,13 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         )
     else:
         checks.append(("workspace", False, "not initialized: `unbidden init`"))
+    try:
+        from unbidden.observe.scope import diagnose
+
+        for name, ok, note in diagnose(Workspace.find().repo):
+            checks.append((name, ok, note))
+    except WorkspaceError:
+        pass
     if args.fix and not rec.installed and rec.fits:
         console.print(f"pulling {rec.model.tag} ...")
         pulled = subprocess.run(["ollama", "pull", rec.model.tag], check=False).returncode == 0
@@ -878,9 +1141,25 @@ def cmd_map(args: argparse.Namespace) -> int:
     from unbidden.runtime import Runtime
     from unbidden.world.discover import discover
 
+    if args.connectors:
+        from unbidden.world.connectors import CONNECTORS, NOT_COVERED
+
+        if _emit(args, {"connectors": [c.model_dump() for c in CONNECTORS], "not_covered": NOT_COVERED}):
+            return 0
+        for c in CONNECTORS:
+            console.print(f"[bold]{c.ref}[/] ({c.capability}, {'read-only' if c.read_only else 'writes'}) {c.purpose}")
+            console.print(
+                f"    discovers {', '.join(c.discovers)}"
+                + (f"; measures {', '.join(c.measures)}" if c.measures else "")
+            )
+            console.print(f"    cost: {c.cost}\n    scope: {c.scope}")
+        console.print("\n[bold]Not covered[/]")
+        for what, why in NOT_COVERED.items():
+            console.print(f"  - {what}: {why}")
+        return 0
     runtime = Runtime.open(Workspace.find())
     repo = runtime.workspace.repo
-    if args.cached:
+    if args.cached or args.scope:
         world = runtime.store.get("world", "world", WorldModel)
         if world is None:
             err.print("no map yet; run `unbidden map`")
@@ -889,6 +1168,34 @@ def cmd_map(args: argparse.Namespace) -> int:
         with console.status("mapping the system"):
             brain = None if args.no_model else runtime.brain
             world = asyncio.run(discover(repo, head_sha(repo), runtime.store, runtime.workspace.mandate(), brain))
+    if args.scope:
+        from unbidden.world.scope import scope
+
+        found = scope(world, args.scope)
+        if _emit(args, found.model_dump(mode="json")):
+            return 0 if found.found else 1
+        if not found.found:
+            err.print(f"{args.scope} is not in the World Model (`unbidden map --json` lists ids)")
+            return 1
+        console.print(f"[bold]{args.scope}[/] · map of {world.updated_at:%Y-%m-%d %H:%M}")
+        for r in found.resources:
+            console.print(
+                f"  {'  ' * r.hops}{r.id:{max(10, 50 - 2 * r.hops)}} {r.status:9} {r.source or '?':24} "
+                f"{r.age_s // 60} min old"
+            )
+            if r.what == "deployment":
+                a = r.attributes
+                console.print(
+                    f"  {'  ' * r.hops}  runs {(a.get('commit') or '?')[:12]} ({a.get('commit_status')}: "
+                    f"{a.get('commit_reason')})"
+                )
+        console.print("\n[bold]Links[/]")
+        for rel in found.relations:
+            console.print(f"  {rel.id:70} {rel.status:9} {rel.source or '?'}")
+        console.print("\n[bold]What I cannot see from here[/]")
+        for spot in found.blind_spots:
+            console.print(f"  - {spot.what}: {spot.why}")
+        return 0
     if _emit(args, world.model_dump(mode="json")):
         return 0
     mark = {"observed": "[green]observed[/]", "inferred": "[yellow]inferred[/]"}
@@ -904,7 +1211,11 @@ def cmd_map(args: argparse.Namespace) -> int:
     for svc in world.of_kind("service") + world.of_kind("database"):
         live = containers.get(svc.name)
         state = f"{live.attributes.get('state')} {live.attributes.get('ports') or ''}" if live else "not running"
-        deps = [r.dst.split(":", 1)[1] for r in world.relations if r.src == svc.id and r.predicate == "depends_on"]
+        deps = [
+            f"{r.dst.split(':', 1)[1]}{'' if r.predicate == 'depends_on' else ' (' + r.predicate + ')'}"
+            for r in world.current_relations()
+            if r.src == svc.id and r.predicate in ("depends_on", "calls")
+        ]
         console.print(
             f"  {svc.name:12} {svc.attributes.get('image') or 'built here':28} {state:24} "
             f"{'→ ' + ', '.join(deps) if deps else ''}"
@@ -925,14 +1236,132 @@ def cmd_map(args: argparse.Namespace) -> int:
         for endpoint in endpoints:
             touches = [
                 f"{r.predicate} {r.dst.split(':', 1)[1]}"
-                for r in world.relations
+                for r in world.current_relations()
                 if r.src == endpoint.id and r.predicate in ("reads", "writes")
             ]
             console.print(f"  {endpoint.name:44} {status(endpoint):30} {', '.join(touches)}")
+    deployment = next(iter(world.of_kind("deployment")), None)
+    if deployment is not None:
+        a = deployment.attributes
+        console.print(
+            f"\n[bold]Running[/] {deployment.name}: {(a.get('commit') or '?')[:12]} "
+            f"{a.get('commit_status')} ({a.get('commit_reason')}), by {a.get('initiated_by')}"
+        )
+    obsolete = [r.id for r in world.resources.values() if r.status.value == "obsolete"]
+    if obsolete:
+        console.print(f"\n[bold]No longer seen[/] ({len(obsolete)}): {', '.join(obsolete[:8])}")
     if world.blind_spots:
         console.print("\n[bold]What I cannot see[/]")
         for spot in world.blind_spots:
             console.print(f"  - {spot.what}: {spot.why}")
+    return 0
+
+
+def cmd_health(args: argparse.Namespace) -> int:
+    """Each service's errors and latency against its own baseline, from the project's metrics; where trouble starts."""
+    from unbidden.contracts.world import WorldModel
+    from unbidden.observe.health import HealthWatcher
+    from unbidden.world import jaeger, prometheus
+
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    world = store.get("world", "world", WorldModel)
+    url = prometheus.find(world) if world else None
+    if world is None or url is None:
+        err.print("no Prometheus of this project is known; run `unbidden map` while the system runs")
+        return 2
+    try:
+        traces = jaeger.find(world)
+        from unbidden.daemon.loop import _model_key  # pyright: ignore[reportPrivateUsage]
+        from unbidden.observe.health import UiCheck
+        from unbidden.runtime import Runtime
+
+        key = _model_key(Runtime.open(ws))
+        ui = UiCheck(store, world, ws.dir / "artifacts" / "ui", key)
+        report = HealthWatcher(
+            store, world, prometheus.Prometheus(url), log=lambda _: None, traces=traces, ui=ui, mandate=ws.mandate()
+        ).tick()
+    except prometheus.PrometheusError as exc:
+        err.print(str(exc))
+        return 1
+    open_ = store.get_value("open_anomalies", {})
+    data = {
+        **{k: v for k, v in report.items() if k not in ("verdicts", "suspects")},
+        "verdicts": [
+            {
+                "service": v.service,
+                "degraded": v.degraded,
+                "chronic": v.chronic,
+                "reasons": list(v.reasons),
+                "requests": round(v.now.requests),
+                "error_ratio": round(v.now.error_ratio, 4),
+                "p95_ms": v.now.p95_ms,
+                "baseline_error_ratio": round(v.baseline.error_ratio, 4) if v.baseline else None,
+                "baseline_p95_ms": v.baseline.p95_ms if v.baseline else None,
+            }
+            for v in report["verdicts"]
+        ],
+        "anomalies": list(open_.values()),
+    }
+    if _emit(args, data):
+        return 0
+    console.print(
+        f"[bold]Health[/] from {url} · {report['criteria']['criteria_version']}, window {report['criteria']['window']}"
+    )
+    for v in data["verdicts"]:
+        mark = "[red]degraded[/]" if v["degraded"] else ("[yellow]chronic[/]" if v["chronic"] else "ok")
+        base = v["baseline_p95_ms"]
+        console.print(
+            f"  {v['service']:18} {v['requests']:6} req  {v['error_ratio']:6.1%} err  "
+            f"p95 {v['p95_ms'] or 0:7.1f} ms (was {base or 0:.1f})  {mark}"
+        )
+    for anomaly in data["anomalies"]:
+        console.print(f"\n[bold red]Anomaly[/] (hypothesis, via {anomaly['via']} links): {anomaly['statement']}")
+        for service, reasons in anomaly["reasons"].items():
+            console.print(f"    {service}: {'; '.join(reasons)}")
+        traced = anomaly.get("traces")
+        if traced and "origins" in traced:
+            verdict = {True: "agree", False: "DISAGREE", None: "show no failure"}[traced["agrees"]]
+            console.print(
+                f"  traces through {traced['through']} ({traced['failing_traces']}/{traced['traces']} failing) "
+                f"{verdict}: failures start in {traced['origins']}"
+            )
+        console.print("  next:")
+        for step in anomaly["plan"]:
+            console.print(f"    - {step['step']} [{step['source']}: {step['available']}]")
+    if report["unmeasured"]:
+        console.print(f"\nNo request metrics for: {', '.join(report['unmeasured'])}")
+    for service, why in (report.get("sustained") or {}).items():
+        console.print(f"[yellow]sustained[/] {service}: {'; '.join(why)} (a signal, not a verdict: not calibrated yet)")
+    if report.get("unjudged"):
+        console.print(f"Too little traffic to judge: {', '.join(report['unjudged'])}")
+    return 0
+
+
+def cmd_errors(args: argparse.Namespace) -> int:
+    """What the project's logs said lately: recurring errors, errors new after a deploy, rises in 5xx."""
+    from unbidden.contracts.world import WorldModel
+    from unbidden.observe.logs import LogWatcher
+
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    world = store.get("world", "world", WorldModel)
+    if world is None:
+        err.print("no map yet; run `unbidden map`")
+        return 2
+    if args.now:
+        LogWatcher(store, world, log=lambda _: None).tick()
+    signals = [e for e in store.events() if e.type is EventType.LOG_SIGNAL][-args.last :]
+    if _emit(args, [e.model_dump(mode="json") for e in signals]):
+        return 0
+    if not signals:
+        console.print("No log signal recorded.")
+    for e in signals:
+        p = e.payload
+        console.print(f"[bold]{e.ts:%H:%M}[/] {e.entity_id} [yellow]{p['kind']}[/]: {p['title']}")
+        console.print(f"    {p['summary']}", markup=False)
     return 0
 
 
@@ -958,6 +1387,206 @@ def cmd_status(args: argparse.Namespace) -> int:
         console.print("[red]kill switch engaged[/]: nothing runs until `unbidden resume`")
     console.print(f"opportunities: {counts or 'none yet'}")
     store.close()
+    return 0
+
+
+def meta_api_status(key: bool, get: Any = None) -> tuple[bool, str]:
+    """Whether the Meta API answers this machine's key on its model listing, and if not, which it is: no key, a
+    listing that refuses the key (401/403), or no answer (network)."""
+    import httpx
+
+    if not key:
+        return False, "no MODEL_API_KEY: frontier models are off"
+    fetch = get or httpx.get
+    try:
+        status = fetch(
+            "https://api.meta.ai/v1/models",
+            timeout=8,
+            headers={"Authorization": f"Bearer {broker().get('MODEL_API_KEY', 'model.remote')}"},
+        ).status_code
+    except httpx.HTTPError as exc:
+        return False, f"key set, API not reachable ({type(exc).__name__})"
+    if status == 200:
+        return True, "key set, API reachable"
+    if status in (401, 403):
+        # Observed 2026-10-29: the model listing answered 401 while chat completions with the same key worked. Say
+        # what was seen; do not tell a person to replace a key that may still serve calls.
+        return False, f"the model listing refuses the key ({status}); calls may still work (see `unbidden spend`)"
+    return False, f"key set, the API answered {status}"
+
+
+def cmd_spend(args: argparse.Namespace) -> int:
+    """Remote model spend on this machine, every workspace together, against the balance a person verified."""
+    from datetime import UTC
+
+    from unbidden.brain.spend import Budget, SpendLedger, summarize
+
+    ledger = SpendLedger()
+    if args.verified_balance is not None:
+        if not args.source:
+            err.print("say where the balance was read (--source), e.g. 'Meta developer dashboard, Billing'")
+            return 2
+        current = ledger.budget()
+        budget = Budget(
+            remaining_usd=args.verified_balance,
+            verified_at=datetime.now(UTC),
+            source=f"{args.source} (entered by {getpass.getuser()})",
+            expires_at=datetime.fromisoformat(args.expires) if args.expires else current.expires_at,
+            reserve_fraction=args.reserve if args.reserve is not None else current.reserve_fraction,
+            reserve_released=False,
+            unverified_allowance_usd=current.unverified_allowance_usd,
+        )
+        ledger.set_budget(budget)
+        with (ledger.dir / "budget-history.jsonl").open("a") as history:
+            history.write(budget.model_dump_json() + "\n")
+    elif args.amend_cap is not None or args.envelopes is not None:
+        # A new authorization on top of the verified one: the cap moves, the point spend is counted from does not,
+        # so everything spent since keeps counting. Envelopes split what was added, each refused past its own cap.
+        if not args.source:
+            err.print("say who authorized it and where it is recorded (--source)")
+            return 2
+        budget = ledger.budget()
+        if not budget.verified:
+            err.print("there is no verified budget to amend; enter one with --verified-balance")
+            return 2
+        update: dict[str, Any] = {"source": f"{budget.source} | {args.source} (entered by {getpass.getuser()})"}
+        if args.amend_cap is not None:
+            update["remaining_usd"] = args.amend_cap
+        if args.envelopes is not None:
+            caps = {k.strip(): float(v) for k, v in (pair.split("=", 1) for pair in args.envelopes.split(",") if pair)}
+            total = args.envelopes_total if args.envelopes_total is not None else budget.envelopes_total_usd
+            if total is not None and sum(caps.values()) > total + 1e-9:
+                err.print(
+                    f"the envelopes add up to US${sum(caps.values()):.2f}, more than the US${total:.2f} authorized"
+                )
+                return 2
+            update |= {"envelopes": caps, "envelopes_total_usd": total,
+                       "envelopes_since": budget.envelopes_since or datetime.now(UTC)}  # fmt: skip
+        budget = budget.model_copy(update=update)
+        ledger.set_budget(budget)
+        with (ledger.dir / "budget-history.jsonl").open("a") as history:
+            history.write(json.dumps({"amended_by": getpass.getuser(), "at": datetime.now(UTC).isoformat(),
+                                      "budget": budget.model_dump(mode="json")}) + "\n")  # fmt: skip
+    elif args.release_reserve:
+        budget = ledger.budget()
+        if not budget.verified:
+            err.print("there is no verified balance whose reserve could be released")
+            return 2
+        ledger.set_budget(budget.model_copy(update={"reserve_released": True}))
+        with (ledger.dir / "budget-history.jsonl").open("a") as history:
+            history.write(json.dumps({"reserve_released_by": getpass.getuser(), "at": datetime.now(UTC).isoformat()}))
+            history.write("\n")
+    status = ledger.status()
+    rows = ledger.rows(run=args.run)
+    data = {
+        "budget": ledger.budget().model_dump(mode="json"),
+        "verified": status.verified,
+        "permitted_usd": round(status.permitted_usd, 4),
+        "spent_since_verification_usd": round(status.spent_usd, 4),
+        "available_usd": round(status.available_usd, 4),
+        "reserve_usd": round(status.reserve_usd, 4),
+        "envelopes": {
+            name: {"cap_usd": cap, "spent_usd": round(ledger.envelope_spent(name), 4)}
+            for name, cap in ledger.budget().envelopes.items()
+        },
+        "expired": status.expired,
+        "basis": "list price x reported tokens; worst cost where usage is unknown. Not a billing statement.",
+        "by_model": summarize(rows, "model"),
+        "by_run": summarize(rows, "run"),
+        "by_workspace": summarize(rows, "workspace"),
+        "by_purpose": summarize(rows, "purpose"),
+    }
+    if _emit(args, data):
+        return 0
+    console.print(f"[bold]{status.reason}[/]")
+    if status.verified:
+        console.print(
+            f"  verified at {status.since:%Y-%m-%d %H:%M} UTC · reserve held back US${status.reserve_usd:.2f}"
+        )
+    console.print(
+        f"  permitted US${status.permitted_usd:.2f} · spent US${status.spent_usd:.4f} · "
+        f"available US${status.available_usd:.4f}{' · EXPIRED' if status.expired else ''}"
+    )
+    for title, key in (("model", "by_model"), ("run", "by_run"), ("workspace", "by_workspace")):
+        table = Table(box=None, header_style="bold", title=f"by {title}", title_justify="left")
+        for column in (title, "calls", "retries", "failed", "tokens in", "tokens out", "US$"):
+            table.add_column(column)
+        for name, g in sorted(data[key].items(), key=lambda kv: -kv[1]["usd"]):
+            table.add_row(
+                name, *(f"{int(g[k])}" for k in ("calls", "retries", "failed", "tokens_in", "tokens_out")),
+                f"{g['usd']:.4f}",
+            )  # fmt: skip
+        console.print(table)
+    console.print("[dim]costs are list price x reported tokens, worst cost when unknown; the dashboard is the bill[/]")
+    return 0
+
+
+def cmd_connections(args: argparse.Namespace) -> int:
+    """The project's resources: found, granted, connected, and what can be read or changed in each, as checked."""
+    from unbidden.connect.kinds import connectors
+    from unbidden.connect.registry import summary, survey
+    from unbidden.contracts.world import WorldModel
+
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    world = store.get("world", "world", WorldModel)
+    found = survey(ws.repo, store, ws.mandate(), world, connectors(), check=args.check)
+    rows = summary(found)
+    store.close()
+    if _emit(args, rows):
+        return 0
+    table = Table(box=None, header_style="bold")
+    for column in ("connection", "env", "state", "can read", "can change", "blocked / next"):
+        table.add_column(column)
+    for r in rows:
+        table.add_row(
+            r["id"],
+            r["environment"],
+            r["state"],
+            ", ".join(r["read"]) or "-",
+            ", ".join(r["write"]) or "-",
+            (r["next_step"] or r["blocked"] or "")[:90],
+        )
+    console.print(table if rows else "No resource found or granted.")
+    return 0
+
+
+def cmd_approve_writes(args: argparse.Namespace) -> int:
+    """A person's time-limited approval for Unbidden to change one granted connection (REQUIRE_APPROVAL)."""
+    from unbidden.connect.effects import approve_writes
+
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    try:
+        approval = approve_writes(store, ws.mandate(), args.grant, f"person:{getpass.getuser()}", args.hours)
+    except ValueError as exc:
+        err.print(str(exc))
+        return 1
+    console.print(f"writes to {args.grant} approved until {approval.expires_at:%Y-%m-%d %H:%M} UTC, within its grant")
+    return 0
+
+
+def cmd_activity(args: argparse.Namespace) -> int:
+    """What Unbidden found, decided and why, built, proposed, proved, spent and learned here."""
+    from pathlib import Path
+
+    from unbidden.brain.spend import SpendLedger
+    from unbidden.director.activity import build, render_html, render_text
+
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    data = build(store, ws.mandate().workspace, SpendLedger().rows())
+    store.close()
+    if args.html:
+        Path(args.html).write_text(render_html(data))
+        err.print(f"wrote {args.html}")
+    if _emit(args, data):
+        return 0
+    for line in render_text(data):
+        console.print(line)
     return 0
 
 
@@ -989,12 +1618,36 @@ def build_parser() -> argparse.ArgumentParser:
             p.add_argument("--json", action="store_true", help="machine-readable output")
         return p
 
+    prepare = command("prepare", cmd_prepare, "copy a repository apart, read its stack and CI, build its image and "
+                                              "run its own checks; say every block")  # fmt: skip
+    prepare.add_argument("source", help="a repository path or URL")
+    prepare.add_argument("--rev", help="a commit, tag or branch (default: the head)")
+    prepare.add_argument("--into", help="where the isolated copy goes (default: ~/unbidden-lab/<name>)")
+    prepare.add_argument("--mandate", help="a mandate file to copy into the workspace (default: the generated one)")
     command("init", cmd_init, "set up unbidden in this repository")
     command("scan", cmd_scan, "run the repository's own checks in the sandbox and record opportunities")
     map_ = command("map", cmd_map, "discover the system and show what is known, how, and what cannot be seen")
     map_.add_argument("--cached", action="store_true", help="show the last map without discovering again")
     map_.add_argument("--no-model", action="store_true", help="skip relations inferred by the local model")
+    map_.add_argument("--scope", metavar="ID", help="what a resource connects to, how each link is known, the gaps")
+    map_.add_argument("--connectors", action="store_true", help="what each connector learns, needs and costs")
     command("status", cmd_status, "what unbidden knows and is doing")
+    conns = command(
+        "connections", cmd_connections, "the project's resources: found, granted, connected, and what each allows"
+    )
+    conns.add_argument("--check", action="store_true", help="reach each granted resource now (default: last checks)")
+    writes = command(
+        "approve-writes", cmd_approve_writes, "let Unbidden change one granted connection for a while", json_out=False
+    )
+    writes.add_argument("grant", help="the connection's grant id in the mandate")
+    writes.add_argument("--hours", type=float, default=4)
+    activity = command("activity", cmd_activity, "what was found, decided and why, built, proved, spent and learned")
+    activity.add_argument("--html", metavar="PATH", help="also write a self-contained HTML report there")
+    errors = command("errors", cmd_errors, "what the project's logs said: recurring errors, new after a deploy, 5xx")
+    errors.add_argument("--now", action="store_true", help="read a fresh window of every container first")
+    errors.add_argument("--last", type=int, default=20)
+    command("decide", cmd_decide, "what the Director would do with each open opportunity, without doing it")
+    command("health", cmd_health, "errors and latency of each service against its baseline, and where trouble starts")
     inbox = command("inbox", cmd_inbox, "opportunities, most proven first")
     inbox.add_argument("--all", action="store_true", help="include closed ones")
     try_ = command("try", cmd_try, "run an experiment on one opportunity now")
@@ -1010,19 +1663,38 @@ def build_parser() -> argparse.ArgumentParser:
     review.add_argument("--hours", type=float, default=24, help="how long each approval stays valid")
     mode = command("mode", cmd_mode, "show or set autonomy: supervised, autopilot or autonomous")
     mode.add_argument("mode", nargs="?", choices=sorted(MODES), help="the mode to switch to")
+    deploy_ = command("deploy", cmd_deploy, "deploy a local commit or branch with the mandate's steps")
+    deploy_.add_argument("ref", help="a commit or branch, e.g. a proposal's branch")
+    deploy_.add_argument("--reason", help="recorded with the deploy")
     drill_ = command("drill", cmd_drill, "prove rollback works before autonomy relies on it")
     drill_.add_argument("previous", nargs="?", help="the version to roll back to (default HEAD~1)")
     hold = command("hold", cmd_hold, "list holds, or release one (people only)")
     hold.add_argument("action", nargs="?", choices=["list", "release"], default="list")
     hold.add_argument("id", nargs="?")
     hold.add_argument("reason", nargs="?", default="released by a person")
-    command("deploys", cmd_deploys, "every deploy seen and its verdict")
+    deploys = command("deploys", cmd_deploys, "every deploy seen, the code it ran and how that is known")
+    deploys.add_argument("--commit", help="which deploys ran this commit (or a descendant of it)")
     doctor = command("doctor", cmd_doctor, "check the machine, local model, Docker, Meta API, GitHub and mandate")
     doctor.add_argument("--fix", action="store_true", help="pull the recommended local model if it is missing")
     models = command("models", cmd_models, "show or set the model profile: local, local-first or frontier")
     models.add_argument("profile", nargs="?", choices=["local", "local-first", "frontier"])
     models.add_argument("--private-code", choices=["allow", "deny"], help="private code to frontier models")
     command("route", cmd_route, "which model serves each task here, and why (dry)")
+    spend = command("spend", cmd_spend, "remote model spend on this machine against the verified credit balance")
+    spend.add_argument("--run", help="only the calls of one run (UNBIDDEN_RUN), e.g. a benchmark's")
+    spend.add_argument("--verified-balance", type=float, metavar="USD", help="the balance a person read just now")
+    spend.add_argument("--source", help="where that balance was read")
+    spend.add_argument("--expires", metavar="ISO", help="when the credits expire, e.g. 2026-11-04T21:00:00-05:00")
+    spend.add_argument("--reserve", type=float, help="share held back for validation and the demo (default 0.2)")
+    spend.add_argument("--release-reserve", action="store_true", help="allow spending the reserve (people only)")
+    spend.add_argument(
+        "--amend-cap",
+        type=float,
+        metavar="USD",
+        help="a new cumulative cap since the verification; earlier spend keeps counting (people only)",
+    )
+    spend.add_argument("--envelopes", metavar="NAME=USD,...", help="split the authorization into capped envelopes")
+    spend.add_argument("--envelopes-total", type=float, metavar="USD", help="what the envelopes may add up to")
     egress = command("egress", cmd_egress, "everything that left this machine, with the exact payloads")
     egress.add_argument("--payload", action="store_true")
     egress.add_argument("--last", type=int, default=30)
@@ -1035,8 +1707,8 @@ def build_parser() -> argparse.ArgumentParser:
     inv.add_argument("bad")
     inv.add_argument("--incident", help="what was observed, in words")
     forge = command("forge", cmd_forge, "capabilities unbidden built for itself: list, build or approve")
-    forge.add_argument("action", nargs="?", choices=["list", "build", "approve"], default="list")
-    forge.add_argument("target", nargs="?", help="service to build for, or capability id to approve")
+    forge.add_argument("action", nargs="?", choices=["list", "build", "stats", "approve", "disable"], default="list")
+    forge.add_argument("target", nargs="?", help="service (build), endpoint URL (stats) or capability id")
     logs = command("logs", cmd_logs, "real traffic of a service, read with a capability forge built")
     logs.add_argument("service", nargs="?", default="backend")
     logs.add_argument("--tail", type=int, default=2000)

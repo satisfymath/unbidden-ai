@@ -1,0 +1,170 @@
+load 21:32:22 1.21
+load 21:32:52 1.52
+load 21:33:22 1.62
+load 21:33:52 1.22
+load 21:34:22 1.56
+load 21:34:52 1.73
+load 21:35:22 1.56
+load 21:35:52 1.74
+load 21:36:22 1.36
+load 21:36:52 1.49
+load 21:37:22 1.61
+load 21:37:52 1.31
+load 21:38:22 1.14
+load 21:38:52 1.51
+load 21:39:22 1.64
+load 21:39:52 2.86
+load 21:40:22 3.10
+load 21:40:52 3.94
+load 21:41:22 3.36
+load 21:41:52 2.77
+load 21:42:22 2.41
+load 21:42:52 3.48
+load 21:43:22 4.08
+load 21:43:52 3.72
+load 21:44:22 3.90
+load 21:44:52 4.62
+load 21:45:22 3.88
+load 21:45:52 3.46
+load 21:46:22 3.44
+load 21:46:52 3.01
+quiet=0 (3 needed) 21:47:22
+rag-api-staging-app-1 0.13%
+rag-api-staging-db-1 2.72%
+aegra-staging-app-1 0.12%
+aegra-staging-db-1 2.67%
+codex-lb-staging-app-1 0.36%
+codex-lb-staging-db-1 1.02%
+hosli-recs-assistant-1 0.25%
+prefect-staging-server-1 20.66%
+prefect-staging-db-1 17.40%
+spoolman-staging-app-1 0.12%
+spoolman-staging-db-1 2.47%
+lnbits-staging-app-1 0.12%
+lnbits-staging-db-1 2.49%
+conduit-staging-app-1 0.26%
+conduit-staging-db-1 0.00%
+hotelapp-staging-housekeeping-1 0.01%
+pantryapp-staging-hamper-1 0.01%
+hosli-recs-web-1 0.00%
+hosli-recs-assistant-worker-1 0.03%
+recs-redis-tmp 0.22%
+hosli-recs-api-1 0.09%
+hosli-recs-worker-1 0.02%
+hosli-recs-market-postgres-1 0.00%
+hosli-recs-postgres-1 8.57%
+hosli-recs-redis-1 0.34%
+hosli-eval-api-1 0.09%
+hosli-eval-redis-1 0.32%
+hosli-eval-postgres-1 10.35%
+host not quiet: controls not started
+load 21:47:57 2.96
+load 21:48:27 2.90
+load 21:48:57 2.67
+load 21:49:27 2.78
+load 21:49:57 2.36
+load 21:50:27 2.54
+load 21:50:57 3.24
+load 21:51:27 2.78
+load 21:51:57 2.43
+load 21:52:27 2.22
+load 21:52:57 2.26
+load 21:53:27 2.39
+load 21:53:57 2.36
+load 21:54:27 2.75
+load 21:54:57 2.31
+load 21:55:27 2.31
+load 21:55:57 2.90
+load 21:56:27 2.89
+load 21:56:57 3.96
+load 21:57:27 3.96
+load 21:57:57 3.85
+load 21:58:27 3.77
+load 21:58:57 3.57
+load 21:59:27 3.17
+load 21:59:57 3.81
+load 22:00:27 3.60
+load 22:00:58 3.70
+load 22:01:28 4.13
+load 22:01:58 4.20
+load 22:02:28 3.74
+load 22:02:58 3.53
+load 22:03:28 3.30
+load 22:03:58 3.06
+load 22:04:28 3.02
+load 22:04:58 3.03
+load 22:05:28 2.82
+load 22:05:58 3.64
+load 22:06:28 3.02
+load 22:06:58 2.84
+load 22:07:28 2.63
+load 22:07:58 2.72
+load 22:08:28 2.71
+load 22:08:58 2.95
+load 22:09:28 3.43
+load 22:09:58 3.45
+load 22:10:28 3.40
+load 22:10:58 3.56
+load 22:11:28 3.37
+load 22:11:58 2.99
+load 22:12:28 2.69
+load 22:12:58 2.50
+load 22:13:28 2.63
+load 22:13:58 2.59
+load 22:14:28 2.45
+load 22:14:58 2.78
+load 22:15:28 3.06
+load 22:15:58 2.81
+load 22:16:28 2.77
+load 22:16:58 3.42
+load 22:17:28 3.26
+load 22:17:58 2.43
+load 22:18:28 2.64
+load 22:18:58 2.23
+load 22:19:28 1.98
+load 22:19:58 2.35
+load 22:20:28 2.04
+load 22:20:58 2.82
+load 22:21:28 2.53
+load 22:21:58 2.67
+load 22:22:28 2.60
+load 22:22:58 3.79
+load 22:23:28 3.27
+load 22:23:58 2.36
+load 22:24:28 1.76
+load 22:24:58 1.32
+load 22:25:28 1.36
+load 22:25:58 1.91
+load 22:26:28 1.45
+load 22:26:58 1.41
+load 22:27:28 0.97
+quiet=3 (3 needed) 22:27:28
+rag-api-staging-app-1 0.17%
+rag-api-staging-db-1 0.00%
+aegra-staging-app-1 0.19%
+aegra-staging-db-1 0.00%
+codex-lb-staging-app-1 0.63%
+codex-lb-staging-db-1 2.34%
+hosli-recs-assistant-1 0.22%
+prefect-staging-server-1 21.99%
+prefect-staging-db-1 14.36%
+spoolman-staging-app-1 0.15%
+spoolman-staging-db-1 0.00%
+lnbits-staging-app-1 0.16%
+lnbits-staging-db-1 0.01%
+conduit-staging-app-1 0.45%
+conduit-staging-db-1 0.01%
+hotelapp-staging-housekeeping-1 0.01%
+pantryapp-staging-hamper-1 0.01%
+hosli-recs-web-1 0.00%
+hosli-recs-assistant-worker-1 0.13%
+recs-redis-tmp 0.29%
+hosli-recs-api-1 0.14%
+hosli-recs-worker-1 0.10%
+hosli-recs-market-postgres-1 0.64%
+hosli-recs-postgres-1 0.00%
+hosli-recs-redis-1 0.44%
+hosli-eval-api-1 0.13%
+hosli-eval-redis-1 0.40%
+hosli-eval-postgres-1 0.01%
+controls exit 0 23:15:29 1.70 1.49 1.56

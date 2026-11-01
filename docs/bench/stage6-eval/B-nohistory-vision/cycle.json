@@ -1,0 +1,314 @@
+[
+ {
+  "state": "n-faded",
+  "case": "faded",
+  "variants": [
+   "brand"
+  ],
+  "history": false,
+  "wrong": [
+   "B01",
+   "B06",
+   "B07",
+   "B08",
+   "B12",
+   "B13",
+   "B14",
+   "B16",
+   "B17",
+   "B19",
+   "B21",
+   "B23",
+   "B24",
+   "B26",
+   "B29",
+   "B30",
+   "B35",
+   "B36"
+  ],
+  "healthy": false,
+  "method": "vision",
+  "rep": 1,
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "a0a097e unbidden: board-flags: The badges were unreadable because the red SHORT style was made transparent with `opacity: 0.3`."
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 103.3,
+  "model_calls": 8,
+  "usd": 0.0901,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 0,
+  "problems_after": []
+ },
+ {
+  "state": "n-faded",
+  "case": "faded",
+  "variants": [
+   "brand"
+  ],
+  "history": false,
+  "wrong": [
+   "B01",
+   "B06",
+   "B07",
+   "B08",
+   "B12",
+   "B13",
+   "B14",
+   "B16",
+   "B17",
+   "B19",
+   "B21",
+   "B23",
+   "B24",
+   "B26",
+   "B29",
+   "B30",
+   "B35",
+   "B36"
+  ],
+  "healthy": false,
+  "method": "vision_sam",
+  "rep": 1,
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "5eb7877 unbidden: board-flags: The badges were judged not flagged because `opacity: 0.3` washed the red to pale pink and broke white-on-red readability"
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 109.9,
+  "model_calls": 8,
+  "usd": 0.0883,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 6,
+  "problems_after": []
+ },
+ {
+  "state": "n-window",
+  "case": "window",
+  "variants": [],
+  "history": false,
+  "wrong": [
+   "B02",
+   "B04",
+   "B06",
+   "B07",
+   "B08",
+   "B09",
+   "B12",
+   "B13",
+   "B14",
+   "B15",
+   "B16",
+   "B17",
+   "B18",
+   "B20",
+   "B21",
+   "B22",
+   "B23",
+   "B24",
+   "B25",
+   "B26",
+   "B27",
+   "B28",
+   "B30",
+   "B31",
+   "B32",
+   "B33",
+   "B34",
+   "B36"
+  ],
+  "healthy": false,
+  "method": "vision",
+  "rep": 1,
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "e6234a7 unbidden: board-flags: The board overstates shortfalls because it sums picks over 30 days instead of the required 7 days."
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 134.6,
+  "model_calls": 10,
+  "usd": 0.1308,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 0,
+  "problems_after": []
+ },
+ {
+  "state": "n-window",
+  "case": "window",
+  "variants": [],
+  "history": false,
+  "wrong": [
+   "B02",
+   "B04",
+   "B06",
+   "B07",
+   "B08",
+   "B09",
+   "B12",
+   "B13",
+   "B14",
+   "B15",
+   "B16",
+   "B17",
+   "B18",
+   "B20",
+   "B21",
+   "B22",
+   "B23",
+   "B24",
+   "B25",
+   "B26",
+   "B27",
+   "B28",
+   "B30",
+   "B31",
+   "B32",
+   "B33",
+   "B34",
+   "B36"
+  ],
+  "healthy": false,
+  "method": "vision_sam",
+  "rep": 1,
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "be8ee6c unbidden: board-flags: The board overcounted picks by querying 30 days instead of 7 days, inflating every shortfall and flagging bins that are"
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 117.3,
+  "model_calls": 8,
+  "usd": 0.0955,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 6,
+  "problems_after": []
+ },
+ {
+  "state": "n-banner",
+  "case": "banner",
+  "variants": [
+   "grid"
+  ],
+  "history": false,
+  "wrong": [
+   "B08"
+  ],
+  "healthy": false,
+  "method": "vision",
+  "rep": 1,
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "ac7d100 unbidden: board-flags: The notice banner is absolutely positioned over the board so it covers B08's row and hides its correct SHORT badge."
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 101.3,
+  "model_calls": 8,
+  "usd": 0.0894,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 0,
+  "problems_after": []
+ },
+ {
+  "state": "n-banner",
+  "case": "banner",
+  "variants": [
+   "grid"
+  ],
+  "history": false,
+  "wrong": [
+   "B08"
+  ],
+  "healthy": false,
+  "method": "vision_sam",
+  "rep": 1,
+  "policy": "spark",
+  "verified": true,
+  "agent_final": "page_ok",
+  "agent_says_good": true,
+  "false_verification": false,
+  "regressions": [],
+  "preserved": {
+   "inventory": true,
+   "history": true,
+   "information": true
+  },
+  "commits": [
+   "a6656c0 unbidden: board-flags: The notice banner was absolutely positioned at top 520px over the board, covering row B08 so its red SHORT badge was pre"
+  ],
+  "unnecessary_change": false,
+  "interventions": 0,
+  "wall_s": 119.3,
+  "model_calls": 8,
+  "usd": 0.0908,
+  "models": [
+   "muse-spark-1.3"
+  ],
+  "sam_calls": 6,
+  "problems_after": []
+ }
+]

@@ -1,0 +1,110 @@
+{
+ "repo": "/Users/david/CTFd",
+ "rev": "5f345fbaa424e6a22b51addf7f27430927879ae2",
+ "stack": {
+  "python": "3.11",
+  "why": [
+   "python 3.11: where the CI runs the checks and the project's Dockerfile both use it",
+   "the CI's python-version: 3.11",
+   "the project's Dockerfile: 3.11"
+  ],
+  "manifest": "requirements.txt",
+  "lockfile": "requirements.txt",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [
+   "development.txt"
+  ],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:25354f921aad29ed",
+ "plan": {
+  "source": "CI mariadb.yml > build (its services: mariadb, redis)",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [
+   "left out, it edits the CI runner's own system: sudo rm -f /etc/boto.cfg"
+  ],
+  "services": [
+   "mariadb",
+   "redis"
+  ],
+  "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\n(pytest -rf --cov=CTFd --cov-context=test --cov-report=xml  --ignore-glob=\"**/node_modules/\"  --ignore=node_modules/  -W ignore::sqlalchemy.exc.SADeprecationWarning  -W ignore::sqlalchemy.exc.SAWarning  -n auto)\n(bandit -r CTFd -x CTFd/uploads --skip B105,B322)\n(pipdeptree)"
+ },
+ "status": "failed",
+ "collected": 679,
+ "failed": [
+  "tests.admin.test_challenges::test_challenges_admin_only_as_user",
+  "tests.admin.test_challenges::test_create_new_challenge",
+  "tests.admin.test_challenges::test_hidden_challenge_is_reachable",
+  "tests.admin.test_config::test_reset",
+  "tests.admin.test_config::test_reset_team_mode",
+  "tests.admin.test_csv::test_export_csv_works",
+  "tests.admin.test_csv::test_export_scoreboard_frozen_csv",
+  "tests.admin.test_csv::test_export_scoreboard_frozen_csv_without_freeze",
+  "tests.admin.test_csv::test_export_scoreboard_unfrozen_csv",
+  "tests.admin.test_csv::test_import_challenge_csv_with_json",
+  "tests.admin.test_csv::test_import_csv_works",
+  "tests.admin.test_fields::test_admin_view_fields",
+  "tests.admin.test_fields::test_admin_view_team_fields",
+  "tests.admin.test_pages::test_pages_with_link_target",
+  "tests.admin.test_pages::test_previewing_page_with_format_works",
+  "tests.admin.test_pages::test_previewing_pages_works",
+  "tests.admin.test_scoreboard::test_admins_can_see_scores_with_hidden_scores",
+  "tests.admin.test_submissions::test_browse_admin_submissions",
+  "tests.admin.test_users::test_admin_user_ip_search",
+  "tests.admin.test_views::test_admin_access",
+  "tests.admin.test_views::test_get_admin_as_user",
+  "tests.api.test_tokens::test_banned_team_token_access",
+  "tests.api.test_tokens::test_banned_user_token_access",
+  "tests.api.test_tokens::test_generate_user_token",
+  "tests.api.test_tokens::test_lookup_user_token",
+  "tests.api.test_tokens::test_token_api_file_upload",
+  "tests.api.test_tokens::test_user_token_access",
+  "tests.api.v1.challenges.requirements.test_requirements::test_api_challenges_admins_can_bypass_requirements",
+  "tests.api.v1.challenges.requirements.test_requirements::test_api_challenges_challenge_with_requirements",
+  "tests.api.v1.challenges.requirements.test_requirements::test_api_challenges_challenge_with_requirements_anonymize_preview",
+  "tests.api.v1.challenges.requirements.test_requirements::test_api_challenges_challenge_with_requirements_anonymize_true",
+  "tests.api.v1.challenges.requirements.test_requirements::test_api_challenges_challenge_with_requirements_banned_user",
+  "tests.api.v1.challenges.requirements.test_requirements::test_api_challenges_challenge_with_requirements_hidden_user",
+  "tests.api.v1.challenges.requirements.test_requirements::test_api_challenges_challenge_with_requirements_no_user",
+  "tests.api.v1.statistics.test_scores::test_api_statistics_score_distribution",
+  "tests.api.v1.statistics.test_scores::test_browse_admin_submissions",
+  "tests.api.v1.teams.test_scoring::test_api_public_team_place_score_hidden_if_scores_hidden",
+  "tests.api.v1.teams.test_scoring::test_api_team_place_score_hidden_if_scores_hidden",
+  "tests.api.v1.teams.test_team_members::test_api_admin_can_change_captain",
+  "tests.api.v1.teams.test_team_members::test_api_removing_members_deletes_information",
+  "tests.api.v1.teams.test_team_members::test_api_team_get_members",
+  "tests.api.v1.teams.test_team_members::test_api_team_remove_members",
+  "tests.api.v1.teams.test_team_members::test_api_users_can_change_captain_on_self_team",
+  "tests.api.v1.teams.test_teams::test_api_can_query_by_team_emails",
+  "tests.api.v1.teams.test_teams::test_api_team_can_update_password_if_none_not_if_set",
+  "tests.api.v1.test_awards::test_api_award_delete_admin",
+  "tests.api.v1.test_awards::test_api_award_get_admin",
+  "tests.api.v1.test_awards::test_api_awards_access_non_admin",
+  "tests.api.v1.test_awards::test_api_awards_post_admin",
+  "tests.api.v1.test_awards::test_api_awards_post_admin_teams_mode"
+ ],
+ "why": null,
+ "wall_s": 55.9,
+ "image_notes": [
+  "python 3.11: where the CI runs the checks and the project's Dockerfile both use it",
+  "the CI's python-version: 3.11",
+  "the project's Dockerfile: 3.11",
+  "image unbidden-deps-python:25354f921aad29ed on linux/arm64",
+  "the environment is seeded with pip and setuptools as of 2026-10-21T21:22:37-04:00 (the lockfile's era), as virtualenvs on Python 3.11 were"
+ ],
+ "python": "3.11",
+ "source": "CI mariadb.yml > build (its services: mariadb, redis)",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [
+  "left out, it edits the CI runner's own system: sudo rm -f /etc/boto.cfg"
+ ],
+ "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\n(pytest -rf --cov=CTFd --cov-context=test --cov-report=xml  --ignore-glob=\"**/node_modules/\"  --ignore=node_modules/  -W ignore::sqlalchemy.exc.SADeprecationWarning  -W ignore::sqlalchemy.exc.SAWarning  -n auto)\n(bandit -r CTFd -x CTFd/uploads --skip B105,B322)\n(pipdeptree)"
+}

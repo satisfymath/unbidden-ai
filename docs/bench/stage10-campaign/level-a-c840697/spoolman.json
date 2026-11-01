@@ -1,0 +1,49 @@
+{
+ "repo": "/Users/david/unbidden-lab/spoolman",
+ "rev": "bed3f14ee77a3a571d31b14215d54b0b88a7519c",
+ "stack": {
+  "python": "3.11",
+  "why": [
+   "python 3.11: from the project's Dockerfile (the oldest in its matrix)",
+   "pyproject requires-python: >=3.10",
+   "the project's Dockerfile: 3.11, 3.14"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": "uv.lock",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:2f326096b24c02b6",
+ "plan": {
+  "source": "python -m pytest -q -p no:cacheprovider",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [],
+  "services": [],
+  "command": "python -m pytest -q -p no:cacheprovider"
+ },
+ "status": "passed",
+ "collected": 278,
+ "failed": [],
+ "why": null,
+ "wall_s": 3.2,
+ "image_notes": [
+  "python 3.11: from the project's Dockerfile (the oldest in its matrix)",
+  "pyproject requires-python: >=3.10",
+  "the project's Dockerfile: 3.11, 3.14",
+  "image unbidden-deps-python:2f326096b24c02b6 on linux/arm64"
+ ],
+ "python": "3.11",
+ "source": "python -m pytest -q -p no:cacheprovider",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [],
+ "command": "python -m pytest -q -p no:cacheprovider"
+}

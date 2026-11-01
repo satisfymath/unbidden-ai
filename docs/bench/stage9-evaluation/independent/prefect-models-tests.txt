@@ -1,0 +1,5 @@
+debconf: falling back to frontend: Noninteractive
+SKIPPED [1] tests/server/models/test_concurrency_limits_v2.py:802: Test requires PostgreSQL
+SKIPPED [1] tests/server/models/test_concurrency_limits_v2.py:877: Test requires PostgreSQL
+SKIPPED [1] tests/server/models/test_deployments.py:2199: Row-level locking is PostgreSQL-only
+1302 passed, 3 skipped in 104.90s (0:01:44)

@@ -1,0 +1,15 @@
+{
+ "mode": "cycle",
+ "set": "eval-cycle",
+ "states": [
+  "e-healthy-brand",
+  "e-shifted-grid",
+  "e-faded",
+  "e-banner",
+  "e-window"
+ ],
+ "methods": "dom,vision,vision_sam",
+ "policy": "spark",
+ "reps": 1,
+ "commit": "94765dafc969ac2cb8197e8b0493b50c9840880a"
+}

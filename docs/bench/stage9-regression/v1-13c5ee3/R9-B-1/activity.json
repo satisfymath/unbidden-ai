@@ -1,0 +1,201 @@
+{
+  "workspace": "conduit",
+  "at": "2026-10-29T23:17:44.495124+00:00",
+  "discovered": {
+    "total": 5,
+    "by_status": {
+      "open": 4,
+      "proposed": 1
+    }
+  },
+  "experimenting": [],
+  "declined_because": [],
+  "waiting_because": [
+    [
+      "blocked: conduit-api: no integration could be validated (no documented read operation was chosen)",
+      2
+    ],
+    [
+      "not measurable at this commit: cannot measure: no workload ran at the base after 5 attempts (workload attempt 5 failed: E   AssertionError: warm-up returned HTTP 204)",
+      1
+    ],
+    [
+      "not measurable at this commit: cannot measure: no workload ran at the base after 5 attempts (workload attempt 5 failed: E   pydantic.error_wrappers.ValidationError: 1 validation error for UserInDB)",
+      1
+    ]
+  ],
+  "proven": [
+    {
+      "id": "opp_c06b3200cc014136",
+      "title": "commentaries.article_id is a foreign key without an index, joined on by 1 endpoint(s)",
+      "level": 4,
+      "status": "proposed",
+      "level_name": "validated",
+      "outcome": null,
+      "held_checks": 0,
+      "current_rules": null,
+      "pending_revalidation": null
+    }
+  ],
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {
+    "ready": [
+      "perf: index commentaries.article_id \u00b7 GET /api/articles/{slug}/comments: session medians 23.76 -> 17.87 ms (+25% faster)"
+    ]
+  },
+  "capabilities": {
+    "needs": {
+      "abandoned": 1
+    },
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 120,
+    "usd": 1.5114,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {
+    "world \u00b7 performance \u00b7 -": {
+      "successes": 1,
+      "failures": 0,
+      "p": 0.73,
+      "prior": 0.6
+    }
+  },
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55440/postgres",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.alembic_version",
+        "select public.articles",
+        "select public.articles_to_tags",
+        "select public.commentaries",
+        "select public.favorites",
+        "select public.followers_to_followings",
+        "select public.tags",
+        "select public.users"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-29T23:17:43.732575+00:00"
+    },
+    {
+      "id": "github:nsidnev/fastapi-realworld-example-app",
+      "kind": "github",
+      "environment": "local",
+      "state": "discovered",
+      "read": [],
+      "write": [],
+      "requested": [],
+      "effective": [],
+      "blocked": "the mandate names no GitHub repository",
+      "next_step": "set egress.github.repository to nsidnev/fastapi-realworld-example-app and grant a token reference",
+      "found_by": [
+        "git remote origin"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18110",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "FastAPI example application: 19 operations documented, authenticated by apiKey Authorization; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-29T23:17:43.736808+00:00"
+    }
+  ],
+  "needs_a_person": [],
+  "optional_access": [
+    {
+      "connection": "github:nsidnev/fastapi-realworld-example-app",
+      "what": "set egress.github.repository to nsidnev/fastapi-realworld-example-app and grant a token reference",
+      "enables": "reading it"
+    }
+  ],
+  "blocks": [],
+  "integrations": [],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "consistency-opp_b8f1d8e1a2b740c1",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for conduit-api",
+      "at": "2026-10-29T23:00:20.282475+00:00"
+    },
+    {
+      "goal": "consistency-opp_431fd79ed7b54903",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for conduit-api",
+      "at": "2026-10-29T23:00:28.356144+00:00"
+    },
+    {
+      "goal": "consistency-opp_b8f1d8e1a2b740c1",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "conduit-api: no integration could be validated (no documented read operation was chosen)",
+      "at": "2026-10-29T23:00:36.587769+00:00"
+    },
+    {
+      "goal": "consistency-opp_431fd79ed7b54903",
+      "status": "blocked",
+      "short": 0,
+      "actions": 0,
+      "note": "conduit-api: no integration could be validated (no documented read operation was chosen)",
+      "at": "2026-10-29T23:00:42.792420+00:00"
+    }
+  ]
+}

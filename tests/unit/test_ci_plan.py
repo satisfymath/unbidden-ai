@@ -102,3 +102,104 @@ def test_lint_scope_comes_from_the_workflows_commands(tmp_path: Path) -> None:
     subprocess.run([*git, "commit", "-qam", "y"], check=True)
     root = {"lint": "pnpm --filter @shop/web lint && pnpm --filter api lint"}
     assert ci_lint_packages(tmp_path, "HEAD", packages, root) == {"apps/web", "backend/api"}
+
+
+def test_a_test_job_is_found_by_what_it_runs_and_jobs_needing_more_come_last(tmp_path: Path) -> None:
+    workflows = {
+        "e2e.yml": "jobs:\n  e2e-tests:\n    steps:\n      - run: pytest -m e2e\n",
+        "pythonpackage.yml": (
+            "jobs:\n  build:\n    steps:\n      - run: poetry install\n"
+            "      - run: |\n          source $VENV\n          pytest tests -v\n"
+        ),
+    }
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / ".github/workflows").mkdir(parents=True)
+    for name, text in workflows.items():
+        (tmp_path / ".github/workflows" / name).write_text(text)
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    plan = ci_test_plan(tmp_path, "HEAD", "python")
+    assert plan is not None and (plan.workflow, plan.job) == ("pythonpackage.yml", "build")
+    assert [s.command for s in plan.steps] == ["pytest tests -v"]
+
+
+def test_a_tool_is_green_when_the_jobs_that_run_it_are_whatever_else_failed(tmp_path: Path) -> None:
+    from unbidden.observe.ci import tool_status
+
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / ".github/workflows").mkdir(parents=True)
+    (tmp_path / ".github/workflows/fe.yml").write_text(
+        "jobs:\n  test:\n    name: frontend\n    steps:\n      - run: pnpm run eslint\n"
+        "  e2e:\n    steps:\n      - run: pnpm e2e\n"
+    )
+    git = ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    runs = {"frontend (18)": "success", "frontend (20)": "success", "e2e": "failure"}
+    assert tool_status(tmp_path, "HEAD", "eslint", runs) == "green"
+    assert tool_status(tmp_path, "HEAD", "eslint", {**runs, "frontend (20)": "failure"}) == "red"
+    assert tool_status(tmp_path, "HEAD", "ruff", runs) is None
+
+
+TASK_WORKFLOWS = {
+    ".github/workflows/locale-sync.yml": """
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "import fastapi" > test.py && uv run python test.py
+      - run: gh pr create --title sync
+""",
+    ".github/workflows/test-backend.yml": """
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "import fastapi" > test.py && uv run python test.py
+        continue-on-error: true
+      - run: |
+          sudo apt-get install libldap2-dev
+          if [ "${{ matrix.Database }}" = "postgres" ]; then
+            uv sync --group dev --extra pgsql
+          else
+            uv sync --group dev
+          fi
+      - run: uv run pre-commit run --all-files
+      - run: task py:mypy
+      - run: task py:test -- -x
+""",
+    "Taskfile.yml": """
+tasks:
+  py:mypy:
+    cmds: [uv run mypy mealie]
+  py:test:
+    cmds:
+      - uv run pytest -n auto {{ .CLI_ARGS }}
+""",
+}
+
+
+def _commit(root: Path, files: dict[str, str]) -> Path:
+    subprocess.run(["git", "init", "-q", str(root)], check=True)
+    for path, text in files.items():
+        (root / path).parent.mkdir(parents=True, exist_ok=True)
+        (root / path).write_text(text)
+    git = ["git", "-C", str(root), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    return root
+
+
+def test_taskfile_calls_are_expanded_and_publishing_optional_check_and_broken_steps_dropped(tmp_path: Path) -> None:
+    plan = ci_test_plan(_commit(tmp_path, TASK_WORKFLOWS), "HEAD", "python")
+    assert plan is not None and (plan.workflow, plan.job) == ("test-backend.yml", "tests")
+    assert [s.command for s in plan.steps] == ["pytest -n auto -x"]
+
+
+def test_a_job_that_publishes_is_never_a_test_plan(tmp_path: Path) -> None:
+    files = {
+        ".github/workflows/ci.yml": "jobs:\n  t:\n    steps:\n      - run: pytest\n      - run: git push origin x\n"
+    }
+    assert ci_test_plan(_commit(tmp_path, files), "HEAD", "python") is None

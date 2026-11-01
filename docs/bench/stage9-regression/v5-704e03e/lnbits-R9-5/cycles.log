@@ -1,0 +1,146 @@
+== cycle 1 (exit 0)
+03:02:42 watching /Users/david/unbidden-lab/lnbits (ctrl-c to stop, `unbidden 
+kill` to freeze)
+03:02:56 HEAD is 9349da153c22
+03:02:58 deploy procedure found, proposed only: docker compose up -d 
+--remove-orphans
+03:02:58 deploy procedure found, proposed only: docker compose up 
+--remove-orphans
+03:02:58 connections: postgres:127.0.0.1:55450/lnbits connected, 
+http_api:http://127.0.0.1:18120 needs_capability
+03:02:58 provisioning node dependencies
+03:02:58 provisioning python dependencies
+03:02:59 running ruff
+03:02:59 running pyright
+03:03:06 scan of 9349da153c22: 2 reports, 0 new opportunities
+03:06:03 map of 9349da153c22: 233 resources, 3 blind spots
+03:06:05 robustness probe at 9349da153c22: investigate (probe lnbits (80 public 
+functions sampled))
+03:06:55 the project's own checks at 9349da153c22: failed (272 collected, 2 
+failed)
+03:06:57 opp_39ccd03917dc478d: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_51bd99a64e614350: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_edffb06ec6e94d74: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_00a19854818f4974: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_fa43841e38644e7e: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_e0dcfa66b8a549f9: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_d7301760044b48d4: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_be755ede1c354076: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_a3acec9271ee4c16: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_294ce74d503b4254: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_fd0ecc8a4f8d4025: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_5cc39146a5e34682: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_d657caf01fe24e15: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_01106b85ae2549f9: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_1039e814f08148c4: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_22d6c20ef8e14e35: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_bddc76bcf1ec4704: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_a2935fd32a1c4fa6: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:06:57 opp_f0a6553979184308: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+03:07:14 opp_39ccd03917dc478d: consistency of GET /api/v1/assets/paginated: 
+waiting_capability: needs an integration for lnbits-api
+03:07:25 capability need api_client for http_api:http://127.0.0.1:18120: failed
+03:07:36 opp_51bd99a64e614350: consistency of GET 
+/api/v1/extension/reviews/tags: waiting_capability: needs an integration for 
+lnbits-api
+03:07:47 capability need api_client for http_api:http://127.0.0.1:18120: 
+abandoned
+03:07:47 opp_edffb06ec6e94d74: consistency of GET 
+/api/v1/extension/wasm/invocations: blocked without a model call: 
+http_api:http://127.0.0.1:18120: Get_user_assets_api_v1_assets_paginated_get, 
+get_extension_reviews_tags_api_v1_extension_reviews_tags_get refused the 
+credential
+03:07:47 opp_39ccd03917dc478d: consistency of GET /api/v1/assets/paginated: 
+blocked without a model call: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get, 
+get_extension_reviews_tags_api_v1_extension_reviews_tags_get refused the 
+credential
+03:07:47 opp_51bd99a64e614350: consistency of GET 
+/api/v1/extension/reviews/tags: blocked without a model call: 
+http_api:http://127.0.0.1:18120: Get_user_assets_api_v1_assets_paginated_get, 
+get_extension_reviews_tags_api_v1_extension_reviews_tags_get refused the 
+credential
+03:07:48 opp_39ccd03917dc478d: wait (blocked: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get, 
+get_extension_reviews_tags_api_v1_extension_reviews_tags_get refused the 
+credential)
+03:07:48 opp_51bd99a64e614350: wait (blocked: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get, 
+get_extension_reviews_tags_api_v1_extension_reviews_tags_get refused the 
+credential)
+03:07:48 opp_edffb06ec6e94d74: wait (blocked: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get, 
+get_extension_reviews_tags_api_v1_extension_reviews_tags_get refused the 
+credential)
+03:07:48 opp_00a19854818f4974: consistency of GET 
+/api/v1/extension/wasm/invocations/current: blocked without a model call: 
+http_api:http://127.0.0.1:18120: Get_user_assets_api_v1_assets_paginated_get, 
+get_extension_reviews_tags_api_v1_extension_reviews_tags_get refused the 
+credential
+03:07:48 opp_fa43841e38644e7e: consistency of GET 
+/api/v1/extension/wasm/invocations/stats: blocked without a model call: 
+http_api:http://127.0.0.1:18120: Get_user_assets_api_v1_assets_paginated_get, 
+get_extension_reviews_tags_api_v1_extension_reviews_tags_get refused the 
+credential
+03:07:48 opp_e0dcfa66b8a549f9: consistency of GET 
+/api/v1/payments/all/paginated: blocked without a model call: 
+http_api:http://127.0.0.1:18120: Get_user_assets_api_v1_assets_paginated_get, 
+get_extension_reviews_tags_api_v1_extension_reviews_tags_get refused the 
+credential
+03:07:48 writing property tests for lnbits
+03:07:59 running them offline
+03:08:03 robustness probe of lnbits: 3 failed, 5 passed in 1.37s; 0 crash(es), 0
+new; 0 property violation(s) kept for a person (L1)
+
+
+== cycle 2 (exit 0)
+03:08:04 watching /Users/david/unbidden-lab/lnbits (ctrl-c to stop, `unbidden 
+kill` to freeze)
+03:08:05 connections: postgres:127.0.0.1:55450/lnbits connected, 
+http_api:http://127.0.0.1:18120 needs_capability
+03:08:06 opp_00a19854818f4974: wait (blocked: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get, 
+get_extension_reviews_tags_api_v1_extension_reviews_tags_get refused the 
+credential)
+03:08:06 opp_fa43841e38644e7e: wait (blocked: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get, 
+get_extension_reviews_tags_api_v1_extension_reviews_tags_get refused the 
+credential)
+03:08:06 opp_e0dcfa66b8a549f9: wait (blocked: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get, 
+get_extension_reviews_tags_api_v1_extension_reviews_tags_get refused the 
+credential)
+03:08:06 opp_d7301760044b48d4: consistency of GET /api/v1/payments/paginated: 
+blocked without a model call: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get, 
+get_extension_reviews_tags_api_v1_extension_reviews_tags_get refused the 
+credential
+03:08:06 opp_be755ede1c354076: consistency of GET 
+/api/v1/payments/stats/breakdown: blocked without a model call: 
+http_api:http://127.0.0.1:18120: Get_user_assets_api_v1_assets_paginated_get, 
+get_extension_reviews_tags_api_v1_extension_reviews_tags_get refused the 
+credential
+03:08:06 opp_a3acec9271ee4c16: consistency of GET /api/v1/payments/stats/daily: 
+blocked without a model call: http_api:http://127.0.0.1:18120: 
+Get_user_assets_api_v1_assets_paginated_get, 
+get_extension_reviews_tags_api_v1_extension_reviews_tags_get refused the 
+credential

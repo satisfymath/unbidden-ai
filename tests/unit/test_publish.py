@@ -123,3 +123,125 @@ def test_no_merge_while_the_last_deploy_awaits_its_verdict(
     publisher = Publisher(path, store, mandate, GitHubClient("acme/shop", "GITHUB_TOKEN", transport=fake_github([])))
     with pytest.raises(PublishError, match="no verdict yet"):
         publisher.merge(prop)
+
+
+def pr_github(head: str, runs: list[dict[str, object]], merged: list[str]) -> httpx.MockTransport:
+    def handle(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if path.endswith("/check-runs"):
+            return httpx.Response(200, json={"total_count": len(runs), "check_runs": runs})
+        if request.method == "PUT" and path.endswith("/merge"):
+            merged.append(path)
+            return httpx.Response(200, json={"sha": "c" * 40, "merged": True})
+        if path.endswith("/pulls/7"):
+            return httpx.Response(200, json={"number": 7, "head": {"sha": head}})
+        return httpx.Response(404)
+
+    return httpx.MockTransport(handle)
+
+
+def open_for_merge(
+    store: Store,
+    mandate: Mandate,
+    path: Path,
+    sha: str,
+    monkeypatch: pytest.MonkeyPatch,
+    transport: httpx.MockTransport,
+) -> tuple[Publisher, Proposal]:
+    from unbidden.contracts.experiment import PullRequestRef
+    from unbidden.contracts.guardian import Autonomy
+
+    monkeypatch.setenv("GITHUB_TOKEN", "t0ken-value-123")
+    mandate.autonomy.merge_pull_requests = Autonomy.ALLOW
+    prop = proposal(sha)
+    prop.status = ProposalStatus.PR_OPENED
+    prop.pr = PullRequestRef(number=7, url="u", head_sha=sha)
+    return Publisher(path, store, mandate, GitHubClient("acme/shop", "GITHUB_TOKEN", transport=transport)), prop
+
+
+def with_workflow(path: Path) -> str:
+    git = ["git", "-C", str(path), "-c", "user.name=t", "-c", "user.email=t@t"]
+    (path / ".github" / "workflows").mkdir(parents=True)
+    (path / ".github" / "workflows" / "ci.yml").write_text("on: push\njobs: {}\n")
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "ci"], check=True)
+    return subprocess.run([*git, "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+
+
+DONE: dict[str, object] = {"status": "completed", "conclusion": "success", "name": "test"}
+
+
+@pytest.mark.parametrize(
+    ("runs", "why"),
+    [
+        ([], "none has run"),  # A5: the first poll, before the PR's CI started
+        ([{"status": "in_progress", "conclusion": None, "name": "test"}], "still running"),
+        ([DONE, {"status": "completed", "conclusion": "failure", "name": "lint"}], "is red"),
+        ([{"status": "completed", "conclusion": "cancelled", "name": "test"}], "is unknown"),
+    ],
+)
+def test_no_merge_until_the_pull_requests_own_ci_passed(
+    runs: list[dict[str, object]], why: str, store: Store, mandate: Mandate, repo: tuple[Path, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:  # fmt: skip
+    path, _ = repo
+    sha = with_workflow(path)
+    merged: list[str] = []
+    publisher, prop = open_for_merge(store, mandate, path, sha, monkeypatch, pr_github(sha, runs, merged))
+    with pytest.raises(PublishError, match=why):
+        publisher.merge(prop)
+    assert merged == []
+
+
+def test_a_green_pr_ci_on_the_measured_commit_merges(
+    store: Store, mandate: Mandate, repo: tuple[Path, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path, _ = repo
+    sha = with_workflow(path)
+    merged: list[str] = []
+    publisher, prop = open_for_merge(store, mandate, path, sha, monkeypatch, pr_github(sha, [DONE], merged))
+    assert publisher.merge(prop).status is ProposalStatus.MERGED and merged
+
+
+def test_no_merge_when_the_pull_request_moved_past_the_measured_commit(
+    store: Store, mandate: Mandate, repo: tuple[Path, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path, sha = repo
+    merged: list[str] = []
+    publisher, prop = open_for_merge(store, mandate, path, sha, monkeypatch, pr_github("d" * 40, [DONE], merged))
+    with pytest.raises(PublishError, match="not the measured"):
+        publisher.merge(prop)
+
+
+def test_a_repository_without_ci_merges_on_the_labs_evidence(
+    store: Store, mandate: Mandate, repo: tuple[Path, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path, sha = repo
+    merged: list[str] = []
+    publisher, prop = open_for_merge(store, mandate, path, sha, monkeypatch, pr_github(sha, [], merged))
+    assert publisher.merge(prop).status is ProposalStatus.MERGED
+
+
+def test_an_autonomous_deploy_needs_a_merged_proposal_with_l4_contained_in_the_target(
+    store: Store, repo: tuple[Path, str]
+) -> None:
+    from unbidden.operate.deploy import OperationRefused, merged_evidence
+
+    path, sha = repo
+    with pytest.raises(OperationRefused, match="no merged proposal"):
+        merged_evidence(path, store, None, sha)
+    prop = proposal(sha)
+    store.put("proposals", prop)
+    with pytest.raises(OperationRefused, match="not merged"):
+        merged_evidence(path, store, prop.id, sha)
+    prop.status = ProposalStatus.MERGED
+    prop.evidence_level = EvidenceLevel.LAB_IMPROVEMENT
+    store.put("proposals", prop)
+    with pytest.raises(OperationRefused, match="below L4"):
+        merged_evidence(path, store, prop.id, sha)
+    prop.evidence_level = EvidenceLevel.FUNCTIONAL_VALIDATION
+    prop.merge_sha = with_workflow(path)  # a merge the target below does not contain
+    store.put("proposals", prop)
+    with pytest.raises(OperationRefused, match="does not contain"):
+        merged_evidence(path, store, prop.id, sha)
+    merged_evidence(path, store, prop.id, prop.merge_sha)

@@ -1,0 +1,58 @@
+{
+ "repo": "/Users/david/unbidden-lab/conduit",
+ "rev": "029eb7781c60d5f563ee8990a0cbfb79b244538c",
+ "stack": {
+  "python": "3.9",
+  "why": [
+   "python 3.9: where the CI runs the checks and the project's Dockerfile both use it",
+   "pyproject tool.poetry python: ^3.9",
+   "poetry.lock metadata python-versions: ^3.9",
+   "the CI's python-version: 3.9",
+   "the project's Dockerfile: 3.9"
+  ],
+  "manifest": "poetry.lock",
+  "lockfile": "poetry.lock",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:7347f335c9bcb05d",
+ "plan": {
+  "source": "CI tests.yml > lint (its services: postgres)",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [],
+  "services": [
+   "postgres"
+  ],
+  "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npip --version >/dev/null 2>&1 || rm -rf .venv\ncd /work\nalembic upgrade head\n./scripts/test"
+ },
+ "status": "passed",
+ "collected": 90,
+ "failed": [],
+ "why": null,
+ "failures": {},
+ "wall_s": 44.2,
+ "image_notes": [
+  "python 3.9: where the CI runs the checks and the project's Dockerfile both use it",
+  "pyproject tool.poetry python: ^3.9",
+  "poetry.lock metadata python-versions: ^3.9",
+  "the CI's python-version: 3.9",
+  "the project's Dockerfile: 3.9",
+  "image unbidden-deps-python:7347f335c9bcb05d on linux/arm64",
+  "the environment is seeded with pip and setuptools as of 2022-08-21T02:23:41Z (the lockfile's era), as virtualenvs on Python 3.9 were",
+  "a package is built from source: system build tools installed from Debian (build-essential)"
+ ],
+ "python": "3.9",
+ "source": "CI tests.yml > lint (its services: postgres)",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [],
+ "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npip --version >/dev/null 2>&1 || rm -rf .venv\ncd /work\nalembic upgrade head\n./scripts/test"
+}

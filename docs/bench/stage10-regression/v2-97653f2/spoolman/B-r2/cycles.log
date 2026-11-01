@@ -1,0 +1,98 @@
+== cycle 1 (exit 0)
+12:09:08 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+12:09:22 HEAD is bed3f14ee77a
+12:09:24 deploy procedure found, proposed only: docker compose -f 
+tests_frontend/docker-compose.yml up -d --wait
+12:09:24 deploy procedure found, proposed only: docker compose -f 
+tests_frontend_v2/docker-compose.yml up -d --wait
+12:09:24 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability
+12:09:25 provisioning python dependencies
+12:09:25 running ruff
+12:09:26 scan of bed3f14ee77a: 1 reports, 0 new opportunities
+12:12:58 map of bed3f14ee77a: 67 resources, 4 blind spots
+12:12:58 robustness probe at bed3f14ee77a: investigate (probe tests_integration 
+(80 public functions sampled))
+12:13:01 the project's own checks at bed3f14ee77a: passed (278 collected, 0 
+failed)
+12:13:02 opp_d6a3450deaa34fd5: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+12:13:02 opp_33f050076b8a4da2: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+12:13:12 opp_33f050076b8a4da2: consistency of GET /api/v1/spool/group: 
+waiting_capability: needs an integration for spoolman-api
+12:15:48 capability need api_client for http_api:http://127.0.0.1:18130: in_use
+12:16:14 opp_33f050076b8a4da2: consistency of GET /api/v1/spool/group: 
+waiting_extension: needs the read Find_spool_groups_spool_group_get added to the
+integration (open)
+12:17:28 capability need api_extension for 
+http_api:http://127.0.0.1:18130#Find_spool_groups_spool_group_get: failed
+12:17:29 opp_33f050076b8a4da2: wait (investigation queued or running)
+12:18:38 capability need api_extension for 
+http_api:http://127.0.0.1:18130#Find_spool_groups_spool_group_get: abandoned
+12:18:49 opp_33f050076b8a4da2: consistency of GET /api/v1/spool/group: 
+waiting_extension: needs the read Find_spool_groups_spool_group_get added to the
+integration (abandoned)
+12:18:50 writing property tests for tests_integration
+12:19:08 running them offline
+12:19:12 robustness probe of tests_integration: 13 failed, 1 passed in 2.83s; 1 
+crash(es), 1 new; 0 property violation(s) kept for a person (L1)
+12:19:13 opp_47dc8180475c4940: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+12:19:15 candidate: index on filament.vendor_id, written from the finding
+12:19:15 choosing the request (attempt 1)
+12:19:49 validating the request at the base, against the application as the 
+project runs it
+12:19:56 choosing the request (attempt 2)
+12:20:52 choosing the request (attempt 3)
+12:21:20 validating the request at the base, against the application as the 
+project runs it
+12:21:27 choosing the request (attempt 4)
+12:22:17 validating the request at the base, against the application as the 
+project runs it
+12:22:24 choosing the request (attempt 5)
+12:23:03 validating the request at the base, against the application as the 
+project runs it
+12:23:11 opp_d6a3450deaa34fd5: not measured (cannot measure: no workload was 
+valid at the base after 5 attempts (request attempt 5 not valid: 23 of 23 calls 
+failed (HTTP [400])))
+12:23:12 opp_d6a3450deaa34fd5: wait (not measurable at this commit: cannot 
+measure: no workload was valid at the base after 5 attempts (request attempt 5 
+not valid: 23 of 23 calls failed (HTTP [400])))
+12:23:12 reproducing the crash at the base
+12:23:14 asking the local model for a fix (attempt 1)
+12:23:39 running the property test on the candidate
+12:23:41 running the repository's suite, 3 rounds per side
+12:23:52 opp_47dc8180475c4940: improved, evidence L4
+12:23:53 opp_47dc8180475c4940: propose_change (evidence L4 meets the mandate's 
+L4)
+12:23:54 opp_47dc8180475c4940: branch 
+unbidden/keyerror-in-assert-lists-compatible-test-5c4940 ready
+12:23:54 opp_47dc8180475c4940: not published: destination github.com is not in 
+the mandate's allowlist; destination api.github.com is not in the mandate's 
+allowlist
+
+
+== cycle 2 (exit 0)
+12:23:54 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+12:24:35 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 connected
+12:24:36 opp_47dc8180475c4940: not published: destination github.com is not in 
+the mandate's allowlist; destination api.github.com is not in the mandate's 
+allowlist
+
+
+== cycle 3 (exit 0)
+12:24:37 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+12:25:19 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 connected
+
+
+== cycle 4 (exit 0)
+12:25:20 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+12:26:03 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 connected

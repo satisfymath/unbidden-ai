@@ -1,0 +1,110 @@
+{
+  "pairs": 40,
+  "metrics": {
+    "stack_supported": {
+      "before": 24,
+      "after": 24,
+      "n": 40,
+      "gained": 0,
+      "lost": 0,
+      "p_mcnemar": 1.0
+    },
+    "dependencies_installed": {
+      "before": 21,
+      "after": 22,
+      "n": 40,
+      "gained": 1,
+      "lost": 0,
+      "p_mcnemar": 1.0
+    },
+    "analyzer_complete": {
+      "before": 20,
+      "after": 20,
+      "n": 40,
+      "gained": 0,
+      "lost": 0,
+      "p_mcnemar": 1.0
+    },
+    "bootstrapped": {
+      "before": 20,
+      "after": 20,
+      "n": 40,
+      "gained": 0,
+      "lost": 0,
+      "p_mcnemar": 1.0
+    },
+    "ci_understood": {
+      "before": 36,
+      "after": 36,
+      "n": 40,
+      "gained": 0,
+      "lost": 0,
+      "p_mcnemar": 1.0
+    }
+  },
+  "changes": [
+    {
+      "name": "SakuraByteCore__codexmate",
+      "before": "deps_tool_version",
+      "after": "no_applicable_analyzer",
+      "direction": 10
+    }
+  ],
+  "decisions": [
+    {
+      "name": "Effect-TS__effect",
+      "before": "actionable",
+      "after": "findings_declined"
+    },
+    {
+      "name": "KeepSoftwareSimple__compass-calendar",
+      "before": "actionable",
+      "after": "findings_declined"
+    },
+    {
+      "name": "ValueCell-ai__ClawX",
+      "before": "actionable",
+      "after": "findings_declined"
+    },
+    {
+      "name": "firekylin__firekylin",
+      "before": "actionable",
+      "after": "findings_declined"
+    },
+    {
+      "name": "jdillon__vscode-beads",
+      "before": "actionable",
+      "after": "findings_declined"
+    },
+    {
+      "name": "marko-js__marko",
+      "before": "actionable",
+      "after": "findings_declined"
+    },
+    {
+      "name": "mistralai__mistral-common",
+      "before": "actionable",
+      "after": "findings_declined"
+    },
+    {
+      "name": "nesquena__hermes-webui",
+      "before": "actionable",
+      "after": "findings_declined"
+    },
+    {
+      "name": "quantumlib__Cirq",
+      "before": "actionable",
+      "after": "findings_declined"
+    },
+    {
+      "name": "southleft__figma-console-mcp",
+      "before": "actionable",
+      "after": "findings_declined"
+    },
+    {
+      "name": "vllm-project__tpu-inference",
+      "before": "actionable",
+      "after": "findings_declined"
+    }
+  ]
+}

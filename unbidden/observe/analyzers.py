@@ -21,16 +21,27 @@ COLLECTION = "opportunities"
 
 
 def run_tool(
-    runner: SandboxRunner, repo: Path, rev: str, tool: Tool, image: DependencyImage, *, timeout_s: float = 600
+    runner: SandboxRunner,
+    repo: Path,
+    rev: str,
+    tool: Tool,
+    image: DependencyImage,
+    *,
+    timeout_s: float = 600,
+    prepared: Path | None = None,
 ) -> AnalyzerReport:
-    work = snapshot(repo, rev)
+    """Run one trusted tool on a fresh snapshot, or on a `prepared` one (the repository's own build already run
+    in it, shared by every tool of the scan; analyzers only read it)."""
+    work = prepared or snapshot(repo, rev)
     try:
-        link_dependencies(work, image)
+        if prepared is None:
+            link_dependencies(work, image)
         argv = list(tool.argv)
         result = runner.run(sandbox_spec(image, argv, cwd=tool.cwd, timeout_s=timeout_s), work)
         return tool.report(result, argv)
     finally:
-        discard(work)
+        if prepared is None:
+            discard(work)
 
 
 def group_key(finding: Finding) -> str:
@@ -51,13 +62,26 @@ class Sweep:
     resolved: list[Opportunity]
 
 
+TITLE_MAX = 200
+
+
 def _title(tool: str, findings: list[Finding]) -> str:
     first = findings[0]
     n = len(findings)
     plural = "s" if n > 1 else ""
     if first.category == "types":
-        return f"{n} {tool} error{plural} in {first.path}"
-    return f"{n} {tool} {first.rule} finding{plural} in {PurePosixPath(first.path).parent}/"
+        title = f"{n} {tool} error{plural} in {first.path}"
+    else:
+        title = f"{n} {tool} {first.rule} finding{plural} in {PurePosixPath(first.path).parent}/"
+    # Deep monorepo paths exceed a title; the full paths are in the details.
+    return title if len(title) <= TITLE_MAX else f"{title[: TITLE_MAX - 30]}...{title[-27:]}"
+
+
+def _reopen(store: Store, opp: Opportunity, reason: str) -> None:
+    """New evidence about an opportunity that was closed or declined: it is open again, its reopening recorded."""
+    from unbidden.director.decide import reopen
+
+    reopen(store, opp, reason, actor=ACTOR)
 
 
 def record_report(store: Store, report: AnalyzerReport, rev: str) -> Sweep:
@@ -109,12 +133,23 @@ def record_report(store: Store, report: AnalyzerReport, rev: str) -> Sweep:
             )  # fmt: skip
             sweep.opened.append(opp)
         else:
-            existing.details = details
+            changed = set(existing.details.get("fingerprints") or []) != set(details["fingerprints"])
+            # The scan rewrites what it observes; what happened to the opportunity (attempts, verdicts, decisions,
+            # reopenings) is its history and survives a rescan of a new commit.
+            history = {k: v for k, v in existing.details.items() if k not in details}
+            existing.details = {**history, **details}
             existing.title = _title(report.tool, findings)
             existing.evidence = [*existing.evidence[-4:], evidence]
             existing.updated_at = utc_now()
             store.put(COLLECTION, existing)
-            sweep.updated.append(existing)
+            if existing.status is OpportunityStatus.CLOSED:
+                _reopen(store, existing, f"found again at {rev[:12]} after it was resolved")
+                sweep.opened.append(existing)
+            elif existing.status is OpportunityStatus.DECLINED and changed:
+                _reopen(store, existing, f"its findings changed at {rev[:12]} since it was declined")
+                sweep.opened.append(existing)
+            else:
+                sweep.updated.append(existing)
 
     if not report.can_resolve:
         return sweep

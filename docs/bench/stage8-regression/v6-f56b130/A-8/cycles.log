@@ -1,0 +1,459 @@
+== cycle 1 (exit 0)
+16:54:02 watching /Users/david/unbidden-lab/conduit (ctrl-c to stop, `unbidden 
+kill` to freeze)
+16:54:02 HEAD is 029eb7781c60
+16:54:02 connections: postgres:127.0.0.1:55440/postgres connected, 
+http_api:http://127.0.0.1:18110 needs_capability
+16:54:02 provisioning python dependencies
+16:54:07 scan of 029eb7781c60: 0 reports, 0 new opportunities
+16:57:57 map of 029eb7781c60: 38 resources, 0 blind spots
+16:57:58 robustness probe at 029eb7781c60: investigate (probe app (30 public 
+functions sampled))
+16:58:13 goal counts-correct-and-fast: waiting_capability: needs an integration 
+for conduit-api
+16:59:02 capability need api_client for http_api:http://127.0.0.1:18110: failed
+16:59:02 opp_c68b73fa05c84c61: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+16:59:02 opp_59739424c2d543d4: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+16:59:02 opp_574e510f503b4089: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+16:59:02 opp_809414e8abde4b5c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+16:59:51 capability need api_client for http_api:http://127.0.0.1:18110: 
+abandoned
+16:59:59 goal counts-correct-and-fast: blocked: conduit-api: no integration 
+could be validated (articles_list_articles_api_articles_get: 200, 20000 records,
+read unknown (no total declared; ended on a short batch); the same 20000 records
+with page size 99; without the key: 200)
+17:00:03 research.probe failed: dependency image for python failed to build:
+error: Failed to build `asyncpg==0.26.0`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta.build_wheel` failed (exit status: 1)
+
+         
+         running bdist_wheel
+         running build
+         running build_py
+         creating build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/__init__.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/_version.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/cluster.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         error: command 'gcc' failed: No such file or directory
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv
+pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt 
+&& SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\" && printf 
+'Metadata-Version: 2.1\\nName: fastapi-realworld-example-app\\nVersion: 
+0.0.0\\n' > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/METADATA && 
+echo unbidden > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/INSTALLER 
+&& printf '/work/src\\n/work\\n' > 
+\"$SP/_unbidden_fastapi_realworld_example_app.pth\"  && (/deps/.venv/bin/python 
+-c \"import pytest\" 2>/dev/null      || uv pip install --python 
+/deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+1.758          error: command 'gcc' failed: No such file or directory
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python --exclude-newer 
+2022-08-21T02:23:41Z setuptools pip && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt && 
+SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\" && printf 
+'Metadata-Version: 2.1\\nName: fastapi-realworld-example-app\\nVersion: 
+0.0.0\\n' > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/METADATA && 
+echo unbidden > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/INSTALLER 
+&& printf '/work/src\\n/work\\n' > 
+\"$SP/_unbidden_fastapi_realworld_example_app.pth\"  && (/deps/.venv/bin/python 
+-c \"import pytest\" 2>/dev/null      || uv pip install --python 
+/deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+A package is built from source and needs a C compiler; system packages come from
+deb.debian.org, which the mandate's package registries do not list.
+17:00:03 needs a person: add deb.debian.org to egress.package_registries (system
+build tools: a compiler and the C headers a package builds against) (then: 
+research.probe runs again)
+17:00:06 lab.experiment failed: dependency image for python failed to build:
+error: Failed to build `asyncpg==0.26.0`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta.build_wheel` failed (exit status: 1)
+
+         
+         running bdist_wheel
+         running build
+         running build_py
+         creating build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/__init__.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/_version.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/cluster.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         error: command 'gcc' failed: No such file or directory
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv
+pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt 
+&& SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\" && printf 
+'Metadata-Version: 2.1\\nName: fastapi-realworld-example-app\\nVersion: 
+0.0.0\\n' > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/METADATA && 
+echo unbidden > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/INSTALLER 
+&& printf '/work/src\\n/work\\n' > 
+\"$SP/_unbidden_fastapi_realworld_example_app.pth\"  && (/deps/.venv/bin/python 
+-c \"import pytest\" 2>/dev/null      || uv pip install --python 
+/deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+1.806          error: command 'gcc' failed: No such file or directory
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python --exclude-newer 
+2022-08-21T02:23:41Z setuptools pip && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt && 
+SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\" && printf 
+'Metadata-Version: 2.1\\nName: fastapi-realworld-example-app\\nVersion: 
+0.0.0\\n' > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/METADATA && 
+echo unbidden > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/INSTALLER 
+&& printf '/work/src\\n/work\\n' > 
+\"$SP/_unbidden_fastapi_realworld_example_app.pth\"  && (/deps/.venv/bin/python 
+-c \"import pytest\" 2>/dev/null      || uv pip install --python 
+/deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+A package is built from source and needs a C compiler; system packages come from
+deb.debian.org, which the mandate's package registries do not list.
+17:00:06 needs a person: add deb.debian.org to egress.package_registries (system
+build tools: a compiler and the C headers a package builds against) (then: 
+research.probe runs again)
+17:00:10 lab.experiment failed: dependency image for python failed to build:
+error: Failed to build `asyncpg==0.26.0`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta.build_wheel` failed (exit status: 1)
+
+         
+         running bdist_wheel
+         running build
+         running build_py
+         creating build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/__init__.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/_version.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/cluster.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         error: command 'gcc' failed: No such file or directory
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv
+pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt 
+&& SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\" && printf 
+'Metadata-Version: 2.1\\nName: fastapi-realworld-example-app\\nVersion: 
+0.0.0\\n' > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/METADATA && 
+echo unbidden > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/INSTALLER 
+&& printf '/work/src\\n/work\\n' > 
+\"$SP/_unbidden_fastapi_realworld_example_app.pth\"  && (/deps/.venv/bin/python 
+-c \"import pytest\" 2>/dev/null      || uv pip install --python 
+/deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+1.846          error: command 'gcc' failed: No such file or directory
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python --exclude-newer 
+2022-08-21T02:23:41Z setuptools pip && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt && 
+SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\" && printf 
+'Metadata-Version: 2.1\\nName: fastapi-realworld-example-app\\nVersion: 
+0.0.0\\n' > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/METADATA && 
+echo unbidden > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/INSTALLER 
+&& printf '/work/src\\n/work\\n' > 
+\"$SP/_unbidden_fastapi_realworld_example_app.pth\"  && (/deps/.venv/bin/python 
+-c \"import pytest\" 2>/dev/null      || uv pip install --python 
+/deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+A package is built from source and needs a C compiler; system packages come from
+deb.debian.org, which the mandate's package registries do not list.
+17:00:10 needs a person: add deb.debian.org to egress.package_registries (system
+build tools: a compiler and the C headers a package builds against) (then: 
+research.probe runs again)
+17:00:13 lab.experiment failed: dependency image for python failed to build:
+error: Failed to build `asyncpg==0.26.0`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta.build_wheel` failed (exit status: 1)
+
+         
+         running bdist_wheel
+         running build
+         running build_py
+         creating build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/__init__.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/_version.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/cluster.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         error: command 'gcc' failed: No such file or directory
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv
+pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt 
+&& SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\" && printf 
+'Metadata-Version: 2.1\\nName: fastapi-realworld-example-app\\nVersion: 
+0.0.0\\n' > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/METADATA && 
+echo unbidden > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/INSTALLER 
+&& printf '/work/src\\n/work\\n' > 
+\"$SP/_unbidden_fastapi_realworld_example_app.pth\"  && (/deps/.venv/bin/python 
+-c \"import pytest\" 2>/dev/null      || uv pip install --python 
+/deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+1.776          error: command 'gcc' failed: No such file or directory
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python --exclude-newer 
+2022-08-21T02:23:41Z setuptools pip && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt && 
+SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\" && printf 
+'Metadata-Version: 2.1\\nName: fastapi-realworld-example-app\\nVersion: 
+0.0.0\\n' > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/METADATA && 
+echo unbidden > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/INSTALLER 
+&& printf '/work/src\\n/work\\n' > 
+\"$SP/_unbidden_fastapi_realworld_example_app.pth\"  && (/deps/.venv/bin/python 
+-c \"import pytest\" 2>/dev/null      || uv pip install --python 
+/deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+A package is built from source and needs a C compiler; system packages come from
+deb.debian.org, which the mandate's package registries do not list.
+17:00:13 needs a person: add deb.debian.org to egress.package_registries (system
+build tools: a compiler and the C headers a package builds against) (then: 
+research.probe runs again)
+17:00:16 lab.experiment failed: dependency image for python failed to build:
+error: Failed to build `asyncpg==0.26.0`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta.build_wheel` failed (exit status: 1)
+
+         
+         running bdist_wheel
+         running build
+         running build_py
+         creating build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/__init__.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/_version.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         copying asyncpg/cluster.py -> 
+build/lib.linux-aarch64-cpython-39/asyncpg
+         error: command 'gcc' failed: No such file or directory
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv
+pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt 
+&& SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\" && printf 
+'Metadata-Version: 2.1\\nName: fastapi-realworld-example-app\\nVersion: 
+0.0.0\\n' > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/METADATA && 
+echo unbidden > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/INSTALLER 
+&& printf '/work/src\\n/work\\n' > 
+\"$SP/_unbidden_fastapi_realworld_example_app.pth\"  && (/deps/.venv/bin/python 
+-c \"import pytest\" 2>/dev/null      || uv pip install --python 
+/deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+1.857          error: command 'gcc' failed: No such file or directory
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python --exclude-newer 
+2022-08-21T02:23:41Z setuptools pip && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt && 
+SP=$(/deps/.venv/bin/python -c \"import sysconfig; 
+print(sysconfig.get_paths()['purelib'])\") && mkdir -p 
+\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\" && printf 
+'Metadata-Version: 2.1\\nName: fastapi-realworld-example-app\\nVersion: 
+0.0.0\\n' > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/METADATA && 
+echo unbidden > \"$SP/fastapi_realworld_example_app-0.0.0.dist-info\"/INSTALLER 
+&& printf '/work/src\\n/work\\n' > 
+\"$SP/_unbidden_fastapi_realworld_example_app.pth\"  && (/deps/.venv/bin/python 
+-c \"import pytest\" 2>/dev/null      || uv pip install --python 
+/deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+A package is built from source and needs a C compiler; system packages come from
+deb.debian.org, which the mandate's package registries do not list.
+17:00:16 needs a person: add deb.debian.org to egress.package_registries (system
+build tools: a compiler and the C headers a package builds against) (then: 
+research.probe runs again)
+
+
+== cycle 2 (exit 0)
+17:00:16 watching /Users/david/unbidden-lab/conduit (ctrl-c to stop, `unbidden 
+kill` to freeze)
+17:00:17 connections: postgres:127.0.0.1:55440/postgres connected, 
+http_api:http://127.0.0.1:18110 needs_capability
+17:00:27 goal counts-correct-and-fast: blocked: conduit-api: no integration 
+could be validated (articles_list_articles_api_articles_get: 200, 20000 records,
+read unknown (no total declared; ended on a short batch); the same 20000 records
+with page size 99; without the key: 200)
+
+
+== cycle 3 (exit 0)
+17:00:28 watching /Users/david/unbidden-lab/conduit (ctrl-c to stop, `unbidden 
+kill` to freeze)
+17:00:28 unblocked: add deb.debian.org to egress.package_registries (system 
+build tools: a compiler and the C headers a package builds against); 5 job(s) 
+run again
+17:00:28 connections: postgres:127.0.0.1:55440/postgres connected, 
+http_api:http://127.0.0.1:18110 needs_capability
+17:00:31 writing property tests for app
+17:00:46 running them offline
+17:02:47 robustness probe of app: 2 failed, 6 passed in 120.30s (0:02:00); 0 
+crash(es), 0 new; 0 property violation(s) kept for a person (L1)
+17:02:49 candidate: index on commentaries.article_id, written from the finding
+17:02:49 writing the workload (attempt 1)
+17:03:16 measuring the base
+17:03:42 measuring the candidate
+17:04:10 running the CI test job on both sides
+17:08:36 opp_c68b73fa05c84c61: no proven fix (lab.workload: values that look 
+like credentials were masked in the repository's text)
+17:08:37 opp_c68b73fa05c84c61: run_experiment (reproduce it and measure a 
+candidate offline (p 0.20 from the lab's history of this kind))
+17:08:38 candidate: index on commentaries.author_id, written from the finding
+17:08:38 writing the workload (attempt 1)
+17:09:27 measuring the base
+17:09:51 writing the workload (attempt 2)
+17:11:34 measuring the base
+17:11:59 writing the workload (attempt 3)
+17:13:34 measuring the base
+17:13:58 writing the workload (attempt 4)
+17:16:06 measuring the base
+17:16:38 writing the workload (attempt 5)
+17:19:20 measuring the base
+17:19:52 measuring the candidate
+17:20:23 running the CI test job on both sides
+17:25:31 opp_59739424c2d543d4: no proven fix (workload attempt 4 failed: E   
+AssertionError: warm-up returned HTTP 204)
+17:25:32 opp_59739424c2d543d4: run_experiment (reproduce it and measure a 
+candidate offline (p 0.15 from the lab's history of this kind))
+17:25:33 candidate: index on favorites.article_id, written from the finding
+17:25:33 writing the workload (attempt 1)
+17:25:54 measuring the base
+17:26:24 writing the workload (attempt 2)
+17:29:01 measuring the base
+17:29:31 writing the workload (attempt 3)
+17:32:15 measuring the base
+17:32:44 writing the workload (attempt 4)
+17:35:41 measuring the base
+17:36:10 writing the workload (attempt 5)
+17:37:38 measuring the base
+17:38:09 opp_574e510f503b4089: not measured (cannot measure: no workload ran at 
+the base after 5 attempts (workload attempt 5 failed: E   AssertionError: 
+warm-up returned HTTP 204))
+17:38:09 opp_574e510f503b4089: wait (not measurable at this commit: cannot 
+measure: no workload ran at the base after 5 attempts (workload attempt 5 
+failed: E   AssertionError: warm-up returned HTTP 204))
+17:38:10 candidate: index on articles.author_id, written from the finding
+17:38:10 writing the workload (attempt 1)
+17:38:34 measuring the base
+17:39:03 writing the workload (attempt 2)
+17:40:44 measuring the base
+17:41:15 writing the workload (attempt 3)
+17:42:41 measuring the base
+17:43:11 measuring the candidate
+17:43:40 running the CI test job on both sides
+17:48:44 opp_809414e8abde4b5c: no proven fix (workload attempt 2 failed: E   
+AssertionError: warm-up returned HTTP 403)
+17:48:45 opp_809414e8abde4b5c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.12 from the lab's history of this kind))
+17:48:46 candidate: index on commentaries.article_id, written from the finding
+17:48:46 writing the workload (attempt 1)
+17:49:13 measuring the base
+17:49:42 writing the workload (attempt 2)
+17:51:05 measuring the base
+17:51:36 measuring the candidate
+17:52:06 running the CI test job on both sides
+17:57:05 opp_c68b73fa05c84c61: improved, evidence L4
+17:57:06 opp_c68b73fa05c84c61: propose_change (evidence L4 meets the mandate's 
+L4)
+17:57:06 opp_c68b73fa05c84c61: branch 
+unbidden/commentaries-article-id-is-a-foreign-key-c84c61 ready
+17:57:06 opp_c68b73fa05c84c61: not published: destination github.com is not in 
+the mandate's allowlist; destination api.github.com is not in the mandate's 
+allowlist
+17:57:07 candidate: index on commentaries.author_id, written from the finding
+17:57:07 writing the workload (attempt 1)
+17:57:23 measuring the base
+17:57:53 writing the workload (attempt 2)
+17:59:34 measuring the base
+18:00:04 writing the workload (attempt 3)
+18:02:51 measuring the base
+18:03:21 writing the workload (attempt 4)
+18:05:36 measuring the base
+18:06:08 writing the workload (attempt 5)
+18:08:11 measuring the base
+18:08:40 opp_59739424c2d543d4: not measured (cannot measure: no workload ran at 
+the base after 5 attempts (workload attempt 5 failed: E   
+asyncpg.exceptions.PostgresSyntaxError: syntax error at or near "%"))
+18:08:40 opp_59739424c2d543d4: wait (not measurable at this commit: cannot 
+measure: no workload ran at the base after 5 attempts (workload attempt 5 
+failed: E   asyncpg.exceptions.PostgresSyntaxError: syntax error at or near 
+"%"))
+18:08:40 opp_c68b73fa05c84c61: not published: destination github.com is not in 
+the mandate's allowlist; destination api.github.com is not in the mandate's 
+allowlist
+18:08:42 candidate: index on articles.author_id, written from the finding
+18:08:42 writing the workload (attempt 1)
+18:09:23 measuring the base
+18:09:53 measuring the candidate
+18:10:22 running the CI test job on both sides
+18:15:17 opp_809414e8abde4b5c: no proven fix (lab.workload: values that look 
+like credentials were masked in the repository's text)
+18:15:17 opp_809414e8abde4b5c: decline (2 experiments found no proven fix)
+
+
+== cycle 4 (exit 0)
+18:15:18 watching /Users/david/unbidden-lab/conduit (ctrl-c to stop, `unbidden 
+kill` to freeze)
+18:15:19 connections: postgres:127.0.0.1:55440/postgres connected, 
+http_api:http://127.0.0.1:18110 needs_capability
+18:15:32 goal counts-correct-and-fast: blocked: conduit-api: no integration 
+could be validated (articles_list_articles_api_articles_get: 200, 20000 records,
+read unknown (no total declared; ended on a short batch); the same 20000 records
+with page size 99; without the key: 200)

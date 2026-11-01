@@ -1,0 +1,194 @@
+[
+  {
+    "condition": "healthy",
+    "run": 0,
+    "browser": {
+      "degraded": false,
+      "what": "nothing differs",
+      "detection": true,
+      "attribution": null
+    },
+    "visual": {
+      "degraded": false,
+      "what": "",
+      "detection": true,
+      "attribution": null
+    }
+  },
+  {
+    "condition": "healthy",
+    "run": 1,
+    "browser": {
+      "degraded": false,
+      "what": "nothing differs",
+      "detection": true,
+      "attribution": null
+    },
+    "visual": {
+      "degraded": false,
+      "what": "",
+      "detection": true,
+      "attribution": null
+    }
+  },
+  {
+    "condition": "healthy",
+    "run": 2,
+    "browser": {
+      "degraded": false,
+      "what": "nothing differs",
+      "detection": true,
+      "attribution": null
+    },
+    "visual": {
+      "degraded": false,
+      "what": "",
+      "detection": true,
+      "attribution": null
+    }
+  },
+  {
+    "condition": "ad",
+    "run": 0,
+    "browser": {
+      "degraded": false,
+      "what": "nothing differs",
+      "detection": false,
+      "attribution": false
+    },
+    "visual": {
+      "degraded": false,
+      "what": "",
+      "detection": false,
+      "attribution": false
+    }
+  },
+  {
+    "condition": "ad",
+    "run": 1,
+    "browser": {
+      "degraded": false,
+      "what": "nothing differs",
+      "detection": false,
+      "attribution": false
+    },
+    "visual": {
+      "degraded": false,
+      "what": "",
+      "detection": false,
+      "attribution": false
+    }
+  },
+  {
+    "condition": "ad",
+    "run": 2,
+    "browser": {
+      "degraded": false,
+      "what": "nothing differs",
+      "detection": false,
+      "attribution": false
+    },
+    "visual": {
+      "degraded": false,
+      "what": "",
+      "detection": false,
+      "attribution": false
+    }
+  },
+  {
+    "condition": "images",
+    "run": 0,
+    "browser": {
+      "degraded": false,
+      "what": "nothing differs",
+      "detection": false,
+      "attribution": false
+    },
+    "visual": {
+      "degraded": true,
+      "what": "You May Also Like product images missing",
+      "detection": true,
+      "attribution": true
+    }
+  },
+  {
+    "condition": "images",
+    "run": 1,
+    "browser": {
+      "degraded": false,
+      "what": "nothing differs",
+      "detection": false,
+      "attribution": false
+    },
+    "visual": {
+      "degraded": true,
+      "what": "You May Also Like product images missing",
+      "detection": true,
+      "attribution": true
+    }
+  },
+  {
+    "condition": "images",
+    "run": 2,
+    "browser": {
+      "degraded": false,
+      "what": "nothing differs",
+      "detection": false,
+      "attribution": false
+    },
+    "visual": {
+      "degraded": true,
+      "what": "You May Also Like product images missing",
+      "detection": true,
+      "attribution": true
+    }
+  },
+  {
+    "condition": "product",
+    "run": 0,
+    "browser": {
+      "degraded": true,
+      "what": "request failed: /api/products/OLJCESPC7Z; console error: Failed to load resource: the server responded with a status of 500 (Internal Ser; console error: Failed to load resource: the server responded with a status of 500 (Internal Ser; console error: Failed to load resource: the server responded with a status of 500 (Internal Ser",
+      "detection": true,
+      "attribution": true
+    },
+    "visual": {
+      "degraded": true,
+      "what": "main product image and details",
+      "detection": true,
+      "attribution": true
+    }
+  },
+  {
+    "condition": "product",
+    "run": 1,
+    "browser": {
+      "degraded": true,
+      "what": "request failed: /api/products/OLJCESPC7Z; console error: Failed to load resource: the server responded with a status of 500 (Internal Ser; console error: Failed to load resource: the server responded with a status of 500 (Internal Ser; console error: Failed to load resource: the server responded with a status of 500 (Internal Ser",
+      "detection": true,
+      "attribution": true
+    },
+    "visual": {
+      "degraded": true,
+      "what": "main product image title and description",
+      "detection": true,
+      "attribution": true
+    }
+  },
+  {
+    "condition": "product",
+    "run": 2,
+    "browser": {
+      "degraded": true,
+      "what": "request failed: /api/products/OLJCESPC7Z; console error: Failed to load resource: the server responded with a status of 500 (Internal Ser; console error: Failed to load resource: the server responded with a status of 500 (Internal Ser; console error: Failed to load resource: the server responded with a status of 500 (Internal Ser",
+      "detection": true,
+      "attribution": true
+    },
+    "visual": {
+      "degraded": null,
+      "what": "",
+      "detection": false,
+      "attribution": false
+    }
+  }
+]

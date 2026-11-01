@@ -1,0 +1,7 @@
+# Amendment 1: isolation of the SQLite L5 run from D-036's project. Names only; the code deployed is unchanged.
+services:
+  mealie:
+    container_name: mealie-sqlite
+    image: mealie-sqlite:l5
+    ports: !override
+      - "9092:9000"

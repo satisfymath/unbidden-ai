@@ -1,0 +1,262 @@
+{
+  "workspace": "aegra",
+  "at": "2026-10-31T16:54:16.855757+00:00",
+  "discovered": {
+    "total": 2,
+    "by_status": {
+      "declined": 1,
+      "open": 1
+    }
+  },
+  "experimenting": [],
+  "declined_because": [
+    [
+      "the numbers agree with the stored data over a whole read: 0 of 200 keys differ",
+      1
+    ]
+  ],
+  "waiting_because": [
+    [
+      "inconclusive: no difference among the 1000 keys read, but the set's completeness is unknown (the read-only query returned its limit of 1000 rows): 'none' is not concluded",
+      1
+    ]
+  ],
+  "proven": [],
+  "project_checks": {
+    "rev": "46055c0b9adffe51fb168974f79dfadaa6edd612",
+    "at": "2026-10-31T16:53:25.574417+00:00",
+    "status": "infra_failed",
+    "collected": null,
+    "failed": [
+      "<suite>"
+    ],
+    "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nuv python install 3.12\ncd /work\naegra-api pytest libs/aegra-api/tests/unit libs/aegra-api/tests/integration --cov=libs/aegra-api/src --",
+    "scope": "the whole job",
+    "partial": false,
+    "notes": [],
+    "why": "exit 1: Python downloads are not allowed (`python-downloads = \"never\"`). Change to `python-downloads = \"manual\"` to allow explicit installs."
+  },
+  "experiments_wait": null,
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {
+      "in_use": 2
+    },
+    "awaiting_approval": [],
+    "in_use": [
+      {
+        "kind": "api_client",
+        "source": "http_api:http://127.0.0.1:18160"
+      },
+      {
+        "kind": "api_extension",
+        "source": "http_api:http://127.0.0.1:18160#list_threads_threads_get"
+      }
+    ]
+  },
+  "spent": {
+    "calls": 45,
+    "usd": 0.1586,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18160",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "list_assistants_assistants_get",
+        "list_threads_threads_get"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-31T16:54:16.249003+00:00"
+    },
+    {
+      "id": "postgres:127.0.0.1:55490/aegra",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.alembic_version",
+        "select public.assistant",
+        "select public.assistant_versions",
+        "select public.checkpoint_blobs",
+        "select public.checkpoint_migrations",
+        "select public.checkpoint_writes",
+        "select public.checkpoints",
+        "select public.crons",
+        "select public.runs",
+        "select public.store",
+        "select public.store_migrations",
+        "select public.thread",
+        "select public.thread_ttl"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-31T16:54:16.231816+00:00"
+    }
+  ],
+  "needs_a_person": [
+    {
+      "proposal": "docker compose up -d",
+      "state": "proposed",
+      "what": "found in CLAUDE.md; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d",
+      "state": "proposed",
+      "what": "found in Makefile; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose up -d",
+      "state": "proposed",
+      "what": "found in Makefile; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.auth.yml up -d postgres aegra",
+      "state": "proposed",
+      "what": "found in Makefile; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose up",
+      "state": "proposed",
+      "what": "found in README.md; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.auth.yml up -d postgres aegra",
+      "state": "proposed",
+      "what": "found in docker-compose.auth.yml; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d",
+      "state": "proposed",
+      "what": "found in docker-compose.dev.yml; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose up -d",
+      "state": "proposed",
+      "what": "found in libs/aegra-api/tests/README.md; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.auth.yml up -d",
+      "state": "proposed",
+      "what": "found in libs/aegra-api/tests/e2e/manual_auth_tests/README.md; a proposal only: a person declares deploy steps in the mandate"
+    }
+  ],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [
+    {
+      "id": "int_67fcf31fc41e4323",
+      "title": "Custom Routes Example",
+      "on": "http_api:http://127.0.0.1:18160",
+      "status": "superseded",
+      "how": "built",
+      "operations": {
+        "list_assistants_assistants_get": "read"
+      },
+      "oracle": {
+        "list_assistants_assistants_get": "200, 200 records, read complete (200 distinct records, one response, no pagination declared; total = 200 on every page, equal to the distinct records read); no other page size to read with; without the key: 200"
+      }
+    },
+    {
+      "id": "int_4ddad44a5b618dd3",
+      "title": "Custom Routes Example",
+      "on": "http_api:http://127.0.0.1:18160",
+      "status": "validated",
+      "how": "built",
+      "operations": {
+        "list_assistants_assistants_get": "read",
+        "list_threads_threads_get": "read"
+      },
+      "oracle": {
+        "list_assistants_assistants_get": "200, 200 records, read complete (200 distinct records, one response, no pagination declared; total = 200 on every page, equal to the distinct records read); no other page size to read with; without the key: 200",
+        "list_threads_threads_get": "200, 20000 records, read complete (20000 distinct records, one response, no pagination declared; total = 20000 on every page, equal to the distinct records read); no other page size to read with; without the key: 200"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "consistency-opp_1342379e691c4feb",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for aegra-api",
+      "at": "2026-10-31T16:53:27.622128+00:00"
+    },
+    {
+      "goal": "consistency-opp_52ce534603784a1f",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read list_threads_threads_get added to the integration (open)",
+      "at": "2026-10-31T16:53:45.210553+00:00"
+    },
+    {
+      "goal": "consistency-opp_1342379e691c4feb",
+      "status": "investigated",
+      "short": 0,
+      "actions": 0,
+      "note": "0 of 200 keys differ",
+      "at": "2026-10-31T16:53:53.693210+00:00"
+    },
+    {
+      "goal": "consistency-opp_52ce534603784a1f",
+      "status": "inconclusive",
+      "short": 0,
+      "actions": 0,
+      "note": "no difference among the 1000 keys read, but the set's completeness is unknown (the read-only query returned its limit of 1000 rows): 'none' is not concluded",
+      "at": "2026-10-31T16:53:59.368788+00:00"
+    }
+  ]
+}

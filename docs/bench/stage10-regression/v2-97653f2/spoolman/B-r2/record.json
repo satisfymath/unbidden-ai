@@ -1,0 +1,22 @@
+{
+ "app": "spoolman",
+ "run": "B-r2",
+ "mode": "proactive",
+ "restored": {
+  "commit": "bed3f14ee77a3a571d31b14215d54b0b88a7519c",
+  "data": {
+   "vendors": 200,
+   "filaments": 5000,
+   "spools": 100000
+  }
+ },
+ "usd_before": 17.9389,
+ "interventions": [],
+ "wall_s": 1015.7,
+ "repo_after": "",
+ "branches_after": [
+  "unbidden/keyerror-in-assert-lists-compatible-test-5c4940"
+ ],
+ "usd_after": 18.3544,
+ "workspace": "/Users/david/unbidden-lab/spoolman-runs/spoolman-B-r2"
+}

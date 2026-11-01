@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass, replace
 from typing import Any
 
@@ -14,6 +16,19 @@ from unbidden.sandbox.runner import SandboxResult
 Parser = Callable[[SandboxResult, list[str]], AnalyzerReport]
 MISSING_MODULE_RULES = frozenset({"TS2305", "TS2307", "TS2792"})  # no exported member, cannot find module
 MAX_FINDINGS = 2000
+_KEEP: ContextVar[int | None] = ContextVar("keep_findings", default=MAX_FINDINGS)
+
+
+@contextmanager
+def every_finding() -> Iterator[None]:
+    """Reports made inside keep all their findings. The cap bounds what a scan stores and turns into opportunities;
+    the lab compares the findings before and after a fix, and a capped report could not show what a fix changed
+    (stage 10: pyright found 11642 on Prefect, and every report was partial)."""
+    token = _KEEP.set(None)
+    try:
+        yield
+    finally:
+        _KEEP.reset(token)
 
 
 @dataclass(frozen=True)
@@ -25,6 +40,10 @@ class Tool:
     parse: Parser
     fix_argv: tuple[str, ...] | None = None  # the tool's own correction, tried before any model is asked
     cwd: str = "."  # a workspace package's directory; findings are reported relative to the repository
+    # Whose tool it is: the project's own (its locked version, as its CI installs it) or Unbidden's pinned binary,
+    # whose version may differ from the CI's. `own_rules`: Unbidden's rule set, which no team's CI runs.
+    source: str = "project"
+    own_rules: bool = False
 
     def in_package(self, path: str, argv: tuple[str, ...] | None = None) -> Tool:
         return replace(self, name=f"{self.name}:{path}", cwd=path, argv=argv or self.argv)
@@ -61,17 +80,21 @@ def _report(tool: str, result: SandboxResult, argv: list[str], findings: list[Fi
     elif result.stdout_truncated or result.stderr_truncated:
         completeness, error = Completeness.TRUNCATED, "output exceeded the capture cap"
     elif not parsed:
-        completeness, error = Completeness.FAILED, (result.stderr or result.stdout).strip()[-500:] or "unparseable"
+        text = (result.stderr or result.stdout).strip()
+        # The message is at the start, the stack at the end: keep both.
+        error = (text if len(text) <= 900 else f"{text[:500]}\n...\n{text[-400:]}") or "unparseable"
+        completeness = Completeness.FAILED
     else:
         completeness, error = Completeness.COMPLETE, None
-    dropped = max(0, len(findings) - MAX_FINDINGS)
+    keep = _KEEP.get()
+    dropped = max(0, len(findings) - keep) if keep is not None else 0
     if dropped:
         completeness = Completeness.PARTIAL
     return AnalyzerReport(
         tool=tool,
         argv=argv,
         exit_code=result.exit_code,
-        findings=findings[:MAX_FINDINGS],
+        findings=findings[:keep] if keep is not None else findings,
         completeness=completeness,
         dropped=dropped,
         error=error,
@@ -227,6 +250,40 @@ def parse_pyright(result: SandboxResult, argv: list[str]) -> AnalyzerReport:
     return _report("pyright", result, argv, findings, parsed=True)
 
 
+# mypy ------------------------------------------------------------------------------------------------
+
+
+def parse_mypy(result: SandboxResult, argv: list[str]) -> AnalyzerReport:
+    """mypy's `--output json`: one object per line. A run with errors exits 1; anything else unparsed is a failure."""
+    findings: list[Finding] = []
+    parsed = result.exit_code in (0, 1)
+    notes = 0
+    for line in (result.stdout or "").splitlines():
+        try:
+            d: dict[str, Any] = json.loads(line)
+        except ValueError:
+            continue
+        if d.get("severity") != "error":
+            notes += 1
+            continue
+        findings.append(
+            Finding.build(
+                tool="mypy",
+                rule=str(d.get("code") or "general"),
+                severity="error",
+                category="types",
+                path=_rel(str(d.get("file", ""))),
+                line=int(d.get("line") or 0),
+                message=str(d.get("message", "")).splitlines()[0],
+            )
+        )
+    if result.exit_code == 1 and not findings and not notes:
+        # It failed without reporting anything: configuration, plugin or import trouble. (With --output json some
+        # versions exit 1 on notes alone, such as annotation-unchecked under Python 3.14: that run was clean.)
+        parsed = False
+    return _report("mypy", result, argv, findings, parsed=parsed)
+
+
 # Rules that find bugs, not style: syntax errors, undefined names, shadowed definitions, broken comparisons,
 # mutable default arguments. Run with Unbidden's own pinned ruff, ignoring the repository's configuration.
 BASELINE_RUFF_RULES = "E9,F63,F7,F82,F811,B006"
@@ -281,6 +338,8 @@ TOOLS: dict[str, Tool] = {
             ".",
         ),
         parse_ruff,
+        source="unbidden",
+        own_rules=True,
     ),
     "pyright": Tool(
         "pyright",
@@ -288,37 +347,34 @@ TOOLS: dict[str, Tool] = {
         "types",
         ("pyright", "--outputjson", "--pythonpath", "/deps/.venv/bin/python"),
         parse_pyright,
+        source="unbidden",
+    ),
+    # The repository's own mypy, from its environment: its configuration may load plugins installed there.
+    "mypy": Tool(
+        "mypy",
+        "python",
+        "types",
+        ("/deps/.venv/bin/python", "-m", "mypy", "--output", "json", "--no-error-summary", "--cache-dir", "/tmp/mypy"),
+        parse_mypy,
     ),
 }
 
 
 def tools_for(stack: Any) -> list[Tool]:
-    """The tools a detected stack can run: only those the repository itself uses."""
-    selected: list[Tool] = []
-    if stack.node is not None:
-        if stack.node.typescript:
-            selected.append(TOOLS["tsc"])
-        if stack.node.eslint:
-            selected.append(TOOLS["eslint"])
-        if stack.node.biome:
-            selected.append(TOOLS["biome"])
-        for package in stack.node.packages:
-            if package.typescript:
-                argv = (*package.typecheck, "--pretty", "false") if package.typecheck else None
-                selected.append(TOOLS["tsc"].in_package(package.path, argv))
-            if package.eslint:
-                selected.append(TOOLS["eslint"].in_package(package.path))
-            if package.biome:
-                selected.append(TOOLS["biome"].in_package(package.path))
-    if stack.python is not None:
-        if stack.python.ruff:
-            selected.append(TOOLS["ruff"])
-        else:
-            # A repository that declares no linter still deserves a look for plain bugs.
-            selected.append(TOOLS["ruff-baseline"])
-        if stack.python.pyright:
-            selected.append(TOOLS["pyright"])
-    return selected
+    """The tools a detected stack can run: only those the repository itself uses, from each language's adapter."""
+    from unbidden.languages import adapter
+
+    return [tool for language in stack.languages for tool in adapter(language).tools(stack.part(language))]
+
+
+def tool_source(name: str) -> tuple[str, bool]:
+    """Whose tool an opportunity's finding came from (`tsc:apps/web`, `ruff@services/api` included): the project's or
+    Unbidden's, and whether it ran Unbidden's own rules. An unknown tool is taken as Unbidden's: no equivalence."""
+    from unbidden.languages.golang import GO_VET
+
+    base = name.split(":")[0].split("@")[0]
+    tool = {**TOOLS, GO_VET.name: GO_VET}.get(base)
+    return (tool.source, tool.own_rules) if tool else ("unbidden", False)
 
 
 def tool_named(stack: Any, name: str) -> Tool:
@@ -326,4 +382,6 @@ def tool_named(stack: Any, name: str) -> Tool:
     for tool in tools_for(stack):
         if tool.name == name:
             return tool
-    return TOOLS[name]
+    from unbidden.languages.golang import GO_VET
+
+    return {**TOOLS, GO_VET.name: GO_VET}[name]

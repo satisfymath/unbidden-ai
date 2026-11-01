@@ -1,0 +1,201 @@
+{
+ "goal_runs": [
+  {
+   "status": "waiting_capability",
+   "note": "needs an integration for board-api",
+   "evidence": {}
+  },
+  {
+   "status": "page_fixed",
+   "note": "1 discrepancies fixed by 06877f8afd3c: The `.notice` banner was absolutely positioned over row 7, covering B08's SHORT badge so it could not be seen.",
+   "evidence": {
+    "attempts": [
+     {
+      "after": {
+       "cause": "none",
+       "conclusive": true,
+       "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_b1ac362936ea47ed/after-1",
+       "discrepancies": [],
+       "model": {
+        "model": "muse-wonder-1.0",
+        "route": "profile frontier; synthetic may leave; label synthetic",
+        "seconds": 4.12,
+        "tier": "code",
+        "tokens": [
+         4505,
+         428
+        ],
+        "usd": 0.02658
+       },
+       "perception": "dom",
+       "problems": [],
+       "sam": [],
+       "screenshots": {
+        "step-00": "0350942340379eb97c2507fb0def3bddbf6231e65c689dddbd4aedb916b9afe9",
+        "step-01": "6ced3ec942165b4d32f9864398a75a1b2c2aa2e192a1a7898a5bafcea0e88412",
+        "step-02": "191771ee81e6fbd61b56786fbda8288ddb7eeff8e6cd200943daa575f71d9cea"
+       }
+      },
+      "attempt": 1,
+      "cause": "The `.notice` banner was absolutely positioned over row 7, covering B08's SHORT badge so it could not be seen.",
+      "checks": {
+       "log": "$ python -m unittest -> 0\n..\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+       "ok": true
+      },
+      "commit": "06877f8afd3c8f952cc98f9e562aa746e388216e",
+      "deploy": {
+       "log": " done\n#4 DONE 0.0s\n\n#5 [internal] load build context\n#5 transferring context: 1.51kB done\n#5 DONE 0.0s\n\n#6 [1/5] FROM docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704\n#6 resolve docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704 0.0s done\n#6 DONE 0.0s\n\n#7 [2/5] WORKDIR /app\n#7 CACHED\n\n#8 [4/5] RUN pip install --no-cache-dir -r requirements.txt\n#8 CACHED\n\n#9 [3/5] COPY requirements.txt .\n#9 CACHED\n\n#10 [5/5] COPY board ./board\n#10 CACHED\n\n#11 exporting to image\n#11 exporting layers done\n#11 exporting manifest sha256:737485d12a69448bcd7b2c53af16633a239f0afd19807424717cbbe6785b52d5 done\n#11 exporting config sha256:9ba414bfe2192f28b9f9b240106e20cbacdab2b63765d7b8990d625a64436e8d done\n#11 exporting attestation manifest sha256:904f7669806155e8631b79c18cb14ea12219e4c404596a8bab0018a726cc1a3a 0.0s done\n#11 exporting manifest list sha256:495bd1a153c456e42d86f2bd7bdd915300c33993dad9ecff596c8b87ed727c31 done\n#11 naming to docker.io/library/boardapp-staging-board:latest done\n#11 unpacking to docker.io/library/boardapp-staging-board:latest 0.0s done\n#11 DONE 0.1s\n\n#12 resolving provenance for metadata file\n#12 DONE 0.0s\n Image boardapp-staging-board Building \n Image boardapp-staging-board Built \n Container boardapp-staging-board-1 Recreate \n Container boardapp-staging-board-1 Recreated \n Container boardapp-staging-board-1 Starting \n Container boardapp-staging-board-1 Started \n",
+       "ok": true
+      },
+      "model": {
+       "model": "muse-wonder-1.0",
+       "route": "profile frontier; private_code may leave; label private_code",
+       "seconds": 4.99,
+       "tier": "code",
+       "tokens": [
+        5933,
+        906
+       ],
+       "usd": 0.041852
+      },
+      "patch": "--- a/board/static/board.css\n+++ b/board/static/board.css\n@@ -13,5 +13,5 @@\n .board .row, .board .head { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1.3fr; }\n .board [role=cell], .board [role=columnheader] { padding: 12px; border-bottom: 1px solid #e3e7eb; }\n .board .head { font-weight: 700; }\n-.notice { position: absolute; left: 0; right: 0; top: 520px; height: 150px; padding: 24px 32px; background: #e8eef5; font-size: 18px; }\n+.notice { padding: 24px 32px; background: #e8eef5; font-size: 18px; }\n .summary { padding: 16px 32px; background: #f2f4f6; border-top: 1px solid #d8dde2; }\n",
+      "patch_sha256": "aa8cf5cdf657c960940e4d3f017f89ae6d8790d4f51f899e06ebf50d0c939daa",
+      "result": "the discrepancies are gone"
+     }
+    ],
+    "before": {
+     "cause": "A fixed or sticky div.notice element overlays the B08 row on the page, covering its SHORT badge at every scroll position.",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_b1ac362936ea47ed/before",
+     "discrepancies": [
+      {
+       "evidence": "Row 7 shows 'SHORT 3' with red bg rgb(198, 40, 40) and white fg at 14px, but visible 0 covered by div.notice, so a person cannot see it flagged on its own row.",
+       "key": "B08",
+       "kind": "not_flagged"
+      }
+     ],
+     "model": {
+      "model": "muse-wonder-1.0",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 5.76,
+      "tier": "code",
+      "tokens": [
+       5293,
+       1057
+      ],
+      "usd": 0.042312
+     },
+     "perception": "dom",
+     "problems": [],
+     "sam": [],
+     "screenshots": {
+      "step-00": "246ba1394d454a06e2067331b9be6f2cfac83f2103910a4623ebc3f1ede61d6f",
+      "step-01": "e40b7542d33e638b59b9f07cdb5e5651dee3f806fb52f2e73d10f7df8a98bf34",
+      "step-02": "191771ee81e6fbd61b56786fbda8288ddb7eeff8e6cd200943daa575f71d9cea"
+     }
+    },
+    "perception": "dom",
+    "url": "http://127.0.0.1:18096/"
+   }
+  },
+  {
+   "status": "page_ok",
+   "note": "the page shows what the data says (36 keys)",
+   "evidence": {
+    "before": {
+     "cause": "none",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_9215ad1bbc084594/before",
+     "discrepancies": [],
+     "model": {
+      "model": "muse-wonder-1.0",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 5.07,
+      "tier": "code",
+      "tokens": [
+       4469,
+       890
+      ],
+      "usd": 0.035676
+     },
+     "perception": "dom",
+     "problems": [],
+     "sam": [],
+     "screenshots": {
+      "step-00": "0350942340379eb97c2507fb0def3bddbf6231e65c689dddbd4aedb916b9afe9",
+      "step-01": "6ced3ec942165b4d32f9864398a75a1b2c2aa2e192a1a7898a5bafcea0e88412",
+      "step-02": "191771ee81e6fbd61b56786fbda8288ddb7eeff8e6cd200943daa575f71d9cea"
+     }
+    },
+    "perception": "dom",
+    "url": "http://127.0.0.1:18096/"
+   }
+  }
+ ],
+ "model_runs": [
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-wonder-1.0",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.02846,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "forge.api_client",
+   "model": "muse-wonder-1.0",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.014884,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-wonder-1.0",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.020864,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-wonder-1.0",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.042312,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "lab.page_fix",
+   "model": "muse-wonder-1.0",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.041852,
+   "route": "profile frontier; private_code may leave; label private_code"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-wonder-1.0",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.02658,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-wonder-1.0",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.019564,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-wonder-1.0",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.035676,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  }
+ ]
+}

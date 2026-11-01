@@ -1,0 +1,53 @@
+{
+ "repo": "/Users/david/starlette",
+ "rev": "8aa828ceaff764a2e57932fb42fdf105a47c4c83",
+ "stack": {
+  "python": "3.11",
+  "why": [
+   "python 3.11: from the CI's python-version (the oldest in its matrix)",
+   "pyproject requires-python: >=3.11",
+   "the CI's python-version: 3.11, 3.12, 3.13, 3.14, 3.15"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": "uv.lock",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:d7b638e3b42ecbef",
+ "plan": {
+  "source": "CI benchmark.yml > benchmarks",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [
+   "left out, scripts/install only installs (the dependency image stands for it)"
+  ],
+  "services": [],
+  "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest benchmarks/gzip_benchmark.py benchmarks/multipart_benchmark.py benchmarks/request_benchmark.py benchmarks/response_benchmark.py benchmarks/routing_benchmark.py benchmarks/json_benchmark.py benchmarks/file_response_benchmark.py benchmarks/streaming_response_benchmark.py benchmarks/urlencoded_benchmark.py benchmarks/websocket_benchmark.py --codspeed"
+ },
+ "status": "passed",
+ "collected": 121,
+ "failed": [],
+ "why": null,
+ "wall_s": 38.7,
+ "image_notes": [
+  "python 3.11: from the CI's python-version (the oldest in its matrix)",
+  "pyproject requires-python: >=3.11",
+  "the CI's python-version: 3.11, 3.12, 3.13, 3.14, 3.15",
+  "image unbidden-deps-python:d7b638e3b42ecbef on linux/arm64"
+ ],
+ "python": "3.11",
+ "source": "CI benchmark.yml > benchmarks",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [
+  "left out, scripts/install only installs (the dependency image stands for it)"
+ ],
+ "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest benchmarks/gzip_benchmark.py benchmarks/multipart_benchmark.py benchmarks/request_benchmark.py benchmarks/response_benchmark.py benchmarks/routing_benchmark.py benchmarks/json_benchmark.py benchmarks/file_response_benchmark.py benchmarks/streaming_response_benchmark.py benchmarks/urlencoded_benchmark.py benchmarks/websocket_benchmark.py --codspeed"
+}

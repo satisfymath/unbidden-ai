@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import os
+import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -47,6 +47,17 @@ def default_branch(repo: Path) -> str:
     )
     if out.returncode == 0 and "/" in out.stdout:
         return out.stdout.strip().split("/", 1)[1]
+    # A shallow fetch of one commit sets no origin/HEAD: ask the remote (read-only, no credentials).
+    remote = subprocess.run(
+        ["git", "-C", str(repo), "ls-remote", "--symref", "origin", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=30,
+    )
+    found = re.search(r"^ref: refs/heads/(\S+)\s+HEAD$", remote.stdout, re.MULTILINE)
+    if remote.returncode == 0 and found:
+        return found.group(1)
     current = subprocess.run(
         ["git", "-C", str(repo), "branch", "--show-current"], capture_output=True, text=True, check=False
     ).stdout.strip()
@@ -72,7 +83,13 @@ def default_mandate(workspace: str, github_repo: str | None, base_branch: str = 
                 "use_new_capabilities": "require_approval",
             },
             "egress": {
-                "package_registries": ["registry.npmjs.org", "pypi.org", "files.pythonhosted.org"],
+                "package_registries": [
+                    "registry.npmjs.org",
+                    "pypi.org",
+                    "files.pythonhosted.org",
+                    "proxy.golang.org",
+                    "sum.golang.org",
+                ],
                 "remote_models": {"destinations": ["api.meta.ai"], "max_payload_bytes": 20000},
                 "github": {"repository": github_repo, "base_branch": base_branch, "max_open_pull_requests": 3},
             },
@@ -170,7 +187,9 @@ class Workspace:
             return bool(cached.get("public"))
         public = False
         try:
-            token = os.environ.get("GITHUB_TOKEN")
+            from unbidden.guardian.credentials import broker
+
+            token = broker().get("GITHUB_TOKEN", "github")
             headers = {
                 "Accept": "application/vnd.github+json",
                 **({"Authorization": f"Bearer {token}"} if token else {}),
@@ -189,11 +208,24 @@ class Workspace:
 
         The observed repository's `.env` is never read: its secrets are not ours to hold.
         """
-        for path in (self.dir / ".env", Path.home() / ".unbidden" / ".env"):
-            if not path.exists():
-                continue
-            for line in path.read_text().splitlines():
-                key, sep, value = line.partition("=")
-                key = key.strip()
-                if sep and key and not key.startswith("#"):
-                    os.environ.setdefault(key, value.strip().strip("'\""))
+        from unbidden.guardian.credentials import broker
+
+        # Into the credential broker, not the process environment (see guardian/credentials.py).
+        held = broker()
+        held.load([self.dir / ".env", Path.home() / ".unbidden" / ".env"])
+        held.grant("GITHUB_TOKEN", "github")
+        if self.initialized:
+            for provider in self.config().providers.values():
+                if provider.key_env:
+                    held.grant(provider.key_env, "model.remote")
+            mandate = self.mandate()
+            held.grant(mandate.egress.github.token_env, "github")
+            probe = mandate.operations.probe_auth
+            if probe is not None:
+                held.grant(probe.username_env, "probe")
+                held.grant(probe.password_env, "probe")
+            from unbidden.connect.base import purpose
+
+            for grant in mandate.connections:  # each credential to its own connection, and to nothing else
+                if grant.credential_ref:
+                    held.grant(grant.credential_ref, purpose(grant.id))

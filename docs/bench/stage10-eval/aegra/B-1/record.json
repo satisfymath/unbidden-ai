@@ -1,0 +1,20 @@
+{
+ "app": "aegra",
+ "run": "B-1",
+ "mode": "proactive",
+ "restored": {
+  "commit": "46055c0b9adffe51fb168974f79dfadaa6edd612",
+  "data": {
+   "assistant": 200,
+   "thread": 20000,
+   "runs": 200000
+  }
+ },
+ "usd_before": 24.9082,
+ "interventions": [],
+ "wall_s": 166.7,
+ "repo_after": "",
+ "branches_after": [],
+ "usd_after": 25.0668,
+ "workspace": "/Users/david/unbidden-lab/aegra-runs/aegra-B-1"
+}

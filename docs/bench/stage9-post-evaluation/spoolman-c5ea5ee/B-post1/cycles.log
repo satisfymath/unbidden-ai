@@ -1,0 +1,77 @@
+== cycle 1 (exit 0)
+04:14:38 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+04:14:52 HEAD is bed3f14ee77a
+04:14:54 deploy procedure found, proposed only: docker compose -f 
+tests_frontend/docker-compose.yml up -d --wait
+04:14:54 deploy procedure found, proposed only: docker compose -f 
+tests_frontend_v2/docker-compose.yml up -d --wait
+04:14:54 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability
+04:14:55 provisioning python dependencies
+04:14:55 running ruff
+04:14:55 scan of bed3f14ee77a: 1 reports, 0 new opportunities
+04:18:35 map of bed3f14ee77a: 67 resources, 4 blind spots
+04:18:36 robustness probe at bed3f14ee77a: investigate (probe tests_integration 
+(80 public functions sampled))
+04:18:38 the project's own checks at bed3f14ee77a: passed (278 collected, 0 
+failed)
+04:18:39 opp_4786e7f90fec42a1: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+04:18:39 writing property tests for tests_integration
+04:18:57 running them offline
+04:19:01 round 1: 1 property violation(s) sent back
+04:19:25 robustness probe of tests_integration: 8 failed, 6 passed in 4.31s; 0 
+crash(es), 0 new; 0 property violation(s) kept for a person (L1)
+04:19:26 asking the local model for the schema change (attempt 1)
+04:19:49 asking the local model for the schema change (attempt 2)
+04:20:18 writing the workload (attempt 1)
+04:21:12 measuring the base
+04:21:13 writing the workload (attempt 2)
+04:21:16 measuring the base
+04:21:17 measuring 4 sessions per side, alternating
+04:21:29 running the CI test job on both sides
+04:21:39 opp_4786e7f90fec42a1: no proven fix (PUT /spool/{spool_id}/measure: 
+session medians 0.00 -> 0.00 ms (-0% faster), permutation p = 1 (slower: 
+0.0714), 95% interval of the effect [-2%, +0%]; no change of 20% or more either 
+way)
+04:21:39 opp_4786e7f90fec42a1: run_experiment (reproduce it and measure a 
+candidate offline (p 0.20 from the lab's history of this kind))
+04:21:41 asking the local model for the schema change (attempt 1)
+04:22:06 asking the local model for the schema change (attempt 2)
+04:22:31 writing the workload (attempt 1)
+04:23:40 measuring the base
+04:23:42 writing the workload (attempt 2)
+04:24:28 measuring the base
+04:24:30 writing the workload (attempt 3)
+04:25:07 writing the workload (attempt 4)
+04:25:57 measuring the base
+04:25:59 writing the workload (attempt 5)
+04:26:25 measuring the base
+04:26:27 opp_4786e7f90fec42a1: not measured (cannot measure: no workload ran at 
+the base after 5 attempts (workload attempt 5 failed: E           
+AssertionError: warm-up returned HTTP 404))
+04:26:28 opp_4786e7f90fec42a1: wait (not measurable at this commit: cannot 
+measure: no workload ran at the base after 5 attempts (workload attempt 5 
+failed: E           AssertionError: warm-up returned HTTP 404))
+
+
+== cycle 2 (exit 0)
+04:26:28 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+04:26:29 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability
+
+
+== cycle 3 (exit 0)
+04:26:30 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+04:26:31 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability
+
+
+== cycle 4 (exit 0)
+04:26:31 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+04:26:32 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability

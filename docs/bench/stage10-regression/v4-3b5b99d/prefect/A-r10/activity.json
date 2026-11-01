@@ -1,0 +1,346 @@
+{
+  "workspace": "prefect",
+  "at": "2026-10-30T20:12:21.853387+00:00",
+  "discovered": {
+    "total": 511,
+    "by_status": {
+      "open": 230,
+      "declined": 281
+    }
+  },
+  "experimenting": [],
+  "declined_because": [
+    [
+      "the team's CI does not run ruff: its style is not the team's standard",
+      281
+    ]
+  ],
+  "waiting_because": [
+    [
+      "investigation queued or running",
+      1
+    ]
+  ],
+  "proven": [],
+  "project_checks": {
+    "rev": "1ef3e516d3b3449d19f65b30c45d1e0bff656396",
+    "at": "2026-10-30T20:05:22.239183+00:00",
+    "status": "infra_failed",
+    "collected": null,
+    "failed": [
+      "<suite>"
+    ],
+    "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nset +e\npytest tests --ignore=tests/typesafety  -m \"not windows\"  --numprocesses logical  --maxprocesses 6  --dist worksteal  --disable-",
+    "scope": "matrix entry 1 of 18 (group=1, database=postgres:14, python-version=3.12); pytest-split group 1 of 18",
+    "partial": true,
+    "notes": [
+      "2 step(s) after the tests left out (they run no tests)",
+      "left out, it needs another job's artifact (test-durations-1.json): duration_path=\"test-durations-1.json\"",
+      "left out, it needs another job's artifact (test-durations.json): jq '.\"__pytest_split_incomplete__\" = -1'  test-durations.json > \"$duration_path\""
+    ]
+  },
+  "experiments_wait": {
+    "rev": "1ef3e516d3b3449d19f65b30c45d1e0bff656396",
+    "why": "the project's own checks were not reproduced at 1ef3e516d3b3 (infra_failed: )"
+  },
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {
+      "in_use": 1,
+      "blocked": 1,
+      "abandoned": 2
+    },
+    "awaiting_approval": [],
+    "in_use": [
+      {
+        "kind": "api_client",
+        "source": "http_api:http://127.0.0.1:18140"
+      }
+    ]
+  },
+  "spent": {
+    "calls": 226,
+    "usd": 1.1148,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18140",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "count_flows_flows_count_post",
+        "count_flow_runs_flow_runs_count_post",
+        "count_task_runs_task_runs_count_post",
+        "count_deployments_deployments_count_post"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T20:11:47.818009+00:00"
+    },
+    {
+      "id": "postgres:127.0.0.1:55470/prefect",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.agent",
+        "select public.alembic_version",
+        "select public.artifact",
+        "select public.artifact_collection",
+        "select public.automation",
+        "select public.automation_bucket",
+        "select public.automation_event_follower",
+        "select public.automation_held_event",
+        "select public.automation_related_resource",
+        "select public.block_document",
+        "select public.block_document_reference",
+        "select public.block_schema",
+        "select public.block_schema_reference",
+        "select public.block_type",
+        "select public.composite_trigger_child_firing",
+        "select public.concurrency_limit",
+        "select public.concurrency_limit_v2",
+        "select public.configuration",
+        "select public.csrf_token",
+        "select public.deployment",
+        "select public.deployment_schedule",
+        "select public.deployment_version",
+        "select public.event_resources",
+        "select public.events",
+        "select public.flow",
+        "select public.flow_run",
+        "select public.flow_run_input",
+        "select public.flow_run_state",
+        "select public.log",
+        "select public.saved_search",
+        "select public.task_run",
+        "select public.task_run_state",
+        "select public.task_run_state_cache",
+        "select public.variable",
+        "select public.work_pool",
+        "select public.work_queue",
+        "select public.worker"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T20:11:47.796862+00:00"
+    }
+  ],
+  "needs_a_person": [],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [
+    {
+      "id": "int_45fd151ad0554037",
+      "title": "Prefect REST API",
+      "on": "http_api:http://127.0.0.1:18140",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "count_flows_flows_count_post": "read",
+        "read_flows_flows_filter_post": "read",
+        "count_flow_runs_flow_runs_count_post": "read",
+        "read_flow_runs_flow_runs_filter_post": "read",
+        "count_task_runs_task_runs_count_post": "read",
+        "read_task_runs_task_runs_filter_post": "read",
+        "count_deployments_deployments_count_post": "read",
+        "read_deployments_deployments_filter_post": "read",
+        "count_artifacts_artifacts_count_post": "read",
+        "read_artifacts_artifacts_filter_post": "read",
+        "count_latest_artifacts_artifacts_latest_count_post": "read",
+        "read_latest_artifacts_artifacts_latest_filter_post": "read",
+        "count_variables_variables_count_post": "read",
+        "read_variables_variables_filter_post": "read",
+        "count_automations_automations_count_post": "read",
+        "read_automations_automations_filter_post": "read",
+        "count_block_documents_block_documents_count_post": "read",
+        "count_work_pools_work_pools_count_post": "read",
+        "read_work_pools_work_pools_filter_post": "read",
+        "read_events_events_filter_post": "write"
+      },
+      "oracle": {
+        "count_artifacts_artifacts_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_automations_automations_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_block_documents_block_documents_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_deployments_deployments_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_flow_runs_flow_runs_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_flows_flows_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_latest_artifacts_artifacts_latest_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_task_runs_task_runs_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_variables_variables_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_work_pools_work_pools_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "read_artifacts_artifacts_filter_post": "200, 0 records, read complete (count_artifacts_artifacts_count_post says 0 before and after, the distinct records read; no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); page size 100: 0 records (complete); page size 1: 0 (unknown); 0 differ; without the key: 200",
+        "read_automations_automations_filter_post": "200, 0 records, read complete (count_automations_automations_count_post says 0 before and after, the distinct records read; no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); page size 100: 0 records (complete); page size 1: 0 (unknown); 0 differ; without the key: 200",
+        "read_deployments_deployments_filter_post": "200, 0 records, read complete (count_deployments_deployments_count_post says 0 before and after, the distinct records read; no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); page size 100: 0 records (complete); page size 1: 0 (unknown); 0 differ; without the key: 200",
+        "read_events_events_filter_post": "not exercised: the grant prefect-api allows ['read'], not write:events",
+        "read_flow_runs_flow_runs_filter_post": "200, 10000 records, read complete (count_flow_runs_flow_runs_count_post says 10000 before and after, the distinct records read; no total confirmed (no count beside the records); 10000 distinct records, an empty page at offset 10000); page size 100: 10000 records (complete); page size 99: 10000 (unknown); 0 differ; without the key: 200",
+        "read_flows_flows_filter_post": "200, 50 records, read complete (count_flows_flows_count_post says 50 before and after, the distinct records read; no total confirmed (no count beside the records); 50 distinct records, a short page (50 < 100) at the end); page size 100: 50 records (complete); page size 16: 50 (unknown); 0 differ; without the key: 200",
+        "read_latest_artifacts_artifacts_latest_filter_post": "200, 0 records, read complete (count_latest_artifacts_artifacts_latest_count_post says 0 before and after, the distinct records read; no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); page size 100: 0 records (complete); page size 1: 0 (unknown); 0 differ; without the key: 200",
+        "read_task_runs_task_runs_filter_post": "200, 30000 records, read complete (count_task_runs_task_runs_count_post says 30000 before and after, the distinct records read; no total confirmed (no count beside the records); 30000 distinct records, an empty page at offset 30000); page size 100: 30000 records (complete); page size 99: 30000 (unknown); 0 differ; without the key: 200",
+        "read_variables_variables_filter_post": "200, 0 records, read complete (count_variables_variables_count_post says 0 before and after, the distinct records read; no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); page size 100: 0 records (complete); page size 1: 0 (unknown); 0 differ; without the key: 200",
+        "read_work_pools_work_pools_filter_post": "200, 0 records, read complete (count_work_pools_work_pools_count_post says 0 before and after, the distinct records read; no total confirmed (no count beside the records); 0 distinct records, an empty page at offset 0); page size 100: 0 records (complete); page size 1: 0 (unknown); 0 differ; without the key: 200"
+      }
+    },
+    {
+      "id": "int_4f92ff5dc13e47b9",
+      "title": "Prefect REST API",
+      "on": "http_api:http://127.0.0.1:18140",
+      "status": "validated",
+      "how": "built",
+      "operations": {
+        "count_flows_flows_count_post": "read",
+        "count_flow_runs_flow_runs_count_post": "read",
+        "count_task_runs_task_runs_count_post": "read",
+        "count_deployments_deployments_count_post": "read"
+      },
+      "oracle": {
+        "count_deployments_deployments_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_flow_runs_flow_runs_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_flows_flows_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_task_runs_task_runs_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200"
+      }
+    },
+    {
+      "id": "int_b667c5dc86dba03f",
+      "title": "Prefect REST API",
+      "on": "http_api:http://127.0.0.1:18140",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "count_flows_flows_count_post": "read",
+        "count_flow_runs_flow_runs_count_post": "read",
+        "count_task_runs_task_runs_count_post": "read",
+        "count_deployments_deployments_count_post": "read",
+        "read_account_events_page_events_filter_next_get": "read"
+      },
+      "oracle": {
+        "count_deployments_deployments_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_flow_runs_flow_runs_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_flows_flows_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_task_runs_task_runs_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "read_account_events_page_events_filter_next_get": "read failed: read_account_events_page_events_filter_next_get needs page-token; None, 0 records, read not at all (); ; without the key: None"
+      }
+    },
+    {
+      "id": "int_8b2856e94be4498f",
+      "title": "Prefect REST API",
+      "on": "http_api:http://127.0.0.1:18140",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "count_flows_flows_count_post": "read",
+        "count_flow_runs_flow_runs_count_post": "read",
+        "count_task_runs_task_runs_count_post": "read",
+        "count_deployments_deployments_count_post": "read",
+        "read_flow_runs_flow_runs_filter_post": "read"
+      },
+      "oracle": {
+        "count_deployments_deployments_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_flow_runs_flow_runs_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_flows_flows_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "count_task_runs_task_runs_count_post": "200, 0 records, read complete (the document declares no pagination; one response); no other page size to read with; without the key: 200",
+        "read_flow_runs_flow_runs_filter_post": "200, 10000 records, read complete (count_flow_runs_flow_runs_count_post says 10000 before and after, the distinct records read; no total confirmed (no count beside the records); 10000 distinct records, an empty page at offset 10000); page size 100: 10000 records (complete); page size 99: 10000 (unknown); 0 differ; without the key: 200"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "data-correct-and-fast",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for prefect-api",
+      "at": "2026-10-30T20:05:33.487998+00:00"
+    },
+    {
+      "goal": "data-correct-and-fast",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read count_task_runs_by_flow_run_ui_flow_runs_count_task_runs_post added to the integration (open)",
+      "at": "2026-10-30T20:08:10.287839+00:00"
+    },
+    {
+      "goal": "consistency-opp_07c2f67f5752460e",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read read_account_events_page_events_filter_next_get added to the integration (open)",
+      "at": "2026-10-30T20:08:22.283070+00:00"
+    },
+    {
+      "goal": "consistency-opp_07c2f67f5752460e",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read read_account_events_page_events_filter_next_get added to the integration (abandoned)",
+      "at": "2026-10-30T20:09:09.672217+00:00"
+    },
+    {
+      "goal": "data-correct-and-fast",
+      "status": "waiting_extension",
+      "short": 0,
+      "actions": 0,
+      "note": "needs the read read_flow_runs_flow_runs_filter_post added to the integration (open)",
+      "at": "2026-10-30T20:09:41.133910+00:00"
+    },
+    {
+      "goal": "data-correct-and-fast",
+      "status": "investigated",
+      "short": 0,
+      "actions": 0,
+      "note": "0 of 0 keys short; nothing to change",
+      "at": "2026-10-30T20:10:53.210582+00:00"
+    }
+  ]
+}

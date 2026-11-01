@@ -1,0 +1,55 @@
+== cycle 1 (exit 0)
+03:35:18 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+03:35:32 HEAD is bed3f14ee77a
+03:35:34 deploy procedure found, proposed only: docker compose -f 
+tests_frontend/docker-compose.yml up -d --wait
+03:35:34 deploy procedure found, proposed only: docker compose -f 
+tests_frontend_v2/docker-compose.yml up -d --wait
+03:35:34 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability
+03:35:34 provisioning python dependencies
+03:35:56 running ruff
+03:35:57 scan of bed3f14ee77a: 1 reports, 0 new opportunities
+03:39:40 map of bed3f14ee77a: 67 resources, 4 blind spots
+03:39:41 robustness probe at bed3f14ee77a: investigate (probe tests_integration 
+(80 public functions sampled))
+03:39:43 the project's own checks at bed3f14ee77a: passed (278 collected, 0 
+failed)
+03:39:43 opp_fe8b09eb3a964d6b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+03:39:43 opp_1ed35b26368148fe: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+03:39:44 writing property tests for tests_integration
+03:40:00 running them offline
+03:40:03 robustness probe of tests_integration: 1 failed, 2 passed in 1.97s; 0 
+crash(es), 0 new; 0 property violation(s) kept for a person (L1)
+03:40:04 opp_fe8b09eb3a964d6b: not measured (cannot measure: no a CI job that 
+runs the tests)
+03:40:04 opp_fe8b09eb3a964d6b: wait (not measurable at this commit: cannot 
+measure: no a CI job that runs the tests)
+03:40:05 opp_1ed35b26368148fe: not measured (cannot measure: no a CI job that 
+runs the tests)
+03:40:06 opp_1ed35b26368148fe: wait (not measurable at this commit: cannot 
+measure: no a CI job that runs the tests)
+
+
+== cycle 2 (exit 0)
+03:40:06 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+03:40:07 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability
+
+
+== cycle 3 (exit 0)
+03:40:08 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+03:40:08 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability
+
+
+== cycle 4 (exit 0)
+03:40:08 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+03:40:09 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability

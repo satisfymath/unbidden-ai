@@ -27,12 +27,23 @@ TASKS: dict[str, TaskSpec] = {
     "lab.fix_candidate": TaskSpec("heavy"),
     "lab.perf_candidate": TaskSpec("heavy"),
     "lab.workload": TaskSpec("heavy"),
+    "lab.perf_request": TaskSpec("light"),  # picks a request among documented operations: data, not code
     "lab.robust_fix": TaskSpec("heavy"),
     "research.robustness": TaskSpec("heavy"),
     "forge.tests": TaskSpec("light"),
     "forge.adapter": TaskSpec("heavy"),
     "forge.adapter.bridge": TaskSpec("heavy", escalate=False),
+    "forge.stats": TaskSpec("heavy", escalate=False),
+    "forge.stats.bridge": TaskSpec("heavy", escalate=False),
     "bridge.solve": TaskSpec("heavy", escalate=False),
+    # Stage 4: reading an API's documentation for a need, and planning a goal over connected systems. Remote first
+    # when every connection involved lets its content leave; the local model otherwise, or as recorded fallback.
+    "forge.api_client": TaskSpec("heavy"),
+    # Stage 5: comparing what a page shows with the data (text, or with screenshots, only remote), and fixing the
+    # application's code when they differ.
+    "director.page_check": TaskSpec("heavy"),
+    "lab.page_fix": TaskSpec("heavy"),
+    "director.goal_plan": TaskSpec("heavy"),
 }
 
 
@@ -49,10 +60,13 @@ TYPICAL_SOURCES: dict[str, tuple[Source, ...]] = {
     "lab.fix_candidate": ("repo",),
     "lab.perf_candidate": ("repo",),
     "lab.workload": ("repo",),
+    "lab.perf_request": ("repo",),
     "lab.robust_fix": ("repo",),
     "research.robustness": ("repo",),
     "forge.tests": ("runtime",),
     "forge.adapter": ("runtime",),
     "forge.adapter.bridge": ("synthetic",),
+    "forge.stats": ("runtime",),
+    "forge.stats.bridge": ("synthetic",),
     "bridge.solve": ("synthetic",),
 }

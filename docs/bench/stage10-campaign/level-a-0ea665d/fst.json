@@ -1,0 +1,61 @@
+{
+ "repo": "/Users/david/unbidden-lab/reval/fst-dec7ba2",
+ "rev": "f4bcfaba7c85be3c6332cc74a20819f586dcdbc6",
+ "stack": {
+  "python": "3.14",
+  "why": [
+   "python 3.14: from the project's Dockerfile",
+   "the project's Dockerfile: 3.14",
+   ".python-version: 3.14"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": "uv.lock",
+  "members": [
+   "backend"
+  ],
+  "source_roots": [
+   "backend",
+   "src",
+   "."
+  ],
+  "test_paths": [
+   "backend/tests"
+  ],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:bcc1d056c66bf06a",
+ "plan": {
+  "source": "CI test-backend.yml > test-backend",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [
+   "2 step(s) after the tests left out (they run no tests)"
+  ],
+  "services": [
+   "db"
+  ],
+  "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work/backend\nbash scripts/prestart.sh\ncd /work/backend\nbash scripts/tests-start.sh \"Coverage for \""
+ },
+ "status": "passed",
+ "collected": 58,
+ "failed": [],
+ "why": null,
+ "failures": {},
+ "wall_s": 10.3,
+ "image_notes": [
+  "python 3.14: from the project's Dockerfile",
+  "the project's Dockerfile: 3.14",
+  ".python-version: 3.14",
+  "image unbidden-deps-python:bcc1d056c66bf06a on linux/arm64"
+ ],
+ "python": "3.14",
+ "source": "CI test-backend.yml > test-backend",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [
+  "2 step(s) after the tests left out (they run no tests)"
+ ],
+ "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work/backend\nbash scripts/prestart.sh\ncd /work/backend\nbash scripts/tests-start.sh \"Coverage for \""
+}

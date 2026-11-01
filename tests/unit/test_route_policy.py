@@ -64,3 +64,16 @@ def test_the_text_itself_can_only_make_it_stricter() -> None:
     assert classify([m("contact maria.perez@acme.cl", "repo")], repo_public=True).label is L.PRODUCTION_DATA
     assert classify([m("client 181.43.2.10 connected", "repo")], repo_public=True).label is L.PRODUCTION_DATA
     assert classify([m("admin@example.com on 127.0.0.1", "repo")], repo_public=True).label is L.PUBLIC_CODE
+
+
+@pytest.mark.parametrize("purpose", ["forge.api_client", "director.goal_plan"])
+def test_planning_and_reading_documentation_go_remote_only_when_their_content_may_leave(purpose: str) -> None:
+    from unbidden.brain.route_policy import decide_route
+    from unbidden.brain.tasks import task_for
+    from unbidden.contracts.llm import ContentLabel, Tier
+
+    lab = decide_route("local-first", task_for(purpose), ContentLabel.SYNTHETIC)
+    assert lab.tier is Tier.CODE and lab.fallback is Tier.LOCAL and lab.remote_allowed
+    real = decide_route("local-first", task_for(purpose), ContentLabel.PRODUCTION_DATA)
+    assert real.tier is Tier.LOCAL and not real.remote_allowed
+    assert decide_route("local", task_for(purpose), ContentLabel.SYNTHETIC).tier is Tier.LOCAL

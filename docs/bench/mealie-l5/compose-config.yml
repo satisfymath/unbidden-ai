@@ -1,0 +1,38 @@
+name: mealie-sqlite
+services:
+  mealie:
+    build:
+      context: /Users/david/mealie-sqlite
+      dockerfile: ./docker/Dockerfile
+      target: production
+    container_name: mealie-sqlite
+    environment:
+      ALLOW_SIGNUP: "false"
+      DB_ENGINE: sqlite
+      LOG_LEVEL: DEBUG
+      POSTGRES_DB: mealie
+      POSTGRES_PASSWORD: mealie
+      POSTGRES_PORT: "5432"
+      POSTGRES_SERVER: postgres
+      POSTGRES_USER: mealie
+    image: mealie-sqlite:l5
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 9000
+        published: "9092"
+        protocol: tcp
+    restart: always
+    volumes:
+      - type: volume
+        source: mealie-data
+        target: /app/data
+        volume: {}
+networks:
+  default:
+    name: mealie-sqlite_default
+volumes:
+  mealie-data:
+    name: mealie-sqlite_mealie-data
+    driver: local

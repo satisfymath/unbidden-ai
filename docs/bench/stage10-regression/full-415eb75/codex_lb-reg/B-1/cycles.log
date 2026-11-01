@@ -1,0 +1,142 @@
+== cycle 1 (exit 0)
+16:13:26 watching /Users/david/unbidden-lab/codex-lb (ctrl-c to stop, `unbidden 
+kill` to freeze)
+16:13:40 HEAD is 84fde5a1ed5e
+16:13:42 connections: postgres:127.0.0.1:55480/codex_lb connected, 
+http_api:http://127.0.0.1:18150 needs_capability
+16:13:45 provisioning python dependencies
+16:13:45 running ruff
+16:13:47 provisioning node dependencies of frontend
+16:13:47 scan of 84fde5a1ed5e: 1 reports, 0 new opportunities
+16:16:01 map of 84fde5a1ed5e: 218 resources, 3 blind spots
+16:16:06 robustness probe at 84fde5a1ed5e: investigate (probe app (80 public 
+functions sampled))
+16:18:31 the project's own checks at 84fde5a1ed5e: failed (6422 collected, 34 
+failed)
+16:18:37 opp_9011eb6b4dca4a09: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+16:18:37 opp_6fc938eb640f45b3: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:18:37 opp_8d480aac32b54a6f: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:18:37 opp_ba6cfc2981584181: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:18:37 opp_bc84783507424139: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:18:37 opp_4706fee41edf4579: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:18:37 opp_5fe81db8196c470a: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:18:37 opp_531caf8285794fda: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:18:37 opp_1a476280ab3749fb: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:18:37 opp_4e1f8e80937f404c: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:18:37 opp_7dac96efb71d41b5: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:18:45 opp_6fc938eb640f45b3: consistency of GET /api/automations: 
+waiting_capability: needs an integration for codex_lb-api
+16:18:50 capability need api_client for http_api:http://127.0.0.1:18150: failed
+16:18:56 opp_8d480aac32b54a6f: consistency of GET /api/automations/runs: 
+waiting_capability: needs an integration for codex_lb-api
+16:19:07 capability need api_client for http_api:http://127.0.0.1:18150: 
+abandoned
+16:19:07 opp_ba6cfc2981584181: consistency of GET 
+/api/conversation-archive/records: blocked without a model call: 
+http_api:http://127.0.0.1:18150: 
+get_automation_run_details_api_automations_runs__run_id__details_get: no listed 
+record carries its path parameters
+16:19:07 opp_6fc938eb640f45b3: consistency of GET /api/automations: blocked 
+without a model call: http_api:http://127.0.0.1:18150: 
+get_automation_run_details_api_automations_runs__run_id__details_get: no listed 
+record carries its path parameters
+16:19:07 opp_8d480aac32b54a6f: consistency of GET /api/automations/runs: blocked
+without a model call: http_api:http://127.0.0.1:18150: 
+get_automation_run_details_api_automations_runs__run_id__details_get: no listed 
+record carries its path parameters
+16:19:13 opp_6fc938eb640f45b3: wait (blocked: http_api:http://127.0.0.1:18150: 
+get_automation_run_details_api_automations_runs__run_id__details_get: no listed 
+record carries its path parameters)
+16:19:13 opp_8d480aac32b54a6f: wait (blocked: http_api:http://127.0.0.1:18150: 
+get_automation_run_details_api_automations_runs__run_id__details_get: no listed 
+record carries its path parameters)
+16:19:13 opp_ba6cfc2981584181: wait (blocked: http_api:http://127.0.0.1:18150: 
+get_automation_run_details_api_automations_runs__run_id__details_get: no listed 
+record carries its path parameters)
+16:19:13 opp_bc84783507424139: consistency of GET /api/conversations: blocked 
+without a model call: http_api:http://127.0.0.1:18150: 
+get_automation_run_details_api_automations_runs__run_id__details_get: no listed 
+record carries its path parameters
+16:19:13 opp_4706fee41edf4579: consistency of GET /api/dashboard/overview: 
+blocked without a model call: http_api:http://127.0.0.1:18150: 
+get_automation_run_details_api_automations_runs__run_id__details_get: no listed 
+record carries its path parameters
+16:19:13 opp_5fe81db8196c470a: consistency of GET /api/fleet/observability: 
+blocked without a model call: it needs http:bearer
+16:19:13 writing property tests for app
+16:19:23 running them offline
+16:19:29 robustness probe of app: 1 failed, 7 passed in 1.77s; 0 crash(es), 0 
+new; 0 property violation(s) kept for a person (L1)
+16:19:39 asking the local model for the schema change (attempt 1)
+16:19:56 asking the local model for the schema change (attempt 2)
+16:20:14 opp_9011eb6b4dca4a09: not measured (cannot measure: no candidate change
+keeps the project's own checks clean (candidate attempt 1 added 7 finding(s); 
+candidate attempt 2 added 1 finding(s)))
+16:20:20 opp_9011eb6b4dca4a09: wait (not measurable at this commit: cannot 
+measure: no candidate change keeps the project's own checks clean (candidate 
+attempt 1 added 7 finding(s); candidate attempt 2 added 1 finding(s)))
+16:20:20 opp_bc84783507424139: wait (blocked: http_api:http://127.0.0.1:18150: 
+get_automation_run_details_api_automations_runs__run_id__details_get: no listed 
+record carries its path parameters)
+16:20:20 opp_4706fee41edf4579: wait (blocked: http_api:http://127.0.0.1:18150: 
+get_automation_run_details_api_automations_runs__run_id__details_get: no listed 
+record carries its path parameters)
+16:20:20 opp_5fe81db8196c470a: wait (blocked: GET /api/fleet/observability 
+accepts http:bearer; the granted credential is not of that kind)
+16:20:20 opp_531caf8285794fda: consistency of GET /api/reports: blocked without 
+a model call: http_api:http://127.0.0.1:18150: 
+get_automation_run_details_api_automations_runs__run_id__details_get: no listed 
+record carries its path parameters
+16:20:20 opp_1a476280ab3749fb: consistency of GET /api/request-logs: blocked 
+without a model call: http_api:http://127.0.0.1:18150: 
+get_automation_run_details_api_automations_runs__run_id__details_get: no listed 
+record carries its path parameters
+16:20:20 opp_4e1f8e80937f404c: consistency of GET /api/sticky-sessions: blocked 
+without a model call: http_api:http://127.0.0.1:18150: 
+get_automation_run_details_api_automations_runs__run_id__details_get: no listed 
+record carries its path parameters
+
+
+== cycle 2 (exit 0)
+16:20:21 watching /Users/david/unbidden-lab/codex-lb (ctrl-c to stop, `unbidden 
+kill` to freeze)
+16:20:27 connections: postgres:127.0.0.1:55480/codex_lb connected, 
+http_api:http://127.0.0.1:18150 needs_capability
+16:20:33 opp_531caf8285794fda: wait (blocked: http_api:http://127.0.0.1:18150: 
+get_automation_run_details_api_automations_runs__run_id__details_get: no listed 
+record carries its path parameters)
+16:20:33 opp_1a476280ab3749fb: wait (blocked: http_api:http://127.0.0.1:18150: 
+get_automation_run_details_api_automations_runs__run_id__details_get: no listed 
+record carries its path parameters)
+16:20:33 opp_4e1f8e80937f404c: wait (blocked: http_api:http://127.0.0.1:18150: 
+get_automation_run_details_api_automations_runs__run_id__details_get: no listed 
+record carries its path parameters)
+16:20:33 opp_7dac96efb71d41b5: consistency of GET /v1/usage: blocked without a 
+model call: it needs http:bearer
+
+
+== cycle 3 (exit 0)
+16:20:34 watching /Users/david/unbidden-lab/codex-lb (ctrl-c to stop, `unbidden 
+kill` to freeze)
+16:20:40 connections: postgres:127.0.0.1:55480/codex_lb connected, 
+http_api:http://127.0.0.1:18150 needs_capability
+16:20:45 opp_7dac96efb71d41b5: wait (blocked: GET /v1/usage accepts http:bearer;
+the granted credential is not of that kind)
+
+
+== cycle 4 (exit 0)
+16:20:45 watching /Users/david/unbidden-lab/codex-lb (ctrl-c to stop, `unbidden 
+kill` to freeze)
+16:20:46 connections: postgres:127.0.0.1:55480/codex_lb connected, 
+http_api:http://127.0.0.1:18150 needs_capability

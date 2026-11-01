@@ -1,0 +1,35 @@
+mandate:
+  workspace: mealie-sqlite
+  priorities:
+  - correctness
+  business_constraints:
+    maximum_monthly_spend_usd: 0
+  autonomy:
+    observe: allow
+    run_experiments: deny
+    provision_dependencies: allow
+    delegate_synthetic: deny
+    open_pull_requests: deny
+    merge_pull_requests: deny
+    deploy: allow
+    rollback: deny
+    use_new_capabilities: deny
+  egress:
+    package_registries:
+    - pypi.org
+    - files.pythonhosted.org
+    - deb.debian.org
+    remote_models:
+      destinations: []
+  evaluation:
+    minimum_evidence_for_proposal: 4
+  models:
+    profile: local
+  operations:
+    deploy_steps:
+    - [docker, compose, -p, mealie-sqlite, -f, docker/docker-compose.yml, -f, /Users/david/unbidden-l5/mealie-sqlite.override.yml, up, -d, --build, --wait, mealie]
+    probe_every_s: 5
+    probe_auth:
+      username_env: UNBIDDEN_PROBE_USERNAME
+      password_env: UNBIDDEN_PROBE_PASSWORD
+    guard_samples: 15

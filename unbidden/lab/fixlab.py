@@ -7,11 +7,12 @@ quarantined before anything is measured.
 
 from __future__ import annotations
 
+import asyncio
 import difflib
 import hashlib
 import re
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from unbidden.brain.codeblocks import CodeBlockError, parse_files
@@ -25,16 +26,23 @@ from unbidden.contracts.experiment import Experiment, TestSummary, Verdict
 from unbidden.contracts.finding import AnalyzerReport, Finding
 from unbidden.contracts.llm import LLMRequest, Message, Tier
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
+from unbidden.guardian.policy import PolicyEngine
+from unbidden.lab.context import SpliceError, payload_bytes, splice
+from unbidden.lab.context import render as render_context
+from unbidden.lab.context import select as select_context
 from unbidden.lab.evaluator import CRITERIA, evaluate_fix
 from unbidden.lab.testsuite import TestPlan, run_suite, test_plan
+from unbidden.languages import adapter, adapter_for_path
+from unbidden.observe.ci import ci_commands, ci_python_versions, runs_tool
 from unbidden.observe.stack import Stack
-from unbidden.sandbox.provision import DependencyImage, link_dependencies, sandbox_spec
+from unbidden.provenance import provenance
+from unbidden.sandbox.provision import DependencyImage, ProvisionError, link_dependencies, provision, sandbox_spec
 from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
-from unbidden.sandbox.tools import Tool, tool_named, tools_for
+from unbidden.sandbox.tools import Tool, every_finding, tool_named, tools_for
 from unbidden.store import Store
 
 ACTOR = "lab"
-MAX_PROMPT_FILE_BYTES = 60_000
+PAYLOAD_ENVELOPE = 600  # JSON keys, the schema field and the repair message around the prompt
 SUPPRESSION = re.compile(
     r"@ts-ignore|@ts-expect-error|@ts-nocheck|eslint-disable|biome-ignore|#\s*type:\s*ignore|#\s*noqa"
     r"|pyright:\s*ignore|#\s*pragma:\s*no\s*cover"
@@ -44,7 +52,7 @@ Progress = Callable[[str], None]
 
 @dataclass
 class Candidate:
-    origin: str  # "tool" | "model"
+    origin: str  # "tool" | "rule" (Unbidden, from the finding) | "model" | "frontier"
     files: dict[str, str]
     patch: str
 
@@ -59,6 +67,14 @@ class LabResult:
     verdict: Verdict | None
     candidate: Candidate | None
     notes: list[str] = field(default_factory=list[str])
+    blocked: str | None = None  # what kept the lab from judging at all: not an experiment, not a negative result
+
+
+@dataclass(frozen=True)
+class Parity:
+    checked: str | None = None  # the CI's Python under which the candidate was also clean
+    broke: str | None = None  # why the candidate fails the CI's checks there
+    unverified: str | None = None  # why parity could not be checked
 
 
 def unified_patch(base: Path, files: dict[str, str]) -> str:
@@ -110,6 +126,7 @@ class FixLab:
         self.bridge_first = bridge_first
         self.rounds = rounds
         self.repairs = repairs
+        self.context_notes: list[str] = []  # how each request's code was chosen, and answers that could not be used
         self.progress = progress
 
     # Sandbox helpers -----------------------------------------------------------------------------------
@@ -127,7 +144,8 @@ class FixLab:
         reports: list[AnalyzerReport] = []
         for tool in tools:
             result = self.runner.run(sandbox_spec(image, list(tool.argv), cwd=tool.cwd), work)
-            reports.append(tool.report(result, list(tool.argv)))
+            with every_finding():  # compared before and after a fix: all of them, not the scan's capped list
+                reports.append(tool.report(result, list(tool.argv)))
         return reports
 
     # Candidates ----------------------------------------------------------------------------------------
@@ -159,24 +177,27 @@ class FixLab:
         base = snapshot(self.repo, rev)
         try:
             paths = sorted({f.path for f in findings})
-            blocks: list[str] = []
-            size = 0
-            for path in paths:
-                text = (base / path).read_text(errors="replace")
-                size += len(text)
-                if size > MAX_PROMPT_FILE_BYTES:
-                    return None
-                blocks.append(f"`{path}`:\n```\n{text}```")
-            language = "Python" if paths[0].endswith(".py") else "TypeScript/JavaScript"
-            prompt = load_prompt("fix_findings")
-            content = prompt.render(
-                language=language,
-                suppressions="`# type: ignore`, `# noqa`" if language == "Python" else "`@ts-ignore`, `eslint-disable`",
-                comment="#" if language == "Python" else "//",
-                tool=opp.source,
-                findings="\n".join(f"- {f.path}:{f.line or '?'} {f.rule}: {f.message}" for f in findings[:50]),
-                files="\n\n".join(blocks),
-            )
+            syntax = (adapter_for_path(paths[0]) or adapter("node")).syntax
+            language, comment = syntax.display, syntax.comment
+            listed = "\n".join(f"- {f.path}:{f.line or '?'} {f.rule}: {f.message}" for f in findings[:50])
+            fields = {
+                "language": language,
+                "suppressions": syntax.suppressions,
+                "comment": comment,
+                "tool": opp.source,
+                "findings": listed,
+            }
+            # The code gets what the egress cap leaves after the rest of the prompt, halved: the request and one
+            # repair (which repeats the answer) must both fit. The same bound holds for a local model.
+            cap = self.brain.mandate.egress.remote_models.max_payload_bytes
+            overhead = payload_bytes(load_prompt("fix_excerpts").render(**fields, files="")) + PAYLOAD_ENVELOPE
+            selection = select_context(base, [(f.path, f.line) for f in findings], max(0, (cap - overhead) // 2))
+            self.context_notes.append(f"context: {selection.mode}, {selection.reason}")
+            if selection.mode == "does_not_fit":
+                return None
+            prompt = load_prompt("fix_findings" if selection.mode == "files" else "fix_excerpts")
+            content = prompt.render(**fields, files=render_context(selection, comment))
+            size = selection.bytes
             messages = [Message(role="user", content=content, source="repo")]
             if feedback:
                 messages.append(
@@ -188,14 +209,17 @@ class FixLab:
                     expect_files=True,
                     tier=Tier.LOCAL,
                     messages=messages,
-                    max_tokens=min(8000, 1000 + size // 2),
+                    max_tokens=min(8000, 4000 + size // 2),  # a frontier model's reasoning counts against it
                     prompt_sha256=prompt.sha256,
                     correlation_id=opp.id,
                 )
             )
             try:
                 files = parse_files(response.content)
-            except CodeBlockError:
+                if selection.mode == "excerpts":
+                    files = splice(base, selection.excerpts, files)
+            except (CodeBlockError, SpliceError) as exc:
+                self.context_notes.append(f"answer not usable: {exc}")
                 return None
             files = {p: c for p, c in files.items() if p in paths}
             if not files:
@@ -228,6 +252,12 @@ class FixLab:
         rev: str = opp.details["rev"]
         # Every check of the same language in the same package: a fix may not break its neighbours.
         siblings = [t for t in tools_for(self.stack) if t.language == tool.language and t.cwd == tool.cwd]
+        # Of those, the ones the team's CI runs: a tool it does not run sets no standard a fix must keep (stage 10:
+        # ruff's report on Prefect, which its CI does not run, was partial and blocked every mypy fix). The fix's own
+        # tool always stays. Without CI commands to read, all of them.
+        commands = ci_commands(self.repo, rev)
+        if commands:
+            siblings = [t for t in siblings if t.name == tool.name or runs_tool(commands, t.name.split(":")[0])]
         targeted: list[str] = list(opp.details["fingerprints"])
         findings = [Finding.model_validate(f) for f in opp.details["findings"]]
         paths: list[str] = list(opp.details["paths"])
@@ -235,12 +265,32 @@ class FixLab:
         result = LabResult(None, None, None)
 
         self.progress(f"reproducing {opp.title}")
+        # The checks' reports at a commit are the same for every opportunity they raised: kept once per commit and
+        # package, so a second finding of the same tool does not rebuild and re-run them (stage 10: 229 findings of
+        # one Prefect commit each re-ran mypy and ruff, about 35 s apiece, to learn the same thing).
+        key = f"reproduced:{rev}:{tool.language}:{tool.cwd}"
+        known = self.store.get_value(key) if self.store is not None else None
+        if known and known.get("incomplete"):
+            result.blocked = f"cannot judge: incomplete reports from {', '.join(known['incomplete'])}"
+            result.notes.append(result.blocked)
+            return result
+        if known and not set(targeted) <= set(known.get("present", {}).get(tool.name, [])):
+            result.notes.append("the targeted findings no longer reproduce at this commit")
+            return result
         base_work = self._work(rev, image)
         try:
             before = self._run_tools(base_work, siblings, image)
             incomplete = [r.tool for r in before if not r.can_resolve]
+            if self.store is not None:
+                present_by_tool = {
+                    s.name: sorted(_fingerprints([r for r in before if r.tool == s.name])) for s in siblings
+                }
+                self.store.set_value(key, {"incomplete": incomplete, "present": present_by_tool})
             if incomplete:
-                result.notes.append(f"cannot judge: incomplete reports from {', '.join(incomplete)}")
+                # The lab could not see the findings, so nothing is known about a fix: a block, not a failed attempt
+                # (stage 10: counted as failures, these drove the learned chance of this kind of fix to 0.006).
+                result.blocked = f"cannot judge: incomplete reports from {', '.join(incomplete)}"
+                result.notes.append(result.blocked)
                 return result
             present = set(_fingerprints([r for r in before if r.tool == tool.name]))
             if not set(targeted) <= present:
@@ -278,6 +328,12 @@ class FixLab:
                 except (BrainError, ProviderError) as exc:
                     result.notes.append(f"model: {exc}")
                     break
+                finally:
+                    result.notes.extend(self.context_notes)
+                    fits = not any(n.startswith("context: does_not_fit") for n in self.context_notes)
+                    self.context_notes.clear()
+                if not fits:
+                    break  # explicit: the findings cannot all be shown within the egress cap; nothing was sent
                 if candidate is None:
                     feedback = "the answer had no usable `file:` blocks for the listed files"
                     continue
@@ -313,6 +369,7 @@ class FixLab:
         experiment = Experiment(
             opportunity_id=opp.id, base_sha=rev, candidate_patch_sha256=candidate.sha256, rounds=self.rounds,
             baseline_tests=baseline_tests, findings_before=_fingerprints(before),
+            provenance=provenance(self.brain, [image], python=self.stack.python.version if self.stack.python else None),
         )  # fmt: skip
         self.store.append_event(
             Event(type=EventType.EXPERIMENT_STARTED, actor=ACTOR, entity_id=experiment.id, correlation_id=opp.id,
@@ -341,14 +398,27 @@ class FixLab:
         if incomplete:
             improved = False
             reasons.append(f"incomplete reports on the candidate from {', '.join(incomplete)}")
+        level = judgement.evidence_level
+        caveats = list(judgement.caveats)
+        if improved:
+            parity = await self._parity(rev, candidate, opp.source)
+            if parity.broke:
+                improved = False
+                reasons.append(parity.broke)
+            elif parity.unverified:
+                # Validated means it would pass the team's checks; without the CI's interpreter that is not shown.
+                level = min(level, EvidenceLevel.LAB_IMPROVEMENT)
+                caveats.append(parity.unverified)
+            elif parity.checked:
+                caveats.append(f"CI parity: {opp.source} also clean on the candidate under Python {parity.checked}")
         verdict = Verdict(
             experiment_id=experiment.id,
             improved=improved,
-            evidence_level=judgement.evidence_level if improved else EvidenceLevel.REPRODUCTION,
+            evidence_level=level if improved else EvidenceLevel.REPRODUCTION,
             criteria=CRITERIA,
             tests=judgement.tests,
             reasons=reasons or ["all targeted findings are gone, none appeared, no test regressed"],
-            caveats=judgement.caveats,
+            caveats=caveats,
         )
         self.store.put("experiments", experiment)
         artifacts = self.store.path.parent / "artifacts" if self.store.path else None
@@ -361,6 +431,40 @@ class FixLab:
                            "reasons": verdict.reasons, "caveats": verdict.caveats, "origin": candidate.origin})
         )  # fmt: skip
         return experiment, verdict, candidate
+
+    async def _parity(self, rev: str, candidate: Candidate, tool_name: str) -> Parity:
+        """The targeted tool on base and candidate under the newest Python the team's CI runs, when that is not the one
+        measured. A finding the candidate adds there would turn their CI red, whatever the first environment said."""
+        tool = tool_named(self.stack, tool_name)
+        python = self.stack.python
+        if tool.language != "python" or python is None:
+            return Parity()
+        versions = ci_python_versions(self.repo, rev)
+        newest = versions[-1] if versions else None
+        if newest is None or newest == python.version:
+            return Parity()
+        if self.brain is None:
+            return Parity(unverified=f"CI parity not verified: no mandate here to provision Python {newest}")
+        self.progress(f"checking {tool.name} under Python {newest}, as the team's CI runs it")
+        try:
+            policy = PolicyEngine(self.brain.mandate)
+            image = await asyncio.to_thread(provision, self.repo, rev, replace(python, version=newest), policy=policy)
+        except ProvisionError as exc:
+            return Parity(unverified=f"CI parity not verified: no image for Python {newest} ({str(exc)[:160]})")
+        base_work, cand_work = self._work(rev, image), self._work(rev, image, candidate.files)
+        try:
+            before = self._run_tools(base_work, [tool], image)
+            after = self._run_tools(cand_work, [tool], image)
+        finally:
+            discard(base_work)
+            discard(cand_work)
+        if not all(r.can_resolve for r in [*before, *after]):
+            return Parity(unverified=f"CI parity not verified: {tool.name} incomplete under Python {newest}")
+        added = sorted(set(_fingerprints(after)) - set(_fingerprints(before)))
+        if added:
+            why = f"under Python {newest}, which the team's CI runs, {tool.name} reports {len(added)} new finding(s)"
+            return Parity(broke=f"{why} on the candidate: {added[0][:160]}")
+        return Parity(checked=newest)
 
     def _finish(self, opp: Opportunity, result: LabResult) -> None:
         if result.verdict is not None and result.verdict.improved:

@@ -19,3 +19,10 @@ build/
 
 # OS
 .DS_Store
+
+# web workspace (feat/61)
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+unbidden/web/static/

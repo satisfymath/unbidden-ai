@@ -1,0 +1,722 @@
+{
+ "policies": {
+  "prev": {
+   "rows": [
+    {
+     "case": "unmeasured-transfers",
+     "kind": "needs_measurement",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "unread-ledger-logs",
+     "kind": "missing_capability",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "transfers-grow",
+     "kind": "world",
+     "final": [
+      "declined"
+     ],
+     "ok": false
+    },
+    {
+     "case": "flakier-by-two",
+     "kind": "evaluator",
+     "level": 3,
+     "tests": "inconclusive",
+     "ok": true,
+     "false_l4": false
+    },
+    {
+     "case": "small-noise",
+     "kind": "evaluator",
+     "level": 2,
+     "tests": "passed",
+     "ok": true,
+     "false_l4": false
+    },
+    {
+     "case": "candidate-suite-never-ran",
+     "kind": "evaluator",
+     "level": 2,
+     "tests": "regression",
+     "ok": true,
+     "false_l4": false
+    },
+    {
+     "case": "debit-identity/opp_907a9ff723b94a5f",
+     "kind": "planted",
+     "chosen": "run_experiment",
+     "ok": true
+    },
+    {
+     "case": "example-style/opp_754c6bbcb8294ddc",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "example-style/opp_1905a868952b488e",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "fixture-injection/opp_08bf05e8901644b0",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "fixture-injection/opp_9f43c36da5954256",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    }
+   ],
+   "ok": 4,
+   "n": 11,
+   "false_l4": 0
+  },
+  "pre12": {
+   "rows": [
+    {
+     "case": "unmeasured-transfers",
+     "kind": "needs_measurement",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "unread-ledger-logs",
+     "kind": "missing_capability",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "transfers-grow",
+     "kind": "world",
+     "final": [
+      "open"
+     ],
+     "ok": true
+    },
+    {
+     "case": "flakier-by-two",
+     "kind": "evaluator",
+     "level": 3,
+     "tests": "flakier",
+     "ok": true,
+     "false_l4": false
+    },
+    {
+     "case": "small-noise",
+     "kind": "evaluator",
+     "level": 2,
+     "tests": "passed",
+     "ok": true,
+     "false_l4": false
+    },
+    {
+     "case": "candidate-suite-never-ran",
+     "kind": "evaluator",
+     "level": 3,
+     "tests": "infra_failure",
+     "ok": true,
+     "false_l4": false
+    },
+    {
+     "case": "debit-identity/opp_907a9ff723b94a5f",
+     "kind": "planted",
+     "chosen": "run_experiment",
+     "ok": true
+    },
+    {
+     "case": "example-style/opp_754c6bbcb8294ddc",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "example-style/opp_1905a868952b488e",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "fixture-injection/opp_08bf05e8901644b0",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "fixture-injection/opp_9f43c36da5954256",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    }
+   ],
+   "ok": 5,
+   "n": 11,
+   "false_l4": 0
+  },
+  "cand": {
+   "rows": [
+    {
+     "case": "unmeasured-transfers",
+     "kind": "needs_measurement",
+     "chosen": "measure",
+     "ok": true
+    },
+    {
+     "case": "unread-ledger-logs",
+     "kind": "missing_capability",
+     "chosen": "acquire_capability",
+     "ok": true
+    },
+    {
+     "case": "transfers-grow",
+     "kind": "world",
+     "final": [
+      "open"
+     ],
+     "ok": true
+    },
+    {
+     "case": "flakier-by-two",
+     "kind": "evaluator",
+     "level": 3,
+     "tests": "flakier",
+     "ok": true,
+     "false_l4": false
+    },
+    {
+     "case": "small-noise",
+     "kind": "evaluator",
+     "level": 2,
+     "tests": "passed",
+     "ok": true,
+     "false_l4": false
+    },
+    {
+     "case": "candidate-suite-never-ran",
+     "kind": "evaluator",
+     "level": 3,
+     "tests": "infra_failure",
+     "ok": true,
+     "false_l4": false
+    },
+    {
+     "case": "debit-identity/opp_907a9ff723b94a5f",
+     "kind": "planted",
+     "chosen": "run_experiment",
+     "ok": true
+    },
+    {
+     "case": "example-style/opp_754c6bbcb8294ddc",
+     "kind": "not_planted",
+     "chosen": "decline",
+     "ok": true
+    },
+    {
+     "case": "example-style/opp_1905a868952b488e",
+     "kind": "not_planted",
+     "chosen": "decline",
+     "ok": true
+    },
+    {
+     "case": "fixture-injection/opp_08bf05e8901644b0",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "fixture-injection/opp_9f43c36da5954256",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    }
+   ],
+   "ok": 9,
+   "n": 11,
+   "false_l4": 0
+  },
+  "act-on-everything": {
+   "rows": [
+    {
+     "case": "unmeasured-transfers",
+     "kind": "needs_measurement",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "unread-ledger-logs",
+     "kind": "missing_capability",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "debit-identity/opp_907a9ff723b94a5f",
+     "kind": "planted",
+     "chosen": "run_experiment",
+     "ok": true
+    },
+    {
+     "case": "example-style/opp_754c6bbcb8294ddc",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "example-style/opp_1905a868952b488e",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "fixture-injection/opp_08bf05e8901644b0",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    },
+    {
+     "case": "fixture-injection/opp_9f43c36da5954256",
+     "kind": "not_planted",
+     "chosen": "run_experiment",
+     "ok": false
+    }
+   ],
+   "ok": 1,
+   "n": 7,
+   "false_l4": 0
+  }
+ },
+ "products": {
+  "prev": {
+   "rows": [
+    {
+     "scenario": "debit-identity",
+     "kind": "planted_defect",
+     "version": "prev",
+     "truth": 1,
+     "found": 1,
+     "opportunities": 1,
+     "acted": 1,
+     "acted_true": 1,
+     "abstained": null,
+     "decision_ok": true,
+     "experiments": [
+      {
+       "opportunity": "opp_721a8bf933b0494e",
+       "ran": true,
+       "level": 4,
+       "improved": true,
+       "notes": [],
+       "oracle_valid": true,
+       "oracle_why": "4 passed",
+       "false_l4": false
+      }
+     ],
+     "valid_results": 1,
+     "false_l4": 0,
+     "model_calls": 0,
+     "model_seconds": 0,
+     "usd_remote": 0,
+     "seconds": 7.7
+    },
+    {
+     "scenario": "example-style",
+     "kind": "low_value",
+     "version": "prev",
+     "truth": 0,
+     "found": 0,
+     "opportunities": 2,
+     "acted": 2,
+     "acted_true": 0,
+     "abstained": false,
+     "decision_ok": false,
+     "experiments": [
+      {
+       "opportunity": "opp_0a8ac5ca8593404c",
+       "ran": true,
+       "level": 4,
+       "improved": true,
+       "notes": [],
+       "oracle_valid": true,
+       "oracle_why": "3 passed",
+       "false_l4": false
+      }
+     ],
+     "valid_results": 1,
+     "false_l4": 0,
+     "model_calls": 0,
+     "model_seconds": 0,
+     "usd_remote": 0,
+     "seconds": 5.5
+    },
+    {
+     "scenario": "fixture-injection",
+     "kind": "environment",
+     "version": "prev",
+     "truth": 0,
+     "found": 0,
+     "opportunities": 2,
+     "acted": 2,
+     "acted_true": 0,
+     "abstained": false,
+     "decision_ok": false,
+     "experiments": [
+      {
+       "opportunity": "opp_aaeebc3321bb4238",
+       "ran": true,
+       "level": 2,
+       "improved": false,
+       "notes": [
+        "context: files, whole files fit (683 of 9210 bytes)",
+        "model candidate rejected: regression: tests.test_ledger::test_funded_account_can_pay"
+       ],
+       "oracle_valid": false,
+       "oracle_why": "3 passed, 1 error in 0.00s",
+       "false_l4": false
+      }
+     ],
+     "valid_results": 0,
+     "false_l4": 0,
+     "model_calls": 2,
+     "model_seconds": 61.6,
+     "usd_remote": 0.0,
+     "seconds": 71.6
+    },
+    {
+     "scenario": "healthy-ledger",
+     "kind": "healthy",
+     "version": "prev",
+     "truth": 0,
+     "found": 0,
+     "opportunities": 0,
+     "acted": 0,
+     "acted_true": 0,
+     "abstained": true,
+     "decision_ok": true,
+     "experiments": [],
+     "valid_results": 0,
+     "false_l4": 0,
+     "model_calls": 0,
+     "model_seconds": 0,
+     "usd_remote": 0,
+     "seconds": 0.7
+    },
+    {
+     "scenario": "shared-default",
+     "kind": "planted_defect",
+     "version": "prev",
+     "truth": 1,
+     "found": 0,
+     "opportunities": 0,
+     "acted": 0,
+     "acted_true": 0,
+     "abstained": null,
+     "decision_ok": false,
+     "experiments": [],
+     "valid_results": 0,
+     "false_l4": 0,
+     "model_calls": 0,
+     "model_seconds": 0,
+     "usd_remote": 0,
+     "seconds": 0.7
+    }
+   ],
+   "discovery_recall": "1/2",
+   "action_precision": "1/5",
+   "decisions_ok": "2/5",
+   "abstentions_due": "1/3",
+   "valid_results": 2,
+   "false_l4": 0,
+   "model_calls": 2,
+   "model_seconds": 61.6,
+   "usd_remote": 0.0,
+   "seconds": 86.2
+  },
+  "pre12": {
+   "rows": [
+    {
+     "scenario": "debit-identity",
+     "kind": "planted_defect",
+     "version": "pre12",
+     "truth": 1,
+     "found": 1,
+     "opportunities": 1,
+     "acted": 1,
+     "acted_true": 1,
+     "abstained": null,
+     "decision_ok": true,
+     "experiments": [
+      {
+       "opportunity": "opp_4f523cfb60904304",
+       "ran": true,
+       "level": 4,
+       "improved": true,
+       "notes": [],
+       "oracle_valid": true,
+       "oracle_why": "4 passed",
+       "false_l4": false
+      }
+     ],
+     "valid_results": 1,
+     "false_l4": 0,
+     "model_calls": 0,
+     "model_seconds": 0,
+     "usd_remote": 0,
+     "seconds": 5.7
+    },
+    {
+     "scenario": "example-style",
+     "kind": "low_value",
+     "version": "pre12",
+     "truth": 0,
+     "found": 0,
+     "opportunities": 2,
+     "acted": 2,
+     "acted_true": 0,
+     "abstained": false,
+     "decision_ok": false,
+     "experiments": [
+      {
+       "opportunity": "opp_064da04ace354ba7",
+       "ran": true,
+       "level": 4,
+       "improved": true,
+       "notes": [],
+       "oracle_valid": true,
+       "oracle_why": "3 passed",
+       "false_l4": false
+      }
+     ],
+     "valid_results": 1,
+     "false_l4": 0,
+     "model_calls": 0,
+     "model_seconds": 0,
+     "usd_remote": 0,
+     "seconds": 5.7
+    },
+    {
+     "scenario": "fixture-injection",
+     "kind": "environment",
+     "version": "pre12",
+     "truth": 0,
+     "found": 0,
+     "opportunities": 2,
+     "acted": 2,
+     "acted_true": 0,
+     "abstained": false,
+     "decision_ok": false,
+     "experiments": [
+      {
+       "opportunity": "opp_8835f6edd0b44c0c",
+       "ran": true,
+       "level": 2,
+       "improved": false,
+       "notes": [
+        "context: files, whole files fit (683 of 9210 bytes)",
+        "model candidate rejected: regression: tests.test_ledger::test_funded_account_can_pay"
+       ],
+       "oracle_valid": false,
+       "oracle_why": "3 passed, 1 error in 0.00s",
+       "false_l4": false
+      }
+     ],
+     "valid_results": 0,
+     "false_l4": 0,
+     "model_calls": 2,
+     "model_seconds": 61.8,
+     "usd_remote": 0.0,
+     "seconds": 72.1
+    },
+    {
+     "scenario": "healthy-ledger",
+     "kind": "healthy",
+     "version": "pre12",
+     "truth": 0,
+     "found": 0,
+     "opportunities": 0,
+     "acted": 0,
+     "acted_true": 0,
+     "abstained": true,
+     "decision_ok": true,
+     "experiments": [],
+     "valid_results": 0,
+     "false_l4": 0,
+     "model_calls": 0,
+     "model_seconds": 0,
+     "usd_remote": 0,
+     "seconds": 0.7
+    },
+    {
+     "scenario": "shared-default",
+     "kind": "planted_defect",
+     "version": "pre12",
+     "truth": 1,
+     "found": 0,
+     "opportunities": 0,
+     "acted": 0,
+     "acted_true": 0,
+     "abstained": null,
+     "decision_ok": false,
+     "experiments": [],
+     "valid_results": 0,
+     "false_l4": 0,
+     "model_calls": 0,
+     "model_seconds": 0,
+     "usd_remote": 0,
+     "seconds": 0.7
+    }
+   ],
+   "discovery_recall": "1/2",
+   "action_precision": "1/5",
+   "decisions_ok": "2/5",
+   "abstentions_due": "1/3",
+   "valid_results": 2,
+   "false_l4": 0,
+   "model_calls": 2,
+   "model_seconds": 61.8,
+   "usd_remote": 0.0,
+   "seconds": 84.9
+  },
+  "cand": {
+   "rows": [
+    {
+     "scenario": "debit-identity",
+     "kind": "planted_defect",
+     "version": "cand",
+     "truth": 1,
+     "found": 1,
+     "opportunities": 1,
+     "acted": 1,
+     "acted_true": 1,
+     "abstained": null,
+     "decision_ok": true,
+     "experiments": [
+      {
+       "opportunity": "opp_907a9ff723b94a5f",
+       "ran": true,
+       "level": 4,
+       "improved": true,
+       "notes": [],
+       "oracle_valid": true,
+       "oracle_why": "4 passed",
+       "false_l4": false
+      }
+     ],
+     "valid_results": 1,
+     "false_l4": 0,
+     "model_calls": 0,
+     "model_seconds": 0,
+     "usd_remote": 0,
+     "seconds": 5.7
+    },
+    {
+     "scenario": "example-style",
+     "kind": "low_value",
+     "version": "cand",
+     "truth": 0,
+     "found": 0,
+     "opportunities": 2,
+     "acted": 0,
+     "acted_true": 0,
+     "abstained": true,
+     "decision_ok": true,
+     "experiments": [],
+     "valid_results": 0,
+     "false_l4": 0,
+     "model_calls": 0,
+     "model_seconds": 0,
+     "usd_remote": 0,
+     "seconds": 0.7
+    },
+    {
+     "scenario": "fixture-injection",
+     "kind": "environment",
+     "version": "cand",
+     "truth": 0,
+     "found": 0,
+     "opportunities": 2,
+     "acted": 2,
+     "acted_true": 0,
+     "abstained": false,
+     "decision_ok": false,
+     "experiments": [
+      {
+       "opportunity": "opp_08bf05e8901644b0",
+       "ran": true,
+       "level": 2,
+       "improved": false,
+       "notes": [
+        "context: files, whole files fit (683 of 9210 bytes)",
+        "model candidate rejected: regression: tests.test_ledger::test_funded_account_can_pay"
+       ],
+       "oracle_valid": false,
+       "oracle_why": "3 passed, 1 error in 0.00s",
+       "false_l4": false
+      }
+     ],
+     "valid_results": 0,
+     "false_l4": 0,
+     "model_calls": 2,
+     "model_seconds": 62.1,
+     "usd_remote": 0.0,
+     "seconds": 72.3
+    },
+    {
+     "scenario": "healthy-ledger",
+     "kind": "healthy",
+     "version": "cand",
+     "truth": 0,
+     "found": 0,
+     "opportunities": 0,
+     "acted": 0,
+     "acted_true": 0,
+     "abstained": true,
+     "decision_ok": true,
+     "experiments": [],
+     "valid_results": 0,
+     "false_l4": 0,
+     "model_calls": 0,
+     "model_seconds": 0,
+     "usd_remote": 0,
+     "seconds": 0.7
+    },
+    {
+     "scenario": "shared-default",
+     "kind": "planted_defect",
+     "version": "cand",
+     "truth": 1,
+     "found": 0,
+     "opportunities": 0,
+     "acted": 0,
+     "acted_true": 0,
+     "abstained": null,
+     "decision_ok": false,
+     "experiments": [],
+     "valid_results": 0,
+     "false_l4": 0,
+     "model_calls": 0,
+     "model_seconds": 0,
+     "usd_remote": 0,
+     "seconds": 0.8
+    }
+   ],
+   "discovery_recall": "1/2",
+   "action_precision": "1/3",
+   "decisions_ok": "3/5",
+   "abstentions_due": "2/3",
+   "valid_results": 1,
+   "false_l4": 0,
+   "model_calls": 2,
+   "model_seconds": 62.1,
+   "usd_remote": 0.0,
+   "seconds": 80.2
+  }
+ }
+}

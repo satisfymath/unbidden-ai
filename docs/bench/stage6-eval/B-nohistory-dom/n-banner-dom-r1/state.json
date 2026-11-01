@@ -1,0 +1,203 @@
+{
+ "goal_runs": [
+  {
+   "status": "waiting_capability",
+   "note": "needs an integration for board-api",
+   "evidence": {}
+  },
+  {
+   "status": "page_fixed",
+   "note": "1 discrepancies fixed by 597168a90726: The notice banner was absolutely positioned at top 520px over the board, covering row 7 so B08's SHORT badge was in the DOM but not visible to a person.",
+   "evidence": {
+    "attempts": [
+     {
+      "after": {
+       "cause": "none",
+       "conclusive": true,
+       "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_b0ef4d6cf0e84596/after-1",
+       "discrepancies": [],
+       "model": {
+        "model": "muse-spark-1.3",
+        "route": "profile frontier; synthetic may leave; label synthetic",
+        "seconds": 5.23,
+        "tier": "code",
+        "tokens": [
+         4581,
+         1247
+        ],
+        "usd": 0.011026
+       },
+       "perception": "dom",
+       "problems": [],
+       "sam": [],
+       "screenshots": {
+        "step-00": "132d3e3374a1bca3e0620d7237c9903dfd2985032bf4d8450766cbf362dedf0e",
+        "step-01": "7616b6dc7361fc8f1b96d1edcfce172039128bb0da26a27a85dd2da578e47290",
+        "step-02": "4592ee989d130acd295b362dda8a01a2fe1753a26ec0309b16f802bceb29ed1c",
+        "step-03": "191771ee81e6fbd61b56786fbda8288ddb7eeff8e6cd200943daa575f71d9cea"
+       }
+      },
+      "attempt": 1,
+      "cause": "The notice banner was absolutely positioned at top 520px over the board, covering row 7 so B08's SHORT badge was in the DOM but not visible to a person.",
+      "checks": {
+       "log": "$ python -m unittest -> 0\n..\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+       "ok": true
+      },
+      "commit": "597168a907269ea99f16e5bc64dae7a399ffcdad",
+      "deploy": {
+       "log": "ne\n#4 DONE 0.0s\n\n#5 [internal] load build context\n#5 transferring context: 1.57kB done\n#5 DONE 0.0s\n\n#6 [1/5] FROM docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704\n#6 resolve docker.io/library/python:3.12-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704 0.0s done\n#6 DONE 0.0s\n\n#7 [3/5] COPY requirements.txt .\n#7 CACHED\n\n#8 [2/5] WORKDIR /app\n#8 CACHED\n\n#9 [4/5] RUN pip install --no-cache-dir -r requirements.txt\n#9 CACHED\n\n#10 [5/5] COPY board ./board\n#10 DONE 0.0s\n\n#11 exporting to image\n#11 exporting layers 0.1s done\n#11 exporting manifest sha256:8e5bbf7096eeac2900c1b26889e35ffbeb13ea2424d57e6c01c5e5ebcdf86804 done\n#11 exporting config sha256:6f8d8cf8d710bbf8ce515527e9b1cf84b72b046e0a0c0fafbe90a33bf0c796cb done\n#11 exporting attestation manifest sha256:6a500b81c7afe43fb8cfa02e850ef64f4857f1d156752d05ab8123ef0ead06be done\n#11 exporting manifest list sha256:1cdffff0072cf54674f7402a519a0b244359f5d1e72947ef3aa663bf971c45fb done\n#11 naming to docker.io/library/boardapp-staging-board:latest done\n#11 unpacking to docker.io/library/boardapp-staging-board:latest 0.0s done\n#11 DONE 0.1s\n\n#12 resolving provenance for metadata file\n#12 DONE 0.0s\n Image boardapp-staging-board Building \n Image boardapp-staging-board Built \n Container boardapp-staging-board-1 Recreate \n Container boardapp-staging-board-1 Recreated \n Container boardapp-staging-board-1 Starting \n Container boardapp-staging-board-1 Started \n",
+       "ok": true
+      },
+      "model": {
+       "model": "muse-spark-1.3",
+       "route": "profile frontier; private_code may leave; label private_code",
+       "seconds": 7.6,
+       "tier": "code",
+       "tokens": [
+        5941,
+        1743
+       ],
+       "usd": 0.014834
+      },
+      "patch": "--- a/board/static/board.css\n+++ b/board/static/board.css\n@@ -13,5 +13,5 @@\n .board .row, .board .head { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1.3fr; }\n .board [role=cell], .board [role=columnheader] { padding: 12px; border-bottom: 1px solid #e3e7eb; }\n .board .head { font-weight: 700; }\n-.notice { position: absolute; left: 0; right: 0; top: 520px; height: 150px; padding: 24px 32px; background: #e8eef5; font-size: 18px; }\n+.notice { position: static; left: 0; right: 0; top: 520px; height: 150px; padding: 24px 32px; background: #e8eef5; font-size: 18px; }\n .summary { padding: 16px 32px; background: #f2f4f6; border-top: 1px solid #d8dde2; }\n",
+      "patch_sha256": "3bf99b5b2057ffe1f323a94d33f1a402c2dd85514028fbc4fd3dc82d0ee885b6",
+      "result": "the discrepancies are gone"
+     }
+    ],
+    "before": {
+     "cause": "a fixed or sticky div.notice overlays and covers rows around B08-B11, hiding the SHORT badge for B08.",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_b0ef4d6cf0e84596/before",
+     "discrepancies": [
+      {
+       "evidence": "'SHORT 3' bg rgb(198, 40, 40) fg rgb(255, 255, 255) 14px visible 0 covered by div.notice on row 7, so a person would not see the required SHORT flag on its own row",
+       "key": "B08",
+       "kind": "not_flagged"
+      }
+     ],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 7.38,
+      "tier": "code",
+      "tokens": [
+       5365,
+       1685
+      ],
+      "usd": 0.0138675
+     },
+     "perception": "dom",
+     "problems": [],
+     "sam": [],
+     "screenshots": {
+      "step-00": "246ba1394d454a06e2067331b9be6f2cfac83f2103910a4623ebc3f1ede61d6f",
+      "step-01": "e40b7542d33e638b59b9f07cdb5e5651dee3f806fb52f2e73d10f7df8a98bf34",
+      "step-02": "191771ee81e6fbd61b56786fbda8288ddb7eeff8e6cd200943daa575f71d9cea"
+     }
+    },
+    "perception": "dom",
+    "url": "http://127.0.0.1:18096/"
+   }
+  },
+  {
+   "status": "page_ok",
+   "note": "the page shows what the data says (36 keys)",
+   "evidence": {
+    "before": {
+     "cause": "none",
+     "conclusive": true,
+     "dir": "/Users/david/unbidden-lab/boardapp/.unbidden/artifacts/pages/goal_3ef5431b1ed64b2a/before",
+     "discrepancies": [],
+     "model": {
+      "model": "muse-spark-1.3",
+      "route": "profile frontier; synthetic may leave; label synthetic",
+      "seconds": 4.37,
+      "tier": "code",
+      "tokens": [
+       4473,
+       659
+      ],
+      "usd": 0.008392
+     },
+     "perception": "dom",
+     "problems": [],
+     "sam": [],
+     "screenshots": {
+      "step-00": "132d3e3374a1bca3e0620d7237c9903dfd2985032bf4d8450766cbf362dedf0e",
+      "step-01": "7616b6dc7361fc8f1b96d1edcfce172039128bb0da26a27a85dd2da578e47290",
+      "step-02": "4592ee989d130acd295b362dda8a01a2fe1753a26ec0309b16f802bceb29ed1c",
+      "step-03": "191771ee81e6fbd61b56786fbda8288ddb7eeff8e6cd200943daa575f71d9cea"
+     }
+    },
+    "perception": "dom",
+    "url": "http://127.0.0.1:18096/"
+   }
+  }
+ ],
+ "model_runs": [
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.01033675,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "forge.api_client",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.004049,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.00652025,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.0138675,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "lab.page_fix",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.014834,
+   "route": "profile frontier; private_code may leave; label private_code"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.011026,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.goal_plan",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.005955,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  },
+  {
+   "purpose": "director.page_check",
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "ok": true,
+   "usd": 0.008392,
+   "route": "profile frontier; synthetic may leave; label synthetic"
+  }
+ ]
+}

@@ -1,0 +1,17 @@
+# Level A (breadth) repositories. Commits pinned on 2026-10-27, before any run. `holdout` repositories were chosen
+# before Unbidden ran on any of this list and are run only after the dev set's failures are fixed: they measure
+# generalization, and nothing is changed in Unbidden because of them.
+# Chosen for coverage, not because Unbidden is expected to find something in them.
+repos:
+  - {name: full-stack-fastapi-template, url: https://github.com/satisfymath/full-stack-fastapi-template, commit: 104feb428128ba03c99a448f3bbcec9037f71004, split: dev, why: "Python + TypeScript, compose, Postgres; seen during the event"}
+  - {name: rich, url: https://github.com/Textualize/rich, commit: 9d8f9a372cc5916fd4781fec207ced7ddac2f08f, split: dev, why: "Python library; seen during the event"}
+  - {name: opentelemetry-demo, url: https://github.com/open-telemetry/opentelemetry-demo, commit: 5c8d404a85380226ff45a39dcb4159eda9552c56, split: dev, why: "polyglot microservices"}
+  - {name: lexical, url: https://github.com/facebook/lexical, commit: 7bc4baaba215b9d2a4edca81493e22c226c50a46, split: dev, why: "large TypeScript monorepo, frontend"}
+  - {name: docusaurus, url: https://github.com/facebook/docusaurus, commit: 4e6fe61666a521d35d328ec0561d84eb96609017, split: dev, why: "TypeScript monorepo, very large history"}
+  - {name: saleor, url: https://github.com/saleor/saleor, commit: 487885d437feed94922cdbdf16a76552c120b550, split: dev, why: "large Django/GraphQL backend"}
+  - {name: chatwoot, url: https://github.com/chatwoot/chatwoot, commit: 926da611d9d8609f43e761164683ff463427bca9, split: dev, why: "Rails + Vue: a stack family Unbidden does not analyze"}
+  - {name: immich, url: https://github.com/immich-app/immich, commit: df50249c03ddac9417a2172cfbbaef848163ed4f, split: dev, why: "TypeScript + Dart + Python ML, compose"}
+  - {name: click, url: https://github.com/pallets/click, commit: 2247b35ea1c47c727d7a06e51fa280e12a863ff6, split: holdout, why: "Python library"}
+  - {name: httpx, url: https://github.com/encode/httpx, commit: b5addb64f0161ff6bfe94c124ef76f6a1fba5254, split: holdout, why: "Python library"}
+  - {name: fastify, url: https://github.com/fastify/fastify, commit: 5df959f3af698823dd582f1c3661f3e80df0b5da, split: holdout, why: "JavaScript framework"}
+  - {name: sqlmodel, url: https://github.com/fastapi/sqlmodel, commit: 462b59d9cd1cc3d9072735435330ef9ab6d15cbf, split: holdout, why: "Python library on SQLAlchemy"}

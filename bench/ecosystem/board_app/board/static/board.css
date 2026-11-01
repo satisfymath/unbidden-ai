@@ -1,0 +1,13 @@
+body { font-family: system-ui, sans-serif; margin: 0; color: #1d1d1f; background: #ffffff; }
+.top { background: #22303c; color: #ffffff; padding: 24px 32px; }
+.top h1 { margin: 0; font-size: 26px; }
+.top .sub { margin: 6px 0 0; color: #c9d3dc; }
+main { padding: 16px 32px 32px; }
+.board { width: 100%; border-collapse: collapse; font-size: 16px; }
+.board th { text-align: left; padding: 10px 12px; border-bottom: 2px solid #c8ced4; }
+.board td { padding: 12px; border-bottom: 1px solid #e3e7eb; }
+.board .num { font-variant-numeric: tabular-nums; }
+.badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 14px; }
+.badge.short { background: #c62828; color: #ffffff; }
+.badge.ok { background: #e3f1e5; color: #1f5f2c; }
+.summary { padding: 16px 32px; background: #f2f4f6; border-top: 1px solid #d8dde2; }

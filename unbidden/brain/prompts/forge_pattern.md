@@ -13,7 +13,8 @@ For illustration only, a general adapter for a different format (nginx "combined
 `"(?P<method>[A-Z]+) (?P<path>/\S*) HTTP/[\d.]+" (?P<status>\d{3})`
 Anchor on the stable structure of a line, not on its values.
 
-Answer with JSON only, matching this schema: {{schema}}
+Answer with one line and nothing else: `PATTERN: <the expression>`. The expression is raw text, not JSON: write
+each backslash once.
 
 {{feedback}}
 

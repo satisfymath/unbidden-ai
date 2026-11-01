@@ -1,0 +1,16 @@
+services:
+  shop:
+    image: python:3.12-slim
+    command: ["python", "-u", "/app/shop.py"]
+    volumes:
+      - ./shop.py:/app/shop.py:ro
+    ports:
+      - "127.0.0.1:18090:8000"
+    environment:
+      DATABASE_URL: postgresql://shop_reader@host.docker.internal:55432/shop
+      STOCKROOM_URL: http://host.docker.internal:18081
+      STOCKROOM_KEY: ${STOCKROOM_KEY}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 2s
+      retries: 10

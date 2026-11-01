@@ -1,0 +1,572 @@
+{
+ "case": "near_threshold",
+ "unit_test": "tests/unit/test_promotion.py::test_near_the_threshold_a_first_pass_is_not_enough",
+ "expected": "not improved",
+ "product": "0102ccbef0c55a4db8839edbc30c1e458ddeeef2",
+ "rev": "f4bcfaba7c85be3c6332cc74a20819f586dcdbc6",
+ "criteria": {
+  "version": "perf-v4",
+  "unit": "session median (each session: a fresh database, the same data, warm-up then samples)",
+  "sessions_per_arm": 4,
+  "order": "alternating base and candidate, which goes first drawn from a seed",
+  "test": "exact one-sided permutation test on session medians",
+  "alpha": 0.05,
+  "min_median_improvement": 0.2,
+  "regression_if_slower_by": 0.1,
+  "no_relevant_change": "the 95% bootstrap interval of the relative effect over sessions lies inside +-20%",
+  "mechanism": "when the change declares one (an index), the engine must show it used during the measured calls",
+  "functional": "every measured call succeeds and returns the same result on both sides (canonical JSON digest)",
+  "control": "A/A: 2 base sessions against 2 more, |effect| below 10%",
+  "confirmation": "4 new sessions per arm in a new order, improved again at alpha 0.05 / (candidates confirmed at this commit)",
+  "scope": "the declared operation, data and engine; no claim about other endpoints or production"
+ },
+ "candidate_files": [
+  "backend/app/api/routes/items.py"
+ ],
+ "base_overlay": [
+  "backend/app/api/routes/items.py"
+ ],
+ "candidate_sha256": "a364c88ec0d1e6305ed21399d595b9a4e593150d32f6e78a7df839c6d8996334",
+ "workload_sha256": "01a3cfb9aa538ce88c3dffa2fc252913618d2dd95b6fc10fe09fe12b6598a524",
+ "image": "unbidden-deps-python:bb6e594caaed1a02",
+ "error": "",
+ "outcome": "no_relevant_change",
+ "reasons": [
+  "session medians 50.29 -> 44.18 ms (+12% faster), permutation p = 0.0286 (slower: 1), 95% interval of the effect [+10%, +17%]",
+  "no change of 20% or more either way"
+ ],
+ "passed": true,
+ "sessions": [
+  {
+   "arm": "candidate",
+   "position": 0,
+   "samples_ms": [
+    43.03380800411105,
+    46.32995399879292,
+    45.0672380393371,
+    39.125451003201306,
+    46.70991498278454,
+    45.96315900562331,
+    39.284411002881825,
+    39.296952018048614,
+    40.989254019223154,
+    49.45193202001974,
+    49.94101799093187,
+    46.090328018181026,
+    47.07229201449081,
+    35.83318000892177,
+    44.81594398384914,
+    37.872318003792316,
+    45.13565497472882,
+    44.477734016254544,
+    47.55462799221277,
+    47.16125095728785
+   ],
+   "median_ms": 45.10144650703296,
+   "index_scans": null,
+   "digests": [
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff",
+    "021f12eb6e60694f9d0a42b45e7ab5db74896f37df3a59ed1a09735e8ca940ff"
+   ],
+   "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"2026-10-31T16:04:20.606292Z\", \"description\": \"Description for workload item 0 with some text\", \"id\": \"de00f8f2-2c54-4ea2-91a8-8843a5ffabd6\", \"owner_id\": \"01852f00-9c55-432c-94e7-23087c1de673\", \"title\": \"Workload item 0\"}, {\"created_at\": \"2026-10-31T15:30:59.60",
+   "statements": [
+    {
+     "calls": 23,
+     "mean_ms": 4.313,
+     "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+    },
+    {
+     "calls": 23,
+     "mean_ms": 4.554,
+     "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+    }
+   ],
+   "inserted": {
+    "item": 200000
+   }
+  },
+  {
+   "arm": "base",
+   "position": 1,
+   "samples_ms": [
+    52.4357000249438,
+    53.39570599608123,
+    52.03436402371153,
+    53.148286999203265,
+    48.62625995883718,
+    58.23157000122592,
+    51.06348299887031,
+    49.023012979887426,
+    59.63503604289144,
+    51.45065300166607,
+    51.45802698098123,
+    55.30300998361781,
+    53.154620982240885,
+    50.48093700315803,
+    53.0147859826684,
+    56.4936840091832,
+    55.9113469789736,
+    51.68636201415211,
+    61.327005038037896,
+    54.77542302105576
+   ],
+   "median_ms": 53.08153649093583,
+   "index_scans": null,
+   "digests": [
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113",
+    "d60ed92c74b5571c1e6f91ee28faf1dbaf166526d182d73c9a7be150fc3d0113"
+   ],
+   "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"2026-10-31T16:04:32.948620Z\", \"description\": \"Description for workload item 0 with some text\", \"id\": \"73ac072e-513f-4e0a-8bd4-ef4c4f21e927\", \"owner_id\": \"75745a47-23c6-4fdf-8a96-249203d87b08\", \"title\": \"Workload item 0\"}, {\"created_at\": \"2026-10-31T15:31:11.94",
+   "statements": [
+    {
+     "calls": 23,
+     "mean_ms": 5.509,
+     "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+    },
+    {
+     "calls": 23,
+     "mean_ms": 5.987,
+     "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+    }
+   ],
+   "inserted": {
+    "item": 200000
+   }
+  },
+  {
+   "arm": "candidate",
+   "position": 2,
+   "samples_ms": [
+    40.27825000230223,
+    42.77234902838245,
+    38.30336302053183,
+    47.17558401171118,
+    46.91133199958131,
+    48.59163501532748,
+    42.47234598733485,
+    44.568568002432585,
+    41.890843014698476,
+    47.18408500775695,
+    41.842967038974166,
+    50.025434989947826,
+    46.454705006908625,
+    37.59331599576399,
+    37.89927699835971,
+    40.673960000276566,
+    44.287941011134535,
+    44.434859009925276,
+    38.853116042446345,
+    45.43949000071734
+   ],
+   "median_ms": 43.53014501975849,
+   "index_scans": null,
+   "digests": [
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f",
+    "2c5c6198a627e3e3acec2f836b9ee1cacb1724a72dd92126781aa13fc2127c1f"
+   ],
+   "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"2026-10-31T16:04:45.653922Z\", \"description\": \"Description for workload item 0 with some text\", \"id\": \"b0ac3d1b-43cd-408e-a93c-0b71f1ccbcb7\", \"owner_id\": \"82ff77f7-a90d-499d-a760-3e9f9154f6e6\", \"title\": \"Workload item 0\"}, {\"created_at\": \"2026-10-31T15:31:24.65",
+   "statements": [
+    {
+     "calls": 23,
+     "mean_ms": 4.565,
+     "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+    },
+    {
+     "calls": 23,
+     "mean_ms": 4.945,
+     "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+    }
+   ],
+   "inserted": {
+    "item": 200000
+   }
+  },
+  {
+   "arm": "base",
+   "position": 3,
+   "samples_ms": [
+    46.06761899776757,
+    49.87589200027287,
+    52.237448981031775,
+    50.662856025155634,
+    46.9640830415301,
+    50.08010199526325,
+    55.93530501937494,
+    51.05960799846798,
+    47.86362999584526,
+    49.74593297811225,
+    50.82723102532327,
+    48.60588500741869,
+    55.408885003998876,
+    50.73302297387272,
+    50.7026890409179,
+    51.97323899483308,
+    53.580331965349615,
+    50.68510601995513,
+    48.96834504324943,
+    56.96039495524019
+   ],
+   "median_ms": 50.693897530436516,
+   "index_scans": null,
+   "digests": [
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f",
+    "9e667337ff17b81d25a351fc171d7cec83823eaef26f9090faf39dbd0cd8ac1f"
+   ],
+   "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"2026-10-31T16:04:58.033292Z\", \"description\": \"Description for workload item 0 with some text\", \"id\": \"401680ea-cf43-4d9d-ae55-cd216e3a2fa4\", \"owner_id\": \"39800722-4843-4898-94fe-6ccd1ab4e0cf\", \"title\": \"Workload item 0\"}, {\"created_at\": \"2026-10-31T15:31:37.03",
+   "statements": [
+    {
+     "calls": 23,
+     "mean_ms": 5.154,
+     "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+    },
+    {
+     "calls": 23,
+     "mean_ms": 5.619,
+     "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+    }
+   ],
+   "inserted": {
+    "item": 200000
+   }
+  },
+  {
+   "arm": "candidate",
+   "position": 4,
+   "samples_ms": [
+    46.31049500312656,
+    36.733268992975354,
+    43.166643008589745,
+    46.522579970769584,
+    43.77860500244424,
+    39.98516499996185,
+    46.97054100688547,
+    45.67603301256895,
+    39.776413002982736,
+    38.50994701497257,
+    43.455059989355505,
+    47.16675099916756,
+    40.33929097931832,
+    44.719777011778206,
+    40.15574901131913,
+    44.625151029322296,
+    39.40557700116187,
+    39.43216102197766,
+    45.21240503527224,
+    37.325565004721284
+   ],
+   "median_ms": 43.310851498972625,
+   "index_scans": null,
+   "digests": [
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474",
+    "b32aa9d48c20d82a4759cead59434d52491e85756ec703e135d67b74183a1474"
+   ],
+   "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"2026-10-31T16:05:10.639984Z\", \"description\": \"Description for workload item 0 with some text\", \"id\": \"5c643090-0a47-4655-9c76-a97c3b61cebe\", \"owner_id\": \"186c9a87-0fb1-45b0-9fbe-945e63537b94\", \"title\": \"Workload item 0\"}, {\"created_at\": \"2026-10-31T15:31:49.63",
+   "statements": [
+    {
+     "calls": 23,
+     "mean_ms": 4.608,
+     "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+    },
+    {
+     "calls": 23,
+     "mean_ms": 4.978,
+     "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+    }
+   ],
+   "inserted": {
+    "item": 200000
+   }
+  },
+  {
+   "arm": "base",
+   "position": 5,
+   "samples_ms": [
+    49.36261399416253,
+    47.772562014870346,
+    51.38062697369605,
+    50.485288025811315,
+    57.2088310145773,
+    48.92994399415329,
+    52.459842001553625,
+    51.34037701645866,
+    53.307889960706234,
+    48.98894502548501,
+    59.79343201033771,
+    47.15668299468234,
+    57.48112499713898,
+    49.313281022477895,
+    49.56019896781072,
+    44.45291496813297,
+    51.078249991405755,
+    50.03882595337927,
+    47.40880901226774,
+    44.568957993760705
+   ],
+   "median_ms": 49.799512460595,
+   "index_scans": null,
+   "digests": [
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005",
+    "9b5c7eae14797a463541a656c1cc931a68ff17e8f658f714a1cb9256ac250005"
+   ],
+   "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"2026-10-31T16:05:23.088251Z\", \"description\": \"Description for workload item 0 with some text\", \"id\": \"88738172-b0c2-4281-95bb-1f7b7486c981\", \"owner_id\": \"b05ec9d9-32eb-413f-b62c-82d65ace196b\", \"title\": \"Workload item 0\"}, {\"created_at\": \"2026-10-31T15:32:02.08",
+   "statements": [
+    {
+     "calls": 23,
+     "mean_ms": 5.18,
+     "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+    },
+    {
+     "calls": 23,
+     "mean_ms": 5.2,
+     "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+    }
+   ],
+   "inserted": {
+    "item": 200000
+   }
+  },
+  {
+   "arm": "candidate",
+   "position": 6,
+   "samples_ms": [
+    41.32560302969068,
+    46.07180098537356,
+    48.18323103245348,
+    46.449094952549785,
+    47.9821459739469,
+    41.90423199906945,
+    41.84327396797016,
+    41.196310019586235,
+    43.20936498697847,
+    43.32449100911617,
+    42.12610796093941,
+    43.57574298046529,
+    48.988528025802225,
+    48.40839997632429,
+    41.64689697790891,
+    52.15646600117907,
+    50.37528701359406,
+    41.85393999796361,
+    47.20489197643474,
+    50.10191100882366
+   ],
+   "median_ms": 44.823771982919425,
+   "index_scans": null,
+   "digests": [
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af",
+    "6cf8b05f7fdf8cd238e53a5f16ae0d091c60ef4fa0615a167e37d3d3bd33d9af"
+   ],
+   "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"2026-10-31T16:05:35.681948Z\", \"description\": \"Description for workload item 0 with some text\", \"id\": \"af2651ef-01b4-4523-89d5-a8c3f3f616ea\", \"owner_id\": \"db5045de-b98b-453e-9710-0facf63d1125\", \"title\": \"Workload item 0\"}, {\"created_at\": \"2026-10-31T15:32:14.68",
+   "statements": [
+    {
+     "calls": 23,
+     "mean_ms": 4.965,
+     "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+    },
+    {
+     "calls": 23,
+     "mean_ms": 5.411,
+     "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+    }
+   ],
+   "inserted": {
+    "item": 200000
+   }
+  },
+  {
+   "arm": "base",
+   "position": 7,
+   "samples_ms": [
+    49.179946014191955,
+    44.0014959895052,
+    50.284454016946256,
+    54.4428969733417,
+    47.46743501164019,
+    54.15306199574843,
+    53.041637991555035,
+    52.70480300532654,
+    45.338628988247365,
+    55.23548601195216,
+    51.81846296181902,
+    48.697485006414354,
+    49.96324301464483,
+    50.44703703606501,
+    47.07130801398307,
+    53.434181958436966,
+    49.78932498488575,
+    45.33575399545953,
+    49.43065601401031,
+    49.39153097802773
+   ],
+   "median_ms": 49.87628399976529,
+   "index_scans": null,
+   "digests": [
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c",
+    "b17d2235042ac030e0417b2b7c474c8beb9a8d98d1a49d93231b1f720e8a498c"
+   ],
+   "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"2026-10-31T16:05:48.156865Z\", \"description\": \"Description for workload item 0 with some text\", \"id\": \"e6b4f791-8c06-422f-b052-278bbbfdcae3\", \"owner_id\": \"cd16c53e-3e1d-4e74-a0f0-9943b656efd5\", \"title\": \"Workload item 0\"}, {\"created_at\": \"2026-10-31T15:32:27.15",
+   "statements": [
+    {
+     "calls": 23,
+     "mean_ms": 4.592,
+     "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+    },
+    {
+     "calls": 23,
+     "mean_ms": 4.774,
+     "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+    }
+   ],
+   "inserted": {
+    "item": 200000
+   }
+  }
+ ],
+ "control": [],
+ "confirmation": [],
+ "wall_s": 100.2
+}

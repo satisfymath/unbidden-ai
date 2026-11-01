@@ -1,0 +1,55 @@
+{
+ "repo": "/Users/david/humanize",
+ "rev": "6b817b963dbb091b9ad20a746cb6a26653a93b95",
+ "stack": {
+  "python": "3.11",
+  "why": [
+   "python 3.11: no concrete version declared; the oldest the constraints admit (a choice, not something the project names)",
+   "pyproject requires-python: >=3.11",
+   "the CI's python-version: 3.15"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": null,
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [
+   "src/humanize/_version.py"
+  ],
+  "blind_spots": [
+   "pyproject.toml without uv.lock: dependencies resolved at provisioning time"
+  ]
+ },
+ "image": "unbidden-deps-python:e39714212abc131a",
+ "plan": {
+  "source": "CI benchmark.yml > benchmarks",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [],
+  "services": [],
+  "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nscripts/generate-translation-binaries.sh\ncd /work\npytest tests/test_benchmarks.py --codspeed"
+ },
+ "status": "infra_failed",
+ "collected": null,
+ "failed": [
+  "<suite>"
+ ],
+ "why": "exit 127: scripts/generate-translation-binaries.sh: line 7: msgfmt: command not found",
+ "wall_s": 12.1,
+ "image_notes": [
+  "python 3.11: no concrete version declared; the oldest the constraints admit (a choice, not something the project names)",
+  "pyproject requires-python: >=3.11",
+  "the CI's python-version: 3.15",
+  "image unbidden-deps-python:e39714212abc131a on linux/arm64"
+ ],
+ "python": "3.11",
+ "source": "CI benchmark.yml > benchmarks",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [],
+ "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nscripts/generate-translation-binaries.sh\ncd /work\npytest tests/test_benchmarks.py --codspeed"
+}

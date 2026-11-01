@@ -1,0 +1,1187 @@
+corpus:
+  pool: bench/corpus/2026-10-28-pool.json
+  pool_sha256: 5531706a0456bc6bc48bd05c80e434b3023617cdd0811e461510e22e272589fc
+  seed: 20261028
+  allocation:
+    Python: 30
+    TypeScript: 18
+    JavaScript: 12
+    Go: 10
+    Rust: 7
+    Java: 7
+    Ruby: 5
+    PHP: 5
+    C#: 3
+    Kotlin: 3
+  buckets:
+    small: 50..499
+    medium: 500..4999
+    large: '>=5000'
+  splits:
+    dev: 0.4
+    validation: 0.3
+    holdout: 0.3
+  excluded_by_rule:
+    Python/small:
+      a list, course or collection rather than software: 1
+      license 'NOASSERTION' is not an OSI license we accept: 15
+      license 'MIT-0' is not an OSI license we accept: 2
+      over 500 MB: 16
+      license None is not an OSI license we accept: 8
+      license 'CC-BY-4.0' is not an OSI license we accept: 1
+    Python/medium:
+      over 500 MB: 15
+      license None is not an OSI license we accept: 10
+      a list, course or collection rather than software: 2
+      license 'NOASSERTION' is not an OSI license we accept: 14
+      license 'CC-BY-SA-4.0' is not an OSI license we accept: 1
+      license 'CC-BY-4.0' is not an OSI license we accept: 1
+    Python/large:
+      license None is not an OSI license we accept: 4
+      license 'NOASSERTION' is not an OSI license we accept: 21
+      license 'CC-BY-4.0' is not an OSI license we accept: 2
+      over 500 MB: 16
+      a list, course or collection rather than software: 6
+    TypeScript/small:
+      license 'NOASSERTION' is not an OSI license we accept: 13
+      over 500 MB: 11
+      license None is not an OSI license we accept: 4
+      a list, course or collection rather than software: 3
+    TypeScript/medium:
+      over 500 MB: 6
+      license 'NOASSERTION' is not an OSI license we accept: 16
+      license None is not an OSI license we accept: 5
+      a list, course or collection rather than software: 2
+    TypeScript/large:
+      over 500 MB: 30
+      license 'MIT-0' is not an OSI license we accept: 1
+      a list, course or collection rather than software: 1
+      license 'NOASSERTION' is not an OSI license we accept: 19
+      license None is not an OSI license we accept: 3
+    JavaScript/small:
+      over 500 MB: 9
+      license None is not an OSI license we accept: 26
+      license 'NOASSERTION' is not an OSI license we accept: 9
+      a list, course or collection rather than software: 1
+      license 'OSL-3.0' is not an OSI license we accept: 1
+    JavaScript/medium:
+      license 'NOASSERTION' is not an OSI license we accept: 16
+      license None is not an OSI license we accept: 15
+      a list, course or collection rather than software: 3
+      over 500 MB: 10
+      license 'BlueOak-1.0.0' is not an OSI license we accept: 1
+      license 'CC-BY-4.0' is not an OSI license we accept: 1
+    JavaScript/large:
+      license 'NOASSERTION' is not an OSI license we accept: 15
+      a list, course or collection rather than software: 2
+      over 500 MB: 17
+      license None is not an OSI license we accept: 5
+      license 'CC-BY-4.0' is not an OSI license we accept: 1
+      license 'ODbL-1.0' is not an OSI license we accept: 1
+    Go/small:
+      license 'NOASSERTION' is not an OSI license we accept: 10
+      license None is not an OSI license we accept: 6
+      over 500 MB: 7
+    Go/medium:
+      license None is not an OSI license we accept: 2
+      over 500 MB: 3
+      license 'NOASSERTION' is not an OSI license we accept: 9
+      license 'CC-BY-4.0' is not an OSI license we accept: 1
+    Go/large:
+      license None is not an OSI license we accept: 1
+      over 500 MB: 16
+      license 'NOASSERTION' is not an OSI license we accept: 6
+    Rust/small:
+      license 'NOASSERTION' is not an OSI license we accept: 19
+      over 500 MB: 6
+      license None is not an OSI license we accept: 4
+    Rust/medium:
+      over 500 MB: 7
+      license 'NOASSERTION' is not an OSI license we accept: 13
+      license 'EUPL-1.2' is not an OSI license we accept: 1
+    Rust/large:
+      over 500 MB: 14
+      license 'NOASSERTION' is not an OSI license we accept: 18
+      license None is not an OSI license we accept: 2
+      a list, course or collection rather than software: 2
+    Java/small:
+      license None is not an OSI license we accept: 12
+      over 500 MB: 14
+      license 'NOASSERTION' is not an OSI license we accept: 21
+      license 'UPL-1.0' is not an OSI license we accept: 1
+      a list, course or collection rather than software: 2
+    Java/medium:
+      over 500 MB: 17
+      license 'NOASSERTION' is not an OSI license we accept: 11
+      license None is not an OSI license we accept: 4
+    Java/large:
+      over 500 MB: 20
+      a list, course or collection rather than software: 1
+      license 'NOASSERTION' is not an OSI license we accept: 17
+      license None is not an OSI license we accept: 1
+    Ruby/small:
+      license 'NOASSERTION' is not an OSI license we accept: 18
+      license None is not an OSI license we accept: 5
+      over 500 MB: 3
+      a list, course or collection rather than software: 2
+    Ruby/medium:
+      license 'NOASSERTION' is not an OSI license we accept: 15
+      over 500 MB: 6
+      a list, course or collection rather than software: 2
+      license None is not an OSI license we accept: 1
+    Ruby/large:
+      over 500 MB: 7
+      license 'NOASSERTION' is not an OSI license we accept: 17
+      license None is not an OSI license we accept: 4
+      used while developing Unbidden: 2
+      license 'CC-BY-4.0' is not an OSI license we accept: 1
+      a list, course or collection rather than software: 1
+    PHP/small:
+      license None is not an OSI license we accept: 12
+      license 'EUPL-1.2' is not an OSI license we accept: 1
+      a list, course or collection rather than software: 1
+      license 'NOASSERTION' is not an OSI license we accept: 13
+      license 'OSL-3.0' is not an OSI license we accept: 2
+      over 500 MB: 3
+    PHP/medium:
+      license 'NOASSERTION' is not an OSI license we accept: 13
+      a list, course or collection rather than software: 1
+      over 500 MB: 6
+      license None is not an OSI license we accept: 3
+    PHP/large:
+      license 'NOASSERTION' is not an OSI license we accept: 15
+      over 500 MB: 12
+      a list, course or collection rather than software: 1
+      license 'OSL-3.0' is not an OSI license we accept: 1
+    C#/small:
+      license 'NOASSERTION' is not an OSI license we accept: 11
+      license None is not an OSI license we accept: 11
+      over 500 MB: 3
+      a list, course or collection rather than software: 1
+    C#/medium:
+      over 500 MB: 10
+      license 'NOASSERTION' is not an OSI license we accept: 15
+      license 'CC-BY-4.0' is not an OSI license we accept: 1
+      license 'PostgreSQL' is not an OSI license we accept: 1
+      license None is not an OSI license we accept: 2
+    C#/large:
+      over 500 MB: 13
+      license 'NOASSERTION' is not an OSI license we accept: 19
+      license 'CC-BY-4.0' is not an OSI license we accept: 1
+    Kotlin/small:
+      license 'NOASSERTION' is not an OSI license we accept: 15
+      license None is not an OSI license we accept: 5
+      over 500 MB: 3
+      a list, course or collection rather than software: 2
+    Kotlin/medium:
+      license 'NOASSERTION' is not an OSI license we accept: 13
+      over 500 MB: 13
+      license None is not an OSI license we accept: 2
+      a list, course or collection rather than software: 2
+    Kotlin/large:
+      over 500 MB: 12
+      license 'NOASSERTION' is not an OSI license we accept: 2
+      a list, course or collection rather than software: 3
+      license None is not an OSI license we accept: 1
+  pinned_at: '2026-10-28T01:23:30.308725+00:00'
+repos:
+- name: llm-d__llm-d
+  url: https://github.com/llm-d/llm-d
+  commit: 9c03a739d9370f3fda00c72a8f02b9f64a5bc1fb
+  split: dev
+  stratum: Python/large
+  language: Python
+  stars: 5058
+  size_kb: 33615
+  license: Apache-2.0
+  default_branch: main
+- name: Osmantic__ODS
+  url: https://github.com/Osmantic/ODS
+  commit: 07e551621def8cb81f0b3ef604ae90c0a3d547ce
+  split: dev
+  stratum: Python/large
+  language: Python
+  stars: 7702
+  size_kb: 141880
+  license: Apache-2.0
+  default_branch: main
+- name: ldbumble__taskuary
+  url: https://github.com/ldbumble/taskuary
+  commit: 3e440f12700575692002fbf9a5c5114697af4e30
+  split: dev
+  stratum: Python/small
+  language: Python
+  stars: 143
+  size_kb: 469684
+  license: MIT
+  default_branch: master
+- name: headroomlabs-ai__headroom
+  url: https://github.com/headroomlabs-ai/headroom
+  commit: f10725e6b9940d8bc2fcde950c86f8ac97543cb6
+  split: dev
+  stratum: Python/large
+  language: Python
+  stars: 78050
+  size_kb: 96045
+  license: Apache-2.0
+  default_branch: main
+- name: vllm-project__tpu-inference
+  url: https://github.com/vllm-project/tpu-inference
+  commit: ddb4cfc7bbd80da55e38ece414ced32d44552e50
+  split: dev
+  stratum: Python/small
+  language: Python
+  stars: 467
+  size_kb: 71226
+  license: Apache-2.0
+  default_branch: main
+- name: RyanDFIR__unfurl
+  url: https://github.com/RyanDFIR/unfurl
+  commit: b18f67cbf6941d38b06325d04ceb2e618f09d8ae
+  split: dev
+  stratum: Python/medium
+  language: Python
+  stars: 777
+  size_kb: 23654
+  license: Apache-2.0
+  default_branch: main
+- name: zshah101__Automated-List-Of-Summer-2027-and-Fall-2026-Tech-Internships
+  url: https://github.com/zshah101/Automated-List-Of-Summer-2027-and-Fall-2026-Tech-Internships
+  commit: 7802c8c570ab6dedae10d68dbda722b65f2f299e
+  split: dev
+  stratum: Python/medium
+  language: Python
+  stars: 948
+  size_kb: 34636
+  license: MIT
+  default_branch: main
+- name: NVIDIA__IsaacCapture
+  url: https://github.com/NVIDIA/IsaacCapture
+  commit: df8384f39bbe7ffb5fa7fbd4e85ddfbaa1daa6c2
+  split: dev
+  stratum: Python/small
+  language: Python
+  stars: 424
+  size_kb: 379826
+  license: Apache-2.0
+  default_branch: main
+- name: nesquena__hermes-webui
+  url: https://github.com/nesquena/hermes-webui
+  commit: e40f042b6ec80199e06b7edf6e91a31beee2b812
+  split: dev
+  stratum: Python/large
+  language: Python
+  stars: 19218
+  size_kb: 280724
+  license: MIT
+  default_branch: master
+- name: mistralai__mistral-common
+  url: https://github.com/mistralai/mistral-common
+  commit: df71fdd07de23091c9fd1c57f91d6d8ae54479be
+  split: dev
+  stratum: Python/medium
+  language: Python
+  stars: 957
+  size_kb: 13039
+  license: Apache-2.0
+  default_branch: main
+- name: quantumlib__Cirq
+  url: https://github.com/quantumlib/Cirq
+  commit: 0eeb58c4c8f5d507aa01959ec9eeb36e4bd0f6a7
+  split: dev
+  stratum: Python/large
+  language: Python
+  stars: 5093
+  size_kb: 49998
+  license: Apache-2.0
+  default_branch: main
+- name: UKGovernmentBEIS__inspect_evals
+  url: https://github.com/UKGovernmentBEIS/inspect_evals
+  commit: e0d554e5deb7cdcbe8b481c225315f2d2600b4a1
+  split: dev
+  stratum: Python/medium
+  language: Python
+  stars: 720
+  size_kb: 318852
+  license: MIT
+  default_branch: main
+- name: earthtojake__text-to-cad
+  url: https://github.com/earthtojake/text-to-cad
+  commit: 4811290bcdf57f5218af9eed904d8673330c3234
+  split: validation
+  stratum: Python/large
+  language: Python
+  stars: 23583
+  size_kb: 399790
+  license: MIT
+  default_branch: main
+- name: vllm-project__vllm
+  url: https://github.com/vllm-project/vllm
+  commit: 458334f00f7cbff7c8a1feae449656aa7343c476
+  split: validation
+  stratum: Python/large
+  language: Python
+  stars: 95715
+  size_kb: 331815
+  license: Apache-2.0
+  default_branch: main
+- name: lxfight-s-Astrbot-Plugins__astrbot_plugin_livingmemory
+  url: https://github.com/lxfight-s-Astrbot-Plugins/astrbot_plugin_livingmemory
+  commit: 7cdd88a19576744aa6d11b24dbf921a500f11f35
+  split: validation
+  stratum: Python/small
+  language: Python
+  stars: 383
+  size_kb: 6242
+  license: AGPL-3.0
+  default_branch: master
+- name: xzb177__Aetrix-Emby-Portal
+  url: https://github.com/xzb177/Aetrix-Emby-Portal
+  commit: 3e6a7b6c111dab4567eeaf7b2bfad1a4c3131cc8
+  split: validation
+  stratum: Python/small
+  language: Python
+  stars: 131
+  size_kb: 22162
+  license: MIT
+  default_branch: main
+- name: dna-seq__just-dna-lite
+  url: https://github.com/dna-seq/just-dna-lite
+  commit: faf24460e656eccc35f89a666f4d7e2e4882aace
+  split: validation
+  stratum: Python/small
+  language: Python
+  stars: 142
+  size_kb: 53106
+  license: AGPL-3.0
+  default_branch: main
+- name: xingpingcn__enhanced-FaaS-in-China
+  url: https://github.com/xingpingcn/enhanced-FaaS-in-China
+  commit: e3b9f223698fe1b7fcca18f0dd60f7deaa0066d4
+  split: validation
+  stratum: Python/medium
+  language: Python
+  stars: 3117
+  size_kb: 30270
+  license: MIT
+  default_branch: main
+- name: sorryhyun__anima_lora
+  url: https://github.com/sorryhyun/anima_lora
+  commit: 39c5a0b6d344736d34a60037a9f7cde2d80edb87
+  split: validation
+  stratum: Python/small
+  language: Python
+  stars: 138
+  size_kb: 136109
+  license: MIT
+  default_branch: main
+- name: dragon1086__prism-insight
+  url: https://github.com/dragon1086/prism-insight
+  commit: 35c21925b2dd0f35f9ebbd5cab3a926d7cb07af0
+  split: validation
+  stratum: Python/medium
+  language: Python
+  stars: 787
+  size_kb: 164882
+  license: AGPL-3.0
+  default_branch: main
+- name: shlomif__PySolFC
+  url: https://github.com/shlomif/PySolFC
+  commit: 00712954f9e176f992734740b72a454145b217ec
+  split: validation
+  stratum: Python/medium
+  language: Python
+  stars: 574
+  size_kb: 115405
+  license: GPL-3.0
+  default_branch: master
+- name: GetStream__Vision-Agents
+  url: https://github.com/GetStream/Vision-Agents
+  commit: 902db86438aab03fb64aa7e6ea3afdcc867a3e80
+  split: holdout
+  stratum: Python/large
+  language: Python
+  stars: 8191
+  size_kb: 214435
+  license: Apache-2.0
+  default_branch: main
+- name: airmang__python-hwpx
+  url: https://github.com/airmang/python-hwpx
+  commit: 261140a4411feb616890d000322053d90fee5292
+  split: holdout
+  stratum: Python/small
+  language: Python
+  stars: 118
+  size_kb: 52182
+  license: Apache-2.0
+  default_branch: main
+- name: rocketride-org__rocketride-server
+  url: https://github.com/rocketride-org/rocketride-server
+  commit: 76c8cf2c0f3703cec1f064031d8986a6f7b5a760
+  split: holdout
+  stratum: Python/large
+  language: Python
+  stars: 17751
+  size_kb: 132848
+  license: MIT
+  default_branch: develop
+- name: RyanDFIR__hindsight
+  url: https://github.com/RyanDFIR/hindsight
+  commit: dcaa467f2e63e2a54642cde5bb40152c8a317589
+  split: holdout
+  stratum: Python/medium
+  language: Python
+  stars: 1549
+  size_kb: 249071
+  license: Apache-2.0
+  default_branch: main
+- name: AbdelftahZowail__Quickly
+  url: https://github.com/AbdelftahZowail/Quickly
+  commit: 806d697a2e47877ca35b7ff76f6fc239537960d9
+  split: holdout
+  stratum: Python/small
+  language: Python
+  stars: 78
+  size_kb: 60252
+  license: MIT
+  default_branch: main
+- name: Mixar-AI__mixar-app
+  url: https://github.com/Mixar-AI/mixar-app
+  commit: 297783b6e60a40f0901c62bfce75951b83a90b8a
+  split: holdout
+  stratum: Python/medium
+  language: Python
+  stars: 562
+  size_kb: 216627
+  license: GPL-3.0
+  default_branch: main
+- name: PyAV-Org__PyAV
+  url: https://github.com/PyAV-Org/PyAV
+  commit: be5e15a567d972dbff54003644e1d87663e401b8
+  split: holdout
+  stratum: Python/medium
+  language: Python
+  stars: 3320
+  size_kb: 18458
+  license: BSD-3-Clause
+  default_branch: master
+- name: d2cml-ai__csdid
+  url: https://github.com/d2cml-ai/csdid
+  commit: 73a13e4804118e47143aed5d4f8cc4cd1cb668bc
+  split: holdout
+  stratum: Python/small
+  language: Python
+  stars: 66
+  size_kb: 12480
+  license: MIT
+  default_branch: main
+- name: pcqpcq__open-source-android-apps
+  url: https://github.com/pcqpcq/open-source-android-apps
+  commit: 7a99e30e0eddc9e57fb815c8ccdd1cafef4a9dd2
+  split: holdout
+  stratum: Python/large
+  language: Python
+  stars: 10557
+  size_kb: 1908
+  license: MIT
+  default_branch: master
+- name: jdillon__vscode-beads
+  url: https://github.com/jdillon/vscode-beads
+  commit: 52e4c836eb51fc2b39454d1e35e7baee2dd2da9e
+  split: dev
+  stratum: TypeScript/small
+  language: TypeScript
+  stars: 51
+  size_kb: 1894
+  license: Apache-2.0
+  default_branch: main
+- name: ineo6__hosts
+  url: https://github.com/ineo6/hosts
+  commit: 0c11dab9a268c880c445bd5d367a47a685ff5aeb
+  split: dev
+  stratum: TypeScript/large
+  language: TypeScript
+  stars: 5378
+  size_kb: 11642
+  license: MIT
+  default_branch: master
+- name: KeepSoftwareSimple__compass-calendar
+  url: https://github.com/KeepSoftwareSimple/compass-calendar
+  commit: 3cbd1b5915222c8f27612caf97ce0cb73973e11f
+  split: dev
+  stratum: TypeScript/small
+  language: TypeScript
+  stars: 228
+  size_kb: 36501
+  license: MIT
+  default_branch: main
+- name: Effect-TS__effect
+  url: https://github.com/Effect-TS/effect
+  commit: ad3126ecda73fd7c4db1d30ce1c4753052889286
+  split: dev
+  stratum: TypeScript/large
+  language: TypeScript
+  stars: 17409
+  size_kb: 158239
+  license: MIT
+  default_branch: main
+- name: southleft__figma-console-mcp
+  url: https://github.com/southleft/figma-console-mcp
+  commit: 3bbafffd903fff75851894647c23f105479ec068
+  split: dev
+  stratum: TypeScript/medium
+  language: TypeScript
+  stars: 2612
+  size_kb: 5995
+  license: MIT
+  default_branch: main
+- name: ValueCell-ai__ClawX
+  url: https://github.com/ValueCell-ai/ClawX
+  commit: 69b70365ef3915a3e0816b473da44dafade09060
+  split: dev
+  stratum: TypeScript/large
+  language: TypeScript
+  stars: 7601
+  size_kb: 41942
+  license: MIT
+  default_branch: main
+- name: subsquid__squid-sdk
+  url: https://github.com/subsquid/squid-sdk
+  commit: 6e449b83a4ad65efc7ca33ed476ed466fc93b6a9
+  split: dev
+  stratum: TypeScript/medium
+  language: TypeScript
+  stars: 1341
+  size_kb: 22216
+  license: Apache-2.0
+  default_branch: master
+- name: doubtfire-lms__doubtfire-web
+  url: https://github.com/doubtfire-lms/doubtfire-web
+  commit: 85565365d9a7cd7419c0094686ebc995e349f2e8
+  split: validation
+  stratum: TypeScript/small
+  language: TypeScript
+  stars: 50
+  size_kb: 37689
+  license: AGPL-3.0
+  default_branch: 11.1.x
+- name: browseros-ai__BrowserOS
+  url: https://github.com/browseros-ai/BrowserOS
+  commit: 2658cbe4683d3533229a54b5b85151580ff6bbfd
+  split: validation
+  stratum: TypeScript/large
+  language: TypeScript
+  stars: 14126
+  size_kb: 212711
+  license: AGPL-3.0
+  default_branch: main
+- name: cloudflare__agents
+  url: https://github.com/cloudflare/agents
+  commit: 743cfa5a193a98b766d396c0fde79124fba4c501
+  split: validation
+  stratum: TypeScript/large
+  language: TypeScript
+  stars: 5901
+  size_kb: 46070
+  license: MIT
+  default_branch: main
+- name: Team-Commonly__commonly
+  url: https://github.com/Team-Commonly/commonly
+  commit: 6cda1c84e9e9e7632ebc945e98882ecf00ab439e
+  split: validation
+  stratum: TypeScript/medium
+  language: TypeScript
+  stars: 1371
+  size_kb: 110943
+  license: Apache-2.0
+  default_branch: main
+- name: HoshinoSuzumi__chronoframe
+  url: https://github.com/HoshinoSuzumi/chronoframe
+  commit: 252976a97b13485c7ca2dda6261cecd529038d70
+  split: validation
+  stratum: TypeScript/medium
+  language: TypeScript
+  stars: 1963
+  size_kb: 38557
+  license: AGPL-3.0
+  default_branch: main
+- name: Nimblesite__SharpLsp
+  url: https://github.com/Nimblesite/SharpLsp
+  commit: 3442820c929c027dbd51963cc93a1dbefc0471e2
+  split: validation
+  stratum: TypeScript/small
+  language: TypeScript
+  stars: 173
+  size_kb: 53775
+  license: MIT
+  default_branch: main
+- name: traycerai__traycer
+  url: https://github.com/traycerai/traycer
+  commit: 4194ce41f2d37b7ab4da80fa77b8314e757394b0
+  split: holdout
+  stratum: TypeScript/medium
+  language: TypeScript
+  stars: 1638
+  size_kb: 161616
+  license: MIT
+  default_branch: main
+- name: backnotprop__plannotator
+  url: https://github.com/backnotprop/plannotator
+  commit: c821587bdb0cd2a5ce43809da3056cb30128799c
+  split: holdout
+  stratum: TypeScript/large
+  language: TypeScript
+  stars: 9707
+  size_kb: 268993
+  license: Apache-2.0
+  default_branch: main
+- name: sleep2agi__agent-network
+  url: https://github.com/sleep2agi/agent-network
+  commit: 881ed1f9092b63f4785a854c4b19312b2ad19f28
+  split: holdout
+  stratum: TypeScript/small
+  language: TypeScript
+  stars: 110
+  size_kb: 47309
+  license: Apache-2.0
+  default_branch: main
+- name: clerk__javascript
+  url: https://github.com/clerk/javascript
+  commit: e785d99677c0f52129e284da06f9f4f88cf10870
+  split: holdout
+  stratum: TypeScript/medium
+  language: TypeScript
+  stars: 1771
+  size_kb: 450350
+  license: MIT
+  default_branch: main
+- name: antonkomarev__github-trending-archive
+  url: https://github.com/antonkomarev/github-trending-archive
+  commit: 2b23caf9e0a5217e606fb5e7170a63f1248c3f60
+  split: holdout
+  stratum: TypeScript/small
+  language: TypeScript
+  stars: 62
+  size_kb: 19835
+  license: MIT
+  default_branch: master
+- name: firekylin__firekylin
+  url: https://github.com/firekylin/firekylin
+  commit: 99bbdcb919bae2133420dee214c5f8897b9ace25
+  split: dev
+  stratum: JavaScript/medium
+  language: JavaScript
+  stars: 1831
+  size_kb: 15995
+  license: GPL-3.0
+  default_branch: master
+- name: SakuraByteCore__codexmate
+  url: https://github.com/SakuraByteCore/codexmate
+  commit: 571efd21f11b14bf9b335e406cade86d81e4e094
+  split: dev
+  stratum: JavaScript/small
+  language: JavaScript
+  stars: 354
+  size_kb: 20007
+  license: Apache-2.0
+  default_branch: main
+- name: Mintplex-Labs__anything-llm
+  url: https://github.com/Mintplex-Labs/anything-llm
+  commit: 0941fb03596862899f7df2bdeb022eb68d4216a7
+  split: dev
+  stratum: JavaScript/large
+  language: JavaScript
+  stars: 67653
+  size_kb: 95212
+  license: MIT
+  default_branch: master
+- name: marko-js__marko
+  url: https://github.com/marko-js/marko
+  commit: 9c3ad572c10dcb03cae0d358dfa5dfae8ca7bd3d
+  split: dev
+  stratum: JavaScript/large
+  language: JavaScript
+  stars: 14462
+  size_kb: 113825
+  license: MIT
+  default_branch: main
+- name: nikkiluzader__mapng
+  url: https://github.com/nikkiluzader/mapng
+  commit: 9223c90c1007974632a981334194cc7a66be65f8
+  split: dev
+  stratum: JavaScript/small
+  language: JavaScript
+  stars: 97
+  size_kb: 443207
+  license: MIT
+  default_branch: main
+- name: zhblue__hustoj
+  url: https://github.com/zhblue/hustoj
+  commit: 9d5a5000005897fd06f0d36cf5ed80d51b22d0c7
+  split: validation
+  stratum: JavaScript/medium
+  language: JavaScript
+  stars: 3816
+  size_kb: 82010
+  license: GPL-2.0
+  default_branch: master
+- name: BUKOWSKIREAL__magpie-gemini-web
+  url: https://github.com/BUKOWSKIREAL/magpie-gemini-web
+  commit: 70523629460c8363e182c3a14ef0c9c955841ccf
+  split: validation
+  stratum: JavaScript/small
+  language: JavaScript
+  stars: 105
+  size_kb: 932
+  license: MIT
+  default_branch: main
+- name: char0n__ramda-adjunct
+  url: https://github.com/char0n/ramda-adjunct
+  commit: b65ddb10248e92102978189147001d8160431e0f
+  split: validation
+  stratum: JavaScript/medium
+  language: JavaScript
+  stars: 687
+  size_kb: 69570
+  license: BSD-3-Clause
+  default_branch: master
+- name: Orkas-AI__Orkas
+  url: https://github.com/Orkas-AI/Orkas
+  commit: 190556330f0669d32f25ec470995b3b40a6882a3
+  split: validation
+  stratum: JavaScript/medium
+  language: JavaScript
+  stars: 2284
+  size_kb: 159608
+  license: MIT
+  default_branch: main
+- name: adobe__alloy
+  url: https://github.com/adobe/alloy
+  commit: 631d2491042431b5988d1e8d1926e9310d34da38
+  split: holdout
+  stratum: JavaScript/small
+  language: JavaScript
+  stars: 104
+  size_kb: 38669
+  license: Apache-2.0
+  default_branch: main
+- name: vvo__gifify
+  url: https://github.com/vvo/gifify
+  commit: 2d4bc392a5c09fd888c40cda948e7e0e1a3d7db1
+  split: holdout
+  stratum: JavaScript/large
+  language: JavaScript
+  stars: 6322
+  size_kb: 7998
+  license: ISC
+  default_branch: master
+- name: is-a-dev__register
+  url: https://github.com/is-a-dev/register
+  commit: f9d02e5295b2499c61fa59483d02560b8952edeb
+  split: holdout
+  stratum: JavaScript/large
+  language: JavaScript
+  stars: 11664
+  size_kb: 337015
+  license: MIT
+  default_branch: main
+- name: discobox-ai__discobox
+  url: https://github.com/discobox-ai/discobox
+  commit: 9e2c567fb9b1c1874d3947c0bdf1dc37fb9de575
+  split: dev
+  stratum: Go/small
+  language: Go
+  stars: 103
+  size_kb: 45902
+  license: Apache-2.0
+  default_branch: main
+- name: gohugoio__hugoThemesSiteBuilder
+  url: https://github.com/gohugoio/hugoThemesSiteBuilder
+  commit: a2be48deb05c1eb7c317b66da654af717f6d7d75
+  split: dev
+  stratum: Go/small
+  language: Go
+  stars: 286
+  size_kb: 5637
+  license: Apache-2.0
+  default_branch: main
+- name: moby__moby
+  url: https://github.com/moby/moby
+  commit: fca4feda3271a4f6088f111eeec82dbddbc24be4
+  split: dev
+  stratum: Go/large
+  language: Go
+  stars: 72215
+  size_kb: 276867
+  license: Apache-2.0
+  default_branch: master
+- name: mirceanton__kubectl-switch
+  url: https://github.com/mirceanton/kubectl-switch
+  commit: fa7e15db85ec7bd22173e96f9205169eefa7a1ce
+  split: dev
+  stratum: Go/small
+  language: Go
+  stars: 62
+  size_kb: 890
+  license: MIT
+  default_branch: main
+- name: sammy-ette__Hilbish
+  url: https://github.com/sammy-ette/Hilbish
+  commit: 1f0635f8fdc4bef2c260cb2bb671b169504da463
+  split: validation
+  stratum: Go/medium
+  language: Go
+  stars: 570
+  size_kb: 9905
+  license: MIT
+  default_branch: master
+- name: allisonhere__tidemail
+  url: https://github.com/allisonhere/tidemail
+  commit: e6498763d869407624c5d609d14c3a5987f83cbf
+  split: validation
+  stratum: Go/small
+  language: Go
+  stars: 84
+  size_kb: 394534
+  license: MIT
+  default_branch: main
+- name: perkeep__perkeep
+  url: https://github.com/perkeep/perkeep
+  commit: 00cd98e95aaea8ceb7d82204064e15b298eca5b9
+  split: validation
+  stratum: Go/large
+  language: Go
+  stars: 7250
+  size_kb: 55013
+  license: Apache-2.0
+  default_branch: master
+- name: kunchenguid__no-mistakes
+  url: https://github.com/kunchenguid/no-mistakes
+  commit: f2a99ec90167a4e173f6e5098224091701a50251
+  split: holdout
+  stratum: Go/large
+  language: Go
+  stars: 8993
+  size_kb: 15754
+  license: MIT
+  default_branch: main
+- name: hanxi__cups-web
+  url: https://github.com/hanxi/cups-web
+  commit: a1a3f6c9dc6dd3bbf276130073a1ca2a8788f564
+  split: holdout
+  stratum: Go/medium
+  language: Go
+  stars: 1494
+  size_kb: 77702
+  license: MIT
+  default_branch: master
+- name: compozy__compozy
+  url: https://github.com/compozy/compozy
+  commit: ac342c2993d0a2787c0d75b4d2200d592bab1b00
+  split: holdout
+  stratum: Go/medium
+  language: Go
+  stars: 2817
+  size_kb: 367342
+  license: MIT
+  default_branch: main
+- name: dsx-ai-factory__infra-controller
+  url: https://github.com/dsx-ai-factory/infra-controller
+  commit: 563b26ac5ca57767080f0835b7139fd83f25f33f
+  split: dev
+  stratum: Rust/small
+  language: Rust
+  stars: 305
+  size_kb: 256334
+  license: Apache-2.0
+  default_branch: main
+- name: aionhw__xezim
+  url: https://github.com/aionhw/xezim
+  commit: 9faf8304f760e57b77d2f8eabb50ec0be6e871df
+  split: dev
+  stratum: Rust/small
+  language: Rust
+  stars: 115
+  size_kb: 96772
+  license: Apache-2.0
+  default_branch: main
+- name: heydeer__pngdeer
+  url: https://github.com/heydeer/pngdeer
+  commit: 43625e3d46ba25b6e1633d8c4b0552a037b91d86
+  split: dev
+  stratum: Rust/small
+  language: Rust
+  stars: 261
+  size_kb: 74620
+  license: MIT
+  default_branch: main
+- name: tursodatabase__turso
+  url: https://github.com/tursodatabase/turso
+  commit: e9a8b0d25ccd3d12bd5e9fac58f24fef2eb3e3a2
+  split: validation
+  stratum: Rust/large
+  language: Rust
+  stars: 25069
+  size_kb: 280680
+  license: MIT
+  default_branch: main
+- name: spiceai__spiceai
+  url: https://github.com/spiceai/spiceai
+  commit: 2fe516b40695ea722c4e716b0aad4649d917f29d
+  split: validation
+  stratum: Rust/medium
+  language: Rust
+  stars: 3112
+  size_kb: 279742
+  license: Apache-2.0
+  default_branch: trunk
+- name: tinyhumansai__openhuman
+  url: https://github.com/tinyhumansai/openhuman
+  commit: 8b6ec8b40950dc1e5621442653e7a5bc95967cda
+  split: holdout
+  stratum: Rust/large
+  language: Rust
+  stars: 42375
+  size_kb: 441483
+  license: GPL-3.0
+  default_branch: main
+- name: perplexityai__SPACE
+  url: https://github.com/perplexityai/SPACE
+  commit: 398a7e77cb8a6a54fbbf96257c424c90368b6c28
+  split: holdout
+  stratum: Rust/medium
+  language: Rust
+  stars: 1982
+  size_kb: 35742
+  license: Apache-2.0
+  default_branch: main
+- name: SysAdminDoc__HushFeed
+  url: https://github.com/SysAdminDoc/HushFeed
+  commit: 6597127237948324564bbeb0c076bf536f1d7a5e
+  split: dev
+  stratum: Java/small
+  language: Java
+  stars: 316
+  size_kb: 112433
+  license: GPL-3.0
+  default_branch: main
+- name: floci-io__floci
+  url: https://github.com/floci-io/floci
+  commit: 02cc40bb400396d5e3e8c680626cd39088a68d8b
+  split: dev
+  stratum: Java/large
+  language: Java
+  stars: 27196
+  size_kb: 83478
+  license: MIT
+  default_branch: main
+- name: Trilarion__freerails
+  url: https://github.com/Trilarion/freerails
+  commit: c965856e61e0fe1f8a9d18527bb7ad9180375343
+  split: dev
+  stratum: Java/small
+  language: Java
+  stars: 69
+  size_kb: 14426
+  license: GPL-3.0
+  default_branch: master
+- name: jenkinsci__mcp-server-plugin
+  url: https://github.com/jenkinsci/mcp-server-plugin
+  commit: 9d40a8d624e4fc81b0667e5be0ae11744812417d
+  split: validation
+  stratum: Java/small
+  language: Java
+  stars: 118
+  size_kb: 783
+  license: MIT
+  default_branch: main
+- name: orientechnologies__orientdb
+  url: https://github.com/orientechnologies/orientdb
+  commit: 428023f0c023ed04f85462c5a4fc9785b1049621
+  split: validation
+  stratum: Java/medium
+  language: Java
+  stars: 4997
+  size_kb: 299247
+  license: Apache-2.0
+  default_branch: develop
+- name: ArcadeData__arcadedb
+  url: https://github.com/ArcadeData/arcadedb
+  commit: abe9a1947da4d55bc08b2ee3aae71e03794afa1e
+  split: holdout
+  stratum: Java/medium
+  language: Java
+  stars: 1223
+  size_kb: 140975
+  license: Apache-2.0
+  default_branch: main
+- name: hibernate__hibernate-orm
+  url: https://github.com/hibernate/hibernate-orm
+  commit: 4e83981a746fe2d2c79a21cb7ba13ec4a472d0cc
+  split: holdout
+  stratum: Java/large
+  language: Java
+  stars: 6481
+  size_kb: 387806
+  license: Apache-2.0
+  default_branch: main
+- name: stripe__stripe-ruby
+  url: https://github.com/stripe/stripe-ruby
+  commit: 1af9c3e10ce480d81308a380cfb176730bc4015f
+  split: dev
+  stratum: Ruby/medium
+  language: Ruby
+  stars: 2179
+  size_kb: 127793
+  license: MIT
+  default_branch: master
+- name: flyerhzm__bullet
+  url: https://github.com/flyerhzm/bullet
+  commit: c523cee56ab098c21540680e693f50f2a54f824f
+  split: dev
+  stratum: Ruby/large
+  language: Ruby
+  stars: 7341
+  size_kb: 1798
+  license: MIT
+  default_branch: main
+- name: ruby__ruby-bench
+  url: https://github.com/ruby/ruby-bench
+  commit: 3cb699da78d0e7a5667030e5f28ff20dad5e7d63
+  split: validation
+  stratum: Ruby/small
+  language: Ruby
+  stars: 120
+  size_kb: 36953
+  license: MIT
+  default_branch: main
+- name: clacky-ai__openclacky
+  url: https://github.com/clacky-ai/openclacky
+  commit: aa8ba3754d724557358a915089d6f553ebbee07e
+  split: validation
+  stratum: Ruby/medium
+  language: Ruby
+  stars: 1209
+  size_kb: 10863
+  license: MIT
+  default_branch: main
+- name: circleci-tools__circleci-cli
+  url: https://github.com/circleci-tools/circleci-cli
+  commit: e376b0cee5728bf8f9965bfca351511490c6afb8
+  split: holdout
+  stratum: Ruby/small
+  language: Ruby
+  stars: 93
+  size_kb: 10176
+  license: MIT
+  default_branch: master
+- name: Mes-Open__OpenMes
+  url: https://github.com/Mes-Open/OpenMes
+  commit: b952915bddb2120737f10a730a1e45b1d162c47e
+  split: dev
+  stratum: PHP/small
+  language: PHP
+  stars: 177
+  size_kb: 76312
+  license: AGPL-3.0
+  default_branch: main
+- name: nuxsmin__sysPass
+  url: https://github.com/nuxsmin/sysPass
+  commit: 23d8989156f2db685139a056c390da97bc3ac95d
+  split: dev
+  stratum: PHP/medium
+  language: PHP
+  stars: 994
+  size_kb: 36668
+  license: GPL-3.0
+  default_branch: master
+- name: Automattic__WP-Job-Manager
+  url: https://github.com/Automattic/WP-Job-Manager
+  commit: 9c09c1343a1bbd34745978906b8a70111e13911e
+  split: validation
+  stratum: PHP/medium
+  language: PHP
+  stars: 897
+  size_kb: 22728
+  license: GPL-3.0
+  default_branch: trunk
+- name: davidpesce__moodle-logstore_xapi
+  url: https://github.com/davidpesce/moodle-logstore_xapi
+  commit: 1df6e56867d474876722fd120ba5b302c311c82c
+  split: validation
+  stratum: PHP/small
+  language: PHP
+  stars: 82
+  size_kb: 10919
+  license: GPL-3.0
+  default_branch: master
+- name: DenverCoder1__github-readme-streak-stats
+  url: https://github.com/DenverCoder1/github-readme-streak-stats
+  commit: 0c88afa21375a3f72c30ab4ffac6ae19bf4ff9e6
+  split: holdout
+  stratum: PHP/large
+  language: PHP
+  stars: 7185
+  size_kb: 1351
+  license: MIT
+  default_branch: main
+- name: Radarr__Radarr
+  url: https://github.com/Radarr/Radarr
+  commit: c0a0be6dde11ec4c9576366a7623322ea2a08775
+  split: dev
+  stratum: C#/large
+  language: C#
+  stars: 14663
+  size_kb: 317711
+  license: GPL-3.0
+  default_branch: develop
+- name: litenova__LiteBus
+  url: https://github.com/litenova/LiteBus
+  commit: 863e6aa4e8e7abb8c3f971dcd3412d86e19a9e5a
+  split: validation
+  stratum: C#/small
+  language: C#
+  stars: 237
+  size_kb: 10456
+  license: MIT
+  default_branch: main
+- name: ValveResourceFormat__ValveResourceFormat
+  url: https://github.com/ValveResourceFormat/ValveResourceFormat
+  commit: 183eb34b40fe000bc17c8fd920dd5cfd480254c3
+  split: holdout
+  stratum: C#/medium
+  language: C#
+  stars: 2539
+  size_kb: 37960
+  license: MIT
+  default_branch: master
+- name: NuvioMedia__NuvioTV
+  url: https://github.com/NuvioMedia/NuvioTV
+  commit: 7596edc76b6bf430009bbded0b425510c1ea458a
+  split: dev
+  stratum: Kotlin/medium
+  language: Kotlin
+  stars: 3248
+  size_kb: 491564
+  license: GPL-3.0
+  default_branch: dev
+- name: RisorseArtificiali__anti-vocale
+  url: https://github.com/RisorseArtificiali/anti-vocale
+  commit: 17adf7575740b75a2c7dfd26ca4ee6d866986109
+  split: validation
+  stratum: Kotlin/small
+  language: Kotlin
+  stars: 132
+  size_kb: 192708
+  license: Apache-2.0
+  default_branch: main
+- name: plainhub__plain-app
+  url: https://github.com/plainhub/plain-app
+  commit: 36369985410fa2733b83579bdd531106e645a0a5
+  split: holdout
+  stratum: Kotlin/large
+  language: Kotlin
+  stars: 7072
+  size_kb: 290481
+  license: AGPL-3.0
+  default_branch: main

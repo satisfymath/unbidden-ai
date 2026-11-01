@@ -1,0 +1,84 @@
+== cycle 1 (exit 0)
+14:52:03 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+14:52:03 HEAD is bed3f14ee77a
+14:52:03 deploy procedure found, proposed only: docker compose -f 
+tests_frontend/docker-compose.yml up -d --wait
+14:52:04 deploy procedure found, proposed only: docker compose -f 
+tests_frontend_v2/docker-compose.yml up -d --wait
+14:52:04 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability
+14:52:04 provisioning python dependencies
+14:52:04 running ruff
+14:52:05 scan of bed3f14ee77a: 1 reports, 0 new opportunities
+14:56:50 map of bed3f14ee77a: 67 resources, 4 blind spots
+14:56:51 robustness probe at bed3f14ee77a: investigate (probe spoolman (74 
+public functions sampled))
+14:56:54 the project's own checks at bed3f14ee77a: passed (278 collected, 0 
+failed)
+14:56:55 opp_c6a8344a3d7f484d: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+14:56:55 opp_8179ee659bda40c4: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+14:57:07 opp_8179ee659bda40c4: consistency of GET /api/v1/spool/group: 
+waiting_capability: needs an integration for spoolman-api
+14:59:56 capability need api_client for http_api:http://127.0.0.1:18130: in_use
+15:00:18 opp_8179ee659bda40c4: consistency of GET /api/v1/spool/group: 
+waiting_extension: needs the read Find_spool_groups_spool_group_get added to the
+integration (open)
+15:01:29 capability need api_extension for 
+http_api:http://127.0.0.1:18130#Find_spool_groups_spool_group_get: failed
+15:01:30 opp_8179ee659bda40c4: wait (investigation queued or running)
+15:02:41 capability need api_extension for 
+http_api:http://127.0.0.1:18130#Find_spool_groups_spool_group_get: abandoned
+15:02:49 opp_8179ee659bda40c4: consistency of GET /api/v1/spool/group: 
+waiting_extension: needs the read Find_spool_groups_spool_group_get added to the
+integration (abandoned)
+15:02:49 writing property tests for spoolman
+15:03:02 running them offline
+15:03:04 robustness probe of spoolman: 2 failed, 6 passed in 1.35s; 0 crash(es),
+0 new; 0 property violation(s) kept for a person (L1)
+15:03:06 candidate: index on filament.vendor_id, written from the finding
+15:03:06 choosing the request (attempt 1)
+15:03:48 validating the request at the base, against the application as the 
+project runs it
+15:03:55 choosing the request (attempt 2)
+15:04:55 validating the request at the base, against the application as the 
+project runs it
+15:05:04 choosing the request (attempt 3)
+15:05:35 validating the request at the base, against the application as the 
+project runs it
+15:05:44 choosing the request (attempt 4)
+15:06:40 choosing the request (attempt 5)
+15:06:54 validating the request at the base, against the application as the 
+project runs it
+15:07:02 opp_c6a8344a3d7f484d: not measured (cannot measure: no workload was 
+valid at the base after 5 attempts (request attempt 5 not valid: the calls did 
+not run a statement that reads filament by vendor_id on every call (SELECT 
+spool.id AS spool_id, spool.registered AS spool_registered, spool.first_used AS 
+spool_first_used, spool.last_used AS spool_last_used, spool.price AS spoo)))
+15:07:03 opp_c6a8344a3d7f484d: wait (not measurable at this commit: cannot 
+measure: no workload was valid at the base after 5 attempts (request attempt 5 
+not valid: the calls did not run a statement that reads filament by vendor_id on
+every call (SELECT spool.id AS sp)
+
+
+== cycle 2 (exit 0)
+15:07:03 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+15:07:44 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 connected
+
+
+== cycle 3 (exit 0)
+15:07:46 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+15:08:31 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 connected
+
+
+== cycle 4 (exit 0)
+15:08:32 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+15:09:15 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 connected

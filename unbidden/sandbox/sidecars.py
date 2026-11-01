@@ -37,10 +37,33 @@ def _run(docker: str, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run([docker, *args], capture_output=True, text=True, check=False)
 
 
+PROBE_IMAGE = "busybox:1.36"
+
+
+def _wait_for_port(docker: str, network: str, service: Service, deadline: float) -> None:
+    """A service of no known kind (an LDAP server) is ready when its first port accepts a connection, probed from a
+    throwaway container on the same network; when the probe image itself cannot run, a short fixed wait stands."""
+    port = next((p for p in service.ports if p.isdigit()), None)
+    if port is None:
+        return
+    argv = [docker, "run", "--rm", "--network", network, PROBE_IMAGE, "nc", "-z", "-w", "1", service.name, port]
+    while time.monotonic() < deadline:
+        probe = subprocess.run(argv, capture_output=True, text=True, check=False)
+        if probe.returncode == 0:
+            return
+        if "Unable to find image" in probe.stderr or "pull access denied" in probe.stderr:
+            time.sleep(5)
+            return
+        time.sleep(1)
+    raise SandboxError(f"service {service.name} did not accept connections on {port} in time")
+
+
 @contextmanager
 def data_services(
-    services: list[Service], *, docker: str = "docker", ready_timeout_s: float = 90
+    services: list[Service], *, docker: str = "docker", ready_timeout_s: float = 90, statements: bool = False
 ) -> Iterator[Sidecars | None]:
+    """`statements`: PostgreSQL also keeps per-statement statistics (pg_stat_statements), read by the lab to see
+    what a measured request made the engine do."""
     if not services:
         yield None
         return
@@ -58,7 +81,9 @@ def data_services(
                     "--tmpfs", f"{DATA_DIRS.get(kind, '/data')}:rw", "--memory", "1g"]  # fmt: skip
             for key, value in sorted(service.environment.items()):
                 argv += ["-e", f"{key}={value}"]
-            started = _run(docker, *argv, service.image or "")
+            command = (["postgres", "-c", "shared_preload_libraries=pg_stat_statements", "-c",
+                        "pg_stat_statements.track=all"] if statements and kind == "postgres" else [])  # fmt: skip
+            started = _run(docker, *argv, service.image or "", *command)
             if started.returncode != 0:
                 raise SandboxError(f"data service {service.name} did not start: {started.stderr.strip()[-300:]}")
             names[service.name] = container
@@ -66,6 +91,7 @@ def data_services(
         for service in services:
             probe = READY.get(service.data_kind or "")
             if probe is None:
+                _wait_for_port(docker, network, service, deadline)
                 continue
             while _run(docker, "exec", names[service.name], *probe).returncode != 0:
                 if time.monotonic() > deadline:

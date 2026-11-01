@@ -1,0 +1,107 @@
+{
+ "repo": "/Users/david/unbidden-lab/aegra",
+ "rev": "46055c0b9adffe51fb168974f79dfadaa6edd612",
+ "stack": {
+  "python": "3.12",
+  "why": [
+   "python 3.12: from .python-version",
+   "pyproject requires-python: >=3.12",
+   ".python-version: 3.12"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": "uv.lock",
+  "members": [
+   "libs/aegra-api",
+   "libs/aegra-cli"
+  ],
+  "source_roots": [
+   "libs/aegra-api",
+   "libs/aegra-cli",
+   "libs/aegra-api/src",
+   "libs/aegra-cli/src",
+   "src",
+   "."
+  ],
+  "test_paths": [
+   "libs/aegra-api/tests",
+   "libs/aegra-cli/tests"
+  ],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:fd52288df704436f",
+ "plan": {
+  "source": "CI ci.yml > test-api",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [
+   "the job's `uv python install 3.12` is satisfied by the image's Python 3.12, chosen when it was provisioned"
+  ],
+  "services": [],
+  "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest libs/aegra-api/tests/unit libs/aegra-api/tests/integration --cov=libs/aegra-api/src --cov-report=xml --cov-report=term"
+ },
+ "status": "failed",
+ "collected": 2429,
+ "failed": [
+  "tests.integration.test_api.test_event_streaming.TestStreamRoute::test_stream_emits_dual_sdk_interrupt_fields (needs network)",
+  "tests.integration.test_api.test_event_streaming.TestStreamRoute::test_stream_emits_v2_frames (needs network)",
+  "tests.integration.test_api.test_runs_crud.TestWaitForRunTimeouts::test_wait_for_run_timeout (needs network)",
+  "tests.integration.test_api.test_stateless_runs_crud.TestStatelessWaitForRun::test_delegates_to_threaded_wait (needs network)",
+  "tests.integration.test_cancel_run.TestCancelRun::test_cancel_already_completed_run_returns_true (needs network)",
+  "tests.integration.test_cancel_run.TestCancelRun::test_cancel_run_cancels_running_task (needs network)",
+  "tests.integration.test_cancel_run.TestCancelRun::test_interrupt_run_cancels_running_task (needs network)",
+  "tests.integration.test_cancel_run.TestCancelRunStatusNotOverwritten::test_cancelled_task_raises_cancelled_error (needs network)",
+  "tests.integration.test_streaming_errors.TestStreamingErrorHandling::test_error_during_event_processing_sent_to_frontend (needs network)",
+  "tests.unit.test_api.test_runs_streaming.TestRunsStreamingEndpoints::test_execute_run_async_error_handling (needs network)",
+  "tests.unit.test_api.test_runs_wait.TestWaitForRunExceptionPaths::test_wait_for_run_failed_status (needs network)",
+  "tests.unit.test_api.test_runs_wait.TestWaitForRunExceptionPaths::test_wait_for_run_interrupted_status (needs network)",
+  "tests.unit.test_api.test_runs_wait.TestWaitForRunExceptionPaths::test_wait_for_run_returns_streaming_response (needs network)",
+  "tests.unit.test_api.test_runs_wait.TestWaitForRunExceptionPaths::test_wait_for_run_success (needs network)",
+  "tests.unit.test_api.test_runs_wait.TestWaitForRunExceptionPaths::test_wait_for_run_timeout (needs network)",
+  "tests.unit.test_api.test_stateless_runs.TestCleanupAfterBackgroundRun::test_awaits_task_then_deletes (needs network)",
+  "tests.unit.test_api.test_stateless_runs.TestCleanupAfterBackgroundRun::test_deletes_thread_when_no_task_in_active_runs (needs network)",
+  "tests.unit.test_api.test_stateless_runs.TestCleanupAfterBackgroundRun::test_swallows_psycopg_error_from_thread_delete (needs network)",
+  "tests.unit.test_main::test_lifespan_registers_otel_provider (needs network)",
+  "tests.unit.test_main::test_lifespan_skips_migrations_when_disabled (needs network)",
+  "tests.unit.test_main::test_lifespan_starts_ttl_sweeper_when_configured (needs network)"
+ ],
+ "why": "exit 1: st_cancel_run.py::TestCancelRunStatusNotOverwritten::test_cancelled_task_raises_cancelled_error - RuntimeError: Redis not initialized. Set REDIS_BROKER_ENABLED=true and ensure Redis is running.\nFAILED libs/aegra-api/tests/integration/test_streaming_errors.py::TestStreamingErrorHandling::test_error_during_event_processing_sent_to_frontend - AssertionError: assert 'RuntimeError...cution failed' == 'ValueError: execution failed'\n  \n  - ValueError: execution failed\n  ? ^^^\n  + RuntimeError: execution failed\n  ? ^ ++++\n=========== 21 failed, 2401 passed, 7 skipped, 5 warnings in 40.45s ============",
+ "failures": {
+  "tests.unit.test_api.test_runs_streaming.TestRunsStreamingEndpoints::test_execute_run_async_error_handling": "AssertionError: Error event should be sent to broker\nassert 0 > 0\n +  where 0 = len([])",
+  "tests.unit.test_api.test_runs_wait.TestWaitForRunExceptionPaths::test_wait_for_run_timeout": "RuntimeError: Redis not initialized. Set REDIS_BROKER_ENABLED=true and ensure Redis is running.",
+  "tests.unit.test_api.test_runs_wait.TestWaitForRunExceptionPaths::test_wait_for_run_success": "RuntimeError: Redis not initialized. Set REDIS_BROKER_ENABLED=true and ensure Redis is running.",
+  "tests.unit.test_api.test_runs_wait.TestWaitForRunExceptionPaths::test_wait_for_run_failed_status": "RuntimeError: Redis not initialized. Set REDIS_BROKER_ENABLED=true and ensure Redis is running.",
+  "tests.unit.test_api.test_runs_wait.TestWaitForRunExceptionPaths::test_wait_for_run_interrupted_status": "RuntimeError: Redis not initialized. Set REDIS_BROKER_ENABLED=true and ensure Redis is running.",
+  "tests.unit.test_api.test_runs_wait.TestWaitForRunExceptionPaths::test_wait_for_run_returns_streaming_response": "RuntimeError: Redis not initialized. Set REDIS_BROKER_ENABLED=true and ensure Redis is running.",
+  "tests.unit.test_api.test_stateless_runs.TestCleanupAfterBackgroundRun::test_awaits_task_then_deletes": "RuntimeError: Redis not initialized. Set REDIS_BROKER_ENABLED=true and ensure Redis is running.",
+  "tests.unit.test_api.test_stateless_runs.TestCleanupAfterBackgroundRun::test_deletes_thread_when_no_task_in_active_runs": "RuntimeError: Redis not initialized. Set REDIS_BROKER_ENABLED=true and ensure Redis is running.",
+  "tests.unit.test_api.test_stateless_runs.TestCleanupAfterBackgroundRun::test_swallows_psycopg_error_from_thread_delete": "RuntimeError: Redis not initialized. Set REDIS_BROKER_ENABLED=true and ensure Redis is running.",
+  "tests.unit.test_main::test_lifespan_registers_otel_provider": "redis.exceptions.ConnectionError: Error -3 connecting to redis:6379. Temporary failure in name resolution.",
+  "tests.unit.test_main::test_lifespan_skips_migrations_when_disabled": "redis.exceptions.ConnectionError: Error -3 connecting to redis:6379. Temporary failure in name resolution.",
+  "tests.unit.test_main::test_lifespan_starts_ttl_sweeper_when_configured": "redis.exceptions.ConnectionError: Error -3 connecting to redis:6379. Temporary failure in name resolution.",
+  "tests.integration.test_api.test_event_streaming.TestStreamRoute::test_stream_emits_v2_frames": "RuntimeError: Redis not initialized. Set REDIS_BROKER_ENABLED=true and ensure Redis is running.",
+  "tests.integration.test_api.test_event_streaming.TestStreamRoute::test_stream_emits_dual_sdk_interrupt_fields": "RuntimeError: Redis not initialized. Set REDIS_BROKER_ENABLED=true and ensure Redis is running.",
+  "tests.integration.test_api.test_runs_crud.TestWaitForRunTimeouts::test_wait_for_run_timeout": "RuntimeError: Redis not initialized. Set REDIS_BROKER_ENABLED=true and ensure Redis is running.",
+  "tests.integration.test_api.test_stateless_runs_crud.TestStatelessWaitForRun::test_delegates_to_threaded_wait": "RuntimeError: Redis not initialized. Set REDIS_BROKER_ENABLED=true and ensure Redis is running.",
+  "tests.integration.test_cancel_run.TestCancelRun::test_cancel_already_completed_run_returns_true": "assert False is True",
+  "tests.integration.test_cancel_run.TestCancelRun::test_cancel_run_cancels_running_task": "assert False is True",
+  "tests.integration.test_cancel_run.TestCancelRun::test_interrupt_run_cancels_running_task": "assert False is True",
+  "tests.integration.test_cancel_run.TestCancelRunStatusNotOverwritten::test_cancelled_task_raises_cancelled_error": "RuntimeError: Redis not initialized. Set REDIS_BROKER_ENABLED=true and ensure Redis is running."
+ },
+ "wall_s": 47.6,
+ "image_notes": [
+  "python 3.12: from .python-version",
+  "pyproject requires-python: >=3.12",
+  ".python-version: 3.12",
+  "image unbidden-deps-python:fd52288df704436f on linux/arm64"
+ ],
+ "python": "3.12",
+ "source": "CI ci.yml > test-api",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [
+  "the job's `uv python install 3.12` is satisfied by the image's Python 3.12, chosen when it was provisioned"
+ ],
+ "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest libs/aegra-api/tests/unit libs/aegra-api/tests/integration --cov=libs/aegra-api/src --cov-report=xml --cov-report=term"
+}

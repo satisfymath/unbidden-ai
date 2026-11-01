@@ -1,0 +1,37 @@
+{
+ "name": "mealie-f9fe965",
+ "opportunity": "opp_8f2cf46bd8864983",
+ "title": "shopping_list_items.food_id is a foreign key without an index, filtered by 2 endpoint(s)",
+ "original_level": 4,
+ "base": "e31c5fcfd2892670158f4c189acdb06cde3180bf",
+ "product": "f9fe9659118eea3acdaaec9064d66a070428563c",
+ "usd_before": 23.0648,
+ "verdict": null,
+ "experiment": null,
+ "blocked": "cannot measure: no workload was valid at the base after 5 attempts (workload attempt 5 refused before running: `build` asks for unique_user, which no conftest visible from the tests defines (they define: api_client, global_cleanup, isolate_session_cookies, test_image_jpg, test_image_png))",
+ "notes": [
+  "workload attempt 1 refused before running: `build` asks for unique_user, which no conftest visible from the tests defines (they define: api_client, global_cleanup, isolate_session_cookies, test_image_jpg, test_image_png)",
+  "workload attempt 2 failed: ERROR    root:handlers.py:15 -----------------------End 422 Error------------------------",
+  "workload attempt 3 refused before running: `build` asks for unique_user, which no conftest visible from the tests defines (they define: api_client, global_cleanup, isolate_session_cookies, test_image_jpg, test_image_png)",
+  "lab.workload: no answer (EgressBlocked: payload contains 1 secret(s))",
+  "workload attempt 5 refused before running: `build` asks for unique_user, which no conftest visible from the tests defines (they define: api_client, global_cleanup, isolate_session_cookies, test_image_jpg, test_image_png)",
+  "cannot measure: no workload was valid at the base after 5 attempts (workload attempt 5 refused before running: `build` asks for unique_user, which no conftest visible from the tests defines (they define: api_client, global_cleanup, isolate_session_cookies, test_image_jpg, test_image_png))"
+ ],
+ "readiness": {
+  "checks_reproduced": {
+   "ok": false,
+   "why": "not recorded at this commit (the lab's own test runs decide)"
+  },
+  "environment_ready": {
+   "ok": true,
+   "why": "dependency image built; tests run by CI nightly.yml:backend-tests > tests (test-backend.yml) (its services: postgres); migrations at mealie/alembic/versions"
+  },
+  "workload_valid": {
+   "ok": false,
+   "why": "no workload was valid at the base after 5 attempts (workload attempt 5 refused before running: `build` asks for unique_user, which no conftest visible from the tests defines (they define: api_client, global_cleanup, isolate_session_cookies, test_image_jpg, test_image_png))"
+  }
+ },
+ "level_after": 1,
+ "usd_after": 23.2342,
+ "wall_s": 229.8
+}

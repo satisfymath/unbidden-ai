@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from unbidden.contracts.guardian import (
@@ -10,7 +12,35 @@ from unbidden.contracts.guardian import (
     Mandate,
     RemoteModelPolicy,
 )
+from unbidden.guardian.credentials import CredentialBroker, reset
 from unbidden.store import Store
+
+
+@pytest.fixture(autouse=True)
+def credentials() -> CredentialBroker:
+    """A fresh broker per test, with the grants a runtime would give the test names."""
+    held = reset()
+    for name, purpose in (("GITHUB_TOKEN", "github"), ("TEST_KEY", "model.remote"), ("MODEL_API_KEY", "model.remote")):
+        held.grant(name, purpose)
+    return held
+
+
+@pytest.fixture(autouse=True)
+def spend_home(tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Every test gets its own machine-wide spend ledger, never the real one in ~/.unbidden."""
+    home = tmp_path_factory.mktemp("unbidden-home")
+    monkeypatch.setenv("UNBIDDEN_HOME", str(home))
+    monkeypatch.delenv("UNBIDDEN_RUN", raising=False)
+    return home
+
+
+@pytest.fixture(autouse=True)
+def no_ci_reads(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Unit tests never ask GitHub about a commit or a repository; a test that needs an answer sets its own."""
+    import unbidden.observe.ci as ci
+
+    monkeypatch.setattr(ci, "fetch_runs", lambda *a, **k: ([], None))  # pyright: ignore[reportUnknownLambdaType]
+    monkeypatch.setattr(ci, "fork_parent", lambda *a, **k: None)  # pyright: ignore[reportUnknownLambdaType]
 
 
 @pytest.fixture

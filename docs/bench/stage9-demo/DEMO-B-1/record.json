@@ -1,0 +1,35 @@
+{
+ "run": "DEMO-B-1",
+ "mode": "proactive",
+ "restored": {
+  "commit": "029eb7781c60d5f563ee8990a0cbfb79b244538c",
+  "data": {
+   "users": 2000,
+   "articles": 20000,
+   "comments": 300000,
+   "favorites": 20000
+  }
+ },
+ "usd_before": 16.4549,
+ "interventions": [
+  {
+   "answered": {
+    "blocked": "observe.checks",
+    "state": "pending_person",
+    "what": "add deb.debian.org to egress.package_registries (system build tools: a compiler and the C headers a package builds against) (then: observe.checks runs again)"
+   },
+   "granted": [
+    "deb.debian.org"
+   ],
+   "at": 1793360381.402789
+  }
+ ],
+ "wall_s": 2836.0,
+ "repo_after": "",
+ "branches_after": [
+  "unbidden/commentaries-article-id-is-a-foreign-key-ad48b7",
+  "unbidden/favorites-article-id-is-a-foreign-key-wi-f64204"
+ ],
+ "usd_after": 16.9894,
+ "workspace": "/Users/david/unbidden-lab/conduit-runs/demo9-DEMO-B-1"
+}

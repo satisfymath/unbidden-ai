@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import statistics
 import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import Field
 
@@ -15,16 +17,35 @@ from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.experiment import Proposal, ProposalStatus
 from unbidden.contracts.guardian import Autonomy, Mandate
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
-from unbidden.contracts.world import WorldModel
-from unbidden.observe.impact import CRITERIA, Impact, Round, judge_endpoint, overall
+from unbidden.contracts.world import Deployment, WorldModel
+from unbidden.observe.impact import (
+    CRITERIA,
+    SUSTAINED_CRITERIA,
+    SUSTAINED_PERSISTENCE,
+    WARMUP_ROUNDS,
+    EndpointImpact,
+    Impact,
+    Round,
+    judge_endpoint,
+    overall,
+    sustained,
+)
 from unbidden.observe.probe import Prober
+from unbidden.operate import ledger
 from unbidden.operate.deploy import OperationRefused, deploy
 from unbidden.operate.holds import place
 from unbidden.store import Store
+from unbidden.world.scope import scope
+
+RECHECK_EVERY = timedelta(days=1)
 
 Log = Callable[[str], None]
 HEALTH_HINTS = ("health", "healthz", "ping", "status")
 OUTAGE_ROUNDS = 3  # consecutive failing rounds of a health endpoint
+SUSTAINED_WINDOW = timedelta(hours=4)
+SUSTAINED_EVERY_S = 60.0
+SUSTAINED_BASELINE_MINUTES = 30
+SUSTAINED_MIN_MINUTES = 120
 
 
 class DeployVerdict(Contract):
@@ -34,6 +55,40 @@ class DeployVerdict(Contract):
     endpoints: list[dict[str, Any]]
     criteria: dict[str, float | int | str]
     judged_at: str = Field(default_factory=lambda: utc_now().isoformat())
+    commits: dict[str, str] = Field(default_factory=dict)  # deploy -> how its commit is known
+    scope: list[dict[str, Any]] = Field(default_factory=list)  # components behind what went wrong
+
+
+OutcomeResult = Literal["positive", "negative", "inconclusive", "invalid"]
+
+
+def classify_outcome(
+    judged: list[EndpointImpact], baseline: Deployment | None, current: Deployment | None, external: list[str]
+) -> tuple[OutcomeResult, list[str]]:
+    """What a deploy's measurements say about one change, under criteria fixed before the measurement.
+
+    `invalid`: the comparison cannot be credited to the change (a version that is not verified or observed, or
+    a deploy nobody accounts for in between). `negative`: worse. `positive`: every endpoint the change targets
+    improved. `inconclusive`: anything else (no change claimed, too few samples, endpoints not measured).
+    """
+    why: list[str] = []
+    for name, d in (("baseline", baseline), ("candidate", current)):
+        if d is None:
+            why.append(f"the {name} deploy has no ledger record: the code it ran is unknown")
+        elif not ledger.is_attributable(d):
+            why.append(f"the {name} deploy's commit is {d.commit_status}: {d.commit_reason}")
+    if external:
+        why.append("deploys not made by Unbidden between the windows: " + ", ".join(external))
+    if why:
+        return "invalid", why
+    if not judged:
+        return "inconclusive", ["none of the change's endpoints was measured on both sides"]
+    impacts = {e.impact for e in judged}
+    if impacts & {Impact.DEGRADED, Impact.OUTAGE}:
+        return "negative", [f"{e.target}: {e.reasons[0]}" for e in judged if e.reasons]
+    if impacts == {Impact.IMPROVED}:
+        return "positive", [f"{e.target}: {e.reasons[0]}" for e in judged if e.reasons]
+    return "inconclusive", [f"{e.target}: {e.reasons[0]}" for e in judged if e.reasons]
 
 
 def _git(repo: Path, *args: str) -> str:
@@ -73,16 +128,85 @@ class LiveWatcher:
     def tick(self) -> None:
         if not self.prober().round():
             return
+        self._sustained()
         history = self.history()
         if len(history) < 2:
             return
         current = len(history) - 1
         baseline = self._baseline(history)
         if self._outage(current):
-            self._bad(history, current, Impact.OUTAGE)
+            health = [t for t in self.store.round_targets() if any(h in t.lower() for h in HEALTH_HINTS)]
+            self._bad(history, current, Impact.OUTAGE, health)
             return
         if self.store.get("deploy_verdicts", f"{current}:{history[current]}", DeployVerdict) is None:
             self._judge(history, current, baseline)
+        self._recheck(history)
+
+    def _sustained(self, now: datetime | None = None) -> None:
+        """Once a minute: each endpoint's last minutes against the oldest of the last four hours, across deploys."""
+        now = now or utc_now()
+        last = self.store.get_value("sustained_checked_at")
+        if last and (now - datetime.fromisoformat(last)).total_seconds() < SUSTAINED_EVERY_S:
+            return
+        self.store.set_value("sustained_checked_at", now.isoformat())
+        since = now - SUSTAINED_WINDOW
+        for target in self.store.round_targets():
+            per_minute: dict[str, list[float]] = {}
+            for ts, _, statuses, latencies in self.store.rounds(target):
+                if ts < since:
+                    continue
+                served = [ms for ms, st in zip(latencies, statuses, strict=True) if 200 <= st < 400]
+                per_minute.setdefault(ts.strftime("%Y-%m-%dT%H:%M"), []).extend(served)
+            minutes = [statistics.median(v) for _, v in sorted(per_minute.items()) if v]
+            if len(minutes) < SUSTAINED_MIN_MINUTES:
+                continue  # less than two hours seen: no old baseline yet
+            found = sustained(minutes[:SUSTAINED_BASELINE_MINUTES], minutes[-SUSTAINED_PERSISTENCE:])
+            key = f"sustained_open:{target}"
+            if found is None:
+                self.store.set_value(key, None)
+                continue
+            if self.store.get_value(key):
+                continue
+            self.store.set_value(key, now.isoformat())
+            history = self.history()
+            payload = {
+                "target": target,
+                "baseline_median_ms": round(found.baseline_median, 1),
+                "recent_median_ms": round(found.recent_median, 1),
+                "factor": round(found.factor, 2),
+                "criteria": SUSTAINED_CRITERIA,
+                "deploys_in_window": len(history),
+            }
+            self.store.append_event(
+                Event(type=EventType.IMPACT_JUDGED, actor="observer", entity_id=f"sustained:{target}", payload=payload)
+            )
+            self.log(
+                f"sustained degradation on {target}: median {found.baseline_median:.1f} -> "
+                f"{found.recent_median:.1f} ms against the oldest part of the last "
+                f"{SUSTAINED_WINDOW.total_seconds() / 3600:.0f} h"
+            )
+            first = next((v for ts, v, _, _ in self.store.rounds(target) if ts >= since), None)
+            current = history[-1] if history else None
+            if (
+                first
+                and current
+                and first != current
+                and not first.startswith("unknown")
+                and not current.startswith("unknown")
+            ):
+                from unbidden.contracts.jobs import Job
+
+                self.store.enqueue(
+                    Job(
+                        type="research.investigate",
+                        idempotency_key=f"research.investigate:sustained:{target}:{now:%Y%m%d%H}",
+                        priority=15,
+                        payload={"good": first, "bad": current, "subject": f"sustained {target}",
+                                 "incident": f"{target} sustained slower: {payload}"},
+                    )
+                )  # fmt: skip
+            else:
+                self.log(f"{target}: the same code ran the whole window; the cause is data, load or environment")
 
     def _baseline(self, history: list[str]) -> int:
         """The deploy to compare against: the previous one, or, when it ran too briefly to be judged or was an
@@ -95,6 +219,17 @@ class LiveWatcher:
             if any(len(self._rounds(t, index)) >= need for t in targets):
                 return index
         return len(history) - 2
+
+    def _deployment(self, index: int) -> Deployment | None:
+        return self.store.get(ledger.COLLECTION, str(index), Deployment)
+
+    def _commit_status(self, index: int) -> str:
+        d = self._deployment(index)
+        return "no ledger record" if d is None else f"{d.commit_status} ({d.initiated_by})"
+
+    def _scopes(self, targets: list[str]) -> list[dict[str, Any]]:
+        """What lies behind each endpoint that went wrong, from the World Model, with what cannot be seen."""
+        return [scope(self.world, f"endpoint:{t}").brief() for t in targets]
 
     def _served(self, target: str, deploy: int) -> bool:
         """Endpoints the probe user may not read (401/403 throughout) cannot be judged; they are left out."""
@@ -119,12 +254,15 @@ class LiveWatcher:
         if verdict is Impact.INSUFFICIENT and any(e.rounds_after < need for e in endpoints):
             return  # still filling the window of the new deploy
         version, previous = history[current], history[baseline]
+        bad = [e.target for e in endpoints if e.impact in (Impact.DEGRADED, Impact.OUTAGE)]
         record = DeployVerdict(
             id=f"{current}:{version}",
             previous=previous,
             impact=verdict,
             endpoints=[e.as_dict() for e in endpoints],
             criteria=CRITERIA,
+            commits={str(i): self._commit_status(i) for i in (baseline, current)},
+            scope=self._scopes(bad),
         )
         self.store.put("deploy_verdicts", record)
         self.store.set_value(f"verdict_of:{current}", verdict.value)
@@ -144,16 +282,18 @@ class LiveWatcher:
         self.log(f"deploy {current} ({version[:12]}) judged {verdict.value} against deploy {baseline}: {notable[:300]}")
         self._outcomes(history, current, baseline, endpoints)
         if verdict in (Impact.DEGRADED, Impact.OUTAGE):
-            self._bad(history, current, verdict)
+            self._bad(history, current, verdict, bad)
 
     def _outcomes(self, history: list[str], current: int, baseline: int, endpoints: list[Any]) -> None:
-        """Level 5 for each merged proposal whose first deploy this is, with what else could explain the change.
-        A proposal already present in any earlier deploy was judged there, or never can be."""
+        """Level 5 for each proposal whose first deploy this is, with what else could explain the change. What counts
+        is that its commit is in the deployed version, merged on GitHub or deployed from its local branch (a proposal
+        that cannot be published yet). A proposal already present in any earlier deploy was judged there."""
         version, previous = history[current], history[baseline]
         by_target = {e.target: e for e in endpoints}
         commits = _git(self.repo, "log", "--format=%h %s", f"{previous}..{version}").splitlines()
         skipped = [history[i][:12] for i in range(baseline + 1, current)]
-        for proposal in self.store.list("proposals", Proposal, status=ProposalStatus.MERGED.value):
+        shippable = (ProposalStatus.MERGED, ProposalStatus.READY, ProposalStatus.PR_OPENED, ProposalStatus.PUBLISHING)
+        for proposal in (p for p in self.store.list("proposals", Proposal) if p.status in shippable):
             shipped = proposal.merge_sha or proposal.commit_sha
             if not contains(self.repo, version, shipped):
                 continue
@@ -163,25 +303,48 @@ class LiveWatcher:
             if opp is None or opp.details.get("outcome"):
                 continue
             judged = [by_target[e] for e in opp.details.get("endpoints", []) if e in by_target]
-            confounders = [
-                f"{len(commits)} commit(s) between the two measured versions: " + "; ".join(commits[:5]),
+            base_d, cur_d = self._deployment(baseline), self._deployment(current)
+            external = [
+                f"deploy {i}"
+                for i in range(baseline + 1, current + 1)
+                if (d := self._deployment(i)) is not None and d.initiated_by == "external"
+            ]
+            result, why = classify_outcome(judged, base_d, cur_d, external)
+            confounders: list[dict[str, str]] = [
+                {
+                    "kind": "commits_between",
+                    "detail": f"{len(commits)} commit(s) between the two measured versions: " + "; ".join(commits[:5]),
+                },
                 *(
-                    [f"{len(skipped)} intermediate deploy(s) not used as baseline: {', '.join(skipped)}"]
+                    [{"kind": "skipped_deploys", "detail": f"not used as baseline: {', '.join(skipped)}"}]
                     if skipped
                     else []
                 ),
-                "traffic is unbidden's own probes, not users",
-                "data volume and cache state differ between the two windows",
+                *({"kind": "external_deploy", "detail": e} for e in external),
+                {"kind": "synthetic_traffic", "detail": "traffic is unbidden's own probes, not users"},
+                {"kind": "state_drift", "detail": "data volume and cache state differ between the two windows"},
             ]
             outcome = {
+                "at": utc_now().isoformat(),
                 "deploy": f"{current}:{version}",
                 "baseline": f"{baseline}:{previous}",
+                "result": result,
+                "why": why,
+                "commits": {
+                    "baseline": base_d.commit_status if base_d else "no ledger record",
+                    "candidate": cur_d.commit_status if cur_d else "no ledger record",
+                },
                 "impact": [e.as_dict() for e in judged],
                 "confounders": confounders,
                 "criteria": CRITERIA,
             }
+            if result == "positive" and opp.evidence_level < EvidenceLevel.FUNCTIONAL_VALIDATION:
+                # A live result is level 5 on top of a validated change, never in its place.
+                why = [*why, f"the lab evidence is L{int(opp.evidence_level)}, below L4: no promotion to L5"]
+                outcome["why"] = why
+                outcome["promoted"] = False
             opp.details = {**opp.details, "outcome": outcome}
-            if judged and all(e.impact is Impact.IMPROVED for e in judged):
+            if result == "positive" and opp.evidence_level >= EvidenceLevel.FUNCTIONAL_VALIDATION:
                 opp.evidence_level = EvidenceLevel.OPERATIONAL_RESULT
                 opp.status = OpportunityStatus.VERIFIED
                 opp.evidence = [
@@ -198,10 +361,64 @@ class LiveWatcher:
                     payload=outcome,
                 )
             )
-            self.log(
-                f"{opp.id}: real outcome after deploy {current}: "
-                + ", ".join(f"{e.target} {e.impact.value}" for e in judged)
-            )
+            self.log(f"{opp.id}: outcome after deploy {current} is {result}: {'; '.join(why)[:300]}")
+
+    def _recheck(self, history: list[str], now: datetime | None = None) -> None:
+        """Each positive live result, checked again about once a day against the same baseline and criteria: it holds,
+        or it is invalidated (the change is no longer deployed, or its effect is gone) and its level goes back to L4.
+        Held through the mandate's persistence period, with at least two checks, it is persistent (L6)."""
+        now = now or utc_now()
+        need = self.mandate.operations.guard_samples
+        current = len(history) - 1
+        for opp in self.store.list("opportunities", Opportunity, status=OpportunityStatus.VERIFIED.value):
+            outcome: dict[str, Any] = opp.details.get("outcome") or {}
+            if outcome.get("result") != "positive" or opp.evidence_level >= EvidenceLevel.PERSISTENCE:
+                continue
+            checks: list[dict[str, Any]] = opp.details.get("rechecks", [])
+            recorded = datetime.fromisoformat(outcome.get("at") or opp.updated_at.isoformat())
+            last = datetime.fromisoformat(checks[-1]["at"]) if checks else recorded
+            if now - last < RECHECK_EVERY:
+                continue
+            proposal = next((p for p in self.store.list("proposals", Proposal) if p.opportunity_id == opp.id), None)
+            shipped = (proposal.merge_sha or proposal.commit_sha) if proposal else None
+            if shipped is None or current < 0 or not contains(self.repo, history[current], shipped):
+                self._invalidate(opp, f"no longer deployed: deploy {current} runs {history[current][:12]}", now)
+                continue
+            baseline = int(str(outcome["baseline"]).split(":")[0])
+            judged = []
+            for target in opp.details.get("endpoints", []):
+                after = self._rounds(target, current)[-(need + WARMUP_ROUNDS) :]  # the judge drops the warm-up
+                judged.append(judge_endpoint(target, self._rounds(target, baseline), after, need))
+            if not judged or any(e.impact is Impact.INSUFFICIENT for e in judged):
+                continue  # not enough recent rounds yet: checked again at the next tick
+            if any(e.impact is not Impact.IMPROVED for e in judged):
+                gone = [f"{e.target}: {e.reasons[0] if e.reasons else e.impact.value}" for e in judged]
+                self._invalidate(opp, "the effect is no longer measured: " + "; ".join(gone), now)
+                continue
+            checks = [*checks, {"at": now.isoformat(), "deploy": f"{current}:{history[current]}", "held": True}]
+            opp.details = {**opp.details, "rechecks": checks}
+            persistent = now - recorded >= timedelta(days=self.mandate.evaluation.persistence_days) and len(checks) >= 2
+            if persistent:
+                opp.evidence_level = EvidenceLevel.PERSISTENCE
+            self.store.put("opportunities", opp)
+            self.store.append_event(
+                Event(type=EventType.OUTCOME_HELD, actor="observer", entity_id=opp.id, correlation_id=opp.id,
+                      payload={"checks": len(checks), "persistent": persistent, "deploy": checks[-1]["deploy"]})
+            )  # fmt: skip
+            self.log(f"{opp.id}: live result held ({len(checks)} check(s)){'; persistent (L6)' if persistent else ''}")
+
+    def _invalidate(self, opp: Opportunity, why: str, now: datetime) -> None:
+        """A live result that no longer holds: back to what the lab showed (L4), the reason kept with the outcome."""
+        outcome = {**opp.details.get("outcome", {}), "invalidated": {"at": now.isoformat(), "why": why}}
+        opp.details = {**opp.details, "outcome": outcome}
+        opp.evidence_level = EvidenceLevel.FUNCTIONAL_VALIDATION
+        opp.status = OpportunityStatus.PROPOSED
+        self.store.put("opportunities", opp)
+        self.store.append_event(
+            Event(type=EventType.OUTCOME_INVALIDATED, actor="observer", entity_id=opp.id, correlation_id=opp.id,
+                  payload={"why": why})
+        )  # fmt: skip
+        self.log(f"{opp.id}: live result invalidated: {why}")
 
     def _last_healthy(self, history: list[str], current: int) -> str | None:
         """The most recent earlier deploy judged healthy or improved (the first one served before any change)."""
@@ -213,7 +430,7 @@ class LiveWatcher:
                 return history[index]
         return None
 
-    def _bad(self, history: list[str], current: int, impact: Impact) -> None:
+    def _bad(self, history: list[str], current: int, impact: Impact, targets: list[str] | None = None) -> None:
         if impact is Impact.OUTAGE:
             self.store.set_value(f"outage_deploy:{current}", utc_now().isoformat())
             self.store.set_value(f"verdict_of:{current}", impact.value)
@@ -234,6 +451,7 @@ class LiveWatcher:
                         "bad": history[current],
                         "incident": reason,
                         "subject": f"deploy {current}",
+                        "scope": self._scopes(targets or []),
                     },
                 )
             )

@@ -1,0 +1,78 @@
+{
+  "pairs": 32,
+  "metrics": {
+    "stack_supported": {
+      "before": 18,
+      "after": 18,
+      "n": 32,
+      "gained": 0,
+      "lost": 0,
+      "p_mcnemar": 1.0
+    },
+    "dependencies_installed": {
+      "before": 15,
+      "after": 16,
+      "n": 32,
+      "gained": 1,
+      "lost": 0,
+      "p_mcnemar": 1.0
+    },
+    "analyzer_complete": {
+      "before": 13,
+      "after": 18,
+      "n": 32,
+      "gained": 5,
+      "lost": 0,
+      "p_mcnemar": 0.0625
+    },
+    "bootstrapped": {
+      "before": 13,
+      "after": 18,
+      "n": 32,
+      "gained": 5,
+      "lost": 0,
+      "p_mcnemar": 0.0625
+    },
+    "ci_understood": {
+      "before": 31,
+      "after": 31,
+      "n": 32,
+      "gained": 0,
+      "lost": 0,
+      "p_mcnemar": 1.0
+    }
+  },
+  "changes": [
+    {
+      "name": "BUKOWSKIREAL__magpie-gemini-web",
+      "before": "no_applicable_analyzer",
+      "after": "nothing_found",
+      "direction": 2
+    },
+    {
+      "name": "browseros-ai__BrowserOS",
+      "before": "no_dependency_manifest",
+      "after": "findings_declined",
+      "direction": 9
+    },
+    {
+      "name": "RisorseArtificiali__anti-vocale",
+      "before": "unsupported_language",
+      "after": "nothing_found",
+      "direction": 10
+    },
+    {
+      "name": "litenova__LiteBus",
+      "before": "unsupported_language",
+      "after": "nothing_found",
+      "direction": 10
+    },
+    {
+      "name": "cloudflare__agents",
+      "before": "deps_tool_version",
+      "after": "actionable",
+      "direction": 12
+    }
+  ],
+  "decisions": []
+}

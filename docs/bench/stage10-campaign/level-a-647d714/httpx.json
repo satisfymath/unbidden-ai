@@ -1,0 +1,74 @@
+{
+ "repo": "/Users/david/httpx",
+ "rev": "b5addb64f0161ff6bfe94c124ef76f6a1fba5254",
+ "stack": {
+  "python": "3.9",
+  "why": [
+   "python 3.9: from the CI's python-version (the oldest in its matrix)",
+   "pyproject requires-python: >=3.9",
+   "the CI's python-version: 3.9, 3.10, 3.11, 3.12, 3.13"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": null,
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [
+   "requirements.txt"
+  ],
+  "build_writes": [],
+  "blind_spots": [
+   "pyproject.toml without uv.lock: dependencies resolved at provisioning time"
+  ]
+ },
+ "image": "unbidden-deps-python:1cfdb743ea01e425",
+ "plan": {
+  "source": "CI test-suite.yml > tests",
+  "scope": "matrix entry 1 of 5 (python-version=3.9)",
+  "partial": true,
+  "notes": [
+   "left out, scripts/install only installs (the dependency image stands for it)",
+   "left out, scripts/check only checks",
+   "left out, scripts/build only builds",
+   "left out, scripts/coverage only reports"
+  ],
+  "services": [],
+  "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nscripts/test"
+ },
+ "status": "failed",
+ "collected": 1418,
+ "failed": [
+  "tests.client.test_proxies::test_async_proxy_close[asyncio] (needs network)",
+  "tests.client.test_proxies::test_async_proxy_close[trio] (needs network)",
+  "tests.client.test_proxies::test_sync_proxy_close (needs network)",
+  "tests.test_timeouts::test_write_timeout[trio] (needs network)"
+ ],
+ "why": "exit 1: + [ -z true ]\n+ coverage run -m pytest",
+ "failures": {
+  "tests.client.test_proxies::test_async_proxy_close[asyncio]": "httpx.ConnectError: [Errno -3] Temporary failure in name resolution",
+  "tests.client.test_proxies::test_async_proxy_close[trio]": "httpx.ConnectError: [Errno -3] Temporary failure in name resolution",
+  "tests.client.test_proxies::test_sync_proxy_close": "httpx.ConnectError: [Errno -3] Temporary failure in name resolution",
+  "tests.test_timeouts::test_write_timeout[trio]": "pytest.PytestUnraisableExceptionWarning: Exception ignored in: <async_generator object ByteStream.__aiter__ at 0xffff900899d0>\nEnable tracemalloc to get traceback where the object was allocated.\nSee https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info."
+ },
+ "wall_s": 24.7,
+ "image_notes": [
+  "python 3.9: from the CI's python-version (the oldest in its matrix)",
+  "pyproject requires-python: >=3.9",
+  "the CI's python-version: 3.9, 3.10, 3.11, 3.12, 3.13",
+  "image unbidden-deps-python:1cfdb743ea01e425 on linux/arm64"
+ ],
+ "python": "3.9",
+ "source": "CI test-suite.yml > tests",
+ "scope": "matrix entry 1 of 5 (python-version=3.9)",
+ "partial": true,
+ "notes": [
+  "left out, scripts/install only installs (the dependency image stands for it)",
+  "left out, scripts/check only checks",
+  "left out, scripts/build only builds",
+  "left out, scripts/coverage only reports"
+ ],
+ "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nscripts/test"
+}

@@ -1,0 +1,20 @@
+{
+ "app": "spoolman",
+ "run": "A-post1",
+ "mode": "goal",
+ "restored": {
+  "commit": "bed3f14ee77a3a571d31b14215d54b0b88a7519c",
+  "data": {
+   "vendors": 200,
+   "filaments": 5000,
+   "spools": 100000
+  }
+ },
+ "usd_before": 13.718,
+ "interventions": [],
+ "wall_s": 672.6,
+ "repo_after": "",
+ "branches_after": [],
+ "usd_after": 14.1665,
+ "workspace": "/Users/david/unbidden-lab/spoolman-runs/post9-spoolman-A-post1"
+}

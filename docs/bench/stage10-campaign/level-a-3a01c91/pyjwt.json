@@ -1,0 +1,55 @@
+{
+ "repo": "/Users/david/pyjwt",
+ "rev": "16231abfd1d8eab4953e8779b3017b859c88565e",
+ "stack": {
+  "python": "3.13",
+  "why": [
+   "python 3.13: where the CI runs the checks and the project's Dockerfile both use it",
+   "pyproject requires-python: >=3.9",
+   "the CI's python-version: 3.9, 3.10, 3.11, 3.12, 3.13, 3.14, 3.15",
+   "the project's Dockerfile: 3.13",
+   "conflict: concrete sources disagree: the CI's python-version 3.9, 3.10, 3.11, 3.12, 3.13, 3.14, 3.15; the project's Dockerfile 3.13"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": null,
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": [
+   "pyproject.toml without uv.lock: dependencies resolved at provisioning time"
+  ]
+ },
+ "image": "unbidden-deps-python:33bea1920378e382",
+ "plan": {
+  "source": "python -m pytest -q -p no:cacheprovider",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [],
+  "services": [],
+  "command": "python -m pytest -q -p no:cacheprovider"
+ },
+ "status": "passed",
+ "collected": 476,
+ "failed": [],
+ "why": null,
+ "wall_s": 6.6,
+ "image_notes": [
+  "python 3.13: where the CI runs the checks and the project's Dockerfile both use it",
+  "pyproject requires-python: >=3.9",
+  "the CI's python-version: 3.9, 3.10, 3.11, 3.12, 3.13, 3.14, 3.15",
+  "the project's Dockerfile: 3.13",
+  "conflict: concrete sources disagree: the CI's python-version 3.9, 3.10, 3.11, 3.12, 3.13, 3.14, 3.15; the project's Dockerfile 3.13",
+  "image unbidden-deps-python:33bea1920378e382 on linux/arm64"
+ ],
+ "python": "3.13",
+ "source": "python -m pytest -q -p no:cacheprovider",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [],
+ "command": "python -m pytest -q -p no:cacheprovider"
+}

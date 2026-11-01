@@ -27,6 +27,7 @@ class AutonomyPolicy(Contract):
     deploy: Autonomy = Autonomy.DENY
     rollback: Autonomy = Autonomy.DENY
     use_new_capabilities: Autonomy = Autonomy.DENY
+    act_on_connections: Autonomy = Autonomy.DENY  # write operations a connection grant permits
 
 
 class ProbeAuth(Contract):
@@ -40,11 +41,16 @@ class OperationsPolicy(Contract):
     """How this system is deployed and watched. Declared by a person; unbidden never invents a deploy."""
 
     deploy_steps: list[list[str]] = Field(default_factory=list[list[str]])  # argv lists, run in the repo
+    # The application's own checks for a change Unbidden makes: argv lists run in `check_image`, offline, on a copy
+    # of the changed tree. None declared: a change is not deployed.
+    check_steps: list[list[str]] = Field(default_factory=list[list[str]])
+    check_image: str | None = None
     probe_every_s: float = Field(default=5.0, gt=0)
     probe_auth: ProbeAuth | None = None
     max_merges_per_hour: int = Field(default=2, ge=0)
     max_deploys_per_hour: int = Field(default=2, ge=0)
     guard_samples: int = Field(default=15, ge=5)  # per side, per endpoint, before judging a deploy
+    ui_capture_retention_days: float = Field(default=14.0, ge=0)  # screenshots of anomalies, kept locally
 
 
 class BusinessConstraints(Contract):
@@ -78,6 +84,11 @@ class EvaluationPolicy(Contract):
     minimum_evidence_for_proposal: int = Field(default=4, ge=1, le=6)
     alpha: float = Field(default=0.01, gt=0.0, lt=1.0)
     min_relative_effect: float = Field(default=0.20, gt=0.0)
+    # What resolving one opportunity of a category is worth to this team, in hours of a person's work saved;
+    # categories not named keep the Director's defaults. Editable: it is the mandate's statement of value.
+    value_hours: dict[str, float] = Field(default_factory=dict[str, float])
+    # A live result (L5) is checked again about once a day; held for this long, it is persistent (L6).
+    persistence_days: float = Field(default=7.0, gt=0)
 
 
 class ModelsPolicy(Contract):
@@ -85,6 +96,45 @@ class ModelsPolicy(Contract):
 
     profile: Literal["local", "local-first", "frontier"] = "local-first"
     private_code_to_frontier: Literal["deny", "allow"] = "deny"
+    # Screenshots of the project's own pages may be shown to a remote multimodal model. Images cannot be scanned for
+    # secrets the way text is, so this is a person's explicit choice per workspace, off by default.
+    screenshots_to_frontier: Literal["deny", "allow"] = "deny"
+    # When the chosen remote model fails or is refused, whether the local model takes over. Every fallback is
+    # recorded either way; "deny" keeps a remote-first run from loading a large local model unannounced.
+    local_fallback: Literal["allow", "deny"] = "allow"
+    # `deny`: no call is served by the local model at all (stage 9's runs: Meta's API only). A call that may not
+    # leave (secrets, production data, unrenamed private code) is then refused and says why, never sent locally.
+    local_inference: Literal["allow", "deny"] = "allow"
+
+
+class ConnectionGrant(Contract):
+    """A resource a person authorizes Unbidden to connect to, and what it may do there. A grant is not a check:
+    what the credential can really do is observed, and only the smaller of the two is used."""
+
+    id: str = Field(min_length=1)  # a name for the resource in this project
+    kind: Literal["postgres", "http_api", "github"]
+    location: str  # host:port/database, a base URL, or owner/name
+    environment: Literal["local", "development", "staging", "production"] = "staging"
+    credential_ref: str | None = None  # a broker name, never a value
+    username: str | None = None  # where the protocol needs one apart from the secret
+    tls: Literal["disable", "prefer", "require", "verify-full"] = "prefer"
+    docs: str | None = None  # where its documentation may be read (an OpenAPI URL, a file in the repository)
+    permissions: list[str] = Field(default_factory=lambda: ["read"])  # read, write:<what>
+    limits: dict[str, float] = Field(default_factory=dict)  # e.g. max_units, requests_per_minute, timeout_s
+    # Whether what Unbidden reads here (documentation, schema, records) may be sent to a remote model: only for
+    # laboratory or synthetic data a person declares as such. Text is still scanned for secrets and personal data.
+    content_may_leave: bool = False
+
+
+class Goal(Contract):
+    """An objective in a person's words, with the bounds on what may be done for it. Bounds Unbidden enforces:
+    `environment` (where it may act), `max_actions` (per goal and day), `max_amount_per_action` (the amount a single
+    write may carry), `max_changes` (code changes deployed for the goal per day, for a goal about what a page shows).
+    Without `max_actions` or `max_changes`, nothing is changed for the goal."""
+
+    id: str = Field(min_length=1)
+    statement: str
+    bounds: dict[str, float | int | str] = Field(default_factory=dict)
 
 
 class Mandate(Contract):
@@ -96,6 +146,8 @@ class Mandate(Contract):
     evaluation: EvaluationPolicy = Field(default_factory=EvaluationPolicy)
     operations: OperationsPolicy = Field(default_factory=OperationsPolicy)
     models: ModelsPolicy = Field(default_factory=ModelsPolicy)
+    connections: list[ConnectionGrant] = Field(default_factory=list[ConnectionGrant])
+    goals: list[Goal] = Field(default_factory=list[Goal])
 
 
 class Hold(Contract):
@@ -132,7 +184,7 @@ class PolicyVerdict(Contract):
         return self.decision is Decision.ALLOW
 
 
-EgressKind = Literal["synthetic_task", "github", "package_registry"]
+EgressKind = Literal["synthetic_task", "github", "package_registry", "screenshots"]
 
 
 class EgressVerdict(Contract):

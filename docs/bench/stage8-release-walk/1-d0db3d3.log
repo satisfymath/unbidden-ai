@@ -1,0 +1,99 @@
+
+### git clone -q https://github.com/satisfymath/unbidden-ai.git
+### exit 0 in 1 s
+
+### git checkout -q d0db3d3
+### exit 0 in 0 s
+
+### uv sync -q
+### exit 0 in 3 s
+
+### make check
+  File "<scratch>/home.F05u/unbidden-ai/.venv/lib/python3.12/site-packages/pyright/node.py", line 54, in _ensure_node_env
+    _install_node_env()
+  File "<scratch>/home.F05u/unbidden-ai/.venv/lib/python3.12/site-packages/pyright/node.py", line 95, in _install_node_env
+    raise RuntimeError(
+RuntimeError: nodeenv failed; for more reliable node.js binaries try `pip install pyright[nodejs]`
+make: *** [typecheck] Error 1
+### exit 2 in 1 s
+
+### uv run unbidden doctor
+  ok  ollama       4 model(s) at http://localhost:11434
+  ok  machine      Apple M5 Pro, 64 GB, 54 GB for a model
+  ok  local model  muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best
+local quality measured)
+  ok  docker       running
+  !!  meta api     no MODEL_API_KEY: frontier models are off
+  !!  github       no GITHUB_TOKEN: proposals stay local branches
+  !!  workspace    not initialized: `unbidden init`
+### exit 0 in 2 s
+
+### uv run unbidden spend
+no verified balance: an allowance of US$1.00 to check the remote path
+  permitted US$1.00 · spent US$0.0000 · available US$1.0000
+by model                                                   
+ model  calls  retries  failed  tokens in  tokens out  US$ 
+by run                                                   
+ run  calls  retries  failed  tokens in  tokens out  US$ 
+by workspace                                                   
+ workspace  calls  retries  failed  tokens in  tokens out  US$ 
+costs are list price x reported tokens, worst cost when unknown; the dashboard 
+is the bill
+### exit 0 in 0 s
+
+### uv run python -m bench.ecosystem.depot_lab up
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "<scratch>/home.F05u/unbidden-ai/bench/ecosystem/depot_lab.py", line 218, in <module>
+    main()
+  File "<scratch>/home.F05u/unbidden-ai/bench/ecosystem/depot_lab.py", line 207, in main
+    {
+  File "<scratch>/home.F05u/unbidden-ai/bench/ecosystem/depot_lab.py", line 178, in up
+    base.up(lab)
+  File "<scratch>/home.F05u/unbidden-ai/bench/ecosystem/lab.py", line 135, in up
+    shopfront_up(lab)
+  File "<scratch>/home.F05u/unbidden-ai/bench/ecosystem/lab.py", line 232, in shopfront_up
+    subprocess.run(
+  File "<scratch>/home.F05u/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['docker', 'compose', '-p', 'shopfront-staging', 'up', '-d', '--wait']' returned non-zero exit status 125.
+### exit 1 in 6 s
+
+### uv run python -m bench.ecosystem.board_lab reset style
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "<scratch>/home.F05u/unbidden-ai/bench/ecosystem/board_lab.py", line 469, in <module>
+    main()
+  File "<scratch>/home.F05u/unbidden-ai/bench/ecosystem/board_lab.py", line 460, in main
+    state = reset(lab, args.case, args.variant, args.seed, args.bins)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<scratch>/home.F05u/unbidden-ai/bench/ecosystem/board_lab.py", line 418, in reset
+    deploy(repo)
+  File "<scratch>/home.F05u/unbidden-ai/bench/ecosystem/board_lab.py", line 429, in deploy
+    subprocess.run(["docker", "compose", "-p", PROJECT, "up", "-d", "--build"], cwd=repo, check=True,
+  File "<scratch>/home.F05u/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['docker', 'compose', '-p', 'boardapp-staging', 'up', '-d', '--build']' returned non-zero exit status 125.
+### exit 1 in 2 s
+
+### uv run python -m bench.ecosystem.board_workspace <scratch>/home.F05u/unbidden-ai --policy local --perception dom
+<scratch>/home.F05u/unbidden-lab/boardapp (staging on 18096)
+### exit 0 in 0 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project "$OLDPWD" unbidden watch --once)
+18:19:17 watching 
+/private/tmp/claude-501/-Users-david-unbidden-ai/e45596bf-00bf-4781-abc7-f887255
+8fdd0/scratchpad/walk/home.F05u/unbidden-lab/boardapp (ctrl-c to stop, `unbidden
+kill` to freeze)
+18:19:32 HEAD is 6cd7b3c6b6d6
+18:19:34 deploy procedure found, proposed only: docker compose -p 
+boardapp-staging up -d --build
+18:19:34 connections: postgres:127.0.0.1:55432/boardpicks connected, 
+http_api:http://127.0.0.1:18086 needs_capability
+18:19:34 provisioning python dependencies
+18:19:34 scan of 6cd7b3c6b6d6: 0 reports, 0 new opportunities
+18:19:35 map of 6cd7b3c6b6d6: 4 resources, 1 blind spots
+18:19:35 robustness probe at 6cd7b3c6b6d6: investigate (probe board (8 public 
+functions sampled))

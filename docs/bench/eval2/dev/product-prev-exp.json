@@ -1,0 +1,290 @@
+[
+ {
+  "scenario": "crash-shadowed-import",
+  "version": "prev-exp",
+  "commit": "d7a53a0d9991a5257ee0d97e5f240b9da5f6e54c",
+  "steps": {
+   "scan": {
+    "exit": 0,
+    "seconds": 0.5
+   },
+   "decide": {
+    "exit": 0,
+    "seconds": 0.3
+   }
+  },
+  "decide": {
+   "checked_dirs": [
+    "."
+   ],
+   "ci_status": null,
+   "ci_problem": null,
+   "tool_status": {},
+   "open": 1,
+   "chosen": {
+    "run_experiment": 1
+   },
+   "declined_or_waiting_because": {},
+   "decisions": [
+    {
+     "id": "opp_e264cdd830dd4eda",
+     "category": "lint",
+     "level": 1,
+     "chosen": "run_experiment",
+     "reason": "reproduce it and measure a candidate offline"
+    }
+   ]
+  },
+  "opportunities": [
+   {
+    "category": "lint",
+    "created_at": "2026-10-28T05:07:54.418538Z",
+    "dedup_key": "ruff:F823:src/pantry",
+    "details": {
+     "findings": [
+      {
+       "category": "lint",
+       "extra": {
+        "fixable": false
+       },
+       "fingerprint": "024dd66807091a6d",
+       "line": 11,
+       "message": "Local variable `format` referenced before assignment",
+       "path": "src/pantry/handlers.py",
+       "rule": "F823",
+       "severity": "error",
+       "tool": "ruff"
+      }
+     ],
+     "fingerprints": [
+      "024dd66807091a6d"
+     ],
+     "paths": [
+      "src/pantry/handlers.py"
+     ],
+     "rev": "e9e8a2b5cc17a4ff901f6e3fcc0e17e1f3686d9a",
+     "tool": "ruff"
+    },
+    "evidence": [
+     {
+      "captured_at": "2026-10-28T05:07:54.418398Z",
+      "kind": "analyzer_report",
+      "locator": "ruff@e9e8a2b5cc17a4ff901f6e3fcc0e17e1f3686d9a",
+      "note": null,
+      "sha256": "5de85911e57065f2b139d0339768cbe5f3fac94c18ae4d6dc9facb49ffef677e"
+     }
+    ],
+    "evidence_level": 1,
+    "id": "opp_e264cdd830dd4eda",
+    "priority_score": 0.0,
+    "source": "ruff",
+    "status": "open",
+    "summary": "F823: Local variable `format` referenced before assignment",
+    "title": "1 ruff F823 finding in src/pantry/",
+    "updated_at": "2026-10-28T05:07:54.418539Z"
+   }
+  ],
+  "experiments": [
+   {
+    "opportunity": "opp_e264cdd830dd4eda",
+    "exit": 0,
+    "seconds": 33.3,
+    "improved": true,
+    "verdict": {
+     "experiment_id": "exp_e34f1651cec843fd",
+     "improved": true,
+     "evidence_level": 4,
+     "criteria": {
+      "targeted_findings_gone": "all",
+      "new_findings_allowed": 0,
+      "test_rounds_per_side": 3,
+      "regression": "fails in every candidate round and in no baseline round"
+     },
+     "tests": "passed",
+     "reasons": [
+      "all targeted findings are gone, none appeared, no test regressed"
+     ],
+     "caveats": []
+    },
+    "origin": "model",
+    "patch": "--- a/src/pantry/handlers.py\n+++ b/src/pantry/handlers.py\n@@ -14,7 +14,5 @@\n     if kind == \"low\":\n         return \", \".join(store.low(n)) or \"nothing\"\n     if kind == \"report\":\n-        from pantry import format\n-\n         return \"; \".join(f\"{i}: {format.units(c)}\" for i, c in sorted(store.stock.items()))\n     raise ValueError(f\"unknown request {kind!r}\")\n",
+    "notes": [
+     "context: files, whole files fit (681 of 9204 bytes)"
+    ]
+   }
+  ],
+  "model_runs": [
+   {
+    "attempt": 1,
+    "correlation_id": "opp_e264cdd830dd4eda",
+    "cost": {
+     "compute_seconds": 27.65004029206466,
+     "tokens_in": 386,
+     "tokens_out": 541,
+     "usd_local": 0.003840283373897869,
+     "usd_remote": 0.0
+    },
+    "created_at": "2026-10-28T05:08:25.337833Z",
+    "egress_attempt_id": null,
+    "id": "run_e3b66351ee6f402d",
+    "model": "muse-glimmer:30b-mxfp8-dflash",
+    "ok": true,
+    "problem": null,
+    "prompt_sha256": "a63b781b0c833108fef0320af63d714f24103128f0689ff2df7f3d56093cb108",
+    "provider": "ollama",
+    "purpose": "lab.fix_candidate",
+    "route_reason": "profile local; label private_code",
+    "tier": "local",
+    "usage": {
+     "completion_tokens": 541,
+     "duration_s": 27.65004029206466,
+     "prompt_tokens": 386
+    }
+   }
+  ]
+ },
+ {
+  "scenario": "hidden-duplicate-test",
+  "version": "prev-exp",
+  "commit": "d7a53a0d9991a5257ee0d97e5f240b9da5f6e54c",
+  "steps": {
+   "scan": {
+    "exit": 0,
+    "seconds": 0.5
+   },
+   "decide": {
+    "exit": 0,
+    "seconds": 0.3
+   }
+  },
+  "decide": {
+   "checked_dirs": [
+    "."
+   ],
+   "ci_status": null,
+   "ci_problem": null,
+   "tool_status": {},
+   "open": 1,
+   "chosen": {
+    "run_experiment": 1
+   },
+   "declined_or_waiting_because": {},
+   "decisions": [
+    {
+     "id": "opp_2fcbb31b245f479c",
+     "category": "lint",
+     "level": 1,
+     "chosen": "run_experiment",
+     "reason": "reproduce it and measure a candidate offline"
+    }
+   ]
+  },
+  "opportunities": [
+   {
+    "category": "lint",
+    "created_at": "2026-10-28T05:08:28.721007Z",
+    "dedup_key": "ruff:F811:tests",
+    "details": {
+     "findings": [
+      {
+       "category": "lint",
+       "extra": {
+        "fixable": false
+       },
+       "fingerprint": "ba4e83ba93b32232",
+       "line": 24,
+       "message": "Redefinition of unused `TestInventory` from line 6: `TestInventory` redefined here",
+       "path": "tests/test_pantry.py",
+       "rule": "F811",
+       "severity": "error",
+       "tool": "ruff"
+      }
+     ],
+     "fingerprints": [
+      "ba4e83ba93b32232"
+     ],
+     "paths": [
+      "tests/test_pantry.py"
+     ],
+     "rev": "cc94051d325bcf5524e500113194fc587e3346d1",
+     "tool": "ruff"
+    },
+    "evidence": [
+     {
+      "captured_at": "2026-10-28T05:08:28.720888Z",
+      "kind": "analyzer_report",
+      "locator": "ruff@cc94051d325bcf5524e500113194fc587e3346d1",
+      "note": null,
+      "sha256": "4aef7fdacad775e350e0e20a0c8d9410015550ec396e03263452a1c264729520"
+     }
+    ],
+    "evidence_level": 1,
+    "id": "opp_2fcbb31b245f479c",
+    "priority_score": 0.0,
+    "source": "ruff",
+    "status": "open",
+    "summary": "F811: Redefinition of unused `TestInventory` from line 6: `TestInventory` redefined here",
+    "title": "1 ruff F811 finding in tests/",
+    "updated_at": "2026-10-28T05:08:28.721008Z"
+   }
+  ],
+  "experiments": [
+   {
+    "opportunity": "opp_2fcbb31b245f479c",
+    "exit": 0,
+    "seconds": 36.5,
+    "improved": true,
+    "verdict": {
+     "experiment_id": "exp_5a8dd498b074468a",
+     "improved": true,
+     "evidence_level": 4,
+     "criteria": {
+      "targeted_findings_gone": "all",
+      "new_findings_allowed": 0,
+      "test_rounds_per_side": 3,
+      "regression": "fails in every candidate round and in no baseline round"
+     },
+     "tests": "passed",
+     "reasons": [
+      "all targeted findings are gone, none appeared, no test regressed"
+     ],
+     "caveats": []
+    },
+    "origin": "model",
+    "patch": "--- a/tests/test_pantry.py\n+++ b/tests/test_pantry.py\n@@ -13,16 +13,14 @@\n         with pytest.raises(ValueError):\n             Inventory().take(\"rice\", 1)\n \n+    def test_low_lists_items_under_the_threshold(self):\n+        store = Inventory()\n+        store.add(\"oil\", 1)\n+        assert store.low(2) == [\"oil\"]\n+\n \n class TestHandlers:\n     def test_low(self):\n         store = Inventory()\n         store.add(\"salt\", 1)\n         assert handle(store, \"low\", \"\", 5) == \"salt\"\n-\n-\n-class TestInventory:\n-    def test_low_lists_items_under_the_threshold(self):\n-        store = Inventory()\n-        store.add(\"oil\", 1)\n-        assert store.low(2) == [\"oil\"]\n",
+    "notes": [
+     "context: files, whole files fit (751 of 9190 bytes)"
+    ]
+   }
+  ],
+  "model_runs": [
+   {
+    "attempt": 1,
+    "correlation_id": "opp_2fcbb31b245f479c",
+    "cost": {
+     "compute_seconds": 31.359970250050537,
+     "tokens_in": 406,
+     "tokens_out": 609,
+     "usd_local": 0.00435555142361813,
+     "usd_remote": 0.0
+    },
+    "created_at": "2026-10-28T05:09:03.252744Z",
+    "egress_attempt_id": null,
+    "id": "run_48008527e2c24da4",
+    "model": "muse-glimmer:30b-mxfp8-dflash",
+    "ok": true,
+    "problem": null,
+    "prompt_sha256": "a63b781b0c833108fef0320af63d714f24103128f0689ff2df7f3d56093cb108",
+    "provider": "ollama",
+    "purpose": "lab.fix_candidate",
+    "route_reason": "profile local; label private_code",
+    "tier": "local",
+    "usage": {
+     "completion_tokens": 609,
+     "duration_s": 31.359970250050537,
+     "prompt_tokens": 406
+    }
+   }
+  ]
+ }
+]

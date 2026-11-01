@@ -1,0 +1,93 @@
+{
+  "health-v1": {
+    "clean_minutes": 10,
+    "clean_minutes_with_alarm": 7,
+    "alarmed_services": [
+      "quote"
+    ],
+    "trials": [
+      {
+        "expect": "payment",
+        "minutes": 9,
+        "detected_min": 4,
+        "others": [
+          "checkout"
+        ]
+      },
+      {
+        "expect": "frontend",
+        "minutes": 9,
+        "detected_min": null,
+        "others": []
+      },
+      {
+        "expect": "email",
+        "minutes": 9,
+        "detected_min": null,
+        "others": [
+          "checkout"
+        ]
+      }
+    ]
+  },
+  "health-v2-candidate": {
+    "clean_minutes": 10,
+    "clean_minutes_with_alarm": 8,
+    "alarmed_services": [
+      "frontend",
+      "quote"
+    ],
+    "trials": [
+      {
+        "expect": "payment",
+        "minutes": 9,
+        "detected_min": 4,
+        "others": [
+          "checkout"
+        ]
+      },
+      {
+        "expect": "frontend",
+        "minutes": 9,
+        "detected_min": null,
+        "others": []
+      },
+      {
+        "expect": "email",
+        "minutes": 9,
+        "detected_min": null,
+        "others": []
+      }
+    ]
+  },
+  "health-v3-candidate": {
+    "clean_minutes": 10,
+    "clean_minutes_with_alarm": 8,
+    "alarmed_services": [
+      "frontend",
+      "quote"
+    ],
+    "trials": [
+      {
+        "expect": "payment",
+        "minutes": 9,
+        "detected_min": 3,
+        "others": [
+          "checkout"
+        ]
+      },
+      {
+        "expect": "frontend",
+        "minutes": 9,
+        "detected_min": null,
+        "others": []
+      },
+      {
+        "expect": "email",
+        "minutes": 9,
+        "detected_min": null,
+        "others": []
+      }
+    ]
+  }
+}

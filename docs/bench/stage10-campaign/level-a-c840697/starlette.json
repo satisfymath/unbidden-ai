@@ -1,0 +1,49 @@
+{
+ "repo": "/Users/david/starlette",
+ "rev": "8aa828ceaff764a2e57932fb42fdf105a47c4c83",
+ "stack": {
+  "python": "3.11",
+  "why": [
+   "python 3.11: from the CI's python-version (the oldest in its matrix)",
+   "pyproject requires-python: >=3.11",
+   "the CI's python-version: 3.11, 3.12, 3.13, 3.14, 3.15"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": "uv.lock",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:d7b638e3b42ecbef",
+ "plan": {
+  "source": "python -m pytest -q -p no:cacheprovider",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [],
+  "services": [],
+  "command": "python -m pytest -q -p no:cacheprovider"
+ },
+ "status": "passed",
+ "collected": 1416,
+ "failed": [],
+ "why": null,
+ "wall_s": 28.0,
+ "image_notes": [
+  "python 3.11: from the CI's python-version (the oldest in its matrix)",
+  "pyproject requires-python: >=3.11",
+  "the CI's python-version: 3.11, 3.12, 3.13, 3.14, 3.15",
+  "image unbidden-deps-python:d7b638e3b42ecbef on linux/arm64"
+ ],
+ "python": "3.11",
+ "source": "python -m pytest -q -p no:cacheprovider",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [],
+ "command": "python -m pytest -q -p no:cacheprovider"
+}

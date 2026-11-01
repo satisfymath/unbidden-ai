@@ -1,0 +1,2835 @@
+[
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-banner-dom-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-banner-dom-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 1
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B08: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B08"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-banner-vision-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-banner-vision-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 1
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B08: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B08"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-banner-vision_sam-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-banner-vision_sam-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 1
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B08: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B08"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-faded-dom-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-faded-dom-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B06: short, no visible SHORT flag on its row",
+    "B07: short, no visible SHORT flag on its row",
+    "B08: short, no visible SHORT flag on its row",
+    "B12: short, no visible SHORT flag on its row",
+    "B13: short, no visible SHORT flag on its row",
+    "B14: short, no visible SHORT flag on its row",
+    "B16: short, no visible SHORT flag on its row",
+    "B17: short, no visible SHORT flag on its row",
+    "B19: short, no visible SHORT flag on its row",
+    "B21: short, no visible SHORT flag on its row",
+    "B23: short, no visible SHORT flag on its row",
+    "B24: short, no visible SHORT flag on its row",
+    "B26: short, no visible SHORT flag on its row",
+    "B29: short, no visible SHORT flag on its row",
+    "B30: short, no visible SHORT flag on its row",
+    "B35: short, no visible SHORT flag on its row",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B06",
+    "B07",
+    "B08",
+    "B12",
+    "B13",
+    "B14",
+    "B16",
+    "B17",
+    "B19",
+    "B21",
+    "B23",
+    "B24",
+    "B26",
+    "B29",
+    "B30",
+    "B35",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-faded-vision-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-faded-vision-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B06: short, no visible SHORT flag on its row",
+    "B07: short, no visible SHORT flag on its row",
+    "B08: short, no visible SHORT flag on its row",
+    "B12: short, no visible SHORT flag on its row",
+    "B13: short, no visible SHORT flag on its row",
+    "B14: short, no visible SHORT flag on its row",
+    "B16: short, no visible SHORT flag on its row",
+    "B17: short, no visible SHORT flag on its row",
+    "B19: short, no visible SHORT flag on its row",
+    "B21: short, no visible SHORT flag on its row",
+    "B23: short, no visible SHORT flag on its row",
+    "B24: short, no visible SHORT flag on its row",
+    "B26: short, no visible SHORT flag on its row",
+    "B29: short, no visible SHORT flag on its row",
+    "B30: short, no visible SHORT flag on its row",
+    "B35: short, no visible SHORT flag on its row",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B06",
+    "B07",
+    "B08",
+    "B12",
+    "B13",
+    "B14",
+    "B16",
+    "B17",
+    "B19",
+    "B21",
+    "B23",
+    "B24",
+    "B26",
+    "B29",
+    "B30",
+    "B35",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-faded-vision_sam-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-faded-vision_sam-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B06: short, no visible SHORT flag on its row",
+    "B07: short, no visible SHORT flag on its row",
+    "B08: short, no visible SHORT flag on its row",
+    "B12: short, no visible SHORT flag on its row",
+    "B13: short, no visible SHORT flag on its row",
+    "B14: short, no visible SHORT flag on its row",
+    "B16: short, no visible SHORT flag on its row",
+    "B17: short, no visible SHORT flag on its row",
+    "B19: short, no visible SHORT flag on its row",
+    "B21: short, no visible SHORT flag on its row",
+    "B23: short, no visible SHORT flag on its row",
+    "B24: short, no visible SHORT flag on its row",
+    "B26: short, no visible SHORT flag on its row",
+    "B29: short, no visible SHORT flag on its row",
+    "B30: short, no visible SHORT flag on its row",
+    "B35: short, no visible SHORT flag on its row",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B06",
+    "B07",
+    "B08",
+    "B12",
+    "B13",
+    "B14",
+    "B16",
+    "B17",
+    "B19",
+    "B21",
+    "B23",
+    "B24",
+    "B26",
+    "B29",
+    "B30",
+    "B35",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-healthy-brand-dom-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-healthy-brand-dom-r1/checker-before",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-healthy-brand-vision-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-healthy-brand-vision-r1/checker-before",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-healthy-brand-vision_sam-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-healthy-brand-vision_sam-r1/checker-before",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-shifted-grid-dom-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-shifted-grid-dom-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B05: not short, a red alert is drawn on its row (owned by ['B06'])",
+    "B05: not short, carries another row's SHORT flag",
+    "B06: short, signalled only by another row's flag",
+    "B07: short, signalled only by another row's flag",
+    "B08: short, no visible SHORT flag on its row",
+    "B11: not short, a red alert is drawn on its row (owned by ['B12'])",
+    "B11: not short, carries another row's SHORT flag",
+    "B12: short, signalled only by another row's flag",
+    "B13: short, signalled only by another row's flag",
+    "B14: short, no visible SHORT flag on its row",
+    "B15: not short, a red alert is drawn on its row (owned by ['B16'])",
+    "B15: not short, carries another row's SHORT flag",
+    "B16: short, signalled only by another row's flag",
+    "B17: short, no visible SHORT flag on its row",
+    "B18: not short, a red alert is drawn on its row (owned by ['B19'])",
+    "B18: not short, carries another row's SHORT flag",
+    "B19: short, no visible SHORT flag on its row",
+    "B20: not short, a red alert is drawn on its row (owned by ['B21'])",
+    "B20: not short, carries another row's SHORT flag",
+    "B21: short, no visible SHORT flag on its row",
+    "B22: not short, a red alert is drawn on its row (owned by ['B23'])",
+    "B22: not short, carries another row's SHORT flag",
+    "B23: short, signalled only by another row's flag",
+    "B24: short, no visible SHORT flag on its row",
+    "B25: not short, a red alert is drawn on its row (owned by ['B26'])",
+    "B25: not short, carries another row's SHORT flag",
+    "B26: short, no visible SHORT flag on its row",
+    "B28: not short, a red alert is drawn on its row (owned by ['B29'])",
+    "B28: not short, carries another row's SHORT flag",
+    "B29: short, signalled only by another row's flag",
+    "B30: short, no visible SHORT flag on its row",
+    "B34: not short, a red alert is drawn on its row (owned by ['B35'])",
+    "B34: not short, carries another row's SHORT flag",
+    "B35: short, signalled only by another row's flag",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B05",
+    "B06",
+    "B07",
+    "B08",
+    "B11",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B19",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B26",
+    "B28",
+    "B29",
+    "B30",
+    "B34",
+    "B35",
+    "B36"
+   ],
+   "straddling": [
+    "0-0"
+   ]
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-shifted-grid-vision-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-shifted-grid-vision-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B05: not short, a red alert is drawn on its row (owned by ['B06'])",
+    "B05: not short, carries another row's SHORT flag",
+    "B06: short, signalled only by another row's flag",
+    "B07: short, signalled only by another row's flag",
+    "B08: short, no visible SHORT flag on its row",
+    "B11: not short, a red alert is drawn on its row (owned by ['B12'])",
+    "B11: not short, carries another row's SHORT flag",
+    "B12: short, signalled only by another row's flag",
+    "B13: short, signalled only by another row's flag",
+    "B14: short, no visible SHORT flag on its row",
+    "B15: not short, a red alert is drawn on its row (owned by ['B16'])",
+    "B15: not short, carries another row's SHORT flag",
+    "B16: short, signalled only by another row's flag",
+    "B17: short, no visible SHORT flag on its row",
+    "B18: not short, a red alert is drawn on its row (owned by ['B19'])",
+    "B18: not short, carries another row's SHORT flag",
+    "B19: short, no visible SHORT flag on its row",
+    "B20: not short, a red alert is drawn on its row (owned by ['B21'])",
+    "B20: not short, carries another row's SHORT flag",
+    "B21: short, no visible SHORT flag on its row",
+    "B22: not short, a red alert is drawn on its row (owned by ['B23'])",
+    "B22: not short, carries another row's SHORT flag",
+    "B23: short, signalled only by another row's flag",
+    "B24: short, no visible SHORT flag on its row",
+    "B25: not short, a red alert is drawn on its row (owned by ['B26'])",
+    "B25: not short, carries another row's SHORT flag",
+    "B26: short, no visible SHORT flag on its row",
+    "B28: not short, a red alert is drawn on its row (owned by ['B29'])",
+    "B28: not short, carries another row's SHORT flag",
+    "B29: short, signalled only by another row's flag",
+    "B30: short, no visible SHORT flag on its row",
+    "B34: not short, a red alert is drawn on its row (owned by ['B35'])",
+    "B34: not short, carries another row's SHORT flag",
+    "B35: short, signalled only by another row's flag",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B05",
+    "B06",
+    "B07",
+    "B08",
+    "B11",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B19",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B26",
+    "B28",
+    "B29",
+    "B30",
+    "B34",
+    "B35",
+    "B36"
+   ],
+   "straddling": [
+    "0-0"
+   ]
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-shifted-grid-vision_sam-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-shifted-grid-vision_sam-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B05: not short, a red alert is drawn on its row (owned by ['B06'])",
+    "B05: not short, carries another row's SHORT flag",
+    "B06: short, signalled only by another row's flag",
+    "B07: short, signalled only by another row's flag",
+    "B08: short, no visible SHORT flag on its row",
+    "B11: not short, a red alert is drawn on its row (owned by ['B12'])",
+    "B11: not short, carries another row's SHORT flag",
+    "B12: short, signalled only by another row's flag",
+    "B13: short, signalled only by another row's flag",
+    "B14: short, no visible SHORT flag on its row",
+    "B15: not short, a red alert is drawn on its row (owned by ['B16'])",
+    "B15: not short, carries another row's SHORT flag",
+    "B16: short, signalled only by another row's flag",
+    "B17: short, no visible SHORT flag on its row",
+    "B18: not short, a red alert is drawn on its row (owned by ['B19'])",
+    "B18: not short, carries another row's SHORT flag",
+    "B19: short, no visible SHORT flag on its row",
+    "B20: not short, a red alert is drawn on its row (owned by ['B21'])",
+    "B20: not short, carries another row's SHORT flag",
+    "B21: short, no visible SHORT flag on its row",
+    "B22: not short, a red alert is drawn on its row (owned by ['B23'])",
+    "B22: not short, carries another row's SHORT flag",
+    "B23: short, signalled only by another row's flag",
+    "B24: short, no visible SHORT flag on its row",
+    "B25: not short, a red alert is drawn on its row (owned by ['B26'])",
+    "B25: not short, carries another row's SHORT flag",
+    "B26: short, no visible SHORT flag on its row",
+    "B28: not short, a red alert is drawn on its row (owned by ['B29'])",
+    "B28: not short, carries another row's SHORT flag",
+    "B29: short, signalled only by another row's flag",
+    "B30: short, no visible SHORT flag on its row",
+    "B34: not short, a red alert is drawn on its row (owned by ['B35'])",
+    "B34: not short, carries another row's SHORT flag",
+    "B35: short, signalled only by another row's flag",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B05",
+    "B06",
+    "B07",
+    "B08",
+    "B11",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B19",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B26",
+    "B28",
+    "B29",
+    "B30",
+    "B34",
+    "B35",
+    "B36"
+   ],
+   "straddling": [
+    "0-0"
+   ]
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-window-dom-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-window-dom-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 52
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B02: not short, a red alert is drawn on its row (owned by ['B02'])",
+    "B04: not short, a red alert is drawn on its row (owned by ['B04'])",
+    "B18: not short, a red alert is drawn on its row (owned by ['B18'])",
+    "B20: not short, a red alert is drawn on its row (owned by ['B20'])",
+    "B22: not short, a red alert is drawn on its row (owned by ['B22'])",
+    "B25: not short, a red alert is drawn on its row (owned by ['B25'])",
+    "B28: not short, a red alert is drawn on its row (owned by ['B28'])",
+    "B31: not short, a red alert is drawn on its row (owned by ['B31'])",
+    "B34: not short, a red alert is drawn on its row (owned by ['B34'])",
+    "B02: numbers shown [2, 6, 35, 41], truth supply 35 picks 30",
+    "B02: shortfall shown differs from 0",
+    "B04: shortfall shown differs from 0",
+    "B06: numbers shown [6, 11, 23, 34], truth supply 11 picks 29",
+    "B06: shortfall shown differs from 18",
+    "B07: numbers shown [7, 17, 19, 36], truth supply 17 picks 33",
+    "B07: shortfall shown differs from 16",
+    "B08: numbers shown [8, 37, 45], truth supply 37 picks 40",
+    "B08: shortfall shown differs from 3",
+    "B09: numbers shown [7, 9, 10], truth supply 10 picks 0",
+    "B12: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B12: shortfall shown differs from 2",
+    "B13: numbers shown [7, 13, 17, 24], truth supply 7 picks 15",
+    "B13: shortfall shown differs from 8",
+    "B14: numbers shown [2, 14, 19, 21], truth supply 19 picks 20",
+    "B14: shortfall shown differs from 1",
+    "B15: numbers shown [15, 28], truth supply 28 picks 17",
+    "B16: numbers shown [6, 16, 41, 47], truth supply 41 picks 43",
+    "B16: shortfall shown differs from 2",
+    "B17: numbers shown [16, 17, 35, 51], truth supply 35 picks 45",
+    "B17: shortfall shown differs from 10",
+    "B18: numbers shown [2, 5, 7, 18], truth supply 2 picks 0",
+    "B18: shortfall shown differs from 0",
+    "B20: shortfall shown differs from 0",
+    "B21: numbers shown [14, 21, 24, 38], truth supply 14 picks 33",
+    "B21: shortfall shown differs from 19",
+    "B22: shortfall shown differs from 0",
+    "B23: numbers shown [14, 22, 23, 36], truth supply 14 picks 25",
+    "B23: shortfall shown differs from 11",
+    "B24: numbers shown [6, 12, 18, 24], truth supply 12 picks 17",
+    "B24: shortfall shown differs from 5",
+    "B25: shortfall shown differs from 0",
+    "B26: numbers shown [23, 26, 36, 59], truth supply 36 picks 48",
+    "B26: shortfall shown differs from 12",
+    "B27: numbers shown [22, 27, 31], truth supply 31 picks 18",
+    "B28: shortfall shown differs from 0",
+    "B30: shortfall shown differs from 20",
+    "B31: shortfall shown differs from 0",
+    "B32: numbers shown [25, 32], truth supply 25 picks 22",
+    "B33: numbers shown [8, 33], truth supply 8 picks 5",
+    "B34: shortfall shown differs from 0",
+    "B36: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B36: shortfall shown differs from 2"
+   ],
+   "wrong": [
+    "B02",
+    "B04",
+    "B06",
+    "B07",
+    "B08",
+    "B09",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B26",
+    "B27",
+    "B28",
+    "B30",
+    "B31",
+    "B32",
+    "B33",
+    "B34",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-window-vision-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-window-vision-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 52
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B02: not short, a red alert is drawn on its row (owned by ['B02'])",
+    "B04: not short, a red alert is drawn on its row (owned by ['B04'])",
+    "B18: not short, a red alert is drawn on its row (owned by ['B18'])",
+    "B20: not short, a red alert is drawn on its row (owned by ['B20'])",
+    "B22: not short, a red alert is drawn on its row (owned by ['B22'])",
+    "B25: not short, a red alert is drawn on its row (owned by ['B25'])",
+    "B28: not short, a red alert is drawn on its row (owned by ['B28'])",
+    "B31: not short, a red alert is drawn on its row (owned by ['B31'])",
+    "B34: not short, a red alert is drawn on its row (owned by ['B34'])",
+    "B02: numbers shown [2, 6, 35, 41], truth supply 35 picks 30",
+    "B02: shortfall shown differs from 0",
+    "B04: shortfall shown differs from 0",
+    "B06: numbers shown [6, 11, 23, 34], truth supply 11 picks 29",
+    "B06: shortfall shown differs from 18",
+    "B07: numbers shown [7, 17, 19, 36], truth supply 17 picks 33",
+    "B07: shortfall shown differs from 16",
+    "B08: numbers shown [8, 37, 45], truth supply 37 picks 40",
+    "B08: shortfall shown differs from 3",
+    "B09: numbers shown [7, 9, 10], truth supply 10 picks 0",
+    "B12: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B12: shortfall shown differs from 2",
+    "B13: numbers shown [7, 13, 17, 24], truth supply 7 picks 15",
+    "B13: shortfall shown differs from 8",
+    "B14: numbers shown [2, 14, 19, 21], truth supply 19 picks 20",
+    "B14: shortfall shown differs from 1",
+    "B15: numbers shown [15, 28], truth supply 28 picks 17",
+    "B16: numbers shown [6, 16, 41, 47], truth supply 41 picks 43",
+    "B16: shortfall shown differs from 2",
+    "B17: numbers shown [16, 17, 35, 51], truth supply 35 picks 45",
+    "B17: shortfall shown differs from 10",
+    "B18: numbers shown [2, 5, 7, 18], truth supply 2 picks 0",
+    "B18: shortfall shown differs from 0",
+    "B20: shortfall shown differs from 0",
+    "B21: numbers shown [14, 21, 24, 38], truth supply 14 picks 33",
+    "B21: shortfall shown differs from 19",
+    "B22: shortfall shown differs from 0",
+    "B23: numbers shown [14, 22, 23, 36], truth supply 14 picks 25",
+    "B23: shortfall shown differs from 11",
+    "B24: numbers shown [6, 12, 18, 24], truth supply 12 picks 17",
+    "B24: shortfall shown differs from 5",
+    "B25: shortfall shown differs from 0",
+    "B26: numbers shown [23, 26, 36, 59], truth supply 36 picks 48",
+    "B26: shortfall shown differs from 12",
+    "B27: numbers shown [22, 27, 31], truth supply 31 picks 18",
+    "B28: shortfall shown differs from 0",
+    "B30: shortfall shown differs from 20",
+    "B31: shortfall shown differs from 0",
+    "B32: numbers shown [25, 32], truth supply 25 picks 22",
+    "B33: numbers shown [8, 33], truth supply 8 picks 5",
+    "B34: shortfall shown differs from 0",
+    "B36: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B36: shortfall shown differs from 2"
+   ],
+   "wrong": [
+    "B02",
+    "B04",
+    "B06",
+    "B07",
+    "B08",
+    "B09",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B26",
+    "B27",
+    "B28",
+    "B30",
+    "B31",
+    "B32",
+    "B33",
+    "B34",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-window-vision_sam-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-cycle-history/e-window-vision_sam-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 52
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B02: not short, a red alert is drawn on its row (owned by ['B02'])",
+    "B04: not short, a red alert is drawn on its row (owned by ['B04'])",
+    "B18: not short, a red alert is drawn on its row (owned by ['B18'])",
+    "B20: not short, a red alert is drawn on its row (owned by ['B20'])",
+    "B22: not short, a red alert is drawn on its row (owned by ['B22'])",
+    "B25: not short, a red alert is drawn on its row (owned by ['B25'])",
+    "B28: not short, a red alert is drawn on its row (owned by ['B28'])",
+    "B31: not short, a red alert is drawn on its row (owned by ['B31'])",
+    "B34: not short, a red alert is drawn on its row (owned by ['B34'])",
+    "B02: numbers shown [2, 6, 35, 41], truth supply 35 picks 30",
+    "B02: shortfall shown differs from 0",
+    "B04: shortfall shown differs from 0",
+    "B06: numbers shown [6, 11, 23, 34], truth supply 11 picks 29",
+    "B06: shortfall shown differs from 18",
+    "B07: numbers shown [7, 17, 19, 36], truth supply 17 picks 33",
+    "B07: shortfall shown differs from 16",
+    "B08: numbers shown [8, 37, 45], truth supply 37 picks 40",
+    "B08: shortfall shown differs from 3",
+    "B09: numbers shown [7, 9, 10], truth supply 10 picks 0",
+    "B12: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B12: shortfall shown differs from 2",
+    "B13: numbers shown [7, 13, 17, 24], truth supply 7 picks 15",
+    "B13: shortfall shown differs from 8",
+    "B14: numbers shown [2, 14, 19, 21], truth supply 19 picks 20",
+    "B14: shortfall shown differs from 1",
+    "B15: numbers shown [15, 28], truth supply 28 picks 17",
+    "B16: numbers shown [6, 16, 41, 47], truth supply 41 picks 43",
+    "B16: shortfall shown differs from 2",
+    "B17: numbers shown [16, 17, 35, 51], truth supply 35 picks 45",
+    "B17: shortfall shown differs from 10",
+    "B18: numbers shown [2, 5, 7, 18], truth supply 2 picks 0",
+    "B18: shortfall shown differs from 0",
+    "B20: shortfall shown differs from 0",
+    "B21: numbers shown [14, 21, 24, 38], truth supply 14 picks 33",
+    "B21: shortfall shown differs from 19",
+    "B22: shortfall shown differs from 0",
+    "B23: numbers shown [14, 22, 23, 36], truth supply 14 picks 25",
+    "B23: shortfall shown differs from 11",
+    "B24: numbers shown [6, 12, 18, 24], truth supply 12 picks 17",
+    "B24: shortfall shown differs from 5",
+    "B25: shortfall shown differs from 0",
+    "B26: numbers shown [23, 26, 36, 59], truth supply 36 picks 48",
+    "B26: shortfall shown differs from 12",
+    "B27: numbers shown [22, 27, 31], truth supply 31 picks 18",
+    "B28: shortfall shown differs from 0",
+    "B30: shortfall shown differs from 20",
+    "B31: shortfall shown differs from 0",
+    "B32: numbers shown [25, 32], truth supply 25 picks 22",
+    "B33: numbers shown [8, 33], truth supply 8 picks 5",
+    "B34: shortfall shown differs from 0",
+    "B36: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B36: shortfall shown differs from 2"
+   ],
+   "wrong": [
+    "B02",
+    "B04",
+    "B06",
+    "B07",
+    "B08",
+    "B09",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B26",
+    "B27",
+    "B28",
+    "B30",
+    "B31",
+    "B32",
+    "B33",
+    "B34",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-dom/n-banner-dom-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-dom/n-banner-dom-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 1
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B08: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B08"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-dom/n-banner-dom-r2/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-dom/n-banner-dom-r2/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 1
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B08: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B08"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-dom/n-faded-dom-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-dom/n-faded-dom-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B06: short, no visible SHORT flag on its row",
+    "B07: short, no visible SHORT flag on its row",
+    "B08: short, no visible SHORT flag on its row",
+    "B12: short, no visible SHORT flag on its row",
+    "B13: short, no visible SHORT flag on its row",
+    "B14: short, no visible SHORT flag on its row",
+    "B16: short, no visible SHORT flag on its row",
+    "B17: short, no visible SHORT flag on its row",
+    "B19: short, no visible SHORT flag on its row",
+    "B21: short, no visible SHORT flag on its row",
+    "B23: short, no visible SHORT flag on its row",
+    "B24: short, no visible SHORT flag on its row",
+    "B26: short, no visible SHORT flag on its row",
+    "B29: short, no visible SHORT flag on its row",
+    "B30: short, no visible SHORT flag on its row",
+    "B35: short, no visible SHORT flag on its row",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B06",
+    "B07",
+    "B08",
+    "B12",
+    "B13",
+    "B14",
+    "B16",
+    "B17",
+    "B19",
+    "B21",
+    "B23",
+    "B24",
+    "B26",
+    "B29",
+    "B30",
+    "B35",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-dom/n-faded-dom-r2/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-dom/n-faded-dom-r2/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B06: short, no visible SHORT flag on its row",
+    "B07: short, no visible SHORT flag on its row",
+    "B08: short, no visible SHORT flag on its row",
+    "B12: short, no visible SHORT flag on its row",
+    "B13: short, no visible SHORT flag on its row",
+    "B14: short, no visible SHORT flag on its row",
+    "B16: short, no visible SHORT flag on its row",
+    "B17: short, no visible SHORT flag on its row",
+    "B19: short, no visible SHORT flag on its row",
+    "B21: short, no visible SHORT flag on its row",
+    "B23: short, no visible SHORT flag on its row",
+    "B24: short, no visible SHORT flag on its row",
+    "B26: short, no visible SHORT flag on its row",
+    "B29: short, no visible SHORT flag on its row",
+    "B30: short, no visible SHORT flag on its row",
+    "B35: short, no visible SHORT flag on its row",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B06",
+    "B07",
+    "B08",
+    "B12",
+    "B13",
+    "B14",
+    "B16",
+    "B17",
+    "B19",
+    "B21",
+    "B23",
+    "B24",
+    "B26",
+    "B29",
+    "B30",
+    "B35",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-dom/n-window-dom-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-dom/n-window-dom-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 52
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B02: not short, a red alert is drawn on its row (owned by ['B02'])",
+    "B04: not short, a red alert is drawn on its row (owned by ['B04'])",
+    "B18: not short, a red alert is drawn on its row (owned by ['B18'])",
+    "B20: not short, a red alert is drawn on its row (owned by ['B20'])",
+    "B22: not short, a red alert is drawn on its row (owned by ['B22'])",
+    "B25: not short, a red alert is drawn on its row (owned by ['B25'])",
+    "B28: not short, a red alert is drawn on its row (owned by ['B28'])",
+    "B31: not short, a red alert is drawn on its row (owned by ['B31'])",
+    "B34: not short, a red alert is drawn on its row (owned by ['B34'])",
+    "B02: numbers shown [2, 6, 35, 41], truth supply 35 picks 30",
+    "B02: shortfall shown differs from 0",
+    "B04: shortfall shown differs from 0",
+    "B06: numbers shown [6, 11, 23, 34], truth supply 11 picks 29",
+    "B06: shortfall shown differs from 18",
+    "B07: numbers shown [7, 17, 19, 36], truth supply 17 picks 33",
+    "B07: shortfall shown differs from 16",
+    "B08: numbers shown [8, 37, 45], truth supply 37 picks 40",
+    "B08: shortfall shown differs from 3",
+    "B09: numbers shown [7, 9, 10], truth supply 10 picks 0",
+    "B12: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B12: shortfall shown differs from 2",
+    "B13: numbers shown [7, 13, 17, 24], truth supply 7 picks 15",
+    "B13: shortfall shown differs from 8",
+    "B14: numbers shown [2, 14, 19, 21], truth supply 19 picks 20",
+    "B14: shortfall shown differs from 1",
+    "B15: numbers shown [15, 28], truth supply 28 picks 17",
+    "B16: numbers shown [6, 16, 41, 47], truth supply 41 picks 43",
+    "B16: shortfall shown differs from 2",
+    "B17: numbers shown [16, 17, 35, 51], truth supply 35 picks 45",
+    "B17: shortfall shown differs from 10",
+    "B18: numbers shown [2, 5, 7, 18], truth supply 2 picks 0",
+    "B18: shortfall shown differs from 0",
+    "B20: shortfall shown differs from 0",
+    "B21: numbers shown [14, 21, 24, 38], truth supply 14 picks 33",
+    "B21: shortfall shown differs from 19",
+    "B22: shortfall shown differs from 0",
+    "B23: numbers shown [14, 22, 23, 36], truth supply 14 picks 25",
+    "B23: shortfall shown differs from 11",
+    "B24: numbers shown [6, 12, 18, 24], truth supply 12 picks 17",
+    "B24: shortfall shown differs from 5",
+    "B25: shortfall shown differs from 0",
+    "B26: numbers shown [23, 26, 36, 59], truth supply 36 picks 48",
+    "B26: shortfall shown differs from 12",
+    "B27: numbers shown [22, 27, 31], truth supply 31 picks 18",
+    "B28: shortfall shown differs from 0",
+    "B30: shortfall shown differs from 20",
+    "B31: shortfall shown differs from 0",
+    "B32: numbers shown [25, 32], truth supply 25 picks 22",
+    "B33: numbers shown [8, 33], truth supply 8 picks 5",
+    "B34: shortfall shown differs from 0",
+    "B36: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B36: shortfall shown differs from 2"
+   ],
+   "wrong": [
+    "B02",
+    "B04",
+    "B06",
+    "B07",
+    "B08",
+    "B09",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B26",
+    "B27",
+    "B28",
+    "B30",
+    "B31",
+    "B32",
+    "B33",
+    "B34",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-dom/n-window-dom-r2/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-dom/n-window-dom-r2/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 52
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B02: not short, a red alert is drawn on its row (owned by ['B02'])",
+    "B04: not short, a red alert is drawn on its row (owned by ['B04'])",
+    "B18: not short, a red alert is drawn on its row (owned by ['B18'])",
+    "B20: not short, a red alert is drawn on its row (owned by ['B20'])",
+    "B22: not short, a red alert is drawn on its row (owned by ['B22'])",
+    "B25: not short, a red alert is drawn on its row (owned by ['B25'])",
+    "B28: not short, a red alert is drawn on its row (owned by ['B28'])",
+    "B31: not short, a red alert is drawn on its row (owned by ['B31'])",
+    "B34: not short, a red alert is drawn on its row (owned by ['B34'])",
+    "B02: numbers shown [2, 6, 35, 41], truth supply 35 picks 30",
+    "B02: shortfall shown differs from 0",
+    "B04: shortfall shown differs from 0",
+    "B06: numbers shown [6, 11, 23, 34], truth supply 11 picks 29",
+    "B06: shortfall shown differs from 18",
+    "B07: numbers shown [7, 17, 19, 36], truth supply 17 picks 33",
+    "B07: shortfall shown differs from 16",
+    "B08: numbers shown [8, 37, 45], truth supply 37 picks 40",
+    "B08: shortfall shown differs from 3",
+    "B09: numbers shown [7, 9, 10], truth supply 10 picks 0",
+    "B12: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B12: shortfall shown differs from 2",
+    "B13: numbers shown [7, 13, 17, 24], truth supply 7 picks 15",
+    "B13: shortfall shown differs from 8",
+    "B14: numbers shown [2, 14, 19, 21], truth supply 19 picks 20",
+    "B14: shortfall shown differs from 1",
+    "B15: numbers shown [15, 28], truth supply 28 picks 17",
+    "B16: numbers shown [6, 16, 41, 47], truth supply 41 picks 43",
+    "B16: shortfall shown differs from 2",
+    "B17: numbers shown [16, 17, 35, 51], truth supply 35 picks 45",
+    "B17: shortfall shown differs from 10",
+    "B18: numbers shown [2, 5, 7, 18], truth supply 2 picks 0",
+    "B18: shortfall shown differs from 0",
+    "B20: shortfall shown differs from 0",
+    "B21: numbers shown [14, 21, 24, 38], truth supply 14 picks 33",
+    "B21: shortfall shown differs from 19",
+    "B22: shortfall shown differs from 0",
+    "B23: numbers shown [14, 22, 23, 36], truth supply 14 picks 25",
+    "B23: shortfall shown differs from 11",
+    "B24: numbers shown [6, 12, 18, 24], truth supply 12 picks 17",
+    "B24: shortfall shown differs from 5",
+    "B25: shortfall shown differs from 0",
+    "B26: numbers shown [23, 26, 36, 59], truth supply 36 picks 48",
+    "B26: shortfall shown differs from 12",
+    "B27: numbers shown [22, 27, 31], truth supply 31 picks 18",
+    "B28: shortfall shown differs from 0",
+    "B30: shortfall shown differs from 20",
+    "B31: shortfall shown differs from 0",
+    "B32: numbers shown [25, 32], truth supply 25 picks 22",
+    "B33: numbers shown [8, 33], truth supply 8 picks 5",
+    "B34: shortfall shown differs from 0",
+    "B36: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B36: shortfall shown differs from 2"
+   ],
+   "wrong": [
+    "B02",
+    "B04",
+    "B06",
+    "B07",
+    "B08",
+    "B09",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B26",
+    "B27",
+    "B28",
+    "B30",
+    "B31",
+    "B32",
+    "B33",
+    "B34",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-vision/n-banner-vision-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-vision/n-banner-vision-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 1
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B08: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B08"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-vision/n-banner-vision_sam-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-vision/n-banner-vision_sam-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 1
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B08: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B08"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-vision/n-faded-vision-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-vision/n-faded-vision-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B06: short, no visible SHORT flag on its row",
+    "B07: short, no visible SHORT flag on its row",
+    "B08: short, no visible SHORT flag on its row",
+    "B12: short, no visible SHORT flag on its row",
+    "B13: short, no visible SHORT flag on its row",
+    "B14: short, no visible SHORT flag on its row",
+    "B16: short, no visible SHORT flag on its row",
+    "B17: short, no visible SHORT flag on its row",
+    "B19: short, no visible SHORT flag on its row",
+    "B21: short, no visible SHORT flag on its row",
+    "B23: short, no visible SHORT flag on its row",
+    "B24: short, no visible SHORT flag on its row",
+    "B26: short, no visible SHORT flag on its row",
+    "B29: short, no visible SHORT flag on its row",
+    "B30: short, no visible SHORT flag on its row",
+    "B35: short, no visible SHORT flag on its row",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B06",
+    "B07",
+    "B08",
+    "B12",
+    "B13",
+    "B14",
+    "B16",
+    "B17",
+    "B19",
+    "B21",
+    "B23",
+    "B24",
+    "B26",
+    "B29",
+    "B30",
+    "B35",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-vision/n-faded-vision_sam-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-vision/n-faded-vision_sam-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B06: short, no visible SHORT flag on its row",
+    "B07: short, no visible SHORT flag on its row",
+    "B08: short, no visible SHORT flag on its row",
+    "B12: short, no visible SHORT flag on its row",
+    "B13: short, no visible SHORT flag on its row",
+    "B14: short, no visible SHORT flag on its row",
+    "B16: short, no visible SHORT flag on its row",
+    "B17: short, no visible SHORT flag on its row",
+    "B19: short, no visible SHORT flag on its row",
+    "B21: short, no visible SHORT flag on its row",
+    "B23: short, no visible SHORT flag on its row",
+    "B24: short, no visible SHORT flag on its row",
+    "B26: short, no visible SHORT flag on its row",
+    "B29: short, no visible SHORT flag on its row",
+    "B30: short, no visible SHORT flag on its row",
+    "B35: short, no visible SHORT flag on its row",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B06",
+    "B07",
+    "B08",
+    "B12",
+    "B13",
+    "B14",
+    "B16",
+    "B17",
+    "B19",
+    "B21",
+    "B23",
+    "B24",
+    "B26",
+    "B29",
+    "B30",
+    "B35",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-vision/n-window-vision-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-vision/n-window-vision-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 52
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B02: not short, a red alert is drawn on its row (owned by ['B02'])",
+    "B04: not short, a red alert is drawn on its row (owned by ['B04'])",
+    "B18: not short, a red alert is drawn on its row (owned by ['B18'])",
+    "B20: not short, a red alert is drawn on its row (owned by ['B20'])",
+    "B22: not short, a red alert is drawn on its row (owned by ['B22'])",
+    "B25: not short, a red alert is drawn on its row (owned by ['B25'])",
+    "B28: not short, a red alert is drawn on its row (owned by ['B28'])",
+    "B31: not short, a red alert is drawn on its row (owned by ['B31'])",
+    "B34: not short, a red alert is drawn on its row (owned by ['B34'])",
+    "B02: numbers shown [2, 6, 35, 41], truth supply 35 picks 30",
+    "B02: shortfall shown differs from 0",
+    "B04: shortfall shown differs from 0",
+    "B06: numbers shown [6, 11, 23, 34], truth supply 11 picks 29",
+    "B06: shortfall shown differs from 18",
+    "B07: numbers shown [7, 17, 19, 36], truth supply 17 picks 33",
+    "B07: shortfall shown differs from 16",
+    "B08: numbers shown [8, 37, 45], truth supply 37 picks 40",
+    "B08: shortfall shown differs from 3",
+    "B09: numbers shown [7, 9, 10], truth supply 10 picks 0",
+    "B12: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B12: shortfall shown differs from 2",
+    "B13: numbers shown [7, 13, 17, 24], truth supply 7 picks 15",
+    "B13: shortfall shown differs from 8",
+    "B14: numbers shown [2, 14, 19, 21], truth supply 19 picks 20",
+    "B14: shortfall shown differs from 1",
+    "B15: numbers shown [15, 28], truth supply 28 picks 17",
+    "B16: numbers shown [6, 16, 41, 47], truth supply 41 picks 43",
+    "B16: shortfall shown differs from 2",
+    "B17: numbers shown [16, 17, 35, 51], truth supply 35 picks 45",
+    "B17: shortfall shown differs from 10",
+    "B18: numbers shown [2, 5, 7, 18], truth supply 2 picks 0",
+    "B18: shortfall shown differs from 0",
+    "B20: shortfall shown differs from 0",
+    "B21: numbers shown [14, 21, 24, 38], truth supply 14 picks 33",
+    "B21: shortfall shown differs from 19",
+    "B22: shortfall shown differs from 0",
+    "B23: numbers shown [14, 22, 23, 36], truth supply 14 picks 25",
+    "B23: shortfall shown differs from 11",
+    "B24: numbers shown [6, 12, 18, 24], truth supply 12 picks 17",
+    "B24: shortfall shown differs from 5",
+    "B25: shortfall shown differs from 0",
+    "B26: numbers shown [23, 26, 36, 59], truth supply 36 picks 48",
+    "B26: shortfall shown differs from 12",
+    "B27: numbers shown [22, 27, 31], truth supply 31 picks 18",
+    "B28: shortfall shown differs from 0",
+    "B30: shortfall shown differs from 20",
+    "B31: shortfall shown differs from 0",
+    "B32: numbers shown [25, 32], truth supply 25 picks 22",
+    "B33: numbers shown [8, 33], truth supply 8 picks 5",
+    "B34: shortfall shown differs from 0",
+    "B36: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B36: shortfall shown differs from 2"
+   ],
+   "wrong": [
+    "B02",
+    "B04",
+    "B06",
+    "B07",
+    "B08",
+    "B09",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B26",
+    "B27",
+    "B28",
+    "B30",
+    "B31",
+    "B32",
+    "B33",
+    "B34",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-vision/n-window-vision_sam-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-vision/n-window-vision_sam-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 52
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B02: not short, a red alert is drawn on its row (owned by ['B02'])",
+    "B04: not short, a red alert is drawn on its row (owned by ['B04'])",
+    "B18: not short, a red alert is drawn on its row (owned by ['B18'])",
+    "B20: not short, a red alert is drawn on its row (owned by ['B20'])",
+    "B22: not short, a red alert is drawn on its row (owned by ['B22'])",
+    "B25: not short, a red alert is drawn on its row (owned by ['B25'])",
+    "B28: not short, a red alert is drawn on its row (owned by ['B28'])",
+    "B31: not short, a red alert is drawn on its row (owned by ['B31'])",
+    "B34: not short, a red alert is drawn on its row (owned by ['B34'])",
+    "B02: numbers shown [2, 6, 35, 41], truth supply 35 picks 30",
+    "B02: shortfall shown differs from 0",
+    "B04: shortfall shown differs from 0",
+    "B06: numbers shown [6, 11, 23, 34], truth supply 11 picks 29",
+    "B06: shortfall shown differs from 18",
+    "B07: numbers shown [7, 17, 19, 36], truth supply 17 picks 33",
+    "B07: shortfall shown differs from 16",
+    "B08: numbers shown [8, 37, 45], truth supply 37 picks 40",
+    "B08: shortfall shown differs from 3",
+    "B09: numbers shown [7, 9, 10], truth supply 10 picks 0",
+    "B12: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B12: shortfall shown differs from 2",
+    "B13: numbers shown [7, 13, 17, 24], truth supply 7 picks 15",
+    "B13: shortfall shown differs from 8",
+    "B14: numbers shown [2, 14, 19, 21], truth supply 19 picks 20",
+    "B14: shortfall shown differs from 1",
+    "B15: numbers shown [15, 28], truth supply 28 picks 17",
+    "B16: numbers shown [6, 16, 41, 47], truth supply 41 picks 43",
+    "B16: shortfall shown differs from 2",
+    "B17: numbers shown [16, 17, 35, 51], truth supply 35 picks 45",
+    "B17: shortfall shown differs from 10",
+    "B18: numbers shown [2, 5, 7, 18], truth supply 2 picks 0",
+    "B18: shortfall shown differs from 0",
+    "B20: shortfall shown differs from 0",
+    "B21: numbers shown [14, 21, 24, 38], truth supply 14 picks 33",
+    "B21: shortfall shown differs from 19",
+    "B22: shortfall shown differs from 0",
+    "B23: numbers shown [14, 22, 23, 36], truth supply 14 picks 25",
+    "B23: shortfall shown differs from 11",
+    "B24: numbers shown [6, 12, 18, 24], truth supply 12 picks 17",
+    "B24: shortfall shown differs from 5",
+    "B25: shortfall shown differs from 0",
+    "B26: numbers shown [23, 26, 36, 59], truth supply 36 picks 48",
+    "B26: shortfall shown differs from 12",
+    "B27: numbers shown [22, 27, 31], truth supply 31 picks 18",
+    "B28: shortfall shown differs from 0",
+    "B30: shortfall shown differs from 20",
+    "B31: shortfall shown differs from 0",
+    "B32: numbers shown [25, 32], truth supply 25 picks 22",
+    "B33: numbers shown [8, 33], truth supply 8 picks 5",
+    "B34: shortfall shown differs from 0",
+    "B36: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B36: shortfall shown differs from 2"
+   ],
+   "wrong": [
+    "B02",
+    "B04",
+    "B06",
+    "B07",
+    "B08",
+    "B09",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B26",
+    "B27",
+    "B28",
+    "B30",
+    "B31",
+    "B32",
+    "B33",
+    "B34",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-wonder/n-banner-dom-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-wonder/n-banner-dom-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 1
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B08: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B08"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-wonder/n-faded-dom-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-wonder/n-faded-dom-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B06: short, no visible SHORT flag on its row",
+    "B07: short, no visible SHORT flag on its row",
+    "B08: short, no visible SHORT flag on its row",
+    "B12: short, no visible SHORT flag on its row",
+    "B13: short, no visible SHORT flag on its row",
+    "B14: short, no visible SHORT flag on its row",
+    "B16: short, no visible SHORT flag on its row",
+    "B17: short, no visible SHORT flag on its row",
+    "B19: short, no visible SHORT flag on its row",
+    "B21: short, no visible SHORT flag on its row",
+    "B23: short, no visible SHORT flag on its row",
+    "B24: short, no visible SHORT flag on its row",
+    "B26: short, no visible SHORT flag on its row",
+    "B29: short, no visible SHORT flag on its row",
+    "B30: short, no visible SHORT flag on its row",
+    "B35: short, no visible SHORT flag on its row",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B06",
+    "B07",
+    "B08",
+    "B12",
+    "B13",
+    "B14",
+    "B16",
+    "B17",
+    "B19",
+    "B21",
+    "B23",
+    "B24",
+    "B26",
+    "B29",
+    "B30",
+    "B35",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-wonder/n-window-dom-r1/checker-after",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-nohistory-wonder/n-window-dom-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 52
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B02: not short, a red alert is drawn on its row (owned by ['B02'])",
+    "B04: not short, a red alert is drawn on its row (owned by ['B04'])",
+    "B18: not short, a red alert is drawn on its row (owned by ['B18'])",
+    "B20: not short, a red alert is drawn on its row (owned by ['B20'])",
+    "B22: not short, a red alert is drawn on its row (owned by ['B22'])",
+    "B25: not short, a red alert is drawn on its row (owned by ['B25'])",
+    "B28: not short, a red alert is drawn on its row (owned by ['B28'])",
+    "B31: not short, a red alert is drawn on its row (owned by ['B31'])",
+    "B34: not short, a red alert is drawn on its row (owned by ['B34'])",
+    "B02: numbers shown [2, 6, 35, 41], truth supply 35 picks 30",
+    "B02: shortfall shown differs from 0",
+    "B04: shortfall shown differs from 0",
+    "B06: numbers shown [6, 11, 23, 34], truth supply 11 picks 29",
+    "B06: shortfall shown differs from 18",
+    "B07: numbers shown [7, 17, 19, 36], truth supply 17 picks 33",
+    "B07: shortfall shown differs from 16",
+    "B08: numbers shown [8, 37, 45], truth supply 37 picks 40",
+    "B08: shortfall shown differs from 3",
+    "B09: numbers shown [7, 9, 10], truth supply 10 picks 0",
+    "B12: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B12: shortfall shown differs from 2",
+    "B13: numbers shown [7, 13, 17, 24], truth supply 7 picks 15",
+    "B13: shortfall shown differs from 8",
+    "B14: numbers shown [2, 14, 19, 21], truth supply 19 picks 20",
+    "B14: shortfall shown differs from 1",
+    "B15: numbers shown [15, 28], truth supply 28 picks 17",
+    "B16: numbers shown [6, 16, 41, 47], truth supply 41 picks 43",
+    "B16: shortfall shown differs from 2",
+    "B17: numbers shown [16, 17, 35, 51], truth supply 35 picks 45",
+    "B17: shortfall shown differs from 10",
+    "B18: numbers shown [2, 5, 7, 18], truth supply 2 picks 0",
+    "B18: shortfall shown differs from 0",
+    "B20: shortfall shown differs from 0",
+    "B21: numbers shown [14, 21, 24, 38], truth supply 14 picks 33",
+    "B21: shortfall shown differs from 19",
+    "B22: shortfall shown differs from 0",
+    "B23: numbers shown [14, 22, 23, 36], truth supply 14 picks 25",
+    "B23: shortfall shown differs from 11",
+    "B24: numbers shown [6, 12, 18, 24], truth supply 12 picks 17",
+    "B24: shortfall shown differs from 5",
+    "B25: shortfall shown differs from 0",
+    "B26: numbers shown [23, 26, 36, 59], truth supply 36 picks 48",
+    "B26: shortfall shown differs from 12",
+    "B27: numbers shown [22, 27, 31], truth supply 31 picks 18",
+    "B28: shortfall shown differs from 0",
+    "B30: shortfall shown differs from 20",
+    "B31: shortfall shown differs from 0",
+    "B32: numbers shown [25, 32], truth supply 25 picks 22",
+    "B33: numbers shown [8, 33], truth supply 8 picks 5",
+    "B34: shortfall shown differs from 0",
+    "B36: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B36: shortfall shown differs from 2"
+   ],
+   "wrong": [
+    "B02",
+    "B04",
+    "B06",
+    "B07",
+    "B08",
+    "B09",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B26",
+    "B27",
+    "B28",
+    "B30",
+    "B31",
+    "B32",
+    "B33",
+    "B34",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-banner-compact-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 1
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B12: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B12"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-banner-compact-r2/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 1
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B12: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B12"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-banner-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 1
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B08: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B08"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-banner-r2/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 1
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B08: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B08"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-faded-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B06: short, no visible SHORT flag on its row",
+    "B07: short, no visible SHORT flag on its row",
+    "B08: short, no visible SHORT flag on its row",
+    "B12: short, no visible SHORT flag on its row",
+    "B13: short, no visible SHORT flag on its row",
+    "B14: short, no visible SHORT flag on its row",
+    "B16: short, no visible SHORT flag on its row",
+    "B17: short, no visible SHORT flag on its row",
+    "B19: short, no visible SHORT flag on its row",
+    "B21: short, no visible SHORT flag on its row",
+    "B23: short, no visible SHORT flag on its row",
+    "B24: short, no visible SHORT flag on its row",
+    "B26: short, no visible SHORT flag on its row",
+    "B29: short, no visible SHORT flag on its row",
+    "B30: short, no visible SHORT flag on its row",
+    "B35: short, no visible SHORT flag on its row",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B06",
+    "B07",
+    "B08",
+    "B12",
+    "B13",
+    "B14",
+    "B16",
+    "B17",
+    "B19",
+    "B21",
+    "B23",
+    "B24",
+    "B26",
+    "B29",
+    "B30",
+    "B35",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-faded-r2/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B06: short, no visible SHORT flag on its row",
+    "B07: short, no visible SHORT flag on its row",
+    "B08: short, no visible SHORT flag on its row",
+    "B12: short, no visible SHORT flag on its row",
+    "B13: short, no visible SHORT flag on its row",
+    "B14: short, no visible SHORT flag on its row",
+    "B16: short, no visible SHORT flag on its row",
+    "B17: short, no visible SHORT flag on its row",
+    "B19: short, no visible SHORT flag on its row",
+    "B21: short, no visible SHORT flag on its row",
+    "B23: short, no visible SHORT flag on its row",
+    "B24: short, no visible SHORT flag on its row",
+    "B26: short, no visible SHORT flag on its row",
+    "B29: short, no visible SHORT flag on its row",
+    "B30: short, no visible SHORT flag on its row",
+    "B35: short, no visible SHORT flag on its row",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B06",
+    "B07",
+    "B08",
+    "B12",
+    "B13",
+    "B14",
+    "B16",
+    "B17",
+    "B19",
+    "B21",
+    "B23",
+    "B24",
+    "B26",
+    "B29",
+    "B30",
+    "B35",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-healthy-brand-r1/checker-before",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-healthy-brand-r2/checker-before",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-healthy-compact-r1/checker-before",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-healthy-compact-r2/checker-before",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-healthy-grid-r1/checker-before",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-healthy-grid-r2/checker-before",
+  "v1": {
+   "verified": true,
+   "problems": 0
+  },
+  "v2": {
+   "verified": true,
+   "problems": [],
+   "wrong": [],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-shifted-grid-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B05: not short, a red alert is drawn on its row (owned by ['B06'])",
+    "B05: not short, carries another row's SHORT flag",
+    "B06: short, signalled only by another row's flag",
+    "B07: short, signalled only by another row's flag",
+    "B08: short, no visible SHORT flag on its row",
+    "B11: not short, a red alert is drawn on its row (owned by ['B12'])",
+    "B11: not short, carries another row's SHORT flag",
+    "B12: short, signalled only by another row's flag",
+    "B13: short, signalled only by another row's flag",
+    "B14: short, no visible SHORT flag on its row",
+    "B15: not short, a red alert is drawn on its row (owned by ['B16'])",
+    "B15: not short, carries another row's SHORT flag",
+    "B16: short, signalled only by another row's flag",
+    "B17: short, no visible SHORT flag on its row",
+    "B18: not short, a red alert is drawn on its row (owned by ['B19'])",
+    "B18: not short, carries another row's SHORT flag",
+    "B19: short, no visible SHORT flag on its row",
+    "B20: not short, a red alert is drawn on its row (owned by ['B21'])",
+    "B20: not short, carries another row's SHORT flag",
+    "B21: short, no visible SHORT flag on its row",
+    "B22: not short, a red alert is drawn on its row (owned by ['B23'])",
+    "B22: not short, carries another row's SHORT flag",
+    "B23: short, signalled only by another row's flag",
+    "B24: short, no visible SHORT flag on its row",
+    "B25: not short, a red alert is drawn on its row (owned by ['B26'])",
+    "B25: not short, carries another row's SHORT flag",
+    "B26: short, no visible SHORT flag on its row",
+    "B28: not short, a red alert is drawn on its row (owned by ['B29'])",
+    "B28: not short, carries another row's SHORT flag",
+    "B29: short, signalled only by another row's flag",
+    "B30: short, no visible SHORT flag on its row",
+    "B34: not short, a red alert is drawn on its row (owned by ['B35'])",
+    "B34: not short, carries another row's SHORT flag",
+    "B35: short, signalled only by another row's flag",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B05",
+    "B06",
+    "B07",
+    "B08",
+    "B11",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B19",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B26",
+    "B28",
+    "B29",
+    "B30",
+    "B34",
+    "B35",
+    "B36"
+   ],
+   "straddling": [
+    "0-0"
+   ]
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-shifted-grid-r2/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B05: not short, a red alert is drawn on its row (owned by ['B06'])",
+    "B05: not short, carries another row's SHORT flag",
+    "B06: short, signalled only by another row's flag",
+    "B07: short, signalled only by another row's flag",
+    "B08: short, no visible SHORT flag on its row",
+    "B11: not short, a red alert is drawn on its row (owned by ['B12'])",
+    "B11: not short, carries another row's SHORT flag",
+    "B12: short, signalled only by another row's flag",
+    "B13: short, signalled only by another row's flag",
+    "B14: short, no visible SHORT flag on its row",
+    "B15: not short, a red alert is drawn on its row (owned by ['B16'])",
+    "B15: not short, carries another row's SHORT flag",
+    "B16: short, signalled only by another row's flag",
+    "B17: short, no visible SHORT flag on its row",
+    "B18: not short, a red alert is drawn on its row (owned by ['B19'])",
+    "B18: not short, carries another row's SHORT flag",
+    "B19: short, no visible SHORT flag on its row",
+    "B20: not short, a red alert is drawn on its row (owned by ['B21'])",
+    "B20: not short, carries another row's SHORT flag",
+    "B21: short, no visible SHORT flag on its row",
+    "B22: not short, a red alert is drawn on its row (owned by ['B23'])",
+    "B22: not short, carries another row's SHORT flag",
+    "B23: short, signalled only by another row's flag",
+    "B24: short, no visible SHORT flag on its row",
+    "B25: not short, a red alert is drawn on its row (owned by ['B26'])",
+    "B25: not short, carries another row's SHORT flag",
+    "B26: short, no visible SHORT flag on its row",
+    "B28: not short, a red alert is drawn on its row (owned by ['B29'])",
+    "B28: not short, carries another row's SHORT flag",
+    "B29: short, signalled only by another row's flag",
+    "B30: short, no visible SHORT flag on its row",
+    "B34: not short, a red alert is drawn on its row (owned by ['B35'])",
+    "B34: not short, carries another row's SHORT flag",
+    "B35: short, signalled only by another row's flag",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B05",
+    "B06",
+    "B07",
+    "B08",
+    "B11",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B19",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B26",
+    "B28",
+    "B29",
+    "B30",
+    "B34",
+    "B35",
+    "B36"
+   ],
+   "straddling": [
+    "0-0"
+   ]
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-shifted-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B05: not short, a red alert is drawn on its row (owned by ['B06'])",
+    "B05: not short, carries another row's SHORT flag",
+    "B06: short, signalled only by another row's flag",
+    "B07: short, signalled only by another row's flag",
+    "B08: short, no visible SHORT flag on its row",
+    "B11: not short, a red alert is drawn on its row (owned by ['B12'])",
+    "B11: not short, carries another row's SHORT flag",
+    "B12: short, signalled only by another row's flag",
+    "B13: short, signalled only by another row's flag",
+    "B14: short, no visible SHORT flag on its row",
+    "B15: not short, a red alert is drawn on its row (owned by ['B16'])",
+    "B15: not short, carries another row's SHORT flag",
+    "B16: short, signalled only by another row's flag",
+    "B17: short, no visible SHORT flag on its row",
+    "B18: not short, a red alert is drawn on its row (owned by ['B19'])",
+    "B18: not short, carries another row's SHORT flag",
+    "B19: short, no visible SHORT flag on its row",
+    "B20: not short, a red alert is drawn on its row (owned by ['B21'])",
+    "B20: not short, carries another row's SHORT flag",
+    "B21: short, no visible SHORT flag on its row",
+    "B22: not short, a red alert is drawn on its row (owned by ['B23'])",
+    "B22: not short, carries another row's SHORT flag",
+    "B23: short, signalled only by another row's flag",
+    "B24: short, no visible SHORT flag on its row",
+    "B25: not short, a red alert is drawn on its row (owned by ['B26'])",
+    "B25: not short, carries another row's SHORT flag",
+    "B26: short, no visible SHORT flag on its row",
+    "B28: not short, a red alert is drawn on its row (owned by ['B29'])",
+    "B28: not short, carries another row's SHORT flag",
+    "B29: short, signalled only by another row's flag",
+    "B30: short, no visible SHORT flag on its row",
+    "B34: not short, a red alert is drawn on its row (owned by ['B35'])",
+    "B34: not short, carries another row's SHORT flag",
+    "B35: short, signalled only by another row's flag",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B05",
+    "B06",
+    "B07",
+    "B08",
+    "B11",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B19",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B26",
+    "B28",
+    "B29",
+    "B30",
+    "B34",
+    "B35",
+    "B36"
+   ],
+   "straddling": [
+    "0-0"
+   ]
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-shifted-r2/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B05: not short, a red alert is drawn on its row (owned by ['B06'])",
+    "B05: not short, carries another row's SHORT flag",
+    "B06: short, signalled only by another row's flag",
+    "B07: short, signalled only by another row's flag",
+    "B08: short, no visible SHORT flag on its row",
+    "B11: not short, a red alert is drawn on its row (owned by ['B12'])",
+    "B11: not short, carries another row's SHORT flag",
+    "B12: short, signalled only by another row's flag",
+    "B13: short, signalled only by another row's flag",
+    "B14: short, no visible SHORT flag on its row",
+    "B15: not short, a red alert is drawn on its row (owned by ['B16'])",
+    "B15: not short, carries another row's SHORT flag",
+    "B16: short, signalled only by another row's flag",
+    "B17: short, no visible SHORT flag on its row",
+    "B18: not short, a red alert is drawn on its row (owned by ['B19'])",
+    "B18: not short, carries another row's SHORT flag",
+    "B19: short, no visible SHORT flag on its row",
+    "B20: not short, a red alert is drawn on its row (owned by ['B21'])",
+    "B20: not short, carries another row's SHORT flag",
+    "B21: short, no visible SHORT flag on its row",
+    "B22: not short, a red alert is drawn on its row (owned by ['B23'])",
+    "B22: not short, carries another row's SHORT flag",
+    "B23: short, signalled only by another row's flag",
+    "B24: short, no visible SHORT flag on its row",
+    "B25: not short, a red alert is drawn on its row (owned by ['B26'])",
+    "B25: not short, carries another row's SHORT flag",
+    "B26: short, no visible SHORT flag on its row",
+    "B28: not short, a red alert is drawn on its row (owned by ['B29'])",
+    "B28: not short, carries another row's SHORT flag",
+    "B29: short, signalled only by another row's flag",
+    "B30: short, no visible SHORT flag on its row",
+    "B34: not short, a red alert is drawn on its row (owned by ['B35'])",
+    "B34: not short, carries another row's SHORT flag",
+    "B35: short, signalled only by another row's flag",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B05",
+    "B06",
+    "B07",
+    "B08",
+    "B11",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B19",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B26",
+    "B28",
+    "B29",
+    "B30",
+    "B34",
+    "B35",
+    "B36"
+   ],
+   "straddling": [
+    "0-0"
+   ]
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-window-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 52
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B02: not short, a red alert is drawn on its row (owned by ['B02'])",
+    "B04: not short, a red alert is drawn on its row (owned by ['B04'])",
+    "B18: not short, a red alert is drawn on its row (owned by ['B18'])",
+    "B20: not short, a red alert is drawn on its row (owned by ['B20'])",
+    "B22: not short, a red alert is drawn on its row (owned by ['B22'])",
+    "B25: not short, a red alert is drawn on its row (owned by ['B25'])",
+    "B28: not short, a red alert is drawn on its row (owned by ['B28'])",
+    "B31: not short, a red alert is drawn on its row (owned by ['B31'])",
+    "B34: not short, a red alert is drawn on its row (owned by ['B34'])",
+    "B02: numbers shown [2, 6, 35, 41], truth supply 35 picks 30",
+    "B02: shortfall shown differs from 0",
+    "B04: shortfall shown differs from 0",
+    "B06: numbers shown [6, 11, 23, 34], truth supply 11 picks 29",
+    "B06: shortfall shown differs from 18",
+    "B07: numbers shown [7, 17, 19, 36], truth supply 17 picks 33",
+    "B07: shortfall shown differs from 16",
+    "B08: numbers shown [8, 37, 45], truth supply 37 picks 40",
+    "B08: shortfall shown differs from 3",
+    "B09: numbers shown [7, 9, 10], truth supply 10 picks 0",
+    "B12: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B12: shortfall shown differs from 2",
+    "B13: numbers shown [7, 13, 17, 24], truth supply 7 picks 15",
+    "B13: shortfall shown differs from 8",
+    "B14: numbers shown [2, 14, 19, 21], truth supply 19 picks 20",
+    "B14: shortfall shown differs from 1",
+    "B15: numbers shown [15, 28], truth supply 28 picks 17",
+    "B16: numbers shown [6, 16, 41, 47], truth supply 41 picks 43",
+    "B16: shortfall shown differs from 2",
+    "B17: numbers shown [16, 17, 35, 51], truth supply 35 picks 45",
+    "B17: shortfall shown differs from 10",
+    "B18: numbers shown [2, 5, 7, 18], truth supply 2 picks 0",
+    "B18: shortfall shown differs from 0",
+    "B20: shortfall shown differs from 0",
+    "B21: numbers shown [14, 21, 24, 38], truth supply 14 picks 33",
+    "B21: shortfall shown differs from 19",
+    "B22: shortfall shown differs from 0",
+    "B23: numbers shown [14, 22, 23, 36], truth supply 14 picks 25",
+    "B23: shortfall shown differs from 11",
+    "B24: numbers shown [6, 12, 18, 24], truth supply 12 picks 17",
+    "B24: shortfall shown differs from 5",
+    "B25: shortfall shown differs from 0",
+    "B26: numbers shown [23, 26, 36, 59], truth supply 36 picks 48",
+    "B26: shortfall shown differs from 12",
+    "B27: numbers shown [22, 27, 31], truth supply 31 picks 18",
+    "B28: shortfall shown differs from 0",
+    "B30: shortfall shown differs from 20",
+    "B31: shortfall shown differs from 0",
+    "B32: numbers shown [25, 32], truth supply 25 picks 22",
+    "B33: numbers shown [8, 33], truth supply 8 picks 5",
+    "B34: shortfall shown differs from 0",
+    "B36: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B36: shortfall shown differs from 2"
+   ],
+   "wrong": [
+    "B02",
+    "B04",
+    "B06",
+    "B07",
+    "B08",
+    "B09",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B26",
+    "B27",
+    "B28",
+    "B30",
+    "B31",
+    "B32",
+    "B33",
+    "B34",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-window-r2/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 52
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B02: not short, a red alert is drawn on its row (owned by ['B02'])",
+    "B04: not short, a red alert is drawn on its row (owned by ['B04'])",
+    "B18: not short, a red alert is drawn on its row (owned by ['B18'])",
+    "B20: not short, a red alert is drawn on its row (owned by ['B20'])",
+    "B22: not short, a red alert is drawn on its row (owned by ['B22'])",
+    "B25: not short, a red alert is drawn on its row (owned by ['B25'])",
+    "B28: not short, a red alert is drawn on its row (owned by ['B28'])",
+    "B31: not short, a red alert is drawn on its row (owned by ['B31'])",
+    "B34: not short, a red alert is drawn on its row (owned by ['B34'])",
+    "B02: numbers shown [2, 6, 35, 41], truth supply 35 picks 30",
+    "B02: shortfall shown differs from 0",
+    "B04: shortfall shown differs from 0",
+    "B06: numbers shown [6, 11, 23, 34], truth supply 11 picks 29",
+    "B06: shortfall shown differs from 18",
+    "B07: numbers shown [7, 17, 19, 36], truth supply 17 picks 33",
+    "B07: shortfall shown differs from 16",
+    "B08: numbers shown [8, 37, 45], truth supply 37 picks 40",
+    "B08: shortfall shown differs from 3",
+    "B09: numbers shown [7, 9, 10], truth supply 10 picks 0",
+    "B12: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B12: shortfall shown differs from 2",
+    "B13: numbers shown [7, 13, 17, 24], truth supply 7 picks 15",
+    "B13: shortfall shown differs from 8",
+    "B14: numbers shown [2, 14, 19, 21], truth supply 19 picks 20",
+    "B14: shortfall shown differs from 1",
+    "B15: numbers shown [15, 28], truth supply 28 picks 17",
+    "B16: numbers shown [6, 16, 41, 47], truth supply 41 picks 43",
+    "B16: shortfall shown differs from 2",
+    "B17: numbers shown [16, 17, 35, 51], truth supply 35 picks 45",
+    "B17: shortfall shown differs from 10",
+    "B18: numbers shown [2, 5, 7, 18], truth supply 2 picks 0",
+    "B18: shortfall shown differs from 0",
+    "B20: shortfall shown differs from 0",
+    "B21: numbers shown [14, 21, 24, 38], truth supply 14 picks 33",
+    "B21: shortfall shown differs from 19",
+    "B22: shortfall shown differs from 0",
+    "B23: numbers shown [14, 22, 23, 36], truth supply 14 picks 25",
+    "B23: shortfall shown differs from 11",
+    "B24: numbers shown [6, 12, 18, 24], truth supply 12 picks 17",
+    "B24: shortfall shown differs from 5",
+    "B25: shortfall shown differs from 0",
+    "B26: numbers shown [23, 26, 36, 59], truth supply 36 picks 48",
+    "B26: shortfall shown differs from 12",
+    "B27: numbers shown [22, 27, 31], truth supply 31 picks 18",
+    "B28: shortfall shown differs from 0",
+    "B30: shortfall shown differs from 20",
+    "B31: shortfall shown differs from 0",
+    "B32: numbers shown [25, 32], truth supply 25 picks 22",
+    "B33: numbers shown [8, 33], truth supply 8 picks 5",
+    "B34: shortfall shown differs from 0",
+    "B36: numbers shown [12, 36, 48], truth supply 36 picks 38",
+    "B36: shortfall shown differs from 2"
+   ],
+   "wrong": [
+    "B02",
+    "B04",
+    "B06",
+    "B07",
+    "B08",
+    "B09",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B26",
+    "B27",
+    "B28",
+    "B30",
+    "B31",
+    "B32",
+    "B33",
+    "B34",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-wording-r1/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B06: short, no visible SHORT flag on its row",
+    "B07: short, no visible SHORT flag on its row",
+    "B08: short, no visible SHORT flag on its row",
+    "B12: short, no visible SHORT flag on its row",
+    "B13: short, no visible SHORT flag on its row",
+    "B14: short, no visible SHORT flag on its row",
+    "B16: short, no visible SHORT flag on its row",
+    "B17: short, no visible SHORT flag on its row",
+    "B19: short, no visible SHORT flag on its row",
+    "B21: short, no visible SHORT flag on its row",
+    "B23: short, no visible SHORT flag on its row",
+    "B24: short, no visible SHORT flag on its row",
+    "B26: short, no visible SHORT flag on its row",
+    "B29: short, no visible SHORT flag on its row",
+    "B30: short, no visible SHORT flag on its row",
+    "B35: short, no visible SHORT flag on its row",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B06",
+    "B07",
+    "B08",
+    "B12",
+    "B13",
+    "B14",
+    "B16",
+    "B17",
+    "B19",
+    "B21",
+    "B23",
+    "B24",
+    "B26",
+    "B29",
+    "B30",
+    "B35",
+    "B36"
+   ],
+   "straddling": []
+  }
+ },
+ {
+  "record": "~/unbidden-lab/eval6/B-perception/e-wording-r2/checker-before",
+  "v1": {
+   "verified": false,
+   "problems": 18
+  },
+  "v2": {
+   "verified": false,
+   "problems": [
+    "B01: short, no visible SHORT flag on its row",
+    "B06: short, no visible SHORT flag on its row",
+    "B07: short, no visible SHORT flag on its row",
+    "B08: short, no visible SHORT flag on its row",
+    "B12: short, no visible SHORT flag on its row",
+    "B13: short, no visible SHORT flag on its row",
+    "B14: short, no visible SHORT flag on its row",
+    "B16: short, no visible SHORT flag on its row",
+    "B17: short, no visible SHORT flag on its row",
+    "B19: short, no visible SHORT flag on its row",
+    "B21: short, no visible SHORT flag on its row",
+    "B23: short, no visible SHORT flag on its row",
+    "B24: short, no visible SHORT flag on its row",
+    "B26: short, no visible SHORT flag on its row",
+    "B29: short, no visible SHORT flag on its row",
+    "B30: short, no visible SHORT flag on its row",
+    "B35: short, no visible SHORT flag on its row",
+    "B36: short, no visible SHORT flag on its row"
+   ],
+   "wrong": [
+    "B01",
+    "B06",
+    "B07",
+    "B08",
+    "B12",
+    "B13",
+    "B14",
+    "B16",
+    "B17",
+    "B19",
+    "B21",
+    "B23",
+    "B24",
+    "B26",
+    "B29",
+    "B30",
+    "B35",
+    "B36"
+   ],
+   "straddling": []
+  }
+ }
+]

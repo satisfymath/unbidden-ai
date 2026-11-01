@@ -1,0 +1,172 @@
+from __future__ import annotations
+
+import httpx
+import pytest
+
+from unbidden.contracts.common import EpistemicStatus, EvidenceRef
+from unbidden.contracts.world import Relation, Resource, WorldModel
+from unbidden.observe.health import judge, localize
+from unbidden.world.prometheus import Prometheus, ServiceHealth, observe, resolve_peer
+
+pytestmark = pytest.mark.unit
+
+
+def h(service: str, requests: float, errors: float = 0, p95: float | None = 10.0) -> ServiceHealth:
+    return ServiceHealth(service, requests, errors, p95)
+
+
+def test_errors_far_above_the_services_own_baseline_are_degraded() -> None:
+    assert judge(h("payment", 40, 20), h("payment", 300, 0)).degraded
+    assert not judge(h("payment", 40, 2), h("payment", 300, 0)).degraded  # under the minimum error count
+    assert not judge(h("payment", 5, 5), h("payment", 300, 0)).degraded  # too few requests to say anything
+
+
+def test_a_service_that_always_fails_this_much_is_chronic_not_an_anomaly() -> None:
+    v = judge(h("quote", 60, 12), h("quote", 360, 72))
+    assert v.chronic and not v.degraded
+
+
+def test_latency_needs_both_a_ratio_and_an_absolute_step() -> None:
+    assert judge(h("x", 50, p95=120), h("x", 300, p95=40)).degraded
+    assert not judge(h("x", 50, p95=4), h("x", 300, p95=1.9)).degraded  # doubled, but by 2 ms
+
+
+def world_with(*links: tuple[str, str, EpistemicStatus]) -> WorldModel:
+    w = WorldModel(rev="r")
+    names = {n for a, b, _ in links for n in (a, b)}
+    for n in names:
+        w.add(
+            Resource(
+                id=f"service:{n}",
+                kind="service",
+                name=n,
+                status=EpistemicStatus.OBSERVED,
+                confidence=1,
+                evidence=[EvidenceRef(kind="config", locator=n)],
+            )
+        )
+    for a, b, status in links:
+        w.relate(
+            Relation(
+                src=f"service:{a}",
+                dst=f"service:{b}",
+                predicate="calls",
+                status=status,
+                confidence=1,
+                evidence=[EvidenceRef(kind="config", locator=f"{a}->{b}")],
+            )
+        )
+    return w
+
+
+def test_the_suspect_is_the_degraded_service_whose_dependencies_are_healthy() -> None:
+    obs = EpistemicStatus.OBSERVED
+    w = world_with(("frontend", "checkout", obs), ("checkout", "payment", obs), ("checkout", "cart", obs))
+    suspects = localize(w, {"frontend", "checkout", "payment"})
+    assert [s.service for s in suspects] == ["payment"]
+    assert sorted(suspects[0].effects) == ["checkout", "frontend"] and suspects[0].via == "observed"
+
+
+def test_a_path_known_only_from_configuration_says_so() -> None:
+    w = world_with(("frontend", "ad", EpistemicStatus.INFERRED))
+    suspects = localize(w, {"frontend", "ad"})
+    assert [(s.service, s.via) for s in suspects] == [("ad", "inferred")]
+
+
+def test_peers_resolve_to_project_services_and_nothing_else() -> None:
+    services = {"cart", "payment"}
+    assert resolve_peer("cart", services, {}) == ("service", "cart")
+    assert resolve_peer("192.168.155.20", services, {"192.168.155.20": "payment"}) == ("service", "payment")
+    assert resolve_peer("metadata.google.internal.", services, {}) == ("external", "metadata.google.internal")
+    assert resolve_peer("agent", services, {}) == ("unknown", "agent")
+
+
+def test_other_projects_containers_in_a_host_wide_prometheus_are_never_taken_in() -> None:
+    def answer(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/values"):
+            return httpx.Response(200, json={"data": ["container_cpu_utilization_ratio"]})
+        rows = [
+            {"metric": {"container_name": "cart"}, "value": [0, "0.1"]},
+            {"metric": {"container_name": "hosli-recs-api-1"}, "value": [0, "0.9"]},
+        ]
+        return httpx.Response(200, json={"status": "success", "data": {"result": rows}})
+
+    w = WorldModel(rev="r")
+    w.add(
+        Resource(
+            id="container:cart",
+            kind="container",
+            name="cart",
+            attributes={"service": "cart"},
+            status=EpistemicStatus.OBSERVED,
+            confidence=1,
+            evidence=[EvidenceRef(kind="config", locator="ps")],
+        )
+    )
+    observe(Prometheus("http://p", transport=httpx.MockTransport(answer)), w, {})
+    assert w.resources["container:cart"].attributes["resources"]["cpu_ratio"] == 0.1
+    assert "hosli" not in w.model_dump_json()
+
+
+def test_a_failure_starts_in_the_failing_span_whose_children_did_not_fail() -> None:
+    from unbidden.world.jaeger import origins, parse
+
+    def span(sid: str, parent: str, code: int = 0) -> dict[str, object]:
+        return {
+            "traceId": "t1",
+            "spanId": sid,
+            "parentSpanId": parent,
+            "status": {"code": code},
+            "attributes": [{"key": "card", "value": {"stringValue": "4111"}}],
+        }
+
+    def resource(service: str, *spans: dict[str, object]) -> dict[str, object]:
+        return {
+            "resource": {"attributes": [{"key": "service.name", "value": {"stringValue": service}}]},
+            "scopeSpans": [{"spans": list(spans)}],
+        }
+
+    body = {
+        "result": {
+            "resourceSpans": [
+                resource("frontend", span("a", "", 2)),
+                resource("checkout", span("b", "a", 2), span("c", "a")),
+                resource("payment", span("d", "b", 2)),
+            ]
+        }
+    }
+    spans = parse(body)
+    assert "4111" not in repr(spans)  # attributes never kept
+    counts, traces, failing = origins(spans)
+    assert dict(counts) == {"payment": 1} and (traces, failing) == (1, 1)
+
+
+def test_unrelated_origins_degrading_together_are_one_common_cause() -> None:
+    from unbidden.observe.health import common_cause
+
+    obs = EpistemicStatus.OBSERVED
+    w = world_with(("frontend", "cart", obs), ("frontend", "ad", obs), ("checkout", "email", obs))
+    suspects = localize(w, {"cart", "ad", "email"})
+    shared = common_cause(w, suspects)
+    assert shared is not None and shared.effects == ["ad", "cart", "email"]
+    linked = world_with(("cart", "ad", obs), ("checkout", "email", obs), ("x", "y", obs))
+    assert common_cause(linked, localize(linked, {"cart", "ad", "email"})) is None  # cart calls ad: two origins
+
+
+def test_grpc_client_spans_name_the_service_they_call() -> None:
+    from unbidden.observe.health import grpc_callee
+
+    services = {"payment", "product-catalog", "cart"}
+    assert grpc_callee("oteldemo.PaymentService/Charge", services) == "payment"
+    assert grpc_callee("oteldemo.ProductCatalogService/GetProduct", services) == "product-catalog"
+    assert grpc_callee("CartService/GetCart", services) == "cart"
+    assert grpc_callee("POST", services) is None
+    assert grpc_callee("oteldemo.EmailService/Send", services) is None  # not a service of this project
+
+
+def test_few_calls_that_nearly_all_fail_are_surprising_and_a_rare_failure_is_not() -> None:
+    from unbidden.observe.health import surprising
+
+    assert surprising(4, 5)
+    assert not surprising(1, 200)
+    assert not surprising(3, 1000)

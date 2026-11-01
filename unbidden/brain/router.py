@@ -10,14 +10,16 @@ from __future__ import annotations
 
 import json
 import re
+from dataclasses import replace
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, NoReturn
 
 from jsonschema import Draft202012Validator
 
 from unbidden.brain.codeblocks import CodeBlockError, parse_files
-from unbidden.brain.providers import LLMProvider, ProviderError
+from unbidden.brain.providers import LLMProvider, ProviderError, ProviderRejected, ProviderThrottled
 from unbidden.brain.route_policy import NEVER_REMOTE, RouteDecision, decide_route
+from unbidden.brain.spend import SpendLedger, SpendRefused, worst_cost
 from unbidden.brain.tasks import task_for
 from unbidden.config import Config, Route
 from unbidden.contracts.common import Cost, utc_now
@@ -25,10 +27,10 @@ from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import ActionRequest, EgressAttempt, EgressVerdict, Mandate
 from unbidden.contracts.llm import ContentLabel, LLMRequest, LLMResponse, Message, ModelRun, Tier, Usage
 from unbidden.guardian.classify import Classification, classify
-from unbidden.guardian.egress import evaluate_synthetic
-from unbidden.guardian.killswitch import KillSwitch
+from unbidden.guardian.egress import evaluate_screenshots, evaluate_synthetic
+from unbidden.guardian.killswitch import KillSwitch, checkpoint
 from unbidden.guardian.policy import PolicyEngine
-from unbidden.guardian.scanner import SensitiveTermIndex, scan_many, secret_hits
+from unbidden.guardian.scanner import SensitiveTermIndex, redact_text, scan_many, secret_hits
 from unbidden.store import Store
 
 ACTOR = "brain"
@@ -105,6 +107,11 @@ def check_output(request: LLMRequest, response: LLMResponse) -> str | None:
     return None
 
 
+# What one picture may cost at worst, in input tokens. Measured on Meta: a 800 x 480 screenshot and its prompt, 559
+# tokens (docs/bench/multimodal/feasibility-1.json); a full viewport stays well under this.
+IMAGE_TOKENS_WORST = 4000
+
+
 def _payload(request: LLMRequest) -> str:
     """What would leave the machine, serialized exactly as it is judged and recorded."""
     return json.dumps(
@@ -128,6 +135,7 @@ class Brain:
         *,
         identifiers: SensitiveTermIndex | None = None,
         killswitch: KillSwitch | None = None,
+        spend: SpendLedger | None = None,
     ) -> None:
         self.config = config
         self.providers = providers
@@ -136,6 +144,7 @@ class Brain:
         self.policy = PolicyEngine(mandate)
         self.identifiers = identifiers or SensitiveTermIndex()
         self.killswitch = killswitch
+        self.spend = spend or SpendLedger()  # never optional: every remote call passes the machine's budget
         self.repo_public = False  # set by the runtime only when GitHub confirms it; unknown means private
         self.served_by: dict[str, ModelRun] = {}  # purpose -> the last run that answered it, for honest attribution
 
@@ -166,11 +175,36 @@ class Brain:
 
     async def complete(self, request: LLMRequest, *, identifiers: SensitiveTermIndex | None = None) -> LLMResponse:
         """`identifiers` adds names that must not leave the machine on this call, on top of the workspace's."""
+        request = self._mask_repository(request)
         self._guard_prompt(request)
         decision, classification = self.decide(request)
+        if self.mandate.models.local_inference == "deny":
+            if not decision.tier.remote:
+                why = f"the mandate denies local inference, and this call may not go remote: {decision.reason}"
+                self.store.append_event(
+                    Event(type=EventType.POLICY_DENIED, actor=ACTOR, correlation_id=request.correlation_id,
+                          payload={"rule": "local_inference", "purpose": request.purpose, "why": why})
+                )  # fmt: skip
+                raise PolicyDenied(why)
+            decision = replace(decision, fallback=None if decision.fallback is Tier.LOCAL else decision.fallback)
         tiers = [decision.tier, *([decision.fallback] if decision.fallback else [])]
         last: Exception | None = None
-        for tier in tiers:
+        for i, tier in enumerate(tiers):
+            if i > 0:
+                assert last is not None
+                to_local = not tier.remote and tiers[0].remote
+                allowed = not to_local or self.mandate.models.local_fallback == "allow"
+                self.store.append_event(
+                    Event(
+                        type=EventType.MODEL_FALLBACK,
+                        actor=ACTOR,
+                        correlation_id=request.correlation_id,
+                        payload={"purpose": request.purpose, "from": tiers[0].value, "to": tier.value,
+                                 "cause": f"{type(last).__name__}: {str(last)[:300]}", "taken": allowed},
+                    )
+                )  # fmt: skip
+                if not allowed:
+                    break
             try:
                 return await self._complete_on(tier, request, identifiers, decision, classification)
             except (ModelFailed, ProviderError, EgressBlocked, SpendLimitReached, PolicyDenied) as exc:
@@ -197,8 +231,13 @@ class Brain:
         for attempt in range(1, self.config.brain.max_repairs + 2):
             if self.killswitch is not None and self.killswitch.engaged:
                 raise KillSwitchEngaged("the kill switch is engaged")
+            checkpoint("model call")
             sized = current.model_copy(update={"max_tokens": max_tokens})
-            egress_id = self._gate(sized, route, provider, identifiers, classification) if tier.remote else None
+            egress_id, spend_id = (
+                self._gate(sized, route, provider, identifiers, classification, attempt)
+                if tier.remote
+                else (None, None)
+            )
             self._check_local(routed)
             try:
                 response = await provider.chat(sized, model=route.model, think=think)
@@ -206,9 +245,11 @@ class Brain:
                 self._record(
                     sized, route, provider, attempt, None, f"provider error: {exc}", egress_id, sent=False, why=why
                 )
+                self._settle(spend_id, route, None, exc)
                 raise
             problem_or_none = check_output(request, response)
             self._record(sized, route, provider, attempt, response, problem_or_none, egress_id, sent=True, why=why)
+            self._settle(spend_id, route, response, None)
             if problem_or_none is None:
                 return response
             problem = problem_or_none
@@ -239,6 +280,24 @@ class Brain:
 
     # Guards -----------------------------------------------------------------------------------------------
 
+    def _mask_repository(self, request: LLMRequest) -> LLMRequest:
+        """Values in the repository's own text that look like credentials (a test configuration's `password=abc`, a
+        database URL) are masked before any check, for every purpose: the value never leaves, and the rest of the
+        code still can (stage 10: an unmasked handler made Prefect's every endpoint-to-table request refused). Only
+        text whose source is the repository; anything else holding a secret is still refused whole."""
+        masked = [
+            m.model_copy(update={"content": redact_text(m.content)}) if m.source == "repo" else m
+            for m in request.messages
+        ]
+        changed = sum(a.content != b.content for a, b in zip(masked, request.messages, strict=True))
+        if not changed:
+            return request
+        self.store.append_event(
+            Event(type=EventType.VALUES_MASKED, actor=ACTOR, correlation_id=request.correlation_id,
+                  payload={"purpose": request.purpose, "messages": changed})
+        )  # fmt: skip
+        return request.model_copy(update={"messages": masked})
+
     def _guard_prompt(self, request: LLMRequest) -> None:
         texts = [m.content for m in request.messages]
         texts += [json.dumps(c.arguments) for m in request.messages for c in m.tool_calls]
@@ -261,6 +320,8 @@ class Brain:
     def _check_local(self, request: LLMRequest) -> None:
         if request.tier.remote:
             return
+        if any(m.images for m in request.messages):
+            raise ModelFailed(request.purpose, "the local route reads no images")
         verdict = self.policy.evaluate(ActionRequest(capability="model.local", purpose=request.purpose))
         if not verdict.allowed:
             raise PolicyDenied("; ".join(verdict.reasons))
@@ -272,7 +333,10 @@ class Brain:
         provider: LLMProvider,
         extra: SensitiveTermIndex | None,
         classification: Classification | None = None,
-    ) -> str:
+        try_number: int = 1,
+    ) -> tuple[str, str]:
+        """Policy, the contributor rule, both spend limits, then the egress gate; returns the egress attempt and the
+        spend reservation of a call allowed to leave."""
         host = getattr(provider, "host", provider.name)
         verdict = self.policy.evaluate(
             ActionRequest(capability="model.remote.synthetic", purpose=request.purpose, destinations=[host])
@@ -287,11 +351,37 @@ class Brain:
                 )
             )
             raise PolicyDenied("; ".join(verdict.reasons))
+        if route.model.endswith("-contributor") and self.config.brain.contributor_models != "allow":
+            # Contributor variants are cheaper because the provider may train on what they receive: other terms,
+            # chosen by a person in the config, never by a fallback.
+            self._deny(request, "contributor_model", f"{route.model} has contributor data terms; not allowed here")
         spent = self.month_remote_spend()
         cap = self.mandate.business_constraints.maximum_monthly_spend_usd
         if spent >= cap:
             raise SpendLimitReached(f"remote spend this month is US${spent:.2f}, at the US${cap:.2f} cap")
         payload = _payload(request)
+        price = self.config.prices.models.get(route.model)
+        if price is None:
+            self._deny(request, "spend", f"no price is known for {route.model}, so its cost cannot be bounded")
+        images = [i for m in request.messages for i in m.images]
+        est = worst_cost(
+            len(payload.encode()) + IMAGE_TOKENS_WORST * len(images),
+            request.max_tokens,
+            price.input_per_mtok,
+            price.output_per_mtok,
+        )
+        try:
+            spend_id = self.spend.reserve(
+                est_usd=est,
+                workspace=self.mandate.workspace,
+                purpose=request.purpose,
+                provider=provider.name,
+                model=route.model,
+                attempt=try_number,
+                correlation_id=request.correlation_id,
+            )
+        except SpendRefused as exc:
+            self._deny(request, "spend", str(exc), raise_as=SpendLimitReached)
         index = self.identifiers
         if extra is not None and len(extra):
             index = SensitiveTermIndex([*self.identifiers.terms, *extra.terms])
@@ -300,6 +390,17 @@ class Brain:
         # carry none. Secrets and production data are refused here again, whatever the route decided.
         names = index if label in (ContentLabel.SYNTHETIC, ContentLabel.INSTRUCTIONS) else SensitiveTermIndex()
         egress = evaluate_synthetic(self.mandate, host, payload, names)
+        if images:
+            # Pictures leave only where a person let screenshots leave, under the policy's own rule for them.
+            shots = evaluate_screenshots(self.mandate, host, [i.data() for i in images], payload)
+            rule = self.policy.evaluate(
+                ActionRequest(capability="model.remote.screenshot", purpose=request.purpose, destinations=[host])
+            )
+            reasons = [*egress.reasons, *shots.reasons, *([] if rule.allowed else rule.reasons)]
+            egress = egress.model_copy(
+                update={"allowed": not reasons, "reasons": reasons, "kind": "screenshots",
+                        "payload_bytes": egress.payload_bytes + sum(len(i.data()) for i in images)}
+            )  # fmt: skip
         if label in NEVER_REMOTE:
             reasons = [*egress.reasons, f"{label.value} never leaves this machine"]
             egress = egress.model_copy(update={"allowed": False, "reasons": reasons})
@@ -331,8 +432,43 @@ class Brain:
             )
         )
         if not egress.allowed:
+            self.spend.release(spend_id, "blocked by the egress gate")
             raise EgressBlocked(egress)
-        return attempt.id
+        return attempt.id, spend_id
+
+    def _deny(
+        self, request: LLMRequest, rule: str, reason: str, *, raise_as: type[BrainError] = PolicyDenied
+    ) -> NoReturn:
+        self.store.append_event(
+            Event(
+                type=EventType.POLICY_DENIED,
+                actor=ACTOR,
+                correlation_id=request.correlation_id,
+                payload={"rule": rule, "reasons": [reason], "purpose": request.purpose},
+            )
+        )
+        raise raise_as(reason)
+
+    def _settle(self, spend_id: str | None, route: Route, response: LLMResponse | None, exc: Exception | None) -> None:
+        if spend_id is None:
+            return
+        if response is not None:
+            usage = response.usage
+            reported = usage.prompt_tokens > 0 or usage.completion_tokens > 0
+            self.spend.settle(
+                spend_id,
+                # Without reported usage the worst cost stands: an answer was generated and billed somehow.
+                usd=self._cost(route, response, True).usd_remote if reported else None,
+                tokens_in=usage.prompt_tokens,
+                tokens_out=usage.completion_tokens,
+                usage_reported=reported,
+            )
+        elif isinstance(exc, ProviderThrottled | ProviderRejected):
+            # Refused before any generation (429, 400): not billed.
+            self.spend.settle(spend_id, usd=0.0, usage_reported=False, status="failed", note=str(exc)[:300])
+        else:
+            # A timeout or a 5xx may have been billed; keep the worst cost.
+            self.spend.settle(spend_id, usd=None, usage_reported=False, status="failed", note=str(exc)[:300])
 
     # Accounting -------------------------------------------------------------------------------------------
 

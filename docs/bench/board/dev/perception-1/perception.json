@@ -1,0 +1,2589 @@
+[
+ {
+  "state": "healthy",
+  "case": "healthy",
+  "variants": [],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "dom",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.00880975,
+   "tokens": [
+    3097,
+    1162
+   ],
+   "seconds": 5.68
+  },
+  "sam": [],
+  "wall_s": 5.68,
+  "screenshots": {
+   "step-00": "af905011d38daea5210dc84f8f05d6322c69e330178f7c9ea13e28b50953f681",
+   "step-01": "78fcd2f577600bcdbe24391516b62fe91992541cc5b8b4da31dc13b520d4f76e"
+  }
+ },
+ {
+  "state": "healthy",
+  "case": "healthy",
+  "variants": [],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "vision",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.0109225,
+   "tokens": [
+    5678,
+    900
+   ],
+   "seconds": 6.08
+  },
+  "sam": [],
+  "wall_s": 6.08,
+  "screenshots": {
+   "step-00": "af905011d38daea5210dc84f8f05d6322c69e330178f7c9ea13e28b50953f681",
+   "step-01": "78fcd2f577600bcdbe24391516b62fe91992541cc5b8b4da31dc13b520d4f76e"
+  }
+ },
+ {
+  "state": "healthy",
+  "case": "healthy",
+  "variants": [],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "vision_sam",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01168425,
+   "tokens": [
+    6097,
+    956
+   ],
+   "seconds": 9.54
+  },
+  "sam": [
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.2,
+    "usd": 0.0025,
+    "image_sha256": "4fa2ca5e7103552b13c28f842da352cc2767d8ad22e12f278cc953807296ee2c",
+    "regions": 7,
+    "scroll_y": 0
+   },
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.58,
+    "usd": 0.0025,
+    "image_sha256": "da5ca06f38745df51c9ce90ff445c86e05fb2d6bc6341d22a42279a75dd29c30",
+    "regions": 6,
+    "scroll_y": 679
+   }
+  ],
+  "wall_s": 12.34,
+  "screenshots": {
+   "step-00": "af905011d38daea5210dc84f8f05d6322c69e330178f7c9ea13e28b50953f681",
+   "step-01": "78fcd2f577600bcdbe24391516b62fe91992541cc5b8b4da31dc13b520d4f76e"
+  }
+ },
+ {
+  "state": "healthy-dark",
+  "case": "healthy",
+  "variants": [
+   "dark"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "dom",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.010106,
+   "tokens": [
+    3097,
+    1467
+   ],
+   "seconds": 7.87
+  },
+  "sam": [],
+  "wall_s": 7.87,
+  "screenshots": {
+   "step-00": "2949d06846599dc2306be63e76ff5381c3e8744d883c8d3d90ed632f354759e1",
+   "step-01": "29f9007a1f0ca2f52266c60c6af63d824776b406bbcab720f5cebeb96ec498cf"
+  }
+ },
+ {
+  "state": "healthy-dark",
+  "case": "healthy",
+  "variants": [
+   "dark"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "vision",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01087575,
+   "tokens": [
+    5678,
+    889
+   ],
+   "seconds": 5.52
+  },
+  "sam": [],
+  "wall_s": 5.52,
+  "screenshots": {
+   "step-00": "2949d06846599dc2306be63e76ff5381c3e8744d883c8d3d90ed632f354759e1",
+   "step-01": "29f9007a1f0ca2f52266c60c6af63d824776b406bbcab720f5cebeb96ec498cf"
+  }
+ },
+ {
+  "state": "healthy-dark",
+  "case": "healthy",
+  "variants": [
+   "dark"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "vision_sam",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.0115475,
+   "tokens": [
+    5940,
+    970
+   ],
+   "seconds": 6.16
+  },
+  "sam": [
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.51,
+    "usd": 0.0025,
+    "image_sha256": "0e09978d2b67291da74483d71a7469466ab93c526c8c220a1a9369e86f218c37",
+    "regions": 7,
+    "scroll_y": 0
+   },
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.34,
+    "usd": 0.0025,
+    "image_sha256": "898214b7258a9ff18e2dff4830a0acb5b5bda33a8cc91a3cd53697a00e3d918a",
+    "regions": 6,
+    "scroll_y": 679
+   }
+  ],
+  "wall_s": 9.02,
+  "screenshots": {
+   "step-00": "2949d06846599dc2306be63e76ff5381c3e8744d883c8d3d90ed632f354759e1",
+   "step-01": "29f9007a1f0ca2f52266c60c6af63d824776b406bbcab720f5cebeb96ec498cf"
+  }
+ },
+ {
+  "state": "healthy-red-zone",
+  "case": "healthy",
+  "variants": [
+   "red_zone"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "dom",
+  "named": [
+   "B08",
+   "B09",
+   "B11",
+   "B13",
+   "B16",
+   "B17",
+   "B18",
+   "B20",
+   "B23",
+   "B24"
+  ],
+  "true_rows": [],
+  "extra_rows": [
+   "B08",
+   "B09",
+   "B11",
+   "B13",
+   "B16",
+   "B17",
+   "B18",
+   "B20",
+   "B23",
+   "B24"
+  ],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": true,
+  "precision": 0.0,
+  "recall": null,
+  "cause": "The page's code styles the Zone B label with a red background nearly identical to the red SHORT badge, so non-short rows look flagged.",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.02217475,
+   "tokens": [
+    3691,
+    4132
+   ],
+   "seconds": 18.87
+  },
+  "sam": [],
+  "wall_s": 18.87,
+  "screenshots": {
+   "step-00": "27bde9e59a07a50c59a6a63522644b118e462f1b8c2ef90a84ebc7af510f2207",
+   "step-01": "02bd250bd54cb86b6cf13f4e4c0137746fa2b53a92fec4f55e2e0c8bb967d95f"
+  }
+ },
+ {
+  "state": "healthy-red-zone",
+  "case": "healthy",
+  "variants": [
+   "red_zone"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "vision",
+  "named": [
+   "B08",
+   "B09",
+   "B11",
+   "B13",
+   "B16",
+   "B17",
+   "B18",
+   "B20",
+   "B23",
+   "B24"
+  ],
+  "true_rows": [],
+  "extra_rows": [
+   "B08",
+   "B09",
+   "B11",
+   "B13",
+   "B16",
+   "B17",
+   "B18",
+   "B20",
+   "B23",
+   "B24"
+  ],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": true,
+  "precision": 0.0,
+  "recall": null,
+  "cause": "Zone column uses the same red alert badge style as the SHORT badge for all Zone B rows, making non-short bins look flagged.",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01838425,
+   "tokens": [
+    6272,
+    2481
+   ],
+   "seconds": 13.4
+  },
+  "sam": [],
+  "wall_s": 13.4,
+  "screenshots": {
+   "step-00": "27bde9e59a07a50c59a6a63522644b118e462f1b8c2ef90a84ebc7af510f2207",
+   "step-01": "02bd250bd54cb86b6cf13f4e4c0137746fa2b53a92fec4f55e2e0c8bb967d95f"
+  }
+ },
+ {
+  "state": "healthy-red-zone",
+  "case": "healthy",
+  "variants": [
+   "red_zone"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "vision_sam",
+  "named": [
+   "B08",
+   "B09",
+   "B11",
+   "B13",
+   "B16",
+   "B17",
+   "B18",
+   "B20",
+   "B23",
+   "B24"
+  ],
+  "true_rows": [],
+  "extra_rows": [
+   "B08",
+   "B09",
+   "B11",
+   "B13",
+   "B16",
+   "B17",
+   "B18",
+   "B20",
+   "B23",
+   "B24"
+  ],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": true,
+  "precision": 0.0,
+  "recall": null,
+  "cause": "Zone column renders Zone B with red badge styling nearly identical to SHORT alert badges.",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.02103225,
+   "tokens": [
+    6704,
+    2977
+   ],
+   "seconds": 13.95
+  },
+  "sam": [
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.27,
+    "usd": 0.0025,
+    "image_sha256": "3a7d07c2c90cb21db80120cdf8fbf56222fff3fa1878a99ca41eb4b237ae7137",
+    "regions": 14,
+    "scroll_y": 0
+   },
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.53,
+    "usd": 0.0025,
+    "image_sha256": "0ea1cb4d82573459cb60148f381232720034183f78a417e98808dba7bfd7b81b",
+    "regions": 20,
+    "scroll_y": 679
+   }
+  ],
+  "wall_s": 16.77,
+  "screenshots": {
+   "step-00": "27bde9e59a07a50c59a6a63522644b118e462f1b8c2ef90a84ebc7af510f2207",
+   "step-01": "02bd250bd54cb86b6cf13f4e4c0137746fa2b53a92fec4f55e2e0c8bb967d95f"
+  }
+ },
+ {
+  "state": "healthy-red-text",
+  "case": "healthy",
+  "variants": [
+   "red_text"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "dom",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.00874175,
+   "tokens": [
+    3097,
+    1146
+   ],
+   "seconds": 6.55
+  },
+  "sam": [],
+  "wall_s": 6.55,
+  "screenshots": {
+   "step-00": "11b4bb40ea3c3e26fecc338a117ac39543787876c1184fe7e8d67c6217c3387e",
+   "step-01": "cf6a60cc9f32d04818ae967831c14f2db51b0f95c9cc7fb095c42e263c32c47d"
+  }
+ },
+ {
+  "state": "healthy-red-text",
+  "case": "healthy",
+  "variants": [
+   "red_text"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "vision",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01088,
+   "tokens": [
+    5678,
+    890
+   ],
+   "seconds": 5.92
+  },
+  "sam": [],
+  "wall_s": 5.92,
+  "screenshots": {
+   "step-00": "11b4bb40ea3c3e26fecc338a117ac39543787876c1184fe7e8d67c6217c3387e",
+   "step-01": "cf6a60cc9f32d04818ae967831c14f2db51b0f95c9cc7fb095c42e263c32c47d"
+  }
+ },
+ {
+  "state": "healthy-red-text",
+  "case": "healthy",
+  "variants": [
+   "red_text"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "vision_sam",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01094825,
+   "tokens": [
+    5940,
+    829
+   ],
+   "seconds": 5.71
+  },
+  "sam": [
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.93,
+    "usd": 0.0025,
+    "image_sha256": "195e5e8873d7f240d256866696145d3f0b3ff8d538375eef7bfa45d3ef037727",
+    "regions": 7,
+    "scroll_y": 0
+   },
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.36,
+    "usd": 0.0025,
+    "image_sha256": "2a57ce0966d29caae1475a3c68efd946546b56cae9eed43696d1efdbf32e6dce",
+    "regions": 6,
+    "scroll_y": 679
+   }
+  ],
+  "wall_s": 9.01,
+  "screenshots": {
+   "step-00": "11b4bb40ea3c3e26fecc338a117ac39543787876c1184fe7e8d67c6217c3387e",
+   "step-01": "cf6a60cc9f32d04818ae967831c14f2db51b0f95c9cc7fb095c42e263c32c47d"
+  }
+ },
+ {
+  "state": "healthy-state-first",
+  "case": "healthy",
+  "variants": [
+   "state_first",
+   "big_badges"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "dom",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.00946575,
+   "tokens": [
+    3105,
+    1314
+   ],
+   "seconds": 6.32
+  },
+  "sam": [],
+  "wall_s": 6.32,
+  "screenshots": {
+   "step-00": "a8a2ce93945bf4b68797f981ac485852c398ae4e0af75f97800295c27ff567b3",
+   "step-01": "70f47ab3b1e10057b72d53ac35bdd463877913b379bf3396b27abca122a9ee74",
+   "step-02": "e5358c1a9479a8cffdb0d78a3366718e6b4455e24622a770b73d7ca8dfb0beb2"
+  }
+ },
+ {
+  "state": "healthy-state-first",
+  "case": "healthy",
+  "variants": [
+   "state_first",
+   "big_badges"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "vision",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.0120635,
+   "tokens": [
+    6958,
+    792
+   ],
+   "seconds": 5.55
+  },
+  "sam": [],
+  "wall_s": 5.55,
+  "screenshots": {
+   "step-00": "a8a2ce93945bf4b68797f981ac485852c398ae4e0af75f97800295c27ff567b3",
+   "step-01": "70f47ab3b1e10057b72d53ac35bdd463877913b379bf3396b27abca122a9ee74",
+   "step-02": "e5358c1a9479a8cffdb0d78a3366718e6b4455e24622a770b73d7ca8dfb0beb2"
+  }
+ },
+ {
+  "state": "healthy-state-first",
+  "case": "healthy",
+  "variants": [
+   "state_first",
+   "big_badges"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "vision_sam",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01271825,
+   "tokens": [
+    7220,
+    869
+   ],
+   "seconds": 5.66
+  },
+  "sam": [
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.92,
+    "usd": 0.0025,
+    "image_sha256": "3c05ed4be737f423f440ec1f5e01de13359c928871ce229c23966683b8bc8add",
+    "regions": 6,
+    "scroll_y": 0
+   },
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 2.01,
+    "usd": 0.0025,
+    "image_sha256": "c934ef2fb14d597530e8542a1166fa9f40a177c517fee8c9fe386a3215794cc0",
+    "regions": 6,
+    "scroll_y": 720
+   },
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.15,
+    "usd": 0.0025,
+    "image_sha256": "d08af30e9bedb31d5c7ccf2be2755fb7e519303221accb13d18ccd19be72ac66",
+    "regions": 5,
+    "scroll_y": 1015
+   }
+  ],
+  "wall_s": 10.76,
+  "screenshots": {
+   "step-00": "a8a2ce93945bf4b68797f981ac485852c398ae4e0af75f97800295c27ff567b3",
+   "step-01": "70f47ab3b1e10057b72d53ac35bdd463877913b379bf3396b27abca122a9ee74",
+   "step-02": "e5358c1a9479a8cffdb0d78a3366718e6b4455e24622a770b73d7ca8dfb0beb2"
+  }
+ },
+ {
+  "state": "healthy-by-shortfall",
+  "case": "healthy",
+  "variants": [
+   "by_shortfall"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "dom",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.0078705,
+   "tokens": [
+    3097,
+    941
+   ],
+   "seconds": 6.37
+  },
+  "sam": [],
+  "wall_s": 6.37,
+  "screenshots": {
+   "step-00": "95ca858682cf829684c3d9970b3d3d865285e532533f4b2b7eda966d786bb83a",
+   "step-01": "fd89b104efaa32685a5233373c098f62dcaeaf3efac39ee4f6bfc414960a3b1f"
+  }
+ },
+ {
+  "state": "healthy-by-shortfall",
+  "case": "healthy",
+  "variants": [
+   "by_shortfall"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "vision",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.0116535,
+   "tokens": [
+    5678,
+    1072
+   ],
+   "seconds": 6.36
+  },
+  "sam": [],
+  "wall_s": 6.36,
+  "screenshots": {
+   "step-00": "95ca858682cf829684c3d9970b3d3d865285e532533f4b2b7eda966d786bb83a",
+   "step-01": "fd89b104efaa32685a5233373c098f62dcaeaf3efac39ee4f6bfc414960a3b1f"
+  }
+ },
+ {
+  "state": "healthy-by-shortfall",
+  "case": "healthy",
+  "variants": [
+   "by_shortfall"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "vision_sam",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01023425,
+   "tokens": [
+    5940,
+    661
+   ],
+   "seconds": 4.99
+  },
+  "sam": [
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.17,
+    "usd": 0.0025,
+    "image_sha256": "e6ba8f591aca61a1ce2d6a194a59aba3f67fdc371617c67f30f29d217b6e2522",
+    "regions": 12,
+    "scroll_y": 0
+   },
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.52,
+    "usd": 0.0025,
+    "image_sha256": "cddfe26afddd9f2a8c3ab2188c62b2f9d8280525913523bb6c3bbb3bbcad01ff",
+    "regions": 2,
+    "scroll_y": 679
+   }
+  ],
+  "wall_s": 7.69,
+  "screenshots": {
+   "step-00": "95ca858682cf829684c3d9970b3d3d865285e532533f4b2b7eda966d786bb83a",
+   "step-01": "fd89b104efaa32685a5233373c098f62dcaeaf3efac39ee4f6bfc414960a3b1f"
+  }
+ },
+ {
+  "state": "overlay",
+  "case": "overlay",
+  "variants": [],
+  "wrong": [
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "dom",
+  "named": [
+   "B21",
+   "B22"
+  ],
+  "true_rows": [
+   "B21",
+   "B22"
+  ],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 1.0,
+  "recall": 1.0,
+  "cause": "Fixed overlay footer.summary covers the bottom rows so their SHORT badges are never visible.",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01188525,
+   "tokens": [
+    3803,
+    1678
+   ],
+   "seconds": 9.43
+  },
+  "sam": [],
+  "wall_s": 9.43,
+  "screenshots": {
+   "step-00": "396b0d8c11c4e6187d8ad34a905f200b915d5c2ca607aace0f21ef74129dde5e",
+   "step-01": "0cc0a85b9f818e950200f935511ff96fd56675eadb07dbd36c6475b3799eb7ff"
+  }
+ },
+ {
+  "state": "overlay",
+  "case": "overlay",
+  "variants": [],
+  "wrong": [
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "vision",
+  "named": [
+   "B21",
+   "B22"
+  ],
+  "true_rows": [
+   "B21",
+   "B22"
+  ],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 1.0,
+  "recall": 1.0,
+  "cause": "The fixed footer.summary overlays the bottom of the table with no bottom clearance, so the last rows including B21 and B22 remain covered and their SHORT badges can never be seen.",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.0130035,
+   "tokens": [
+    6384,
+    1182
+   ],
+   "seconds": 6.97
+  },
+  "sam": [],
+  "wall_s": 6.97,
+  "screenshots": {
+   "step-00": "396b0d8c11c4e6187d8ad34a905f200b915d5c2ca607aace0f21ef74129dde5e",
+   "step-01": "0cc0a85b9f818e950200f935511ff96fd56675eadb07dbd36c6475b3799eb7ff"
+  }
+ },
+ {
+  "state": "overlay",
+  "case": "overlay",
+  "variants": [],
+  "wrong": [
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "vision_sam",
+  "named": [
+   "B21",
+   "B22"
+  ],
+  "true_rows": [
+   "B21",
+   "B22"
+  ],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 1.0,
+  "recall": 1.0,
+  "cause": "fixed footer.summary overlay covers the bottom rows so their SHORT badges are never visible.",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01304175,
+   "tokens": [
+    6622,
+    1121
+   ],
+   "seconds": 5.97
+  },
+  "sam": [
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.34,
+    "usd": 0.0025,
+    "image_sha256": "35c12806039dc028f9bd622de1638a7e7c8b058d7ec8304a149773bf45f2e22b",
+    "regions": 5,
+    "scroll_y": 0
+   },
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.29,
+    "usd": 0.0025,
+    "image_sha256": "ac90478694771c99663e030c236c5c2c1d42fe36f1d48c1f89456930e6d84f9b",
+    "regions": 5,
+    "scroll_y": 625
+   }
+  ],
+  "wall_s": 8.61,
+  "screenshots": {
+   "step-00": "396b0d8c11c4e6187d8ad34a905f200b915d5c2ca607aace0f21ef74129dde5e",
+   "step-01": "0cc0a85b9f818e950200f935511ff96fd56675eadb07dbd36c6475b3799eb7ff"
+  }
+ },
+ {
+  "state": "overlay-reordered",
+  "case": "overlay",
+  "variants": [
+   "by_shortfall"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "dom",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01401875,
+   "tokens": [
+    3803,
+    2180
+   ],
+   "seconds": 11.13
+  },
+  "sam": [],
+  "wall_s": 11.13,
+  "screenshots": {
+   "step-00": "38ebae5bc94bab9f3d438356149c3aa60ac9d9ef701329eda72e6164ec956cf0",
+   "step-01": "0e6ecbbebead765c857a9f45f62280e5d945cf146b68769b07841a7172186635"
+  }
+ },
+ {
+  "state": "overlay-reordered",
+  "case": "overlay",
+  "variants": [
+   "by_shortfall"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "vision",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01527725,
+   "tokens": [
+    6384,
+    1717
+   ],
+   "seconds": 11.62
+  },
+  "sam": [],
+  "wall_s": 11.62,
+  "screenshots": {
+   "step-00": "38ebae5bc94bab9f3d438356149c3aa60ac9d9ef701329eda72e6164ec956cf0",
+   "step-01": "0e6ecbbebead765c857a9f45f62280e5d945cf146b68769b07841a7172186635"
+  }
+ },
+ {
+  "state": "overlay-reordered",
+  "case": "overlay",
+  "variants": [
+   "by_shortfall"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "vision_sam",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01907475,
+   "tokens": [
+    6634,
+    2537
+   ],
+   "seconds": 16.46
+  },
+  "sam": [
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 2.67,
+    "usd": 0.0025,
+    "image_sha256": "3f7ac7e54638b1f3b428c844d1ad0ab4f107b68be193c36c5a481e4169aa908e",
+    "regions": 8,
+    "scroll_y": 0
+   },
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.95,
+    "usd": 0.0025,
+    "image_sha256": "cc9e6627bdb4142b406f3f3728f7f663bedeada8c6ff277079e0e921547e58c1",
+    "regions": 3,
+    "scroll_y": 625
+   }
+  ],
+  "wall_s": 21.09,
+  "screenshots": {
+   "step-00": "38ebae5bc94bab9f3d438356149c3aa60ac9d9ef701329eda72e6164ec956cf0",
+   "step-01": "0e6ecbbebead765c857a9f45f62280e5d945cf146b68769b07841a7172186635"
+  }
+ },
+ {
+  "state": "overlay-partial",
+  "case": "overlay_partial",
+  "variants": [],
+  "wrong": [
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "dom",
+  "named": [
+   "B21",
+   "B22"
+  ],
+  "true_rows": [
+   "B21",
+   "B22"
+  ],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 1.0,
+  "recall": 1.0,
+  "cause": "Fixed overlay aside.help covers the SHORT badges on the lower rows so B21 and B22 are never mostly visible.",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.010626,
+   "tokens": [
+    3190,
+    1562
+   ],
+   "seconds": 8.51
+  },
+  "sam": [],
+  "wall_s": 8.51,
+  "screenshots": {
+   "step-00": "ae364f383d6779c14faa954645c0fca27177cbae3df347e85986f331d45782af",
+   "step-01": "eb23449af5fcbc6387f7b5ae8c7963ccdabb625bc04052a4fe36b5818f7b0066"
+  }
+ },
+ {
+  "state": "overlay-partial",
+  "case": "overlay_partial",
+  "variants": [],
+  "wrong": [
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "vision",
+  "named": [
+   "B21",
+   "B22"
+  ],
+  "true_rows": [
+   "B21",
+   "B22"
+  ],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 1.0,
+  "recall": 1.0,
+  "cause": "fixed overlay aside.help covers the State column at those rows so the red SHORT badges stay mostly covered",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.010703,
+   "tokens": [
+    5771,
+    821
+   ],
+   "seconds": 6.06
+  },
+  "sam": [],
+  "wall_s": 6.06,
+  "screenshots": {
+   "step-00": "ae364f383d6779c14faa954645c0fca27177cbae3df347e85986f331d45782af",
+   "step-01": "eb23449af5fcbc6387f7b5ae8c7963ccdabb625bc04052a4fe36b5818f7b0066"
+  }
+ },
+ {
+  "state": "overlay-partial",
+  "case": "overlay_partial",
+  "variants": [],
+  "wrong": [
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "vision_sam",
+  "named": [
+   "B21",
+   "B22"
+  ],
+  "true_rows": [
+   "B21",
+   "B22"
+  ],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 1.0,
+  "recall": 1.0,
+  "cause": "fixed overlay aside.help at viewport x 964 y 514 covers the State column for rows B21-B22 so their red SHORT badges are never mostly visible.",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.013691,
+   "tokens": [
+    6033,
+    1447
+   ],
+   "seconds": 9.98
+  },
+  "sam": [
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.64,
+    "usd": 0.0025,
+    "image_sha256": "5c2cf5f6e5ba05260dea41a7dbb9992c5e21df7f66e168271d80b3b0bb1f6f1c",
+    "regions": 7,
+    "scroll_y": 0
+   },
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.84,
+    "usd": 0.0025,
+    "image_sha256": "56bbf67530ad6b029d5f007d21e13122ab095f030704e36dba41a97c415fb18d",
+    "regions": 6,
+    "scroll_y": 679
+   }
+  ],
+  "wall_s": 13.47,
+  "screenshots": {
+   "step-00": "ae364f383d6779c14faa954645c0fca27177cbae3df347e85986f331d45782af",
+   "step-01": "eb23449af5fcbc6387f7b5ae8c7963ccdabb625bc04052a4fe36b5818f7b0066"
+  }
+ },
+ {
+  "state": "overlay-partial-big",
+  "case": "overlay_partial",
+  "variants": [
+   "big_badges"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "dom",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.0097735,
+   "tokens": [
+    3154,
+    1372
+   ],
+   "seconds": 8.72
+  },
+  "sam": [],
+  "wall_s": 8.72,
+  "screenshots": {
+   "step-00": "b896ce033920f9d03b1478faaa90f53887273d55f9eddd1358c4aa3f173a22c0",
+   "step-01": "83d0744d21f970911bd0cf10297fde97f2feb9c46e8a5e6f2febd7137680db52",
+   "step-02": "e5e8c2eda0e78c253491b6c31eaf367b4bbf38b4691ee771f85f1ccd928a2e90"
+  }
+ },
+ {
+  "state": "overlay-partial-big",
+  "case": "overlay_partial",
+  "variants": [
+   "big_badges"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "vision",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01266025,
+   "tokens": [
+    7007,
+    918
+   ],
+   "seconds": 7.5
+  },
+  "sam": [],
+  "wall_s": 7.5,
+  "screenshots": {
+   "step-00": "b896ce033920f9d03b1478faaa90f53887273d55f9eddd1358c4aa3f173a22c0",
+   "step-01": "83d0744d21f970911bd0cf10297fde97f2feb9c46e8a5e6f2febd7137680db52",
+   "step-02": "e5e8c2eda0e78c253491b6c31eaf367b4bbf38b4691ee771f85f1ccd928a2e90"
+  }
+ },
+ {
+  "state": "overlay-partial-big",
+  "case": "overlay_partial",
+  "variants": [
+   "big_badges"
+  ],
+  "wrong": [],
+  "healthy": true,
+  "rep": 1,
+  "method": "vision_sam",
+  "named": [],
+  "true_rows": [],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": null,
+  "false_alarm": false,
+  "precision": null,
+  "recall": null,
+  "cause": "none",
+  "cause_localized": null,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01486375,
+   "tokens": [
+    7284,
+    1355
+   ],
+   "seconds": 8.5
+  },
+  "sam": [
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.24,
+    "usd": 0.0025,
+    "image_sha256": "3e5380ffb7aee9bc07d40ef45e90c76bf754ab0f91e05e57965158d7f44f2b81",
+    "regions": 6,
+    "scroll_y": 0
+   },
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.66,
+    "usd": 0.0025,
+    "image_sha256": "e80df42f69823d7cf341693353602dde20d5741a2d40f06949378c943f559e2f",
+    "regions": 6,
+    "scroll_y": 720
+   },
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.49,
+    "usd": 0.0025,
+    "image_sha256": "1b12fecefc35be0f4d7df007b867d0fd180092cdcc168f75641ffa07757095a8",
+    "regions": 5,
+    "scroll_y": 1015
+   }
+  ],
+  "wall_s": 12.91,
+  "screenshots": {
+   "step-00": "b896ce033920f9d03b1478faaa90f53887273d55f9eddd1358c4aa3f173a22c0",
+   "step-01": "83d0744d21f970911bd0cf10297fde97f2feb9c46e8a5e6f2febd7137680db52",
+   "step-02": "e5e8c2eda0e78c253491b6c31eaf367b4bbf38b4691ee771f85f1ccd928a2e90"
+  }
+ },
+ {
+  "state": "formula",
+  "case": "formula",
+  "variants": [],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B09",
+   "B10",
+   "B11",
+   "B12",
+   "B14",
+   "B15",
+   "B16",
+   "B18",
+   "B19",
+   "B21",
+   "B22",
+   "B23",
+   "B24"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "dom",
+  "named": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "true_rows": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "extra_rows": [],
+  "missed_rows": [
+   "B09",
+   "B11",
+   "B16",
+   "B18",
+   "B23",
+   "B24"
+  ],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 1.0,
+  "recall": 0.667,
+  "cause": "The board most likely computes supply as quantity plus incoming while omitting reserved, so shortfall shows as picks minus quantity minus incoming and flags appear only then.",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01937425,
+   "tokens": [
+    3069,
+    3656
+   ],
+   "seconds": 18.97
+  },
+  "sam": [],
+  "wall_s": 18.97,
+  "screenshots": {
+   "step-00": "62e49223bed4937c868685e66aa0869852f3cfb3a3a33efe20033c167434c67a",
+   "step-01": "2036babd4dbc451b33e2fafb94671ca52c277b89934f5c0ef49901a3b0a0580c"
+  }
+ },
+ {
+  "state": "formula",
+  "case": "formula",
+  "variants": [],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B09",
+   "B10",
+   "B11",
+   "B12",
+   "B14",
+   "B15",
+   "B16",
+   "B18",
+   "B19",
+   "B21",
+   "B22",
+   "B23",
+   "B24"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "vision",
+  "named": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B06",
+   "B07",
+   "B08",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B16",
+   "B18",
+   "B19",
+   "B20",
+   "B21",
+   "B22",
+   "B24"
+  ],
+  "true_rows": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B16",
+   "B18",
+   "B19",
+   "B21",
+   "B22",
+   "B24"
+  ],
+  "extra_rows": [
+   "B06",
+   "B08",
+   "B20"
+  ],
+  "missed_rows": [
+   "B09",
+   "B11",
+   "B23"
+  ],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 0.833,
+  "recall": 0.833,
+  "cause": "The board computes Supply as quantity+incoming and shortfall as picks minus that, omitting reserved stock, so supplies are overstated and short flags/amounts are missing or too small.",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.02306375,
+   "tokens": [
+    5650,
+    3765
+   ],
+   "seconds": 18.21
+  },
+  "sam": [],
+  "wall_s": 18.21,
+  "screenshots": {
+   "step-00": "62e49223bed4937c868685e66aa0869852f3cfb3a3a33efe20033c167434c67a",
+   "step-01": "2036babd4dbc451b33e2fafb94671ca52c277b89934f5c0ef49901a3b0a0580c"
+  }
+ },
+ {
+  "state": "formula",
+  "case": "formula",
+  "variants": [],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B09",
+   "B10",
+   "B11",
+   "B12",
+   "B14",
+   "B15",
+   "B16",
+   "B18",
+   "B19",
+   "B21",
+   "B22",
+   "B23",
+   "B24"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "vision_sam",
+  "named": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "true_rows": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "extra_rows": [],
+  "missed_rows": [
+   "B09",
+   "B11",
+   "B16",
+   "B18",
+   "B23",
+   "B24"
+  ],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 1.0,
+  "recall": 0.667,
+  "cause": "The board computes Supply as quantity plus incoming without subtracting reserved, so shortfall is understated and bins with small reserved-driven shortfalls are shown as OK.",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.02017525,
+   "tokens": [
+    5828,
+    3033
+   ],
+   "seconds": 15.29
+  },
+  "sam": [
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.87,
+    "usd": 0.0025,
+    "image_sha256": "d8dfad1546eaebd1c5d4dd3d119359c934291e3a57b8c1cb016e9f93eb18a49e",
+    "regions": 2,
+    "scroll_y": 0
+   },
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 2.8,
+    "usd": 0.0025,
+    "image_sha256": "7511b8e85a7caa985b65af46fb517389062234bbf77c2f436295752f9636345c",
+    "regions": 3,
+    "scroll_y": 679
+   }
+  ],
+  "wall_s": 19.97,
+  "screenshots": {
+   "step-00": "62e49223bed4937c868685e66aa0869852f3cfb3a3a33efe20033c167434c67a",
+   "step-01": "2036babd4dbc451b33e2fafb94671ca52c277b89934f5c0ef49901a3b0a0580c"
+  }
+ },
+ {
+  "state": "formula-state-first",
+  "case": "formula",
+  "variants": [
+   "state_first"
+  ],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B09",
+   "B10",
+   "B11",
+   "B12",
+   "B14",
+   "B15",
+   "B16",
+   "B18",
+   "B19",
+   "B21",
+   "B22",
+   "B23",
+   "B24"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "dom",
+  "named": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B06",
+   "B07",
+   "B08",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B16",
+   "B18",
+   "B19",
+   "B20",
+   "B21",
+   "B22",
+   "B24"
+  ],
+  "true_rows": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B16",
+   "B18",
+   "B19",
+   "B21",
+   "B22",
+   "B24"
+  ],
+  "extra_rows": [
+   "B06",
+   "B08",
+   "B20"
+  ],
+  "missed_rows": [
+   "B09",
+   "B11",
+   "B23"
+  ],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 0.833,
+  "recall": 0.833,
+  "cause": "Board adds incoming to quantity but omits reserved in displayed stock, shortfall, and flag test.",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.0130285,
+   "tokens": [
+    3735,
+    1967
+   ],
+   "seconds": 35.06
+  },
+  "sam": [],
+  "wall_s": 35.06,
+  "screenshots": {
+   "step-00": "17d54feddbffe3198ed6945a956a2bcb49f2ae9a8c060981f87fc93322fe53d8",
+   "step-01": "d421f25bd767060cc80835bb0d9e0dbe8b21bcf6355b5c008bbfa5b838b2c516"
+  }
+ },
+ {
+  "state": "formula-state-first",
+  "case": "formula",
+  "variants": [
+   "state_first"
+  ],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B09",
+   "B10",
+   "B11",
+   "B12",
+   "B14",
+   "B15",
+   "B16",
+   "B18",
+   "B19",
+   "B21",
+   "B22",
+   "B23",
+   "B24"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "vision",
+  "named": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "true_rows": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "extra_rows": [],
+  "missed_rows": [
+   "B09",
+   "B11",
+   "B16",
+   "B18",
+   "B23",
+   "B24"
+  ],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 1.0,
+  "recall": 0.667,
+  "cause": "Page code likely computes supply as quantity plus incoming while ignoring reserved, so shortfall is understated and bins needing reserved stock are missed.",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01911125,
+   "tokens": [
+    5650,
+    2835
+   ],
+   "seconds": 15.64
+  },
+  "sam": [],
+  "wall_s": 15.64,
+  "screenshots": {
+   "step-00": "17d54feddbffe3198ed6945a956a2bcb49f2ae9a8c060981f87fc93322fe53d8",
+   "step-01": "d421f25bd767060cc80835bb0d9e0dbe8b21bcf6355b5c008bbfa5b838b2c516"
+  }
+ },
+ {
+  "state": "formula-state-first",
+  "case": "formula",
+  "variants": [
+   "state_first"
+  ],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B09",
+   "B10",
+   "B11",
+   "B12",
+   "B14",
+   "B15",
+   "B16",
+   "B18",
+   "B19",
+   "B21",
+   "B22",
+   "B23",
+   "B24"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "vision_sam",
+  "named": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "true_rows": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "extra_rows": [],
+  "missed_rows": [
+   "B09",
+   "B11",
+   "B16",
+   "B18",
+   "B23",
+   "B24"
+  ],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 1.0,
+  "recall": 0.667,
+  "cause": "The board computes supply as quantity plus incoming while ignoring reserved, so shortfall is understated and some short bins are shown as OK and flagged short amounts are too small.",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.02263175,
+   "tokens": [
+    5828,
+    3611
+   ],
+   "seconds": 16.62
+  },
+  "sam": [
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.75,
+    "usd": 0.0025,
+    "image_sha256": "01a680498516d475b4611bbd1fff335ee82ff48bce93d956a1496721d29ac672",
+    "regions": 2,
+    "scroll_y": 0
+   },
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.39,
+    "usd": 0.0025,
+    "image_sha256": "fdd3ae9a498b19b028c275aa5fc0a4a6abffb5537c43c17890fb986835fefc65",
+    "regions": 3,
+    "scroll_y": 679
+   }
+  ],
+  "wall_s": 19.77,
+  "screenshots": {
+   "step-00": "17d54feddbffe3198ed6945a956a2bcb49f2ae9a8c060981f87fc93322fe53d8",
+   "step-01": "d421f25bd767060cc80835bb0d9e0dbe8b21bcf6355b5c008bbfa5b838b2c516"
+  }
+ },
+ {
+  "state": "style",
+  "case": "style",
+  "variants": [],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "dom",
+  "named": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "true_rows": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 1.0,
+  "recall": 1.0,
+  "cause": "The SHORT badge reuses the same green OK badge CSS instead of a distinct red alert style, so shortfall rows do not stand out.",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01181025,
+   "tokens": [
+    3097,
+    1868
+   ],
+   "seconds": 9.42
+  },
+  "sam": [],
+  "wall_s": 9.42,
+  "screenshots": {
+   "step-00": "19fe6b2eef9652ffd95167c243990df4ebe84c4b17572d298f0e4be265398dcd",
+   "step-01": "7a11582583e6f892952a458b55208ec58e96011da564c74730e895b91ceeee5d"
+  }
+ },
+ {
+  "state": "style",
+  "case": "style",
+  "variants": [],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "vision",
+  "named": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "true_rows": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 1.0,
+  "recall": 1.0,
+  "cause": "The SHORT badge is rendered with the same green OK badge style instead of a distinct red alert style.",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.013651,
+   "tokens": [
+    5678,
+    1542
+   ],
+   "seconds": 7.38
+  },
+  "sam": [],
+  "wall_s": 7.38,
+  "screenshots": {
+   "step-00": "19fe6b2eef9652ffd95167c243990df4ebe84c4b17572d298f0e4be265398dcd",
+   "step-01": "7a11582583e6f892952a458b55208ec58e96011da564c74730e895b91ceeee5d"
+  }
+ },
+ {
+  "state": "style",
+  "case": "style",
+  "variants": [],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "vision_sam",
+  "named": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "true_rows": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 1.0,
+  "recall": 1.0,
+  "cause": "The SHORT badge uses the same green OK badge styling instead of red alert styling, so short rows do not stand out.",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01467775,
+   "tokens": [
+    5799,
+    1748
+   ],
+   "seconds": 9.26
+  },
+  "sam": [
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.61,
+    "usd": 0.0025,
+    "image_sha256": "0171909b4e148db5c664f7f29b5b407858c513a521cfad70753f19b748164ee7",
+    "regions": 0,
+    "scroll_y": 0
+   },
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.25,
+    "usd": 0.0025,
+    "image_sha256": "3c65a7f00a7d2caf12d589bf89bc77174bb170d6156429cf9d0450686f348d8e",
+    "regions": 0,
+    "scroll_y": 679
+   }
+  ],
+  "wall_s": 12.13,
+  "screenshots": {
+   "step-00": "19fe6b2eef9652ffd95167c243990df4ebe84c4b17572d298f0e4be265398dcd",
+   "step-01": "7a11582583e6f892952a458b55208ec58e96011da564c74730e895b91ceeee5d"
+  }
+ },
+ {
+  "state": "style-red-zone",
+  "case": "style",
+  "variants": [
+   "red_zone"
+  ],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "dom",
+  "named": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "true_rows": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 1.0,
+  "recall": 1.0,
+  "cause": "The SHORT badge uses the same green OK badge styling instead of red alert styling, so shortfall rows do not stand out.",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01292675,
+   "tokens": [
+    3691,
+    1956
+   ],
+   "seconds": 9.45
+  },
+  "sam": [],
+  "wall_s": 9.45,
+  "screenshots": {
+   "step-00": "dac3a98f91222cf5c28a6c27d2cf3bdadd8b84471a5ba260a6b261d84704d961",
+   "step-01": "a17180c30bb227d4c8621adf65acbf8c95cb8e0b14cf24191cff39003fb9e2d6"
+  }
+ },
+ {
+  "state": "style-red-zone",
+  "case": "style",
+  "variants": [
+   "red_zone"
+  ],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "vision",
+  "named": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "true_rows": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 1.0,
+  "recall": 1.0,
+  "cause": "The SHORT state badge uses the green OK badge styling instead of the red alert styling, which was applied to the Zone B label instead.",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01613175,
+   "tokens": [
+    6272,
+    1951
+   ],
+   "seconds": 10.71
+  },
+  "sam": [],
+  "wall_s": 10.71,
+  "screenshots": {
+   "step-00": "dac3a98f91222cf5c28a6c27d2cf3bdadd8b84471a5ba260a6b261d84704d961",
+   "step-01": "a17180c30bb227d4c8621adf65acbf8c95cb8e0b14cf24191cff39003fb9e2d6"
+  }
+ },
+ {
+  "state": "style-red-zone",
+  "case": "style",
+  "variants": [
+   "red_zone"
+  ],
+  "wrong": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "healthy": false,
+  "rep": 1,
+  "method": "vision_sam",
+  "named": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "true_rows": [
+   "B01",
+   "B02",
+   "B03",
+   "B05",
+   "B07",
+   "B10",
+   "B12",
+   "B14",
+   "B15",
+   "B19",
+   "B21",
+   "B22"
+  ],
+  "extra_rows": [],
+  "missed_rows": [],
+  "detected": true,
+  "false_alarm": null,
+  "precision": 1.0,
+  "recall": 1.0,
+  "cause": "The status badge code applies the same green OK background and text colors to SHORT badges instead of a red alert style, while red styling is applied to the Zone B label.",
+  "cause_localized": true,
+  "error": null,
+  "model": {
+   "model": "muse-spark-1.3",
+   "tier": "code",
+   "route": "profile frontier; synthetic may leave; label synthetic",
+   "usd": 0.01826175,
+   "tokens": [
+    6616,
+    2351
+   ],
+   "seconds": 12.11
+  },
+  "sam": [
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.3,
+    "usd": 0.0025,
+    "image_sha256": "534b0630a5ad2657e4836053178f62b6cbc4b4ecb7a0aba08f4a89451c39b048",
+    "regions": 7,
+    "scroll_y": 0
+   },
+   {
+    "model": "sam-3.1",
+    "prompt": "red label",
+    "seconds": 1.31,
+    "usd": 0.0025,
+    "image_sha256": "192d5a41fde45bdd2d9efd245b8a04aafc6feea0e5ef1a1b28fb7c1e0d0bfe5e",
+    "regions": 14,
+    "scroll_y": 679
+   }
+  ],
+  "wall_s": 14.73,
+  "screenshots": {
+   "step-00": "dac3a98f91222cf5c28a6c27d2cf3bdadd8b84471a5ba260a6b261d84704d961",
+   "step-01": "a17180c30bb227d4c8621adf65acbf8c95cb8e0b14cf24191cff39003fb9e2d6"
+  }
+ }
+]

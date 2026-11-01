@@ -1,0 +1,58 @@
+{
+ "repo": "/Users/david/sqlmodel",
+ "rev": "462b59d9cd1cc3d9072735435330ef9ab6d15cbf",
+ "stack": {
+  "python": "3.10",
+  "why": [
+   "python 3.10: from the CI's python-version (the oldest in its matrix)",
+   "pyproject requires-python: >=3.10",
+   "the CI's python-version: 3.10, 3.11, 3.12, 3.13, 3.14",
+   ".python-version: 3.11",
+   "conflict: concrete sources disagree: the CI's python-version 3.10, 3.11, 3.12, 3.13, 3.14; .python-version 3.11"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": "uv.lock",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:1817b54ef20c8457",
+ "plan": {
+  "source": "CI test.yml > test",
+  "scope": "matrix entry 1 of 9 (os=ubuntu-latest, python-version=3.11, uv-resolution=highest)",
+  "partial": true,
+  "notes": [
+   "2 step(s) after the tests left out (they run no tests)"
+  ],
+  "services": [],
+  "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nmkdir coverage\ncd /work\nbash scripts/test.sh"
+ },
+ "status": "passed",
+ "collected": 268,
+ "failed": [],
+ "why": null,
+ "failures": {},
+ "wall_s": 13.4,
+ "image_notes": [
+  "python 3.10: from the CI's python-version (the oldest in its matrix)",
+  "pyproject requires-python: >=3.10",
+  "the CI's python-version: 3.10, 3.11, 3.12, 3.13, 3.14",
+  ".python-version: 3.11",
+  "conflict: concrete sources disagree: the CI's python-version 3.10, 3.11, 3.12, 3.13, 3.14; .python-version 3.11",
+  "image unbidden-deps-python:1817b54ef20c8457 on linux/arm64"
+ ],
+ "python": "3.10",
+ "source": "CI test.yml > test",
+ "scope": "matrix entry 1 of 9 (os=ubuntu-latest, python-version=3.11, uv-resolution=highest)",
+ "partial": true,
+ "notes": [
+  "2 step(s) after the tests left out (they run no tests)"
+ ],
+ "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nmkdir coverage\ncd /work\nbash scripts/test.sh"
+}

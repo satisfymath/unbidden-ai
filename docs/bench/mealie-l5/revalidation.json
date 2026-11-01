@@ -1,0 +1,215 @@
+{
+  "base": "e31c5fcfd2892670158f4c189acdb06cde3180bf",
+  "candidate": "a351dc216f248ca09f34f2518bf52f8f9a6863d6",
+  "changed": [
+    "mealie/alembic/versions/7b1f2ec4d00a_add_index_shopping_list_items_food_id.py",
+    "mealie/db/models/household/shopping_list.py"
+  ],
+  "workload_sha256": "be9753e3694bacaffec09ea3f4919207cc00442795562e205f063b4316efb3c7",
+  "image": "unbidden-deps-python:04aaef69472717a6",
+  "engine": "sqlite",
+  "tests": "pre_existing",
+  "test_notes": [
+    "fails before the change too: tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient0]",
+    "fails before the change too: tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient1]",
+    "fails before the change too: tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient2]",
+    "fails before the change too: tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient3]",
+    "fails before the change too: tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient4]",
+    "fails before the change too: tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient5]",
+    "fails before the change too: tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient6]",
+    "fails before the change too: tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient7]",
+    "fails before the change too: tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient8]",
+    "fails before the change too: tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient9]"
+  ],
+  "suite": [
+    {
+      "rounds": 3,
+      "failed_per_round": [
+        [
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient0]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient1]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient2]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient3]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient4]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient5]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient6]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient7]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient8]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient9]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[1 cup fresh basil or 2 tablespoons dried basil-1 cup fresh basil or 2 tablespoons dried basil]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[153 grams 00 flour (1 cup plus 1 tablespoon)-153 gram 00 flour (1 cup, 1 tablespoon)]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[153 grams all-purpose flour (1 cup plus 1 tablespoon and 2 teaspoons)-153 gram all-purpose flour or 1 cup plus 1 tablespoon and 2 teaspoons]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 cups chicken broth or beef broth-2 cup chicken broth or beef broth]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 tablespoons (30ml) vegetable oil-2 tablespoon vegetable oil (30 ml)]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 teaspoon chopped fresh or dried rosemary-2 teaspoon fresh rosemary or dried rosemary chopped]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_unnamed_amounts_are_not_substitutions[1 cup plus 2 tablespoons (134g) King Arthur Unbleached Bread Flour-expected_extra_amounts1]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_unnamed_amounts_are_not_substitutions[3 tablespoons (42g) water, at room temperature-expected_extra_amounts0]"
+        ],
+        [
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient0]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient1]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient2]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient3]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient4]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient5]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient6]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient7]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient8]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient9]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[1 cup fresh basil or 2 tablespoons dried basil-1 cup fresh basil or 2 tablespoons dried basil]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[153 grams 00 flour (1 cup plus 1 tablespoon)-153 gram 00 flour (1 cup, 1 tablespoon)]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[153 grams all-purpose flour (1 cup plus 1 tablespoon and 2 teaspoons)-153 gram all-purpose flour or 1 cup plus 1 tablespoon and 2 teaspoons]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 cups chicken broth or beef broth-2 cup chicken broth or beef broth]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 tablespoons (30ml) vegetable oil-2 tablespoon vegetable oil (30 ml)]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 teaspoon chopped fresh or dried rosemary-2 teaspoon fresh rosemary or dried rosemary chopped]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_unnamed_amounts_are_not_substitutions[1 cup plus 2 tablespoons (134g) King Arthur Unbleached Bread Flour-expected_extra_amounts1]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_unnamed_amounts_are_not_substitutions[3 tablespoons (42g) water, at room temperature-expected_extra_amounts0]"
+        ],
+        [
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient0]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient1]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient2]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient3]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient4]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient5]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient6]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient7]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient8]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient9]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[1 cup fresh basil or 2 tablespoons dried basil-1 cup fresh basil or 2 tablespoons dried basil]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[153 grams 00 flour (1 cup plus 1 tablespoon)-153 gram 00 flour (1 cup, 1 tablespoon)]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[153 grams all-purpose flour (1 cup plus 1 tablespoon and 2 teaspoons)-153 gram all-purpose flour or 1 cup plus 1 tablespoon and 2 teaspoons]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 cups chicken broth or beef broth-2 cup chicken broth or beef broth]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 tablespoons (30ml) vegetable oil-2 tablespoon vegetable oil (30 ml)]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 teaspoon chopped fresh or dried rosemary-2 teaspoon fresh rosemary or dried rosemary chopped]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_unnamed_amounts_are_not_substitutions[1 cup plus 2 tablespoons (134g) King Arthur Unbleached Bread Flour-expected_extra_amounts1]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_unnamed_amounts_are_not_substitutions[3 tablespoons (42g) water, at room temperature-expected_extra_amounts0]"
+        ]
+      ],
+      "round_status": [
+        "ran",
+        "ran",
+        "ran"
+      ],
+      "collected_per_round": [
+        3640,
+        3640,
+        3640
+      ]
+    },
+    {
+      "rounds": 3,
+      "failed_per_round": [
+        [
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient0]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient1]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient2]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient3]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient4]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient5]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient6]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient7]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient8]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient9]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[1 cup fresh basil or 2 tablespoons dried basil-1 cup fresh basil or 2 tablespoons dried basil]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[153 grams 00 flour (1 cup plus 1 tablespoon)-153 gram 00 flour (1 cup, 1 tablespoon)]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[153 grams all-purpose flour (1 cup plus 1 tablespoon and 2 teaspoons)-153 gram all-purpose flour or 1 cup plus 1 tablespoon and 2 teaspoons]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 cups chicken broth or beef broth-2 cup chicken broth or beef broth]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 tablespoons (30ml) vegetable oil-2 tablespoon vegetable oil (30 ml)]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 teaspoon chopped fresh or dried rosemary-2 teaspoon fresh rosemary or dried rosemary chopped]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_unnamed_amounts_are_not_substitutions[1 cup plus 2 tablespoons (134g) King Arthur Unbleached Bread Flour-expected_extra_amounts1]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_unnamed_amounts_are_not_substitutions[3 tablespoons (42g) water, at room temperature-expected_extra_amounts0]"
+        ],
+        [
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient0]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient1]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient2]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient3]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient4]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient5]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient6]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient7]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient8]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient9]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[1 cup fresh basil or 2 tablespoons dried basil-1 cup fresh basil or 2 tablespoons dried basil]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[153 grams 00 flour (1 cup plus 1 tablespoon)-153 gram 00 flour (1 cup, 1 tablespoon)]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[153 grams all-purpose flour (1 cup plus 1 tablespoon and 2 teaspoons)-153 gram all-purpose flour or 1 cup plus 1 tablespoon and 2 teaspoons]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 cups chicken broth or beef broth-2 cup chicken broth or beef broth]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 tablespoons (30ml) vegetable oil-2 tablespoon vegetable oil (30 ml)]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 teaspoon chopped fresh or dried rosemary-2 teaspoon fresh rosemary or dried rosemary chopped]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_unnamed_amounts_are_not_substitutions[1 cup plus 2 tablespoons (134g) King Arthur Unbleached Bread Flour-expected_extra_amounts1]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_unnamed_amounts_are_not_substitutions[3 tablespoons (42g) water, at room temperature-expected_extra_amounts0]"
+        ],
+        [
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient0]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient1]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient2]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient3]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient4]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient5]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient6]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient7]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient8]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient9]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[1 cup fresh basil or 2 tablespoons dried basil-1 cup fresh basil or 2 tablespoons dried basil]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[153 grams 00 flour (1 cup plus 1 tablespoon)-153 gram 00 flour (1 cup, 1 tablespoon)]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[153 grams all-purpose flour (1 cup plus 1 tablespoon and 2 teaspoons)-153 gram all-purpose flour or 1 cup plus 1 tablespoon and 2 teaspoons]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 cups chicken broth or beef broth-2 cup chicken broth or beef broth]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 tablespoons (30ml) vegetable oil-2 tablespoon vegetable oil (30 ml)]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_keeps_all_text[2 teaspoon chopped fresh or dried rosemary-2 teaspoon fresh rosemary or dried rosemary chopped]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_unnamed_amounts_are_not_substitutions[1 cup plus 2 tablespoons (134g) King Arthur Unbleached Bread Flour-expected_extra_amounts1]",
+          "tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser_unnamed_amounts_are_not_substitutions[3 tablespoons (42g) water, at room temperature-expected_extra_amounts0]"
+        ]
+      ],
+      "round_status": [
+        "ran",
+        "ran",
+        "ran"
+      ],
+      "collected_per_round": [
+        3640,
+        3640,
+        3640
+      ]
+    }
+  ],
+  "measured": {
+    "before": true,
+    "after": true,
+    "errors": [
+      "",
+      ""
+    ]
+  },
+  "verdict": {
+    "experiment_id": "exp_aabdd6f98cc24811",
+    "improved": true,
+    "evidence_level": 4,
+    "criteria": {
+      "test": "one-sided Mann-Whitney U, candidate faster",
+      "alpha": 0.01,
+      "min_median_improvement": 0.2,
+      "min_samples_per_side": 10,
+      "bootstrap_resamples": 2000,
+      "ci": "95% bootstrap interval of the median difference must exclude 0"
+    },
+    "tests": "pre_existing",
+    "reasons": [
+      "median 10934.3 ms -> 8.1 ms, p = 3.4e-08"
+    ],
+    "caveats": [
+      "re-measures exp_ec2d1c4e89a94210 with its saved workload and today's evaluator",
+      "fails before the change too: tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient0]",
+      "fails before the change too: tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient1]",
+      "fails before the change too: tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient2]",
+      "fails before the change too: tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient3]",
+      "fails before the change too: tests.unit_tests.services_tests.ingredient_parser.test_nlp_parser::test_nlp_parser[test_ingredient4]"
+    ]
+  },
+  "experiment": "exp_aabdd6f98cc24811",
+  "improved": true,
+  "level": 4,
+  "median_before_ms": 10934.313432997442,
+  "median_after_ms": 8.102061518002301,
+  "p_value": 3.3978075640866785e-08
+}

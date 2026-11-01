@@ -1,0 +1,180 @@
+
+### git clone -q https://github.com/satisfymath/unbidden-ai.git
+### exit 0 in 1 s
+
+### git checkout -q 36e1a59
+### exit 0 in 0 s
+
+### uv sync -q
+### exit 0 in 4 s
+
+### make check
+........................................................................ [ 56%]
+........................................................................ [ 67%]
+........................................................................ [ 78%]
+........................................................................ [ 89%]
+.................................................................        [100%]
+641 passed, 5 deselected in 36.12s
+### exit 0 in 43 s
+
+### uv run unbidden doctor
+  ok  ollama       4 model(s) at http://localhost:11434
+  ok  machine      Apple M5 Pro, 64 GB, 54 GB for a model
+  ok  local model  muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best
+local quality measured)
+  ok  docker       running
+  !!  meta api     no MODEL_API_KEY: frontier models are off
+  !!  github       no GITHUB_TOKEN: proposals stay local branches
+  !!  workspace    not initialized: `unbidden init`
+### exit 0 in 1 s
+
+### uv run unbidden spend
+no verified balance: an allowance of US$1.00 to check the remote path
+  permitted US$1.00 · spent US$0.0000 · available US$1.0000
+by model                                                   
+ model  calls  retries  failed  tokens in  tokens out  US$ 
+by run                                                   
+ run  calls  retries  failed  tokens in  tokens out  US$ 
+by workspace                                                   
+ workspace  calls  retries  failed  tokens in  tokens out  US$ 
+costs are list price x reported tokens, worst cost when unknown; the dashboard 
+is the bill
+### exit 0 in 0 s
+
+### uv run python -m bench.ecosystem.depot_lab up
+### exit 0 in 12 s
+
+### uv run python -m bench.ecosystem.board_lab reset style
+{"case": "style", "variants": [], "commit": "f03cd0b2908aad0f13593e8e6345b8aaea3c3f75"}
+### exit 0 in 9 s
+
+### uv run python -m bench.ecosystem.board_workspace <scratch>/home.Cr2c/unbidden-ai --policy local --perception dom
+<scratch>/home.Cr2c/unbidden-lab/boardapp (staging on 18096)
+### exit 0 in 1 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project "$OLDPWD" unbidden watch --once)
+18:40:45 watching 
+/private/tmp/claude-501/-Users-david-unbidden-ai/e45596bf-00bf-4781-abc7-f887255
+8fdd0/scratchpad/walk/home.Cr2c/unbidden-lab/boardapp (ctrl-c to stop, `unbidden
+kill` to freeze)
+18:40:46 HEAD is f03cd0b2908a
+18:40:46 deploy procedure found, proposed only: docker compose -p 
+boardapp-staging up -d --build
+18:40:46 connections: postgres:127.0.0.1:55432/boardpicks connected, 
+http_api:http://127.0.0.1:18086 needs_capability
+18:40:46 provisioning python dependencies
+18:40:46 scan of f03cd0b2908a: 0 reports, 0 new opportunities
+18:40:47 map of f03cd0b2908a: 7 resources, 1 blind spots
+18:40:47 robustness probe at f03cd0b2908a: investigate (probe board (8 public 
+functions sampled))
+18:41:44 goal board-flags: waiting_capability: needs an integration for 
+board-api
+18:41:59 capability need api_client for http_api:http://127.0.0.1:18086: in_use
+18:46:20 goal board-flags: page_fixed: 12 discrepancies fixed by 80f614153504, 
+accepted: The page is correct in data but the SHORT badge styling was changed 
+from red/white to the same light-green/dark-green as OK badges, so short bins 
+are no longer 
+18:46:20 research.probe failed: sandbox.provision: destination pypi.org is not 
+in the mandate's allowlist; destination files.pythonhosted.org is not in the 
+mandate's allowlist
+18:46:20 needs a person: add files.pythonhosted.org, pypi.org to 
+egress.package_registries (then: research.probe runs again)
+### exit 0 in 335 s
+
+### uv run python -m bench.ecosystem.board_check
+  "B22"
+ ],
+ "flagged": [
+  "B01",
+  "B02",
+  "B03",
+  "B05",
+  "B07",
+  "B10",
+  "B12",
+  "B14",
+  "B15",
+  "B19",
+  "B21",
+  "B22"
+ ],
+ "false_flags": [],
+ "preserved": {
+  "inventory": true,
+  "history": true,
+  "information": true
+ },
+ "problems": []
+}
+records: /var/folders/bp/d5kjdsrx2d77gy7_fwbs3vsh0000gn/T/board-check-9_iuki0m
+### exit 0 in 4 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project "$OLDPWD" unbidden activity)
+boardapp · 0 opportunities · 
+capabilities 1 in_use
+connections (what was checked, not what was declared)
+  connected           compose:compose (local): read 3 op(s)
+  connected           http_api:http://127.0.0.1:18086 (staging): read 1 op(s)
+  connected           postgres:127.0.0.1:55432/boardpicks (staging): read 2 
+op(s)
+integration Depot on http_api:http://127.0.0.1:18086: validated, built
+goal board-flags: waiting_capability, 0 short, 0 action(s): needs an integration
+for board-api
+goal board-flags: page_fixed, 12 short, 0 action(s): 12 discrepancies fixed by 
+80f614153504, accepted: The page is correct in data but the SHORT badge styling 
+was changed from red/white to the same light-green/dark-green as OK badges, so 
+short bins are no longer 
+change 80f614153504: model says resolved; checks satisfied ['checks', 'rows', 
+'marks', 'information'], failed -, unverifiable -; accepted (every fixed 
+condition satisfied on what is deployed)
+needs a person research.probe: add files.pythonhosted.org, pypi.org to 
+egress.package_registries (then: research.probe runs again)
+needs a person docker compose -p boardapp-staging up -d --build: found in 
+README.md; a proposal only: a person declares deploy steps in the mandate
+spent US$0.0000 in 0 remote call(s) · list price x reported tokens; the 
+provider's dashboard is the bill
+### exit 0 in 1 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project "$OLDPWD" unbidden connections)
+ connection      env      state      can read        can change  blocked / next 
+ compose:compo…  local    connected  ps, inspect,    -                          
+                                     logs                                       
+ http_api:http…  staging  connected  listBins        -                          
+ postgres:127.…  staging  connected  catalog,        -                          
+                                     select                                     
+                                     public.picks                               
+### exit 0 in 0 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project "$OLDPWD" unbidden egress)
+Nothing has left this machine.
+### exit 0 in 0 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project "$OLDPWD" unbidden kill)
+Kill switch engaged. No job starts and no model is called until `unbidden 
+resume`.
+### exit 0 in 0 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project "$OLDPWD" unbidden resume)
+Kill switch released.
+### exit 0 in 0 s
+
+### uv run python -m bench.ecosystem.board_lab down && uv run python -m bench.ecosystem.depot_lab down
+### exit 0 in 32 s
+
+### docker ps -a --filter label=unbidden.sandbox --format {{.Names}}
+### exit 0 in 0 s
+
+### docker ps -a --filter label=unbidden.lab=ecosystem --format {{.Names}}
+lnbits-staging-app-1
+lnbits-staging-db-1
+conduit-staging-app-1
+conduit-staging-db-1
+### exit 0 in 0 s
+HOME was <scratch>/home.Cr2c
+
+### docker ps --format {{.Names}} --filter name=conduit-staging --filter name=lnbits-staging
+lnbits-staging-app-1
+lnbits-staging-db-1
+conduit-staging-app-1
+conduit-staging-db-1
+### exit 0 in 0 s

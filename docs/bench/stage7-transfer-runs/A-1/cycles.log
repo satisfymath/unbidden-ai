@@ -1,0 +1,136 @@
+== cycle 1 (exit 0)
+10:34:34 watching ~/unbidden-lab/conduit (ctrl-c to stop, `unbidden 
+kill` to freeze)
+10:34:34 HEAD is 029eb7781c60
+10:34:34 connections: postgres:127.0.0.1:55440/postgres connected, 
+http_api:http://127.0.0.1:18110 needs_capability
+10:34:34 provisioning python dependencies
+10:34:36 scan of 029eb7781c60: 0 reports, 0 new opportunities
+10:36:49 map of 029eb7781c60: 38 resources, 0 blind spots
+10:36:49 robustness probe at 029eb7781c60: investigate (probe app (30 public 
+functions sampled))
+10:37:01 goal counts-correct-and-fast: waiting_capability: needs an integration 
+for conduit-api
+10:37:06 capability need api_client for http_api:http://127.0.0.1:18110: failed
+10:37:06 opp_cf2be43cf7b54bde: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+10:37:06 opp_2254728aae784caa: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+10:37:11 capability need api_client for http_api:http://127.0.0.1:18110: 
+abandoned
+10:37:20 goal counts-correct-and-fast: blocked: conduit-api: no integration 
+could be validated 
+(comments_get_comments_for_article_api_articles__slug__comments_get: no listed 
+record carries its path parameters)
+10:37:23 research.probe failed: dependency image for python failed to build:
+error: Failed to build `psycopg2-binary==2.9.3`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta:__legacy__.get_requires_for_build_wheel`
+failed (exit status: 1)
+
+         
+         running egg_info
+         writing psycopg2_binary.egg-info/PKG-INFO
+         writing dependency_links to 
+psycopg2_binary.egg-info/dependency_links.txt
+         writing top-level names to psycopg2_binary.egg-info/top_level.txt
+         
+         /root/.cache/uv/builds-v0/.tmpEFNlkQ/lib/python3.12/site-packages/setup
+tools/dist.py:765: SetuptoolsDeprecationWarning: License classifiers are 
+deprecated.
+         Error: pg_config executable not found.
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python -r 
+/deps/unbidden-requirements.txt  && (/deps/.venv/bin/python -c \"import pytest\"
+2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1
+|| uv pip install --python /deps/.venv/bin/python pytest)  && 
+(/deps/.venv/bin/python -c \"import hypothesis\" 2>/dev/null      || uv pip 
+install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip 
+install --python /deps/.venv/bin/python hypothesis)" did not complete 
+successfully: exit code: 1
+10:37:25 lab.experiment failed: dependency image for python failed to build:
+error: Failed to build `psycopg2-binary==2.9.3`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta:__legacy__.get_requires_for_build_wheel`
+failed (exit status: 1)
+
+         
+         running egg_info
+         writing psycopg2_binary.egg-info/PKG-INFO
+         writing dependency_links to 
+psycopg2_binary.egg-info/dependency_links.txt
+         writing top-level names to psycopg2_binary.egg-info/top_level.txt
+         
+         /root/.cache/uv/builds-v0/.tmpbuUc0B/lib/python3.12/site-packages/setup
+tools/dist.py:765: SetuptoolsDeprecationWarning: License classifiers are 
+deprecated.
+         Error: pg_config executable not found.
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python -r 
+/deps/unbidden-requirements.txt  && (/deps/.venv/bin/python -c \"import pytest\"
+2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1
+|| uv pip install --python /deps/.venv/bin/python pytest)  && 
+(/deps/.venv/bin/python -c \"import hypothesis\" 2>/dev/null      || uv pip 
+install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip 
+install --python /deps/.venv/bin/python hypothesis)" did not complete 
+successfully: exit code: 1
+10:37:27 lab.experiment failed: dependency image for python failed to build:
+error: Failed to build `psycopg2-binary==2.9.3`
+  cause: The build backend returned an error
+  cause: Call to `setuptools.build_meta:__legacy__.get_requires_for_build_wheel`
+failed (exit status: 1)
+
+         
+         running egg_info
+         writing psycopg2_binary.egg-info/PKG-INFO
+         writing dependency_links to 
+psycopg2_binary.egg-info/dependency_links.txt
+         writing top-level names to psycopg2_binary.egg-info/top_level.txt
+         
+         /root/.cache/uv/builds-v0/.tmphzILJS/lib/python3.12/site-packages/setup
+tools/dist.py:765: SetuptoolsDeprecationWarning: License classifiers are 
+deprecated.
+         Error: pg_config executable not found.
+ERROR: process "/bin/sh -c uv venv /deps/.venv && uv pip install --python 
+/deps/.venv/bin/python -r /deps/unbidden-requirements.txt  && 
+(/deps/.venv/bin/python -c \"import pytest\" 2>/dev/null      || uv pip install 
+--python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python 
+/deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \"import 
+hypothesis\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python 
+hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python 
+hypothesis)" did not complete successfully: exit code: 1
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c uv venv /deps/.venv
+&& uv pip install --python /deps/.venv/bin/python -r 
+/deps/unbidden-requirements.txt  && (/deps/.venv/bin/python -c \"import pytest\"
+2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1
+|| uv pip install --python /deps/.venv/bin/python pytest)  && 
+(/deps/.venv/bin/python -c \"import hypothesis\" 2>/dev/null      || uv pip 
+install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip 
+install --python /deps/.venv/bin/python hypothesis)" did not complete 
+successfully: exit code: 1
+
+
+== cycle 2 (exit 0)
+10:37:28 watching ~/unbidden-lab/conduit (ctrl-c to stop, `unbidden 
+kill` to freeze)
+10:37:28 connections: postgres:127.0.0.1:55440/postgres connected, 
+http_api:http://127.0.0.1:18110 needs_capability

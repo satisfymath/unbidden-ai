@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import re
 from collections import Counter
 from dataclasses import dataclass
 
 from unbidden.contracts.guardian import ActionRequest, Mandate
 from unbidden.forge.adapter import ORACLE_VERSION, LogAdapter, parse_line
+from unbidden.forge.bounded import compile_untrusted
 from unbidden.guardian.policy import PolicyEngine
 from unbidden.store import Store
 
@@ -29,10 +29,18 @@ def usable(store: Store, mandate: Mandate, source: str) -> LogAdapter | None:
     if not candidates:
         return None
     adapter = candidates[-1]
-    if adapter.status == "approved":
-        return adapter
+    return adapter if permitted(adapter.status, mandate, source) else None
+
+
+def permitted(status: str, mandate: Mandate | None, source: str) -> bool:
+    """The one gate for using a capability Forge built, log and stats readers alike: a person approved it, or it
+    passed its oracle and the mandate lets Unbidden turn on what it built itself (`use_new_capabilities`)."""
+    if status == "approved":
+        return True
+    if status != "validated" or mandate is None:
+        return False
     verdict = PolicyEngine(mandate).evaluate(ActionRequest(capability="capability.use", purpose=f"read {source}"))
-    return adapter if verdict.allowed else None
+    return verdict.allowed
 
 
 @dataclass(frozen=True)
@@ -47,7 +55,7 @@ class Traffic:
 
 
 def summarize(adapter: LogAdapter, lines: list[str], *, ignore_agents: tuple[str, ...] = ()) -> Traffic:
-    compiled = re.compile(adapter.pattern)
+    compiled = compile_untrusted(adapter.pattern)
     by_route: dict[str, Counter[str]] = {}
     parsed = 0
     for line in lines:

@@ -1,0 +1,27 @@
+{
+ "repo": "/Users/david/unbidden-lab/codex-lb",
+ "rev": "84fde5a1ed5e0d5a58ccb3ec4b82938b059bf8c5",
+ "image": "unbidden-deps-python:6c3e0e26af90c71e",
+ "image_notes": [
+  "python 3.13: from the CI's python-version",
+  "pyproject requires-python: >=3.13",
+  "the CI's python-version: 3.13",
+  "the project's Dockerfile: 3.14",
+  "conflict: concrete sources disagree: the CI's python-version 3.13; the project's Dockerfile 3.14",
+  "image unbidden-deps-python:6c3e0e26af90c71e on linux/arm64"
+ ],
+ "python": "3.13",
+ "status": "infra_failed",
+ "collected": null,
+ "failed": [
+  "<suite>"
+ ],
+ "why": "exit 127: bash: line 4: make: command not found",
+ "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nmake test-unit",
+ "scope": "matrix entry 1 of 3 (slice=unit)",
+ "partial": true,
+ "notes": [
+  "condition `needs.changes.outputs.backend=='true'` is not known outside GitHub: the branch that runs the tests is taken, its negation (1 step(s)) left out"
+ ],
+ "wall_s": 2.5
+}

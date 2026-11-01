@@ -1,0 +1,60 @@
+{
+ "repo": "/Users/david/TimeTracker",
+ "rev": "7ae6440d1b0930196609c6cefe3cf13948513f5b",
+ "stack": {
+  "python": "3.11",
+  "why": [
+   "python 3.11: where the CI runs the checks and the project's Dockerfile both use it",
+   "the CI's python-version: 3.11",
+   "the project's Dockerfile: 3.11, 3.12",
+   "conflict: concrete sources disagree: the CI's python-version 3.11; the project's Dockerfile 3.11, 3.12"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": null,
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": [
+   "package.json without a lockfile: dependencies resolved at provisioning time",
+   "pyproject.toml without uv.lock: dependencies resolved at provisioning time",
+   "Java/Kotlin (build.gradle) is not analyzed: no checks, probes or experiments for that code",
+   "Dart (pubspec.yaml) is not analyzed: no checks, probes or experiments for that code"
+  ]
+ },
+ "image": "unbidden-deps-python:9eb7af4dee5fb916",
+ "plan": {
+  "source": "CI ci.yml > test (its services: postgres)",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [],
+  "services": [
+   "postgres"
+  ],
+  "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nflask db upgrade\ncd /work\npytest -n auto --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing tests/"
+ },
+ "status": "infra_failed",
+ "collected": null,
+ "failed": [
+  "<suite>"
+ ],
+ "why": "exit 127: bash: line 4: flask: command not found",
+ "wall_s": 11.2,
+ "image_notes": [
+  "python 3.11: where the CI runs the checks and the project's Dockerfile both use it",
+  "the CI's python-version: 3.11",
+  "the project's Dockerfile: 3.11, 3.12",
+  "conflict: concrete sources disagree: the CI's python-version 3.11; the project's Dockerfile 3.11, 3.12",
+  "image unbidden-deps-python:9eb7af4dee5fb916 on linux/arm64"
+ ],
+ "python": "3.11",
+ "source": "CI ci.yml > test (its services: postgres)",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [],
+ "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nflask db upgrade\ncd /work\npytest -n auto --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing tests/"
+}

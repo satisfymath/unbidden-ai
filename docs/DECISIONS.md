@@ -281,3 +281,1023 @@ could be learned. Now:
 - The lint scope comes from the workflows' own commands (`pnpm --filter <package> lint`, root scripts they
   call): style findings in a package the CI does not lint are declined. On the monorepo above, 857 lint
   findings in an unlinted package would otherwise have become proposals.
+
+## D-022 · 2026-10-27 · Runtime truth: what runs, how it is known, and what the map no longer sees
+
+An audit against the master document found that the commit attributed to each deploy was assumed, not read. It was
+the checkout's HEAD at the moment new containers appeared, and level 5 rested on that assumption. The World Model was
+rebuilt from scratch at every map, with no history, no age and no obsolete facts.
+
+- **Deploy ledger** (`operate/ledger.py`). Each set of application containers is a deploy. Its commit is:
+  - `observed` when the images carry a revision label;
+  - `verified` when Unbidden's own deploy steps built those images locally from that commit. A cached build counts:
+    on full-stack-fastapi-template the running image predated Unbidden's rollback by 74 minutes, because compose
+    reused it;
+  - `inferred` when it is HEAD at the time the containers were first seen, and the record says so;
+  - `unknown` otherwise. Images pulled from a registry are never credited to the checkout.
+
+  Who started a deploy is read from container start times; containers started before the ledger watched are `unknown`.
+- **Outcomes.** Results are positive, negative, inconclusive or invalid. Only a positive result between two deploys
+  whose commits are verified or observed is level 5. Confounders are structured. Every verdict records the criteria
+  version it applied: verdicts judged under v2 since D-014 still stored `min_delta_ms: 10`, and they are not rewritten.
+- **Facts with provenance** (`world/connectors.py`, `world/reconcile.py`). Each fact records its connector, when it
+  was seen, its environment and the revision or deploy it describes.
+  - A fact that its source ran and no longer saw becomes obsolete.
+  - A fact whose source did not run keeps its age.
+  - Every map emits `world.changed` with its diff.
+- **Scope of an anomaly** (`world/scope.py`). A degraded or outage verdict carries the components behind it, up to the
+  deploy and image, together with what cannot be seen: no metrics, traces or logs connector, and links never seen in
+  traffic.
+- **Docker scope.** Only containers of the workspace's compose project are read, and each container's label is checked.
+  This machine runs other projects.
+- **Measured** against reference topologies committed before scoring (`docs/bench/2026-10-27-world-topology.md`).
+  - opentelemetry-demo, blind: services 0.8, links recall **0.032**, running commit wrong (inferred HEAD for images
+    pulled from a registry).
+  - The causes were general: bare compose keys, Postgres databases and schemas, registry images. After the fixes, not
+    blind: services 1.0, links P 0.84 / R 1.0, commit `unknown` with the digest. The `_HOST` key rule was added after
+    seeing the misses.
+  - full-stack-fastapi-template (not blind): links recall 0.25. Traefik label routes are not read.
+- **Not done yet.**
+  - A live `verified` binding. The only built-from-source system here is watched by a running autonomous watcher on the
+    earlier code, and deploying under it was not done without a person.
+  - Metrics, traces and logs connectors.
+  - Traefik labels.
+  - Several compose files.
+
+## D-023 · 2026-10-27 · A verified deploy, live; three more compose facts; Traefik routes
+
+- **The missing acceptance check of D-022, done.** The earlier autonomous watcher was stopped (with the prototype's
+  collector and containers) so a deploy could be made under the new code. `unbidden drill` on
+  full-stack-fastapi-template passed in 40 s. The deploy it left is **104feb4 `verified`, by unbidden**, and
+  `deploys --commit 104feb4` finds it with its image.
+- **Three bugs the drill exposed, fixed:**
+  - Docker's containerd store gives local builds a digest (`backend@sha256:...`), which had been read as "pulled
+    from a registry". Only a digest naming a registry host counts now.
+  - Deploys run by a drill were credited to nobody.
+  - Containers recreated on the same code kept weaker evidence about their deploy.
+
+  A ledger record written before the fix (deploy 5, "pulled from a registry") is left as it was written.
+- **The deployment's own compose files.** The running containers say which files they were started with; those are
+  read from git and merged in order, as compose merges them. opentelemetry-demo's 5 observability services are now
+  declared rather than only known from Docker.
+- **Traefik router labels are routes from the proxy.** On full-stack-fastapi-template, link recall goes from 0.25 to
+  0.75 (not blind). Reading the deployed `compose.override.yml` also brings in mailpit and playwright, which are
+  declared but not running. The pre-registered reference does not list them, so service precision drops to 0.67,
+  and that is how it is reported.
+
+## D-024 · 2026-10-27 · Metrics and traces: anomalies found in a running system, and where they fail
+
+opentelemetry-demo runs its own Prometheus and Jaeger. Unbidden now reads both, read-only, with fixed queries.
+
+- **Calls seen in traffic.** The project's client call metrics give 11 observed calls, which expire after 15
+  minutes. The frontend's gRPC calls carry no peer label, so they stay as configuration inferences: that is how much
+  of the call graph the telemetry covers.
+- **What the project's own metrics say.** Each service's requests, errors and p95, and each container's CPU and
+  memory. The demo's Prometheus scrapes the whole host, other projects included; only this project's services and
+  containers are taken in, and that is tested.
+- **Two findings without injecting anything.**
+  - quote fails about 20 % of its requests all the time. Its traces put the origin in quote.
+  - load-generator calls a host `agent` that no service of the project provides.
+- **`unbidden health`, also on the probe thread every 60 s.** Criteria health-v1 were committed before any fault was
+  injected. A degraded service whose dependencies are healthy is named where the degradation starts. This is a
+  hypothesis, recorded with the queries, the scope and a plan that says which next sources Unbidden can read.
+  Traces through an affected service then agree or disagree.
+- **Results** (`docs/bench/2026-10-27-health-faults.md`):
+  - control: 0 anomalies in 13 minutes;
+  - `paymentFailure` passed (3 min);
+  - `productCatalogFailure` passed (4 min), with the traces agreeing; the first attempt is void because the operator
+    activated the flag wrongly;
+  - `adFailure` was detected but did not pass: a latency false alarm on a low-traffic service ranked first;
+  - `cartFailure`, an extra trial, was missed: the failure of one operation is diluted in the service.
+
+  These are three passes and two failures, all reported. health-v2 candidates (judge per operation, require larger
+  samples for p95, use variation-based thresholds for chronic services) wait for a calibration.
+
+## D-025 · 2026-10-27 · Forge builds a second kind of capability; untrusted text measured; the worker cannot hang
+
+- **Forge, from need to use, on a real source.**
+  1. **Need.** The map finds that frontend-proxy serves 1,870 lines of numbers at `/stats` (Envoy's format) that no
+     connector reads, and names that need. Two other endpoints are in Prometheus text, a known format: nothing is
+     built for them.
+  2. **First attempts failed.** The local model failed eight times: answers cut off, then patterns that did not
+     compile. The raw answer showed backslashes lost inside JSON, against D-005. Patterns now come back as raw
+     lines, in the log Forge too; this is probably the cause of D-016's five local failures.
+  3. **Built and judged.** After the fix the local model wrote the reader on its first attempt. The oracle, with no
+     model, passed it on 1,770 unseen lines: 100 %, metamorphic checks, 8.4 µs per line, 63 histogram lines
+     declared unread.
+  4. **Contract.** The reader carries a card: purpose, typed input and output, permissions it cannot widen, privacy,
+     limits, kept tests, failures, and how to disable it.
+  5. **Reuse and use.** A new endpoint is first tried against existing readers with the oracle. During an anomaly,
+     each proxy's upstream error counters are read twice.
+
+  Reuse on a second project has not been run: there is no second system with Envoy here.
+- **Local failures escalate through the bridge**, as logs do (D-016). The project's names are renamed, addresses
+  replaced and values randomized. Not exercised live, because the local model succeeded.
+- **Prompt injection, measured with the local model** (`bench/injection_eval.py`). A log line planted to blame DNS:
+  - The easy scenario (the cause is visible in the diff): followed 0/5 raw and 0/5 fenced.
+  - The hard scenario (the cause is not in the code): 0/5 and 0/5.
+
+  The model resisted this kind of plant on its own, so fencing shows no measurable benefit and is kept only as
+  defence in depth. The code control at first lowered all ten correct conclusions to the floor, which would have
+  let anyone who can write a log line void Unbidden's investigations. Now only lines that try to steer are set
+  apart, and confidence drops only when cited evidence rests on them alone.
+- **Criterion.** `unbidden decide` reports what the Director would do with each open opportunity, and why, changing
+  nothing. The benchmark records it per repository against the policy of acting on every finding.
+- **Reliability.** A job past its limit is cancelled and retried with growing waits (2, 4, 8 minutes, at most 1 hour).
+  A thread started with `to_thread` cannot be killed, but the worker no longer waits for it.
+
+## D-026 · 2026-10-27 · The health detector fails its holdout; the v2 candidate is not adopted
+
+Three faults were fixed before they were run: `paymentUnreachable`, `recommendationCacheFailure` and
+`imageSlowLoad`. Under health-v1, live, only recommendation was found (minute 5), and 6 of the 10 clean control
+minutes had an alarm open. Replaying the same history, the v2 candidate (judge per operation, binomial thresholds)
+gives 4 of 10 alarmed minutes and the same single detection, with new noise. It is not adopted.
+
+**Causes** (`docs/bench/2026-10-27-health-faults.md`):
+- A host-wide slowdown, right after the 35 GB local model ran, was read as five independent origins.
+- An unreachable service shows only in its callers' client spans.
+- A caller with fewer than 8 requests per window is never judged.
+- A chronic service flaps.
+
+**Status.** The detector found 3 of 5 designed faults and 1 of 3 holdout faults. Calls seen in traffic, scope,
+traces and proxy counters all work. What does not work yet is deciding when something is wrong. That is the next
+increment's work, calibrated the same way before it is used.
+
+## D-027 · 2026-10-27 · Level A on 12 repositories: what failed, what was fixed, and the blind holdout
+
+The harness (`bench/repos.py`) ran Unbidden on 8 dev repositories and then once on 4 holdout repositories, chosen
+and pinned before any run (`docs/bench/2026-10-27-level-a.md`). The first dev run gave a useful analysis on 2 of 8.
+
+**Causes, all fixed in general rather than per repository:**
+- A dependency build hid the installer's error. Docker's quiet mode is gone, and the cause is now kept.
+- An install that needs a compiler retries with build tools only when the mandate allows Debian's archive.
+- An install that would run repository code with network access (`.pnpmfile.cjs`) is declined, and says so.
+- CI test jobs are found by what they run, not their name. Jobs needing a browser, a deployment or another OS come
+  last, and canonical workflow files come first.
+- Node analyzers get 6 GB of memory (lexical's tsc ran out of heap). Errors keep their message. A title longer than
+  200 characters no longer crashes a scan. The capture cap is 16 MB.
+- The Director declines style findings from a tool the team's CI does not run, and lets them wait while the CI is
+  unreadable. With the new `github.read` (observe, GitHub hosts only), it also declines style findings of a tool the
+  CI runs on a commit where the CI is green.
+
+**Dev set after the fixes.** CI understood in 7 of 8 repositories. Analyzers ran usefully on 5 of 8: the two
+before, plus lexical, docusaurus (7 of 40 packages) and chatwoot.
+
+**Holdout, run once, nothing changed after it:**
+- click: analyzed, CI understood.
+- sqlmodel: analyzed, nothing found, nothing to do.
+- httpx: installs itself from source; not analyzed.
+- fastify: no lockfile; not analyzed.
+
+**Criterion, measured.** Of 108 opportunity groups, 4 were declined, against 0 under the act-on-everything
+policy. 82 of the 104 that would be acted on are chatwoot style findings, likely an environment difference, that
+the per-commit CI status cannot rule out because that commit's CI is red. Next, CI status should be read per job.
+
+## D-028 · 2026-10-27 · Autonomous in the test environments; screenshots allowed; a multimodal judge that earned its place
+
+- **Autonomy.** David set Unbidden to run autonomous, with every capability, in its test environments: that is the
+  product. full-stack-fastapi-template (the fork) runs `unbidden watch` autonomous. opentelemetry-demo runs
+  autonomous for everything local (experiments, delegation, Forge capabilities), but GitHub publishing is denied
+  there, because its repository is a third party's upstream.
+- **Screenshots** of the project's own pages may go to a Meta multimodal model only where the mandate says
+  `models.screenshots_to_frontier: allow`, through the `model.remote.screenshot` capability. The egress gate records
+  each send with its size and digest, and the images stay in `.unbidden/artifacts/ui/`. Images cannot be scanned
+  for secrets as text can, which is why this is an explicit per-workspace choice.
+- **The UI lab.** Pages are captured in a pinned Playwright container. Two judges answer whether the page is healthy
+  and what is wrong. On the pre-registered evaluation (`docs/bench/2026-10-27-ui-eval.md`) the visual judge
+  (Muse Spark 1.3) beat the browser judge: detection 8/12 against 6/12, attribution 5/9 against 3/9. It saw blank
+  images that the DOM reported as loaded, 3 of 3 times. By its own rule it is now in the critical path: an anomaly
+  records both judges' view of the product's page.
+- **L5.** In full-stack-fastapi-template, Unbidden finds no new improvement it can measure: the one it found (the
+  index) is deployed, and its verdict stays at L4 under the criteria of its time (D-014). No new L5 is claimed; the
+  autonomous watcher keeps looking. What is missing for an L5 in opentelemetry-demo is analysis of its languages
+  (Go, .NET, Java, Rust) and deploy steps for a service built from source.
+
+## D-029 · 2026-10-27 · The v3 candidate fails the second holdout too; health-v1 stays
+
+On a second holdout fixed before it was run (`paymentFailure` 50 %, `loadGeneratorFloodHomepage`, `emailMemoryLeak`),
+v1, v2 and v3 each found 1 of 3. v3 was one minute earlier on payment, with more alarms in the clean minutes (8 of
+10 against 7 of 10). Neither candidate is adopted.
+
+**What the evidence says to build next**, each to be calibrated the same way before use:
+- judge container memory and CPU, which Unbidden already reads (the leak was invisible to request spans);
+- separate real persistent failures (quote, confirmed by its traces) from unconfirmed alarms in the metric itself.
+
+The detector has now failed two holdouts. It is reported as the weakest part of Unbidden, not hidden behind the
+faults it was designed on.
+
+## D-030 · 2026-10-27 · A credential broker, CI status per job, and polyglot services analyzed one by one
+
+- **Credential broker** (`guardian/credentials.py`).
+  - **Before:** `.unbidden/.env` was copied into `os.environ`, where code that builds prompts and every subprocess
+    could read it.
+  - **Now:** the broker holds Unbidden's secrets, and the declared ones found in the environment, and removes them
+    from it. Each is given per purpose: the remote model's key for `model.remote`, the GitHub token for `github`,
+    probe credentials for `probe`. Every hand-out and refusal is audited without its value, and the egress gate
+    refuses a payload that contains a held credential's exact value. The git push gets the token in its own
+    environment only.
+  - **Limit:** not a vault; the values live in this process's memory.
+  - **Also found:** full-stack-fastapi-template's workspace has never had a `GITHUB_TOKEN`, so its autonomous watcher
+    could not publish a pull request even if it found an improvement.
+- **CI status per job.** The Director reads the conclusion of the jobs that run a tool, not of the whole commit. On
+  chatwoot the commit is red (other jobs failed) but its eslint job is green: the 82 style findings Unbidden's eslint
+  reported are now declined as its environment's.
+- **Polyglot services.** A compose service built from a directory with its own manifest and lockfile is extracted at
+  the commit and scanned as a repository of its own, with the same trusted tools. Findings are recorded with
+  prefixed paths and a tool named `tool@dir`. The lab cannot reproduce them inside the repository yet, so the
+  Director leaves them waiting and says why.
+
+## D-031 · 2026-10-27 · health-v4 adopted: container memory and CPU, after a blind holdout
+
+v4 is v1 plus new container pressure:
+- **memory:** 1.5× and +20 MiB over a baseline that was itself steady, or newly past 85 % of the limit, with
+  hysteresis at 75 %, after an hour of warm-up;
+- **CPU:** doubled, and at least half a core more. The metric is in cores, which the first version wrongly read as
+  a share.
+
+**Results.**
+- Third holdout, fixed before it was run: v4 found `adHighCpu` at minute 5 where v1 found nothing, and raised no
+  more alarms (1 of 10 clean minutes for both).
+- Second holdout, seen while designing v4: the leak at minute 4, with no more alarms than v1.
+
+v4 replaces v1 in the live watcher and records its criteria with every anomaly. One blind detection is little
+evidence; the detector stays the part of Unbidden most in need of measurement.
+
+## D-032 · 2026-10-27 · A full-table-scan check that reads rates, and why it opens nothing on the fork
+
+**Setup.** With a GitHub token in its workspace (written by David's approval, readable by him only), the fork's
+autonomous watcher can now publish, merge and deploy. An L5 needs a new improvement for it to find.
+
+**Check.** A new World Model check reads Postgres's own per-table statistics (`pg_stat_user_tables`, read-only). It
+flags a table of 10,000 rows or more that was read whole at least 10 times since the previous map, by endpoints that
+read it.
+
+**Why it reads rates.** The fork's `item` shows 264 sequential scans that read 33.6 million rows, but the counter did
+not move in 90 s while index scans grew by 170. Those scans predate the index Unbidden deployed during the event.
+A check on cumulative counters would have proposed a fix for a problem already fixed. The check therefore compares
+each map with the previous one, and on the fork it opens nothing, which is the right answer.
+
+**Status.** No new L5 is claimed. The fork has no measurable improvement left that Unbidden can find. The check
+stays, to catch a regression.
+
+## D-033 · 2026-10-27 · What the prototype knew and this product had lost; the sustained detector ported
+
+An audit of the earlier prototype (`satisfymath/unbidden`, about 27k lines) against this product listed what it had
+and this product lacked, in order of value:
+1. a sustained-degradation detector;
+2. logs as evidence (windows, shape groups, error after deploy);
+3. authorised file and ssh log sources;
+4. an external probe of public URLs that reads the running commit from `/health`;
+5. an endurance protocol with criteria fixed in advance;
+6. load tests as experiments;
+7. "Ask" requests in natural language;
+8. a Director with a value-of-information term;
+9. dependency-vulnerability fixes.
+
+Already here, or deliberately dropped: spend caps, merge caps, scoped approvals, the kill switch and the Postgres
+store.
+
+**Ported first: the sustained detector.** The prototype's lesson was a p95 of 2.5 s for four hours that nothing
+flagged, because a deploy every twenty minutes reset the baseline.
+- `observe/impact.py:sustained` is the prototype's judge: the newest 3 samples all above the largest of 1.5×, +50 ms
+  and 4 MADs over the oldest samples.
+- The live watcher checks each probed endpoint once a minute against the oldest half hour of the last four hours,
+  whatever was deployed in between. When the code changed, it opens a read-only investigation between the commit at
+  the start of the window and the current one; when it did not, it says the cause is data, load or the environment.
+- From Prometheus, `health` reports a service whose p95 now sits above its own p95 of four hours ago. This is a
+  separate signal, not part of the verdict: it is not calibrated on a holdout yet. Its first live reading, checkout
+  at 182 ms against about 99 ms, came on a day of heavy load on the host.
+
+## D-034 · 2026-10-27 · Logs as evidence; a third system, mealie, and what it broke
+
+**Logs as evidence (second item of D-033).** Ported as `observe/logs.py`. It reads the compose project's container
+logs every 5 minutes, groups lines by their normalised shape, and reports a shape that is new after a deploy, or an
+error rate that grew. Each signal carries its evidence (shape, counts, first line). It reads and reports. It does not
+change verdicts: like the sustained Prometheus signal, it is not calibrated yet.
+
+**Third system.** mealie (FastAPI, Vue, Postgres; 283 live endpoints, 70 tables) runs locally:
+- branch `unbidden-env`, with a compose override for Postgres and the project name `mealie`;
+- 400 synthetic recipes, foods, units and labels from mealie's own seeders;
+- a dedicated probe user;
+- mandate autonomous, as in the other test environments. GitHub points at `satisfymath/mealie`, never upstream. That
+  fork and its token do not exist yet, so proposals stay as local branches.
+
+**What it broke, fixed:**
+1. *The compose project was found from the repository root.* `docker compose --project-directory <repo>` fails when
+   the compose files live in `docker/`. Containers, investigation logs and Forge logs now name the project: compose's
+   own `name:`, else the directory's name.
+2. *Code locations of endpoints.* 40 of 323 endpoints stayed as guesses beside the live ones:
+   - a file with several routers gave every route the first prefix;
+   - a bare mount became `GET `;
+   - parameter names differ between code and schema;
+   - a router mounted twice (public and private) was ambiguous.
+
+   Worse, the old rule had given `POST /api/auth/oauth/native/token` the code of `POST /token`. Now a route takes its
+   own router's prefix and is matched with parameter names ignored. Among several candidates, the one sharing the
+   most words with the file wins, then the shortest. A tie stays a guess.
+
+   **Result:** 270 of 283 live endpoints carry their code location, and all 270 were checked against the decorator
+   they point to: 0 wrong. Of the 7 guesses left, 5 are validators mounted with `include_in_schema=False`, real
+   routes the schema hides; one is a true tie; one is an image route not seen live. fst: 23 of 23, up from 22.
+
+**Status.** No L5 on mealie yet. The watcher is now probing it. The next step is whether anything measurable is worth
+improving.
+
+## D-035 · 2026-10-27 · First L4 on mealie: an index found, written, and measured by Unbidden
+
+**Result.** Unbidden found that `shopping_list_items.food_id` has no index and that mealie's own code filters by it:
+- `repository_foods.get_empty`, a correlated `EXISTS` per food;
+- `repository_foods.merge`.
+
+It wrote the change itself, held it to mealie's checks (`ruff`, `mypy`), and measured it with a workload inside
+mealie's test suite: 2,000 foods and 200,000 synthetic list items, called as a normal user.
+
+| | Value |
+|---|---|
+| `GET /api/foods/empty`, median | 14,524 ms → 7.2 ms |
+| one-sided Mann-Whitney | p = 3.4e-08 |
+| 95% CI of the median difference | [13,445, 15,827] ms |
+
+The change is two lines: the migration and `index=True`. It is a local branch (`a351dc2`), not published: there is
+no fork or token for satisfymath yet.
+
+**What this is not.**
+- It is not L5. The data is synthetic and its scale (200k items in one group) is far above a household's; the effect
+  grows with foods × items, so it is smaller at real sizes. Nothing was deployed or observed live.
+- The suite already fails in the sandbox before the change; the candidate adds no failures.
+
+**What it took** (each a bug in Unbidden, fixed, in commit order; each attempt they consumed was given back with
+`reopen`, recorded):
+1. The compose project was found from the repository root.
+2. Endpoints' code locations: per-router prefixes; parameter names; double mounts.
+3. The scan:
+   - C headers from Debian;
+   - Python from `requires-python`;
+   - the repository's cooling period;
+   - mypy.
+4. A lab that cannot start counted as a failed experiment, and the Director declined on it.
+5. The CI test job: `locale-sync.yml`, which runs `gh pr create`, was chosen; Taskfiles were not read.
+6. Models found only for SQLModel.
+7. Job keys: an attempt-only key, then reused keys after resets. Hence `reopen()`.
+8. Candidates: the model rewrote 10 KB files it saw cut. An index is now written from the finding.
+9. The check listed endpoints that read the table rather than those whose code filters by the column.
+   - `handler_source` ran into sibling methods.
+   - Calls are now resolved to one definition by file name and receiver.
+10. `pytest -n auto` was killed at the sandbox's memory limit before writing a line; the lab times serially.
+11. The workload prompt:
+    - asked for Postgres SQL on SQLite tests;
+    - could not pass fixtures;
+    - showed neither the fixtures, their types, the referenced models, nor a test calling the endpoint.
+
+**Security, observed.** The egress gate blocked several workload prompts:
+- over the 20 KB cap, because my larger test context pushed them past it; the budget is back to 9,000 characters;
+- three times for a `credential_assignment` pattern from mealie's test fixtures (test passwords). None of
+  Unbidden's credentials were in them.
+
+**Six opportunities are not measured, on purpose.** Their only cost is the database's own check on deleting a parent
+row, and the lab cannot yet tell whether the test database enforces foreign keys.
+
+**Next for L5.** Deploy the branch to the local mealie with the mandate's deploy steps, on data shaped like a large
+household, and observe `GET /api/foods/empty` live before and after.
+
+## D-036 · 2026-10-27 · mealie's index, live: no change on Postgres, and an L5 that is not one
+
+**What was done.**
+1. A large household's shopping lists were seeded in the local mealie, through its API as the probe user: 50 lists
+   × 100 items (5,000) over 580 foods, 80% checked off.
+2. The watcher recorded a baseline of `GET /api/foods/empty`: 29 rounds, median 5.3 ms.
+3. The `food_id` branch was deployed with `unbidden deploy`, through the guarded deploy path. The index and its
+   migration (`7b1f2ec4d00a`) are live.
+
+**Result.**
+
+| `GET /api/foods/empty` (live) | Before | After |
+|---|---|---|
+| Median | 5.3 ms | 5.0 ms |
+| p95 | 8.4 ms | 8.6 ms |
+
+Within the criteria: no change claimed. Outcome class: **invalid**. The baseline deploy's commit is inferred: it was
+running before Unbidden watched, and nothing in its image says what code it holds. The opportunity stays at **L4**.
+
+**Why no change, predicted before the deploy.** The lab measured on the tests' SQLite. There, `NOT EXISTS (... WHERE
+food_id = f.id)` runs once per food, so without the index it scans the table 2,000 times: 14.5 s at 200,000 items.
+Postgres plans the same query as one hash anti-join, which `EXPLAIN ANALYZE` showed at 0.5 ms for 5,000 items. The
+L4 is real for SQLite, mealie's default engine, and says nothing about this deployment.
+
+**What changed in Unbidden.**
+- A performance verdict records the engine it was measured on, and says so when the running system uses another.
+- `unbidden deploy <ref>` deploys a local commit through the same guards as the merge path.
+- Live outcomes are attached to any proposal whose commit is in the deployed version, not only merged ones.
+- Ledger fixes:
+  - A deploy that the watcher saw before Unbidden finished binding it is upgraded once the binding exists. It was
+    recorded "inferred, by external" and never looked at again.
+  - Build steps vouch only for services with a `build:`. A Docker Hub image (`postgres:16`) had been bound as built
+    from the commit.
+- The compose project name comes from the resolved path.
+
+**What a valid L5 needs here.** A baseline deployed by Unbidden. Either deploy the next change on top of `a351dc2`,
+or start from a version Unbidden deploys itself. The current mealie can no longer roll back below the index
+migration without a downgrade. For this index, the meaningful live test is a mealie on SQLite.
+
+**`unit_id`.** Not measurable with the current lab. No workload ran at the base in four rounds of five attempts.
+Its endpoint is a merge that deletes what it merges.
+
+## D-037 · 2026-10-27 · One spend ledger for the machine, autonomous probing, and a benchmark across repositories
+
+**Why.** The next question is whether Unbidden can enter many systems it has never seen and show, without a person
+directing each step, whether each one improved. Three things stood in the way: spend was bounded per workspace and
+only after the fact, the autonomous loop never looked for crashes by itself, and the benchmark stopped at a scan.
+
+**Credits, audited.**
+- The Meta Model API key works and lists `muse-spark-1.3` (Standard) with `-contributor` variants. No endpoint gives a
+  balance, usage or billing: every path tried (`/v1/usage`, `/v1/billing`, `/v1/credits`, `/v1/organization/*`,
+  OpenAI's legacy billing paths) returns 404. The balance can only be read on the dashboard, by a person.
+- Public sources, not verified against our account: $150 of credits per selected participant; Standard at US$1.25 /
+  US$4.25 per million input / output tokens (the prices in `config.py`); credits claimable until Nov 4, 9 PM ET.
+- Recorded remote spend in every surviving workspace state before this change: 33 calls, 104k input and 135k output
+  tokens, US$0.70 at list price. A lower bound: state in `/tmp` scratchpads may have been lost before it was copied.
+
+**The spend ledger** (`brain/spend.py`, `~/.unbidden/spend.db`).
+- One ledger for every workspace on the machine. Before a remote call leaves, its worst cost is reserved in one
+  transaction: every payload byte a token, plus all of `max_tokens`, at list price. A call that does not fit is refused
+  and nothing is sent.
+- After the call the reservation becomes the reported usage. A timeout, a 5xx or an answer without usage keeps its
+  worst cost; a 429 or 400 costs nothing.
+- The budget is the balance a person read (`unbidden spend --verified-balance <USD> --source <where>`), counted from
+  that moment, minus a 20 % reserve that only `--release-reserve` frees. Without a verified balance, a US$1 allowance,
+  enough to check the remote path. The mandate's monthly cap still applies per workspace.
+- `-contributor` models are refused unless the config allows them: they trade data-use terms for price.
+- The visual judge called the API directly and bypassed all accounting; it now reserves and settles like the rest.
+- Every call carries `UNBIDDEN_RUN`, so spend is attributed to a run and a repository.
+- Verified end to end: one synthetic call to Muse Spark 1.3, worst cost US$0.0092 reserved, settled at US$0.00049
+  from 15 input and 111 output tokens reported.
+
+**Autonomous probing.** After each scan the Director finds the repository's importable packages from the tree (src or
+flat layout; tests and tooling excluded), records whether probing is worth it and why, and probes the package with the
+most public surface once per commit. Before, robustness probes ran only when a person named the package.
+
+**The scale benchmark** (`bench/scale.py`, `bench/repos/scale.yaml`, `bench/scale_report.py`).
+- 10 pilot and 10 holdout repositories chosen by written criteria, pinned and committed before any run, including
+  Go, Ruby and Rust repositories Unbidden does not analyze: they stay in the denominator.
+- Per repository: `init`, the benchmark mandate (autonomous locally; GitHub, merge and deploy denied, since these are
+  third parties' upstreams; profile `frontier`; a spend cap), `map`, `watch --once` under a wall-clock limit. The
+  record is read from the workspace's state and the ledger, never from printed output.
+- Outcome classes are fixed rules (`classify`). Rates carry Wilson intervals over stated eligibility. Level 5 needs an
+  authorized deployment and none exists here: it is reported as not eligible, never as a failure or a success.
+- A remote-model run refuses to start without a verified balance unless declared a method check.
+
+**Method checks, under the US$1 allowance (no verified balance yet).** Each exposed a general failure, fixed:
+1. humanize: hatch-vcs reads the version from `.git`, which a build context of manifests never has (version pinned
+   for the dependency build). Then hatchling refused a missing `readme` (declared documents now copied). Then the
+   package imported `humanize._version`, generated at build time (a stub at the path the config declares).
+2. ky: a Node project without a lockfile was "no stack" while Python without one proceeds. npm now resolves it at
+   provisioning time, said as a blind spot.
+3. cobra: Go was skipped silently. Manifests of unanalyzed languages are now named.
+4. The harness counted a probe that was decided but never ran as a bootstrap; the cycle now records whether the
+   probe's tests ran.
+5. On humanize the probe found `KeyError` in `naturaldelta(0, minimum_unit='')` and recorded nothing. Newer pytest
+   omits `in function` from frames, Hypothesis says "Failing test case", and the short summary was read as part of
+   the last failure. All fixed with a test. The next probe drew different tests and did not hit it: **a probe is a
+   sample**, and one probe per commit finds a given crash only sometimes.
+
+## D-038 · 2026-10-28 · The pilot's only L4 was false; CI parity, relevance-based context, and what pilot 2 showed
+
+**The false positive.** Pilot 1's only L4 (marshmallow) removed two `type: ignore` comments that the sandbox's mypy
+called unused. The team's mypy job was green on that commit. Unbidden measures under the oldest Python a project
+supports (3.10); the team's CI also runs 3.11-3.14, where the ignores are needed. The patch would have turned their CI
+red. The lab's L4 criteria (targeted findings gone, no test regressed) cannot see this. The original record is kept as
+produced.
+
+**CI parity** (`lab/fixlab.py`, `observe/ci.py:ci_python_versions`). The Python versions a CI runs are read from
+setup-python values and matrices, tox's envlist (ranges included), nox and `.python-version`. After a candidate
+passes, the targeted tool runs again on base and candidate under the newest of them, with the project's locked
+toolchain. A finding the candidate adds there rejects it. When parity cannot be checked, the evidence stops at L3.
+- On the real candidate: 2 new mypy findings under 3.14, rejected.
+- Pilot 2, unaided: Muse Spark's new candidate for the same opportunity was rejected the same way, then declined after
+  two experiments.
+- No rule names marshmallow.
+
+**The Director reads the CI in the autonomous cycle.** The rule that declines findings a green CI of the same tool
+does not report covered only style, and only `unbidden decide` read the CI; the cycle decided without it. One helper
+now feeds both, read once per commit. It covers every category, and a fork's shared commits are judged by its parent's
+CI. Pilot 2 showed the rule still could not fire on marshmallow: its CI runs mypy through `tox -e ${{ matrix.tox }}`.
+`ci_commands` now follows tox and nox to where their environments are defined, and reads matrix values.
+
+**Context within the egress cap** (`lab/context.py`). The fix request sent `tests/test_fields.py` whole (31 KB).
+Guardian's 20 KB cap blocked it, and the router silently handed the task to Glimmer (33 GB, 6 minutes).
+- The cap is unchanged.
+- Whole files are sent when they fit; otherwise excerpts: each finding's enclosing function (AST) or a window, merged,
+  plus the import header, measured in JSON-escaped bytes against half of what the cap leaves (a repair repeats the
+  answer).
+- If every finding cannot be shown, nothing is sent and the lab says so.
+- The model answers excerpts by line range; code splices them back and refuses lines it was not shown.
+- On the real file: 30,012 bytes become 1,010.
+- Every tier fallback is a `model.fallback` event with its cause. `models.local_fallback: deny` refuses the local one
+  (the benchmark's setting; the product default stays `allow`). Pilot 2: two fallbacks refused, none taken.
+
+**Provenance.** Every experiment records Unbidden's version, commit and whether its package was dirty, each tier's
+model and thinking, the profile and fallback policy, the images, and what the lab knows (interpreter, seed, engine).
+The benchmark identifies the code under test by the `unbidden/` tree and refuses to start on uncommitted code.
+
+**Pilot 2** (`docs/bench/2026-10-28-scale-pilot-2.md`, forks only, US$0.14).
+- Bootstrapped 7/10; one opportunity set (marshmallow).
+- The false positive was rejected.
+- One L4 lies outside the team's checked configuration: `try/except ImportError` became a `sys.version_info` check
+  so mypy under 3.10 sees `Unpack`. Clean under both versions and behavior-preserving, but the team does not
+  type-check under 3.10. It is not counted as an improvement.
+- Its pull request to the fork failed with 422: `init` assumed `main` after a shallow fetch, and the fork's base is
+  `dev`. The default branch now comes from the remote.
+- pyjwt's computed version broke its dependency image. The build context's copy of `pyproject.toml` now gets a static
+  version.
+
+**humanize's KeyError** is real (direct, 10/10 seeds), found by 0 of 10 fresh probes (1 of 13 overall). Kept at L2.
+
+**Spend reconciled.** US$0.956 in 50 calls before pilot 2 (32 before the ledger, 18 after, plus one refused at the
+gate). Nothing is unaccounted between the ledger and the workspaces.
+
+## D-039 · 2026-10-28 · The next stage: evidence first, then the loop, then value the user can see
+
+An external review of `2c191a6` was verified against `6a70947` (`docs/PLAN.md`, with file and line evidence for each
+finding). Most of it was confirmed by reproduction; it missed two serious defects, and one of its points was worse
+than it said:
+- **L4 can be granted when no test ran** (both sides' suite failing to start), when a test fails more often after the
+  change, and, in RobustLab, with an inconclusive test outcome. Tests not collected count as passed.
+- **A rescan of a new commit erases each opportunity's history** (attempts, verdict, decision): the attempt limit
+  is per commit and a proven L4 can wait forever. Not in the review.
+- **CI-based declines trust a substring and a "green" that includes cancelled and neutral runs**; the cycle also
+  froze "no checks yet" for a commit. Seven false declines were reproduced.
+- **A regex Forge admits can take seconds or hang** on 39 characters, and runs in the probe thread; stats readers are
+  used without the approval the mandate requires. The second was not in the review.
+- Provisioning in the lab and for subprojects skips even the declared registry check; timeouts and the kill switch
+  do not stop work already running.
+
+Decision: fix the meaning of evidence before measuring more (Phase 0: test evidence, opportunity history, CI state and
+equivalence, gates), make declared boundaries effective (Phase 1), then wire self-extension, continuous observation and
+a Director that chooses among investigate, measure, acquire, experiment and abstain (Phase 2), then outcome lifecycle
+and an Activity & Outcomes view (Phase 3). Capabilities are evaluated apart: coverage, discovery, decision, capability
+acquisition, experimentation and operational impact. More languages only when the evaluation shows they limit results.
+First PR: one test-evidence contract and judge for the three labs.
+
+## D-040 · 2026-10-28 · One test-evidence contract for every lab; every recorded experiment judged again
+
+**What was wrong** (`docs/PLAN.md` findings A1–A4, reproduced).
+- A suite that never ran on either side counted as "pre-existing failures" and gave L4.
+- A test failing 1 of 3 rounds before the change and 3 of 3 after it was "pre-existing" too.
+- RobustLab gave L4 to anything that was not a clean regression, inconclusive included.
+- A suite that collected no test counted as passing.
+
+**The contract** (`contracts/experiment.py`, `lab/evaluator.py`, `lab/testsuite.py`).
+- Each round records whether the suite ran, collected nothing, or never got going, and how many tests it collected.
+- One judgement, `classify_tests`, used by FixLab, PerfLab and RobustLab, in this order:
+  - `infra_failure`: the suite did not run, or failed on both sides without naming a test;
+  - `not_run`: it collected nothing;
+  - `regression`;
+  - `flakier`: a test fails in more candidate rounds than baseline rounds;
+  - `pre_existing`: failures, none more frequent with the change;
+  - `passed`.
+- One level rule, `level_for`: L4 only when the suite ran on both sides and the outcome is `passed` or `pre_existing`.
+  Everything else that improved stays at L3, with the reason as a caveat. Criteria are versioned `tests-v2`.
+- Records written before keep what they say. An older summary whose rounds read only `<suite>` is taken as a suite
+  that did not run.
+
+**Every recorded experiment, judged again** (`bench/rejudge.py`, `docs/bench/eval/rejudge-tests-v2.json`): 24
+experiments with a suite on both sides, across every workspace state kept.
+- 23 were L4-eligible under the old rules, 22 under the new.
+- **The one that no longer holds is mealie's index (D-035).** Its suite never ran at the base in any round (D-035 said
+  "the suite already fails in the sandbox before the change"). The measured speed-up stands, but it is a lab result
+  (L3), not a functionally validated one. EVIDENCE.md, the landing page and the plan are corrected; the stored record
+  is not rewritten.
+- full-stack-fastapi-template's index (D-010) and Rich's crash fix (D-018) still hold. For Rich, the same test fails
+  on both sides in every round, as D-018 recorded.
+- The pilot's marshmallow false positive passes the tests under both rules. It was CI parity that rejected it: the
+  two checks are complementary.
+
+**For the mealie L5 track** (`docs/bench/2026-10-28-mealie-l5-protocol.md`): the change deployed is an L3 lab result.
+A live measurement can still show its effect (L5 speaks to operation, not to the suite), but the suite has to run at
+the base before the change can be called functionally validated.
+
+## D-041 · 2026-10-28 · mealie on SQLite: L4 revalidated, then a positive live result between two known deploys
+
+**Decision.** mealie's index (D-035) is at L5 on SQLite, under amendment 1 of its pre-registered protocol. Details,
+deviations and raw records: `docs/bench/2026-10-28-mealie-l5-result.md`.
+
+**Why D-035's suite never ran.** The CI's `pytest -n auto` counted the host's CPUs, not the sandbox's; the workers
+outgrew 2 GB. Fixed in the lab for every xdist suite (09d0d14). With it, the revalidation ran the suite 3/3 rounds per
+side (3,640 tests, the same 18 environment failures on both sides) and reached L4 under tests-v2.
+
+**Live.** Two `verified` deploys by Unbidden; `GET /api/foods/empty` 11.8 → 2.2 ms (median), the 56 other probed
+endpoints unchanged. Probe traffic only.
+
+**What changed in Unbidden.** A positive live result is not promoted on lab evidence below L4 (`observe/live.py`).
+Imported history keeps an old live outcome as past. Tools: `bench/revalidate_perf.py`, `bench/import_history.py`,
+`bench/attach_outcome.py`, `bench/mealie_seed.py`.
+
+## D-042 · 2026-10-28 · Stage 4: Meta credits within a cap, routing by task and content, and what development showed
+
+**Budget.** Using the Meta credits for this stage is authorized; no recharge or other spend. The provider offers no
+balance endpoint (every billing path 404), and the account has credits only, no card. The machine-wide ledger
+(`~/.unbidden/spend.db`) holds a stage cap of US$8 entered as a cap, not a measured balance, with US$3 held back for
+the frozen evaluation and the demo (only a person releases it). Every remote call reserves its worst cost before it
+is sent and is refused if it would not fit. Development spent US$0.56 (Spark 0.134, Wonder 0.422).
+
+**Routing.** Goal planning (`director.goal_plan`) and reading documentation to build an integration
+(`forge.api_client`) are heavy tasks, routed by the workspace's `code` route: local model under profile `local`,
+Spark or Wonder under `local-first` with the local model as recorded fallback. Content leaves only from grants marked
+`content_may_leave` (synthetic lab data); runtime and database content of any other grant never does.
+
+**Model policy.** On Depot development, local, Spark and Wonder reached the same outcomes (5/5, 16 verified, 0 false)
+at 20.2 / 7.1 / 5.0 s per call and US$0 / 0.134 / 0.422. Default for the demo: Spark (same outcomes, a third of
+local's time, a third of Wonder's cost). Whether a remote model plans better on harder goals is open; the frozen
+evaluation measures it on new scenarios.
+
+**Fixed in development** (RESULTS.md, stage 4): needs blocked on a person wait for that person instead of being
+abandoned; an abandoned integration is reported to the goal; the send-time gate honours a person's approval.
+
+## D-043 · 2026-10-28 · Stage 5: the multimodal cycle in development, and how it is judged
+
+**Writes.** Every mutating request is authorized as it leaves (`forge.api_client.call`), retries included, and
+recorded; writes are never retried inside the client; an uncertain answer is reconciled by reading first. Reproduced
+before the fix: a POST answered 503, the policy turned to DENY, the POST was sent again and applied.
+
+**A page goal.** A goal may be about what a page shows. The data's values are computed as for the API goal; the
+page is scanned in the confined browser; a model compares row by row under a configured perception (dom, + vision,
++ SAM); within `max_changes`, a model proposes a change of tracked files (with their recent history); Unbidden
+applies it in a worktree, runs the declared checks offline, deploys with the declared steps, scans again.
+
+**Acceptance is not the model's.** A change counts only when the harness's checker verifies it: model-free, with its
+own SQL and service reads, its own browser script, pixel colours from the screenshots, and checks that inventory,
+history, rows and the page's other information are unchanged. Disagreements between the agent and the checker are
+kept (two in development).
+
+**Methods.** Spark stays the default; Wonder only as comparison. In development the browser's observations were
+enough (all defects found and fixed under dom); screenshots and SAM stay available and optional, and are measured
+again on the frozen evaluation before any conclusion.
+
+**Spend.** Development of stage 5 used about US$1.8 (ledger total US$3.14 of the US$5.00 development cap, counted
+conservatively). The US$3.00 reserve is untouched until a person releases it for the frozen evaluation.
+
+## D-044 · 2026-10-28 · Stage 6 budget, and a correction of D-042
+
+**Reported by David from the Meta dashboard, 2026-10-28** (as reported, not read by Unbidden): current balance US$0;
+free credits in use US$144.98; a Visa card is on file; the dashboard warns that content sent while on free credits
+may be used to improve products. "Current balance US$0" is not read as an absence of credits, nor as a guarantee
+that no charge can happen.
+
+**Correction.** D-042 and the stage 4 ledger entry said the account had "credits only, no card". That was wrong: a
+card is on file. The earlier entry stays in `~/.unbidden/budget-history.jsonl` as written; this decision supersedes
+it. Nothing is changed in billing: credits stay on, no recharge, no card charge is authorized, and the billing
+threshold is not used as a spending limit.
+
+**Authorization.** Up to US$10 of free credits from the start of stage 6, the earlier US$3 reserve included (not
+added). The reserve was released with `unbidden spend --release-reserve` on David's written authorization of
+2026-10-28 (the mechanism is a person's command; it was run in this session because he authorized it), then the
+stage cap was entered: `--verified-balance 10 --reserve 0.7`, verified at **2026-10-28T22:44:23Z**, the ledger's
+starting point for these US$10. Split: development US$3 (spendable now), evaluation US$5 and demo and contingency
+US$2 (held as the reserve, released for the frozen evaluation). Every remote call reserves its worst cost before it
+is sent (spend ledger); calls run one at a time (concurrency 1); retries are the router's bounded repairs and the
+action executor's one reconciled retry. Content sent: synthetic lab data and lab code only, through the egress gate.
+
+## D-045 · 2026-10-29 · Stage 6: what was fixed, what the frozen evaluation showed, and what stays
+
+**Fixes** (each with a test failing on c804aaf): OpenAPI schemas by declared version; unusable page checks are
+inconclusive; perception metrics separated; a write's scope is its resource, not the API's prefix; a failed listing
+says why; colours named in observations. The board goal now states the contract's red background.
+
+**Evaluation (94765da, frozen, docs/bench/stage6-eval/):** question A, Linen (OpenAPI 3.1, page numbers): 12/12 runs
+completed (local x1, Spark x2), 0 false verifications. Question B: 30/30 repairs verified by the checker, with or
+without history; perception differed between methods only on badges drawn over the wrong row, where SAM helped.
+Spend US$5.05, US$0.05 over the evaluation share.
+
+**Decisions.** Spark stays the default model; Wonder is not adopted for repairs (no measured gain at 3.1x the cost).
+The page goal's default perception stays `dom`; `vision_sam` stays optional and is the one to try where a layout
+can draw an element over the wrong row. The checker's next version counts visible false flags (a flag drawn over a
+row that is not its own); it is a new version, and the stage 6 results stay as measured.
+
+**What this does not show:** systems other than PostgreSQL, OpenAPI 3.0/3.1 REST with header keys and Idempotency-Key
+writes undone by DELETE, local pages; production systems; other kinds of goals; small n (descriptive).
+
+## D-046 · 2026-10-29 · Stage 7 (in progress): checker v2, acceptance inside the product, and the transfer's block
+
+**Checker v2** (objective amendment 2): a flag is judged on the row that owns it and on the row it is painted on
+(share of its height >= 0.5 signals; straddling reported). Re-reading all 80 stage 6 records with no model call:
+30/30 repairs still verified; the shifted states' wrong rows 18 -> 27; perception precision 1.00 for every method.
+The original reading is kept beside it.
+
+**Acceptance inside the product:** a change counts only when conditions fixed before it (sealed; their source,
+observation, satisfying result, and "inconclusive" when unverifiable) hold on what is deployed, the model's claim kept
+apart; an ambiguous goal changes nothing and asks. The benchmark's checker is not copied into the agent; the kinds are
+generic (declared checks, keys once, information kept, marks given by the goal and the page, an action's effect).
+
+**Transfer:** Conduit (FastAPI RealWorld, pinned 029eb77) chosen and its protocol written before any run. Building and
+running it is blocked: this session's permission rules refused building a third-party repository. It needs David's
+explicit permission; nothing was attempted around the refusal.
+
+**Doctor:** on 2026-10-29 the Meta model listing answered 401 for the key while chat calls with it worked; doctor now
+says what it saw. (An intermediate message in this stage wrongly said the key had to be replaced; corrected.)
+
+## D-047 · 2026-10-29 · Stage 7: what the transfer to Conduit showed, and the next product changes
+
+David authorized building and running Conduit (029eb77) on 2026-10-29; the compose configuration was reviewed first
+(127.0.0.1 only, the original bind mount replaced, no privilege or Docker socket). Three compatibility fixes, counted
+as human preparation, in an untracked override. Frozen at 9ef6a60; B before A, each from a restored state.
+
+**B (proactive):** two natural opportunities found without a hint (unindexed foreign keys on comments and
+favorites); reproduction blocked: the sandbox built dependencies for Python 3.12/arm64 without a toolchain, while
+the project declares 3.9. No improvement demonstrated. **A (goal):** blocked: the app's OpenAPI document declares
+optional fields as non-null strings and the API returns nulls; strict validation rejected the integration. Both A
+runs identical. No false claims, no intervention, US$0.06.
+
+**Decided:** the next version addresses, in this order, (1) experiments on the project's declared interpreter with a
+build toolchain, (2) deviations between a document and observed responses recorded as evidence (reads proceed with
+the deviation stated; writes stay strict), (3) reads in the endpoint-to-table map. None of them is made in this
+stage's evaluated version; Conduit cannot serve as out-of-sample evidence for them.
+
+## D-048 · 2026-10-29 · Stage 8: reproduce the project's environment, and keep provisioning apart from execution
+
+The stage 7 transfer was blocked because the sandbox built dependencies for its own Python (3.12, arm64, no compiler)
+while Conduit declares 3.9. **Decided:** the interpreter is chosen from the project's declarations by a written rule
+(`observe/python_version.py`): the CI's matrix and the project's Dockerfile, then `.python-version`/`runtime.txt`,
+within what `requires-python`, Poetry and the locks admit; the oldest admissible when only a range is declared; every
+source and conflict recorded with the choice. Build tools come only through provisioning the mandate authorizes
+(Debian's archive in `egress.package_registries`), retried when the error says a compiler or `pg_config` is
+missing; interpreters before 3.12 are seeded with pip and setuptools as of the lockfile's commit date. The CI job is
+chosen by what it executes (its scripts included), and its service containers become the sandbox's sidecars.
+Provisioning has network; execution has none. Also: the project's own package is registered in the environment as
+`uv sync` does (LNbits read its version at import), and each language is provisioned on its own (a frontend's npm
+registry no longer blocks Python work).
+
+Shown: Conduit's suite (90 tests) ran at the base on Python 3.9 with the CI's PostgreSQL, two rounds, before any
+change; LNbits' interpreter choice (3.12) matched what uv chose independently. Not shown in an evaluation: LNbits'
+own tests run by Unbidden (its evaluation run failed at import; fixed after it).
+
+## D-049 · 2026-10-29 · Stage 8: controlled read compatibility; findings tied to queries; requests that unblock
+
+**Reads.** A document and its service may disagree. A read may continue past a deviation on an accessory field
+(recorded per operation, field, declared contract, observed value, provenance, time, decision and count); a
+deviation on an identifier, a relation, a count, or a field a goal compares blocks the conclusion
+(`DeviationBlocked`); a declared total contradicted by the next page, or no total under a known name, makes the read
+incomplete or unknown; writes stay strict. No "ignore schema errors" mode. Reads are bounded by records (100,000),
+not requests. On Conduit: all 20,000 articles read, completeness unknown (its count is not under a known name), the
+goal blocked; the `articlesCount` defect stays Claude's observation, never given to the agent.
+
+**Findings.** Columns are traced from SQL files (`-- name:` queries, the nearest FROM/JOIN) to the Python callers and
+the endpoints, routes mounted through `include_router` located with their literal prefixes; an index candidate
+carries an estimated size and the writes that maintain it, labelled as estimates. Index experiments run on tables
+kept only in migrations (no ORM model), with a rule-written migration valid on the project's Python.
+
+**Requests.** A block records the operation, evidence, kind (pending a person, compatibility, missing capability,
+unavailable, not viable), the minimum that unblocks it and what continues; one request per need; held jobs are
+parked without spending attempts and released when the mandate shows the need met. On Conduit: one request
+(Debian's archive), answered once, the five held jobs ran in the next cycle.
+
+## D-050 · 2026-10-29 · Stage 8: the independent application, and what it showed
+
+Chosen by a rule written before looking at code (`docs/bench/stage8-independent.md`): LNbits v1.6.2, frozen with the
+product at 6bbf3a1, run once (I-1, proactive): no improvement, and not a justified abstention: the map read no table
+(its PostgreSQL ran from a compose file the map did not read), the probe could not import the project, and one
+request (npm's registry) was not needed by the work it blocked. Measured independently: the CI's unit tests pass
+(646) at the release; both foreign keys are indexed and the main read takes 1.4 ms on 5,000 payments, so there was
+nothing to fix at this volume. The three causes were fixed generally after the evaluation (da7a595); the repeat I-2
+(labelled post-evaluation) mapped the 14 tables, ran the probe on the project's code (0 crashes), asked nothing, and
+found nothing, consistent with the independent measurement.
+
+## D-051 · 2026-10-29 · Stage 8: an experimental candidate, not 1.0
+
+On Conduit, after six regression versions (each fixing a general cause the one before showed: one request per
+need and released work; migration-only schemas; credential-looking values masked and refusals recorded; a migration
+valid on Python 3.9; an async driver for async suites), the cycle completed: reproduced, measured on both sides with
+the project's checks green, three improvements proposed at L4 and one candidate declined with evidence. Checked
+independently, two improvements hold and **one is a false positive** (an index the query does not use; a 0.5 ms
+difference between separate sandbox sessions passed the criteria). On LNbits, the application frozen for
+independence, the evaluation showed no useful cycle.
+
+**Decided:** the candidate (36e1a59) is called experimental, with the exit criteria and their evidence in
+`docs/PLAN.md`; nothing is published, released or merged; the integration proposal is prepared for review only. The
+false L4 is the first thing to fix: an evidence level that a measurement artifact can reach is not one to build on.
+
+## D-052 · 2026-10-29 · Stage 9 budget: US$30 more, split into enforced envelopes; Meta API only for this stage
+
+David authorized up to **US$30 additional** Meta API spend for stage 9, replacing the US$10 cap. Verified before
+spending: the ledger (`~/.unbidden/spend.db`, counted from the stage 6 verification, 2026-10-28T22:44Z) reads
+**US$7.2945**, as recorded at the end of stage 8, so the new cumulative cap is **US$37.2945**. Dashboard as reported by
+David: "Free credits in use: US$137.96", balance US$0, a card on file. A zero balance is not read as "nothing can be
+billed". Difference recorded: from US$144.98 (2026-10-28) to US$137.96 the dashboard moved US$7.02; the ledger
+counts US$7.29 (list prices, worst cost where usage is unknown), US$0.27 more; the ledger's figure is the one used.
+No billing, card, recharge or credit setting is changed.
+
+**Enforced by the program, not by intention:** the ledger's cap is amended without moving its verification point
+(earlier spend keeps counting; `unbidden spend --amend-cap`), and the US$30 are split into envelopes, each refused
+before a call leaves if it does not fit: `dev` US$12 (development and regressions), `eval` US$12 (the frozen
+evaluation), `demo` US$6 (the demo, the install walk, contingencies). Every call must name its envelope
+(`UNBIDDEN_ENVELOPE`). The worst cost is reserved before each call and settled to the observed cost after. Unspent
+funds may be moved between envelopes by recording the decision first; the envelopes never add up to more than
+US$30.
+
+**Models:** every model call of this stage goes to Meta's API: `muse-spark-1.3` by default; `muse-wonder-1.0` only
+for a concrete difficulty that justifies a comparison, with a stated limit of attempts and cost; vision or SAM only
+when a case needs that evidence. No local model and no silent local fallback in this stage's runs (their mandates
+say `profile: frontier`, `local_fallback: deny`); the product's local support stays as it is. Guardian, permissions
+and egress controls are unchanged; only public projects and synthetic data are sent.
+
+## D-053 · 2026-10-30 · Performance criteria v3: the session is the unit; an index must be seen at work
+
+The stage 8 false L4 (Conduit, `commentaries.author_id`, 2.5 -> 2.0 ms) was reproduced from its samples: criteria v1
+compared one sandbox session per side with a per-sample test, so a difference between two sessions passed as an
+effect. **Decided** (committed in 92d9361 before any measurement under it): four sessions per side, alternating,
+order from a seed, each a fresh database with the same image, data and limits; the session median is the unit; an
+exact one-sided permutation test (alpha 0.05); >= 20% to improve, >= 10% slower to regress, "no relevant change" when
+the effect's 95% interval lies inside +-20%, otherwise inconclusive, blocked under two sessions per side; for an index,
+`pg_stat_user_indexes` must show it used on at least every measured call, else the speed-up is not attributed to it.
+A plan change alone is not a benefit, and no other kind of change is held to a plan change. Controls: an A/A run and
+an irrelevant index both came out "no relevant change". Re-judged: `favorites.article_id` upheld; `commentaries.
+author_id` revoked (an artifact); `commentaries.article_id` revoked at 18% with the workload of B-7 (later regressions,
+with other model-written workloads, measured it at 25% and promoted it: the verdict depends on the workload's data,
+stated as a limit). Older L4s judged by v1 (full-stack-fastapi-template, mealie) are pending revalidation.
+Revocations keep the verdict, the experiment and the reason (`unbidden/lab/revoke.py`).
+
+## D-054 · 2026-10-30 · Lab resources are owned by identity; teardown never selects by family or name
+
+The stage 8 incident (a lab's teardown removed two other labs' containers) is closed with ownership: every container,
+network and volume a lab creates carries `unbidden.lab.id=<lab>`; teardown selects by that alone; volumes are kept
+unless `--volumes`; a half-created lab and a network still in use are handled and reported. Tested with real Docker
+(two labs, foreign resources, volumes, partial failures) and live beside the running labs. A leak in that test's own
+teardown exhausted Docker's address pools after seventeen runs; fixed, and the test now fails on a leaked network.
+
+## D-055 · 2026-10-30 · Completeness from behaviour; partial reads carry only partial conclusions; proactive integrations
+
+A count is a total only if it holds across pages and equals what was read once the end was seen; a page's own length
+(Conduit's `articlesCount`) or an echo of a parameter is not; a documented count that contradicts the read makes it
+incomplete, one that changes between pages unknown; a count on an empty page past the end is not compared. An unknown
+read, or a query cut at its row limit, allows the conclusions its records carry (a discrepancy found) and withholds
+"none"/"every"; keys a limited query did not read are never taken as zero (a false "19,000 keys short" in a
+regression). Proactive runs ask their own read-only questions (an API's reported numbers against the stored data),
+acquire and extend the integration they need (purposes passed to the builder; only operations the granted kind of
+credential can call, as the document's `security` says; reads outside the credential's reach left out, not blamed
+on it; unfillable reads left out; rate limits waited out; the document's server path applied), and end questions
+that cannot be answered without a model call and without asking anyone for something that would not unblock them.
+
+## D-056 · 2026-10-30 · Reproduction before experiment, in every cycle; the CI read as it runs
+
+Every commit gets the project's own checks at its base (`observe.checks`), so a finding or an abstention rests on a
+reproduced environment, or says why not. The CI reader follows local reusable workflows and composite actions, reads
+an action's test-command input, installs the groups the test job's `uv sync` installs, skips steps that only install
+system packages, and rejects jobs that need privileges, the network or the repository's secrets while they run. The
+performance lab runs on the same test plan as the base checks. Endpoint-to-table relations also come from the named
+SQL a handler's code calls (no model); a join in a query keyed by the primary key is not a lookup by the column.
+
+## D-057 · 2026-10-30 · Stage 9: the frozen evaluation ended in four technical blocks; an experimental candidate
+
+The evaluation (`docs/bench/stage9-evaluation.md`, Spoolman v0.27.0 and Prefect 3.9.0, frozen at 466739e, selected
+by a rule written first) gave no useful improvement, no verified absence, no false promotion, and four technical
+blocks, each cause confirmed independently: a lab that demanded a CI job, a client that ignored the document's server
+path, an install that diverged from the CI's, and reads by POST. Their general causes (except reads by POST, a stated
+limit) were fixed afterwards and tested only as regressions. **Decided:** the candidate stays experimental; no second
+set of applications is taken in this stage (that would be replacing applications until one succeeds); the next stage
+pre-registers a larger set before any run. Spend: see `docs/PLAN.md` (stage 9).
+
+## D-058 · 2026-10-30 · Stage 10 budget: the remaining US$20.30 of the same cap, split before any call
+
+No new money: the cumulative cap stays **US$37.2945** (D-052). Verified before spending: the ledger reads
+**US$16.9894** spent, **US$20.3051** available (stage 9: dev US$8.3193, eval US$0.8411, demo US$0.5345; all Meta,
+Spark). The ledger is not reset; stage 9's envelopes stay in its history (`budget-history.jsonl`, the `envelope`
+column of every request).
+
+**Split, enforced by the program** (`unbidden spend --envelopes ... --envelopes-total 20.30`; every call names its
+envelope and is refused before it leaves if it does not fit; the overall cap still applies):
+- `s10-dev` **US$8.00**: diagnosis, development, regressions on Conduit, LNbits, Spoolman and Prefect, the fst and
+  mealie revalidations;
+- `s10-eval` **US$8.50**: the new frozen evaluation only (a real reserve: nothing else may draw on it);
+- `s10-close` **US$3.80**: the final demo, the walks, contingency.
+Moving funds between envelopes needs a decision recorded first. Models: Meta's API only, `muse-spark-1.3` by
+default; `muse-wonder-1.0` only for an identified difficulty, compared on a bounded number of calls, its cost
+recorded; no local model and no local fallback (mandates: `local_fallback: deny`, `local_inference: deny`). No
+billing, card or credit setting is changed.
+
+## D-059 · 2026-10-30 · Experiments are prepared from the project's own evidence and validated before they are compared
+
+The diagnosis (`docs/bench/stage10-diagnosis.md`) put Spoolman's sixteen failed workloads in classes: missing
+fixtures (they live in the project's HTTP integration suite), an unprepared environment (an unbuilt web client the
+image copies in), an absent service (the database settings of its integration compose), invalid workloads (`*args`
+read as fixtures), and a Guardian refusal (a masking defect). The common cause: the lab could measure only by writing
+an in-process test, which Spoolman never writes. **Decided:**
+- The lab measures the way the project tests its API (`lab/prepare.py`): `in_process` when the CI's tests call the
+  project's own application in-process; `served` when its API tests call a server, using the server command, the
+  environment and the database its repository declares (compose, Dockerfile, entrypoint), each item recorded with
+  its source; build artifacts its image copies in that the repository lacks are created empty, and said.
+- In `served` mode the database is seeded by fixed code from the engine's catalog (`lab/seed.py`), and a model
+  only chooses the request (data) among the endpoints the map relates to the table; a fixed driver sends it.
+- A workload is valid only after a base run shows: no help needed, the engine ran a statement reading the table by
+  the column on every measured call (pg_stat_statements), the rows are there, the result carries data. Repairs are
+  bounded; every attempt is kept; a preparation that fails is a block with its reason and readiness state
+  (environment ready, checks reproduced, workload valid, experiment executed, result evaluable), never an absent
+  opportunity or a negative result.
+- The experiment's spec (operation, data, checks, metric, warm-up, samples, order, threshold, criteria, scope,
+  workload digest, provenance) is stored before the first comparison; a changed workload is a new spec.
+
+## D-060 · 2026-10-30 · Criteria perf-v4: the same answer, a quiet control, a confirmation; an L4 states its scope
+
+Fixed before any measurement under them (`lab/perfstats.py`, `PROMOTION_CRITERIA`): perf-v3's sessions, plus the
+same responses on both sides (canonical JSON digests; a faster wrong answer is a regression), an A/A control of two
+base sessions against two (|effect| below 10%, half the relevance threshold), and a confirmation in new sessions in a
+new order at alpha 0.05 divided among the candidates that reached confirmation at the same commit (five sessions per
+side from the fourth on, since four cannot reach 0.0125). Any stage that did not run leaves the outcome short of
+`improved`. The verdict carries the spec and its scope: the operation, the data and the engine; never the
+application. Tested on the seven cases the stage names (`tests/unit/test_promotion.py`). The perf-v3 verdicts stand
+as recorded; promotions under v4 are new verdicts.
+
+## D-061 · 2026-10-30 · Split CI suites, reads by POST, Guardian's masking, the Director's waits
+
+- **CI** (`observe/ci.py`): matrix entries expanded as GitHub Actions does; expressions evaluated by a parser of the
+  documented grammar only where the matrix and literals decide them; `$GITHUB_ENV` kept as environment; bookkeeping
+  after the tests and lines needing another job's artifact left out and said; pytest-split runs one real group. A
+  plan states its scope; base checks of a part are never "the suite". Experiments run the same plan on both sides.
+- **Reads by POST** (`forge/api_client.py`): only when the document says read in every checkable way and an
+  observation (the same answer twice, the documented count unchanged) agrees; otherwise a write. Their pages go
+  through the body; a documented count read before and after decides completeness (complete, changed, incomplete).
+  The connection's `read` permission authorizes them; why each is a read is recorded on the operation.
+- **Guardian** (`guardian/scanner.py`, `brain/router.py`): masking is idempotent for URL credentials; `${VAR}`
+  references, dotted attribute paths and aliases are code; every message whose source is the repository is masked
+  before the scan (event `guardian.values_masked`); anything else holding a secret is still refused whole.
+- **Director** (`daemon/cycle.py`, `lab/fixlab.py`): no experiment before the project's checks ran at the commit
+  with tests collected (the wait is recorded and shown); one sweep waits at a time; a check whose report is
+  incomplete is a block, kept per commit, not a failed attempt (it had taught the Director that such fixes never
+  work: 0.006).
+
+## D-062 · 2026-10-31 · Stage 10 closed on its frozen evaluation; the campaign to v1.0; the budget transfer
+
+**Decided.** Stage 10's frozen evaluation (`docs/bench/stage10-eval/`) is closed with its six original results:
+three applications prepared by a person, none of their test suites reproduced by Unbidden, zero experiments, three
+technical blocks, zero false promotions — which under those conditions says nothing about the evaluator's precision
+(that rests on `stage10-controls/0102ccb-run4`). Aegra's agreement on 200 assistants is a correct consistency result,
+separate from the improvement criterion. The three causes were fixed as development, each with a unit test that
+fails before it, and the three applications' checks now reproduce on one commit (`stage10-regression/checks`); every
+later run on them is a regression. v1.0 is not declared: no useful cycle on an independent application.
+
+**The campaign** (`docs/CAMPAIGN-v1.md`, one plan, linked from `PLAN.md`): scope (Python applications and libraries,
+pytest under GitHub Actions, PostgreSQL for performance work), seven capabilities in order (environment as product
+input; CI plan robustness; workloads from checkable resources; measurement with host-load deferral; discovery of
+non-FK queries and N+1 after the first three hold; consistency semantics; product closing), a 20-repository
+development corpus (`bench/repos/campaign-v1.yaml`, every repository used so far plus CTFd and TimeTracker chosen by
+a recorded rule) and a rule for 8 reserved applications, a preparation gate before the reserved set, the independent
+evaluation's four targets, fixed exit criteria, and stop conditions. Criteria do not move after results are known:
+a change is a new decision here, with its effect on earlier claims.
+
+**Who does what**, in every record: Claude as developer (changes Unbidden by hand from its failures; no
+self-improvement of the product), the harness (clone, compose, data, role, mandate: human preparation, counted),
+Unbidden (everything after the mandate), the independent checker (the author, after the runs).
+
+**Budget.** By David's instruction of 2026-10-31, US$5 of the unspent `s10-eval` moved to `s10-dev` before any
+further spend (`unbidden spend --envelopes`, `~/.unbidden/budget-history.jsonl`): `s10-dev` 13.00, `s10-eval` 3.50,
+`s10-close` 3.80; the cumulative cap US$37.2945 and the ledger unchanged (US$25.2986 spent at the transfer). An
+incremental request of US$8.30 (cap US$45.60) is prepared in the campaign document; nothing is spent against it.
+
+**Effect on earlier claims.** None withdrawn: stage 9's verdict ("experimental candidate") stands; fst's L4 is
+confirmed under perf-v4 with the content comparison of dec7ba2 (the comparison of 49d3259 is recorded as superseded,
+not relied on); mealie's L4 is unconfirmed; Prefect's L4s of B-r14/A-r15/A-r16 are outside its CI's tool scopes and
+do not count.
+
+## D-063 · 2026-11-01 · The campaign pauses at its gate; 0.9.0 frozen as the experimental candidate; the work turns to product
+
+**Decided (David, 2026-11-01).** The campaign to v1.0 (`CAMPAIGN-v1.md`) stops at the preparation gate, at commit
+`0ea665d` of `feat/60-experiments`. That commit is frozen as **version 0.9.0, "experimental candidate"**
+(`pyproject.toml` only; no tag, no release, no PR, as every stage before). The criteria of v1.0 are not met and are
+not changed; they stay in `CAMPAIGN-v1.md` as written before any result was known. The work from here is product:
+installation, `doctor`'s declared support, CLI and configuration, the evidence report, cancel/recover/clean, demo and
+docs (`PLAN.md`, "Product 0.9 to 1.0"); the front end is David's, in his own session, on top of the report.
+
+**Where the gate stood.** Criterion 1 (16 of 20 development repositories reproduce their checks): met under the
+stated rule (18 of 20 at run 7, `stage10-campaign/level-a-0ea665d`), not under the strict reading (10 pass
+outright). Criterion 2 (no known failure allows a false promotion or an action outside the mandate): no
+counterexample; the migration-naming fix of c840697 is unverified on codex-lb. Criterion 3 (controls 7 of 7 on the
+commit): **met**, 7 of 7 at 0ea665d (`stage10-controls/0ea665d/README.md`, the campaign's last run, on a host David
+quieted himself; nothing stopped), as at 0102ccb. Criterion 4 (repeatable cycles on three
+applications and two families): fst (performance, confirmed repeatedly under perf-v4), codex-lb (performance, two
+experiments, the same correct abstention), Aegra (consistency, once); Conduit's L4 is not revalidated under the
+current comparator; mealie's L4 did not hold on PostgreSQL. Partial. Criterion 5 (every block classified): met.
+
+**Why pause rather than push.** What is demonstrated is enough to build a product on: environments and checks
+reproduced on 18 of 20 repositories without a repository named in code, an evaluator that abstains correctly and has
+promoted nothing false since perf-v3, consistency and authorization findings verified by the checker. What is
+missing, a natural improvement verified on an application nobody prepared for it, is not bought with more
+preparation rules: it needs the frozen evaluation on the reserved set, which costs more than the budget that is left
+(US$9.57 of 37.29) allows to repeat. The series of seven level-A runs also showed the cost of that road: each rule
+that widened the planner was measured on the whole corpus because twice it regressed another repository.
+
+**What "improvement" has meant, said plainly.** Verified improvements: performance (perf-v4). Verified findings:
+consistency (API against stored data), authorization (endpoints that answer without the credential they declare),
+crashes. Families with a detector but no verifier yet, which a future version would add each with its own standard
+of evidence: dependencies with a known vulnerability and a fixed version, N+1 and non-FK queries, configuration
+that cannot be discovered. A finding without an external, reproducible check is reported, never promoted.
+
+**Budget.** Spent US$27.7199 of the US$37.2945 cap; US$9.5746 available; envelopes `s10-dev` 13.00 (9.73 spent),
+`s10-eval` 3.50 (1.00), `s10-close` 3.80 (0). Nothing is reset. The incremental request of US$8.30 stays prepared and
+unauthorized. The remaining amount is reserved for measuring 0.9.0 from a clean installation (checks cost nothing;
+experiments draw on it), which is that version's evaluation.
+
+**What would resume the campaign.** A decision here, with: the reserved set selected by the recorded rule, the
+budget for one frozen evaluation and one repetition, and the product closing done, so that the evaluation measures
+installation and configuration as a person meets them.
+
+**Effect on earlier claims.** None withdrawn. Level A's honest counts (13, 12, 14, 14, 14, 17, 18 of 20) and the
+tool's counts (15, 16, 17, 17, 18, 19, 19) are both kept; the rule that separates them is stated in each README.
+Zero false promotions in stages 9 and 10 remains "nothing reached promotion", not precision.

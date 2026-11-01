@@ -4,23 +4,45 @@ from __future__ import annotations
 
 import asyncio
 import threading
+import time
 import traceback
 from datetime import timedelta
 from typing import Any
 
 from unbidden.contracts.common import utc_now
-from unbidden.daemon.cycle import RETRY, Cycle, Log, job
+from unbidden.contracts.llm import Tier
+from unbidden.daemon.cycle import Cycle, Log, job, retry_after, timeout_for
+from unbidden.director.blocks import PARKED, release
+from unbidden.guardian.killswitch import CURRENT, JobScope, TrackingExecutor, kill_containers
 from unbidden.runtime import Runtime
+
+HEALTH_EVERY_S = 60.0
+MAP_EVERY_S = 300.0  # the running system's map, refreshed between commits (no model call)
+
+
+def _model_key(runtime: Runtime) -> str | None:
+    """The remote model's key, read only to send what the mandate allows; never logged or stored."""
+
+    route = runtime.config.routing.get(Tier.CODE)
+    provider = runtime.brain.providers.get(route.provider) if route else None
+    from unbidden.guardian.credentials import broker
+
+    return broker().get(getattr(provider, "key_env", ""), "model.remote") or None
 
 
 def _probe_forever(runtime: Runtime, log: Log, stop: threading.Event) -> None:
     """Probes run on their own thread with their own connection, so long lab or model work never starves them:
     a deploy that is not observed cannot be judged."""
     from unbidden.contracts.world import WorldModel
+    from unbidden.observe.health import HealthWatcher, UiCheck
     from unbidden.observe.live import LiveWatcher
+    from unbidden.observe.logs import LOG_EVERY_S, LogWatcher
+    from unbidden.world import jaeger, prometheus
 
     store = runtime.workspace.store()
     killswitch = runtime.workspace.killswitch()
+    last_health = 0.0
+    last_logs = 0.0
     while not stop.is_set():
         mandate = runtime.workspace.mandate()
         world = store.get("world", "world", WorldModel)
@@ -29,6 +51,21 @@ def _probe_forever(runtime: Runtime, log: Log, stop: threading.Event) -> None:
                 LiveWatcher(runtime.workspace.repo, store, mandate, world, log).tick()
             except Exception as exc:
                 log(f"live probe failed: {exc}")
+        if world is not None and not killswitch.engaged and time.monotonic() - last_logs >= LOG_EVERY_S:
+            last_logs = time.monotonic()
+            try:
+                LogWatcher(store, world, log).tick()
+            except Exception as exc:
+                log(f"log window failed: {exc}")
+        url = prometheus.find(world) if world is not None else None
+        if url and not killswitch.engaged and time.monotonic() - last_health >= HEALTH_EVERY_S:
+            last_health = time.monotonic()
+            try:
+                traces = jaeger.find(world)  # type: ignore[arg-type]
+                ui = UiCheck(store, world, runtime.workspace.dir / "artifacts" / "ui", _model_key(runtime))  # type: ignore[arg-type]
+                HealthWatcher(store, world, prometheus.Prometheus(url), log, traces, ui, mandate).tick()  # type: ignore[arg-type]
+            except Exception as exc:
+                log(f"health check failed: {exc}")
         stop.wait(mandate.operations.probe_every_s)
 
 
@@ -51,6 +88,7 @@ async def watch(
     if requeued:
         log(f"resumed {requeued} interrupted job(s)")
     killswitch = runtime.workspace.killswitch()
+    asyncio.get_running_loop().set_default_executor(TrackingExecutor())
     stop = threading.Event()
     if not once:
         threading.Thread(target=_probe_forever, args=(runtime, log, stop), name="unbidden-probes", daemon=True).start()
@@ -58,6 +96,51 @@ async def watch(
         await _work(runtime, cycle, handlers, store, killswitch, log, interval_s, poll_every, once)
     finally:
         stop.set()
+
+
+class Stopped(Exception):
+    """A job stopped from outside: past its time, or by the kill switch."""
+
+    def __init__(self, why: str, *, drained: bool) -> None:
+        tail = "" if drained else f"; its threads were still working after {DRAIN_S:.0f} s, so it is not retried"
+        super().__init__(why + tail)
+        self.drained = drained
+
+
+DRAIN_S = 30.0
+KILL_POLL_S = 1.0
+
+
+async def run_job(handler: Any, claimed: Any, scope: JobScope, killswitch: Any, timeout_s: float) -> None:
+    """Run one job under its scope. On timeout or kill switch: cancel the scope (its code stops at the next
+    checkpoint), kill the sandbox containers it started, cancel the task, and wait for its threads to end."""
+    token = CURRENT.set(scope)
+    try:
+        task = asyncio.ensure_future(handler(claimed))  # the task copies the context: the scope goes with it
+    finally:
+        CURRENT.reset(token)
+    deadline = time.monotonic() + timeout_s
+    while not task.done():
+        await asyncio.wait({task}, timeout=min(KILL_POLL_S, max(0.0, deadline - time.monotonic())))
+        if task.done():
+            break
+        if killswitch.engaged:
+            scope.cancel("the kill switch was engaged")
+        elif time.monotonic() >= deadline:
+            scope.cancel(f"ran past {timeout_s:g} s")
+        if scope.cancelled.is_set():
+            await asyncio.to_thread(kill_containers, scope.job_id)
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+            raise Stopped(f"stopped: {scope.why}", drained=await _drained(scope))
+    task.result()
+
+
+async def _drained(scope: JobScope) -> bool:
+    end = time.monotonic() + DRAIN_S
+    while scope.active and time.monotonic() < end:
+        await asyncio.sleep(0.2)
+    return scope.active == 0
 
 
 async def _work(
@@ -79,6 +162,13 @@ async def _work(
             store.enqueue(job("observe.live", str(bucket)))
         store.enqueue(job("director.sweep", f"tick:{bucket}"))
         store.enqueue(job("github.poll", str(int(now.timestamp() // poll_every.total_seconds()))))
+        if not once:
+            store.enqueue(job("world.refresh", str(int(now.timestamp() // MAP_EVERY_S))))
+        # Every cycle starts by checking its connections: a `--once` run, or a daemon at each map interval.
+        store.enqueue(job("connect.survey", now.isoformat() if once else str(int(now.timestamp() // MAP_EVERY_S))))
+        # What a person granted since the last cycle: the work it held runs now, not after its backoff.
+        for met in release(store, runtime.workspace.mandate()) if runtime is not None else []:
+            log(f"unblocked: {met.needs}; {len(met.jobs)} job(s) run again")
         while True:
             if killswitch.engaged:
                 log("kill switch engaged; waiting")
@@ -90,13 +180,28 @@ async def _work(
             if handler is None:
                 store.finish(claimed, error=f"no handler for {claimed.type}")
                 continue
+            scope = JobScope(claimed.id)
             try:
-                await handler(claimed)
+                await run_job(handler, claimed, scope, killswitch, timeout_for(claimed.type))
+            except Stopped as stop:
+                log(f"{claimed.type}: {stop}")
+                # Retried only once every thread it started has ended: never two copies of a job at once.
+                retry = retry_after(claimed.attempts) if stop.drained else None
+                store.finish(claimed, error=str(stop), retry_in=retry)
             except Exception as exc:
                 log(f"{claimed.type} failed: {exc}")
-                store.finish(
-                    claimed, error=f"{type(exc).__name__}: {exc}\n{traceback.format_exc(limit=3)}", retry_in=RETRY
-                )
+                from unbidden.director.blocks import classify, record
+
+                subject = next((str(v) for k, v in (claimed.payload or {}).items() if k in ("id", "goal", "opp")), "")
+                block = record(store, classify(f"{claimed.type} {subject}".strip(), f"{type(exc).__name__}: {exc}",
+                                               f"{claimed.type} runs again"), claimed.id)  # fmt: skip
+                retry = retry_after(claimed.attempts)
+                if block.kind == "pending_person":
+                    log(f"needs a person: {block.needs} (then: {block.continues})")
+                    # Parked until a person answers: waiting is not the job's own failure, so no attempt is spent.
+                    claimed.attempts, retry = claimed.attempts - 1, PARKED
+                store.finish(claimed, error=f"{type(exc).__name__}: {exc}\n{traceback.format_exc(limit=3)}",
+                             retry_in=retry)  # fmt: skip
             else:
                 store.finish(claimed)
         if once:

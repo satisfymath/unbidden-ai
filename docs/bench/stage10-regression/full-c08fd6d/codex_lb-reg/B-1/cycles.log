@@ -1,0 +1,166 @@
+== cycle 1 (exit 0)
+16:32:04 watching /Users/david/unbidden-lab/codex-lb (ctrl-c to stop, `unbidden 
+kill` to freeze)
+16:32:18 HEAD is 84fde5a1ed5e
+16:32:20 connections: postgres:127.0.0.1:55480/codex_lb connected, 
+http_api:http://127.0.0.1:18150 needs_capability
+16:32:23 provisioning python dependencies
+16:32:23 running ruff
+16:32:25 provisioning node dependencies of frontend
+16:32:25 scan of 84fde5a1ed5e: 1 reports, 0 new opportunities
+16:34:39 map of 84fde5a1ed5e: 218 resources, 3 blind spots
+16:34:44 robustness probe at 84fde5a1ed5e: investigate (probe app (80 public 
+functions sampled))
+16:37:09 the project's own checks at 84fde5a1ed5e: failed (6422 collected, 34 
+failed)
+16:37:15 opp_85c7ae537aa9431b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+16:37:15 opp_2b2a13d082e349fe: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:37:15 opp_ecd392a5e6cd4485: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:37:15 opp_f225ea6177b246c4: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:37:15 opp_e8670a50dd364ccd: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:37:15 opp_1371cfd965be4d53: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:37:15 opp_ea0a28b4c8454bc1: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:37:15 opp_211b373cf49f46b6: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:37:15 opp_bd379b2da02d443a: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:37:15 opp_5784685ad1a240ac: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:37:15 opp_073d20c325874ba9: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+16:37:24 opp_2b2a13d082e349fe: consistency of GET /api/automations: 
+waiting_capability: needs an integration for codex_lb-api
+16:37:29 capability need api_client for http_api:http://127.0.0.1:18150: failed
+16:37:35 opp_ecd392a5e6cd4485: consistency of GET /api/automations/runs: 
+waiting_capability: needs an integration for codex_lb-api
+16:37:44 capability need api_client for http_api:http://127.0.0.1:18150: in_use
+16:37:49 opp_f225ea6177b246c4: consistency of GET 
+/api/conversation-archive/records: waiting_extension: needs the read 
+list_conversation_archive_records_api_conversation_archive_records_get added to 
+the integration (open)
+16:37:50 capability need api_extension for 
+http_api:http://127.0.0.1:18150#list_conversation_archive_records_api_conversati
+on_archive_records_get: failed
+16:38:05 opp_2b2a13d082e349fe: consistency of GET /api/automations: failed: 
+reads: "the query's rows have no field 'id'"
+16:38:11 opp_ecd392a5e6cd4485: consistency of GET /api/automations/runs: failed:
+reads: "the query's rows have no field 'id'"
+16:38:17 opp_2b2a13d082e349fe: wait (failed: reads: "the query's rows have no 
+field 'id'")
+16:38:17 opp_ecd392a5e6cd4485: wait (failed: reads: "the query's rows have no 
+field 'id'")
+16:38:17 opp_f225ea6177b246c4: wait (investigation queued or running)
+16:38:18 capability need api_extension for 
+http_api:http://127.0.0.1:18150#list_conversation_archive_records_api_conversati
+on_archive_records_get: abandoned
+16:38:25 opp_e8670a50dd364ccd: consistency of GET /api/conversations: 
+waiting_extension: needs the read list_conversations_api_conversations_get added
+to the integration (open)
+16:38:25 capability need api_extension for 
+http_api:http://127.0.0.1:18150#list_conversations_api_conversations_get: in_use
+16:38:34 opp_1371cfd965be4d53: consistency of GET /api/dashboard/overview: 
+waiting_extension: needs the read get_overview_api_dashboard_overview_get added 
+to the integration (open)
+16:38:35 capability need api_extension for 
+http_api:http://127.0.0.1:18150#get_overview_api_dashboard_overview_get: in_use
+16:38:35 opp_ea0a28b4c8454bc1: consistency of GET /api/fleet/observability: 
+blocked without a model call: it needs http:bearer
+16:38:45 opp_f225ea6177b246c4: consistency of GET 
+/api/conversation-archive/records: waiting_extension: needs the read 
+list_conversation_archive_records_api_conversation_archive_records_get added to 
+the integration (abandoned)
+16:38:52 opp_e8670a50dd364ccd: consistency of GET /api/conversations: failed: 
+reads: "the query's rows have no field 'conversationId'"
+16:39:00 opp_1371cfd965be4d53: consistency of GET /api/dashboard/overview: 
+investigated: 0 of 2000 keys differ
+16:39:06 opp_e8670a50dd364ccd: wait (failed: reads: "the query's rows have no 
+field 'conversationId'")
+16:39:06 opp_1371cfd965be4d53: decline (the numbers agree with the stored data 
+over a whole read: 0 of 2000 keys differ)
+16:39:06 opp_ea0a28b4c8454bc1: wait (blocked: GET /api/fleet/observability 
+accepts http:bearer; the granted credential is not of that kind (without one it 
+answers 401))
+16:39:15 opp_211b373cf49f46b6: consistency of GET /api/reports: 
+waiting_extension: needs the read get_reports_api_reports_get added to the 
+integration (open)
+16:39:17 capability need api_extension for 
+http_api:http://127.0.0.1:18150#get_reports_api_reports_get: in_use
+16:39:32 opp_bd379b2da02d443a: consistency of GET /api/request-logs: 
+waiting_extension: needs the read list_request_logs_api_request_logs_get added 
+to the integration (open)
+16:40:33 capability need api_extension for 
+http_api:http://127.0.0.1:18150#list_request_logs_api_request_logs_get: failed
+16:40:44 opp_5784685ad1a240ac: consistency of GET /api/sticky-sessions: 
+waiting_extension: needs the read list_sticky_sessions_api_sticky_sessions_get 
+added to the integration (open)
+16:41:46 capability need api_extension for 
+http_api:http://127.0.0.1:18150#list_request_logs_api_request_logs_get: 
+abandoned
+16:41:48 capability need api_extension for 
+http_api:http://127.0.0.1:18150#list_sticky_sessions_api_sticky_sessions_get: 
+in_use
+16:41:56 opp_211b373cf49f46b6: consistency of GET /api/reports: failed: reads: 
+'the plan names a connection that cannot be read'
+16:42:05 opp_bd379b2da02d443a: consistency of GET /api/request-logs: 
+waiting_extension: needs the read list_request_logs_api_request_logs_get added 
+to the integration (abandoned)
+16:42:14 opp_5784685ad1a240ac: consistency of GET /api/sticky-sessions: failed: 
+reads: "the query's rows have no field 'key'"
+16:42:25 opp_211b373cf49f46b6: wait (failed: reads: 'the plan names a connection
+that cannot be read')
+16:42:25 opp_bd379b2da02d443a: wait (investigation queued or running)
+16:42:25 opp_5784685ad1a240ac: wait (failed: reads: "the query's rows have no 
+field 'key'")
+16:42:25 opp_073d20c325874ba9: consistency of GET /v1/usage: blocked without a 
+model call: it needs http:bearer
+16:42:25 writing property tests for app
+16:42:41 running them offline
+16:42:47 robustness probe of app: 1 failed, 7 passed in 1.72s; 0 crash(es), 0 
+new; 0 property violation(s) kept for a person (L1)
+16:43:05 candidate: index on proxy_pool_members.endpoint_id, written from the 
+finding
+16:43:12 writing the workload (attempt 1)
+16:43:42 validating the workload at the base
+16:43:52 writing the workload (attempt 2)
+16:44:22 validating the workload at the base
+16:44:33 writing the workload (attempt 3)
+16:45:04 validating the workload at the base
+16:45:15 writing the workload (attempt 4)
+16:46:00 validating the workload at the base
+16:46:11 writing the workload (attempt 5)
+16:47:02 validating the workload at the base
+16:47:13 opp_85c7ae537aa9431b: not measured (cannot measure: no workload was 
+valid at the base after 5 attempts (workload attempt 5 failed: no output))
+16:47:25 opp_85c7ae537aa9431b: wait (not measurable at this commit: cannot 
+measure: no workload was valid at the base after 5 attempts (workload attempt 5 
+failed: no output))
+16:47:25 opp_073d20c325874ba9: wait (blocked: GET /v1/usage accepts http:bearer;
+the granted credential is not of that kind (without one it answers 401))
+
+
+== cycle 2 (exit 0)
+16:47:25 watching /Users/david/unbidden-lab/codex-lb (ctrl-c to stop, `unbidden 
+kill` to freeze)
+16:47:31 connections: postgres:127.0.0.1:55480/codex_lb connected, 
+http_api:http://127.0.0.1:18150 connected
+
+
+== cycle 3 (exit 0)
+16:47:38 watching /Users/david/unbidden-lab/codex-lb (ctrl-c to stop, `unbidden 
+kill` to freeze)
+16:47:44 connections: postgres:127.0.0.1:55480/codex_lb connected, 
+http_api:http://127.0.0.1:18150 connected
+
+
+== cycle 4 (exit 0)
+16:47:50 watching /Users/david/unbidden-lab/codex-lb (ctrl-c to stop, `unbidden 
+kill` to freeze)
+16:47:50 connections: postgres:127.0.0.1:55480/codex_lb connected, 
+http_api:http://127.0.0.1:18150 connected

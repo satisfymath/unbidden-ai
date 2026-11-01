@@ -1,0 +1,60 @@
+{
+ "repo": "/Users/david/unbidden-lab/rag-api",
+ "rev": "4985b37b8b5d4519d68eceedfef1e63624012f9d",
+ "stack": {
+  "python": "3.12",
+  "why": [
+   "python 3.12: where the CI runs the checks and the project's Dockerfile both use it",
+   "the CI's python-version: 3.12",
+   "the project's Dockerfile: 3.12"
+  ],
+  "manifest": "requirements.txt",
+  "lockfile": "requirements.txt",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [
+   "test_requirements.txt"
+  ],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:c3826707193716c8",
+ "plan": {
+  "source": "CI ci.yml > build-and-test",
+  "scope": "the whole job, without its tests that need a container runtime",
+  "partial": false,
+  "notes": [
+   "left out, it needs a container runtime (tests/integration/conftest.py imports testcontainers): the sandbox has none and never gets the host's Docker socket: pytest -m integration --maxfail=3 --disable-warnings --junitxml=test-results-integration.xml"
+  ],
+  "services": [],
+  "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest --maxfail=1 --disable-warnings"
+ },
+ "status": "failed",
+ "collected": 195,
+ "failed": [
+  "tests.utils.test_lazy_load::test_lazy_load_returns_documents[md]"
+ ],
+ "why": "exit 1: ceptron_tagger_eng: <urlopen\n[nltk_data]     error pathsec.urlopen: no validated address for host\n[nltk_data]     'raw.githubusercontent.com'; refusing to connect by\n[nltk_data]     unvalidated hostname>\n[nltk_data] Error loading punkt_tab: <urlopen error pathsec.urlopen:\n[nltk_data]     no validated address for host\n[nltk_data]     'raw.githubusercontent.com'; refusing to connect by\n[nltk_data]     unvalidated hostname>\n------------ generated xml file: /work/.unbidden-junit/round-1.xml -------------\n=========================== short test summary info ============================\nFAILED tests/utils/test_lazy_load.py::test_lazy_load_returns_documents[md] - LookupError: \n**********************************************************************\n  Resource 'punkt_tab' not found.\n  Please use the NLTK Downloader to obtain the resource:\n\n  >>> import nltk\n  >>> nltk.download('punkt_tab')\n\n  For more information see: https://www.nltk.org/data.html\n\n  Attempted to load 'tokenizers/punkt_tab/english/'\n\n  Searched in:\n    - '/tmp/nltk_data'\n    - '/deps/.venv/nltk_data'\n    - '/deps/.venv/share/nltk_data'\n    - '/deps/.venv/lib/nltk_data'\n    - '/usr/share/nltk_data'\n    - '/usr/local/share/nltk_data'\n    - '/usr/lib/nltk_data'\n    - '/usr/local/lib/nltk_data'\n**********************************************************************\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n========== 1 failed, 194 passed, 24 deselected, 67 warnings in 7.63s ===========",
+ "failures": {
+  "tests.utils.test_lazy_load::test_lazy_load_returns_documents[md]": "LookupError: \n**********************************************************************\n  Resource 'punkt_tab' not found.\n  Please use the NLTK Downloader to obtain the resource:"
+ },
+ "wall_s": 11.5,
+ "image_notes": [
+  "python 3.12: where the CI runs the checks and the project's Dockerfile both use it",
+  "the CI's python-version: 3.12",
+  "the project's Dockerfile: 3.12",
+  "image unbidden-deps-python:c3826707193716c8 on linux/arm64"
+ ],
+ "python": "3.12",
+ "source": "CI ci.yml > build-and-test",
+ "scope": "the whole job, without its tests that need a container runtime",
+ "partial": false,
+ "notes": [
+  "left out, it needs a container runtime (tests/integration/conftest.py imports testcontainers): the sandbox has none and never gets the host's Docker socket: pytest -m integration --maxfail=3 --disable-warnings --junitxml=test-results-integration.xml"
+ ],
+ "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest --maxfail=1 --disable-warnings"
+}

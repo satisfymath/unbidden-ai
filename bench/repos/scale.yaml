@@ -1,0 +1,43 @@
+# Scale benchmark: full autonomous cycles on repositories Unbidden has never seen.
+#
+# Pre-registered on 2026-10-27, before any run of this set. Commits pinned to each default branch's HEAD that day.
+#
+# Inclusion, all required:
+#   - public on GitHub, an OSI license, not archived, not a fork;
+#   - pushed to within the last 12 months (on 2026-10-27);
+#   - has a test suite;
+#   - never used while developing Unbidden: excludes full-stack-fastapi-template, rich, mealie, opentelemetry-demo,
+#     the 12 Level A repositories (bench/repos/level-a.yaml) and the earlier prototype's set (honojs/hono, simonw/llm,
+#     meta-llama/*, ogx-ai/*, apache/burr, apache/hamilton, fastapi/typer, pydantic/logfire, facebook/lexical,
+#     guardrails-ai/guardrails, kaiko-ai/eva).
+# Exclusion: clones over 500 MB; repositories needing secrets, a GPU or a paid service to run their tests.
+# Stratified by language and shape (library, web framework, application with a database), including languages
+#   Unbidden cannot analyze yet (Go, Ruby, Rust): they are in the denominator, not left out.
+# Applied, not only stated: pallets/itsdangerous was a candidate and is out (last push 2025-06-14); jpadilla/pyjwt
+#   replaced it in the same stratum. encode/starlette is listed at its current home, Kludex/starlette.
+#
+# `pilot` validates the method and may lead to fixes in Unbidden. `holdout` is run once, after those fixes, and
+# nothing in Unbidden is changed because of what it shows.
+repos:
+  # pilot ------------------------------------------------------------------------------------------------------------
+  - {name: pyjwt, url: https://github.com/jpadilla/pyjwt, commit: 16231abfd1d8eab4953e8779b3017b859c88565e, split: pilot, license: MIT, language: Python, shape: library, database: none, domain: security tokens}
+  - {name: humanize, url: https://github.com/python-humanize/humanize, commit: 6b817b963dbb091b9ad20a746cb6a26653a93b95, split: pilot, license: MIT, language: Python, shape: library, database: none, domain: text formatting}
+  - {name: marshmallow, url: https://github.com/marshmallow-code/marshmallow, commit: b762ea2d59ca52fe5df76b90de14bed7e5ec5607, split: pilot, license: MIT, language: Python, shape: library, database: none, domain: serialization}
+  - {name: starlette, url: https://github.com/Kludex/starlette, commit: 8aa828ceaff764a2e57932fb42fdf105a47c4c83, split: pilot, license: BSD-3-Clause, language: Python, shape: web framework, database: none, domain: ASGI}
+  - {name: healthchecks, url: https://github.com/healthchecks/healthchecks, commit: 51a503531d845fc11d5ef270d576c59c300e3620, split: pilot, license: BSD-3-Clause, language: Python, shape: application, database: SQLite/Postgres, domain: cron monitoring}
+  - {name: ky, url: https://github.com/sindresorhus/ky, commit: 3541888878c4d303a8bc2ad61815f4e048f55a5d, split: pilot, license: MIT, language: TypeScript, shape: library, database: none, domain: HTTP client}
+  - {name: express, url: https://github.com/expressjs/express, commit: 1c6f1b0fe4000977b9a7b4f34097e4d527dd9824, split: pilot, license: MIT, language: JavaScript, shape: web framework, database: none, domain: HTTP server}
+  - {name: ufo, url: https://github.com/unjs/ufo, commit: f06c800d0c59f2a4a1b9ba65eb6cb61a84419be6, split: pilot, license: MIT, language: TypeScript, shape: library, database: none, domain: URL parsing}
+  - {name: cobra, url: https://github.com/spf13/cobra, commit: adbc8813901bba65827259daa8e22ff94ec1f30e, split: pilot, license: Apache-2.0, language: Go, shape: library, database: none, domain: CLI framework}
+  - {name: sinatra, url: https://github.com/sinatra/sinatra, commit: cb22afd7902b566b6eaba6c4ea89739494a65d12, split: pilot, license: MIT, language: Ruby, shape: web framework, database: none, domain: HTTP server}
+  # holdout ----------------------------------------------------------------------------------------------------------
+  - {name: markupsafe, url: https://github.com/pallets/markupsafe, commit: 4e111271b1494995708a9e878a10829b5e10c7ba, split: holdout, license: BSD-3-Clause, language: Python, shape: library, database: none, domain: text escaping}
+  - {name: attrs, url: https://github.com/python-attrs/attrs, commit: c8bb9bfaa2843e7844b5bb13bed4370b51feec4f, split: holdout, license: MIT, language: Python, shape: library, database: none, domain: data classes}
+  - {name: tablib, url: https://github.com/jazzband/tablib, commit: 966876c76a6378557c1951badc1665b4d1375875, split: holdout, license: MIT, language: Python, shape: library, database: none, domain: tabular data}
+  - {name: datasette, url: https://github.com/simonw/datasette, commit: a8e13cc489b41f2f9a5aa691f5eb1bedf99a0e0b, split: holdout, license: Apache-2.0, language: Python, shape: application, database: SQLite, domain: data publishing}
+  - {name: requests, url: https://github.com/psf/requests, commit: 3c7baaa05ab4aa49cc819ce3a819d260de19c157, split: holdout, license: Apache-2.0, language: Python, shape: library, database: none, domain: HTTP client}
+  - {name: cookie, url: https://github.com/jshttp/cookie, commit: 51c485421a95ee796de6d8dab53a5ade0a20db8a, split: holdout, license: MIT, language: TypeScript, shape: library, database: none, domain: HTTP cookies}
+  - {name: node-fetch, url: https://github.com/node-fetch/node-fetch, commit: 8b3320d2a7c07bce4afc6b2bf6c3bbddda85b01f, split: holdout, license: MIT, language: JavaScript, shape: library, database: none, domain: HTTP client}
+  - {name: fast-json-stringify, url: https://github.com/fastify/fast-json-stringify, commit: 968bf202868005077f535129262d7ce094d231aa, split: holdout, license: MIT, language: JavaScript, shape: library, database: none, domain: serialization}
+  - {name: anyhow, url: https://github.com/dtolnay/anyhow, commit: bb1b0f9af0f645d5fdf1ac63a1fcbf3975ee452c, split: holdout, license: Apache-2.0, language: Rust, shape: library, database: none, domain: errors}
+  - {name: chi, url: https://github.com/go-chi/chi, commit: 9f8adb1aabaa8a91180a821111d3f8e668d1c0bf, split: holdout, license: MIT, language: Go, shape: library, database: none, domain: HTTP router}

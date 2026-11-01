@@ -1,0 +1,77 @@
+{
+  "pairs": 15,
+  "metrics": {
+    "stack_supported": {
+      "before": 13,
+      "after": 13,
+      "n": 15,
+      "gained": 0,
+      "lost": 0,
+      "p_mcnemar": 1.0
+    },
+    "dependencies_installed": {
+      "before": 8,
+      "after": 11,
+      "n": 15,
+      "gained": 3,
+      "lost": 0,
+      "p_mcnemar": 0.25
+    },
+    "analyzer_complete": {
+      "before": 8,
+      "after": 11,
+      "n": 15,
+      "gained": 3,
+      "lost": 0,
+      "p_mcnemar": 0.25
+    },
+    "bootstrapped": {
+      "before": 8,
+      "after": 11,
+      "n": 15,
+      "gained": 3,
+      "lost": 0,
+      "p_mcnemar": 0.25
+    },
+    "ci_understood": {
+      "before": 15,
+      "after": 15,
+      "n": 15,
+      "gained": 0,
+      "lost": 0,
+      "p_mcnemar": 1.0
+    }
+  },
+  "changes": [
+    {
+      "name": "NVIDIA__IsaacCapture",
+      "before": "deps_missing_file",
+      "after": "deps_resolution",
+      "direction": 0
+    },
+    {
+      "name": "UKGovernmentBEIS__inspect_evals",
+      "before": "deps_python_version",
+      "after": "deps_vcs_source",
+      "direction": 0
+    },
+    {
+      "name": "mistralai__mistral-common",
+      "before": "deps_tool_version",
+      "after": "findings_declined",
+      "direction": 0
+    },
+    {
+      "name": "nesquena__hermes-webui",
+      "before": "deps_stale_lockfile",
+      "after": "findings_declined",
+      "direction": 0
+    },
+    {
+      "name": "KeepSoftwareSimple__compass-calendar",
+      "before": "deps_resolution",
+      "after": "actionable",
+      "direction": 5
+    }
+  ]
+}

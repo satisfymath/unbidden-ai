@@ -1,0 +1,1100 @@
+== cycle 1 (exit 0)
+17:01:15 watching /Users/david/unbidden-lab/prefect (ctrl-c to stop, `unbidden 
+kill` to freeze)
+17:01:15 HEAD is 1ef3e516d3b3
+17:01:16 connections: postgres:127.0.0.1:55470/prefect connected, 
+http_api:http://127.0.0.1:18140 needs_capability
+17:01:17 provisioning python dependencies
+17:01:17 running ruff
+17:01:20 running pyright
+17:01:34 running mypy
+17:01:39 scan of 1ef3e516d3b3: 3 reports, 508 new opportunities
+17:05:14 map of 1ef3e516d3b3: 248 resources, 4 blind spots
+17:05:22 robustness probe at 1ef3e516d3b3: investigate (probe src/prefect (80 
+public functions sampled))
+17:05:33 the project's own checks at 1ef3e516d3b3: infra_failed (None collected,
+1 failed)
+17:05:48 goal data-correct-and-fast: waiting_capability: needs an integration 
+for prefect-api
+17:06:43 capability need api_client for http_api:http://127.0.0.1:18140: failed
+17:07:55 opp_ee99969710544aae: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 experiments wait: the project's own checks were not reproduced at 
+1ef3e516d3b3 (infra_failed: )
+17:07:55 opp_458a03233f5647d3: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_633a372ce1024712: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_64168beb9dc34459: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_6808d249e5ac4621: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_46905c77a6a34b10: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_2bf0c1dcf9b0464a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_8e0451a65ce1421d: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_800f00a981cb4462: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_91a3d8ea8a0c4c82: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_9e2533402d2b43ee: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_b876c2f076564393: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_12ddd6a8ec4d4135: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_47135e4b6a5f43a6: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_2ae1adde18b3416c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_69ae2c05d799482c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_c632aa6c2c2148d1: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_d462095fe30b4dcb: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_0f0ef77e232349dc: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_934625efbfc44774: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_3a279bf0413a4d40: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_3a846a18283644d7: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_5ca26d72936f49e5: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_ee661502e8ea444f: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_a6440bf9edb14617: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_3b878b9cac084fc6: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_a9d7244fc89b4160: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_89a86cf277254ae3: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_a8793fe415f64732: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_c9336d211b7a41a4: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_1eeb97e551ca4d4d: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_fa64e632e72c4d56: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_a5214f1a4d834c59: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_8d3db33e51bf4cce: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_3c9eae9849f24809: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_7c96ec1987714957: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_0bd870f1fd994182: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_6208ba1ca77f4ae3: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_913a2af95bf540e0: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_b5522b832d4f4de1: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_b593b63d9bc84b65: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_f02d167c054a410e: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_e36417b4b9984718: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_7f2d3f7276654ee2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_1ec3c8bee78f4e31: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_0684d5c4c6b14ff4: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_17490c66aead4dc8: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_af4aa80b935546c7: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_d108f70f2e824a7c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_6486f23ebf3649f8: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_c83946c8648a4d12: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_f775c8060fc54761: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_17652c2d78c24e0e: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_aa26713c51e24024: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_a915466f2df146fc: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_04f3a2ece09c429c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_212b1a2e121042a9: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_0177c8634e9d4277: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_85ddcdaeaabf42e2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_f6a02171a113478c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_918665b7eb154d78: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_137c9f0dfd844d42: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_e51731aba2db40d9: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_b704ebae023e48eb: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_408556775bb84aaf: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_d45ca4e035134fc8: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_cc03dfdaefab4938: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_397924966a864b43: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_ca36c4404e2d4032: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_3ea8afeb52dc4438: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_004528d534b74bd6: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_36aee2272901435f: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_a69ca4a599a545dd: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_d7e4abe2d1bc4077: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_eb34d3f3afe1435a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_3a79ca0765db41b9: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_34b03dd1273a4fe7: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_ff13eed284384974: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_ba18f44337b44bae: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_db611b6bd2194042: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_6841c174db4f496e: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_44d484c6bc2b4193: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_214204e3d5804c7a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_b2893079db154e21: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_3d87d8fba22c49f7: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_78cc34d4e3de4e37: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_1d80801a58b1410f: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_e1cb120569af4321: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_663bca746f9d4441: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_079d78a17bcd468c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_eb8a3101175d48fb: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_4d7274d9befc4071: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_0de939561c8647e2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_d24417d5fc6c47d3: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_248a0d2f8a444f7e: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_1e56bdb5da8240c4: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_ae5fb0d553204c2b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_7707f0525b614238: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_b4db0f8b73b64d4b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_3818fbc93ff8447b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_234ebb1aab13495a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_8aa2ce0a1a204c72: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_63be78462ff44d32: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_7ce9105c577747bc: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_cbac3e6093d24602: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_24f32ad2a40f40ec: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_b8842f644de94f39: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_fc1ceac324ae44e1: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_f775ad94a1cb4855: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_6ee06815033b4cf4: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_87838af778ee4884: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_7c02bab3a1c84a7e: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_2578284c3cf8486b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_bb57855c2a154f40: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_789c8f043e1d4d34: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_d8b47eb227e24205: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_5ad8278eabe54e90: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_3be9511b869e4116: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_1de2832c7f9b4c96: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_5a039f9c38954c3b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_7a85880b11e3491a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_7e7a9f8fb4104606: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_6c2deed79b1f4699: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_91ed2f39fad947e3: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_213de11354f84670: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_21c1221cb9e54a14: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_c566207447304dd6: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_939ed5bd4d0d493b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_608b1ba8d099448b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_2856fe6e9b2a4b84: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_7add30db61484aa3: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_31c93b441f8a45cc: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_f7c5b92e882f42ca: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_3cebb5f170c34e92: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_c56eb0630d994d22: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_19e25012775448e9: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_b64af3804bb647b7: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_d46d43afef974fc9: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_371d904111254014: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_72091468646647a1: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_d4ad4e588ca44732: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_1fc65877c40744a1: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_02699f08707f4ea2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_c47e958dd320496d: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_eb16c28e08a24f1a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_73f5a90783f24887: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_5fd8a6542b37425a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_e2d260d204f242e1: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_a42eb81998f84781: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_25be196f24c34dc2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_2159c53e4dcd4e2a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_b47530e05cad4db3: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_a25cd4a3f7c9407b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_e20f3a0cc26244c0: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_4618d166a9de4c1b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_24fa199956ec4147: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_df72ed362c5249ae: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_8185d3017cf14104: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_8303c71b67eb4443: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_e87179a08fb74843: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_e4d76df64c3e40c9: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_5b4126f064794ddf: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_7c367a50cd14403d: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_f4f3c6c1a3f54cc7: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_c519db09918c45ed: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_2afc7760549f4043: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_e2bc73a88d4246a2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_ff1c3d29fb724c38: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_6a3861bd29d84e88: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_be9b33d8d2764eed: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_3e002164ced749cb: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_e809a5112437455b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_0943db5f75074450: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_88194355e0524030: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_e632d0cb42f0433a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_45f3db5f493a4588: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_314ab5cda4584ec0: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_9d33da5e7a1c4b3c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_29e6faa9ae274518: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_d8466a52959e4d10: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_d65bc82b60ed49f8: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_d837ed01788742a0: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_1e22798bab864378: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_ecb9efcdfa7c4312: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_16f983c2c35d4640: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_cee8f1e7e1fe4781: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_fcf379b10b9d42c2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_efa3b6f1f60641c8: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_d2ba22f6b3974df2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_bbdac7bcc0d24dba: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_f82ff43e369145f5: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_fbdb4d9794ac46cc: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_4aabc989e12e4dbe: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_7356d857949b416d: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_86a7e04fcd294b4e: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_7c7333912a734977: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_a27a7d754b7a4b8a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_6496d3b8d4c94ad2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_7fdff05d4f13441a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_c2d45ca2677d4e4d: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_d63dd38472f34a4c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_86b75c32d2654637: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_9c1113d7214d4777: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_fb6f162b1f5a4a12: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_4be4f66253614eb2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_e16ced910d964e51: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_4f0d6266ae844f71: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_c90c9854bcfb441f: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_0d7efaa4cb3a4082: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_7c8810ce5d6944a9: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_ee5ffa08e94e4985: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_ed44ae3cbb9a4d34: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_96b95897fb6842c4: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_e5f40f122a0c4562: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_4b65b5a115b647b3: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_bd35289e69714ba0: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_1a5d6e96e5884b65: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_766c87b55b944c5d: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_f84b1516e50b4e83: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_4bd735e086dc4896: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_5ff71e4852c04e52: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_fd9ff1061e0a40a4: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_3272a2c294b64b1a: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_eba0b015faaf4134: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_d6e2a2d61e4d475b: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_56a7c6059e164c77: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_1e510b6f35e449b2: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_d498504bbd4e45bd: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_4c3f9808d0fe441c: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+17:07:55 opp_e11083eca8d343ea: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_5a19b76521e64879: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_3cfb3e29baf04c39: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_ee86c2511c5f4557: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_dc20ac771e6b4b18: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_8b6abe0fb5694d1f: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_de994504a56e46a9: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_1cd664e7316543c5: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_bb6fbbd68c034fee: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_6fe48090abcb42e0: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_b9dee9551a724c08: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_81d35cb3a541419c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_7bd93411fe584b56: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_db91d1ec51ef4d6e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_fb30312678cd4dce: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_3f4e7c17634d4f8e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_993ce67aa95b4bdf: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_07c0481458074420: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_905d49163b024e71: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_62d74abe85634f12: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_548ba1989c814f76: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_b59d1d8bb02842d7: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_d0987ff4d9bb41fd: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_1677a642fd424c3c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_c14a66950ca24824: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_e2572ffd216f4032: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_db34c2e696344b37: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_270c0f7dfe2142bd: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_453d033261024827: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_d9b22e71bd8f44c2: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_9030ac0ec1124b20: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_748ab7938a8a42f7: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_38916eca37394220: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_7c4dc3bfd3104fa7: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_95351df8bce74c49: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_85dec302b70b434c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_3661ee1924c449c6: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_0404e75e032e466a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_920cd956e19b4d70: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_6da6035e54504066: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_3619e05572174f6d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_6ac59960241041d3: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_4d63135ea0204ef6: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_0edf6124578f4491: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_1e1216f1aa5a4155: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_462c2d3bbb284d22: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_7f679bfc0a3c4f01: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_390d2854e3de46f1: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_49fad27c93a14dd5: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_c5cd973bb2544fa7: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_4be898b1fc1d4797: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_0ffbfe1f0e854d0d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_294ac509d42c4dcd: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_288c1e30775c4b56: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_45d6169d37f5448e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_a3d237565d904bf9: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_6fa17184e07140c3: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_6136af2bca974b2d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_5fa7a93b54524b13: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_b124985515a24b5b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_42cf3b8063d14c90: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_7fac7ac70b384059: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_32935a60a9a9414b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_61d05297b59f463c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_b0ed457c1e0340f7: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_475b6ec9cf054aa3: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_ec126e0c96a04966: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_8cef43582a554135: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_09da3bd24edb4e56: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_ea75dfe726cd4e6a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_d3f517fbd19544a1: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_30f7ec9a59dc4bbf: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_3d0a5a73ca814524: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_618abf5580384b04: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_5280feb811f049cc: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_1d130c884fd144fb: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_f69bdb54c5aa4035: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_e17f58d944e449a9: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_9c8e13d8c68d41ed: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_d8b200584a4d49e9: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_94d8afad108e4c96: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_5ca23c7d2870446a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_2953bf38ee1640ef: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_3277314cfb9c4fea: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_b030d2c673234b4d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_e8f367377a6c4a94: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_0f8b1f66105248c4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_072cebf6608045ca: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_4c477a6af90647d4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_c109f0a75bda4afa: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_7dfb0c34e8074b79: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_b08196d5d9034cce: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_0fcb2defc50e4d33: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_4190eef0d1574dc3: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_6632f23ecc3e4ec5: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_5f5a9c39752c45ff: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_805abcfa7fae4672: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_c16df62b0bfd4225: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_1ab10653e56f441c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_b5c37f44b722431c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_5c486a4ce5344ca5: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_b41fd8a306c244e4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_fe69d5a0a37d4f56: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_e08a8091f90a4643: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_27329631aef24878: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_c249f1feedb74524: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_ad721829053a4d52: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_4b0c337b3399439b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_84f82cb8940f4473: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_0cb2523f0bf946d0: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_72094e9a06f04e74: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_41abb08447354943: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_7e2c5c39c06045a6: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_8c6ec4593f4b4e92: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_78d72d02c42f4bb3: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_2671378d3c4e4b99: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_eca50c40863c40ba: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_247f1e53da2f438e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_3eb78d83ec814663: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_4242fc1875ce433f: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_094225dea69a455c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_618825994d6b444e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_2d99db721a8d4b90: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_608e0c239b584149: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_3f29726690fc4b5b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_a5c09f8b40894cd5: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_25db79e9f7894402: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_03ea6d1030824d30: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_e2ee0091c5d0461c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_7cc04b26ce5740fb: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_19d42e2f26774eec: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_b3d7128cf8094d65: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_e5fd54c36f214536: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_40f6f97864c14bff: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_08b9fd188a7f4227: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_efeabb0b3c924c34: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_d2f40c80b88d4ddd: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_dd677e2a3363462b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_928322be99bf4fdc: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_fc2d917ab7664d56: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_6d111a79550049cc: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_ae226c2ae2f04131: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_111fe6895aab4694: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_f37bc7cdf5c44f3a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_049c5534e5064d80: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_66a146f988a94f0d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_de397417193d4403: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_62541ed8de264a0f: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_0f36898fd14445d0: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_9e32745d91ac4c92: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_d25c761a95e8437a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_9b766b1ce52245ac: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_a626e0d444f14603: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_7a8429e83cf24781: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_7c8c14c990c24298: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_88698b1ec2f54c58: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_542ba6f620ae49ae: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_4c9f200297a74c2d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_f9b60ddc34054917: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_179e53d3646d4e9a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_11f998fbef374d53: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_cb9154057a1b45b9: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_ae4df9a1a13f4626: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_bbd14460835b429d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_53714db7cf7944ee: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_fc53a043511f47de: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_2312f8de4b314878: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_c9216488405f4148: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_37e0b9b81bac4c16: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_6b0f94cab6aa4d2a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_cccb1c19124f44e1: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_1ddb11a606b94db4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_8dcbc7068e34484b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_bf81a8d76a294821: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_580ff9f7389b47e7: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_a19cf4e4751b468b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_e23bb1940e444892: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_7d1eb4915cc84ac6: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_645e529869744a16: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_1b4e01515ceb417b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_006a273b1bc54e4c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_f542084c7b5240c8: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_8c416225738b4e67: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_6b04b328e83e4729: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_75d1aec4e6c04a92: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_03dd0b630d87445b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_97a552f812df42a0: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_4cc7ee48d7b8484b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_5231fd32a75343b0: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_2aa0a54de31444bc: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_524642a5eef04f52: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_3bf1c83991bc4cbb: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_f19cd2a670b3439a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_ef95696942864fdb: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_5949a21561474465: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_c0a83da6f08b46c9: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_7cac73f1f2bf4e16: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_f458e69961774763: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_d75b35c9f86a40aa: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_4f121236745849bf: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_25d8ffb3a3484512: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_80470cc7d4fc4f22: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_ae8cbc6abcc24c57: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_4ec93c61525344f4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_09d41bca7fe6428d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_2d9225f2cbb14398: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_3e9b4722f3bf472c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_ec8726edae624ded: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_2b0aec3e2dd8429c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_26ed521cf85b426d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_c3889234e14e44e8: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_64631ce3f20843d3: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_8b300e25d6104825: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_e49f63b0fff245ba: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_102e7e79f2dd4e58: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_6a45a47801f64e0d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_6616e36b22604faa: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_15fe1b69a1fd4667: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_980e9274a47f465c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_dd92f787f26c4cb7: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_2ff470d2a3f34265: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_83bf6e2b59a149ce: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_953b72ab263c4e40: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_d72e326a23b841dc: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_40d4240a434f4af8: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_96832561a2a74ff3: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_688bb6266b9d4379: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_1e40e3779fd445f3: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_24f11eb2840f4507: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_950d5660fb1d40d2: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_9501b0dc37234716: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_d3397b4295d743e0: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_1364f00e0d834ed7: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_b907c52be59e40c0: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_2bc70ef6d5dc48e4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_4c40799e1f8048b4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_845084685cbb405b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_946c152bc13e4887: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_f0af35657abf43fe: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_bedc40a411334450: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_d7813e13beb243b6: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_428b92ab9e9c4134: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_94c1a82ef4c84dab: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_851859fef11b4151: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_748e399d12934a8c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_9d4b16f6e75848a1: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_0aa4817872bf48bb: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_a74cb2292cc84c9d: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_d7e3f9ec97b244b0: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_06cfc67e83b7411e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_32666b9965614c82: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_610428f6015b4e78: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_cc3bcc9d065d498e: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_cc0640751f5d46f7: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_b498f4cecb044a75: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_15d78676e4754a8b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_0981c15841fa40c4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_53d12ece8f52477b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_8bf3561a0f3a48d5: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_2be5503b5c564631: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_e70d99d152d448a2: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_02973beb17a74033: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_be415f56efc94a79: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_72bcee96ca654f0b: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_dee4aa00be4941d0: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_d100dba4eac648de: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_f654100abd914db7: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_0a6cdce04d5c4893: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_7e7cd32f7cee425f: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_b26f65e986fc4516: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_858a1b9a01c24416: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_9a812c57703d4669: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_02af660e4fcf47d2: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_de20b1e6928843ab: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_a478200083c14132: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_84d4683721654955: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_898491df16f4483a: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_487c4cf3d03145f4: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_edb4ba7ed0f346b5: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_abe0335881bc4e7c: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_26f4501d56a544e8: decline (the team's CI does not run ruff: its 
+style is not the team's standard)
+17:07:55 opp_07c2f67f5752460e: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+17:08:10 capability need api_client for http_api:http://127.0.0.1:18140: in_use
+17:08:20 goal data-correct-and-fast: waiting_extension: needs the read 
+count_task_runs_by_flow_run_ui_flow_runs_count_task_runs_post added to the 
+integration (open)
+17:08:22 capability need api_extension for 
+http_api:http://127.0.0.1:18140#count_task_runs_by_flow_run_ui_flow_runs_count_t
+ask_runs_post: blocked
+17:08:31 opp_07c2f67f5752460e: consistency of GET /events/filter/next: 
+waiting_extension: needs the read 
+read_account_events_page_events_filter_next_get added to the integration (open)
+17:08:33 capability need api_extension for 
+http_api:http://127.0.0.1:18140#read_account_events_page_events_filter_next_get:
+failed
+17:09:07 opp_07c2f67f5752460e: wait (investigation queued or running)
+17:09:09 capability need api_extension for 
+http_api:http://127.0.0.1:18140#read_account_events_page_events_filter_next_get:
+abandoned
+17:09:20 opp_07c2f67f5752460e: consistency of GET /events/filter/next: 
+waiting_extension: needs the read 
+read_account_events_page_events_filter_next_get added to the integration 
+(abandoned)
+17:09:20 writing property tests for src/prefect
+17:09:37 running them offline
+17:09:39 robustness probe of src/prefect: the tests did not run 
+(["pytest.PytestConfigWarning: Failed to import filter module 'prefect': 
+ignore:Runner\\.execute_flow_run has been 
+deprecated:prefect._internal.compatibility.deprecated.PrefectDeprecationWarning"
+])
+
+
+== cycle 2 (exit 0)
+17:09:40 watching /Users/david/unbidden-lab/prefect (ctrl-c to stop, `unbidden 
+kill` to freeze)
+17:09:41 connections: postgres:127.0.0.1:55470/prefect connected, 
+http_api:http://127.0.0.1:18140 connected
+17:09:56 goal data-correct-and-fast: waiting_extension: needs the read 
+read_flow_runs_flow_runs_filter_post added to the integration (open)
+17:10:08 capability need api_extension for 
+http_api:http://127.0.0.1:18140#read_flow_runs_flow_runs_filter_post: failed
+17:10:53 capability need api_extension for 
+http_api:http://127.0.0.1:18140#read_flow_runs_flow_runs_filter_post: abandoned
+17:11:10 goal data-correct-and-fast: investigated: 0 of 0 keys short; nothing to
+change
+
+
+== cycle 3 (exit 0)
+17:11:11 watching /Users/david/unbidden-lab/prefect (ctrl-c to stop, `unbidden 
+kill` to freeze)
+17:11:13 connections: postgres:127.0.0.1:55470/prefect connected, 
+http_api:http://127.0.0.1:18140 connected
+
+
+== cycle 4 (exit 0)
+17:11:47 watching /Users/david/unbidden-lab/prefect (ctrl-c to stop, `unbidden 
+kill` to freeze)
+17:11:48 connections: postgres:127.0.0.1:55470/prefect connected, 
+http_api:http://127.0.0.1:18140 connected

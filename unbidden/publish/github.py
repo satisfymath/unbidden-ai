@@ -22,6 +22,7 @@ from unbidden.contracts.experiment import Proposal, ProposalStatus, PullRequestR
 from unbidden.contracts.guardian import ActionRequest, Decision, EgressAttempt, Mandate
 from unbidden.guardian.approvals import consume, find_valid
 from unbidden.guardian.egress import evaluate_github
+from unbidden.guardian.killswitch import before_effect
 from unbidden.guardian.policy import GITHUB_HOSTS, PolicyEngine
 from unbidden.store import Store
 
@@ -40,7 +41,9 @@ class NeedsApproval(PublishError):
 
 class GitHubClient:
     def __init__(self, slug: str, token_env: str, *, transport: httpx.BaseTransport | None = None) -> None:
-        token = os.environ.get(token_env)
+        from unbidden.guardian.credentials import broker
+
+        token = broker().get(token_env, "github")
         if not token:
             raise PublishError(f"{token_env} is not set; unbidden cannot reach GitHub")
         self.slug = slug
@@ -83,6 +86,20 @@ class GitHubClient:
             self._http.put(f"/repos/{self.slug}/pulls/{number}/merge", json={"sha": sha, "merge_method": method})
         )
 
+    def check_states(self, sha: str) -> list[str]:
+        """The state of every check run on a commit, finished or not, across pages (see `observe.ci.run_state`)."""
+        from unbidden.observe.ci import MAX_PAGES, run_state
+
+        states: list[str] = []
+        for page in range(1, MAX_PAGES + 1):
+            params = {"per_page": 100, "page": page}
+            data = self._check(self._http.get(f"/repos/{self.slug}/commits/{sha}/check-runs", params=params))
+            runs = data.get("check_runs") or []
+            states += [run_state(r) for r in runs]
+            if len(runs) < 100:
+                break
+        return states
+
     def branch_head(self, branch: str) -> str:
         return self._check(self._http.get(f"/repos/{self.slug}/branches/{branch}"))["commit"]["sha"]
 
@@ -98,7 +115,15 @@ def push_branch(repo: Path, slug: str, branch: str, commit: str, token_env: str,
             f'  *) printf "%s" "${token_env}" ;;\nesac\n'
         )
         helper.chmod(stat.S_IRWXU)
-        env = {**os.environ, "GIT_ASKPASS": str(helper), "GIT_TERMINAL_PROMPT": "0"}
+        from unbidden.guardian.credentials import broker
+
+        # The token reaches only this git process, through the helper it calls; never argv, never os.environ.
+        env = {
+            **os.environ,
+            "GIT_ASKPASS": str(helper),
+            "GIT_TERMINAL_PROMPT": "0",
+            token_env: broker().get(token_env, "github") or "",
+        }
         result = subprocess.run(
             [
                 "git",
@@ -184,9 +209,11 @@ class Publisher:
             client = self._client()
             existing = client.find_pr(proposal.branch)
             if existing is None:
+                before_effect(self.store, f"push of {proposal.branch}")
                 push_branch(
                     self.repo, client.slug, proposal.branch, proposal.commit_sha, policy.token_env, policy.base_branch
                 )
+                before_effect(self.store, f"pull request for {proposal.branch}")
                 pr = client.create_pr(
                     title=proposal.title, body=proposal.body_md, head=proposal.branch, base=policy.base_branch
                 )
@@ -232,6 +259,7 @@ class Publisher:
         if len(sequence) >= 2 and self.store.get_value(f"verdict_of:{len(sequence) - 1}") is None:
             # One change at a time: until the last deploy has its verdict, another merge would blur what it did.
             raise PublishError(f"deploy {sequence[-1][:12]} has no verdict yet; merging waits for it")
+        self._require_pr_ci(proposal)
         check(
             self.store,
             self.mandate,
@@ -240,6 +268,7 @@ class Publisher:
             rate_key="merges",
             limit=self.mandate.operations.max_merges_per_hour,
         )
+        before_effect(self.store, f"merge of pull request #{proposal.pr.number}")
         merged = self._client().merge_pr(proposal.pr.number, sha=proposal.commit_sha)
         stamps: list[str] = self.store.get_value("merges", [])
         since = (utc_now() - timedelta(hours=24)).isoformat()
@@ -259,6 +288,35 @@ class Publisher:
             )
         )
         return proposal
+
+    def _require_pr_ci(self, proposal: Proposal) -> None:
+        """The pull request's own CI, on the commit that was measured, must have passed before a merge.
+
+        Pending waits for the next poll; red, cancelled or unknown leaves the merge to a person. A repository that
+        declares no workflow has no CI to wait for: the lab's evidence is all there is, and the proposal says so."""
+        from unbidden.observe.ci import GREEN, PENDING_CI, verdict_of
+
+        assert proposal.pr is not None
+        client = self._client()
+        head = (client.get_pr(proposal.pr.number).get("head") or {}).get("sha")
+        if head != proposal.commit_sha:
+            raise PublishError(
+                f"the pull request's head is {str(head)[:12]}, not the measured {proposal.commit_sha[:12]}"
+            )
+        verdict = verdict_of(client.check_states(proposal.commit_sha))
+        if verdict == GREEN:
+            return
+        if verdict is None:
+            listed = subprocess.run(
+                ["git", "-C", str(self.repo), "ls-tree", "--name-only", f"{proposal.commit_sha}:.github/workflows"],
+                capture_output=True, text=True, check=False,
+            )  # fmt: skip
+            if not listed.stdout.strip():
+                return
+            raise PublishError("the repository declares CI workflows but none has run on the pull request yet")
+        if verdict == PENDING_CI:
+            raise PublishError("the pull request's CI is still running; merging waits for it")
+        raise PublishError(f"the pull request's CI is {verdict}; a person decides this merge")
 
     def poll(self, proposal: Proposal) -> Proposal:
         """Follow an open pull request: merged, closed, or stale because its base moved."""

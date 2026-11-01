@@ -1,0 +1,1674 @@
+{
+ "name": "fst-49d3259",
+ "opportunity": "opp_56f9d3d9ace0468f",
+ "title": "item.owner_id is a foreign key without an index, read by 5 endpoint(s)",
+ "original_level": 4,
+ "base": "f4bcfaba7c85be3c6332cc74a20819f586dcdbc6",
+ "product": "49d3259fb4a90b2588f66559333f893ba5204cbd",
+ "usd_before": 23.2342,
+ "verdict": {
+  "experiment_id": "exp_6a18d8e70f4342f7",
+  "improved": true,
+  "evidence_level": 4,
+  "criteria": {
+   "version": "perf-v4",
+   "unit": "session median (each session: a fresh database, the same data, warm-up then samples)",
+   "sessions_per_arm": 4,
+   "order": "alternating base and candidate, which goes first drawn from a seed",
+   "test": "exact one-sided permutation test on session medians",
+   "alpha": 0.05,
+   "min_median_improvement": 0.2,
+   "regression_if_slower_by": 0.1,
+   "no_relevant_change": "the 95% bootstrap interval of the relative effect over sessions lies inside +-20%",
+   "mechanism": "when the change declares one (an index), the engine must show it used during the measured calls",
+   "functional": "every measured call succeeds and returns the same result on both sides (canonical JSON digest)",
+   "control": "A/A: 2 base sessions against 2 more, |effect| below 10%",
+   "confirmation": "4 new sessions per arm in a new order, improved again at alpha 0.05 / (candidates confirmed at this commit)",
+   "scope": "the declared operation, data and engine; no claim about other endpoints or production"
+  },
+  "tests": "passed",
+  "reasons": [
+   "GET /api/v1/items/: session medians 12.68 -> 3.57 ms (+72% faster), permutation p = 0.0286 (slower: 1), 95% interval of the effect [+69%, +73%]",
+   "mechanism observed: 2048-2048 scans of an index on item.owner_id per candidate session (needed: 20)",
+   "A/A control: -1% between two sets of base sessions",
+   "confirmation: session medians 12.42 -> 3.61 ms (+71% faster), permutation p = 0.0286 (slower: 1), 95% interval of the effect [+70%, +72%]",
+   "the same 20 responses on both sides, in every session"
+  ],
+  "caveats": [
+   "{'item': 200000}, measured in a sandbox; production effect not yet observed",
+   "measured on postgres, the running system's engine",
+   "the project's tests on both sides: the whole job"
+  ],
+  "outcome": "improved",
+  "scope": "GET /api/v1/items/ on {'item': 200000}, PostgreSQL in a sandbox, inside the test suite; not a claim about other endpoints, other data or production",
+  "spec_id": "spec_41a46097e97b4e3b"
+ },
+ "experiment": {
+  "id": "exp_6a18d8e70f4342f7",
+  "opportunity_id": "opp_56f9d3d9ace0468f",
+  "base_sha": "f4bcfaba7c85be3c6332cc74a20819f586dcdbc6",
+  "candidate_patch_sha256": "9f846ce9f56c2652a8151a45fd8677058e2d58488044e3f5e31758666877dd54",
+  "rounds": 3,
+  "baseline_tests": {
+   "rounds": 3,
+   "failed_per_round": [
+    [],
+    [],
+    []
+   ],
+   "round_status": [
+    "ran",
+    "ran",
+    "ran"
+   ],
+   "collected_per_round": [
+    58,
+    58,
+    58
+   ],
+   "infra_why": [
+    null,
+    null,
+    null
+   ]
+  },
+  "candidate_tests": {
+   "rounds": 3,
+   "failed_per_round": [
+    [],
+    [],
+    []
+   ],
+   "round_status": [
+    "ran",
+    "ran",
+    "ran"
+   ],
+   "collected_per_round": [
+    58,
+    58,
+    58
+   ],
+   "infra_why": [
+    null,
+    null,
+    null
+   ]
+  },
+  "findings_before": [],
+  "findings_after": [],
+  "samples_before_ms": [
+   13.645583007019013,
+   13.419206021353602,
+   13.455998967401683,
+   13.805416994728148,
+   12.914452992845327,
+   12.018490000627935,
+   11.687195976264775,
+   11.60361198708415,
+   13.912333990447223,
+   14.037376968190074,
+   11.615863011684269,
+   11.683529010042548,
+   12.341950030531734,
+   12.048239994328469,
+   12.711577001027763,
+   13.791000004857779,
+   13.877168006729335,
+   12.687326990999281,
+   12.804035970475525,
+   12.607868004124612,
+   12.396282982081175,
+   12.214865011628717,
+   12.995204015169293,
+   13.335538969840854,
+   13.99775198660791,
+   12.618076987564564,
+   12.392075033858418,
+   11.60436199279502,
+   12.859162001404911,
+   12.525992991868407,
+   12.741243990603834,
+   13.293205003719777,
+   13.305914006195962,
+   12.463201011996716,
+   12.983454042114317,
+   11.814738973043859,
+   13.222371984738857,
+   13.74520902754739,
+   13.768376025836915,
+   12.367492017801851,
+   15.508385957218707,
+   14.037335000466555,
+   13.9137509977445,
+   12.163323990534991,
+   13.43070698203519,
+   11.85319700744003,
+   12.755744042806327,
+   11.762737995013595,
+   14.17683600448072,
+   11.68211200274527,
+   11.827696987893432,
+   12.507160019595176,
+   13.53778998600319,
+   12.47053500264883,
+   13.19778896868229,
+   12.58753496222198,
+   12.612325954250991,
+   11.631153989583254,
+   12.454034003894776,
+   14.196044008713216,
+   12.842812051530927,
+   12.675436970312148,
+   13.734483043663204,
+   11.542765016201884,
+   11.830806965008378,
+   11.815515987109393,
+   12.098099978175014,
+   11.852598981931806,
+   13.568900001700968,
+   14.28552798461169,
+   12.680186016950756,
+   12.123933993279934,
+   11.971641040872782,
+   12.512060988228768,
+   14.043984992895275,
+   11.661973025184125,
+   11.850723996758461,
+   12.452477996703237,
+   12.532102002296597,
+   13.012270967010409
+  ],
+  "samples_after_ms": [
+   3.5808130051009357,
+   3.6454800283536315,
+   3.853482019621879,
+   4.0225249831564724,
+   3.944523981772363,
+   3.799272992182523,
+   4.182984004728496,
+   3.7240650271996856,
+   3.565979946870357,
+   3.3970209769904613,
+   3.471395990345627,
+   3.348728991113603,
+   3.4296460216864944,
+   3.5465219989418983,
+   3.375978965777904,
+   3.309227991849184,
+   3.2243950408883393,
+   3.2073110342025757,
+   3.259936987888068,
+   3.2503950060345232,
+   3.50868800887838,
+   6.312663026619703,
+   4.2549840291030705,
+   5.079572030808777,
+   7.930340012535453,
+   8.518635004293174,
+   8.203091972973198,
+   7.945630990434438,
+   5.527283006813377,
+   5.309615982696414,
+   4.304985050112009,
+   3.4118120092898607,
+   3.379436966497451,
+   3.352686995640397,
+   3.3830199972726405,
+   3.3455200027674437,
+   3.2838950282894075,
+   3.553521994035691,
+   3.29406198579818,
+   3.3379369997419417,
+   3.539854020345956,
+   3.6393560003489256,
+   3.579355019610375,
+   3.5756469587795436,
+   3.545521991327405,
+   3.4063130151480436,
+   3.4381879959255457,
+   3.482270985841751,
+   3.349937032908201,
+   3.5140220425091684,
+   3.450479998718947,
+   3.4172710147686303,
+   3.4847710048779845,
+   3.532562986947596,
+   3.5471469745971262,
+   3.2854779856279492,
+   3.639606002252549,
+   3.4161870134994388,
+   3.3373949700035155,
+   3.2999359536916018,
+   3.6027299938723445,
+   3.61506303306669,
+   3.9887739694677293,
+   3.9295239839702845,
+   3.9701490313746035,
+   3.913107037078589,
+   4.6183610102161765,
+   4.23390103969723,
+   3.871314984280616,
+   3.6653560237027705,
+   3.719648055266589,
+   3.527854976709932,
+   3.629980026744306,
+   3.476187994237989,
+   3.535563009791076,
+   3.513062954880297,
+   3.480686980765313,
+   3.3828120213001966,
+   3.440895990934223,
+   3.4027710207737982
+  ],
+  "workload_sha256": "1410e3772f38f7269cb20d16b763c3fe53580ab5a05a2bd4196559dc38f7da36",
+  "sessions": [
+   {
+    "arm": "candidate",
+    "position": 0,
+    "samples_ms": [
+     3.5808130051009357,
+     3.6454800283536315,
+     3.853482019621879,
+     4.0225249831564724,
+     3.944523981772363,
+     3.799272992182523,
+     4.182984004728496,
+     3.7240650271996856,
+     3.565979946870357,
+     3.3970209769904613,
+     3.471395990345627,
+     3.348728991113603,
+     3.4296460216864944,
+     3.5465219989418983,
+     3.375978965777904,
+     3.309227991849184,
+     3.2243950408883393,
+     3.2073110342025757,
+     3.259936987888068,
+     3.2503950060345232
+    ],
+    "median_ms": 3.5089589946437627,
+    "index_scans": 2048,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 0.05,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 0.035,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   },
+   {
+    "arm": "base",
+    "position": 1,
+    "samples_ms": [
+     13.645583007019013,
+     13.419206021353602,
+     13.455998967401683,
+     13.805416994728148,
+     12.914452992845327,
+     12.018490000627935,
+     11.687195976264775,
+     11.60361198708415,
+     13.912333990447223,
+     14.037376968190074,
+     11.615863011684269,
+     11.683529010042548,
+     12.341950030531734,
+     12.048239994328469,
+     12.711577001027763,
+     13.791000004857779,
+     13.877168006729335,
+     12.687326990999281,
+     12.804035970475525,
+     12.607868004124612
+    ],
+    "median_ms": 12.757806485751644,
+    "index_scans": 0,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 4.956,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 4.133,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   },
+   {
+    "arm": "candidate",
+    "position": 2,
+    "samples_ms": [
+     3.50868800887838,
+     6.312663026619703,
+     4.2549840291030705,
+     5.079572030808777,
+     7.930340012535453,
+     8.518635004293174,
+     8.203091972973198,
+     7.945630990434438,
+     5.527283006813377,
+     5.309615982696414,
+     4.304985050112009,
+     3.4118120092898607,
+     3.379436966497451,
+     3.352686995640397,
+     3.3830199972726405,
+     3.3455200027674437,
+     3.2838950282894075,
+     3.553521994035691,
+     3.29406198579818,
+     3.3379369997419417
+    ],
+    "median_ms": 3.9042530115693808,
+    "index_scans": 2048,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 0.058,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 0.036,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   },
+   {
+    "arm": "base",
+    "position": 3,
+    "samples_ms": [
+     12.396282982081175,
+     12.214865011628717,
+     12.995204015169293,
+     13.335538969840854,
+     13.99775198660791,
+     12.618076987564564,
+     12.392075033858418,
+     11.60436199279502,
+     12.859162001404911,
+     12.525992991868407,
+     12.741243990603834,
+     13.293205003719777,
+     13.305914006195962,
+     12.463201011996716,
+     12.983454042114317,
+     11.814738973043859,
+     13.222371984738857,
+     13.74520902754739,
+     13.768376025836915,
+     12.367492017801851
+    ],
+    "median_ms": 12.800202996004373,
+    "index_scans": 0,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 4.935,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 4.034,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   },
+   {
+    "arm": "candidate",
+    "position": 4,
+    "samples_ms": [
+     3.539854020345956,
+     3.6393560003489256,
+     3.579355019610375,
+     3.5756469587795436,
+     3.545521991327405,
+     3.4063130151480436,
+     3.4381879959255457,
+     3.482270985841751,
+     3.349937032908201,
+     3.5140220425091684,
+     3.450479998718947,
+     3.4172710147686303,
+     3.4847710048779845,
+     3.532562986947596,
+     3.5471469745971262,
+     3.2854779856279492,
+     3.639606002252549,
+     3.4161870134994388,
+     3.3373949700035155,
+     3.2999359536916018
+    ],
+    "median_ms": 3.483520995359868,
+    "index_scans": 2048,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 0.05,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 0.03,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   },
+   {
+    "arm": "base",
+    "position": 5,
+    "samples_ms": [
+     15.508385957218707,
+     14.037335000466555,
+     13.9137509977445,
+     12.163323990534991,
+     13.43070698203519,
+     11.85319700744003,
+     12.755744042806327,
+     11.762737995013595,
+     14.17683600448072,
+     11.68211200274527,
+     11.827696987893432,
+     12.507160019595176,
+     13.53778998600319,
+     12.47053500264883,
+     13.19778896868229,
+     12.58753496222198,
+     12.612325954250991,
+     11.631153989583254,
+     12.454034003894776,
+     14.196044008713216
+    ],
+    "median_ms": 12.599930458236486,
+    "index_scans": 0,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 4.92,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 4.196,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   },
+   {
+    "arm": "candidate",
+    "position": 6,
+    "samples_ms": [
+     3.6027299938723445,
+     3.61506303306669,
+     3.9887739694677293,
+     3.9295239839702845,
+     3.9701490313746035,
+     3.913107037078589,
+     4.6183610102161765,
+     4.23390103969723,
+     3.871314984280616,
+     3.6653560237027705,
+     3.719648055266589,
+     3.527854976709932,
+     3.629980026744306,
+     3.476187994237989,
+     3.535563009791076,
+     3.513062954880297,
+     3.480686980765313,
+     3.3828120213001966,
+     3.440895990934223,
+     3.4027710207737982
+    ],
+    "median_ms": 3.622521529905498,
+    "index_scans": 2048,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 0.052,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 0.035,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   },
+   {
+    "arm": "base",
+    "position": 7,
+    "samples_ms": [
+     12.842812051530927,
+     12.675436970312148,
+     13.734483043663204,
+     11.542765016201884,
+     11.830806965008378,
+     11.815515987109393,
+     12.098099978175014,
+     11.852598981931806,
+     13.568900001700968,
+     14.28552798461169,
+     12.680186016950756,
+     12.123933993279934,
+     11.971641040872782,
+     12.512060988228768,
+     14.043984992895275,
+     11.661973025184125,
+     11.850723996758461,
+     12.452477996703237,
+     12.532102002296597,
+     13.012270967010409
+    ],
+    "median_ms": 12.482269492466003,
+    "index_scans": 0,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 4.788,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 3.998,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   }
+  ],
+  "provenance": {
+   "unbidden": {
+    "version": "0.1.0",
+    "commit": "49d3259fb4a90b2588f66559333f893ba5204cbd",
+    "dirty": false
+   },
+   "routes": {
+    "local": "ollama:muse-glimmer:30b-mxfp8-dflash:think=low",
+    "frontier": "meta:muse-spark-1.3:think=low",
+    "code": "meta:muse-spark-1.3:think=low"
+   },
+   "models": {
+    "profile": "frontier",
+    "local_fallback": "deny",
+    "private_code_to_frontier": "allow"
+   },
+   "images": [
+    "unbidden-deps-node:4ba2d27d57b305c8",
+    "unbidden-deps-python:bb6e594caaed1a02"
+   ],
+   "engine": "postgresql"
+  },
+  "spec_id": "spec_41a46097e97b4e3b",
+  "validation": {
+   "attempt": 1,
+   "passed": [
+    "the workload ran at the base without help (20 measured calls, HTTP 200)",
+    "the engine ran a statement reading item by owner_id on every call",
+    "200000 rows inserted into item",
+    "the response carries data, and its digest is recorded"
+   ],
+   "statements": [
+    {
+     "calls": 23,
+     "mean_ms": 4.841,
+     "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+    },
+    {
+     "calls": 23,
+     "mean_ms": 4.073,
+     "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+    }
+   ],
+   "inserted": {
+    "item": 200000
+   }
+  },
+  "control": [
+   {
+    "arm": "base-a",
+    "position": 0,
+    "samples_ms": [
+     13.845901004970074,
+     12.725603999570012,
+     13.307898014318198,
+     12.66622805269435,
+     11.668805964291096,
+     13.550857023801655,
+     11.689890001434833,
+     11.67897298000753,
+     12.792145018465817,
+     11.510431009810418,
+     12.768812011927366,
+     11.416430992539972,
+     12.485935993026942,
+     12.080100015737116,
+     13.176813954487443,
+     11.53201499255374,
+     15.967619023285806,
+     13.76377500128001,
+     14.189484994858503,
+     12.948604999110103
+    ],
+    "median_ms": 12.74720800574869,
+    "index_scans": 0,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 4.784,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 4.069,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   },
+   {
+    "arm": "base-b",
+    "position": 1,
+    "samples_ms": [
+     11.971057974733412,
+     12.136559002101421,
+     13.926734041888267,
+     11.611222987994552,
+     14.07594297779724,
+     11.654180998448282,
+     11.724348994903266,
+     11.527473048772663,
+     12.675811012741178,
+     11.658599018119276,
+     11.78289100062102,
+     11.759014974813908,
+     11.528348026331514,
+     14.330570003949106,
+     14.822863973677158,
+     14.655445993412286,
+     12.382393993902951,
+     13.37535702623427,
+     12.714604032225907,
+     13.367440027650446
+    ],
+    "median_ms": 12.259476498002186,
+    "index_scans": 0,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 4.845,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 3.988,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   },
+   {
+    "arm": "base-a",
+    "position": 2,
+    "samples_ms": [
+     12.937270978000015,
+     12.226392980664968,
+     13.559982005972415,
+     11.764682014472783,
+     11.70364097924903,
+     12.344393995590508,
+     12.318226974457502,
+     11.50138903176412,
+     12.86639500176534,
+     12.06818298669532,
+     11.89055701252073,
+     12.751478992868215,
+     11.39334699837491,
+     12.694186007138342,
+     12.654477963224053,
+     11.764139984734356,
+     11.409804981667548,
+     12.309559970162809,
+     12.133684009313583,
+     13.129688974004239
+    ],
+    "median_ms": 12.267976475413889,
+    "index_scans": 0,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 4.71,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 3.799,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   },
+   {
+    "arm": "base-b",
+    "position": 3,
+    "samples_ms": [
+     13.896984048187733,
+     12.356142979115248,
+     14.710780000314116,
+     13.079855998512357,
+     12.81222904799506,
+     11.803973990026861,
+     12.801353994291276,
+     11.598597979173064,
+     12.840020004659891,
+     11.852516036015004,
+     13.496190018486232,
+     12.738645018544048,
+     13.515773986000568,
+     12.846353987697512,
+     13.956108945421875,
+     14.267860969994217,
+     12.95731298159808,
+     13.595440948847681,
+     13.231689983513206,
+     12.191309011541307
+    ],
+    "median_ms": 12.901833484647796,
+    "index_scans": 0,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 4.958,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 4.219,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   }
+  ],
+  "confirmation": [
+   {
+    "arm": "candidate",
+    "position": 0,
+    "samples_ms": [
+     3.770934999920428,
+     3.599768038839102,
+     3.5459339851513505,
+     3.766060050111264,
+     3.4372250083833933,
+     3.4894339623861015,
+     3.50205902941525,
+     3.5206000320613384,
+     3.593726025428623,
+     3.514766984153539,
+     3.7829349748790264,
+     3.653726016636938,
+     3.7531849811784923,
+     3.907978010829538,
+     3.8864779635332525,
+     4.9292739713564515,
+     4.283896007109433,
+     3.833393973764032,
+     3.70093499077484,
+     4.00901900138706
+    ],
+    "median_ms": 3.727059985976666,
+    "index_scans": 2048,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 0.053,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 0.038,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   },
+   {
+    "arm": "base",
+    "position": 1,
+    "samples_ms": [
+     13.508856995031238,
+     12.895728985313326,
+     13.371439999900758,
+     11.716014996636659,
+     12.215600989293307,
+     11.736057989764959,
+     12.384101981297135,
+     13.765817042440176,
+     13.472024002112448,
+     11.794307036325336,
+     11.789931973908097,
+     11.645390011835843,
+     13.073896989226341,
+     12.195934017654508,
+     13.181313988752663,
+     11.699390015564859,
+     11.765348026528955,
+     11.720848036929965,
+     13.023480016272515,
+     14.796988980378956
+    ],
+    "median_ms": 12.299851485295221,
+    "index_scans": 0,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 4.735,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 4.174,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   },
+   {
+    "arm": "candidate",
+    "position": 2,
+    "samples_ms": [
+     3.7390649667941034,
+     3.5026880213990808,
+     3.6472720094025135,
+     3.440396045334637,
+     3.5900630173273385,
+     3.5043959505856037,
+     3.475561970844865,
+     3.5044369869865477,
+     3.400770016014576,
+     3.72519000666216,
+     3.503729007206857,
+     3.57002200325951,
+     3.432396042626351,
+     3.4358540433458984,
+     3.7362310104072094,
+     3.62814700929448,
+     3.4931880072690547,
+     3.3838950330391526,
+     3.398811968509108,
+     3.371395985595882
+    ],
+    "median_ms": 3.503208514302969,
+    "index_scans": 2048,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 0.05,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 0.03,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   },
+   {
+    "arm": "base",
+    "position": 3,
+    "samples_ms": [
+     13.413039036095142,
+     11.911946989130229,
+     13.101412972901016,
+     11.71269704354927,
+     11.580945050809532,
+     11.900197947397828,
+     12.185864965431392,
+     14.4690049928613,
+     14.195462048519403,
+     12.20690697664395,
+     11.95907301735133,
+     11.595195974223316,
+     12.75974401505664,
+     11.496404011268169,
+     13.02574499277398,
+     12.444199994206429,
+     11.41911098966375,
+     12.167074019089341,
+     13.908168009947985,
+     12.451825954485685
+    ],
+    "median_ms": 12.196385971037671,
+    "index_scans": 0,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 4.687,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 3.988,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   },
+   {
+    "arm": "candidate",
+    "position": 4,
+    "samples_ms": [
+     3.7051060353405774,
+     3.531979979015887,
+     3.5182299907319248,
+     3.7851479719392955,
+     3.707188996486366,
+     3.927482001017779,
+     3.9100240101106465,
+     5.170573014765978,
+     4.80777898337692,
+     4.375652002636343,
+     5.697408982086927,
+     4.17269195895642,
+     3.7319399998523295,
+     3.7703149719163775,
+     3.5205219755880535,
+     3.461271000560373,
+     3.417687024921179,
+     3.33610299276188,
+     3.3814790076576173,
+     3.4653960028663278
+    ],
+    "median_ms": 3.7195644981693476,
+    "index_scans": 2048,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 0.055,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 0.043,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   },
+   {
+    "arm": "base",
+    "position": 5,
+    "samples_ms": [
+     12.616025982424617,
+     13.183737988583744,
+     14.530660992022604,
+     13.624989020172507,
+     11.796355014666915,
+     12.031439982820302,
+     12.462901009712368,
+     13.872448995243758,
+     12.799026968423277,
+     11.52472902322188,
+     11.68735499959439,
+     11.597478995099664,
+     12.628360011149198,
+     13.221279019489884,
+     13.638406991958618,
+     11.775646009482443,
+     13.507113966625184,
+     11.862981016747653,
+     11.502978974021971,
+     11.597021017223597
+    ],
+    "median_ms": 12.539463496068493,
+    "index_scans": 0,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 4.862,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 3.859,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   },
+   {
+    "arm": "candidate",
+    "position": 6,
+    "samples_ms": [
+     3.7151449942030013,
+     3.7463540211319923,
+     3.5317279980517924,
+     3.3997269929386675,
+     3.425184986554086,
+     3.4068929962813854,
+     3.3873519860208035,
+     3.3258930197916925,
+     3.5511860041879117,
+     3.4980610362254083,
+     3.6672280402854085,
+     3.5544770071282983,
+     3.4281020052731037,
+     3.4151440486311913,
+     3.382934955880046,
+     3.302600991446525,
+     3.4382269950583577,
+     3.444977046456188,
+     3.3468089532107115,
+     3.3561430172994733
+    ],
+    "median_ms": 3.426643495913595,
+    "index_scans": 2048,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 0.051,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 0.031,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   },
+   {
+    "arm": "base",
+    "position": 7,
+    "samples_ms": [
+     12.379524996504188,
+     12.052730948198587,
+     13.386988954152912,
+     13.552655989769846,
+     14.103868044912815,
+     11.67968800291419,
+     11.927105952054262,
+     11.916521994862705,
+     12.944985996000469,
+     13.235572027042508,
+     11.829521972686052,
+     11.496061983052641,
+     11.902148020453751,
+     13.563946995418519,
+     13.19540396798402,
+     12.873277009930462,
+     11.762563022784889,
+     13.423946977127343,
+     13.796782994177192,
+     12.294607993680984
+    ],
+    "median_ms": 12.626401003217325,
+    "index_scans": 0,
+    "digests": [
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9",
+     "259ee999ec6105e73d1385f7078095fbbc05366690ecad09552629ea966de9d9"
+    ],
+    "sample": "{\"count\": 100, \"data\": [{\"created_at\": \"<generated>\", \"description\": \"Description for perf item 0\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\", \"title\": \"Perf item 0\"}, {\"created_at\": \"<generated>\", \"description\": \"Description for perf item 10005\", \"id\": \"<generated>\", \"owner_id\": \"<generated>\",",
+    "statements": [
+     {
+      "calls": 23,
+      "mean_ms": 4.895,
+      "query": "SELECT count(*) AS count_1 FROM item WHERE item.owner_id = $1::UUID"
+     },
+     {
+      "calls": 23,
+      "mean_ms": 3.992,
+      "query": "SELECT item.title, item.description, item.id, item.created_at, item.owner_id FROM item WHERE item.owner_id = $1::UUID ORDER BY item.created_at DESC LIMIT $2::INTEGER OFFSET $3::INTEGER"
+     }
+    ],
+    "inserted": {
+     "item": 200000
+    }
+   }
+  ],
+  "cost": {
+   "tokens_in": 0,
+   "tokens_out": 0,
+   "compute_seconds": 0.0,
+   "usd_local": 0.0,
+   "usd_remote": 0.0
+  },
+  "started_at": "2026-10-31T08:02:13.593747Z"
+ },
+ "blocked": null,
+ "notes": [],
+ "readiness": {
+  "checks_reproduced": {
+   "ok": false,
+   "why": "not recorded at this commit (the lab's own test runs decide)"
+  },
+  "environment_ready": {
+   "ok": true,
+   "why": "dependency image built; tests run by CI test-backend.yml > test-backend; migrations at backend/app/alembic/versions"
+  },
+  "experiment_executed": {
+   "ok": true,
+   "why": "8 sessions"
+  },
+  "result_evaluable": {
+   "ok": true,
+   "why": "improved"
+  },
+  "workload_valid": {
+   "ok": true,
+   "why": "the workload ran at the base without help (20 measured calls, HTTP 200); the engine ran a statement reading item by owner_id on every call; 200000 rows inserted into item; the response carries data, and its digest is recorded"
+  }
+ },
+ "level_after": 4,
+ "usd_after": 23.2629,
+ "wall_s": 363.1
+}

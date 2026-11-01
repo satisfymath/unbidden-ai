@@ -1,0 +1,707 @@
+{
+ "verified": false,
+ "short": [
+  "B01",
+  "B06",
+  "B07",
+  "B08",
+  "B12",
+  "B13",
+  "B14",
+  "B16",
+  "B17",
+  "B19",
+  "B21",
+  "B23",
+  "B24",
+  "B26",
+  "B29",
+  "B30",
+  "B35",
+  "B36"
+ ],
+ "flagged": [],
+ "false_flags": [],
+ "dom_short": [],
+ "preserved": {
+  "inventory": true,
+  "history": true,
+  "information": true
+ },
+ "problems": [
+  "B01: short by 13, not flagged: no SHORT state",
+  "B06: short by 18, not flagged: no SHORT state",
+  "B07: short by 16, not flagged: no SHORT state",
+  "B08: short by 3, not flagged: no SHORT state",
+  "B12: short by 2, not flagged: no SHORT state",
+  "B13: short by 8, not flagged: no SHORT state",
+  "B14: short by 1, not flagged: no SHORT state",
+  "B16: short by 2, not flagged: no SHORT state",
+  "B17: short by 10, not flagged: no SHORT state",
+  "B19: short by 14, not flagged: no SHORT state",
+  "B21: short by 19, not flagged: no SHORT state",
+  "B23: short by 11, not flagged: no SHORT state",
+  "B24: short by 5, not flagged: no SHORT state",
+  "B26: short by 12, not flagged: no SHORT state",
+  "B29: short by 3, not flagged: no SHORT state",
+  "B30: short by 20, not flagged: no SHORT state",
+  "B35: short by 1, not flagged: no SHORT state",
+  "B36: short by 2, not flagged: no SHORT state"
+ ],
+ "bins": {
+  "B01": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  },
+  "B02": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B03": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B04": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B05": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B06": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  },
+  "B07": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  },
+  "B08": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  },
+  "B09": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B10": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B11": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B12": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  },
+  "B13": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  },
+  "B14": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  },
+  "B15": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B16": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  },
+  "B17": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  },
+  "B18": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B19": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  },
+  "B20": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B21": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  },
+  "B22": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B23": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  },
+  "B24": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  },
+  "B25": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B26": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  },
+  "B27": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B28": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B29": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  },
+  "B30": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  },
+  "B31": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B32": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B33": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B34": {
+   "short": false,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": [
+    {
+     "text": "OK",
+     "bound": true,
+     "legible": true,
+     "alert_style": false,
+     "alert_pixels": false,
+     "visible": true,
+     "visible_share": 1,
+     "contrast": 6.58,
+     "pixels": [
+      227,
+      241,
+      229
+     ],
+     "flagged": false,
+     "red_alert_visible": false
+    }
+   ]
+  },
+  "B35": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  },
+  "B36": {
+   "short": true,
+   "flagged": false,
+   "false_flag": false,
+   "numbers_right": true,
+   "amount_right": true,
+   "dom_short": false,
+   "states": []
+  }
+ },
+ "screenshots": {
+  "step-00.png": "ebbd9cf11251187d389da3db2d8027f108624e67f38bfd55e01b10944c2ea513",
+  "step-01.png": "a915c002242d098a0b6e7153f68b26298b9627d2497c63637fcf1e02817435c8",
+  "step-02.png": "5de84246273185e678536482578e14abe173e536ba2a71f1385cec383d7193c6"
+ },
+ "app_commit": "645d5d81092ffcc6fff8a834b5e198af91b812c9"
+}

@@ -1,0 +1,152 @@
+== cycle 1 (exit 0)
+08:26:49 watching /Users/david/unbidden-lab/lnbits (ctrl-c to stop, `unbidden 
+kill` to freeze)
+08:26:50 HEAD is 9349da153c22
+08:26:50 deploy procedure found, proposed only: docker compose up -d 
+--remove-orphans
+08:26:50 deploy procedure found, proposed only: docker compose up 
+--remove-orphans
+08:26:50 connections: postgres:127.0.0.1:55450/lnbits connected, 
+http_api:http://127.0.0.1:18120 needs_capability
+08:26:51 provisioning node dependencies
+08:26:51 provisioning python dependencies
+08:26:51 running ruff
+08:26:51 running pyright
+08:26:59 scan of 9349da153c22: 2 reports, 0 new opportunities
+08:29:56 map of 9349da153c22: 233 resources, 3 blind spots
+08:29:57 robustness probe at 9349da153c22: investigate (probe lnbits (80 public 
+functions sampled))
+08:30:49 the project's own checks at 9349da153c22: failed (272 collected, 2 
+failed)
+08:30:50 opp_aae87c4dcfc2445f: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_2e21e0a93a71469b: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_6603565e20bc4f29: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_b9785d603d4144d6: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_761f01d9354b44b3: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_be04459482174bf4: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_b6558e7fba454c80: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_f9fe73291ad84919: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_afe52215e5a44200: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_03bcefd5569242f1: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_4ae2b32f3b704952: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_959af6d9a1b24176: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_4349216541ae40d5: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_97f731f82a1d4239: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_a0b4d45ee59c4890: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_91ebe95f77054794: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_e59c398c498f4fee: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_5333d9e5d5ee4a3c: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_301064830d0641e4: investigate (whether the reported numbers agree 
+with the stored data is unverified: read both, read-only)
+08:30:50 opp_aae87c4dcfc2445f: consistency of GET /api/v1/assets/paginated: 
+blocked without a model call: it needs oauth2 or http:bearer
+08:30:50 opp_2e21e0a93a71469b: consistency of GET 
+/api/v1/extension/reviews/tags: blocked without a model call: it needs oauth2 or
+http:bearer
+08:30:50 opp_6603565e20bc4f29: consistency of GET 
+/api/v1/extension/wasm/invocations: blocked without a model call: it needs 
+oauth2 or http:bearer
+08:30:52 opp_aae87c4dcfc2445f: wait (blocked: GET /api/v1/assets/paginated 
+accepts oauth2 or http:bearer; the granted credential is not of that kind)
+08:30:52 opp_2e21e0a93a71469b: wait (blocked: GET /api/v1/extension/reviews/tags
+accepts oauth2 or http:bearer; the granted credential is not of that kind)
+08:30:52 opp_6603565e20bc4f29: wait (blocked: GET 
+/api/v1/extension/wasm/invocations accepts oauth2 or http:bearer; the granted 
+credential is not of that kind)
+08:30:52 opp_b9785d603d4144d6: consistency of GET 
+/api/v1/extension/wasm/invocations/current: blocked without a model call: it 
+needs oauth2 or http:bearer
+08:30:52 opp_761f01d9354b44b3: consistency of GET 
+/api/v1/extension/wasm/invocations/stats: blocked without a model call: it needs
+oauth2 or http:bearer
+08:30:52 opp_be04459482174bf4: consistency of GET 
+/api/v1/payments/all/paginated: blocked without a model call: it needs oauth2 or
+http:bearer
+08:30:52 writing property tests for lnbits
+08:31:01 running them offline
+08:31:05 robustness probe of lnbits: 2 failed, 6 passed in 1.28s; 0 crash(es), 0
+new; 0 property violation(s) kept for a person (L1)
+
+
+== cycle 2 (exit 0)
+08:31:05 watching /Users/david/unbidden-lab/lnbits (ctrl-c to stop, `unbidden 
+kill` to freeze)
+08:31:06 connections: postgres:127.0.0.1:55450/lnbits connected, 
+http_api:http://127.0.0.1:18120 needs_capability
+08:31:08 opp_b9785d603d4144d6: wait (blocked: GET 
+/api/v1/extension/wasm/invocations/current accepts oauth2 or http:bearer; the 
+granted credential is not of that kind)
+08:31:08 opp_761f01d9354b44b3: wait (blocked: GET 
+/api/v1/extension/wasm/invocations/stats accepts oauth2 or http:bearer; the 
+granted credential is not of that kind)
+08:31:08 opp_be04459482174bf4: wait (blocked: GET /api/v1/payments/all/paginated
+accepts oauth2 or http:bearer; the granted credential is not of that kind)
+08:31:18 opp_b6558e7fba454c80: consistency of GET /api/v1/payments/paginated: 
+waiting_capability: needs an integration for lnbits-api
+08:31:25 capability need api_client for http_api:http://127.0.0.1:18120: in_use
+08:31:32 opp_f9fe73291ad84919: consistency of GET 
+/api/v1/payments/stats/breakdown: waiting_extension: needs the read 
+Get_wallet_payment_total_breakdown_api_v1_payments_stats_breakdown_get added to 
+the integration (open)
+08:32:35 capability need api_extension for 
+http_api:http://127.0.0.1:18120#Get_wallet_payment_total_breakdown_api_v1_paymen
+ts_stats_breakdown_get: in_use
+08:32:35 opp_afe52215e5a44200: consistency of GET /api/v1/payments/stats/daily: 
+blocked without a model call: it needs oauth2 or http:bearer
+08:32:43 opp_b6558e7fba454c80: consistency of GET /api/v1/payments/paginated: 
+inconclusive: no difference among the 8 keys read, but the set's completeness is
+unknown (the read-only query returned its limit of 1000 rows): 'none' is not 
+concluded
+08:32:50 opp_f9fe73291ad84919: consistency of GET 
+/api/v1/payments/stats/breakdown: blocked: conclusion blocked by a 
+documented-vs-observed deviation: 
+Get_wallet_payment_total_breakdown_api_v1_payments_stats_breakdown_get answered 
+200 outside its documented schema, on what a conclusion needs: 0/tag: declared 
+type string, observed null
+08:32:51 opp_b6558e7fba454c80: wait (inconclusive: no difference among the 8 
+keys read, but the set's completeness is unknown (the read-only query returned 
+its limit of 1000 rows): 'none' is not concluded)
+08:32:51 opp_f9fe73291ad84919: wait (blocked: conclusion blocked by a 
+documented-vs-observed deviation: 
+Get_wallet_payment_total_breakdown_api_v1_payments_stats_breakdown_get answered 
+200 outside its documented schema, on what a conclusion needs: 0/tag: declared 
+type string, observed null)
+08:32:51 opp_afe52215e5a44200: wait (blocked: GET /api/v1/payments/stats/daily 
+accepts oauth2 or http:bearer; the granted credential is not of that kind)
+08:32:51 opp_03bcefd5569242f1: consistency of GET 
+/api/v1/payments/stats/wallets: blocked without a model call: it needs oauth2 or
+http:bearer
+08:32:51 opp_4ae2b32f3b704952: consistency of GET /api/v1/wallet/paginated: 
+blocked without a model call: it needs oauth2 or http:bearer
+08:32:51 opp_959af6d9a1b24176: consistency of GET /audit/api/v1: blocked without
+a model call: it needs oauth2 or http:bearer
+08:32:53 opp_03bcefd5569242f1: wait (blocked: GET /api/v1/payments/stats/wallets
+accepts oauth2 or http:bearer; the granted credential is not of that kind)
+08:32:53 opp_4ae2b32f3b704952: wait (blocked: GET /api/v1/wallet/paginated 
+accepts oauth2 or http:bearer; the granted credential is not of that kind)
+08:32:53 opp_959af6d9a1b24176: wait (blocked: GET /audit/api/v1 accepts oauth2 
+or http:bearer; the granted credential is not of that kind)
+08:32:53 opp_4349216541ae40d5: consistency of GET /node/api/v1/info: blocked 
+without a model call: it needs oauth2 or http:bearer
+08:32:53 opp_97f731f82a1d4239: consistency of GET /node/api/v1/invoices: blocked
+without a model call: it needs oauth2 or http:bearer
+08:32:53 opp_a0b4d45ee59c4890: consistency of GET /node/api/v1/payments: blocked
+without a model call: it needs oauth2 or http:bearer

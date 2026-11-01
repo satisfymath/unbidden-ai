@@ -1,0 +1,159 @@
+
+### git clone -q https://github.com/satisfymath/unbidden-ai.git
+### exit 0 in 1 s
+
+### git checkout -q 2f8cf08
+### exit 0 in 0 s
+
+### uv sync -q
+### exit 0 in 5 s
+
+### make check
+........................................................................ [ 56%]
+........................................................................ [ 67%]
+........................................................................ [ 78%]
+........................................................................ [ 89%]
+.................................................................        [100%]
+641 passed, 5 deselected in 34.28s
+### exit 0 in 41 s
+
+### uv run unbidden doctor
+  ok  ollama       4 model(s) at http://localhost:11434
+  ok  machine      Apple M5 Pro, 64 GB, 54 GB for a model
+  ok  local model  muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best
+local quality measured)
+  ok  docker       running
+  !!  meta api     no MODEL_API_KEY: frontier models are off
+  !!  github       no GITHUB_TOKEN: proposals stay local branches
+  !!  workspace    not initialized: `unbidden init`
+### exit 0 in 0 s
+
+### uv run unbidden spend
+no verified balance: an allowance of US$1.00 to check the remote path
+  permitted US$1.00 · spent US$0.0000 · available US$1.0000
+by model                                                   
+ model  calls  retries  failed  tokens in  tokens out  US$ 
+by run                                                   
+ run  calls  retries  failed  tokens in  tokens out  US$ 
+by workspace                                                   
+ workspace  calls  retries  failed  tokens in  tokens out  US$ 
+costs are list price x reported tokens, worst cost when unknown; the dashboard 
+is the bill
+### exit 0 in 0 s
+
+### uv run python -m bench.ecosystem.depot_lab up
+### exit 0 in 9 s
+
+### uv run python -m bench.ecosystem.board_lab reset style
+http://127.0.0.1:18096/board did not come up
+### exit 1 in 75 s
+
+### uv run python -m bench.ecosystem.board_workspace <scratch>/home.9xfw/unbidden-ai --policy local --perception dom
+<scratch>/home.9xfw/unbidden-lab/boardapp (staging on 18096)
+### exit 0 in 0 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project "$OLDPWD" unbidden watch --once)
+18:24:19 watching 
+/private/tmp/claude-501/-Users-david-unbidden-ai/e45596bf-00bf-4781-abc7-f887255
+8fdd0/scratchpad/walk/home.9xfw/unbidden-lab/boardapp (ctrl-c to stop, `unbidden
+kill` to freeze)
+18:24:19 HEAD is 7e36dadb7c27
+18:24:19 deploy procedure found, proposed only: docker compose -p 
+boardapp-staging up -d --build
+18:24:19 connections: postgres:127.0.0.1:55432/boardpicks needs_authorization, 
+http_api:http://127.0.0.1:18086 needs_capability
+18:24:19 provisioning python dependencies
+18:24:19 scan of 7e36dadb7c27: 0 reports, 0 new opportunities
+18:24:20 map of 7e36dadb7c27: 7 resources, 1 blind spots
+18:24:20 robustness probe at 7e36dadb7c27: investigate (probe board (8 public 
+functions sampled))
+18:25:15 goal board-flags: waiting_capability: needs an integration for 
+board-api
+18:25:33 capability need api_client for http_api:http://127.0.0.1:18086: failed
+18:25:49 capability need api_client for http_api:http://127.0.0.1:18086: 
+abandoned
+18:26:24 goal board-flags: blocked: board-db: needs_authorization; board-api: 
+needs_authorization
+18:26:24 research.probe failed: sandbox.provision: destination pypi.org is not 
+in the mandate's allowlist; destination files.pythonhosted.org is not in the 
+mandate's allowlist
+18:26:24 needs a person: add files.pythonhosted.org, pypi.org to 
+egress.package_registries (then: research.probe runs again)
+### exit 0 in 126 s
+
+### uv run python -m bench.ecosystem.board_check
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "<scratch>/home.9xfw/unbidden-ai/bench/ecosystem/board_check.py", line 333, in <module>
+    main()
+  File "<scratch>/home.9xfw/unbidden-ai/bench/ecosystem/board_check.py", line 326, in main
+    verdict = check(Path(args.dir), out)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<scratch>/home.9xfw/unbidden-ai/bench/ecosystem/board_check.py", line 272, in check
+    before = json.loads((lab / "board-baseline.json").read_text())
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<scratch>/home.9xfw/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<scratch>/home.9xfw/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '<scratch>/home.9xfw/unbidden-lab/board-baseline.json'
+### exit 1 in 0 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project "$OLDPWD" unbidden activity)
+boardapp · 0 opportunities · 
+capabilities 1 abandoned
+connections (what was checked, not what was declared)
+  needs_authorization http_api:http://127.0.0.1:18086 (staging): reads nothing
+  needs_authorization postgres:127.0.0.1:55432/boardpicks (staging): reads 
+nothing
+goal board-flags: waiting_capability, 0 short, 0 action(s): needs an integration
+for board-api
+goal board-flags: blocked, 0 short, 0 action(s): board-db: needs_authorization; 
+board-api: needs_authorization
+needs a person postgres:127.0.0.1:55432/boardpicks: the password stored as 
+BOARD_READER_PW was refused for role board_reader: a person renews it or 
+restores the role
+needs a person http_api:http://127.0.0.1:18086: a person checks the key stored 
+as BOARD_DEPOT_KEY: the service refuses it
+needs a person research.probe: add files.pythonhosted.org, pypi.org to 
+egress.package_registries (then: research.probe runs again)
+needs a person docker compose -p boardapp-staging up -d --build: found in 
+README.md; a proposal only: a person declares deploy steps in the mandate
+spent US$0.0000 in 0 remote call(s) · list price x reported tokens; the 
+provider's dashboard is the bill
+### exit 0 in 0 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project "$OLDPWD" unbidden connections)
+                                                                  blocked /     
+ connection     env      state          can read      can change  next          
+ compose:comp…  local    connected      ps, inspect,  -                         
+                                        logs                                    
+ http_api:htt…  staging  needs_author…  -             -                         
+ postgres:127…  staging  needs_author…  -             -                         
+### exit 0 in 1 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project "$OLDPWD" unbidden egress)
+Nothing has left this machine.
+### exit 0 in 0 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project "$OLDPWD" unbidden kill)
+Kill switch engaged. No job starts and no model is called until `unbidden 
+resume`.
+### exit 0 in 0 s
+
+### (cd ~/unbidden-lab/boardapp && uv run --project "$OLDPWD" unbidden resume)
+Kill switch released.
+### exit 0 in 0 s
+
+### uv run python -m bench.ecosystem.board_lab down && uv run python -m bench.ecosystem.depot_lab down
+### exit 0 in 32 s
+
+### docker ps -a --filter label=unbidden.sandbox --format {{.Names}}
+### exit 0 in 0 s
+
+### docker ps -a --filter label=unbidden.lab=ecosystem --format {{.Names}}
+### exit 0 in 0 s
+HOME was <scratch>/home.9xfw

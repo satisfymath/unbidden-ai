@@ -8,6 +8,7 @@ import json
 import re
 import subprocess
 import tomllib
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
@@ -15,7 +16,7 @@ from typing import Any, Literal
 DEFAULT_NODE_MAJOR = 22
 DEFAULT_PYTHON = "3.12"
 
-NodeManager = Literal["npm", "pnpm", "yarn"]
+NodeManager = Literal["npm", "pnpm", "yarn", "bun"]
 
 
 @dataclass(frozen=True)
@@ -34,7 +35,7 @@ class NodePackage:
 @dataclass(frozen=True)
 class NodeStack:
     manager: NodeManager
-    lockfile: str
+    lockfile: str | None  # None: resolved by npm at provisioning time, said as a blind spot
     major: int
     major_assumed: bool  # true when the repo declares no Node version and we picked one; reported, never hidden
     typescript: bool
@@ -43,6 +44,7 @@ class NodeStack:
     prettier: bool
     test_script: str | None
     packages: tuple[NodePackage, ...] = ()
+    manager_version: str | None = None  # from package.json's packageManager ("bun@1.3.14" -> "1.3.14")
 
 
 @dataclass(frozen=True)
@@ -57,6 +59,27 @@ class PythonStack:
     requirements: tuple[str, ...] = ()  # read statically from setup.py; setup.py itself is never executed
     source_roots: tuple[str, ...] = ("src", ".")  # directories put on PYTHONPATH, relative to the repository
     test_paths: tuple[str, ...] = ()  # where pytest should look; empty means its own discovery
+    mypy: tuple[str, ...] | None = None  # mypy's targets when the repository uses it; empty: its config names them
+    uv_version: str | None = None  # [tool.uv] required-version: the project's uv refuses any other
+    skip_groups: tuple[str, ...] = ()  # dependency groups whose own requires-python excludes `version`
+    path_sources: tuple[tuple[str, str], ...] = ()  # (package, directory) installed from a path in the repository
+    version_notes: tuple[str, ...] = ()  # why this interpreter: the rule, the project's declarations, conflicts
+    lock_date: str | None = None  # when the lockfile (or manifest) was last committed: the environment's era
+    own: tuple[str, str] | None = None  # (name, version) of the project's own package, installed by `uv sync`
+    # A uv workspace's members as packages, (name, version) each: `uv sync --all-packages` installs them, and code
+    # reads their metadata (Aegra, stage 10: `version("aegra-api")` at import).
+    member_packages: tuple[tuple[str, str], ...] = ()
+    # Other requirements files the CI's test job installs (`pip install -r test_requirements.txt`, rag-api, stage 10):
+    # its test dependencies; each installed after the manifest's own, as its own install, as the job does.
+    extra_requirements: tuple[str, ...] = ()
+    # What the CI's `uv sync` installs (`--group test`, `--all-extras`, `--dev` ...); None when no CI step says it.
+    sync_flags: tuple[str, ...] | None = None
+    # Debian packages the CI's test job installs with apt (humanize, stage 10: gettext for `msgfmt`): in the image
+    # when the mandate allows Debian's archive, since the job's own steps need them.
+    system_packages: tuple[str, ...] = ()
+    # Files the project's build declares it writes (a version or build-info module) and the repository lacks: code
+    # imports them, and `uv sync` leaves them in the tree. The image runs the build to have them (Prefect, stage 10).
+    build_writes: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -64,10 +87,17 @@ class Stack:
     node: NodeStack | None = None
     python: PythonStack | None = None
     blind_spots: list[str] = field(default_factory=list[str])
+    others: dict[str, Any] = field(default_factory=dict[str, Any])  # languages added through an adapter (go, ...)
+
+    def part(self, language: str) -> Any:
+        """This language's description, whichever adapter detected it."""
+        return {"node": self.node, "python": self.python}.get(language, self.others.get(language))
 
     @property
     def languages(self) -> list[str]:
-        return [name for name, s in (("node", self.node), ("python", self.python)) if s is not None]
+        from unbidden.languages import adapters
+
+        return [a.name for a in adapters() if self.part(a.name) is not None]
 
 
 def tracked_files(repo: Path, rev: str = "HEAD") -> set[str]:
@@ -155,20 +185,50 @@ def _workspace_packages(repo: Path, rev: str, files: set[str], root: dict[str, A
     return tuple(dict.fromkeys(packages))
 
 
+def _yarn_berry(repo: Path, rev: str, files: set[str], package: dict[str, Any]) -> bool:
+    declared = str(package.get("packageManager") or "")
+    if re.match(r"yarn@[2-9]", declared) or ".yarnrc.yml" in files:
+        return True
+    return "yarn lockfile v1" not in _read(repo, rev, "yarn.lock")[:400]
+
+
+# The newest pnpm major that writes each lockfile format, for projects that do not declare theirs: otherwise corepack
+# takes whatever pnpm is newest the day the image is built.
+PNPM_FOR_LOCKFILE = {"9.0": "10", "6.0": "8", "6.1": "8", "5.4": "7", "5.3": "6"}
+
+
+def _pnpm_for_lockfile(text: str) -> str | None:
+    found = re.search(r"^lockfileVersion:\s*['\"]?([\d.]+)", text[:300], re.MULTILINE)
+    return PNPM_FOR_LOCKFILE.get(found.group(1)) if found else None
+
+
+def _manager_version(package: dict[str, Any], manager: str) -> str | None:
+    declared = package.get("packageManager")
+    if isinstance(declared, str) and declared.startswith(f"{manager}@"):
+        version = declared.split("@", 1)[1].split("+", 1)[0]
+        return version if re.fullmatch(r"[\w.-]+", version) else None
+    return None
+
+
 def _detect_node(repo: Path, rev: str, files: set[str], blind: list[str]) -> NodeStack | None:
     if "package.json" not in files:
         return None
     package = json.loads(_read(repo, rev, "package.json"))
-    lock: tuple[NodeManager, str] | None = None
-    for manager, name in (("pnpm", "pnpm-lock.yaml"), ("npm", "package-lock.json"), ("yarn", "yarn.lock")):
+    lock: tuple[NodeManager, str | None] | None = None
+    locks = (("pnpm", "pnpm-lock.yaml"), ("bun", "bun.lock"), ("bun", "bun.lockb"), ("npm", "package-lock.json"),
+             ("yarn", "yarn.lock"))  # fmt: skip
+    for manager, name in locks:
         if name in files:
             lock = (manager, name)  # type: ignore[assignment]
             break
     if lock is None:
-        blind.append("package.json has no lockfile; dependencies cannot be installed reproducibly")
-        return None
-    if lock[0] == "yarn":
-        blind.append("yarn projects are not supported yet")
+        # Many libraries never commit a lockfile. Resolve at provisioning time, as for Python without uv.lock: the
+        # image is kept by the manifest's digest, so runs on this machine share one resolution.
+        blind.append("package.json without a lockfile: dependencies resolved at provisioning time")
+        lock = ("npm", None)
+    if lock[0] == "yarn" and _yarn_berry(repo, rev, files, package):
+        # Berry's own binary comes from repo.yarnpkg.com, which is not among the registries an install may reach.
+        blind.append("yarn 2+ (Berry) projects are not supported: yarn itself would come from repo.yarnpkg.com")
         return None
     packages = _workspace_packages(repo, rev, files, package)
     deps = _deps(package)
@@ -184,6 +244,8 @@ def _detect_node(repo: Path, rev: str, files: set[str], blind: list[str]) -> Nod
                 break
     return NodeStack(
         manager=lock[0],
+        manager_version=_manager_version(package, lock[0])
+        or (_pnpm_for_lockfile(_read(repo, rev, lock[1])) if lock[0] == "pnpm" and lock[1] else None),
         lockfile=lock[1],
         major=major,
         major_assumed=assumed,
@@ -244,10 +306,48 @@ def _tests_under(files: set[str], roots: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(dict.fromkeys(found))
 
 
+def mypy_targets(pyproject: str, files: set[str], members: tuple[str, ...]) -> tuple[str, ...]:
+    """What mypy checks: nothing to name when its configuration lists `files`; else the package named after the
+    project (`mealie`), else the workspace members, else the repository."""
+    project = tomllib.loads(pyproject)
+    if project.get("tool", {}).get("mypy", {}).get("files"):
+        return ()
+    name = str(project.get("project", {}).get("name", "")).replace("-", "_")
+    for package in (name, f"src/{name}"):
+        if name and f"{package}/__init__.py" in files:
+            return (package,)
+    return members or (".",)
+
+
+def requires_python(pyproject: str) -> str | None:
+    """The lowest minor version `requires-python` admits (`>=3.14,<3.15` is 3.14), when it names one."""
+    try:
+        spec = str(tomllib.loads(pyproject).get("project", {}).get("requires-python", ""))
+    except tomllib.TOMLDecodeError:
+        return None
+    found = re.search(r"(?:>=|~=|==)\s*(3\.\d+)", spec)
+    return found.group(1) if found else None
+
+
 def _detect_python(repo: Path, rev: str, files: set[str], blind: list[str]) -> PythonStack | None:
-    version = DEFAULT_PYTHON
-    if ".python-version" in files:
-        version = _read(repo, rev, ".python-version").strip() or DEFAULT_PYTHON
+    """The project's Python stack, on the interpreter its declarations choose (`observe/python_version.py`)."""
+    from dataclasses import replace
+
+    from unbidden.observe.python_version import choose
+
+    if not files & {"pyproject.toml", "requirements.txt", "setup.py"}:
+        return None
+    choice = choose(lambda path: _read(repo, rev, path), files)
+    found = _detect_python_parts(repo, rev, files, blind, choice.version)
+    if found is None:
+        return None
+    dated = found.lockfile if found.lockfile in files else found.manifest
+    when = subprocess.run(["git", "-C", str(repo), "log", "-1", "--format=%cI", rev, "--", dated], capture_output=True,
+                          text=True, check=False).stdout.strip() or None  # fmt: skip
+    return replace(found, version_notes=choice.notes(), lock_date=when)
+
+
+def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str], version: str) -> PythonStack | None:
     if "pyproject.toml" in files and "poetry.lock" in files:
         project = tomllib.loads(_read(repo, rev, "pyproject.toml"))
         if "poetry" in project.get("tool", {}):
@@ -260,8 +360,9 @@ def _detect_python(repo: Path, rev: str, files: set[str], blind: list[str]) -> P
                 pyright="pyright" in text,
                 pytest="pytest" in text or bool(_tests_under(files, (".",))),
                 requirements=poetry_requirements(_read(repo, rev, "poetry.lock")),
+                own=own_package(project),
             )
-    if "pyproject.toml" in files:
+    if "pyproject.toml" in files and _declares_project(tomllib.loads(_read(repo, rev, "pyproject.toml")), files):
         project = tomllib.loads(_read(repo, rev, "pyproject.toml"))
         members = _workspace_members(repo, rev, project, files)
         texts = [json.dumps(project)] + [
@@ -271,8 +372,12 @@ def _detect_python(repo: Path, rev: str, files: set[str], blind: list[str]) -> P
         lock = "uv.lock" if "uv.lock" in files else None
         if lock is None:
             blind.append("pyproject.toml without uv.lock: dependencies resolved at provisioning time")
-        roots = tuple(dict.fromkeys([*members, "src", "."]))
+        # A member with a src layout imports from its src/ (Aegra, stage 10: libs/aegra-api/src/aegra_api).
+        member_src = [f"{m}/src" for m in members if any(f.startswith(f"{m}/src/") for f in files)]
+        roots = tuple(dict.fromkeys([*members, *member_src, "src", "."]))
         tests = _tests_under(files, (*members, "."))
+        mypy = mypy_targets(_read(repo, rev, "pyproject.toml"), files, members) if '"mypy' in text else None
+        uv = uv_settings(tomllib.loads(_read(repo, rev, "pyproject.toml")), version, files)
         return PythonStack(
             version=version,
             lockfile=lock,
@@ -283,12 +388,26 @@ def _detect_python(repo: Path, rev: str, files: set[str], blind: list[str]) -> P
             members=members,
             source_roots=roots,
             test_paths=tests if members else (),
+            mypy=mypy,
+            own=None if members else own_package(project),
+            member_packages=tuple(
+                pkg for m in members if (pkg := own_package(tomllib.loads(_read(repo, rev, f"{m}/pyproject.toml"))))
+            ),
+            sync_flags=_with_requirement_extras(
+                ci_sync_flags(repo, rev, files), repo, rev, ci_requirement_files(repo, rev, files, "pyproject.toml")
+            ),
+            system_packages=ci_system_packages(repo, rev, files),
+            extra_requirements=ci_requirement_files(repo, rev, files, "pyproject.toml"),
+            build_writes=() if members else build_writes(project, files),
+            **uv,
         )
     if "requirements.txt" in files:
         return PythonStack(
             version=version,
             lockfile="requirements.txt",
             manifest="requirements.txt",
+            extra_requirements=ci_requirement_files(repo, rev, files, "requirements.txt"),
+            system_packages=ci_system_packages(repo, rev, files),
             ruff=False,
             pyright=False,
             pytest=bool(_tests_under(files, (".",))) or any(f.endswith("_test.py") for f in files),
@@ -310,11 +429,173 @@ def _detect_python(repo: Path, rev: str, files: set[str], blind: list[str]) -> P
     return None
 
 
+def _declares_project(project: dict[str, Any], files: set[str]) -> bool:
+    """Whether a pyproject.toml is the project's manifest, or only its tools' configuration (TimeTracker, stage 10:
+    `[tool.black]` and friends, the dependencies in requirements.txt, which its CI installs). A file that declares
+    nothing to install, next to a requirements.txt, is not the manifest."""
+    declares = {"project", "dependency-groups", "build-system"} & project.keys() or {"poetry", "uv", "pdm"} & (
+        project.get("tool") or {}
+    ).keys()
+    return bool(declares) or "requirements.txt" not in files
+
+
+def ci_requirement_files(repo: Path, rev: str, files: set[str], manifest: str) -> tuple[str, ...]:
+    """The requirements files the CI's test job installs besides the manifest, that the repository has."""
+    if not any(f.startswith(".github/workflows/") for f in files):
+        return ()
+    from unbidden.observe.ci import ci_test_plan
+
+    plan = ci_test_plan(repo, rev, "python")
+    if plan is None:
+        return ()
+    return tuple(f.removeprefix("./") for f in plan.requirement_files if f.removeprefix("./") in files
+                 and f.removeprefix("./") != manifest)  # fmt: skip
+
+
+_SELF_EXTRAS = re.compile(r"^\s*(?:-e\s+)?\.\[(?P<extras>[^\]]+)\]")
+
+
+def _with_requirement_extras(
+    flags: tuple[str, ...] | None, repo: Path, rev: str, requirement_files: tuple[str, ...]
+) -> tuple[str, ...] | None:
+    """The project's extras a CI requirements file installs with the project itself (`-e .[cli]`, httpx): that line
+    is left out of the image's install, so its extras are synced instead."""
+    extras = [
+        e.strip()
+        for f in requirement_files
+        for line in _read(repo, rev, f).splitlines()
+        if (m := _SELF_EXTRAS.match(line))
+        for e in m.group("extras").split(",")
+    ]
+    if not extras:
+        return flags
+    return tuple(dict.fromkeys([*(flags or ("--all-groups",)), *(f"--extra {e}" for e in extras)]))
+
+
+def _ci_plan(repo: Path, rev: str, files: set[str]) -> Any:
+    if not any(f.startswith(".github/workflows/") for f in files):
+        return None
+    from unbidden.observe.ci import ci_test_plan
+
+    return ci_test_plan(repo, rev, "python")
+
+
+def ci_sync_flags(repo: Path, rev: str, files: set[str]) -> tuple[str, ...] | None:
+    """What the CI's test job installs (`observe.ci._sync_flags`); None when there is none, or it runs no `uv sync`."""
+    plan = _ci_plan(repo, rev, files)
+    return plan.sync_flags if plan is not None else None
+
+
+def ci_system_packages(repo: Path, rev: str, files: set[str]) -> tuple[str, ...]:
+    """The Debian packages the CI's test job installs with apt (`observe.ci.apt_packages`)."""
+    plan = _ci_plan(repo, rev, files)
+    return tuple(plan.system_packages) if plan is not None else ()
+
+
+def build_writes(project: dict[str, Any], files: Iterable[str]) -> tuple[str, ...]:
+    """The Python files the build backend is declared to write into the source tree, as configured in pyproject.toml
+    (versioningit's write, setuptools-scm's version_file, hatch-vcs's version-file, pdm's write_to, hatch's build
+    artifacts), that the repository does not track."""
+    tool = project.get("tool", {})
+    scm = tool.get("setuptools_scm", {})
+    hatch = tool.get("hatch", {})
+    declared = [
+        tool.get("versioningit", {}).get("write", {}).get("file")
+        or tool.get("versioningit", {}).get("write", {}).get("path"),
+        scm.get("version_file") or scm.get("write_to"),
+        hatch.get("build", {}).get("hooks", {}).get("vcs", {}).get("version-file"),
+        tool.get("pdm", {}).get("version", {}).get("write_to"),
+        *hatch.get("build", {}).get("artifacts", []),
+    ]
+    tracked = set(files)
+    return tuple(
+        sorted({d.lstrip("/") for d in declared if isinstance(d, str) and d.endswith(".py") and "*" not in d} - tracked)
+    )
+
+
+def own_package(project: dict[str, Any]) -> tuple[str, str] | None:
+    """The project's own distribution, when it is a package (a build system is declared): `uv sync` and `poetry
+    install` install it in the environment, so code may read its own metadata (`importlib.metadata.version`). Found
+    on LNbits (stage 8, independent run): only its dependencies were installed, and importing it failed. A dynamic
+    version is given as 0.0.0, as for projects that take it from git."""
+    meta = project.get("project", {}) or project.get("tool", {}).get("poetry", {})
+    name = meta.get("name")
+    if not name or "build-system" not in project:
+        return None
+    version = meta.get("version") if isinstance(meta.get("version"), str) else None
+    return str(name), version or "0.0.0"
+
+
+def _admits(spec: str, version: str) -> bool:
+    """Whether a requires-python spec (">=3.12", ">=3.10,<3.14") admits a minor version. Unknown forms admit it."""
+    minor = int(version.split(".")[1])
+    for clause in spec.split(","):
+        found = re.match(r"\s*(>=|>|<=|<|==|~=)\s*3\.(\d+)", clause)
+        if not found:
+            continue
+        op, bound = found.group(1), int(found.group(2))
+        ok = {">=": minor >= bound, ">": minor > bound, "<=": minor <= bound, "<": minor < bound,
+              "==": minor == bound, "~=": minor >= bound}[op]  # fmt: skip
+        if not ok:
+            return False
+    return True
+
+
+def uv_settings(pyproject: dict[str, Any], version: str, files: set[str]) -> dict[str, Any]:
+    """What a uv project declares that changes how its dependencies install: a required uv version, groups that need
+    another Python than the one chosen, and packages installed from a directory of the repository."""
+    uv = pyproject.get("tool", {}).get("uv", {})
+    required = uv.get("required-version")
+    groups = uv.get("dependency-groups", {})
+    skip = tuple(
+        sorted(
+            name
+            for name, conf in groups.items()
+            if isinstance(conf, dict) and conf.get("requires-python") and not _admits(conf["requires-python"], version)
+        )
+    )
+    sources = uv.get("sources", {})
+    paths = tuple(
+        sorted(
+            (name, str(conf["path"]).strip("./"))
+            for name, conf in sources.items()
+            if isinstance(conf, dict) and isinstance(conf.get("path"), str) and ".." not in conf["path"]
+            and any(f.startswith(str(conf["path"]).strip("./") + "/") for f in files)
+        )
+    )  # fmt: skip
+    return {"uv_version": required if isinstance(required, str) else None, "skip_groups": skip, "path_sources": paths}
+
+
 def detect_stack(repo: Path, rev: str = "HEAD") -> Stack:
     files = tracked_files(repo, rev)
     blind: list[str] = []
-    return Stack(
-        node=_detect_node(repo, rev, files, blind),
-        python=_detect_python(repo, rev, files, blind),
+    from unbidden.languages import adapters
+
+    parts = {a.name: a.detect(repo, rev, files, blind) for a in adapters()}
+    stack = Stack(
+        node=parts.pop("node", None),
+        python=parts.pop("python", None),
         blind_spots=blind,
+        others={name: part for name, part in parts.items() if part is not None},
     )
+    if stack.node is None and "rush.json" in files:
+        blind.append("Rush monorepo (rush.json): not supported; its packages are not analyzed")
+    for manifest, language in UNANALYZED:
+        if manifest in files or any(f.endswith(f"/{manifest}") for f in files):  # Go has an adapter; nested modules
+            # of a supported language are said by its adapter
+            blind.append(f"{language} ({manifest}) is not analyzed: no checks, probes or experiments for that code")
+    return stack
+
+
+# Languages Unbidden does not analyze yet, found by their manifest so they are named rather than silently skipped.
+UNANALYZED = (
+    ("Cargo.toml", "Rust"),
+    ("Gemfile", "Ruby"),
+    ("pom.xml", "Java"),
+    ("build.gradle", "Java/Kotlin"),
+    ("build.gradle.kts", "Kotlin"),
+    ("composer.json", "PHP"),
+    ("mix.exs", "Elixir"),
+    ("Package.swift", "Swift"),
+    ("pubspec.yaml", "Dart"),
+)

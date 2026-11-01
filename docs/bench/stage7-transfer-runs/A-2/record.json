@@ -1,0 +1,24 @@
+{
+ "run": "A-2",
+ "mode": "goal",
+ "restored": {
+  "commit": "029eb7781c60d5f563ee8990a0cbfb79b244538c",
+  "data": {
+   "users": 2000,
+   "articles": 20000,
+   "comments": 300000,
+   "favorites": 20000
+  }
+ },
+ "usd_before": 6.0919,
+ "wall_s": 169.6,
+ "repo_after": "",
+ "branches_after": [
+  "(HEAD",
+  "desacoplado",
+  "en",
+  "029eb77)"
+ ],
+ "usd_after": 6.1204,
+ "workspace": "~/unbidden-lab/conduit-runs/eval7-A-2"
+}

@@ -1,0 +1,154 @@
+{
+  "workspace": "conduit",
+  "at": "2026-10-29T14:46:04.452405+00:00",
+  "discovered": {
+    "total": 4,
+    "by_status": {
+      "open": 4
+    }
+  },
+  "experimenting": [],
+  "declined_because": [],
+  "waiting_because": [],
+  "proven": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {},
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 8,
+    "usd": 0.0591,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55440/postgres",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.alembic_version",
+        "select public.articles",
+        "select public.articles_to_tags",
+        "select public.commentaries",
+        "select public.favorites",
+        "select public.followers_to_followings",
+        "select public.tags",
+        "select public.users"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-29T14:46:04.227031+00:00"
+    },
+    {
+      "id": "github:nsidnev/fastapi-realworld-example-app",
+      "kind": "github",
+      "environment": "local",
+      "state": "discovered",
+      "read": [],
+      "write": [],
+      "requested": [],
+      "effective": [],
+      "blocked": "the mandate names no GitHub repository",
+      "next_step": "set egress.github.repository to nsidnev/fastapi-realworld-example-app and grant a token reference",
+      "found_by": [
+        "git remote origin"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18110",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "FastAPI example application: 19 operations documented, authenticated by apiKey Authorization; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-29T14:46:04.231529+00:00"
+    }
+  ],
+  "needs_a_person": [
+    {
+      "blocked": "research.probe",
+      "state": "pending_person",
+      "what": "add deb.debian.org to egress.package_registries (system build tools: a compiler and the C headers a package builds against) (then: research.probe runs again)"
+    },
+    {
+      "blocked": "lab.experiment opp_e8e056214c5d4e86",
+      "state": "pending_person",
+      "what": "add deb.debian.org to egress.package_registries (system build tools: a compiler and the C headers a package builds against) (then: lab.experiment runs again)"
+    },
+    {
+      "blocked": "lab.experiment opp_3bc94b445f6c4ac6",
+      "state": "pending_person",
+      "what": "add deb.debian.org to egress.package_registries (system build tools: a compiler and the C headers a package builds against) (then: lab.experiment runs again)"
+    },
+    {
+      "blocked": "lab.experiment opp_20855e41a0d74836",
+      "state": "pending_person",
+      "what": "add deb.debian.org to egress.package_registries (system build tools: a compiler and the C headers a package builds against) (then: lab.experiment runs again)"
+    },
+    {
+      "blocked": "lab.experiment opp_00430c9037724921",
+      "state": "pending_person",
+      "what": "add deb.debian.org to egress.package_registries (system build tools: a compiler and the C headers a package builds against) (then: lab.experiment runs again)"
+    }
+  ],
+  "optional_access": [
+    {
+      "connection": "github:nsidnev/fastapi-realworld-example-app",
+      "what": "set egress.github.repository to nsidnev/fastapi-realworld-example-app and grant a token reference",
+      "enables": "reading it"
+    }
+  ],
+  "blocks": [],
+  "integrations": [],
+  "actions": [],
+  "acceptances": [],
+  "goals": []
+}

@@ -1,0 +1,269 @@
+{
+  "started_at": "2026-10-27T23:53:51.171716+00:00",
+  "unbidden": {
+    "commit": "898238bdf04affdf15f6c90c91aed2a2e9043bd6",
+    "dirty": false
+  },
+  "repo": "/Users/david/unbidden-bench/method-check-4/humanize",
+  "rev": "6b817b963dbb091b9ad20a746cb6a26653a93b95",
+  "package": "src/humanize",
+  "exception": "KeyError",
+  "environment": {
+    "image": "unbidden-deps-python:e6b533b367e639b7",
+    "python": "3.11"
+  },
+  "model": {
+    "remote": "muse-spark-1.3",
+    "profile": "frontier"
+  },
+  "prompt_sha256": "43ce165874e0878725e78a5760acdcf8a2f1565aad49a76bdc9b5823bb18b3ec",
+  "direct": {
+    "statement": "from humanize import naturaldelta; naturaldelta(0, minimum_unit='')",
+    "crashed": true,
+    "output": "Traceback (most recent call last):\n  File \"/work/unbidden_direct.py\", line 3, in <module>\n    from humanize import naturaldelta; naturaldelta(0, minimum_unit='')\n                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/work/src/humanize/time.py\", line 142, in naturaldelta\n    tmp = Unit[minimum_unit.upper()]\n          ~~~~^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/enum.py\", line 792, in __getitem__\n    return cls._member_map_[name]\n           ~~~~~~~~~~~~~~~~^^^^^^\nKeyError: ''"
+  },
+  "replay": {
+    "tests": "docs/bench/2026-10-27-humanize-probe-that-found-keyerror.py",
+    "runs": [
+      {
+        "seed": 0,
+        "tests_sha256": "4c5060aa8702dae6",
+        "found": true,
+        "crashes": [
+          {
+            "exception": "KeyError",
+            "frame": "src/humanize/time.py:142 in naturaldelta",
+            "example": "test_naturaldelta_never_crashes(\n# The test always failed when commented parts were varied together.\nvalue=0,  # or any other generated value\nmonths=False,  # or any other generated value\nminimum_unit"
+          }
+        ]
+      },
+      {
+        "seed": 1,
+        "tests_sha256": "4c5060aa8702dae6",
+        "found": true,
+        "crashes": [
+          {
+            "exception": "KeyError",
+            "frame": "src/humanize/time.py:142 in naturaldelta",
+            "example": "test_naturaldelta_never_crashes(\n# The test always failed when commented parts were varied together.\nvalue=0,  # or any other generated value\nmonths=False,  # or any other generated value\nminimum_unit"
+          }
+        ]
+      },
+      {
+        "seed": 2,
+        "tests_sha256": "4c5060aa8702dae6",
+        "found": true,
+        "crashes": [
+          {
+            "exception": "KeyError",
+            "frame": "src/humanize/time.py:142 in naturaldelta",
+            "example": "test_naturaldelta_never_crashes(\n# The test always failed when commented parts were varied together.\nvalue=0,  # or any other generated value\nmonths=False,  # or any other generated value\nminimum_unit"
+          }
+        ]
+      },
+      {
+        "seed": 3,
+        "tests_sha256": "4c5060aa8702dae6",
+        "found": true,
+        "crashes": [
+          {
+            "exception": "KeyError",
+            "frame": "src/humanize/time.py:142 in naturaldelta",
+            "example": "test_naturaldelta_never_crashes(\n# The test always failed when commented parts were varied together.\nvalue=0,  # or any other generated value\nmonths=False,  # or any other generated value\nminimum_unit"
+          }
+        ]
+      },
+      {
+        "seed": 4,
+        "tests_sha256": "4c5060aa8702dae6",
+        "found": true,
+        "crashes": [
+          {
+            "exception": "KeyError",
+            "frame": "src/humanize/time.py:142 in naturaldelta",
+            "example": "test_naturaldelta_never_crashes(\n# The test always failed when commented parts were varied together.\nvalue=0,  # or any other generated value\nmonths=False,  # or any other generated value\nminimum_unit"
+          }
+        ]
+      },
+      {
+        "seed": 5,
+        "tests_sha256": "4c5060aa8702dae6",
+        "found": true,
+        "crashes": [
+          {
+            "exception": "KeyError",
+            "frame": "src/humanize/time.py:142 in naturaldelta",
+            "example": "test_naturaldelta_never_crashes(\n# The test always failed when commented parts were varied together.\nvalue=0,  # or any other generated value\nmonths=False,  # or any other generated value\nminimum_unit"
+          }
+        ]
+      },
+      {
+        "seed": 6,
+        "tests_sha256": "4c5060aa8702dae6",
+        "found": true,
+        "crashes": [
+          {
+            "exception": "KeyError",
+            "frame": "src/humanize/time.py:142 in naturaldelta",
+            "example": "test_naturaldelta_never_crashes(\n# The test always failed when commented parts were varied together.\nvalue=0,  # or any other generated value\nmonths=False,  # or any other generated value\nminimum_unit"
+          }
+        ]
+      },
+      {
+        "seed": 7,
+        "tests_sha256": "4c5060aa8702dae6",
+        "found": true,
+        "crashes": [
+          {
+            "exception": "KeyError",
+            "frame": "src/humanize/time.py:142 in naturaldelta",
+            "example": "test_naturaldelta_never_crashes(\n# The test always failed when commented parts were varied together.\nvalue=0,  # or any other generated value\nmonths=False,  # or any other generated value\nminimum_unit"
+          }
+        ]
+      },
+      {
+        "seed": 8,
+        "tests_sha256": "4c5060aa8702dae6",
+        "found": true,
+        "crashes": [
+          {
+            "exception": "KeyError",
+            "frame": "src/humanize/time.py:142 in naturaldelta",
+            "example": "test_naturaldelta_never_crashes(\n# The test always failed when commented parts were varied together.\nvalue=0,  # or any other generated value\nmonths=False,  # or any other generated value\nminimum_unit"
+          }
+        ]
+      },
+      {
+        "seed": 9,
+        "tests_sha256": "4c5060aa8702dae6",
+        "found": true,
+        "crashes": [
+          {
+            "exception": "KeyError",
+            "frame": "src/humanize/time.py:142 in naturaldelta",
+            "example": "test_naturaldelta_never_crashes(\n# The test always failed when commented parts were varied together.\nvalue=0,  # or any other generated value\nmonths=False,  # or any other generated value\nminimum_unit"
+          }
+        ]
+      }
+    ],
+    "found": 10
+  },
+  "fresh": {
+    "runs": [
+      {
+        "run": 0,
+        "seed": 0,
+        "tests_sha256": "94eb1b7d96fdc580",
+        "ran": true,
+        "summary": "1 failed, 7 passed in 0.96s",
+        "found": false,
+        "crashes": [],
+        "tests": "import datetime as dt\n\nimport pytest\nfrom hypothesis import given, settings\nimport hypothesis.strategies as st\n\nfrom humanize.filesize import naturalsize\nfrom humanize.number import ordinal\nfrom humanize.number import intcomma\nfrom humanize.number import intword\nfrom humanize.number import apnumber\nfrom humanize.number import fractional\nfrom humanize.time import naturaldelta\nfrom humanize.lists import natural_list\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**30, max_value=10**30),\n        st.floats(min_value=-1e30, max_value=1e30, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=-10**30, max_value=10**30).map(str),\n    ),\n    binary=st.booleans(),\n    gnu=st.booleans(),\n)\ndef test_naturalsize_never_crashes(value, binary, gnu):\n    naturalsize(value, binary=binary, gnu=gnu)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**18, max_value=10**18),\n        st.integers(min_value=-10**18, max_value=10**18).map(str),\n    ),\n    gender=st.sampled_from([\"male\", \"female\"]),\n)\ndef test_ordinal_never_crashes(value, gender):\n    ordinal(value, gender=gender)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**30, max_value=10**30),\n        st.floats(min_value=-1e15, max_value=1e15, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=-10**30, max_value=10**30).map(str),\n    ),\n    ndigits=st.one_of(st.none(), st.integers(min_value=0, max_value=20)),\n)\ndef test_intcomma_never_crashes(value, ndigits):\n    intcomma(value, ndigits=ndigits)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**30, max_value=10**30),\n        st.floats(min_value=-1e30, max_value=1e30, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=-10**30, max_value=10**30).map(str),\n    )\n)\ndef test_intword_never_crashes(value):\n    intword(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**12, max_value=10**12),\n        st.integers(min_value=-10**12, max_value=10**12).map(str),\n    )\n)\ndef test_apnumber_never_crashes(value):\n    apnumber(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**12, max_value=10**12),\n        st.floats(min_value=-1e9, max_value=1e9, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=-10**12, max_value=10**12).map(str),\n    )\n)\ndef test_fractional_never_crashes(value):\n    fractional(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.floats(min_value=0, max_value=1e12, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=0, max_value=10**12).map(float),\n        st.timedeltas(min_value=dt.timedelta(seconds=0), max_value=dt.timedelta(days=365000)),\n    ),\n    minimum_unit=st.sampled_from([\"seconds\", \"minutes\", \"hours\", \"days\", \"months\", \"years\"]),\n)\ndef test_naturaldelta_never_crashes(value, minimum_unit):\n    naturaldelta(value, minimum_unit=minimum_unit)\n\n\n@settings(max_examples=300, deadline=None)\n@given(items=st.lists(st.text(), max_size=10))\ndef test_natural_list_never_crashes(items):\n    natural_list(items)\n"
+      },
+      {
+        "run": 1,
+        "seed": 0,
+        "tests_sha256": "79738b8614871b5f",
+        "ran": true,
+        "summary": "2 failed, 6 passed in 0.99s",
+        "found": false,
+        "crashes": [],
+        "tests": "import datetime as dt\n\nimport pytest\nfrom hypothesis import given, settings\nfrom hypothesis import strategies as st\n\nfrom humanize.filesize import naturalsize\nfrom humanize.number import ordinal\nfrom humanize.number import intcomma\nfrom humanize.number import intword\nfrom humanize.number import apnumber\nfrom humanize.number import fractional\nfrom humanize.time import naturaldelta\nfrom humanize.lists import natural_list\n\n\nnumeric_text = st.one_of(\n    st.integers(min_value=-(10**30), max_value=10**30).map(str),\n    st.floats(min_value=-1e30, max_value=1e30, allow_nan=False, allow_infinity=False).map(repr),\n)\n\nsafe_floats = st.floats(min_value=-1e30, max_value=1e30, allow_nan=False, allow_infinity=False)\nsafe_ints = st.integers(min_value=-(10**30), max_value=10**30)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(safe_ints, safe_floats, numeric_text),\n    binary=st.booleans(),\n    gnu=st.booleans(),\n)\ndef test_naturalsize_never_crashes(value, binary, gnu):\n    naturalsize(value, binary=binary, gnu=gnu)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(safe_ints, safe_floats, numeric_text),\n    gender=st.sampled_from([\"male\", \"female\", \"neuter\"]),\n)\ndef test_ordinal_never_crashes(value, gender):\n    ordinal(value, gender=gender)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(safe_ints, safe_floats, numeric_text),\n    ndigits=st.one_of(st.none(), st.integers(min_value=-10, max_value=10)),\n)\ndef test_intcomma_never_crashes(value, ndigits):\n    intcomma(value, ndigits=ndigits)\n\n\n@settings(max_examples=300, deadline=None)\n@given(value=st.one_of(safe_ints, safe_floats, numeric_text))\ndef test_intword_never_crashes(value):\n    intword(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(value=st.one_of(st.integers(min_value=-(10**30), max_value=10**30), st.integers(min_value=-(10**30), max_value=10**30).map(str)))\ndef test_apnumber_never_crashes(value):\n    apnumber(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(value=st.one_of(safe_ints, safe_floats, numeric_text))\ndef test_fractional_never_crashes(value):\n    fractional(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        safe_floats,\n        st.integers(min_value=-(10**12), max_value=10**12).map(float),\n        st.timedeltas(min_value=dt.timedelta(days=-100000), max_value=dt.timedelta(days=100000)),\n    ),\n    months=st.booleans(),\n    minimum_unit=st.sampled_from([\"seconds\", \"minutes\", \"hours\", \"days\", \"months\", \"years\"]),\n)\ndef test_naturaldelta_never_crashes(value, months, minimum_unit):\n    naturaldelta(value, months=months, minimum_unit=minimum_unit)\n\n\n@settings(max_examples=300, deadline=None)\n@given(items=st.lists(st.text(), max_size=10))\ndef test_natural_list_never_crashes(items):\n    natural_list(items)\n"
+      },
+      {
+        "run": 2,
+        "seed": 0,
+        "tests_sha256": "c36a3565d8304d87",
+        "ran": true,
+        "summary": "1 failed, 7 passed in 1.43s",
+        "found": false,
+        "crashes": [],
+        "tests": "import datetime as dt\nfrom hypothesis import given, settings, strategies as st\nfrom humanize.filesize import naturalsize  # def naturalsize(value: float | str, binary: bool=False, gnu: bool=False, format: str='%.1f') \u2014 Format a number of bytes like a human-readable filesize (e.g. 10 kB).\nfrom humanize.number import ordinal  # def ordinal(value: NumberOrString, gender: str='male') \u2014 Converts an integer to its ordinal as a string.\nfrom humanize.number import intcomma  # def intcomma(value: NumberOrString, ndigits: int | None=None) \u2014 Converts an integer to a string containing commas every three digits.\nfrom humanize.number import intword  # def intword(value: NumberOrString, format: str='%.1f') \u2014 Converts a large integer to a friendly text representation.\nfrom humanize.number import apnumber  # def apnumber(value: NumberOrString) \u2014 Converts an integer to Associated Press style.\nfrom humanize.number import fractional  # def fractional(value: NumberOrString) \u2014 Convert to fractional number.\nfrom humanize.time import naturaldelta  # def naturaldelta(value: dt.timedelta | float, months: bool=True, minimum_unit: str='seconds') \u2014 Return a natural representation of a timedelta or number of seconds.\nfrom humanize.lists import natural_list  # def natural_list(items: Iterable[Any]) \u2014 Natural list.\n\n_num_str = st.from_regex(r\"-?\\d+(\\.\\d+)?\", fullmatch=True)\n_int_str = st.from_regex(r\"-?\\d{1,20}\", fullmatch=True)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**18, max_value=10**18),\n        st.floats(min_value=-1e308, max_value=1e308, allow_nan=False, allow_infinity=False),\n        _num_str,\n    ),\n    binary=st.booleans(),\n    gnu=st.booleans(),\n)\ndef test_naturalsize_never_crashes(value, binary, gnu):\n    naturalsize(value, binary=binary, gnu=gnu)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(st.integers(min_value=-10**18, max_value=10**18), _int_str),\n    gender=st.sampled_from([\"male\", \"female\"]),\n)\ndef test_ordinal_never_crashes(value, gender):\n    ordinal(value, gender=gender)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**18, max_value=10**18),\n        st.floats(min_value=-1e15, max_value=1e15, allow_nan=False, allow_infinity=False),\n        _num_str,\n    ),\n    ndigits=st.one_of(st.none(), st.integers(min_value=0, max_value=10)),\n)\ndef test_intcomma_never_crashes(value, ndigits):\n    intcomma(value, ndigits=ndigits)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**18, max_value=10**18),\n        st.floats(min_value=-1e308, max_value=1e308, allow_nan=False, allow_infinity=False),\n        _num_str,\n    )\n)\ndef test_intword_never_crashes(value):\n    intword(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(st.integers(min_value=-10**18, max_value=10**18), _int_str),\n)\ndef test_apnumber_never_crashes(value):\n    apnumber(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**18, max_value=10**18),\n        st.floats(min_value=-1e15, max_value=1e15, allow_nan=False, allow_infinity=False),\n        _num_str,\n    )\n)\ndef test_fractional_never_crashes(value):\n    fractional(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.timedeltas(min_value=dt.timedelta(days=-1000000), max_value=dt.timedelta(days=1000000)),\n        st.integers(min_value=-10**12, max_value=10**12),\n        st.floats(min_value=-1e12, max_value=1e12, allow_nan=False, allow_infinity=False),\n    ),\n    months=st.booleans(),\n    minimum_unit=st.sampled_from([\"seconds\", \"minutes\", \"hours\", \"days\", \"months\", \"years\"]),\n)\ndef test_naturaldelta_never_crashes(value, months, minimum_unit):\n    naturaldelta(value, months=months, minimum_unit=minimum_unit)\n\n\n@settings(max_examples=300, deadline=None)\n@given(items=st.lists(st.text(), max_size=10))\ndef test_natural_list_never_crashes(items):\n    natural_list(items)\n"
+      },
+      {
+        "run": 3,
+        "seed": 0,
+        "tests_sha256": "bf6a0095aeb6a223",
+        "ran": true,
+        "summary": "1 failed, 7 passed in 1.32s",
+        "found": false,
+        "crashes": [],
+        "tests": "import datetime as dt\n\nimport pytest\nfrom hypothesis import given, settings\nimport hypothesis.strategies as st\n\nfrom humanize.filesize import naturalsize\nfrom humanize.number import ordinal\nfrom humanize.number import intcomma\nfrom humanize.number import intword\nfrom humanize.number import apnumber\nfrom humanize.number import fractional\nfrom humanize.time import naturaldelta\nfrom humanize.lists import natural_list\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**18, max_value=10**18),\n        st.floats(allow_nan=False, allow_infinity=False, min_value=-1e18, max_value=1e18),\n        st.from_regex(r\"-?[0-9]{1,18}(\\.[0-9]{1,10})?\", fullmatch=True),\n    ),\n    binary=st.booleans(),\n    gnu=st.booleans(),\n)\ndef test_naturalsize_never_crashes(value, binary, gnu):\n    assert isinstance(naturalsize(value, binary=binary, gnu=gnu), str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**12, max_value=10**12),\n        st.from_regex(r\"-?[0-9]{1,12}\", fullmatch=True),\n    ),\n    gender=st.sampled_from([\"male\", \"female\"]),\n)\ndef test_ordinal_never_crashes(value, gender):\n    assert isinstance(ordinal(value, gender=gender), str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**18, max_value=10**18),\n        st.floats(allow_nan=False, allow_infinity=False, min_value=-1e15, max_value=1e15),\n        st.from_regex(r\"-?[0-9]{1,15}(\\.[0-9]{1,10})?\", fullmatch=True),\n    ),\n    ndigits=st.one_of(st.none(), st.integers(min_value=0, max_value=10)),\n)\ndef test_intcomma_never_crashes(value, ndigits):\n    assert isinstance(intcomma(value, ndigits=ndigits), str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**30, max_value=10**30),\n        st.floats(allow_nan=False, allow_infinity=False, min_value=-1e30, max_value=1e30),\n        st.from_regex(r\"-?[0-9]{1,30}(\\.[0-9]{1,10})?\", fullmatch=True),\n    ),\n)\ndef test_intword_never_crashes(value):\n    assert isinstance(intword(value), str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-1000, max_value=1000),\n        st.from_regex(r\"-?[0-9]{1,4}\", fullmatch=True),\n    ),\n)\ndef test_apnumber_never_crashes(value):\n    assert isinstance(apnumber(value), str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**9, max_value=10**9),\n        st.floats(allow_nan=False, allow_infinity=False, min_value=-1e9, max_value=1e9),\n        st.from_regex(r\"-?[0-9]{1,9}(\\.[0-9]{1,10})?\", fullmatch=True),\n    ),\n)\ndef test_fractional_never_crashes(value):\n    assert isinstance(fractional(value), str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.floats(allow_nan=False, allow_infinity=False, min_value=-1e9, max_value=1e9),\n        st.timedeltas(min_value=dt.timedelta(days=-1000000), max_value=dt.timedelta(days=1000000)),\n    ),\n    months=st.booleans(),\n    minimum_unit=st.sampled_from([\"seconds\", \"minutes\", \"hours\", \"days\", \"months\", \"years\"]),\n)\ndef test_naturaldelta_never_crashes(value, months, minimum_unit):\n    assert isinstance(naturaldelta(value, months=months, minimum_unit=minimum_unit), str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(items=st.lists(st.text(), min_size=0, max_size=10))\ndef test_natural_list_never_crashes(items):\n    assert isinstance(natural_list(items), str)\n"
+      },
+      {
+        "run": 4,
+        "seed": 0,
+        "tests_sha256": "eafab4e11542d648",
+        "ran": true,
+        "summary": "1 failed, 7 passed in 0.94s",
+        "found": false,
+        "crashes": [],
+        "tests": "import datetime as dt\n\nimport pytest\nfrom hypothesis import given, settings\nimport hypothesis.strategies as st\n\nfrom humanize.filesize import naturalsize\nfrom humanize.number import ordinal\nfrom humanize.number import intcomma\nfrom humanize.number import intword\nfrom humanize.number import apnumber\nfrom humanize.number import fractional\nfrom humanize.time import naturaldelta\nfrom humanize.lists import natural_list\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**30, max_value=10**30),\n        st.floats(min_value=-1e15, max_value=1e15, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=-10**30, max_value=10**30).map(str),\n    ),\n    binary=st.booleans(),\n    gnu=st.booleans(),\n)\ndef test_naturalsize_never_crashes(value, binary, gnu):\n    naturalsize(value, binary=binary, gnu=gnu)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**12, max_value=10**12),\n        st.integers(min_value=-10**12, max_value=10**12).map(str),\n    ),\n    gender=st.sampled_from([\"male\", \"female\", \"neuter\"]),\n)\ndef test_ordinal_never_crashes(value, gender):\n    ordinal(value, gender=gender)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**30, max_value=10**30),\n        st.integers(min_value=-10**30, max_value=10**30).map(str),\n        st.floats(min_value=-1e12, max_value=1e12, allow_nan=False, allow_infinity=False),\n    ),\n    ndigits=st.one_of(st.none(), st.integers(min_value=0, max_value=10)),\n)\ndef test_intcomma_never_crashes(value, ndigits):\n    intcomma(value, ndigits=ndigits)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**30, max_value=10**30),\n        st.integers(min_value=-10**30, max_value=10**30).map(str),\n        st.floats(min_value=-1e15, max_value=1e15, allow_nan=False, allow_infinity=False),\n    ),\n)\ndef test_intword_never_crashes(value):\n    intword(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**12, max_value=10**12),\n        st.integers(min_value=-10**12, max_value=10**12).map(str),\n    ),\n)\ndef test_apnumber_never_crashes(value):\n    apnumber(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**12, max_value=10**12),\n        st.integers(min_value=-10**12, max_value=10**12).map(str),\n        st.floats(min_value=-1e9, max_value=1e9, allow_nan=False, allow_infinity=False),\n    ),\n)\ndef test_fractional_never_crashes(value):\n    fractional(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.timedeltas(min_value=dt.timedelta(days=-365000), max_value=dt.timedelta(days=365000)),\n        st.floats(min_value=-1e9, max_value=1e9, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=-10**9, max_value=10**9),\n    ),\n    months=st.booleans(),\n    minimum_unit=st.sampled_from([\"years\", \"months\", \"days\", \"hours\", \"minutes\", \"seconds\", \"milliseconds\", \"microseconds\"]),\n)\ndef test_naturaldelta_never_crashes(value, months, minimum_unit):\n    naturaldelta(value, months=months, minimum_unit=minimum_unit)\n\n\n@settings(max_examples=300, deadline=None)\n@given(items=st.lists(st.text(), max_size=10))\ndef test_natural_list_never_crashes(items):\n    natural_list(items)\n"
+      },
+      {
+        "run": 5,
+        "seed": 0,
+        "tests_sha256": "fbe17ed37cf5f5a3",
+        "ran": true,
+        "summary": "2 failed, 6 passed in 1.07s",
+        "found": false,
+        "crashes": [],
+        "tests": "import datetime as dt\n\nfrom hypothesis import given, settings, strategies as st\n\nfrom humanize.number import ordinal\nfrom humanize.number import intcomma\nfrom humanize.number import intword\nfrom humanize.number import apnumber\nfrom humanize.number import fractional\nfrom humanize.time import naturaldelta\nfrom humanize.time import precisedelta\nfrom humanize.lists import natural_list\n\n\n@settings(max_examples=300, deadline=None)\n@given(value=st.one_of(st.integers(min_value=-10**30, max_value=10**30), st.integers(min_value=-10**30, max_value=10**30).map(str)))\ndef test_ordinal_never_crashes(value):\n    result = ordinal(value)\n    assert isinstance(result, str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(st.integers(min_value=-10**30, max_value=10**30), st.integers(min_value=-10**30, max_value=10**30).map(str)),\n    ndigits=st.one_of(st.none(), st.integers(min_value=0, max_value=30)),\n)\ndef test_intcomma_never_crashes(value, ndigits):\n    result = intcomma(value, ndigits=ndigits)\n    assert isinstance(result, str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(value=st.one_of(st.integers(min_value=-10**30, max_value=10**30), st.integers(min_value=-10**30, max_value=10**30).map(str)))\ndef test_intword_never_crashes(value):\n    result = intword(value)\n    assert isinstance(result, str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(value=st.one_of(st.integers(min_value=-10**30, max_value=10**30), st.integers(min_value=-10**30, max_value=10**30).map(str)))\ndef test_apnumber_never_crashes(value):\n    result = apnumber(value)\n    assert isinstance(result, str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**18, max_value=10**18),\n        st.floats(min_value=-1e12, max_value=1e12, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=-10**18, max_value=10**18).map(str),\n    )\n)\ndef test_fractional_never_crashes(value):\n    result = fractional(value)\n    assert isinstance(result, str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.floats(min_value=-1e12, max_value=1e12, allow_nan=False, allow_infinity=False),\n        st.timedeltas(min_value=dt.timedelta(days=-1000000), max_value=dt.timedelta(days=1000000)),\n    ),\n    months=st.booleans(),\n    minimum_unit=st.sampled_from([\"seconds\", \"minutes\", \"hours\", \"days\", \"months\", \"years\"]),\n)\ndef test_naturaldelta_never_crashes(value, months, minimum_unit):\n    result = naturaldelta(value, months=months, minimum_unit=minimum_unit)\n    assert isinstance(result, str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.none(),\n        st.floats(min_value=-1e12, max_value=1e12, allow_nan=False, allow_infinity=False),\n        st.timedeltas(min_value=dt.timedelta(days=-1000000), max_value=dt.timedelta(days=1000000)),\n    ),\n    minimum_unit=st.sampled_from([\"seconds\", \"minutes\", \"hours\", \"days\", \"months\", \"years\"]),\n    suppress=st.lists(st.sampled_from([\"years\", \"months\", \"days\", \"hours\", \"minutes\", \"seconds\"]), max_size=6, unique=True),\n)\ndef test_precisedelta_never_crashes(value, minimum_unit, suppress):\n    result = precisedelta(value, minimum_unit=minimum_unit, suppress=suppress)\n    assert isinstance(result, str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(items=st.lists(st.text()))\ndef test_natural_list_never_crashes(items):\n    result = natural_list(items)\n    assert isinstance(result, str)\n"
+      },
+      {
+        "run": 6,
+        "seed": 0,
+        "tests_sha256": "7fa5ba4c7890e629",
+        "ran": true,
+        "summary": "1 failed, 7 passed in 0.96s",
+        "found": false,
+        "crashes": [],
+        "tests": "import datetime as dt\n\nfrom hypothesis import given, settings, strategies as st\n\nfrom humanize.filesize import naturalsize\nfrom humanize.number import ordinal\nfrom humanize.number import intcomma\nfrom humanize.number import intword\nfrom humanize.number import apnumber\nfrom humanize.number import fractional\nfrom humanize.time import naturaldelta\nfrom humanize.lists import natural_list\n\n\n_SAFE_FORMATS = st.sampled_from([\"%.1f\", \"%.2f\", \"%.0f\", \"%d\", \"%.3f\"])\n_VALID_MINIMUM_UNITS = st.sampled_from([\"seconds\", \"minutes\", \"hours\", \"days\", \"months\", \"years\"])\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**30, max_value=10**30),\n        st.floats(min_value=-1e30, max_value=1e30, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=-10**30, max_value=10**30).map(str),\n    ),\n    binary=st.booleans(),\n    gnu=st.booleans(),\n    format=_SAFE_FORMATS,\n)\ndef test_naturalsize_never_crashes(value, binary, gnu, format):\n    result = naturalsize(value, binary=binary, gnu=gnu, format=format)\n    assert isinstance(result, str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**12, max_value=10**12),\n        st.integers(min_value=-10**12, max_value=10**12).map(str),\n    ),\n    gender=st.sampled_from([\"male\", \"female\", \"neuter\"]),\n)\ndef test_ordinal_never_crashes(value, gender):\n    result = ordinal(value, gender=gender)\n    assert isinstance(result, str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**30, max_value=10**30),\n        st.integers(min_value=-10**30, max_value=10**30).map(str),\n    ),\n    ndigits=st.one_of(st.none(), st.integers(min_value=0, max_value=10)),\n)\ndef test_intcomma_never_crashes(value, ndigits):\n    result = intcomma(value, ndigits=ndigits)\n    assert isinstance(result, str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**30, max_value=10**30),\n        st.floats(min_value=-1e30, max_value=1e30, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=-10**30, max_value=10**30).map(str),\n    ),\n    format=_SAFE_FORMATS,\n)\ndef test_intword_never_crashes(value, format):\n    result = intword(value, format=format)\n    assert isinstance(result, str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(value=st.integers(min_value=-10**9, max_value=10**9))\ndef test_apnumber_never_crashes(value):\n    result = apnumber(value)\n    assert isinstance(result, str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**12, max_value=10**12),\n        st.floats(min_value=-1e9, max_value=1e9, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=-10**12, max_value=10**12).map(str),\n    ),\n)\ndef test_fractional_never_crashes(value):\n    result = fractional(value)\n    assert isinstance(result, str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.floats(min_value=-1e9, max_value=1e9, allow_nan=False, allow_infinity=False),\n        st.timedeltas(min_value=dt.timedelta(days=-36500), max_value=dt.timedelta(days=36500)),\n    ),\n    months=st.booleans(),\n    minimum_unit=_VALID_MINIMUM_UNITS,\n)\ndef test_naturaldelta_never_crashes(value, months, minimum_unit):\n    result = naturaldelta(value, months=months, minimum_unit=minimum_unit)\n    assert isinstance(result, str)\n\n\n@settings(max_examples=300, deadline=None)\n@given(items=st.lists(st.text(), max_size=10))\ndef test_natural_list_never_crashes(items):\n    result = natural_list(items)\n    assert isinstance(result, str)\n"
+      },
+      {
+        "run": 7,
+        "seed": 0,
+        "tests_sha256": "af499f0415cb290f",
+        "ran": true,
+        "summary": "1 failed, 7 passed in 0.95s",
+        "found": false,
+        "crashes": [],
+        "tests": "from humanize.filesize import naturalsize  # def naturalsize(value: float | str, binary: bool=False, gnu: bool=False, format: str='%.1f') \u2014 Format a number of bytes like a human-readable filesize (e.g. 10 kB).\nfrom humanize.number import ordinal  # def ordinal(value: NumberOrString, gender: str='male') \u2014 Converts an integer to its ordinal as a string.\nfrom humanize.number import intcomma  # def intcomma(value: NumberOrString, ndigits: int | None=None) \u2014 Converts an integer to a string containing commas every three digits.\nfrom humanize.number import intword  # def intword(value: NumberOrString, format: str='%.1f') \u2014 Converts a large integer to a friendly text representation.\nfrom humanize.number import apnumber  # def apnumber(value: NumberOrString) \u2014 Converts an integer to Associated Press style.\nfrom humanize.number import fractional  # def fractional(value: NumberOrString) \u2014 Convert to fractional number.\nfrom humanize.time import naturaldelta  # def naturaldelta(value: dt.timedelta | float, months: bool=True, minimum_unit: str='seconds') \u2014 Return a natural representation of a timedelta or number of seconds.\nfrom humanize.lists import natural_list  # def natural_list(items: Iterable[Any]) \u2014 Natural list.\nfrom hypothesis import given, settings, strategies as st\nimport datetime as dt\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**30, max_value=10**30),\n        st.floats(min_value=-1e30, max_value=1e30, allow_nan=False, allow_infinity=False),\n    ),\n    binary=st.booleans(),\n    gnu=st.booleans(),\n)\ndef test_naturalsize_never_crashes(value, binary, gnu):\n    naturalsize(value, binary=binary, gnu=gnu)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**12, max_value=10**12),\n        st.integers(min_value=-10**12, max_value=10**12).map(str),\n    ),\n    gender=st.sampled_from([\"male\", \"female\", \"neuter\"]),\n)\ndef test_ordinal_never_crashes(value, gender):\n    ordinal(value, gender=gender)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**30, max_value=10**30),\n        st.floats(min_value=-1e15, max_value=1e15, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=-10**30, max_value=10**30).map(str),\n    ),\n    ndigits=st.one_of(st.none(), st.integers(min_value=0, max_value=10)),\n)\ndef test_intcomma_never_crashes(value, ndigits):\n    intcomma(value, ndigits=ndigits)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**30, max_value=10**30),\n        st.floats(min_value=-1e30, max_value=1e30, allow_nan=False, allow_infinity=False),\n    )\n)\ndef test_intword_never_crashes(value):\n    intword(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(value=st.integers(min_value=-10**12, max_value=10**12))\ndef test_apnumber_never_crashes(value):\n    apnumber(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**12, max_value=10**12),\n        st.floats(min_value=-1e12, max_value=1e12, allow_nan=False, allow_infinity=False),\n    )\n)\ndef test_fractional_never_crashes(value):\n    fractional(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.floats(min_value=-1e12, max_value=1e12, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=-10**12, max_value=10**12),\n        st.timedeltas(min_value=dt.timedelta(days=-1000000), max_value=dt.timedelta(days=1000000)),\n    ),\n    months=st.booleans(),\n    minimum_unit=st.sampled_from([\"seconds\", \"minutes\", \"hours\", \"days\", \"months\", \"years\"]),\n)\ndef test_naturaldelta_never_crashes(value, months, minimum_unit):\n    naturaldelta(value, months=months, minimum_unit=minimum_unit)\n\n\n@settings(max_examples=300, deadline=None)\n@given(items=st.lists(st.text(), max_size=10))\ndef test_natural_list_never_crashes(items):\n    natural_list(items)\n"
+      },
+      {
+        "run": 8,
+        "seed": 0,
+        "tests_sha256": "feec8e88a565cec0",
+        "ran": true,
+        "summary": "1 failed, 7 passed in 0.96s",
+        "found": false,
+        "crashes": [],
+        "tests": "from humanize.filesize import naturalsize\nfrom humanize.number import ordinal\nfrom humanize.number import intcomma\nfrom humanize.number import intword\nfrom humanize.number import apnumber\nfrom humanize.number import fractional\nfrom humanize.time import naturaldelta\nfrom humanize.lists import natural_list\nimport datetime as dt\nfrom hypothesis import given, settings, strategies as st\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.floats(min_value=-1e308, max_value=1e308, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=-10**30, max_value=10**30),\n        st.integers(min_value=-10**30, max_value=10**30).map(str),\n        st.floats(min_value=-1e12, max_value=1e12, allow_nan=False, allow_infinity=False).map(str),\n    ),\n    binary=st.booleans(),\n    gnu=st.booleans(),\n)\ndef test_naturalsize_never_crashes(value, binary, gnu):\n    naturalsize(value, binary=binary, gnu=gnu)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**18, max_value=10**18),\n        st.integers(min_value=-10**18, max_value=10**18).map(str),\n        st.booleans(),\n    )\n)\ndef test_ordinal_never_crashes(value):\n    ordinal(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**30, max_value=10**30),\n        st.floats(min_value=-1e15, max_value=1e15, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=-10**30, max_value=10**30).map(str),\n    ),\n    ndigits=st.one_of(st.none(), st.integers(min_value=0, max_value=20)),\n)\ndef test_intcomma_never_crashes(value, ndigits):\n    intcomma(value, ndigits=ndigits)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**36, max_value=10**36),\n        st.floats(min_value=-1e18, max_value=1e18, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=-10**36, max_value=10**36).map(str),\n    )\n)\ndef test_intword_never_crashes(value):\n    intword(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**12, max_value=10**12),\n        st.integers(min_value=0, max_value=20).map(str),\n    )\n)\ndef test_apnumber_never_crashes(value):\n    apnumber(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-10**12, max_value=10**12),\n        st.floats(min_value=-1e9, max_value=1e9, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=-10**9, max_value=10**9).map(lambda n: str(n) + \".5\"),\n    )\n)\ndef test_fractional_never_crashes(value):\n    fractional(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.timedeltas(min_value=dt.timedelta(seconds=0), max_value=dt.timedelta(days=365 * 2000)),\n        st.floats(min_value=0, max_value=1e12, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=0, max_value=10**12),\n    ),\n    minimum_unit=st.sampled_from([\"seconds\", \"minutes\", \"hours\", \"days\", \"months\", \"years\"]),\n)\ndef test_naturaldelta_never_crashes(value, minimum_unit):\n    naturaldelta(value, minimum_unit=minimum_unit)\n\n\n@settings(max_examples=300, deadline=None)\n@given(items=st.lists(st.text(), max_size=10))\ndef test_natural_list_never_crashes(items):\n    natural_list(items)\n"
+      },
+      {
+        "run": 9,
+        "seed": 0,
+        "tests_sha256": "8d4cf31352dfb9d9",
+        "ran": true,
+        "summary": "1 failed, 7 passed in 0.90s",
+        "found": false,
+        "crashes": [],
+        "tests": "from humanize.filesize import naturalsize  # def naturalsize(value: float | str, binary: bool=False, gnu: bool=False, format: str='%.1f') \u2014 Format a number of bytes like a human-readable filesize (e.g. 10 kB).\nfrom humanize.number import ordinal  # def ordinal(value: NumberOrString, gender: str='male') \u2014 Converts an integer to its ordinal as a string.\nfrom humanize.number import intcomma  # def intcomma(value: NumberOrString, ndigits: int | None=None) \u2014 Converts an integer to a string containing commas every three digits.\nfrom humanize.number import intword  # def intword(value: NumberOrString, format: str='%.1f') \u2014 Converts a large integer to a friendly text representation.\nfrom humanize.number import apnumber  # def apnumber(value: NumberOrString) \u2014 Converts an integer to Associated Press style.\nfrom humanize.number import fractional  # def fractional(value: NumberOrString) \u2014 Convert to fractional number.\nfrom humanize.time import naturaldelta  # def naturaldelta(value: dt.timedelta | float, months: bool=True, minimum_unit: str='seconds') \u2014 Return a natural representation of a timedelta or number of seconds.\nfrom humanize.lists import natural_list  # def natural_list(items: Iterable[Any]) \u2014 Natural list.\nimport datetime as dt\nfrom hypothesis import given, settings\nimport hypothesis.strategies as st\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-(10**30), max_value=10**30),\n        st.floats(min_value=-1e30, max_value=1e30, allow_nan=False, allow_infinity=False),\n    ),\n    binary=st.booleans(),\n    gnu=st.booleans(),\n)\ndef test_naturalsize_never_crashes(value, binary, gnu):\n    naturalsize(value, binary=binary, gnu=gnu)\n\n\n@settings(max_examples=300, deadline=None)\n@given(value=st.integers(min_value=-(10**12), max_value=10**12))\ndef test_ordinal_never_crashes(value):\n    ordinal(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.integers(min_value=-(10**30), max_value=10**30),\n    ndigits=st.one_of(st.none(), st.integers(min_value=0, max_value=10)),\n)\ndef test_intcomma_never_crashes(value, ndigits):\n    intcomma(value, ndigits=ndigits)\n\n\n@settings(max_examples=300, deadline=None)\n@given(value=st.integers(min_value=-(10**30), max_value=10**30))\ndef test_intword_never_crashes(value):\n    intword(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(value=st.integers(min_value=-(10**12), max_value=10**12))\ndef test_apnumber_never_crashes(value):\n    apnumber(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.integers(min_value=-(10**12), max_value=10**12),\n        st.floats(min_value=-1e12, max_value=1e12, allow_nan=False, allow_infinity=False),\n    )\n)\ndef test_fractional_never_crashes(value):\n    fractional(value)\n\n\n@settings(max_examples=300, deadline=None)\n@given(\n    value=st.one_of(\n        st.floats(min_value=0, max_value=1e12, allow_nan=False, allow_infinity=False),\n        st.integers(min_value=0, max_value=10**12),\n        st.timedeltas(\n            min_value=dt.timedelta(days=-365 * 2000),\n            max_value=dt.timedelta(days=365 * 2000),\n        ),\n    ),\n    minimum_unit=st.sampled_from(\n        [\"years\", \"months\", \"days\", \"hours\", \"minutes\", \"seconds\", \"milliseconds\", \"microseconds\"]\n    ),\n)\ndef test_naturaldelta_never_crashes(value, minimum_unit):\n    naturaldelta(value, minimum_unit=minimum_unit)\n\n\n@settings(max_examples=300, deadline=None)\n@given(items=st.lists(st.text(), max_size=10))\ndef test_natural_list_never_crashes(items):\n    natural_list(items)\n"
+      }
+    ],
+    "found": 0,
+    "ran": 10
+  },
+  "spend": {
+    "muse-spark-1.3": {
+      "calls": 10,
+      "retries": 0,
+      "failed": 0,
+      "tokens_in": 8220,
+      "tokens_out": 33525,
+      "usd": 0.15275625,
+      "unreported": 0
+    }
+  },
+  "finished_at": "2026-10-27T23:56:28.956659+00:00"
+}

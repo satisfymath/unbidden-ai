@@ -1,0 +1,82 @@
+{
+ "repo": "/Users/david/unbidden-lab/lnbits",
+ "rev": "9349da153c223b008f7d80453b53a54e09c8ed3d",
+ "stack": {
+  "python": "3.12",
+  "why": [
+   "python 3.12: where the CI runs the checks and the project's Dockerfile both use it",
+   "pyproject requires-python: >=3.10,<3.13",
+   "poetry.lock metadata python-versions: >=3.10,<3.13",
+   "the CI's python-version: 3.10, 3.12",
+   "the project's Dockerfile: 3.12",
+   "conflict: concrete sources disagree: the CI's python-version 3.10, 3.12; the project's Dockerfile 3.12"
+  ],
+  "manifest": "poetry.lock",
+  "lockfile": "poetry.lock",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:842560ccd4abfc7c",
+ "plan": {
+  "source": "CI ci.yml:regtest > regtest (regtest.yml)",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [
+   "left out, it edits the CI runner's own system: sudo chmod -R a+rwx .",
+   "1 step(s) after the tests left out (they run no tests)"
+  ],
+  "services": [],
+  "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\ncd docker/regtest\nchmod +x ./start-regtest\n./start-regtest\ncd /work\npytest tests/regtest"
+ },
+ "status": "failed",
+ "collected": 36,
+ "failed": [
+  "tests.regtest.test_electrum::test_balance_after_payment (needs network)",
+  "tests.regtest.test_electrum::test_connect_and_height (needs network)",
+  "tests.regtest.test_electrum::test_get_tip (needs network)",
+  "tests.regtest.test_electrum::test_history_and_utxos (needs network)",
+  "tests.regtest.test_electrum::test_server_banner (needs network)",
+  "tests.regtest.test_electrum::test_subscribe_headers (needs network)",
+  "tests.regtest.test_electrum::test_subscribe_scripthash_payment (needs network)",
+  "tests.regtest.test_real_invoice::test_check_fee_reserve (needs network)",
+  "tests.regtest.test_real_invoice::test_create_real_invoice (needs network)",
+  "tests.regtest.test_real_invoice::test_pay_hold_invoice_check_pending (needs network)",
+  "tests.regtest.test_real_invoice::test_pay_hold_invoice_check_pending_and_fail (needs network)",
+  "tests.regtest.test_real_invoice::test_pay_hold_invoice_check_pending_and_fail_cancel_payment_task_in_meantime (needs network)",
+  "tests.regtest.test_real_invoice::test_pay_real_invoice (needs network)",
+  "tests.regtest.test_real_invoice::test_pay_real_invoice_noroute (needs network)",
+  "tests.regtest.test_real_invoice::test_pay_real_invoice_set_pending_and_check_state (needs network)",
+  "tests.regtest.test_real_invoice::test_pay_real_invoices_in_parallel (needs network)",
+  "tests.regtest.test_real_invoice::test_receive_real_invoice_set_pending_and_check_state (needs network)",
+  "tests.regtest.test_services_create_invoice::test_create_invoice (needs network)",
+  "tests.regtest.test_services_pay_invoice::test_services_pay_invoice (needs network)",
+  "tests.regtest.test_services_pay_invoice::test_services_pay_invoice_0_amount_invoice (needs network)"
+ ],
+ "why": null,
+ "wall_s": 10.9,
+ "image_notes": [
+  "python 3.12: where the CI runs the checks and the project's Dockerfile both use it",
+  "pyproject requires-python: >=3.10,<3.13",
+  "poetry.lock metadata python-versions: >=3.10,<3.13",
+  "the CI's python-version: 3.10, 3.12",
+  "the project's Dockerfile: 3.12",
+  "conflict: concrete sources disagree: the CI's python-version 3.10, 3.12; the project's Dockerfile 3.12",
+  "image unbidden-deps-python:842560ccd4abfc7c on linux/arm64"
+ ],
+ "python": "3.12",
+ "source": "CI ci.yml:regtest > regtest (regtest.yml)",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [
+  "left out, it edits the CI runner's own system: sudo chmod -R a+rwx .",
+  "1 step(s) after the tests left out (they run no tests)"
+ ],
+ "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\ncd docker/regtest\nchmod +x ./start-regtest\n./start-regtest\ncd /work\npytest tests/regtest"
+}

@@ -1,0 +1,214 @@
+{
+  "workspace": "prefect",
+  "at": "2026-10-30T06:54:25.665874+00:00",
+  "discovered": {
+    "total": 3,
+    "by_status": {
+      "open": 3
+    }
+  },
+  "experimenting": [],
+  "declined_because": [],
+  "waiting_because": [
+    [
+      "investigation queued or running",
+      1
+    ]
+  ],
+  "proven": [],
+  "project_checks": {
+    "rev": "1ef3e516d3b3449d19f65b30c45d1e0bff656396",
+    "at": "2026-10-30T06:53:26.786720+00:00",
+    "status": "blocked",
+    "why": "ProvisionError: dependency image for python failed to build:\nerror: Failed to download and build `python-cli-bench @ git+https://github.com/zzstoatzz/python-cli-bench.git@3bdb12d0e97d814c86bddc6573c8d49b99f39719`\n  cause: Git operation failed\n  cause: Git executable not found. Ensure that Git is installed and available.\n\nhint: `python-cli-bench` was included because `prefect:cli-bench` depends on `python-cli-benc"
+  },
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {
+      "abandoned": 1
+    },
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 44,
+    "usd": 0.2005,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55470/prefect",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.agent",
+        "select public.alembic_version",
+        "select public.artifact",
+        "select public.artifact_collection",
+        "select public.automation",
+        "select public.automation_bucket",
+        "select public.automation_event_follower",
+        "select public.automation_held_event",
+        "select public.automation_related_resource",
+        "select public.block_document",
+        "select public.block_document_reference",
+        "select public.block_schema",
+        "select public.block_schema_reference",
+        "select public.block_type",
+        "select public.composite_trigger_child_firing",
+        "select public.concurrency_limit",
+        "select public.concurrency_limit_v2",
+        "select public.configuration",
+        "select public.csrf_token",
+        "select public.deployment",
+        "select public.deployment_schedule",
+        "select public.deployment_version",
+        "select public.event_resources",
+        "select public.events",
+        "select public.flow",
+        "select public.flow_run",
+        "select public.flow_run_input",
+        "select public.flow_run_state",
+        "select public.log",
+        "select public.saved_search",
+        "select public.task_run",
+        "select public.task_run_state",
+        "select public.task_run_state_cache",
+        "select public.variable",
+        "select public.work_pool",
+        "select public.work_queue",
+        "select public.worker"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T06:54:24.913633+00:00"
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18140",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "Prefect REST API: 187 operations documented, authenticated by nothing; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-30T06:54:24.928239+00:00"
+    }
+  ],
+  "needs_a_person": [],
+  "optional_access": [],
+  "blocks": [
+    {
+      "operation": "observe.checks",
+      "kind": "compatibility",
+      "needs": "nothing known a person can grant; the evidence says what failed",
+      "continues": "observe.checks runs again",
+      "evidence": "venv/bin/python -c \\\"import hypothesis\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\" did not complete successfully: exit code: 1"
+    },
+    {
+      "operation": "research.probe",
+      "kind": "compatibility",
+      "needs": "nothing known a person can grant; the evidence says what failed",
+      "continues": "research.probe runs again",
+      "evidence": "venv/bin/python -c \\\"import hypothesis\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\" did not complete successfully: exit code: 1"
+    },
+    {
+      "operation": "lab.experiment opp_78c14b738d4c4548",
+      "kind": "compatibility",
+      "needs": "nothing known a person can grant; the evidence says what failed",
+      "continues": "lab.experiment runs again",
+      "evidence": "venv/bin/python -c \\\"import hypothesis\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\" did not complete successfully: exit code: 1"
+    },
+    {
+      "operation": "lab.experiment opp_5e0e3085a1a149ed",
+      "kind": "compatibility",
+      "needs": "nothing known a person can grant; the evidence says what failed",
+      "continues": "lab.experiment runs again",
+      "evidence": "venv/bin/python -c \\\"import hypothesis\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\" did not complete successfully: exit code: 1"
+    }
+  ],
+  "integrations": [
+    {
+      "id": "int_1b13b956071e48ff",
+      "title": "Prefect REST API",
+      "on": "http_api:http://127.0.0.1:18140",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "read_account_events_page_events_filter_next_get": "read"
+      },
+      "oracle": {
+        "read_account_events_page_events_filter_next_get": "read failed: read_account_events_page_events_filter_next_get needs page-token; None, 0 records, read not at all (); ; without the key: None"
+      }
+    },
+    {
+      "id": "int_94fae381fc4d45fd",
+      "title": "Prefect REST API",
+      "on": "http_api:http://127.0.0.1:18140",
+      "status": "rejected",
+      "how": "built",
+      "operations": {
+        "read_account_events_page_events_filter_next_get": "read"
+      },
+      "oracle": {
+        "read_account_events_page_events_filter_next_get": "read failed: read_account_events_page_events_filter_next_get needs page-token; None, 0 records, read not at all (); ; without the key: None"
+      }
+    }
+  ],
+  "actions": [],
+  "acceptances": [],
+  "goals": [
+    {
+      "goal": "consistency-opp_51d954ecd02a44d8",
+      "status": "waiting_capability",
+      "short": 0,
+      "actions": 0,
+      "note": "needs an integration for prefect-api",
+      "at": "2026-10-30T06:53:31.549467+00:00"
+    }
+  ]
+}

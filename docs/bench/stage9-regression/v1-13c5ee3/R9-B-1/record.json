@@ -1,0 +1,34 @@
+{
+ "run": "R9-B-1",
+ "mode": "proactive",
+ "restored": {
+  "commit": "029eb7781c60d5f563ee8990a0cbfb79b244538c",
+  "data": {
+   "users": 2000,
+   "articles": 20000,
+   "comments": 300000,
+   "favorites": 20000
+  }
+ },
+ "usd_before": 7.2945,
+ "interventions": [
+  {
+   "answered": {
+    "blocked": "research.probe",
+    "state": "pending_person",
+    "what": "add deb.debian.org to egress.package_registries (system build tools: a compiler and the C headers a package builds against) (then: research.probe runs again)"
+   },
+   "granted": [
+    "deb.debian.org"
+   ],
+   "at": 1793314865.190069
+  }
+ ],
+ "wall_s": 1142.2,
+ "repo_after": "",
+ "branches_after": [
+  "unbidden/commentaries-article-id-is-a-foreign-key-014136"
+ ],
+ "usd_after": 7.5726,
+ "workspace": "/Users/david/unbidden-lab/conduit-runs/r9-v1-R9-B-1"
+}

@@ -1,0 +1,79 @@
+== cycle 1 (exit 0)
+04:26:33 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+04:26:34 HEAD is bed3f14ee77a
+04:26:34 deploy procedure found, proposed only: docker compose -f 
+tests_frontend/docker-compose.yml up -d --wait
+04:26:34 deploy procedure found, proposed only: docker compose -f 
+tests_frontend_v2/docker-compose.yml up -d --wait
+04:26:34 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability
+04:26:34 provisioning python dependencies
+04:26:34 running ruff
+04:26:35 scan of bed3f14ee77a: 1 reports, 0 new opportunities
+04:30:26 map of bed3f14ee77a: 67 resources, 4 blind spots
+04:30:26 robustness probe at bed3f14ee77a: investigate (probe tests_integration 
+(80 public functions sampled))
+04:30:29 the project's own checks at bed3f14ee77a: passed (278 collected, 0 
+failed)
+04:30:42 goal data-correct-and-fast: waiting_capability: needs an integration 
+for spoolman-api
+04:31:59 capability need api_client for http_api:http://127.0.0.1:18130: failed
+04:31:59 opp_66bc287407c3403f: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+04:31:59 opp_71ebdc6901cc4f68: run_experiment (reproduce it and measure a 
+candidate offline (p 0.60 from the lab's history of this kind))
+04:33:13 capability need api_client for http_api:http://127.0.0.1:18130: 
+abandoned
+04:33:27 goal data-correct-and-fast: blocked: spoolman-api: no integration could
+be validated (Find_spool_groups_spool_group_get: read failed: 
+Find_spool_groups_spool_group_get needs group_by; None, 0 records, read not at 
+all (); ; without the key: None Find_spool_groups_spool_group_get needs 
+group_by)
+04:33:28 writing property tests for tests_integration
+04:33:45 running them offline
+04:33:49 robustness probe of tests_integration: 13 failed, 2 passed in 2.90s; 0 
+crash(es), 0 new; 0 property violation(s) kept for a person (L1)
+04:33:51 asking the local model for the schema change (attempt 1)
+04:34:17 asking the local model for the schema change (attempt 2)
+04:34:38 writing the workload (attempt 1)
+04:35:28 measuring the base
+04:35:30 writing the workload (attempt 2)
+04:35:58 measuring the base
+04:36:00 writing the workload (attempt 3)
+04:36:48 measuring the base
+04:36:50 writing the workload (attempt 4)
+04:36:53 measuring the base
+04:36:54 writing the workload (attempt 5)
+04:37:39 measuring the base
+04:37:40 opp_66bc287407c3403f: not measured (cannot measure: no workload ran at 
+the base after 5 attempts (workload attempt 5 failed: E       AttributeError: 
+'NoneType' object has no attribute 'execute'))
+04:37:41 opp_66bc287407c3403f: wait (not measurable at this commit: cannot 
+measure: no workload ran at the base after 5 attempts (workload attempt 5 
+failed: E       AttributeError: 'NoneType' object has no attribute 'execute'))
+04:37:42 opp_71ebdc6901cc4f68: not measured (cannot measure: no test database 
+known to enforce foreign keys)
+04:37:43 opp_71ebdc6901cc4f68: wait (not measurable at this commit: cannot 
+measure: no test database known to enforce foreign keys)
+
+
+== cycle 2 (exit 0)
+04:37:43 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+04:37:44 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability
+
+
+== cycle 3 (exit 0)
+04:37:45 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+04:37:45 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability
+
+
+== cycle 4 (exit 0)
+04:37:46 watching /Users/david/unbidden-lab/spoolman (ctrl-c to stop, `unbidden 
+kill` to freeze)
+04:37:46 connections: postgres:127.0.0.1:55460/spoolman connected, 
+http_api:http://127.0.0.1:18130 needs_capability

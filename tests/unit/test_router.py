@@ -215,3 +215,101 @@ async def test_a_failed_frontier_answer_falls_back_to_the_local_model(store: Sto
         )
     )
     assert response.content.startswith("# file:")
+
+
+async def test_every_fallback_is_recorded_and_a_mandate_can_refuse_the_local_one(
+    store: Store, mandate: Mandate
+) -> None:
+    def ask() -> LLMRequest:
+        return LLMRequest(
+            purpose="lab.fix_candidate",
+            tier=Tier.LOCAL,
+            expect_files=True,
+            messages=[Message(role="user", content="fix", source="repo")],
+        )
+
+    brain, local, remote = make_brain(store, mandate)
+    brain.repo_public = True
+    remote.script("lab.fix_candidate", "no file here", repeat=True)
+    local.script("lab.fix_candidate", "# file: a.py\nx = 1\n")
+    await brain.complete(ask())
+    (taken,) = [e for e in store.events() if e.type is EventType.MODEL_FALLBACK]
+    assert taken.payload["from"] == "code" and taken.payload["to"] == "local" and taken.payload["taken"] is True
+    assert "ModelFailed" in taken.payload["cause"]
+
+    mandate.models.local_fallback = "deny"
+    calls = len(local.requests)
+    with pytest.raises(ModelFailed):
+        await brain.complete(ask())
+    assert len(local.requests) == calls  # the local model was never asked
+    refused = [e for e in store.events() if e.type is EventType.MODEL_FALLBACK][-1]
+    assert refused.payload["taken"] is False
+
+
+def _with_screenshot(text: str = "which rows show a red badge?") -> LLMRequest:
+    from unbidden.contracts.llm import Image
+
+    message = Message(role="user", content=text, source="synthetic", images=[Image.of(b"\x89PNG fake screenshot")])
+    return LLMRequest(purpose="bridge.solve", tier=Tier.FRONTIER, messages=[message])
+
+
+async def test_a_screenshot_leaves_only_where_the_mandate_lets_screenshots_leave(
+    store: Store, mandate: Mandate
+) -> None:
+    brain, _, remote = make_brain(store, mandate)
+    remote.script("bridge.solve", "ok", repeat=True)
+    mandate.models.screenshots_to_frontier = "deny"
+    with pytest.raises(EgressBlocked):
+        await brain.complete(_with_screenshot())
+    assert remote.requests == []
+    mandate.models.screenshots_to_frontier = "allow"
+    await brain.complete(_with_screenshot())
+    (sent,) = remote.requests
+    assert sent.messages[0].images[0].data() == b"\x89PNG fake screenshot"
+    attempts = store.list("egress", EgressAttempt)
+    assert {a.verdict.kind for a in attempts} == {"screenshots"}
+    # Recorded by digest only: the picture's bytes are in no record.
+    assert all("data_b64" not in a.payload and "ZmFrZ" not in a.payload for a in attempts)
+    assert sent.messages[0].images[0].sha256 in next(a.payload for a in attempts if a.status == "allowed_sent")
+
+
+async def test_the_local_route_is_never_given_a_screenshot(store: Store, mandate: Mandate) -> None:
+    from unbidden.contracts.llm import Image
+
+    brain, local, _ = make_brain(store, mandate)
+    local.script("test.decide", "ok", repeat=True)
+    message = Message(role="user", content="look", images=[Image.of(b"png")])
+    with pytest.raises(ModelFailed):
+        await brain.complete(LLMRequest(purpose="test.decide", tier=Tier.LOCAL, messages=[message]))
+    assert local.requests == []
+
+
+def test_the_openai_compatible_provider_sends_pictures_as_image_parts() -> None:
+    from unbidden.brain.providers.openai_compat import _message  # pyright: ignore[reportPrivateUsage]
+    from unbidden.contracts.llm import Image
+
+    sent = _message(Message(role="user", content="look", images=[Image.of(b"png-bytes")]))
+    assert sent["content"][0] == {"type": "text", "text": "look"}
+    assert sent["content"][1]["image_url"]["url"].startswith("data:image/png;base64,cG5n")
+    assert _message(Message(role="user", content="plain"))["content"] == "plain"
+
+
+async def test_a_mandate_that_denies_local_inference_never_uses_the_local_model(store: Store, mandate: Mandate) -> None:
+    """Stage 9's runs use Meta's API only: a call that may go remote goes there with no local fallback; one that may
+    not (production data) is refused with its reason, never served locally."""
+    from unbidden.brain.router import PolicyDenied
+
+    mandate.models.profile = "frontier"
+    mandate.models.local_inference = "deny"
+    brain, local, remote = make_brain(store, mandate)
+    brain.repo_public = True
+    remote.script("lab.fix_candidate", "no file here", repeat=True)
+    local.script("lab.fix_candidate", "# file: a.py\nx = 1\n")
+    with pytest.raises(ModelFailed):  # the remote answer fails: no local model takes over, even with fallback allowed
+        await brain.complete(LLMRequest(purpose="lab.fix_candidate", tier=Tier.LOCAL, expect_files=True,
+                                        messages=[Message(role="user", content="fix", source="repo")]))  # fmt: skip
+    log = "\n".join(f'INFO: 10.0.0.{i}:5 - "GET /a HTTP/1.1" 200 OK' for i in range(5))
+    with pytest.raises(PolicyDenied, match="denies local inference"):
+        await brain.complete(LLMRequest(purpose="forge.adapter", tier=Tier.CODE,
+                                        messages=[Message(role="user", content=log, source="runtime")]))  # fmt: skip
+    assert local.requests == []

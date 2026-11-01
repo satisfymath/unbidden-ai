@@ -1,0 +1,120 @@
+{
+  "health-v1": {
+    "clean_minutes": 10,
+    "clean_minutes_with_alarm": 1,
+    "clean_minutes_with_unconfirmed_alarm": 1,
+    "alarmed_services": [
+      "quote"
+    ],
+    "trials": [
+      {
+        "expect": "ad",
+        "minutes": 9,
+        "detected_min": null,
+        "others": []
+      },
+      {
+        "expect": "email",
+        "minutes": 9,
+        "detected_min": null,
+        "others": [
+          "checkout"
+        ]
+      },
+      {
+        "expect": "cart",
+        "minutes": 9,
+        "detected_min": null,
+        "others": [
+          "checkout"
+        ]
+      }
+    ]
+  },
+  "health-v2-candidate": {
+    "clean_minutes": 10,
+    "clean_minutes_with_alarm": 0,
+    "clean_minutes_with_unconfirmed_alarm": 0,
+    "alarmed_services": [],
+    "trials": [
+      {
+        "expect": "ad",
+        "minutes": 9,
+        "detected_min": null,
+        "others": []
+      },
+      {
+        "expect": "email",
+        "minutes": 9,
+        "detected_min": null,
+        "others": []
+      },
+      {
+        "expect": "cart",
+        "minutes": 9,
+        "detected_min": null,
+        "others": []
+      }
+    ]
+  },
+  "health-v3-candidate": {
+    "clean_minutes": 10,
+    "clean_minutes_with_alarm": 0,
+    "clean_minutes_with_unconfirmed_alarm": 0,
+    "alarmed_services": [],
+    "trials": [
+      {
+        "expect": "ad",
+        "minutes": 9,
+        "detected_min": null,
+        "others": []
+      },
+      {
+        "expect": "email",
+        "minutes": 9,
+        "detected_min": null,
+        "others": []
+      },
+      {
+        "expect": "cart",
+        "minutes": 9,
+        "detected_min": null,
+        "others": []
+      }
+    ]
+  },
+  "health-v4-candidate": {
+    "clean_minutes": 10,
+    "clean_minutes_with_alarm": 1,
+    "clean_minutes_with_unconfirmed_alarm": 1,
+    "alarmed_services": [
+      "quote"
+    ],
+    "trials": [
+      {
+        "expect": "ad",
+        "minutes": 9,
+        "detected_min": 5,
+        "others": []
+      },
+      {
+        "expect": "email",
+        "minutes": 9,
+        "detected_min": null,
+        "others": [
+          "ad",
+          "checkout"
+        ]
+      },
+      {
+        "expect": "cart",
+        "minutes": 9,
+        "detected_min": null,
+        "others": [
+          "checkout",
+          "product-catalog"
+        ]
+      }
+    ]
+  }
+}

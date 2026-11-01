@@ -24,12 +24,18 @@ _NEXT_DEF = re.compile(r"^(?:@|def |async def |class )", re.MULTILINE)
 
 def handler_source(repo: Path, rev: str, file: str, line: int) -> str:
     text = subprocess.run(["git", "-C", str(repo), "show", f"{rev}:{file}"], capture_output=True, text=True).stdout
-    lines = text.splitlines()[line - 1 :]
-    body = "\n".join(lines[:MAX_HANDLER_LINES])
-    # Stop at the next top-level decorator or definition after the handler's own def line.
-    first_def = body.find("def ")
-    cut = _NEXT_DEF.search(body, first_def + 4) if first_def >= 0 else None
-    return body[: cut.start()] if cut else body
+    lines = text.splitlines()[line - 1 :][:MAX_HANDLER_LINES]
+    # Stop at the next decorator or definition at the handler's own depth, or shallower: a method of a class-based
+    # controller ends at the next method, not at the next top-level definition.
+    first = next((i for i, x in enumerate(lines) if re.match(r"\s*(async\s+)?def\s", x)), None)
+    if first is None:
+        return "\n".join(lines)
+    depth = len(lines[first]) - len(lines[first].lstrip())
+    for i in range(first + 1, len(lines)):
+        stripped = lines[i].lstrip()
+        if stripped and len(lines[i]) - len(stripped) <= depth and _NEXT_DEF.match(stripped):
+            return "\n".join(lines[:i])
+    return "\n".join(lines)
 
 
 async def infer_endpoint_tables(repo: Path, rev: str, world: WorldModel, brain: Brain, *, limit: int = 40) -> int:

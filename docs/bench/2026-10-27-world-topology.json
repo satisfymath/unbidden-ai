@@ -1,0 +1,451 @@
+[
+  {
+    "system": "opentelemetry-demo",
+    "blind": true,
+    "services": {
+      "precision": 1.0,
+      "recall": 0.8,
+      "found": 20,
+      "expected": 25,
+      "missed": [
+        "grafana",
+        "jaeger",
+        "opamp-server",
+        "opensearch",
+        "prometheus"
+      ],
+      "extra": []
+    },
+    "datastores": {
+      "precision": 1.0,
+      "recall": 0.5,
+      "found": 1,
+      "expected": 2,
+      "missed": [
+        "valkey-cart"
+      ],
+      "extra": []
+    },
+    "relations": {
+      "precision": 1.0,
+      "recall": 0.032,
+      "found": 1,
+      "expected": 31,
+      "missed": [
+        "('ad', 'flagd')",
+        "('cart', 'flagd')",
+        "('cart', 'valkey-cart')",
+        "('checkout', 'cart')",
+        "('checkout', 'currency')",
+        "('checkout', 'email')",
+        "('checkout', 'flagd')",
+        "('checkout', 'payment')",
+        "('checkout', 'product-catalog')",
+        "('checkout', 'shipping')",
+        "('email', 'flagd')",
+        "('frontend', 'ad')",
+        "('frontend', 'cart')",
+        "('frontend', 'checkout')",
+        "('frontend', 'currency')",
+        "('frontend', 'product-catalog')",
+        "('frontend', 'recommendation')",
+        "('frontend', 'shipping')",
+        "('frontend-proxy', 'flagd')",
+        "('frontend-proxy', 'flagd-ui')",
+        "('frontend-proxy', 'frontend')",
+        "('frontend-proxy', 'image-provider')",
+        "('load-generator', 'flagd')",
+        "('load-generator', 'frontend-proxy')",
+        "('payment', 'flagd')",
+        "('product-catalog', 'flagd')",
+        "('recommendation', 'flagd')",
+        "('recommendation', 'product-catalog')",
+        "('shipping', 'flagd')",
+        "('shipping', 'quote')"
+      ],
+      "extra": []
+    },
+    "relations_by_status": {
+      "observed": 1,
+      "inferred": 8
+    },
+    "telemetry_edges_not_scored": [
+      "ad -> otel-collector",
+      "checkout -> otel-collector",
+      "email -> otel-collector",
+      "flagd -> otel-collector",
+      "flagd-ui -> otel-collector",
+      "quote -> otel-collector",
+      "recommendation -> otel-collector",
+      "shipping -> otel-collector"
+    ],
+    "depends_on_not_scored": [
+      "ad -> flagd",
+      "ad -> otel-collector",
+      "cart -> flagd",
+      "cart -> otel-collector",
+      "cart -> valkey-cart",
+      "checkout -> cart",
+      "checkout -> currency",
+      "checkout -> email",
+      "checkout -> flagd",
+      "checkout -> otel-collector",
+      "checkout -> payment",
+      "checkout -> product-catalog",
+      "checkout -> shipping",
+      "currency -> otel-collector",
+      "email -> otel-collector",
+      "flagd-ui -> flagd",
+      "flagd-ui -> otel-collector",
+      "frontend -> ad",
+      "frontend -> cart",
+      "frontend -> checkout",
+      "frontend -> currency",
+      "frontend -> flagd",
+      "frontend -> image-provider",
+      "frontend -> otel-collector",
+      "frontend -> product-catalog",
+      "frontend -> quote",
+      "frontend -> recommendation",
+      "frontend -> shipping",
+      "frontend-proxy -> flagd-ui",
+      "frontend-proxy -> frontend",
+      "frontend-proxy -> load-generator",
+      "frontend-proxy -> telemetry-docs",
+      "image-provider -> otel-collector",
+      "load-generator -> flagd",
+      "load-generator -> frontend",
+      "payment -> flagd",
+      "payment -> otel-collector",
+      "product-catalog -> astronomy-db",
+      "product-catalog -> flagd",
+      "product-catalog -> otel-collector",
+      "quote -> otel-collector",
+      "recommendation -> flagd",
+      "recommendation -> otel-collector",
+      "recommendation -> product-catalog",
+      "shipping -> flagd",
+      "shipping -> otel-collector"
+    ],
+    "blind_spots": [
+      "endpoints of ad: ports 32856, 32857 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "tables of astronomy-db: the database has no tables yet (migrations not applied?)",
+      "endpoints of cart: ports 32864 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of checkout: ports 32867 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of currency: ports 32858 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of email: ports 32862 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of flagd: ports 32846, 32847 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of flagd-ui: ports 32859 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of frontend: ports 32868 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of frontend-proxy: ports 8080, 10000 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of grafana: ports 32850 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of image-provider: ports 32861 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of jaeger: ports 32844, 32845 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of load-generator: ports 32869 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of opensearch: ports 32849 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of otel-collector: ports 32853, 32854 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of payment: ports 32863 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of product-catalog: ports 32865 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of prometheus: ports 9090 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of quote: ports 32855 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of recommendation: ports 32866 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of shipping: ports 32860 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of telemetry-docs: ports 32848 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of valkey-cart: ports 32851 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown"
+    ],
+    "running_commit": {
+      "found": "5c8d404a85380226ff45a39dcb4159eda9552c56",
+      "status": "inferred",
+      "reason": "the checkout's HEAD when these containers were first seen; nothing in the images says what code they hold"
+    },
+    "run": "blind, code as registered (619f4b2)"
+  },
+  {
+    "system": "full-stack-fastapi-template",
+    "blind": false,
+    "services": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "found": 4,
+      "expected": 4,
+      "missed": [],
+      "extra": []
+    },
+    "datastores": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "found": 1,
+      "expected": 1,
+      "missed": [],
+      "extra": []
+    },
+    "relations": {
+      "precision": 1.0,
+      "recall": 0.25,
+      "found": 1,
+      "expected": 4,
+      "missed": [
+        "('adminer', 'db')",
+        "('proxy', 'adminer')",
+        "('proxy', 'backend')"
+      ],
+      "extra": []
+    },
+    "relations_by_status": {
+      "observed": 1,
+      "inferred": 0
+    },
+    "telemetry_edges_not_scored": [],
+    "depends_on_not_scored": [
+      "adminer -> db",
+      "backend -> db"
+    ],
+    "blind_spots": [
+      "frontend: its JavaScript package was not analyzed"
+    ],
+    "endpoint_tables": {
+      "precision": 0.962,
+      "recall": 0.658,
+      "found": 26,
+      "expected": 38,
+      "missed": [
+        "('DELETE /api/v1/items/{id}', 'reads', 'user')",
+        "('GET /api/v1/items/', 'reads', 'user')",
+        "('GET /api/v1/items/{id}', 'reads', 'user')",
+        "('GET /api/v1/users/me', 'reads', 'user')",
+        "('POST /api/v1/items/', 'reads', 'user')",
+        "('POST /api/v1/login/access-token', 'reads', 'user')",
+        "('POST /api/v1/login/test-token', 'reads', 'user')",
+        "('POST /api/v1/reset-password/', 'reads', 'user')",
+        "('POST /api/v1/reset-password/', 'writes', 'user')",
+        "('POST /api/v1/users/', 'reads', 'user')",
+        "('POST /api/v1/users/', 'writes', 'user')",
+        "('POST /api/v1/utils/test-email/', 'reads', 'user')",
+        "('PUT /api/v1/items/{id}', 'reads', 'user')"
+      ],
+      "extra": [
+        "('POST /api/v1/items/', 'reads', 'item')"
+      ]
+    },
+    "running_commit": {
+      "expected": "104feb428128ba03c99a448f3bbcec9037f71004",
+      "found": "104feb428128ba03c99a448f3bbcec9037f71004",
+      "status": "inferred",
+      "correct": true
+    },
+    "run": "not blind, code as registered (619f4b2)"
+  },
+  {
+    "system": "opentelemetry-demo (after fixes)",
+    "blind": false,
+    "services": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "found": 25,
+      "expected": 25,
+      "missed": [],
+      "extra": []
+    },
+    "datastores": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "found": 2,
+      "expected": 2,
+      "missed": [],
+      "extra": []
+    },
+    "relations": {
+      "precision": 0.838,
+      "recall": 1.0,
+      "found": 37,
+      "expected": 31,
+      "missed": [],
+      "extra": [
+        "('frontend', 'flagd')",
+        "('frontend-proxy', 'load-generator')",
+        "('frontend-proxy', 'telemetry-docs')",
+        "('otel-collector', 'astronomy-db')",
+        "('otel-collector', 'frontend-proxy')",
+        "('otel-collector', 'image-provider')"
+      ]
+    },
+    "relations_by_status": {
+      "observed": 1,
+      "inferred": 53
+    },
+    "telemetry_edges_not_scored": [
+      "ad -> otel-collector",
+      "cart -> otel-collector",
+      "checkout -> otel-collector",
+      "currency -> otel-collector",
+      "email -> otel-collector",
+      "flagd -> otel-collector",
+      "flagd-ui -> otel-collector",
+      "frontend -> otel-collector",
+      "frontend-proxy -> otel-collector",
+      "image-provider -> otel-collector",
+      "load-generator -> otel-collector",
+      "payment -> otel-collector",
+      "product-catalog -> otel-collector",
+      "quote -> otel-collector",
+      "recommendation -> otel-collector",
+      "shipping -> otel-collector",
+      "telemetry-docs -> otel-collector"
+    ],
+    "depends_on_not_scored": [
+      "ad -> flagd",
+      "ad -> otel-collector",
+      "cart -> flagd",
+      "cart -> otel-collector",
+      "cart -> valkey-cart",
+      "checkout -> cart",
+      "checkout -> currency",
+      "checkout -> email",
+      "checkout -> flagd",
+      "checkout -> otel-collector",
+      "checkout -> payment",
+      "checkout -> product-catalog",
+      "checkout -> shipping",
+      "currency -> otel-collector",
+      "email -> otel-collector",
+      "flagd-ui -> flagd",
+      "flagd-ui -> otel-collector",
+      "frontend -> ad",
+      "frontend -> cart",
+      "frontend -> checkout",
+      "frontend -> currency",
+      "frontend -> flagd",
+      "frontend -> image-provider",
+      "frontend -> otel-collector",
+      "frontend -> product-catalog",
+      "frontend -> quote",
+      "frontend -> recommendation",
+      "frontend -> shipping",
+      "frontend-proxy -> flagd-ui",
+      "frontend-proxy -> frontend",
+      "frontend-proxy -> load-generator",
+      "frontend-proxy -> telemetry-docs",
+      "image-provider -> otel-collector",
+      "load-generator -> flagd",
+      "load-generator -> frontend",
+      "payment -> flagd",
+      "payment -> otel-collector",
+      "product-catalog -> astronomy-db",
+      "product-catalog -> flagd",
+      "product-catalog -> otel-collector",
+      "quote -> otel-collector",
+      "recommendation -> flagd",
+      "recommendation -> otel-collector",
+      "recommendation -> product-catalog",
+      "shipping -> flagd",
+      "shipping -> otel-collector"
+    ],
+    "blind_spots": [
+      "compose variables _JAVA_OPTIONS: not defined in the tracked .env; their values are unknown",
+      "endpoints of ad: ports 32856, 32857 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of cart: ports 32864 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of checkout: ports 32867 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of currency: ports 32858 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of email: ports 32862 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of flagd: ports 32846, 32847 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of flagd-ui: ports 32859 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of frontend: ports 32868 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of frontend-proxy: ports 8080, 10000 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of grafana: ports 32850 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of image-provider: ports 32861 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of jaeger: ports 32844, 32845 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of load-generator: ports 32869 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of opensearch: ports 32849 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of otel-collector: ports 32853, 32854 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of payment: ports 32863 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of product-catalog: ports 32865 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of prometheus: ports 9090 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of quote: ports 32855 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of recommendation: ports 32866 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of shipping: ports 32860 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "endpoints of telemetry-docs: ports 32848 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown",
+      "services grafana, jaeger, opamp-server, opensearch, prometheus: running, but not declared in compose.yaml: their environment, build and dependencies are unknown"
+    ],
+    "running_commit": {
+      "found": null,
+      "status": "unknown",
+      "reason": "images pulled from a registry (ghcr.io/open-telemetry/demo@sha256:46d5fdc5e127eea3ca25395d5c723597240ed4a1208f4e98ca9e81fa8345a732), not built from this checkout; they carry no revision label"
+    },
+    "run": "after fixes (5e262c0), not blind"
+  },
+  {
+    "system": "full-stack-fastapi-template (after fixes)",
+    "blind": false,
+    "services": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "found": 4,
+      "expected": 4,
+      "missed": [],
+      "extra": []
+    },
+    "datastores": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "found": 1,
+      "expected": 1,
+      "missed": [],
+      "extra": []
+    },
+    "relations": {
+      "precision": 1.0,
+      "recall": 0.25,
+      "found": 1,
+      "expected": 4,
+      "missed": [
+        "('adminer', 'db')",
+        "('proxy', 'adminer')",
+        "('proxy', 'backend')"
+      ],
+      "extra": []
+    },
+    "relations_by_status": {
+      "observed": 1,
+      "inferred": 0
+    },
+    "telemetry_edges_not_scored": [],
+    "depends_on_not_scored": [
+      "adminer -> db",
+      "backend -> db"
+    ],
+    "blind_spots": [
+      "frontend: its JavaScript package was not analyzed"
+    ],
+    "endpoint_tables": {
+      "precision": 0.962,
+      "recall": 0.658,
+      "found": 26,
+      "expected": 38,
+      "missed": [
+        "('DELETE /api/v1/items/{id}', 'reads', 'user')",
+        "('GET /api/v1/items/', 'reads', 'user')",
+        "('GET /api/v1/items/{id}', 'reads', 'user')",
+        "('GET /api/v1/users/me', 'reads', 'user')",
+        "('POST /api/v1/items/', 'reads', 'user')",
+        "('POST /api/v1/login/access-token', 'reads', 'user')",
+        "('POST /api/v1/login/test-token', 'reads', 'user')",
+        "('POST /api/v1/reset-password/', 'reads', 'user')",
+        "('POST /api/v1/reset-password/', 'writes', 'user')",
+        "('POST /api/v1/users/', 'reads', 'user')",
+        "('POST /api/v1/users/', 'writes', 'user')",
+        "('POST /api/v1/utils/test-email/', 'reads', 'user')",
+        "('PUT /api/v1/items/{id}', 'reads', 'user')"
+      ],
+      "extra": [
+        "('POST /api/v1/items/', 'reads', 'item')"
+      ]
+    },
+    "running_commit": {
+      "expected": "104feb428128ba03c99a448f3bbcec9037f71004",
+      "found": "104feb428128ba03c99a448f3bbcec9037f71004",
+      "status": "inferred",
+      "correct": true
+    },
+    "run": "after fixes (5e262c0), not blind"
+  }
+]

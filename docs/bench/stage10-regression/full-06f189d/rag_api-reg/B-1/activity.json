@@ -1,0 +1,131 @@
+{
+  "workspace": "rag_api",
+  "at": "2026-10-31T18:56:21.076522+00:00",
+  "discovered": {
+    "total": 0,
+    "by_status": {}
+  },
+  "experimenting": [],
+  "declined_because": [],
+  "waiting_because": [],
+  "proven": [],
+  "project_checks": {
+    "rev": "4985b37b8b5d4519d68eceedfef1e63624012f9d",
+    "at": "2026-10-31T18:55:50.544802+00:00",
+    "status": "failed",
+    "collected": 195,
+    "failed": [
+      "tests.utils.test_lazy_load::test_lazy_load_returns_documents[md]"
+    ],
+    "command": "bash -c set -e\nexport GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest --maxfail=1 --disable-warnings",
+    "scope": "the whole job, without its tests that need a container runtime",
+    "partial": false,
+    "notes": [
+      "left out, it needs a container runtime (tests/integration/conftest.py imports testcontainers): the sandbox has none and never gets the host's Docker socket: pytest -m integration --maxfail=3 --disable-warnings --junitxml=test-results-integration.xml"
+    ]
+  },
+  "experiments_wait": null,
+  "revoked": [],
+  "invalidated": [],
+  "proposals": {},
+  "capabilities": {
+    "needs": {},
+    "awaiting_approval": [],
+    "in_use": []
+  },
+  "spent": {
+    "calls": 7,
+    "usd": 0.0712,
+    "basis": "list price x reported tokens; the provider's dashboard is the bill"
+  },
+  "learned": {},
+  "connections": [
+    {
+      "id": "compose:compose",
+      "kind": "compose",
+      "environment": "local",
+      "state": "connected",
+      "read": [
+        "ps",
+        "inspect",
+        "logs"
+      ],
+      "write": [],
+      "requested": [],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "the map's compose connector"
+      ],
+      "checked_at": null
+    },
+    {
+      "id": "postgres:127.0.0.1:55500/rag_api",
+      "kind": "postgres",
+      "environment": "staging",
+      "state": "connected",
+      "read": [
+        "catalog",
+        "select public.langchain_pg_collection",
+        "select public.langchain_pg_embedding"
+      ],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [
+        "read"
+      ],
+      "blocked": null,
+      "next_step": null,
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-31T18:56:20.559459+00:00"
+    },
+    {
+      "id": "http_api:http://127.0.0.1:18170",
+      "kind": "http_api",
+      "environment": "staging",
+      "state": "needs_capability",
+      "read": [],
+      "write": [],
+      "requested": [
+        "read"
+      ],
+      "effective": [],
+      "blocked": "FastAPI: 11 operations documented, authenticated by nothing; no integration yet",
+      "next_step": "Forge builds an integration from its documentation when a task needs it",
+      "found_by": [
+        "mandate grant"
+      ],
+      "checked_at": "2026-10-31T18:56:20.563293+00:00"
+    }
+  ],
+  "needs_a_person": [
+    {
+      "proposal": "docker compose up",
+      "state": "proposed",
+      "what": "found in README.md; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f ./db-compose.yaml up",
+      "state": "proposed",
+      "what": "found in README.md; a proposal only: a person declares deploy steps in the mandate"
+    },
+    {
+      "proposal": "docker compose -f ./api-compose.yaml up",
+      "state": "proposed",
+      "what": "found in README.md; a proposal only: a person declares deploy steps in the mandate"
+    }
+  ],
+  "optional_access": [],
+  "blocks": [],
+  "integrations": [],
+  "actions": [],
+  "acceptances": [],
+  "goals": []
+}
