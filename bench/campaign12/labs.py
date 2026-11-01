@@ -39,7 +39,7 @@ FST_COMPOSE = """services:
     ports:
       - "127.0.0.1:{db_port}:5432"
     volumes:
-      - c12-fst-data:/var/lib/postgresql/data
+      - c12-fst-data:/var/lib/postgresql  # postgres:18 keeps its data under this mount, not .../data
     labels:
 {labels}  prestart:
     build:
