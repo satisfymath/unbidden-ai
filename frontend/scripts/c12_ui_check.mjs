@@ -1,6 +1,6 @@
 // Campaign 12: the dashboard checked with a browser (Playwright, Chromium from the frontend's dev dependencies).
 //
-//   cd frontend && HOME=/Users/<real> node ../bench/campaign12/ui_check.mjs <url-with-token> <out-dir> [--reload]
+//   cd frontend && HOME=/Users/<real> node scripts/c12_ui_check.mjs <url-with-token> <out-dir> [--reload]
 //
 // It opens the dashboard, waits for the first paint of data, records what the person would see (connection state,
 // the workspace's name and mode, the counts the top bar shows, the chat panel), takes screenshots, reloads to check

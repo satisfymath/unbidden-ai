@@ -339,7 +339,7 @@ def ui_and_chat(repo_dir: Path, e: dict[str, str], rec: Record, out_dir: Path, l
     shots = out_dir / f"ui-{label}"
     node = run(
         "ui-browser",
-        ["node", str(Path(__file__).with_name("ui_check.mjs")), info["url"], str(shots)],
+        ["node", str(FRONTEND / "scripts" / "c12_ui_check.mjs"), info["url"], str(shots)],
         cwd=FRONTEND,
         env_={**os.environ, "HOME": str(REAL_HOME)},
         timeout_s=300,

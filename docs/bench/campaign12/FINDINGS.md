@@ -34,3 +34,15 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
 - 2026-11-01 · seeded scenarios, run 1 · two simultaneous `start`: one owner, the other "already running" (correct);
   `pgrep -f 'unbidden.cli watch'` still listed two processes 3 s later · resolved in run 2: the count was host-wide
   (other campaign runs' agents); one owner per workspace held · harness artefact · closed.
+- 2026-11-01 · Level B pilot, rich B1 · autopilot opened 3 pull requests on the campaign fork (`c12-base`), the second
+  cycle opened none again (same 3 branches, same 3 PRs; jobs 30 → 39) · observation (no duplicate effect) · recorded.
+- 2026-11-01 · Level B pilot, rich B1 · `unbidden egress` lists 2 `chat.analyze` rows for one terminal analysis: the
+  first attempt was repaired (two egress attempts for one answer); the record is right, the count may surprise ·
+  observation · recorded.
+- 2026-11-01 · Level B pilot, rich B1 · the dashboard's layout for `live:rich` already held a table from the product
+  walk of the same day: the presentation store follows `UNBIDDEN_HOME` (the machine's ledger home), not the
+  installed tool's HOME, so two installations sharing a ledger share layouts by source id · limit (state location) ·
+  open.
+- 2026-11-01 · Level B pilot, rich B1 · the fork's CI does not run on pull requests against `c12-base` (Rich's
+  workflows filter on `master`): "CI green on the fork" cannot be observed for libraries in this setup; the product
+  would wait for CI before an autonomous merge · campaign setup limit · recorded.

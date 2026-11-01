@@ -1,0 +1,14 @@
+[
+ {
+  "name": "rich",
+  "run": "B1",
+  "mode": "autopilot",
+  "record": "docs/bench/campaign12/pilot/rich/B1.json",
+  "proposals_c1": 3,
+  "proposals_c2": 3,
+  "pulls_after": 3,
+  "spent_usd": 0.0735,
+  "blocks": [],
+  "wall_s": 722.1
+ }
+]

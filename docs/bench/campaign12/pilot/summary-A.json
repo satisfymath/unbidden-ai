@@ -198,5 +198,30 @@
   "ui": true,
   "spent_usd": 0.0375,
   "wall_s": 121.3
+ },
+ {
+  "name": "aegra",
+  "class": "dev",
+  "family": "api-postgres",
+  "record": "docs/bench/campaign12/pilot/aegra/A.json",
+  "setup": true,
+  "doctor_ok": true,
+  "scan_ok": true,
+  "checks": "passed",
+  "collected": 2429,
+  "opps": 0,
+  "lifecycle": {
+   "started": true,
+   "running_after_checks": true,
+   "second_start_refused": true,
+   "stopped": true,
+   "jobs_left_running": 0,
+   "stale_after": false,
+   "kill_file": false,
+   "status0_ok": true
+  },
+  "ui": true,
+  "spent_usd": 0.006,
+  "wall_s": 41.6
  }
 ]
