@@ -6,6 +6,7 @@ import argparse
 import getpass
 import json
 import sys
+import time
 from collections.abc import Sequence
 from datetime import datetime
 from typing import Any
@@ -1544,6 +1545,126 @@ def cmd_resume(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_ui(args: argparse.Namespace) -> int:
+    """Open or reuse the project's dashboard. The dashboard is a reader of the workspace's state plus the chat and the
+    decisions panel: opening it runs no job and calls no model; closing the tab or stopping it stops no agent."""
+    import subprocess
+
+    from unbidden.web import announce as ann
+
+    ws = Workspace.find()
+    ws.require()
+    path = ann.ui_path(ws.dir)
+    if args.stop:
+        result = ann.stop(path)
+        if _emit(args, result):
+            return 0 if result["stopped"] else 1
+        console.print(f"dashboard stopped (pid {result['pid']})" if result["stopped"] else result["reason"])
+        return 0 if result["stopped"] else 1
+    info = ann.alive(path)
+    reused = info is not None
+    log = ws.dir / "logs" / "ui.log"
+    if info is None:
+        if not (ws.dir / "state.db").exists():
+            ws.store().close()  # the dashboard reads the workspace's own state; an empty one shows empty states
+        log.parent.mkdir(parents=True, exist_ok=True)
+        if log.exists() and log.stat().st_size > 20_000_000:
+            log.replace(log.with_suffix(".log.1"))
+        cmd = [sys.executable, "-m", "unbidden.web", "--workspace", str(ws.repo), "--announce", str(path),
+               "--port", str(args.port), "--planner", args.planner]  # fmt: skip
+        with log.open("ab") as out:
+            subprocess.Popen(
+                cmd, cwd=ws.repo, stdin=subprocess.DEVNULL, stdout=out, stderr=subprocess.STDOUT,
+                start_new_session=True, close_fds=True,
+            )  # fmt: skip
+        end = time.monotonic() + 15
+        while info is None and time.monotonic() < end:
+            time.sleep(0.2)
+            info = ann.read(path)
+            if info is not None and not ann.answers(info):
+                info = None
+        if info is None:
+            tail = log.read_text(errors="replace").splitlines()[-15:] if log.exists() else []
+            if _emit(args, {"started": False, "log": str(log), "log_tail": tail}):
+                return 1
+            err.print(f"[red]the dashboard did not come up[/]; log: {log}")
+            for line in tail:
+                err.print(f"  {line}")
+            return 1
+    if args.open:
+        import webbrowser
+
+        webbrowser.open(info["url"])
+    data = {**ann.public(info), "url": info["url"], "reused": reused, "log": str(log)}
+    if _emit(args, data):
+        return 0
+    where = "served by the agent" if info.get("in_daemon") else f"pid {info['pid']}"
+    console.print(f"dashboard {'already open' if reused else 'open'} ({where}): {info['url']}")
+    console.print("closing the tab stops nothing; `unbidden ui --stop` stops the dashboard only; the agent: "
+                  "`unbidden start` / `unbidden stop`")  # fmt: skip
+    return 0
+
+
+def cmd_chat(args: argparse.Namespace) -> int:
+    """The dashboard's chat from the terminal, over the same records, decisions and route: inform (records, no
+    model), analyze (one routed call over a digest), act (refused: the CLI's own commands do that)."""
+    from unbidden.web.__main__ import make_brain_for, web_home
+    from unbidden.web.chat import ChatService
+    from unbidden.web.contracts import ChatRequest
+    from unbidden.web.presentation import PresentationStore
+    from unbidden.web.sources import live
+
+    ws = Workspace.find()
+    ws.require()
+    if not (ws.dir / "state.db").exists():
+        ws.store().close()
+    source = live(ws.repo)
+    state_dir = web_home()
+    state_dir.mkdir(parents=True, exist_ok=True)
+    service = ChatService(PresentationStore(state_dir / "presentation.db"), make_brain_for(args.planner, state_dir))
+
+    def emit(event: str, data: dict[str, Any]) -> None:
+        if event == "state" and not args.json:
+            err.print(f"[dim]{data.get('state')}{': ' + str(data['detail']) if data.get('detail') else ''}[/]")
+        elif event == "tool_result" and not args.json:
+            mark = "ok" if data.get("ok") else "!!"
+            err.print(f"[dim]{mark} {data.get('tool')}: {data.get('summary')}[/]")
+
+    def one(text: str) -> int:
+        message = service.turn(source, ChatRequest(content=text, planner=args.planner), emit)
+        if args.json:
+            print(message.model_dump_json(by_alias=True, indent=2))
+        else:
+            console.print(message.content, soft_wrap=True)
+            route = message.route
+            if route is not None:
+                via = route.model or route.tier or "no model"
+                note = f"[dim]{route.intent} · {route.purpose or 'rules'} · {via}"
+                if route.blocked:
+                    note += f" · blocked: {route.blocked}"
+                console.print(note + "[/]")
+        return 0 if message.state != "error" else 1
+
+    if args.message:
+        return one(" ".join(args.message))
+    if not sys.stdin.isatty():
+        code = 0
+        for line in sys.stdin:
+            if line.strip():
+                code = max(code, one(line.strip()))
+        return code
+    console.print("[dim]unbidden chat · empty line or ctrl-d ends[/]")
+    while True:
+        try:
+            text = input("> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return 0
+        if not text:
+            return 0
+        one(text)
+
+
 def cmd_setup(args: argparse.Namespace) -> int:
     """The guided configuration: project, priorities, models, credentials, autonomy, connections, budget, dashboard.
     Deterministic, resumable, shows the diff before writing; `--non-interactive` takes the answers from flags."""
@@ -1787,6 +1908,14 @@ def build_parser() -> argparse.ArgumentParser:
     why.add_argument("--payload", action="store_true", help="print each outbound payload byte for byte")
     show = command("show", cmd_show, "one opportunity with its full history")
     show.add_argument("id")
+    ui = command("ui", cmd_ui, "open or reuse the project's dashboard (reads the state; starts no job)")
+    ui.add_argument("--open", action="store_true", help="open the browser")
+    ui.add_argument("--stop", action="store_true", help="stop the dashboard served apart (never the agent)")
+    ui.add_argument("--port", type=int, default=8765, help="preferred port (the next free one is taken if busy)")
+    ui.add_argument("--planner", choices=["auto", "rule", "brain"], default="auto", help="how the chat plans")
+    chat = command("chat", cmd_chat, "the dashboard's chat from the terminal: inform, analyze; never act")
+    chat.add_argument("message", nargs="*", help="one message (default: read messages from stdin or a prompt)")
+    chat.add_argument("--planner", choices=["auto", "rule", "brain"], default="auto")
     kill = command("kill", cmd_kill, "stop everything now", json_out=False)
     kill.add_argument("reason", nargs="?", default="engaged from the CLI")
     command("resume", cmd_resume, "release the kill switch", json_out=False)
@@ -1811,7 +1940,8 @@ def _no_command(args: argparse.Namespace) -> int:
         return cmd_home(args)
     if not ws.initialized and not getattr(args, "json", False):  # --json reports, never asks
         args.non_interactive = args.yes = args.all = args.show = False
-        args.section = args.models = args.private_code = args.mode = args.act_on_connections = None
+        args.section = args.models = args.private_code = args.mode = args.mode_fallback = None
+        args.act_on_connections = None
         args.priorities = args.budget = args.dashboard = None
         args.model_key_stdin = args.github_token_stdin = args.pull_model = args.probe = False
         args.credential = args.connection = None

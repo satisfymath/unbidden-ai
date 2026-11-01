@@ -145,6 +145,11 @@ def main(argv: list[str] | None = None) -> int:
         default=os.environ.get("UNBIDDEN_WEB_TOKEN"),
         help="a fixed session token (tests and scripts); by default a random one is generated",
     )
+    parser.add_argument(
+        "--announce",
+        metavar="PATH",
+        help="write where this dashboard is (url, port, pid; mode 600) once the port is bound, for `unbidden ui`",
+    )
     args = parser.parse_args(argv)
     try:
         app, sources = build(args)
@@ -156,6 +161,18 @@ def main(argv: list[str] | None = None) -> int:
 
         srv.app_log_enabled = True
     server = WebServer(app, args.host, app.port)
+    announced: Path | None = None
+    if args.announce:
+        from unbidden.web.announce import announce
+
+        announced = Path(args.announce)
+        announce(announced, host=args.host, port=server.port, token=app.token, in_daemon=False)
+        import signal
+
+        def _term(_sig: int, _frame: Any) -> None:
+            raise KeyboardInterrupt  # the same clean exit as ctrl-c: the announcement is withdrawn below
+
+        signal.signal(signal.SIGTERM, _term)
     for s in sources:
         print(f"  {s.mode:<10} {s.id}  {' · '.join(s.notes)[:100]}", file=sys.stderr)
     print(f"\n  {server.url}\n", file=sys.stderr)
@@ -184,6 +201,10 @@ def main(argv: list[str] | None = None) -> int:
     finally:
         stop.set()
         server.stop()
+        if announced is not None:
+            from unbidden.web.announce import withdraw
+
+            withdraw(announced)
     return 0
 
 
