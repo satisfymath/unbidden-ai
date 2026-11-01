@@ -277,7 +277,7 @@ records, logs). Only `--purge --yes` removes them.
 | Platform | Status |
 |---|---|
 | macOS on Apple Silicon (arm64) | verified by hand (2026-11-01): install from local artifacts into an empty HOME, `--version`, setup (option `api`), doctor, the agent with its dashboard on a real repository, chat, stop and reopen, a second start refused, `kill -9` recovered, uninstall keeping the data |
-| Linux x86-64, glibc >= 2.28 | the GitHub Actions `ubuntu-latest` runner is the authoritative check: CI job `installed` (wheel, installer into an empty HOME, setup `api`, doctor, start/status/stop, ui and chat by rules, uninstall) and `release.yml`'s `smoke-linux-x86_64` (manual). Not verified by hand. Results: TODO(fill) |
+| Linux x86-64, glibc >= 2.28 | the GitHub Actions `ubuntu-latest` runner is the authoritative check: CI job `installed` (wheel, installer into an empty HOME, setup `api`, doctor, start/status/stop, ui and chat by rules, uninstall) and `release.yml`'s `smoke-linux-x86_64` (manual). Not verified by hand. Results: green on run 41333127432 (`2d72ce4`, 2026-11-01); see `docs/RELEASE.md`, "CI on Linux x86-64" |
 | macOS on Intel, Linux arm64, Windows, musl | untested; the installer stops with a message. A source install with `uv` may work |
 
 The wheel is pure Python; the native pieces (scipy, numpy, pydantic-core, google-re2, psycopg-binary) come from PyPI
