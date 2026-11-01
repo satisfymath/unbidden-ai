@@ -267,6 +267,20 @@ with `uv run`, autonomous locally, pull requests only to the fork).
 
 ## Integration proposal
 
-TODO(fill). Facts at the time of writing: `main` is `d560b6f` (the merge of PR #2); the product branch
-`feat/63-product-onboarding` was cut from it and nothing was pushed; the documentation of this delivery is on
-`feat/63e-docs`, cut from the product branch. No pull request, merge, tag or release was made.
+Facts from the graph (origin, 2026-11-01): `main` is `d560b6f` (the merge of PR #2, 0.9.0 + the web workspace). The
+product branch `feat/63-product-onboarding` was cut from it and is 27 commits ahead, among them three `--no-ff`
+merges of its own side branches (`feat/63a-distribution`, `feat/63c-daemon`, `feat/63e-docs`, all merged and
+deleted). A test merge of the branch into `main` in a scratch worktree is clean: 71 files, +7,885/-421, no
+conflicts. The branch is published on origin for CI only; no pull request, merge, tag or release was made.
+
+Proposal, for a person to carry out, in this order: (1) read the CI results of the branch head (above) and the walk's
+evidence (`docs/PRODUCT-ONBOARDING-PLAN.md`); (2) one pull request `feat/63-product-onboarding` -> `main`, merged with
+`--no-ff` (the result's tree equals the branch's); (3) only then `.github/workflows/release.yml` can be dispatched (a
+`workflow_dispatch` workflow must exist on the default branch to be run): run it once in its only mode, build and
+smoke-test without publishing, and read the Linux smoke report it uploads; (4) the first release, when David decides
+it: tag `v0.9.0`, a GitHub release carrying `unbidden_ai-0.9.0-py3-none-any.whl`, `SHA256SUMS` and `install.sh`
+(the commented block at the end of `release.yml` shows the shape), after which the one-line install in
+`docs/INSTALL.md` becomes true and the "available once..." notes are removed; (5) PyPI (`unbidden-ai`, free) as a
+second channel later. Rollback of (2): `git revert -m 1` of the merge commit, or a reset before anything is built on
+it; the spend ledger, the labs' data and every workspace's `.unbidden/` live outside the repository. The version
+stays "0.9.0, experimental candidate" until another decision is taken explicitly.

@@ -33,7 +33,7 @@ def ws(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Workspace:
 
 
 def _processes_named(marker: str) -> list[str]:
-    out = subprocess.run(["ps", "-ax", "-o", "pid=,command="], capture_output=True, text=True, check=False).stdout
+    out = subprocess.run(["ps", "-axww", "-o", "pid=,command="], capture_output=True, text=True, check=False).stdout
     return [line for line in out.splitlines() if marker in line and "ps -ax" not in line]
 
 

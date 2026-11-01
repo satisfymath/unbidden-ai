@@ -165,7 +165,7 @@ def _command_of(pid: int) -> str:
     """The command line of a live process, '' when there is none (no psutil: `ps` is everywhere)."""
     try:
         out = subprocess.run(
-            ["ps", "-o", "command=", "-p", str(pid)], capture_output=True, text=True, check=False, timeout=5
+            ["ps", "-ww", "-o", "command=", "-p", str(pid)], capture_output=True, text=True, check=False, timeout=5
         )
     except (OSError, subprocess.SubprocessError):
         return ""

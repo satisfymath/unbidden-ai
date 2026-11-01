@@ -108,7 +108,7 @@ def public(info: dict[str, Any]) -> dict[str, Any]:
 def is_our_web_process(pid: int) -> bool:
     """Before signalling a pid from a file: it must still be an `unbidden.web` process (a reused pid is not)."""
     try:
-        out = subprocess.run(["ps", "-o", "command=", "-p", str(pid)], capture_output=True, text=True, timeout=5)
+        out = subprocess.run(["ps", "-ww", "-o", "command=", "-p", str(pid)], capture_output=True, text=True, timeout=5)
     except (OSError, subprocess.SubprocessError):
         return False
     return "unbidden.web" in out.stdout or ("unbidden" in out.stdout and "--announce" in out.stdout)
