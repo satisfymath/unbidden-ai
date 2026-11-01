@@ -1,0 +1,181 @@
+# Release artifacts for Unbidden: the wheel with the built web workspace inside, SHA256SUMS and install.sh, then a
+# smoke test of install.sh on a real Linux x86_64 runner. Manual only: nothing is published by this workflow.
+#
+# Publishing on a `v*` tag is NOT enabled yet (docs/PRODUCT-ONBOARDING-PLAN.md, decision 8.1). When it is, the
+# commented block at the end shows the shape; until a release exists the one-line install in docs/INSTALL.md is
+# documented as "available once the first release is published".
+name: Release artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build and smoke-test only; never publish (the only mode for now)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build wheel, sdist, SHA256SUMS
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Build the web workspace into unbidden/web/static
+        run: cd frontend && npm ci && npm run build
+      - name: Build the wheel and sdist
+        run: uv build
+      - name: The wheel carries the web workspace and the installer
+        run: |
+          unzip -l dist/*.whl | grep unbidden/web/static/index.html
+          unzip -l dist/*.whl | grep unbidden/distribution/install.sh
+          cmp install.sh unbidden/distribution/install.sh
+      - name: SHA256SUMS
+        run: cd dist && sha256sum *.whl *.tar.gz | tee SHA256SUMS
+      - id: version
+        name: The built version
+        run: |
+          whl=$(basename dist/*.whl)
+          v=${whl#unbidden_ai-}; v=${v%-py3-none-any.whl}
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "built $v"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-files
+          path: |
+            dist/*
+            install.sh
+          if-no-files-found: error
+
+  smoke-linux-x86_64:
+    name: Smoke install on Linux x86_64 (ubuntu-latest)
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.build.outputs.version }}
+    steps:
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-files
+          path: release
+      - name: Serve the release files like a GitHub release would
+        run: |
+          ls -la release release/dist
+          (cd release/dist && python3 -m http.server 8000 --bind 127.0.0.1 >/dev/null 2>&1 &)
+          sleep 1
+          curl -fsS http://127.0.0.1:8000/SHA256SUMS
+      - name: Environment for an isolated install
+        run: |
+          home=$(mktemp -d)
+          echo "SMOKE_HOME=$home" >> "$GITHUB_ENV"
+          echo "UV_TOOL_DIR=$home/tools" >> "$GITHUB_ENV"
+          echo "UV_TOOL_BIN_DIR=$home/bin" >> "$GITHUB_ENV"
+          echo "UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8000" >> "$GITHUB_ENV"
+          echo "UNBIDDEN_HOME=$home/.unbidden" >> "$GITHUB_ENV"
+      - name: "1. Artifact install and command resolution: install.sh --yes --version"
+        run: |
+          HOME="$SMOKE_HOME" sh release/install.sh --yes --version "$VERSION"
+          test -x "$UV_TOOL_BIN_DIR/unbidden"
+          "$UV_TOOL_BIN_DIR/unbidden" --version | tee -a smoke-report.txt
+          test "$("$UV_TOOL_BIN_DIR/unbidden" --version)" = "unbidden $VERSION"
+          echo "--- second run (idempotent)" | tee -a smoke-report.txt
+          HOME="$SMOKE_HOME" sh release/install.sh --yes --version "$VERSION" 2>&1 | tail -n 4 | tee -a smoke-report.txt
+      - name: "1b. A corrupted SHA256SUMS is refused"
+        run: |
+          mkdir bad && cp release/dist/*.whl bad/ && echo "$(printf '0%.0s' $(seq 64))  $(basename release/dist/*.whl)" > bad/SHA256SUMS
+          (cd bad && python3 -m http.server 8001 --bind 127.0.0.1 >/dev/null 2>&1 &)
+          sleep 1
+          set +e
+          HOME="$SMOKE_HOME" UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8001 sh release/install.sh --yes --version "$VERSION" 2> refused.txt
+          code=$?
+          set -e
+          cat refused.txt
+          test "$code" = 8
+          grep -q "checksum mismatch" refused.txt
+          echo "--- corrupted SHA256SUMS: refused with exit $code" >> smoke-report.txt
+      - name: "2. Onboarding, deterministic: unbidden init / doctor --json in a fresh repository"
+        run: |
+          repo=$(mktemp -d) && cd "$repo" && git init -q . && git remote add origin git@github.com:acme/shop.git
+          export HOME="$SMOKE_HOME"
+          "$UV_TOOL_BIN_DIR/unbidden" init --json | tee "$GITHUB_WORKSPACE/init.json"
+          "$UV_TOOL_BIN_DIR/unbidden" doctor --json > "$GITHUB_WORKSPACE/doctor.json" || echo "doctor exited $? (expected without Ollama)"
+          cat "$GITHUB_WORKSPACE/doctor.json"
+      - name: "2b. The web workspace serves the built index.html, no Node on this machine path"
+        run: |
+          tooldir=$(uv tool dir)
+          py="$tooldir/unbidden-ai/bin/python"
+          test -x "$py"
+          HOME="$SMOKE_HOME" "$py" -m unbidden.web --demo --no-tick --token t --port 8765 >web.log 2>&1 &
+          for i in $(seq 1 90); do curl -fsS http://127.0.0.1:8765/ >index.html 2>/dev/null && break; sleep 1; done  # the demo takes ~15 s to build
+          cat web.log | head -n 5
+          grep -q '<div id="root">' index.html
+          ! grep -q "make web-build" index.html
+          curl -fsS -H 'Authorization: Bearer t' http://127.0.0.1:8765/api/session | head -c 300; echo
+          echo "--- web: built index.html served ($(wc -c < index.html) bytes)" >> smoke-report.txt
+      - name: "3. Docker integration: daemon presence only (no sandbox run here)"
+        run: |
+          if docker info >/dev/null 2>&1; then echo "docker: present ($(docker --version))"; else echo "docker: absent"; fi | tee -a smoke-report.txt
+      - name: "4. Full cycle: NOT run (needs a model; US$0 policy for this workflow)"
+        run: |
+          echo "--- full cycle: not run in this workflow" | tee -a smoke-report.txt
+      - name: "5. Uninstall keeps the data"
+        run: |
+          export HOME="$SMOKE_HOME"
+          mkdir -p "$UNBIDDEN_HOME" && echo keep > "$UNBIDDEN_HOME/marker"
+          sh release/install.sh --uninstall --yes 2>&1 | tee -a smoke-report.txt
+          test -f "$UNBIDDEN_HOME/marker"
+          ! test -e "$UV_TOOL_BIN_DIR/unbidden"
+      - name: Report
+        if: always()
+        run: |
+          {
+            echo "== smoke $(date -u +%FT%TZ) version=$VERSION"
+            echo "arch: $(uname -m)"
+            echo "os: $(. /etc/os-release && echo "$PRETTY_NAME")"
+            echo "glibc: $(ldd --version | head -n 1)"
+            echo "uv: $(uv --version)"
+            echo "python (tool): $($(uv tool dir)/unbidden-ai/bin/python --version 2>/dev/null || echo 'removed by step 5')"
+            echo "init.json: $(cat init.json 2>/dev/null || echo missing)"
+            echo "doctor.json: $(cat doctor.json 2>/dev/null || echo missing)"
+          } > smoke-header.txt
+          cat smoke-header.txt smoke-report.txt > smoke-report-full.txt
+          cat smoke-report-full.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-report-linux-x86_64
+          path: smoke-report-full.txt
+
+# --- NOT ENABLED: publishing on a tag ----------------------------------------------------------------------------
+# When decision 8.1 lands, add `push: { tags: ["v*"] }` to `on:` and a job like this (permissions: contents: write):
+#
+#  publish:
+#    if: startsWith(github.ref, 'refs/tags/v')
+#    needs: [build, smoke-linux-x86_64]
+#    runs-on: ubuntu-latest
+#    permissions:
+#      contents: write
+#    steps:
+#      - uses: actions/download-artifact@v4
+#        with: { name: release-files, path: release }
+#      - uses: softprops/action-gh-release@v2
+#        with:
+#          files: |
+#            release/dist/*.whl
+#            release/dist/*.tar.gz
+#            release/dist/SHA256SUMS
+#            release/install.sh
+#   # or: gh release create "$GITHUB_REF_NAME" release/dist/* release/install.sh --verify-tag --notes-file docs/RELEASE.md
