@@ -22,5 +22,17 @@
   "spent_usd": 0.0182,
   "blocks": [],
   "wall_s": 415.7
+ },
+ {
+  "name": "spoolman",
+  "run": "B1",
+  "mode": "autonomous",
+  "record": "/Users/david/unbidden-ai-campaign/docs/bench/campaign12/pilot/spoolman/B1.json",
+  "proposals_c1": 0,
+  "proposals_c2": 0,
+  "pulls_after": 0,
+  "spent_usd": 0.746,
+  "blocks": [],
+  "wall_s": 2759.6
  }
 ]

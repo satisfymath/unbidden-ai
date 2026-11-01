@@ -63,3 +63,19 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
 - 2026-11-01 · Level A pilot, development set · 12/12 installed, onboarded, agent lifecycle and dashboard; checks
   reproduced with tests collected 10/12 (passed 8, project failures 2), environment failures 2 (humanize, conduit);
   US$0 (cap 0 refused every model call; the refusal is in each agent log) · observation · recorded.
+- 2026-11-01 · Level B pilot, spoolman B1 (lab from source, drill passed, `mode autonomous` granted by the product) ·
+  37 min, 108 model calls, US$0.746: 83 `world.endpoint_tables` calls (the map of 68 resources) and 20
+  `lab.perf_request`; 4 opportunities (2 open: a 100k-row table read 122 times in 5 min, a `GET /api/v1/spool`
+  group listing; 2 declined with reasons), no proposal, no pull request, no deploy beyond the drill's; the lab stayed
+  healthy; the second cycle repeated nothing · observation (the cost of the first map dominates a cycle on an API of
+  that size) · recorded.
+- 2026-11-01 · Level B pilot, spoolman B1 · "not measured (cannot measure: no the handlers of the endpoints that read
+  it)": a grammar slip in a reason a person reads, and the measurement needs handler code the map did not tie to the
+  endpoint · wording + limit (perf measurement needs handler attribution) · open.
+- 2026-11-01 · Level B pilot, spoolman B1 · `doctor` said "no database service declared" and the map listed the lab's
+  `app`/`db` as "running, but not declared in any compose file read": the campaign compose file is named
+  `docker-compose.c12.yml`, which the product does not read; the harness will name it `docker-compose.yml` when the
+  repository has no compose file of its own (counted as preparation) so the declared view is fair · harness · fixed.
+- 2026-11-01 · Level B pilot, spoolman B1 · the first open opportunity ("spool, 100000 rows, read 122 times in 5
+  min") may count the agent's own probe traffic as application load; to verify in phase 5 before it is read as a
+  finding · to verify · open.

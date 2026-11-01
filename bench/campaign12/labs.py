@@ -117,7 +117,17 @@ SPOOLMAN_COMPOSE = """services:
     labels:
 {vlabels}"""
 
-COMPOSE_FILE = "docker-compose.c12.yml"
+COMPOSE_FILE = "docker-compose.c12.yml"  # beside a repository's own compose files (fst); see compose_name()
+
+
+def compose_name(repo: Path) -> str:
+    """The campaign compose file is named like a project's own when the repository declares none (Spoolman ships only
+    a Dockerfile): the product reads standard names, and a lab that hides its services behind another name would
+    make the map's "not declared" blind spot the harness's doing, not the application's."""
+    own = [
+        n for n in ("compose.yml", "compose.yaml", "docker-compose.yml", "docker-compose.yaml") if (repo / n).exists()
+    ]
+    return COMPOSE_FILE if own else "docker-compose.yml"
 
 
 def _secrets(lab: Path, app: str, names: list[str]) -> dict[str, str]:
@@ -159,13 +169,13 @@ def restore(repo: dict[str, Any], lab: Path) -> Path:
     shutil.rmtree(target / ".unbidden", ignore_errors=True)
     exclude = target / ".git" / "info" / "exclude"
     have = exclude.read_text().splitlines() if exclude.exists() else []
-    wanted = [".unbidden/", COMPOSE_FILE, ".env"]
+    wanted = [".unbidden/", COMPOSE_FILE, "docker-compose.yml", ".env"]
     exclude.write_text("\n".join([*have, *[w for w in wanted if w not in have]]) + "\n")
     return target
 
 
 def _compose(app: str, repo: Path) -> list[str]:
-    return ["docker", "compose", "-f", COMPOSE_FILE, "-p", LAB_IDS[app]]
+    return ["docker", "compose", "-f", compose_name(repo), "-p", LAB_IDS[app]]
 
 
 def _psql(app: str, repo: Path, database: str, sql: str) -> str:
@@ -244,7 +254,7 @@ def up(app: str, lab: Path) -> dict[str, Any]:
         docs = f"http://127.0.0.1:{port}/api/v1/openapi.json"
         seed_sql = None  # the ecosystem lab's SQL, below
         credential = "SPOOLMAN_READER_PW"
-    (repo / COMPOSE_FILE).chmod(0o600)
+    (repo / compose_name(repo)).chmod(0o600)
     prep: list[dict[str, Any]] = []
     if app == "spoolman":
         # Human preparation, counted: Spoolman's Dockerfile copies frontends its CI builds with Node before the
@@ -311,7 +321,7 @@ GRANT SELECT ON ALL TABLES IN SCHEMA public TO {reader};""",
         "health": health,
         "up_s": up_s,
         "data": data,
-        "deploy_steps": [["docker", "compose", "-f", COMPOSE_FILE, "-p", lab_id, "up", "-d", "--build"]],
+        "deploy_steps": [["docker", "compose", "-f", compose_name(repo), "-p", lab_id, "up", "-d", "--build"]],
         "check_steps": [
             ["python", "-c", "import compileall,sys; sys.exit(0 if compileall.compile_dir('.', quiet=1) else 1)"]
         ],
@@ -390,5 +400,5 @@ def observe(app: str, lab: Path) -> dict[str, Any]:
 
 def down(app: str, lab: Path, *, volumes: bool = True) -> None:
     repo = lab / app
-    if (repo / COMPOSE_FILE).exists():
+    if (repo / compose_name(repo)).exists():
         ownership.compose_down(LAB_IDS[app], str(repo), volumes=volumes)
