@@ -1154,16 +1154,27 @@ def cmd_route(args: argparse.Namespace) -> int:
 
 def cmd_egress(args: argparse.Namespace) -> int:
     """Everything that left this machine, or tried to: destination, purpose, size, and the exact payload."""
+    from unbidden.web.sources import apart_records
+
     ws = Workspace.find()
     ws.require()
-    attempts = sorted(ws.store().list("egress", EgressAttempt), key=lambda a: a.created_at)
-    if _emit(args, [a.model_dump(mode="json") for a in attempts]):
+    # The engine's own records, plus those of a dashboard served apart from the agent (its chat has its own store
+    # under ~/.unbidden/web): one listing, each row with its origin, none counted twice.
+    rows = [(a, "engine") for a in ws.store().list("egress", EgressAttempt)]
+    seen = {a.id for a, _ in rows}
+    for store in apart_records(ws.repo):
+        rows.extend((a, "dashboard apart") for a in store.list("egress", EgressAttempt) if a.id not in seen)
+        store.close()
+    rows.sort(key=lambda pair: pair[0].created_at)
+    attempts = [a for a, _ in rows]
+    if _emit(args, [a.model_dump(mode="json") | {"origin": origin} for a, origin in rows]):
         return 0
-    for a in attempts[-args.last :]:
+    for a, origin in rows[-args.last :]:
         mark = {"allowed_sent": "[green]sent[/]", "blocked": "[red]blocked[/]"}.get(a.status, a.status)
+        tag = "" if origin == "engine" else "  [dim](dashboard apart)[/]"
         console.print(
             f"{a.created_at:%m-%d %H:%M} {mark:22} {a.destination:16} {a.purpose:26} "
-            f"{a.verdict.payload_bytes:>7} B  {'; '.join(a.verdict.reasons)[:80]}"
+            f"{a.verdict.payload_bytes:>7} B  {'; '.join(a.verdict.reasons)[:80]}{tag}"
         )
         if args.payload and a.status != "blocked":
             console.print(a.payload, markup=False, highlight=False)
@@ -1191,9 +1202,7 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         ("ollama", bool(installed), f"{len(installed)} model(s) at {ollama_url}" if installed else "not reachable")
     )
     rec = recommend(machine, installed)
-    checks.append(
-        ("machine", True, f"{machine.chip}, {machine.total_gb:.0f} GB, {machine.model_budget_gb:.0f} GB for a model")
-    )
+    checks.append(("machine", machine.known, machine.describe))
     checks.append(
         (
             "local model",
@@ -1201,12 +1210,16 @@ def cmd_doctor(args: argparse.Namespace) -> int:
             f"{rec.model.tag} ({rec.reason})" + ("" if rec.installed else " · not installed: `unbidden doctor --fix`"),
         )
     )
-    if rec.profile_hint:
+    if rec.profile_hint and not machine.known:
+        checks.append(("profile", True, "memory unknown: option api (`unbidden models frontier`) needs no local model"))
+    elif rec.profile_hint:
         checks.append(("profile", True, f"small local capacity: consider `unbidden models {rec.profile_hint}`"))
     docker = (
         shutil.which("docker") and subprocess.run(["docker", "info"], capture_output=True, check=False).returncode == 0
     )
     checks.append(("docker", bool(docker), "running" if docker else "not running: the sandbox needs Docker"))
+    for name, ok, detail in docker_plugins(bool(docker)):
+        checks.append((name, ok, detail))
     key = broker().has("MODEL_API_KEY")
     checks.append(("meta api", *meta_api_status(key)))
     checks.append(
@@ -1564,6 +1577,34 @@ def _agent_line(agent: dict[str, Any]) -> str:
     if agent["stale"]:
         return t("home.agent.stale", pid=agent["pid"], jobs=agent["jobs_running"])
     return t("home.agent.stopped")
+
+
+def docker_plugins(docker_up: bool, run: Any = None) -> list[tuple[str, bool, str]]:
+    """The two Docker CLI plugins the engine needs, checked before any work that needs them: buildx (the sandbox
+    builds images with BuildKit, `docker build --progress=plain`; the legacy builder rejects that flag) and compose
+    (the map of the running system reads `docker compose ps`). Docker finds plugins in `$DOCKER_CONFIG/cli-plugins`
+    or `~/.docker/cli-plugins`: a HOME without them has a daemon but no builder."""
+    import subprocess
+
+    def _version(*argv: str) -> tuple[bool, str]:
+        if not docker_up:
+            return False, "Docker is not running"
+        try:
+            out = (run or subprocess.run)(["docker", *argv], capture_output=True, text=True, check=False, timeout=15)
+        except (OSError, subprocess.SubprocessError) as exc:
+            return False, f"not available ({type(exc).__name__})"
+        if out.returncode == 0 and out.stdout.strip():
+            return True, out.stdout.strip().splitlines()[0][:60]
+        said = (out.stderr or out.stdout).strip().splitlines()
+        return False, said[0][:80] if said else "absent"
+
+    ok_b, detail_b = _version("buildx", "version")
+    ok_c, detail_c = _version("compose", "version")
+    where = " (install the buildx plugin or Docker Desktop; the sandbox cannot build images without it)"
+    return [
+        ("docker buildx", ok_b, detail_b + ("" if ok_b else where)),
+        ("docker compose", ok_c, detail_c + ("" if ok_c else " (the map of the running system needs it)")),
+    ]
 
 
 def meta_api_status(key: bool, get: Any = None) -> tuple[bool, str]:

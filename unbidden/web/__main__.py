@@ -82,7 +82,7 @@ def make_brain_for(planner: str, state_dir: Path, *, shared: Any | None = None) 
             config = config.model_copy(deep=True)
             config.brain.max_repairs = max(config.brain.max_repairs, 3)
             safe = "".join(c if c.isalnum() else "_" for c in source.id)
-            store = Store(state_dir / f"{safe}-state.db")
+            store = Store(state_dir / f"{safe}-state.db")  # see sources.apart_store_path: the CLI reads it back
             brain = Brain(
                 config, build_providers(config), store, mandate, killswitch=source.killswitch(), spend=SpendLedger()
             )

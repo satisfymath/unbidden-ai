@@ -18,6 +18,8 @@ def doctor_requirements(mandate: Mandate | None) -> dict[str, Need]:
         "ollama": "optional",
         "local model": "optional",
         "docker": "optional",
+        "docker buildx": "optional",
+        "docker compose": "optional",
         "meta api": "optional",
         "github": "optional",
         "mandate": "optional",
@@ -32,7 +34,9 @@ def doctor_requirements(mandate: Mandate | None) -> dict[str, Need]:
         needs["meta api"] = "required"
     autonomy = mandate.autonomy
     if autonomy.run_experiments is not Autonomy.DENY or autonomy.observe is not Autonomy.DENY:
-        needs["docker"] = "required"  # the project's checks and every experiment run in the sandbox
+        # The project's checks and every experiment run in the sandbox, whose images BuildKit builds; the map of the
+        # running system reads compose. Without them the first cycle records a compatibility block instead of work.
+        needs["docker"] = needs["docker buildx"] = needs["docker compose"] = "required"
     return needs
 
 

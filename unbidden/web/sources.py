@@ -311,6 +311,26 @@ class Source:
 # Constructors ------------------------------------------------------------------------------------------------
 
 
+def apart_store_path(source_id: str) -> Path:
+    """Where a dashboard served apart from the agent keeps its chat's model runs and egress for a source."""
+    from unbidden.web.__main__ import web_home
+
+    safe = "".join(c if c.isalnum() else "_" for c in source_id)
+    return web_home() / f"{safe}-state.db"
+
+
+def apart_records(repo: Path) -> list[ReadOnlyStore]:
+    """The read-only stores of dashboards served apart for this repository (the live source id is `live:<name>`),
+    for the CLI to list their egress and model runs beside the engine's own."""
+    path = apart_store_path(f"live:{repo.resolve().name}")
+    if not path.exists():
+        return []
+    try:
+        return [ReadOnlyStore(path)]
+    except Exception:  # a store from another schema or a half-written file: nothing to list from it
+        return []
+
+
 _LOCAL_PROBE: dict[str, tuple[float, bool]] = {}
 LOCAL_PROBE_TTL_S = 30.0
 

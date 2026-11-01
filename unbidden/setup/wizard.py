@@ -286,7 +286,7 @@ def step_models(ctx: Context) -> None:
     ollama_url = config.providers["ollama"].base_url if config and "ollama" in config.providers else None
     installed = installed_models(ollama_url) if ollama_url else set()
     rec = recommend(machine_, installed)
-    ctx.say(t("models.hardware", chip=machine_.chip, total=machine_.total_gb, budget=machine_.model_budget_gb))
+    ctx.say(t("models.hardware", described=machine_.describe))
     ctx.say(
         t(
             "models.local_model",

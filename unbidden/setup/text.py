@@ -29,7 +29,7 @@ T: dict[str, str] = {
     ),
     "models.ask": "Which option?",
     "models.recommend": "Recommended here: {option} ({why}). Nothing is chosen for you.",
-    "models.hardware": "machine: {chip}, {total:.0f} GB, {budget:.0f} GB usable for a model",
+    "models.hardware": "machine: {described}",
     "models.local_model": "local model for this machine: {tag} ({reason}){installed}",
     "models.not_installed": " · not installed",
     "models.pull.ask": "Download {tag} now? About {gb:.0f} GB on disk and in memory while it runs.",

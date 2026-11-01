@@ -90,6 +90,10 @@ async def watch(
     requeued = store.requeue_running()
     if requeued:
         log(f"resumed {requeued} interrupted job(s)")
+    from unbidden.publish.github import reconcile_publishing
+
+    for proposal in reconcile_publishing(store):
+        log(f"{proposal.id}: left publishing by a run that ended; ready again (an existing pull request is reused)")
     killswitch = runtime.workspace.killswitch()
     asyncio.get_running_loop().set_default_executor(TrackingExecutor())
     stop = threading.Event()
