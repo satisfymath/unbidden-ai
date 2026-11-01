@@ -707,3 +707,41 @@ registro como ocurrieron; el reinicio con el plugin construyó la imagen y pasó
 
 Gasto: `s11-product` US$0.0438 de 3.80 (run `s11-validation`: 4 llamadas, 6 625 tokens dentro, 8 356 fuera);
 disponible en la máquina US$9.5308 de 37.2945. Pruebas simuladas y deterministas aparte: `make check` verde.
+
+## Estado 2026-11-01 (noche): entrega E
+
+**Integración cerrada.** `operate/decisions.py`: aprobar, rechazar y aprobar escrituras en una sola transacción
+`BEGIN IMMEDIATE` (serializada entre procesos), aprobar y aprobar escrituras reutilizan una aprobación vigente,
+rechazar relee dentro de la transacción (sin actualización perdida) y es idempotente; `test_decisions.py` lo prueba
+con 8 aprobaciones concurrentes (1 aprobación, 1 evento, 1 job), un rechazo mientras un hilo "agente" escribe la
+misma oportunidad (ambas escrituras sobreviven) y aprobar/rechazar en carrera (registro consistente). Publicación
+interrumpida: el `publish` repetido reutiliza el PR que GitHub ya tiene y no vuelve a empujar (test en
+`test_publish.py`); una propuesta dejada en `PUBLISHING` por un proceso muerto vuelve a `READY` al arrancar el único
+ejecutor (`reconcile_publishing`). Abrir el store con el esquema al día no escribe nada (un lector no espera al
+escritor). `unbidden egress` lista también los registros de un dashboard servido aparte con origen `dashboard apart`;
+el gasto ya era un solo ledger. Lectura completa de cero filas = `complete`; `missing` sólo para una petición
+concreta sin datos. Memoria ilegible = "unknown", sin recomendar modelo desde cero (`sysctl` también por ruta
+absoluta). `doctor` comprueba `docker buildx` y `docker compose` y los explica, obligatorios cuando Docker lo es.
+
+**Documentación** (README, `docs/INSTALL.md`, `docs/RELEASE.md`, D-064, `docs/PLAN.md`) rehecha para el producto;
+sin URL de instalación pública mientras no haya release.
+
+**Demo reproducible** (`demo/product-walk.sh`, evidencia en `docs/bench/product-walk-2026-11-01/`): wheel de
+`94380a3` servido en local, HOME vacío, clon nuevo del fork `satisfymath/rich` en `9d8f9a37`, opción api,
+supervisado, cap US$1.5. En seis minutos: checks del proyecto, sonda de robustez y tres candidatos de corrección
+(7 llamadas a `muse-spark-1.3`): 4 oportunidades, 5 experimentos, 3 propuestas L4 listas **esperando a una persona**
+(supervisado: nada empujado; el único branch `unbidden/*` y el PR abierto del fork son del 27 de octubre), 45 eventos
+en el dashboard servido por el agente; chat de estado por reglas sin modelo; un análisis (`chat.analyze`,
+`muse-spark-1.3`); tabla «Oportunidades» por reglas con procedencia `live:rich` y `complete`; `stop` retira el agente
+y su dashboard; `unbidden ui` reabre el mismo espacio (misma tarjeta; captura `dashboard-reopened.png`); segundo
+`start` rechazado, un solo proceso, `stop` limpio. Gasto del recorrido US$0.0914 (run `product-walk-94380a3`).
+Observación para después: el Director dijo «3 pull requests already open (cap 3)» con un solo PR abierto en el fork;
+cuenta propuestas listas, no PRs: revisar `open_count`.
+
+**Gasto total de la fase**: `s11-product` US$0.1352 de 3.80 (validación 0.0438 + demo 0.0914); disponible en la
+máquina US$9.4394 de 37.2945; cap y demás envelopes intactos.
+
+**CI (Linux x86-64, `ubuntu-latest`)**: rama publicada en origin para CI; `secrets`, `check` y `frontend` verdes en
+`df1998c`; `installed` falló por el propio paso de CI (exit 4 esperado no capturado bajo `set -e`) y se corrigió;
+los resultados del run final están en `docs/RELEASE.md` («CI on Linux x86-64»). El workflow de release no puede
+dispararse hasta estar en la rama por defecto (GitHub lo exige): queda para después del merge.

@@ -1,0 +1,106 @@
+{
+  "models": "api",
+  "profile": "frontier",
+  "private_code_to_frontier": "deny",
+  "mode": "supervised",
+  "act_on_connections": "deny",
+  "budget_usd": 1.5,
+  "credentials_saved": [
+    "MODEL_API_KEY"
+  ],
+  "credential_names_present": [
+    "MODEL_API_KEY"
+  ],
+  "dashboard": "later",
+  "effective": [
+    {
+      "what": "observe the repository, its CI and running services",
+      "capability": "repo.read",
+      "decision": "allow",
+      "rule": "autonomy.observe"
+    },
+    {
+      "what": "run experiments in the offline sandbox",
+      "capability": "sandbox.run",
+      "decision": "allow",
+      "rule": "autonomy.run_experiments"
+    },
+    {
+      "what": "install dependencies while building",
+      "capability": "sandbox.provision",
+      "decision": "allow",
+      "rule": "autonomy.provision_dependencies"
+    },
+    {
+      "what": "send synthetic or public content to remote models",
+      "capability": "model.remote.synthetic",
+      "decision": "allow",
+      "rule": "autonomy.delegate_synthetic"
+    },
+    {
+      "what": "use capabilities it built for itself",
+      "capability": "capability.use",
+      "decision": "require_approval",
+      "rule": "autonomy.use_new_capabilities"
+    },
+    {
+      "what": "open pull requests",
+      "capability": "github.open_pull_request",
+      "decision": "require_approval",
+      "rule": "autonomy.open_pull_requests"
+    },
+    {
+      "what": "merge pull requests",
+      "capability": "github.merge_pull_request",
+      "decision": "deny",
+      "rule": "autonomy.merge_pull_requests"
+    },
+    {
+      "what": "deploy with the team's steps",
+      "capability": "deploy.run",
+      "decision": "deny",
+      "rule": "autonomy.deploy"
+    },
+    {
+      "what": "roll back a deploy",
+      "capability": "deploy.rollback",
+      "decision": "deny",
+      "rule": "autonomy.rollback"
+    },
+    {
+      "what": "write through connections (typed, limited actions)",
+      "capability": "connection.write",
+      "decision": "deny",
+      "rule": "autonomy.act_on_connections"
+    }
+  ],
+  "notes": [],
+  "probe": null,
+  "diff": [
+    "--- /private/tmp/claude-501/-Users-david-unbidden-ai/ae550819-b9df-45f3-90bc-71f27b198e3a/scratchpad/repos/rich/.unbidden/mandate.yaml",
+    "+++ /private/tmp/claude-501/-Users-david-unbidden-ai/ae550819-b9df-45f3-90bc-71f27b198e3a/scratchpad/repos/rich/.unbidden/mandate.yaml",
+    "@@ -6,5 +6,5 @@",
+    "   - security",
+    "   business_constraints:",
+    "-    maximum_monthly_spend_usd: 10",
+    "+    maximum_monthly_spend_usd: 1.5",
+    "   autonomy:",
+    "     observe: allow",
+    "@@ -17,4 +17,5 @@",
+    "     rollback: deny",
+    "     use_new_capabilities: require_approval",
+    "+    act_on_connections: deny",
+    "   egress:",
+    "     package_registries:",
+    "@@ -34,2 +35,7 @@",
+    "   evaluation:",
+    "     minimum_evidence_for_proposal: 4",
+    "+  models:",
+    "+    profile: frontier",
+    "+    private_code_to_frontier: deny",
+    "+    local_inference: deny",
+    "+    local_fallback: deny"
+  ],
+  "applied": true,
+  "mandate": "/private/tmp/claude-501/-Users-david-unbidden-ai/ae550819-b9df-45f3-90bc-71f27b198e3a/scratchpad/repos/rich/.unbidden/mandate.yaml"
+}

@@ -88,8 +88,15 @@ def test_a_rejection_keeps_what_the_agent_wrote_meanwhile_and_is_idempotent(db: 
     t = threading.Thread(target=agent)
     t.start()
     try:
+        deadline = time.monotonic() + 10
+        while writes["n"] < 1 and time.monotonic() < deadline:  # the agent is writing before the person decides
+            time.sleep(0.005)
+        assert writes["n"] >= 1, "the agent thread never wrote"
         store = Store(db)
         first = reject_by_id(store, "opp_000000000001", by="p", reason="not worth it")
+        ticks_at_reject = writes["n"]
+        while writes["n"] < ticks_at_reject + 2 and time.monotonic() < deadline:  # and keeps writing after it
+            time.sleep(0.005)
         second = reject_by_id(store, "opp_000000000001", by="p", reason="again")
     finally:
         stop.set()

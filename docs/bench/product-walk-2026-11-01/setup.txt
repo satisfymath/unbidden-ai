@@ -1,0 +1,100 @@
+Unbidden is not set up in this repository yet. This takes a few minutes and 
+calls no model.
+
+Project
+repository 
+/private/tmp/claude-501/-Users-david-unbidden-ai/ae550819-b9df-45f3-90bc-71f27b1
+98e3a/scratchpad/repos/rich · branch (detached) · head 9d8f9a372cc5
+  scope: stack   in scope: Python 3.9 (poetry.lock, poetry.lock)
+  scope: tests   in scope: pythonpackage.yml > build (matrix entry 1 of 17 
+(os=ubuntu-latest, python-version=3.9))
+  scope: database outside what this version supports: no database service 
+declared: consistency and performance work need one (the project's checks and 
+robustness probes still run)
+
+Priorities
+
+Models
+Where model calls may go. In every option secrets and production data stay on 
+this machine, private code leaves only renamed by the privacy bridge or when you
+allow it, and the egress gate re-checks every payload.
+  local: only a model on this machine (Ollama). Nothing leaves. Heavy work is 
+slower and smaller.
+  mixed: local first; heavy tasks whose content may leave go to Meta's API first
+and fall back to the local model when the remote call fails.
+  api: Meta's API only. No local model is needed or used (local inference and 
+local fallback denied). A call that may not leave the machine is refused and 
+says why.
+machine: Apple M5 Pro, 64 GB, 54 GB for a model
+local model for this machine: muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 
+8-bit: the best local quality measured)
+Recommended here: local (a local model is installed and no key is saved). 
+Nothing is chosen for you.
+
+Credentials
+Saved to 
+/private/tmp/claude-501/-Users-david-unbidden-ai/ae550819-b9df-45f3-90bc-71f27b1
+98e3a/scratchpad/vhome2/.unbidden/.env (mode 600), referenced by name; never 
+written to the repository or logs.
+MODEL_API_KEY saved.
+Meta API: key set, API reachable
+Skipped. The configuration is saved either way.
+
+Autonomy and scope
+A mode sets what reaches GitHub and production. The other permissions are 
+granted on their own and never inherited from another project. A credential's 
+own powers never widen the mandate.
+  supervised: prepares everything, asks before a pull request; never merges or 
+deploys
+  autopilot: opens pull requests on its own for proven work; people merge
+  autonomous: also merges L4 work, deploys with the team's steps and rolls back
+Effective permissions
+  observe the repository, its CI and running services  allowed
+  run experiments in the offline sandbox               allowed
+  install dependencies while building                  allowed
+  send synthetic or public content to remote models    allowed
+  use capabilities it built for itself                 asks first
+  open pull requests                                   asks first
+  merge pull requests                                  denied
+  deploy with the team's steps                         denied
+  roll back a deploy                                   denied
+  write through connections (typed, limited actions)   denied
+
+Connections (optional)
+
+Budget
+Machine ledger: verified balance US$37.29 (stage 6 spend cap authorized by David
+on 2026-10-28: up to US$10 of free credits from this point (dev 3, evaluation 5,
+demo and contingency 2; the earlier US$3 reserve is included, not added). 
+Dashboard as reported by David 2026-10-28: Current balance US$0, free credits in
+use US$144.98, a Visa card on file, content sent while on free credits may be 
+used to improve products. A cap, not a measured balance; no recharge or card 
+charge authorized (entered by david) | stage 9: US$30 additional Meta API spend 
+authorized by David on 2026-10-29, replacing the US$10 cap; cumulative cap 
+US$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval 12, demo 6 (D-052).
+Dashboard as reported by David: free credits in use US$137.96, balance US$0, a 
+card on file. No recharge or card charge authorized (entered by david) | stage 
+10: the remaining US$20.30 of the US$37.29 cap split before any call (D-058), by
+David's stage 10 instruction of 2026-10-30 (entered by david) | stage 10 after 
+the frozen evaluation: US$5 of the unspent s10-eval moved to s10-dev for 
+corrections and regressions, by David's instruction of 2026-10-31; envelopes 
+total US$20.30 and the cumulative cap US$37.2945 unchanged; spent at the 
+transfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, s10-close 0) (entered by 
+david) | product phase (A-E): s11-product US$4.00 authorized by David on 
+2026-11-01, reassigned from s10-close (3.80, unspent, closed) and US$0.20 of 
+s10-dev; envelopes total US$20.30 and the cumulative cap US$37.2945 unchanged; 
+spent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval 1.0010, s10-close 0) 
+(entered by david) | product phase correction: David's authorization of 
+2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken from s10-dev had 
+no recorded authorization and goes back (s10-dev 13.00, s11-product 3.80); 
+envelopes total US$20.30 and the cumulative cap US$37.2945 unchanged; 
+s11-product spent 0 at the correction; spent at the correction US$27.7199 
+(entered by david)); permitted US$37.29 · spent US$27.7637 · available US$9.5308
+envelopes: s10-dev 13.00, s10-eval 3.50, s11-product 3.80
+Provider credits and authorized spend are different things: the cap a person 
+entered with `unbidden spend --verified-balance` is what this machine may spend;
+it is never raised or reset here.
+
+Dashboard
+Opening the dashboard, restoring its layout and showing records calls no model; 
+chatting or asking for analysis can.
