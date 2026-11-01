@@ -1,0 +1,64 @@
+{
+ "repo": "/Users/david/unbidden-lab/aegra",
+ "rev": "46055c0b9adffe51fb168974f79dfadaa6edd612",
+ "stack": {
+  "python": "3.12",
+  "why": [
+   "python 3.12: from .python-version",
+   "pyproject requires-python: >=3.12",
+   ".python-version: 3.12"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": "uv.lock",
+  "members": [
+   "libs/aegra-api",
+   "libs/aegra-cli"
+  ],
+  "source_roots": [
+   "libs/aegra-api",
+   "libs/aegra-cli",
+   "libs/aegra-api/src",
+   "libs/aegra-cli/src",
+   "src",
+   "."
+  ],
+  "test_paths": [
+   "libs/aegra-api/tests",
+   "libs/aegra-cli/tests"
+  ],
+  "extra_requirements": [],
+  "build_writes": [],
+  "blind_spots": []
+ },
+ "image": "unbidden-deps-python:fd52288df704436f",
+ "plan": {
+  "source": "CI ci.yml > test-api",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [
+   "the job's `uv python install 3.12` is satisfied by the image's Python 3.12, chosen when it was provisioned"
+  ],
+  "services": [],
+  "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest libs/aegra-api/tests/unit libs/aegra-api/tests/integration --cov=libs/aegra-api/src --cov-report=xml --cov-report=term"
+ },
+ "status": "passed",
+ "collected": 2429,
+ "failed": [],
+ "why": null,
+ "failures": {},
+ "wall_s": 47.2,
+ "image_notes": [
+  "python 3.12: from .python-version",
+  "pyproject requires-python: >=3.12",
+  ".python-version: 3.12",
+  "image unbidden-deps-python:fd52288df704436f on linux/arm64"
+ ],
+ "python": "3.12",
+ "source": "CI ci.yml > test-api",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [
+  "the job's `uv python install 3.12` is satisfied by the image's Python 3.12, chosen when it was provisioned"
+ ],
+ "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest libs/aegra-api/tests/unit libs/aegra-api/tests/integration --cov=libs/aegra-api/src --cov-report=xml --cov-report=term"
+}

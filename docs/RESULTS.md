@@ -13,7 +13,7 @@ Not yet claimable. Proposed scope: `CAMPAIGN-v1.md` section 1. Tested so far: ma
 | Capability | Implemented | Demonstrated where | Pending |
 |---|---|---|---|
 | Environment: stack, image, CI plan, checks, coverage and blocks | yes (`observe.scan`, `observe.checks`) | checks reproduced on 9 database applications of the corpus (stage 8-10 records; `stage10-regression/checks`) | the clone and compose as product input (C1); breadth on the 20-repository corpus (level A, pending) |
-| CI plan robustness | conditions, matrices (entry on the job's own database, Linux first, no compose-started engine), split suites, make, interpreters, workspaces, test requirements, install scripts, runner edits under sudo, container runtimes, environment, reports | codex-lb, Aegra, rag-api, Prefect, Spoolman (regressions); level A run 1: 13 of 20 (`stage10-campaign/level-a-c840697`) | CTFd's name resolution over its whole suite (isolating); TimeTracker's pytest crash (text kept from 6e53da9) |
+| CI plan robustness | conditions, matrices (entry on the job's own database, Linux first, no compose-started engine), split suites, make, interpreters, workspaces, test requirements, install scripts, runner edits under sudo, container runtimes, environment, reports | codex-lb, Aegra, rag-api, Prefect, Spoolman (regressions); level A run 1: 13 of 20 (`stage10-campaign/level-a-c840697`) | TimeTracker (xdist worker dies at the sandbox's limits; retried with one worker, still unstable) |
 | Workloads | model-written, validated at the base (D-059); rule-written index over one- and multi-line columns | Conduit, fst (L4 under perf-v4); codex-lb (full cycle at 3cf779d: two valid workloads, no proven fix, correct) | construction from the project's resources first (C3; mealie's first-attempt workload at 10704dc); the candidate migration named in the project's own convention (`migration_name`, after codex-lb's 3 new failures at 3cf779d; unverified on codex-lb until its next cycle); mealie's rerun |
 | Measurement and equivalence | perf-v4 (D-060), content comparison with correspondences (dec7ba2), host-load deferral | controls 7 of 7 (`stage10-controls/0102ccb-run4`); fst revalidated; deferral exercised on codex-lb (42 waits, loads recorded) | mechanism not observable where the project's test job runs on SQLite (codex-lb) |
 | Consistency | reads by POST, whole SQL reads by key pages, a declared comparison before reading, an anonymous probe of endpoints declared to need a credential | Aegra (0 of 200 differ, recomputed by the checker) | cases where totals match but records differ (tests); API reads at their bounds |
@@ -25,7 +25,7 @@ Not yet claimable. Proposed scope: `CAMPAIGN-v1.md` section 1. Tested so far: ma
 See `docs/bench/stage10-regression/` (checks, full cycles), `stage10-revalidation/` (fst confirmed; mealie
 measured at 10704dc on PostgreSQL: +4%, index used, no relevant change: its stage-8 L4 is not confirmed under perf-v4),
 `stage10-controls/`. Level A on the 20-repository corpus: runs 1-5 (c840697 .. 9c31b7e), honest 13, 12, 14, 14, 14
-of 20; run 6 at 647d714: 17 under the stated rule, 8 outright; each run's README classifies every block and names
+of 20; run 6 at 647d714: 17 under the stated rule, 8 outright; run 7 at 0ea665d: 18 under the rule, 10 outright; each run's README classifies every block and names
 the general fix.
 
 ## Independent evaluation results
@@ -46,8 +46,8 @@ reserved evaluation: not run (gate not reached).
 ## Precision and coverage observed
 
 Controls: 7 of 7 (the evaluator); false promotions observed in evaluations: 0 of 0 promotions (not evidence);
-development: one false L4 (stage 8, revoked), none since under perf-v3/v4. Coverage: level A run 6, 17 of 20 repositories' checks reproduced under the stated rule (9 apps of 11, 8 libraries
-of 9), 8 outright; gate criterion 1 (16) met under the rule, not under the strict reading.
+development: one false L4 (stage 8, revoked), none since under perf-v3/v4. Coverage: level A run 7, 18 of 20 repositories' checks reproduced under the stated rule (10 apps of 11, 8 libraries
+of 9), 10 outright; gate criterion 1 (16) met under the rule, not under the strict reading.
 
 ## Cost and latency
 

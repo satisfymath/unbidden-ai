@@ -1,0 +1,86 @@
+{
+ "repo": "/Users/david/humanize",
+ "rev": "6b817b963dbb091b9ad20a746cb6a26653a93b95",
+ "stack": {
+  "python": "3.11",
+  "why": [
+   "python 3.11: no concrete version declared; the oldest the constraints admit (a choice, not something the project names)",
+   "pyproject requires-python: >=3.11",
+   "the CI's python-version: 3.15"
+  ],
+  "manifest": "pyproject.toml",
+  "lockfile": null,
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [],
+  "build_writes": [
+   "src/humanize/_version.py"
+  ],
+  "blind_spots": [
+   "pyproject.toml without uv.lock: dependencies resolved at provisioning time"
+  ]
+ },
+ "image": "unbidden-deps-python:374ee15cd4cb2dfb",
+ "plan": {
+  "source": "CI test.yml > test",
+  "scope": "matrix entry 1 of 27 (python-version=pypy3.12, os=ubuntu-latest)",
+  "partial": true,
+  "notes": [],
+  "services": [],
+  "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nscripts/generate-translation-binaries.sh\ncd /work\n(python -m pytest --cov humanize --cov tests --cov-report html --cov-report term --cov-report xml)"
+ },
+ "status": "failed",
+ "collected": 878,
+ "failed": [
+  "tests.test_benchmarks::test_apnumber",
+  "tests.test_benchmarks::test_clamp",
+  "tests.test_benchmarks::test_fractional",
+  "tests.test_benchmarks::test_intcomma",
+  "tests.test_benchmarks::test_intword",
+  "tests.test_benchmarks::test_metric",
+  "tests.test_benchmarks::test_natural_list",
+  "tests.test_benchmarks::test_naturaldate",
+  "tests.test_benchmarks::test_naturalday",
+  "tests.test_benchmarks::test_naturaldelta",
+  "tests.test_benchmarks::test_naturalsize",
+  "tests.test_benchmarks::test_naturaltime",
+  "tests.test_benchmarks::test_ordinal",
+  "tests.test_benchmarks::test_precisedelta",
+  "tests.test_benchmarks::test_scientific"
+ ],
+ "why": "exit 1: arks.py::\u001b[1mtest_intword\u001b[0m - AttributeError: 'Function' object has no attribute '_nodeid'\n\u001b[31mERROR\u001b[0m tests/test_benchmarks.py::\u001b[1mtest_metric\u001b[0m - AttributeError: 'Function' object has no attribute '_nodeid'\n\u001b[31mERROR\u001b[0m tests/test_benchmarks.py::\u001b[1mtest_natural_list\u001b[0m - AttributeError: 'Function' object has no attribute '_nodeid'\n\u001b[31mERROR\u001b[0m tests/test_benchmarks.py::\u001b[1mtest_naturaldate\u001b[0m - AttributeError: 'Function' object has no attribute '_nodeid'\n\u001b[31mERROR\u001b[0m tests/test_benchmarks.py::\u001b[1mtest_naturalday\u001b[0m - AttributeError: 'Function' object has no attribute '_nodeid'\n\u001b[31mERROR\u001b[0m tests/test_benchmarks.py::\u001b[1mtest_naturaldelta\u001b[0m - AttributeError: 'Function' object has no attribute '_nodeid'\n\u001b[31mERROR\u001b[0m tests/test_benchmarks.py::\u001b[1mtest_naturalsize\u001b[0m - AttributeError: 'Function' object has no attribute '_nodeid'\n\u001b[31mERROR\u001b[0m tests/test_benchmarks.py::\u001b[1mtest_naturaltime\u001b[0m - AttributeError: 'Function' object has no attribute '_nodeid'\n\u001b[31mERROR\u001b[0m tests/test_benchmarks.py::\u001b[1mtest_ordinal\u001b[0m - AttributeError: 'Function' object has no attribute '_nodeid'\n\u001b[31mERROR\u001b[0m tests/test_benchmarks.py::\u001b[1mtest_precisedelta\u001b[0m - AttributeError: 'Function' object has no attribute '_nodeid'\n\u001b[31mERROR\u001b[0m tests/test_benchmarks.py::\u001b[1mtest_scientific\u001b[0m - AttributeError: 'Function' object has no attribute '_nodeid'\n\u001b[31m======================== \u001b[32m863 passed\u001b[0m, \u001b[31m\u001b[1m15 errors\u001b[0m\u001b[31m in 1.72s\u001b[0m\u001b[31m ========================\u001b[0m",
+ "failures": {
+  "tests.test_benchmarks::test_apnumber": "failed on setup with \"AttributeError: 'Function' object has no attribute '_nodeid'\"",
+  "tests.test_benchmarks::test_clamp": "failed on setup with \"AttributeError: 'Function' object has no attribute '_nodeid'\"",
+  "tests.test_benchmarks::test_fractional": "failed on setup with \"AttributeError: 'Function' object has no attribute '_nodeid'\"",
+  "tests.test_benchmarks::test_intcomma": "failed on setup with \"AttributeError: 'Function' object has no attribute '_nodeid'\"",
+  "tests.test_benchmarks::test_intword": "failed on setup with \"AttributeError: 'Function' object has no attribute '_nodeid'\"",
+  "tests.test_benchmarks::test_metric": "failed on setup with \"AttributeError: 'Function' object has no attribute '_nodeid'\"",
+  "tests.test_benchmarks::test_natural_list": "failed on setup with \"AttributeError: 'Function' object has no attribute '_nodeid'\"",
+  "tests.test_benchmarks::test_naturaldate": "failed on setup with \"AttributeError: 'Function' object has no attribute '_nodeid'\"",
+  "tests.test_benchmarks::test_naturalday": "failed on setup with \"AttributeError: 'Function' object has no attribute '_nodeid'\"",
+  "tests.test_benchmarks::test_naturaldelta": "failed on setup with \"AttributeError: 'Function' object has no attribute '_nodeid'\"",
+  "tests.test_benchmarks::test_naturalsize": "failed on setup with \"AttributeError: 'Function' object has no attribute '_nodeid'\"",
+  "tests.test_benchmarks::test_naturaltime": "failed on setup with \"AttributeError: 'Function' object has no attribute '_nodeid'\"",
+  "tests.test_benchmarks::test_ordinal": "failed on setup with \"AttributeError: 'Function' object has no attribute '_nodeid'\"",
+  "tests.test_benchmarks::test_precisedelta": "failed on setup with \"AttributeError: 'Function' object has no attribute '_nodeid'\"",
+  "tests.test_benchmarks::test_scientific": "failed on setup with \"AttributeError: 'Function' object has no attribute '_nodeid'\""
+ },
+ "wall_s": 3.9,
+ "image_notes": [
+  "python 3.11: no concrete version declared; the oldest the constraints admit (a choice, not something the project names)",
+  "pyproject requires-python: >=3.11",
+  "the CI's python-version: 3.15",
+  "image unbidden-deps-python:374ee15cd4cb2dfb on linux/arm64"
+ ],
+ "python": "3.11",
+ "source": "CI test.yml > test",
+ "scope": "matrix entry 1 of 27 (python-version=pypy3.12, os=ubuntu-latest)",
+ "partial": true,
+ "notes": [],
+ "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nscripts/generate-translation-binaries.sh\ncd /work\n(python -m pytest --cov humanize --cov tests --cov-report html --cov-report term --cov-report xml)"
+}

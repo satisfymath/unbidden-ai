@@ -1,0 +1,111 @@
+{
+ "repo": "/Users/david/TimeTracker",
+ "rev": "7ae6440d1b0930196609c6cefe3cf13948513f5b",
+ "stack": {
+  "python": "3.11",
+  "why": [
+   "python 3.11: where the CI runs the checks and the project's Dockerfile both use it",
+   "the CI's python-version: 3.11",
+   "the project's Dockerfile: 3.11, 3.12",
+   "conflict: concrete sources disagree: the CI's python-version 3.11; the project's Dockerfile 3.11, 3.12"
+  ],
+  "manifest": "requirements.txt",
+  "lockfile": "requirements.txt",
+  "members": [],
+  "source_roots": [
+   "src",
+   "."
+  ],
+  "test_paths": [],
+  "extra_requirements": [
+   "requirements-test.txt"
+  ],
+  "build_writes": [],
+  "blind_spots": [
+   "package.json without a lockfile: dependencies resolved at provisioning time",
+   "Java/Kotlin (build.gradle) is not analyzed: no checks, probes or experiments for that code",
+   "Dart (pubspec.yaml) is not analyzed: no checks, probes or experiments for that code"
+  ]
+ },
+ "image": "unbidden-deps-python:462486a50b473dd5",
+ "plan": {
+  "source": "CI ci.yml > test (its services: postgres)",
+  "scope": "the whole job",
+  "partial": false,
+  "notes": [],
+  "services": [
+   "postgres"
+  ],
+  "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nflask db upgrade\ncd /work\npytest -n auto --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing tests/"
+ },
+ "status": "failed",
+ "collected": 560,
+ "failed": [
+  "tests.test_admin_users.TestAdminUserDeletion::test_delete_user_unauthenticated",
+  "tests.test_client_portal::test_create_notification_emits_to_client_room",
+  "tests.test_comprehensive_tracking.TestAdminTelemetryDashboard::test_telemetry_dashboard_access",
+  "tests.test_comprehensive_tracking.TestAdminTelemetryDashboard::test_telemetry_toggle",
+  "tests.test_comprehensive_tracking.TestClientEventTracking::test_client_archive_tracking",
+  "tests.test_comprehensive_tracking.TestClientEventTracking::test_client_update_tracking",
+  "tests.test_comprehensive_tracking.TestTaskEventTracking::test_task_creation_tracking",
+  "tests.test_enhanced_ui.TestEnhancedUI::test_enhanced_css_loaded",
+  "tests.test_enhanced_ui.TestEnhancedUI::test_filter_ajax_error_toast_message_in_enhanced_ui",
+  "tests.test_enhanced_ui.TestEnhancedUI::test_set_submit_button_loading_available",
+  "tests.test_favorite_projects.TestFavoriteProjectFiltering::test_list_all_projects_without_filter",
+  "tests.test_favorite_projects.TestFavoriteProjectFiltering::test_list_projects_with_favorites_filter",
+  "tests.test_idle_response_endpoint::test_stale_token_reports_already_resolved",
+  "tests.test_security::test_sql_injection_in_search",
+  "tests.test_services.test_attendance_compliance_service.TestAttendanceComplianceService::test_add_missing_work_period_correction",
+  "tests.test_services.test_attendance_compliance_service.TestAttendanceComplianceService::test_correction_request_and_approve",
+  "tests.test_services.test_attendance_compliance_service.TestAttendanceComplianceService::test_time_off_sync_creates_absence_day",
+  "tests.test_services.test_attendance_compliance_service.TestAttendanceComplianceService::test_work_period_correction_updates_linked_workday_session",
+  "tests.test_services.test_comment_service.TestCommentService::test_create_comment_empty_content",
+  "tests.test_services.test_comment_service.TestCommentService::test_create_comment_invalid_project",
+  "tests.test_services.test_comment_service.TestCommentService::test_create_comment_no_target",
+  "tests.test_services.test_comment_service.TestCommentService::test_create_comment_success",
+  "tests.test_services.test_comment_service.TestCommentService::test_delete_comment_success",
+  "tests.test_services.test_comment_service.TestCommentService::test_get_project_comments",
+  "tests.test_services.test_export_service.TestExportService::test_export_invoices_csv",
+  "tests.test_services.test_export_service.TestExportService::test_export_projects_csv",
+  "tests.test_services.test_export_service.TestExportService::test_export_time_entries_csv",
+  "tests.test_services.test_notification_service::test_no_tracking_in_slot"
+ ],
+ "why": "first attempt told nothing (exit 3: INTERNALERROR> Traceback (most recent call last):\nINTERNALERROR>   File \"/deps/.venv/lib/python3.11/site-packages/execnet/gateway_base.py\", line 1190, in _send\nINTERNALERROR>     message.to_io(self._io)\nINTERNALERROR>   File \"/deps/.venv/lib/python3.11/site-packages/execnet/gateway_base.py\",); retried with one xdist worker",
+ "failures": {
+  "tests.test_admin_users.TestAdminUserDeletion::test_delete_user_unauthenticated": "failed on setup with \"worker 'gw0' crashed while running 'tests/test_admin_users.py::TestAdminUserDeletion::test_delete_user_unauthenticated'\"",
+  "tests.test_enhanced_ui.TestEnhancedUI::test_enhanced_css_loaded": "assert b'enhanced-ui.css' in b'<!DOCTYPE html>\\n<html lang=\"en\" dir=\"ltr\">\\n<head>\\n    <meta charset=\"UTF-8\">\\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\">\\n    <title>Time Tracker</title>\\n    <meta name=\"csrf-token\" content=\"\">\\n    <meta name=\"description\" content=\"Professional time tracking and project management\">\\n    <meta name=\"theme-color",
+  "tests.test_enhanced_ui.TestEnhancedUI::test_set_submit_button_loading_available": "assert b'setSubmitButtonLoading' in b'<!DOCTYPE html>\\n<html lang=\"en\" dir=\"ltr\">\\n<head>\\n    <meta charset=\"UTF-8\">\\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\">\\n    <title>Time Tracker</title>\\n    <meta name=\"csrf-token\" content=\"\">\\n    <meta name=\"description\" content=\"Professional time tracking and project management\">\\n    <meta name=\"them",
+  "tests.test_enhanced_ui.TestEnhancedUI::test_filter_ajax_error_toast_message_in_enhanced_ui": "assert b'Failed to filter results' in b'<!DOCTYPE html>\\n<html lang=\"en\" dir=\"ltr\">\\n<head>\\n    <meta charset=\"UTF-8\">\\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\">\\n    <title>Time Tracker</title>\\n    <meta name=\"csrf-token\" content=\"\">\\n    <meta name=\"description\" content=\"Professional time tracking and project management\">\\n    <meta name=\"th",
+  "tests.test_favorite_projects.TestFavoriteProjectFiltering::test_list_projects_with_favorites_filter": "failed on setup with \"worker 'gw1' crashed while running 'tests/test_favorite_projects.py::TestFavoriteProjectFiltering::test_list_projects_with_favorites_filter'\"",
+  "tests.test_security::test_sql_injection_in_search": "failed on setup with \"worker 'gw2' crashed while running 'tests/test_security.py::test_sql_injection_in_search'\"",
+  "tests.test_client_portal::test_create_notification_emits_to_client_room": "AssertionError: Expected 'emit' to have been called once. Called 2 times.\nCalls: [call('client_notification', {'id': 1, 'type': 'invoice_created', 'title': 'Test', 'message': 'Test message', 'link_url': None, 'link_text': None}, room='client_portal_1'),\n call('portal_refresh', {'title': 'Test', 'message': 'Test message', 'type': 'invoice_created', 'reload': True}, room='client_portal_1')].\n",
+  "tests.test_comprehensive_tracking.TestClientEventTracking::test_client_update_tracking": "AssertionError: assert False\n +  where False = <MagicMock name='log_event' id='281472870861456'>.called",
+  "tests.test_comprehensive_tracking.TestClientEventTracking::test_client_archive_tracking": "AssertionError: assert False\n +  where False = <MagicMock name='log_event' id='281472864367760'>.called",
+  "tests.test_comprehensive_tracking.TestTaskEventTracking::test_task_creation_tracking": "AssertionError: assert False\n +  where False = <MagicMock name='log_event' id='281472840297744'>.called",
+  "tests.test_comprehensive_tracking.TestAdminTelemetryDashboard::test_telemetry_dashboard_access": "assert 302 == 200\n +  where 302 = <WrapperTestResponse streamed [302 FOUND]>.status_code",
+  "tests.test_comprehensive_tracking.TestAdminTelemetryDashboard::test_telemetry_toggle": "assert False != False",
+  "tests.test_favorite_projects.TestFavoriteProjectFiltering::test_list_all_projects_without_filter": "assert b'Test Project' in b'<!DOCTYPE html>\\n<html lang=\"en\" dir=\"ltr\">\\n<head>\\n    <meta charset=\"UTF-8\">\\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\">\\n    <title>Time Tracker</title>\\n    <meta name=\"csrf-token\" content=\"\">\\n    <meta name=\"description\" content=\"Professional time tracking and project management\">\\n    <meta name=\"theme-color\" c",
+  "tests.test_idle_response_endpoint::test_stale_token_reports_already_resolved": "failed on setup with \"worker 'gw3' crashed while running 'tests/test_idle_response_endpoint.py::test_stale_token_reports_already_resolved'\"",
+  "tests.test_services.test_attendance_compliance_service.TestAttendanceComplianceService::test_time_off_sync_creates_absence_day": "failed on teardown with \"sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: time_off_requests.user_id\n[SQL: UPDATE time_off_requests SET user_id=?, updated_at=? WHERE time_off_requests.id = ?]\n[parameters: (None, '2026-11-01 00:29:53.183597', 1)]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)\"",
+  "tests.test_services.test_attendance_compliance_service.TestAttendanceComplianceService::test_correction_request_and_approve": "failed on teardown with \"sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) FOREIGN KEY constraint failed\n[SQL: DELETE FROM daily_attendance_records WHERE daily_attendance_records.user_id = ?]\n[parameters: (1,)]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)\"",
+  "tests.test_services.test_attendance_compliance_service.TestAttendanceComplianceService::test_work_period_correction_updates_linked_workday_session": "failed on teardown with \"sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) FOREIGN KEY constraint failed\n[SQL: DELETE FROM daily_attendance_records WHERE daily_attendance_records.user_id = ?]\n[parameters: (1,)]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)\"",
+  "tests.test_services.test_attendance_compliance_service.TestAttendanceComplianceService::test_add_missing_work_period_correction": "failed on teardown with \"sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) FOREIGN KEY constraint failed\n[SQL: DELETE FROM daily_attendance_records WHERE daily_attendance_records.user_id = ?]\n[parameters: (1,)]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)\"",
+  "tests.test_services.test_comment_service.TestCommentService::test_create_comment_success": "failed on setup with \"file /work/tests/test_services/test_comment_service.py, line 14\n      def test_create_comment_success(self, db_session, sample_project, sample_user):\nE       fixture 'sample_project' not found\n>       available fixtures: _configure_application, _monkeypatch_response_class, _push_request_context, _reset_opentelemetry_after_test, _session_faker, accept_any, accept_json, accept_",
+  "tests.test_services.test_comment_service.TestCommentService::test_create_comment_empty_content": "failed on setup with \"file /work/tests/test_services/test_comment_service.py, line 27\n      def test_create_comment_empty_content(self, db_session, sample_project, sample_user):\nE       fixture 'sample_project' not found\n>       available fixtures: _configure_application, _monkeypatch_response_class, _push_request_context, _reset_opentelemetry_after_test, _session_faker, accept_any, accept_json, a"
+ },
+ "wall_s": 710.5,
+ "image_notes": [
+  "python 3.11: where the CI runs the checks and the project's Dockerfile both use it",
+  "the CI's python-version: 3.11",
+  "the project's Dockerfile: 3.11, 3.12",
+  "conflict: concrete sources disagree: the CI's python-version 3.11; the project's Dockerfile 3.11, 3.12",
+  "image unbidden-deps-python:462486a50b473dd5 on linux/arm64",
+  "the environment is seeded with pip and setuptools as of 2026-10-28T06:09:11Z (the lockfile's era), as virtualenvs on Python 3.11 were"
+ ],
+ "python": "3.11",
+ "source": "CI ci.yml > test (its services: postgres)",
+ "scope": "the whole job",
+ "partial": false,
+ "notes": [],
+ "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nflask db upgrade\ncd /work\npytest -n auto --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing tests/"
+}

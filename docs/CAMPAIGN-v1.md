@@ -190,8 +190,10 @@ extras for pyproject manifests, host mapping by the variable's engine, `/var/log
 runner: out of scope). Run 6 at 647d714 (`level-a-647d714/README.md`): tool 19, **honest 17 of 20** under the stated
 rule (passed, or every failure explained as the sandbox's with its cause recorded: no git, no pager, no network,
 today's resolution); 8 pass outright. Criterion 1 of the gate is met under that rule and not under the strict one;
-both numbers are reported. Open: CTFd (fails only over its whole suite; being isolated), TimeTracker (pytest crash,
-text kept from 6e53da9), healthchecks (limit).
+both numbers are reported. Run 7 at 0ea665d (`level-a-0ea665d/README.md`): tool 19, **honest 18 of 20, 10 outright**
+(CTFd and Aegra pass once the compose file's application environment stays out of the CI job's tests; the /var/log
+cascade explained CTFd's name resolution). Open: TimeTracker (unstable: an xdist worker dies at the sandbox's limits,
+no CI baseline of its own), healthchecks (limit).
 
 ## 10. Independent evaluation
 
