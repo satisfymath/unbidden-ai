@@ -66,8 +66,11 @@ def test_plan(repo: Path, rev: str, stack: Stack, language: str) -> TestPlan | N
         if own:
             ci_env = {k: _to_sidecars(v, own, k) for k, v in ci_env.items()}
         # The job's own environment, with or without service containers (rag-api, stage 10: the test step's
-        # OPENAI_API_KEY=test_key, without which importing the application fails).
-        env = {**env, **ci_env}
+        # OPENAI_API_KEY=test_key, without which importing the application fails). The compose file's environment
+        # is the application container's, not the job's: CTFd's `UPLOAD_FOLDER=/var/uploads` and
+        # `DATABASE_URL=...@db` reached its tests and failed them (stage 10, level A). A job that starts the
+        # compose file's services runs its tests against them, with that environment (fst).
+        env = {**(env if ci.services else {}), **ci_env}
         notes = list(ci.notes)
         if ci.interpreters and language == "python" and stack.python is not None:
             # The job's own interpreter install, resolved when the image was provisioned (no download in the run).

@@ -456,3 +456,30 @@ def test_a_crashed_pytest_is_a_round_that_told_nothing_and_is_retried_with_one_w
     assert summary.failed_per_round == [[]] and summary.round_status == ["ran"]
     assert calls[0]["PYTEST_XDIST_AUTO_NUM_WORKERS"] != "1" and calls[1]["PYTEST_XDIST_AUTO_NUM_WORKERS"] == "1"
     assert summary.infra_why[0] is not None and "retried with one xdist worker" in summary.infra_why[0]
+
+
+def test_the_compose_environment_is_not_the_ci_jobs(tmp_path: Path) -> None:
+    """CTFd: docker-compose.yml's `UPLOAD_FOLDER=/var/uploads` and `DATABASE_URL=...@db` are the application
+    container's; the CI job's tests run without them (11 failures on a read-only `/var/uploads`)."""
+    from unbidden.lab.testsuite import test_plan
+
+    repo = _repo(tmp_path, {
+        "requirements.txt": "flask\n",
+        "tests/test_a.py": "def test_a(): ...\n",
+        "Dockerfile": "FROM python:3.11\n",
+        "docker-compose.yml": "services:\n  ctfd:\n    build: .\n    environment:\n      - UPLOAD_FOLDER=/var/uploads\n"
+                              "      - DATABASE_URL=mysql+pymysql://ctfd:ctfd@db/ctfd\n    depends_on:\n      - db\n"
+                              "  db:\n    image: mariadb:10.11\n",
+        ".github/workflows/ci.yml": WORKFLOW + """  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: python -m pytest
+        env:
+          TESTING_DATABASE_URL: 'sqlite://'
+""",
+    })  # fmt: skip
+    plan = test_plan(repo, "HEAD", detect_stack(repo, "HEAD"), "python")
+    assert plan is not None and plan.source.startswith("CI ci.yml")
+    assert plan.env.get("TESTING_DATABASE_URL") == "sqlite://"
+    assert "UPLOAD_FOLDER" not in plan.env and "DATABASE_URL" not in plan.env
