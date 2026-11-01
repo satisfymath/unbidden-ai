@@ -201,3 +201,22 @@ def test_the_digest_is_bounded_and_carries_no_emails_ips_or_log_lines() -> None:
     text = evidence_digest(summary, [{"opportunity": "opp_1", "title": "t"}], results)
     assert len(text.encode()) <= 12_000 and "ops@corp" not in text and "10.1.2.3" not in text
     assert "huge" not in text and "opp_1" in text
+
+
+def test_a_status_question_is_answered_from_the_record_without_a_model(tmp_path: Path, mandate: Mandate) -> None:
+    """Option api with no local model: what happened so far is read from the record by rules, deterministically."""
+    mandate.models.profile = "frontier"
+    mandate.models.local_inference = mandate.models.local_fallback = "deny"
+    src = _src()
+    src.mandate = mandate
+    srv = make_server([src], tmp_path)
+    try:
+        c = Client(srv, src.id)
+        reply = _turn(c, "¿Qué ha hecho el agente hasta ahora y cuántas oportunidades hay?")
+        assert reply["route"]["intent"] == "inform" and reply["planner"] == "rule"
+        assert "oportunidades" in reply["content"] and "eventos" in reply["content"]
+        assert reply["tool_calls"] == [] and "No he entendido" not in reply["content"]
+        reply = _turn(c, "How many experiments are there so far?")
+        assert "experimentos" in reply["content"]
+    finally:
+        srv.stop()

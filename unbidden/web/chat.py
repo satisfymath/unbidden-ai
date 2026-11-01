@@ -789,12 +789,41 @@ class RulePlanner:
             if ents:
                 return "Explico lo seleccionado.", [("explain", {"entity": ents[0].model_dump()})]
             return "Selecciona una tarjeta (hallazgo, experimento, bloqueo) y te la explico con sus referencias.", []
+        if re.search(
+            r"\b(estado|status|que ha hecho|que hizo|what has|what did|cuant\w*|how many|hasta ahora|so far|"
+            r"que hay|what is there|registros?|records?)\b",
+            t,
+        ):
+            return _status_reply(rt), []  # a deterministic reading of the record: counts, jobs, blocks, agent
         return (
             "No he entendido la petición. Puedo: graficar la latencia antes y después de un experimento, añadir una "
             "tabla con los tests que fallaron, graficar el gasto por corrida, explicar un bloqueo y añadir sus "
             "dependencias al mapa, cambiar un gráfico a barras/líneas, comparar dos ejecuciones seleccionadas, "
             "renombrar o redimensionar una tarjeta, y deshacer la última tarjeta."
         ), []
+
+
+def _status_reply(rt: ToolRuntime) -> str:
+    """What the record says, from the source's summary and the blocks collection; no model, no invention."""
+    summary = rt.source.summary()
+    counts = summary.get("counts", {})
+    jobs = summary.get("jobs", {})
+    agent = (summary.get("connection") or {}).get("agent") or {}
+    ws = summary.get("workspace", {})
+    lines = [
+        f"Registro de {ws.get('name')} ({ws.get('mode')}, head {str(ws.get('head') or '')[:12]}): "
+        f"{counts.get('opportunities', 0)} oportunidades, {counts.get('experiments', 0)} experimentos, "
+        f"{counts.get('proposals', 0)} propuestas, {counts.get('events', 0)} eventos, "
+        f"{counts.get('model_runs', 0)} llamadas a modelos, {counts.get('blocks', 0)} bloqueos.",
+        "Jobs: " + (", ".join(f"{k} {v}" for k, v in sorted(jobs.items())) or "ninguno"),
+    ]
+    blocks = rt.source.store.list(BLOCKS, Block)
+    for b in blocks[:5]:
+        lines.append(f"Bloqueo {b.kind} en «{b.operation[:60]}»: {b.evidence[:140]}")
+    if agent.get("detail"):
+        lines.append(f"Agente: {agent['detail']}.")
+    lines.append("Para un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.")
+    return "\n".join(lines)
 
 
 # Brain-backed planner ----------------------------------------------------------------------------------------

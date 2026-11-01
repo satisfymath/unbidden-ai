@@ -671,3 +671,39 @@ build, Playwright) y job `installed` (wheel → install.sh en HOME vacío → se
 ui/chat → uninstall). `make check` verde: 931 tests.
 
 **Validación real acotada** (Meta API, envelope `s11-product`): ver la sección siguiente, escrita al terminar.
+
+### Validación real acotada (2026-11-01, macOS arm64, Meta API, envelope `s11-product`)
+
+Entorno: wheel `unbidden_ai-0.9.0-py3-none-any.whl` (sha256 `b77f34e5…`) servido en local, instalado con `install.sh
+--yes --version 0.9.0` en un HOME vacío (`UV_TOOL_DIR`/`UV_TOOL_BIN_DIR` propios); `UNBIDDEN_HOME` apuntando al ledger
+real, `UNBIDDEN_ENVELOPE=s11-product`, `UNBIDDEN_RUN=s11-validation`; `DOCKER_CONFIG` al real (el HOME vacío no tiene
+los plugins de Docker: el primer intento registró dos bloqueos `compatibility` por `buildx` ausente, que quedan en el
+registro como ocurrieron; el reinicio con el plugin construyó la imagen y pasó los checks). Repo: clon dedicado
+`~/rich-s11` del fork `satisfymath/rich` en `9d8f9a372cc5` (`~/rich`, clon de upstream, no se tocó).
+
+1. Instalación: `unbidden --version` → 0.9.0.
+2. Onboarding: `setup --non-interactive --models api --mode supervised --budget 1.5 --model-key-stdin --yes` con la
+   clave leída de `~/.unbidden/.env` real por stdin; `.env` del HOME limpio en 600; JSON con el nombre, nunca el valor;
+   mandato `frontier` + `local_inference: deny` + `local_fallback: deny`; `doctor` exit 0: Ollama/modelo local
+   opcionales, Meta API y Docker obligatorios y presentes.
+3. Ciclo: `start --ui --port 8830 --interval 60`; checks del proyecto a `9d8f9a37`: passed (981 collected, 0 failed);
+   sonda de robustez con 3 llamadas a `muse-spark-1.3` (purpose `research.robustness`, egress 3068/3324 bytes a
+   `api.meta.ai`): 1 failed, 8 passed, 1 violación de propiedad guardada para una persona (L1); 35 jobs hechos, 14
+   eventos, 0 oportunidades (ninguna mejora: no hacía falta para este recorrido).
+4. Dashboard servido por el agente: `summary` live/current, `agent running pid 8419`, `key_present` true,
+   14 eventos reales por tipo (`model.called` 3, `egress.allowed` 3, `world.changed` 4, `analyzer.ran`,
+   `decision.made`, `repo.head_moved`, `mandate.changed`).
+5. Chat: informar por reglas sin modelo (la mandato deniega inferencia local; la pregunta de estado no la cubrían las
+   reglas → añadida la regla de estado tras la validación, test `test_a_status_question_is_answered_from_the_record`);
+   analizar: una llamada `chat.analyze` a `muse-spark-1.3` (ruta `profile frontier; public_code may leave; label
+   public_code`), respuesta citando los conteos y los dos bloqueos de Docker del registro, US$0.0051.
+6. Widgets por chat (reglas): tabla «Oportunidades» (`dataset opportunities`, provenance `live:rich-s11`, completeness
+   `missing`: el registro no tiene filas y lo dice) y «Gasto por run» (`spend.calls` agrupado por run, `complete`).
+7. Cerrar y reabrir: `stop` retira el agente y su dashboard (`ui.json` desaparece); `unbidden ui` abre uno aparte en
+   8831: mismos 2 widgets (mismos ids) y 8 mensajes de conversación; `ui --stop` lo cierra.
+8. Detener y retomar: segundo `start` → `already` con el mismo pid; un solo proceso `watch`; `kill -9` del agente →
+   `status` running false, stale true, 1 job running; `start` → `resumed 1 interrupted job(s)`; `stop` limpio,
+   `stale` false, sin KILL; 0 procesos. Eventos 14 antes y después (sin efectos duplicados).
+
+Gasto: `s11-product` US$0.0438 de 3.80 (run `s11-validation`: 4 llamadas, 6 625 tokens dentro, 8 356 fuera);
+disponible en la máquina US$9.5308 de 37.2945. Pruebas simuladas y deterministas aparte: `make check` verde.
