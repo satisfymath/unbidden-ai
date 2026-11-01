@@ -114,7 +114,7 @@ if [ "$UNINSTALL" = 1 ]; then
   fi
   say ""
   say "Kept, untouched:"
-  say "  $DATA_HOME            machine-wide state (spend ledger, web canvas, credentials never stored here)"
+  say "  $DATA_HOME            machine-wide state (spend ledger, web canvas, shared credentials in .env)"
   say "  .unbidden/ in every repository you ran unbidden in (mandate, store, records)"
   say "Delete them yourself if you want them gone; uv and its Python stay for other tools."
   exit 0

@@ -1835,7 +1835,7 @@ def _no_command(args: argparse.Namespace) -> int:
         ws = Workspace.find()
     except WorkspaceError:
         return cmd_home(args)
-    if not ws.initialized:
+    if not ws.initialized and not getattr(args, "json", False):  # --json reports, never asks
         args.non_interactive = args.yes = args.all = args.show = False
         args.section = args.models = args.private_code = args.mode = args.act_on_connections = None
         args.priorities = args.budget = args.dashboard = None

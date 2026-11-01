@@ -134,21 +134,38 @@ class IO(Protocol):
     def confirm(self, key: str, prompt: str, default: bool) -> bool: ...
 
 
+NO_TTY = "no terminal to answer from: run `unbidden setup --non-interactive --models ... --mode ... --yes` instead"
+
+
 class Interactive:
     def __init__(self, console: Console) -> None:
         self.console = console
 
     def choice(self, key: str, prompt: str, choices: Sequence[str], default: str | None) -> str:
-        return str(Prompt.ask(prompt, choices=list(choices), default=default, console=self.console) or default or "")
+        try:
+            return str(
+                Prompt.ask(prompt, choices=list(choices), default=default, console=self.console) or default or ""
+            )
+        except EOFError as exc:
+            raise SetupError(NO_TTY) from exc
 
     def text(self, key: str, prompt: str, default: str | None) -> str:
-        return Prompt.ask(prompt, default=default, console=self.console) or ""
+        try:
+            return Prompt.ask(prompt, default=default, console=self.console) or ""
+        except EOFError as exc:
+            raise SetupError(NO_TTY) from exc
 
     def secret(self, key: str, prompt: str) -> str:
-        return Prompt.ask(prompt, password=True, console=self.console, default="", show_default=False) or ""
+        try:
+            return Prompt.ask(prompt, password=True, console=self.console, default="", show_default=False) or ""
+        except EOFError as exc:
+            raise SetupError(NO_TTY) from exc
 
     def confirm(self, key: str, prompt: str, default: bool) -> bool:
-        return Confirm.ask(prompt, default=default, console=self.console)
+        try:
+            return Confirm.ask(prompt, default=default, console=self.console)
+        except EOFError as exc:
+            raise SetupError(NO_TTY) from exc
 
 
 class Scripted:
