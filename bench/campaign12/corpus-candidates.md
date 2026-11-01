@@ -381,3 +381,85 @@ the exhaustion of its window (first 60 non-exposed candidates, stars descending)
 Each accepted extension candidate goes to `corpus-extension.yaml` with `class: independent-extension` and
 `extension_rule: E1..E4`. Record format as above.
 
+### Extension inspection log
+
+Search snapshots (2026-11-01): E1 total 340 (200 read, 60-candidate non-exposed window built); E2 total 72 (60-window);
+E3 total 140 (60-window); E4 total 109 (60-window). Screening = metadata, root tree, every workflow (pytest? DB
+images?), root compose images, via `screen.sh` (one line per repository, kept in the session scratchpad); candidates
+that screened in were then read with `inspect.sh` as above. Metadata-only rejections listed first per rule.
+
+**E1 (`stars:50..150 topic:fastapi`)** - metadata rejects c1: w06 Ai-Healthcare-Chatbot (None), w30 local-rag-llamaindex
+(None), w32 TaskFlow (None), w33 stampede (None), w34 lupyne (NOASSERTION), w43 Gozar (NOASSERTION), w47 LogicPaper
+(NOASSERTION). Screened 53: 25 had no root manifest or no pytest workflow -> REJECT c3/c4 (recorded in the screen
+log). Screened-in, in window order:
+- w02 apowerb/apowerb -> REJECT c5 (agentic *framework*; pytest job runs only test_library_import) ; meta, root, wf:build.yaml, docker-build-verify.yml (postgres:16-alpine)
+- w03 krishagarwal314/CodeJury -> REJECT quota (compose: app only, no DB) + c6 (multi-agent LLM pipeline) ; meta, root, wf:ci.yml, compose
+- w05 EddieTYP/image-prompt-library -> REJECT quota (no DB) ; screen
+- w07 coaxk/subarr -> REJECT quota (compose: app only; no DB dependency) ; meta, root, wf:ci.yml, compose, pyproject
+- w08 849879772/recruitops-agent -> ACCEPT E1 (api-postgres; compose pgvector/pg16; pytest -c pytest-public.ini; no LLM SDK; no secrets) ; meta, root, wf:ci.yml, compose, pyproject
+- w11 masouduut94/volleyball_analytics -> REJECT c4 (pytest only in flake-8.yml name match; ML/video) ; screen
+- w13 bomzheg/Shvatka -> ACCEPT E1 (api-postgres; FastAPI+aiogram; pytest with testcontainers postgres:18.2 or SHVATKA_TEST_DB_URL; MIT; py3.14) ; meta, root, wf:test.yml, compose, pyproject, tests/fixtures/db_provider.py
+- w16 cvxv666/fomo-robinhood-radar, w18 nanotaboada/python-samples-fastapi-restful (sample), w20 Hannes221/rq-dashboard-fast (redis-only dashboard), w21 ai-forever/gpt2giga (LLM proxy), w22 henrique-coder/perplexity-webui-scraper (scraper), w24 whichmen/dxl-commerce-agent (LLM e-commerce agent), w25 PXSYS13/yadisk_backup, w26 danielhasan1/fastapi-listing (library), w31 appleweiping/WEIPING_COUNCIL (LLM), w35 JiayiLu2003/Trend2Video-Pro, w36 aaronsb/knowledge-graph-system (pytest only in lint.yml), w37 ahnafnafee/local-llm-pdf-ocr, w38 Stellar-Sentinel/sentinel-backend, w54 notadev-iamaura/OneRAG (RAG framework), w55 KOKOSde/localmod, w59 vpcarlos/profyle (dev tool) -> REJECT (no DB service and/or c5/c6) ; screen
+- w29 lkmeta/txtify -> REJECT quota (compose: app only; whisper/deepl ASR) ; meta, root, wf:tests.yml, compose
+- w40 RRHTY/tg-channel-sync -> REJECT quota (no DB) + c6 (Telegram credentials) ; meta, root, wf:release.yml, compose
+- w46 wendaochangsheng/Rapid-Inbox -> REJECT quota (local storage, no DB service; C++ ingest engine) ; meta, root, wf, compose
+- w56 AlexAsplund/Vanchor -> REJECT quota (offline GPS autopilot, no DB) ; meta, root, wf:ci.yml, compose
+- E1 RESULT: 2 accepted (recruitops-agent, Shvatka); window exhausted; 2 FastAPI slots remain -> E2.
+
+**E2 (`stars:>100 topic:sqlalchemy`, applications only)** - metadata rejects: w04 awesome-sqlalchemy (None, list), w08
+globaleaks (SIZE), w20 doudizhu (None), w51 TaskFlow (None), w59 sqlalchemy-tutorial (None), w60 wtforms-sqlalchemy
+(NOASSERTION). Screened 54. Libraries/ORMs/plugins/tools -> REJECT c5: aiomysql, eralchemy, sqlalchemy-continuum,
+pytest-alembic, Maxteabag/sqlit (TUI), and every other screened line without a DB image (see screen log). Templates
+-> REJECT c5: rafsaf/minimal-fastapi-postgres-template, seapagan/fastapi-template, modern-python/fastapi-sqlalchemy-template,
+KenMwaura1/Fast-Api-example. Applications, in window order:
+- w37 ilyarolf/AiogramShopBot -> ACCEPT E2 (api-postgres; FastAPI webhook + aiogram; compose postgres:18 + redis; pytest in CI without services; MIT; py3.12) ; meta, root, wf:tests.yml, compose, requirements.txt, README
+- w41 JakubPluta/gymhero -> ACCEPT E2 (api-postgres; FastAPI+SQLAlchemy+Alembic; pytest via testcontainers; migrations job with postgres:16-alpine service; MIT; uv; py3.13) ; meta, root, wf:ci.yaml, compose, pyproject
+- w58 jantman/biweeklybudget -> NOT E2's fill (a Flask app, MariaDB); recorded; it is E4's w26 and is filled there ; meta, root, wf:run-tox-suite.yml, tox.ini
+- E2 RESULT: 2 accepted -> FastAPI extension quota met (4 of 4). E3 not needed for FastAPI.
+
+**E3 (`stars:>100 topic:postgresql`, applications only)** - metadata rejects c1: w01 WrenAI, w06 baserow, w09 pgadmin4,
+w27 remnawave bot, w35 pg_probackup, w38 temboard, w59 cryptostore (NOASSERTION), w44 envkit-releases, w60 pglast (None).
+Screened 51: screened-in lines are libraries/drivers/queues/ORMs/tools (patroni, ibis, tortoise-orm, sqlit, barman,
+dbos-transact-py, pgqueuer, procrastinate, pgsync, eralchemy, advanced-alchemy, pytest-postgresql, piccolo_admin,
+edgy) -> REJECT c5; rafsaf template and Azure-Samples -> REJECT c5; hotosm/tasking-manager -> REJECT c6 (as in the base
+log); fedspendingtransparency/usaspending-api -> REJECT c1 (CC0-1.0 is not OSI-approved) (Django app, 107 MB, postgres).
+- E3 RESULT: 0 accepted (no FastAPI slot remaining anyway; no Flask application in the window).
+
+**E4 (`stars:50..150 topic:flask`, applications with pytest in CI; DB preferred)** - metadata rejects: w09 GeoNature
+(SIZE), w41 etf-national-tracker (None), w42 docker-updater (None), w43 datacube-ows, w46 shopyo, w49 flask_mab,
+w57 critiquebrainz, w58 OptionsCanvas (NOASSERTION), w53 DoorOpener (None), w56 python-for-devops (None). Screened 50;
+lines without root manifest or pytest workflow -> REJECT c3/c4 (screen log). Screened-in, in window order (fill
+preference stated before reading: DB-backed applications first, then DB-less, both in window order):
+- w03 cumbucadev/cinemaempoa -> PASS (Flask + SQLAlchemy/SQLite; uv; pytest; GPL-3.0; py3.14) -> alternate (no DB service) ; meta, root, wf:ci.yml, pyproject, tests/
+- w04 salimane/flask-mvc -> REJECT c5 (boilerplate) ; screen
+- w05 joseantmazonsb/linguard -> PASS (Flask WireGuard GUI; poetry; pytest; py3.7-3.9; apt wireguard) -> alternate ; meta, root, wf:latest-test.yaml
+- w07 scidsg/hushline -> ACCEPT E4 #1 (Flask + Flask-SQLAlchemy on postgres:16.4 via compose; make test -> poetry run pytest; AGPL-3.0; 129 MB; py3.13) ; meta, root, wf:tests.yml, Makefile, compose, pyproject
+- w12 MasoniteFramework/exceptionite, w16 vpcarlos/profyle, w18 Ambro17/slackify, w23 zfleeman/ffmpeg4discord, w24 marcoagner/Flask-QRcode, w29 guibranco/progressbar, w37 FROWNINGdev/orm-lens, w47 farahats9/sqlalchemy-celery-beat, w55 hasgeek/coaster -> REJECT c5 (libraries/extensions/tools) ; screen
+- w15 eerovil/TrackLater -> PASS (Flask + Flask-SQLAlchemy file DB; pytest; MIT; py3.12) -> alternate (no DB service) ; meta, root, wf:pythonapp.yml, compose
+- w25 wink-wink-wink555/MarkiNote -> REJECT c6 (AI-agent document system) + c3 (apps/ layout) ; screen
+- w26 jantman/biweeklybudget -> ACCEPT E4 #2 (Flask/SQLAlchemy finance app; mariadb:10.4.7 service; tox -e py314 running pytest; AGPL-3.0; py3.14 only) ; meta, root, wf:run-tox-suite.yml, tox.ini
+- w28 craws/OpenAtlas -> PASS (Flask + PostGIS via compose; pytest via docker exec; GPL-2.0; py>=3.13) -> DB-backed alternate ; meta, root, wf:starter.yaml, compose, pyproject
+- w31 BlueSquare23/web-lgsm -> REJECT (game-server manager needing LGSM/system tools; no DB) ; screen
+- w33 caspii/dinkydash -> PASS (Flask; postgres:17 service; pytest twice, with and without DB; MIT; py3.11; no API key in CI) -> DB-backed alternate ; meta, root, wf:test.yml, requirements
+- w35 hoangsonww/AI-Agents-Orchestrator, w48 MCERQUA/OpenVoiceUI -> REJECT c6 (LLM/TTS) ; screen
+- w38 ialimustufa/API -> REJECT c5 ("Making a Simple API Server", tutorial-grade) ; screen
+- w45 Angrido/Lidarr-YouTube-Downloader -> REJECT (network downloader; no DB) ; screen
+- E4 RESULT: 7 pass; fill = hushline + biweeklybudget (the first two DB-backed in window order); alternates in order:
+  cinemaempoa, linguard, TrackLater, OpenAtlas, dinkydash. Note for the decision: dinkydash is the only passing Flask
+  app with Postgres AND an interpreter inside 3.8-3.13; biweeklybudget is MariaDB + Python 3.14.
+
+### Extension summary (optional; nothing here is frozen)
+
+| slot | name | rule | family | build | checks (short) | commit |
+|---|---|---|---|---|---|---|
+| FastAPI 1 | recruitops-agent | E1 | api-postgres | pip | ci.yml pytest; compose pgvector pg16 | 1584307 |
+| FastAPI 2 | shvatka | E1 | api-postgres | uv | test.yml pytest; testcontainers postgres:18.2 | 352323a |
+| FastAPI 3 | aiogramshopbot | E2 | api-postgres | pip | tests.yml pytest; compose postgres:18+redis | f886de2 |
+| FastAPI 4 | gymhero | E2 | api-postgres | uv | ci.yaml pytest (testcontainers) + postgres:16 migrations job | 890b0db |
+| Flask 1 | hushline | E4 | web-flask | poetry | tests.yml make test (pytest) via compose postgres:16.4 | 1228e5d |
+| Flask 2 | biweeklybudget | E4 | web-flask-mysql | tox | run-tox-suite.yml tox -e py314 (pytest); mariadb service | ac8870d |
+| alt | cinemaempoa, linguard, tracklater, openatlas, dinkydash | E4 | web-flask | uv/poetry/pip/uv/pip | see yaml | - |
+
+Extension shortfalls: none (4/4 FastAPI via E1+E2; 2/2 Flask via E4). Caveats to weigh: Shvatka, biweeklybudget and
+cinemaempoa run on Python 3.14 (above the declared 3.8-3.13); the two E2 FastAPI apps' CI suites do not touch their
+Postgres (DB is provided by compose/testcontainers, not exercised by the pytest job); biweeklybudget is MariaDB.

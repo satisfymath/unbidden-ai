@@ -1,0 +1,228 @@
+# Campaign 12 - OPTIONAL extension candidates for the two shortfalls (prepared for David's decision; not part of
+# the frozen set unless accepted). Selected 2026-11-01 by rules E1..E4 recorded in corpus-candidates.md before
+# inspection. Same criteria as the base rule; read-only; commits pinned at inspection time.
+# Fill: FastAPI apps with a DB -> 4 of 4 (E1 x2, E2 x2). Flask apps -> 2 of 2 (E4; DB-backed first, window order),
+# with passing alternates listed after the fill.
+repos:
+  # ---- FastAPI applications with a database (fills the 4-slot shortfall) ----
+  - name: recruitops-agent
+    url: https://github.com/849879772/recruitops-agent
+    license: MIT
+    size_kb: 5960
+    stars: 147
+    default_branch: main
+    commit: 1584307eef66b7e3f839e55cd74dd7e12d7b876d
+    family: api-postgres
+    build: pip            # pyproject.toml, pip install -e ".[dev]"
+    python: ["3.11"]
+    checks: "ci.yml > python -m pytest -c pytest-public.ini (no DB in the job); scripts/check_migrations.py 'without a database'; compose: postgres=pgvector/pgvector:pg16 + api"
+    services: [postgres]
+    created: 2026-09-16
+    pushed: 2026-10-07
+    why: "E1 (topic:fastapi stars:50..150), window w08 / rank r9; FastAPI + SQLAlchemy + psycopg + pgvector app; compose provides the DB; pytest in CI; no provider keys in CI"
+    preparation: "pgvector/pg16 from compose for DB-backed work; the CI test job itself runs without a database"
+    risk: "very young (2026-09); the pytest job does not touch Postgres, so DB opportunities come from the app, not its suite; 'agent' naming but no LLM SDK in dependencies"
+    class: independent-extension
+    extension_rule: E1
+
+  - name: shvatka
+    url: https://github.com/bomzheg/Shvatka
+    license: MIT
+    size_kb: 29267
+    stars: 144
+    default_branch: master
+    commit: 352323ad5bcd0f530198ac5535dd9ead177be222
+    family: api-postgres
+    build: uv             # pyproject.toml + uv.lock; uv sync --group test
+    python: ["3.14"]
+    checks: "test.yml > uv sync --group test; pytest --cov=shvatka tests/ (unit + integration); DB via testcontainers PostgresContainer('postgres:18.2') or SHVATKA_TEST_DB_URL; redis via testcontainers"
+    services: [postgres, redis]
+    created: 2022-07-17
+    pushed: 2026-10-22
+    why: "E1 (topic:fastapi stars:50..150), window w13 / rank r15; FastAPI + aiogram game app on asyncpg/SQLAlchemy; pytest in CI with a real Postgres (testcontainers); MIT"
+    preparation: "either Docker-in-sandbox for testcontainers, or set SHVATKA_TEST_DB_URL to a provided postgres service (the fixture honours it)"
+    risk: "Python 3.14 only (above the 3.8-3.13 support range); testcontainers needs a Docker socket unless the env URL is used; Telegram bot API image in compose is not needed for tests"
+    class: independent-extension
+    extension_rule: E1
+
+  - name: aiogramshopbot
+    url: https://github.com/ilyarolf/AiogramShopBot
+    license: MIT
+    size_kb: 1084
+    stars: 249
+    default_branch: master
+    commit: f886de2519c71bd6eae008b61c3c43d9822591aa
+    family: api-postgres
+    build: pip            # requirements.txt + pytest.ini at root
+    python: ["3.12"]
+    checks: "tests.yml > pip install -r requirements.txt; pytest (no services in the job); compose: postgres:18 + redis:latest + caddy + bot"
+    services: [postgres, redis]
+    created: 2023-03-08
+    pushed: 2026-08-31
+    why: "E2 (topic:sqlalchemy stars:>100, applications only), window w37 / rank r48; FastAPI webhook + aiogram shop app on asyncpg/SQLAlchemy; compose Postgres; pytest in CI; no secrets in CI"
+    preparation: "postgres:18 + redis from compose; CI tests run without them"
+    risk: "crypto-payment integrations exist in the app but are not exercised by CI; the CI suite is DB-less"
+    class: independent-extension
+    extension_rule: E2
+
+  - name: gymhero
+    url: https://github.com/JakubPluta/gymhero
+    license: MIT
+    size_kb: 803
+    stars: 194
+    default_branch: main
+    commit: 890b0db70d58a59d7589af34aff8bd58b5b876a2
+    family: api-postgres
+    build: uv             # pyproject.toml + uv.lock; uv sync --frozen --all-groups
+    python: ["3.13"]
+    checks: "ci.yaml > lint (ruff/mypy); test: uv run pytest --cov=gymhero tests/ (Testcontainers on the runner's Docker); migrations: service postgres:16-alpine, alembic upgrade/downgrade/upgrade"
+    services: [postgres]
+    created: 2023-11-05
+    pushed: 2026-08-18
+    why: "E2 (topic:sqlalchemy stars:>100, applications only), window w41 / rank r52; FastAPI + SQLAlchemy + Alembic + Postgres CRUD application with a React frontend dir; pytest and a Postgres service in CI"
+    preparation: "postgres:16-alpine service (as in the migrations job) or Docker for testcontainers"
+    risk: "small, self-described 'simple CRUD application' (few opportunities); testcontainers in the pytest job"
+    class: independent-extension
+    extension_rule: E2
+
+  # ---- Flask applications (fills the 2-slot shortfall; DB-backed first in window order) ----
+  - name: hushline
+    url: https://github.com/scidsg/hushline
+    license: AGPL-3.0
+    size_kb: 129025
+    stars: 136
+    default_branch: main
+    commit: 1228e5dda8dd60519e7e2b374f867660fde9bd8f
+    family: web-flask
+    build: poetry         # pyproject.toml + poetry.lock; make test -> poetry run pytest
+    python: ["3.13"]
+    checks: "tests.yml > docker compose pull postgres blob-storage; make test PYTEST_ADDOPTS=--skip-local-only (poetry run pytest --cov hushline in the compose app container); compose: postgres:16.4-alpine, localstack (blob storage), node"
+    services: [postgres, localstack]
+    created: 2023-03-28
+    pushed: 2026-10-30
+    why: "E4 (topic:flask stars:50..150, apps with pytest in CI, DB preferred), window w07 / rank r7; first DB-backed Flask application that passes; Flask + Flask-SQLAlchemy + Flask-Migrate on Postgres"
+    preparation: "postgres + localstack from compose; npm ci for OpenPGP interop tests"
+    risk: "129 MB; tests run through docker compose and need localstack and Node; many non-test workflows"
+    class: independent-extension
+    extension_rule: E4
+
+  - name: biweeklybudget
+    url: https://github.com/jantman/biweeklybudget
+    license: AGPL-3.0
+    size_kb: 73604
+    stars: 106
+    default_branch: master
+    commit: ac8870d49b27087b69dc47013adeedcf9271182b
+    family: web-flask-mysql
+    build: tox            # tox.ini; setup.py + setup.cfg + requirements.txt at root; pytest via tox
+    python: ["3.14"]
+    checks: "run-tox-suite.yml > jobs py314 / acceptance / screenshots (service mariadb:10.4.7) tox -e <job>; tox testenv installs pytest + plugins"
+    services: [mariadb]
+    created: 2017-03-21
+    pushed: 2026-10-13
+    why: "E4, window w26 / rank r26 (also surfaced in E2 at w58); second DB-backed Flask application that passes: Flask/SQLAlchemy personal-finance app with a MariaDB service and pytest under tox"
+    preparation: "mariadb:10.4.7 service; tox"
+    risk: "Python 3.14 only (above the 3.8-3.13 range); MariaDB, not Postgres (measurement is defined on Postgres); acceptance tests use a browser"
+    class: independent-extension
+    extension_rule: E4
+
+  # ---- passing E4 alternates, in window order (not in the fill; swap candidates if preferred) ----
+  - name: cinemaempoa
+    url: https://github.com/cumbucadev/cinemaempoa
+    license: GPL-3.0
+    size_kb: 43702
+    stars: 145
+    default_branch: main
+    commit: 56a46ffecd27f9a79e84a11cad7f24deb2bac665
+    family: web-flask-sqlite
+    build: uv
+    python: ["3.14"]
+    checks: "ci.yml > uv sync --frozen; uv run coverage run -m pytest; coverage --fail-under=90 (python 3.14.5)"
+    services: []
+    created: 2023-08-27
+    pushed: 2026-10-20
+    why: "E4 window w03 / rank r3; first Flask application that passes (no DB service; SQLite + SQLAlchemy); listed as an alternate because DB-backed apps were preferred"
+    preparation: "none"
+    risk: "requires-python >=3.14.5 (above the support range); scrapers run in separate scheduled workflows"
+    class: independent-extension
+    extension_rule: E4
+
+  - name: linguard
+    url: https://github.com/joseantmazonsb/linguard
+    license: GPL-3.0
+    size_kb: 30468
+    stars: 141
+    default_branch: main
+    commit: ea78598f8192938c75116adf5e0feb58d81dce7a
+    family: web-flask
+    build: poetry
+    python: ["3.7", "3.8", "3.9"]
+    checks: "latest-test.yaml/stable-test.yaml > poetry install; apt-get install wireguard iptables; poetry run coverage run -m pytest (coverage --fail-under=80)"
+    services: []
+    created: 2021-01-07
+    pushed: 2026-10-17
+    why: "E4 window w05 / rank r5; Flask WireGuard GUI, pytest in CI; alternate (no DB)"
+    preparation: "wireguard + iptables system packages"
+    risk: "old interpreter matrix (3.7-3.9); needs WireGuard tools"
+    class: independent-extension
+    extension_rule: E4
+
+  - name: tracklater
+    url: https://github.com/eerovil/TrackLater
+    license: MIT
+    size_kb: 821
+    stars: 126
+    default_branch: master
+    commit: 0b05b0a66be018914261e9d2c0a2be632d89d406
+    family: web-flask
+    build: pip
+    python: ["3.12"]
+    checks: "pythonapp.yml > pytest --cov=. (python 3.12)"
+    services: []
+    created: 2018-08-30
+    pushed: 2026-10-30
+    why: "E4 window w15 / rank r15; Flask time-tracking app with Flask-SQLAlchemy (file DB), pytest in CI; alternate (no DB service)"
+    preparation: "none"
+    risk: "small suite"
+    class: independent-extension
+    extension_rule: E4
+
+  - name: openatlas
+    url: https://github.com/craws/OpenAtlas
+    license: GPL-2.0
+    size_kb: 76406
+    stars: 105
+    default_branch: main
+    commit: e1c8762f798e5163d85beb27fc98112247598992
+    family: web-flask
+    build: uv
+    python: ["3.13"]
+    checks: "starter.yaml > docker compose up --detach (postgis/postgis:17-3.5); docker exec ... pytest inside the app container (with one retry)"
+    services: [postgres]
+    created: 2017-05-14
+    pushed: 2026-10-30
+    why: "E4 window w28 / rank r28; Flask + PostGIS archaeological database app, pytest in CI via compose; DB-backed alternate (third in window order)"
+    preparation: "postgis compose stack; tests run inside the container"
+    risk: "tests executed through docker exec with a retry loop (flaky signal); GHCR login for a discovery image"
+    class: independent-extension
+    extension_rule: E4
+
+  - name: dinkydash
+    url: https://github.com/caspii/dinkydash
+    license: MIT
+    size_kb: 9260
+    stars: 99
+    default_branch: main
+    commit: d5985375989681c80193ca4da91e33867a32978e
+    family: web-flask
+    build: pip
+    python: ["3.11"]
+    checks: "test.yml > pytest (service postgres:17; DINKYDASH_TEST_DATABASE_URL) then a second pytest run without a database (postgres tests skip); playwright chromium installed"
+    services: [postgres]
+    created: 2021-11-15
+    pushed: 2026-10-31
+    why: "E4 window w33 / rank r33; Flask family-calendar app with a Postgres service and pytest in CI; no API key used by the suite; DB-backed alternate (fourth in window order) - the cleanest Postgres + in-range-interpreter Flask option if David prefers to swap it for biweeklybudget"
+    preparation: "postgres:17 service; playwright chromium"
+    risk: "under 100 stars; LLM-written content at runtime (not in tests)"
+    class: independent-extension
+    extension_rule: E4
