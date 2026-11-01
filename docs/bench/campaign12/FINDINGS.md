@@ -170,3 +170,8 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
   `exit 126` of a repository shell script) are left as the project's until a cause is shown; they may also be the
   environment's (an executable bit or a tool the script needs) and are listed for phase 6 · verified · closed for
   the freeze.
+- 2026-11-01 · harness · the run tag did not carry the phase (`c12-B1-fst` for both the pilot's fst B1 and the copy
+  test's), so `run_spend` in `pilot-copy/fst/B1.json` (US$0.3773) sums both runs; the envelope says the copy test
+  itself cost **US$0.209** (`s12-pilot` 1.0062 → 1.215). Tags now carry the phase (`c12-<phase>-B<n>-<repo>`); the
+  record is left as written and this line corrects its reading · harness defect (attribution) · fixed before the
+  freeze.

@@ -334,7 +334,7 @@ def level_b(
 ) -> dict[str, Any]:
     name = repo["name"]
     envelope = "s12-pilot" if phase.startswith("pilot") else "s12-eval"
-    e = env(envelope, f"c12-B{run_no}-{name}")
+    e = env(envelope, f"c12-{phase}-B{run_no}-{name}")  # the phase in the tag: pilot and eval spend never mix
     rec = Record(repo=name, phase=phase, run=f"B{run_no}", candidate=candidate, wheel_sha256=wheel)
     rec.facts["repo"] = {k: repo.get(k) for k in ("url", "commit", "family", "class", "build", "lab")}
     rec.facts["ledger_before"] = ledger(envelope)

@@ -14,6 +14,11 @@ corpus=bench/campaign12/corpus.yaml
 out=docs/bench/campaign12/eval
 mkdir -p "$out" ~/unbidden-lab/c12
 levelb=$(uv run python -c "import yaml; print(' '.join(r['name'] for r in yaml.safe_load(open('$corpus'))['repos'] if r['level_b']))")
+# the installed tool must be the frozen wheel: its hash in the corpus, served from the campaign's local directory
+want=$(uv run python -c "import yaml; print(yaml.safe_load(open('$corpus'))['wheel_sha256'])")
+have=$(shasum -a 256 ~/unbidden-lab/c12/dist/unbidden_ai-0.9.0-py3-none-any.whl | cut -d' ' -f1)
+if [ "$want" != "$have" ]; then echo "the served wheel ($have) is not the frozen one ($want); stop"; exit 2; fi
+echo "== frozen wheel $have; installed: $(~/unbidden-lab/c12/home/bin/unbidden --version) $(date -u +%FT%TZ)"
 if [ "$what" = A ] || [ "$what" = all ]; then
   echo "== Level A on the whole corpus $(date -u +%FT%TZ)"
   uv run python -m bench.campaign12.level_a "$corpus" --phase eval --out "$out" --port 8800 >> ~/unbidden-lab/c12/eval-A.log 2>&1

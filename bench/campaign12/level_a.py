@@ -118,7 +118,7 @@ def ui_read(repo_dir: Path, port: int, e: dict[str, str], rec: Record) -> dict[s
 
 def level_a(repo: dict[str, Any], phase: str, out_dir: Path, port: int, candidate: str, wheel: str) -> dict[str, Any]:
     name = repo["name"]
-    e = env("s12-pilot" if phase.startswith("pilot") else "s12-eval", f"c12-A-{name}")
+    e = env("s12-pilot" if phase.startswith("pilot") else "s12-eval", f"c12-{phase}-A-{name}")
     rec = Record(repo=name, phase=phase, run="A", candidate=candidate, wheel_sha256=wheel)
     rec.facts["repo"] = {k: repo.get(k) for k in ("url", "commit", "family", "class", "build", "license")}
     rec.facts["ledger_before"] = ledger(e["UNBIDDEN_ENVELOPE"])

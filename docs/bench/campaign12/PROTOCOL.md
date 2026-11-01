@@ -251,3 +251,26 @@ a release recommendation (no 1.0 label, no automatic release).
   they were green (and had waited on the fork when none had run); the deploy that followed happened in the lab
   `c12-fst` only. Red CI is covered by the product's unit tests (no live reproduction without touching the agent's
   pull request). Copies, the per-copy campaign commit and the Dependabot setting are frozen as `copies.py` states.
+
+## FREEZE (2026-11-01, phase 3)
+
+Frozen for phase 4, nothing below changes until phase 6:
+- **Code**: candidate `8686674327b6ce2fba44b4c2640977fecd0da2e2` (main `d560b6f` + product branch `901a5f9` + the
+  Director's open-PR count fix + the suite runner's missing-executable classification in two commits).
+- **Wheel**: `unbidden_ai-0.9.0-py3-none-any.whl` sha256 `a915417588329e4383cd5f07ba96499dc228976863792f8d51e46dfa634a3917`,
+  served from `~/unbidden-lab/c12/dist/` over `127.0.0.1:8790` by `install.sh`, installed in `~/unbidden-lab/c12/home`
+  (`unbidden 0.9.0`); `run_eval.sh` refuses to start on another hash.
+- **Harness**: `bench/campaign12/` at the freeze commit (the commit that adds this section); `frontend/scripts/c12_ui_check.mjs`.
+- **Corpus**: `bench/campaign12/corpus.yaml`, 39 repositories (12 dev, 19 independent, 8 frontier), pins as listed;
+  Level B: `fst`, `spoolman`, `rich`, `marshmallow` (dev) and `misago`, `brightbean-studio`, `traefik-manager`,
+  `oauthlib`, `rdflib`, `graphtage`, `harlequin`, `pipx` (independent), two runs each, from the restored state.
+- **CI configuration**: the twelve copies `satisfymath/c12-<name>` as `INVENTORY.md` lists them (pin + one campaign
+  commit per copy, `copies.py` `COPIES` for what each removes and why; Dependabot disabled); the base restored to pin +
+  campaign commit before every run; no secret added anywhere.
+- **Criteria**: sections 0-11 above and the dated amendments; the nine report dimensions per class; `dev` is
+  calibration, never independent evidence; seeded scenarios apart.
+- **Budget**: cap US$97.2945; `s12-pilot` 8.00 (spent 1.215 at the freeze), `s12-eval` 30.00 (0), `s12-dev` 17.00 (0),
+  `s12-confirm` 5.00 (0); the evaluation runs under `s12-eval` only; no transfers.
+- **Order**: `run_eval.sh all`: Level A over the 39 (US$0), then Level B run 1 over the 12, then run 2; one thing at a
+  time on this host; a failed repository stays in its record and the next starts; no code or harness edit during the
+  evaluation (a harness defect that invalidates records is a stop condition, section 9).
