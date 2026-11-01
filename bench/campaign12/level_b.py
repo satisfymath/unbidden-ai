@@ -401,6 +401,7 @@ def level_b(
             }
         )
         rec.facts["lab"] = {k: v for k, v in lab_info.items() if k != "credentials"}
+        rec.human.extend(lab_info.get("prep", []))
     # the fork is the origin the product sees (pull requests go there); upstream is never a remote of this checkout
     subprocess.run(
         ["git", "-C", str(repo_dir), "remote", "set-url", "origin", f"git@github-satisfymath:{fork['slug']}.git"],

@@ -245,8 +245,33 @@ def up(app: str, lab: Path) -> dict[str, Any]:
         seed_sql = None  # the ecosystem lab's SQL, below
         credential = "SPOOLMAN_READER_PW"
     (repo / COMPOSE_FILE).chmod(0o600)
+    prep: list[dict[str, Any]] = []
+    if app == "spoolman":
+        # Human preparation, counted: Spoolman's Dockerfile copies frontends its CI builds with Node before the
+        # image (`client/dist`, `client_v2/build`); a person runs the same two builds (ci.yml: node 24, npm ci, npm
+        # run build). The repository is not changed; the outputs are ignored by git.
+        for sub in ("client", "client_v2"):
+            out_dir = repo / sub / ("dist" if sub == "client" else "build")
+            if out_dir.exists():
+                continue
+            t0 = time.monotonic()
+            for argv in (["npm", "ci", "--no-audit", "--no-fund"], ["npm", "run", "build"]):
+                done = subprocess.run(argv, cwd=repo / sub, capture_output=True, text=True, timeout=1800)
+                if done.returncode != 0:
+                    raise RuntimeError(f"{sub}: {' '.join(argv)} failed: {done.stderr[-400:]}")
+            prep.append(
+                {
+                    "step": f"build the {sub} frontend (npm ci, npm run build) as the project's CI does",
+                    "minutes": round((time.monotonic() - t0) / 60, 1),
+                    "why": "the Dockerfile copies it",
+                }
+            )
     started = time.monotonic()
-    subprocess.run([*_compose(app, repo), "up", "-d", "--build"], cwd=repo, check=True, timeout=3600)
+    build = subprocess.run(
+        [*_compose(app, repo), "up", "-d", "--build"], cwd=repo, capture_output=True, text=True, timeout=3600
+    )
+    if build.returncode != 0:
+        raise RuntimeError(f"compose up failed: {build.stderr[-600:]}")
     if not _wait(health):
         raise RuntimeError(f"{health} did not answer")
     up_s = round(time.monotonic() - started, 1)
@@ -314,6 +339,7 @@ GRANT SELECT ON ALL TABLES IN SCHEMA public TO {reader};""",
         ],
         "credentials": {credential: pw},
         "writes": False,
+        "prep": prep,
     }
 
 
