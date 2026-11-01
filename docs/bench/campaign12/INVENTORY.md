@@ -23,3 +23,5 @@ created, one line each, with the date.
 | rename | fork `satisfymath/c12-spoolman` → `satisfymath/c12-spoolman-fork` | 2026-11-01 | frees the authorized copy name | the fork stays (pilot evidence) |
 | scratch clones | `~/unbidden-lab/c12/copy-push/<name>`, `copy-prep/<name>` | 2026-11-01 | throwaway clones that pushed the pin and the campaign commit | remove with the directory |
 | records | `docs/bench/campaign12/pilot-fix/` (codex-lb Level A on the frozen wheel), `docs/bench/campaign12/pilot-copy/` (fst Level B on the copy) | 2026-11-01 | pre-freeze verification | kept |
+| pull request | `satisfymath/c12-fst` #4 (agent, L4 index on `item.owner_id`), merged by the product as `a76a7c9d` into `master` | 2026-11-01 | the pre-freeze path test (pilot-copy) | keep (evidence) |
+| compose project | `c12-fst` torn down after the test (volumes included) | 2026-11-01 | the deploy target | done |

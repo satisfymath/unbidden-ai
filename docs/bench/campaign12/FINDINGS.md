@@ -141,3 +141,26 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
   `infra_failed`. For codex-lb the honest record becomes "failed 4; 30 could not run: the image lacks git" ·
   defect (classification), second iteration · fixed in the frozen candidate (next commit); re-verified as
   `pilot-fix/codex-lb` after the fst copy test (not concurrently: see the load note above).
+- 2026-11-01 · pre-freeze test on the development copy `c12-fst` (`pilot-copy/fst/B1.json`, candidate `69b0702`,
+  autonomous after the product's drill, 33 min, 125 calls, US$0.377, no block, no intervention) · the whole path the
+  brief asks for was observed: (a) the agent published PR #4 (`item.owner_id` index, L4: `DELETE /api/v1/users/me`
+  14.47 → 5.17 ms, permutation p = 0.0) at 23:09:21; (b) GitHub started the copy's own checks on it at 23:09:25:
+  13 check runs (test-backend, test-docker-compose, playwright ×4 + merge + alls-green, pre-commit ×2, zizmor,
+  changes, conflict detector), every one on the exact head `6a892d9a` the agent measured; (c) all 13 finished
+  `success` at 23:12:03; (d) the product merged at 23:15:14, after the CI and only then (cycle 1 ended with the PR
+  open and CI green but unpolled; cycle 2 polled, merged, `operations.merged` 1); (e) the deploy that followed ran in
+  the lab only (`operations.deployed` 2 = the drill's and the change's; lab checkout at the merge commit `a76a7c9d`;
+  health 200; `deployment.observed` 2, `impact.judged` 1, `outcome.recorded` 1); on the copy, master's push ran the
+  test workflows only (no deploy/release workflow exists there any more). Red and absent CI: not reproducible on
+  purpose without touching the agent's pull request; covered by the product's unit tests
+  (`tests/unit/test_publish.py::test_no_merge_until_the_pull_requests_own_ci_passed`: none, pending, red, cancelled)
+  and, for "absent", by the live pilot fst B1 on the fork ("declares CI workflows but none has run" → no merge).
+  The second cycle repeated no effect (same proposal, now merged; the same 6 opportunities). Dashboard served and
+  walked by the browser; chat analysis routed to Meta (`chat.analyze`, public_code) and answered from the record ·
+  verdict: the copies work for CI, merge and deploy; the setup is frozen as is · recorded.
+- 2026-11-01 · `c12-fst` · one `Smokeshow` run (workflow_run after a Dependabot PR's test-backend) executed on the pin
+  before the campaign commit removed the file; it needs a secret the copy does not hold and uploaded nothing ·
+  observation · recorded.
+- 2026-11-01 · `c12-fst` · the squash merge the product performed carries the token owner's name as author (GitHub
+  attributes API merges to the token's user); the commit message is the agent's proposal title and body with the PR
+  number · observation · recorded.

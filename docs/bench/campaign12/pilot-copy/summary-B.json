@@ -1,0 +1,14 @@
+[
+ {
+  "name": "fst",
+  "run": "B1",
+  "mode": "autonomous",
+  "record": "/Users/david/unbidden-ai-campaign/docs/bench/campaign12/pilot-copy/fst/B1.json",
+  "proposals_c1": 1,
+  "proposals_c2": 1,
+  "pulls_after": 4,
+  "spent_usd": 0.3773,
+  "blocks": [],
+  "wall_s": 2011.9
+ }
+]

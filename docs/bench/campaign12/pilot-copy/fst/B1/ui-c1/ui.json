@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:8860/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "item.owner_id is a foreign key without an index, checked when 2 endpoint(s) dele…\tpropuesta\t4\tpropose_change",
+    "1 ruff I001 finding in hooks/\tdescartada\t1\tdecline",
+    "3 ruff DTZ011 findings in scripts/\tdescartada\t1\tdecline",
+    "1 ruff FURB167 finding in scripts/\tdescartada\t1\tdecline",
+    "GET /api/v1/items/ reports count: unverified against the stored data\tabierta\t1\twait",
+    "GET /api/v1/users/ reports count: unverified against the stored data\tabierta\t1\twait",
+    "",
+    "6 fila(s)",
+    "actual"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "2 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "fst",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 137 eventos · en vivo",
+    "todos los tipos",
+    "capability.need_changed",
+    "capability.needed",
+    "decision.made",
+    "egress.allowed",
+    "egress.blocked",
+    "model.called",
+    "proposal.published",
+    "proposal.ready",
+    "verdict.recorded",
+    "world.changed",
+    "capability.need_changed",
+    "20:10",
+    "note: the source returned no lines to build from · source: compose:backend · status: abandoned",
+    "capability.need_changed",
+    "20:10",
+    "note: attempt 2 · source: compose:backend · status: building",
+    "Mapa actualizado",
+    "20:10",
+    "{\"carried\":[\"api:http_api:http://127.0.0.1:18200\",\"database:postgres:127.0.0.1:5",
+    "capability.need_changed",
+    "20:09",
+    "note: the source returned no lines to build from · source: compose:backend · status: failed",
+    "capability.need_changed",
+    "20:09",
+    "note: attempt 1 · source: compose:backend · status: building",
+    "Propuesta publicada",
+    "20:09",
+    "number: 4 · url: https://github.com/satisfymath/c12-fst/pull/4",
+    "Salida permitida",
+    "20:09"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "fst",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 6 oportunidades, ordenadas por evidencia",
+    "L4 validado",
+    "item.owner_id is a foreign key without an index, checked when 2 endpoint(s) delete a user row",
+    "world · performance · propose_change · 01 nov, 19:47",
+    "propuesta",
+    "—",
+    "L1 sospecha",
+    "GET /api/v1/items/ reports count: unverified against the stored data",
+    "world · bugs · wait · 01 nov, 19:47",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "GET /api/v1/users/ reports count: unverified against the stored data",
+    "world · bugs · wait · 01 nov, 19:47",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "1 ruff I001 finding in hooks/",
+    "ruff · lint · decline · 01 nov, 19:48",
+    "descartada",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "2 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

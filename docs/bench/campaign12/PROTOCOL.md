@@ -246,3 +246,8 @@ a release recommendation (no 1.0 label, no automatic release).
   (`pilot-copy`) ran on `69b0702`'s wheel (`cffdf7ac…`): the CI → merge → deploy path it exercises does not touch the
   changed code (the suite runner's failure classification), and the tool is never reinstalled under a running run.
   The frozen evaluation runs on `8686674` only. `corpus.yaml` keeps all three (candidate, wheel) pairs.
+- 2026-11-01, pre-freeze test passed on the development copy (`pilot-copy/fst/B1`, details in FINDINGS): a pull
+  request started the copy's own checks; the 13 check runs were on the PR's exact head; the product merged only after
+  they were green (and had waited on the fork when none had run); the deploy that followed happened in the lab
+  `c12-fst` only. Red CI is covered by the product's unit tests (no live reproduction without touching the agent's
+  pull request). Copies, the per-copy campaign commit and the Dependabot setting are frozen as `copies.py` states.
