@@ -635,3 +635,39 @@ obligatorio/opcional según la opción. `make check`: 886 tests.
 **No validado**: URL pública (no hay release); el runner de Actions no se ejecutó (sin push); integración con Docker
 más allá de `docker info`; ciclo con modelo real (gasto US$0; `s11-product` 0 de 4.00). Pendiente C (lock de
 ejecutor, start/stop/status) y D (`unbidden ui`, chat, cap común, decisiones).
+
+## Estado 2026-11-01 (tarde): entregas C y D hechas (commits locales, sin push)
+
+Correcciones previas pedidas por David: (1) `autonomous` bloqueado ya no elige otro modo por nadie: en interactivo la
+pregunta no tiene valor por defecto; en no interactivo hace falta `--mode-fallback supervised|autopilot` o el asistente
+termina con exit 4, el mandato anterior intacto y los requisitos listados (`--yes` sólo confirma la escritura).
+(2) Presupuesto: los US$0.20 tomados de `s10-dev` sin autorización registrada volvieron; `s11-product` = US$3.80
+(lo autorizado desde `s10-close`); total de envelopes 20.30 y cap 37.2945 intactos; registrado en `budget-history`.
+
+**C (operación real)**: `daemon/owner.py` (lock flock sobre `.unbidden/engine.lock` con pid/host/inicio/comando; el
+kernel lo libera al morir el proceso: "obsoleto" = archivo con contenido y lock libre, sin heurísticas de pid;
+`alive_holder` sólo devuelve un pid cuyo `ps` nombra unbidden, lo único que `stop` señala), `daemon/service.py`
+(`start` desacoplado con `start_new_session`, log en `.unbidden/logs/agent.log` con rotación, `stop` SIGTERM → espera
+el lock → SIGKILL con aviso de jobs que retoman, `status`), evento `stopping` en `daemon/loop.py` (el job en curso
+vuelve a la cola sin gastar intento), `_own()` en `watch/scan/try/deploy/drill/map/forge build|stats/probe/investigate`
+(exit 2 con el pid del dueño); las decisiones cortas (`approve/reject/mode/kill/resume…`) no toman el lock y el ciclo
+las recoge. `kill --stop`. Nada arranca al encender la máquina ni instala servicios. Tests: `test_owner.py`,
+`test_service.py` (procesos reales, kill -9, lock obsoleto recuperado), `test_daemon_limits.py`, `test_cli.py`.
+
+**D (UI y chat sobre el mismo motor)**: `unbidden ui` (abre o reutiliza por `.unbidden/ui.json`, 600, token generado
+por el hijo, nunca en argv; `--stop` sólo detiene la UI servida aparte; con KILL activo abre, lee y permite reanudar);
+`start --ui` / `watch --ui` sirven el dashboard dentro del proceso del agente (`web/embed.py`, mismo Brain y store);
+`operate/decisions.py` (approve/reject/approve_writes) compartido por CLI y `web/actions.py` sobre workspaces vivos
+(deploy/rollback siguen nombrando el comando CLI); `make_brain_for` sin precondición de Ollama; la fuente viva carga
+su `.env` al broker; `route_info` dice si hay clave (nunca el valor) y si el servidor local responde. Chat:
+`unbidden/chat/{intent,digest,hints}.py`; informar (`chat.inform`, ligero, nunca sale; por reglas sin modelo o con
+`local_inference: deny`), analizar (`chat.analyze`, una llamada sin herramientas sobre un digest acotado con la nueva
+etiqueta `record`, clasificada como el código; rechazo con la razón del router y una pista, nunca respondido por
+reglas), actuar (rechazado y señalado al panel o al CLI); cada mensaje lleva su `route`. Cap mensual:
+`SpendLedger.workspace_month_spend` y `Brain.month_remote_spend` delegando en él (dos procesos o dos stores no pueden
+partirlo; test en `test_spend.py`). `unbidden chat` en terminal. Frontend: ruta por mensaje, botones aprobar/rechazar
+en tarjetas (sólo workspace vivo), clave cargada/servidor local en ajustes. CI: job `frontend` (lint, tipos, vitest,
+build, Playwright) y job `installed` (wheel → install.sh en HOME vacío → setup api → doctor → start/status/stop →
+ui/chat → uninstall). `make check` verde: 931 tests.
+
+**Validación real acotada** (Meta API, envelope `s11-product`): ver la sección siguiente, escrita al terminar.
