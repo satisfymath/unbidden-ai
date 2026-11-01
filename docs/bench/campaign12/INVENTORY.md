@@ -10,3 +10,8 @@
 Forks (`satisfymath/c12-*`), campaign branches on existing forks (`c12/*`), labs (`unbidden.lab.id=c12-<name>`,
 compose projects `c12-<name>`), Docker volumes and the campaign HOME's credentials file are appended below as they are
 created, one line each, with the date.
+| fork | `satisfymath/c12-spoolman` (of `Donkie/Spoolman`, default `master`) | 2026-11-01 | Level B pull requests and merges for spoolman | keep (campaign evidence) or delete after the report, David's call |
+| fork branch | `satisfymath/rich:c12-base` (existing fork; new branch at `9d8f9a37`) | 2026-11-01 | Level B base for rich; earlier `unbidden/*` branches untouched | delete the branch after the report |
+| clones | `~/unbidden-lab/c12/repos/c12-<name>` (Level A), `~/unbidden-lab/c12/<name>` (Level B) | 2026-11-01 | checkouts at the pins; `.unbidden/` archived to `~/unbidden-lab/c12/archive/` | remove with the directory |
+| scenario HOMEs | `/tmp/c12-scn-*` (throwaway ledgers for the credential and budget scenarios) | 2026-11-01 | seeded scenarios | removed by the script |
+| compose projects | `c12-fst`, `c12-spoolman` (labels `unbidden.lab.id=c12-fst|c12-spoolman`, volumes `c12-*-data`) | when Level B runs | labs | `labs.down(app)` (volumes included) |
