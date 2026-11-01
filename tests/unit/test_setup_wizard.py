@@ -8,7 +8,7 @@ import json
 import subprocess
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import pytest
 import yaml
@@ -130,7 +130,8 @@ def test_local_and_mixed_options(repo: Path) -> None:
 
 def test_autonomous_blocked_keeps_the_previous_configuration_unless_a_fallback_is_named(repo: Path) -> None:
     out, buf = console()
-    before = (repo / ".unbidden" / "mandate.yaml").read_text() if (repo / ".unbidden" / "mandate.yaml").exists() else None
+    mandate_path = repo / ".unbidden" / "mandate.yaml"
+    before = mandate_path.read_text() if mandate_path.exists() else None
     # --yes does not pick a mode for the person: scripted without --mode-fallback the setup stops, nothing written
     opts = Options(non_interactive=True, yes=True, models="local", mode="autonomous", budget=1.0, dashboard="never")
     assert run(Workspace(repo), opts, out, io=scripted(models="local", mode="autonomous", dashboard="never")) == 4
@@ -160,7 +161,7 @@ def test_autonomous_blocked_interactive_asks_for_the_other_mode_without_a_defaul
     opts = Options(yes=True, models="local", mode="autonomous", budget=1.0, dashboard="never")
 
     class Asks(Scripted):
-        asked: list[tuple[str, str | None]] = []
+        asked: ClassVar[list[tuple[str, str | None]]] = []
 
         def choice(self, key: str, prompt: str, choices: Any, default: str | None) -> str:
             self.asked.append((key, default))
