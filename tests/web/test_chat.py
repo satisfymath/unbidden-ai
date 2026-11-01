@@ -162,7 +162,7 @@ def test_the_brain_planner_goes_through_brain_complete_with_the_tools(tmp_path: 
     src.streams = False
     mock = MockProvider()
     mock.script(
-        "web.chat",
+        "chat.inform",
         LLMResponse(
             tool_calls=[
                 ToolCall(
@@ -180,7 +180,7 @@ def test_the_brain_planner_goes_through_brain_complete_with_the_tools(tmp_path: 
             usage=Usage(prompt_tokens=10, completion_tokens=10),
         ),
     )
-    mock.script("web.chat", "Añadí la tabla de oportunidades.")
+    mock.script("chat.inform", "Añadí la tabla de oportunidades.")
     config = load_config(None)
     config.routing["local"].provider = "mock"  # type: ignore[index]
     config.routing["local"].model = "mock-model"  # type: ignore[index]
@@ -195,7 +195,7 @@ def test_the_brain_planner_goes_through_brain_complete_with_the_tools(tmp_path: 
         assert [e[0] for e in events if e[0] in ("tool_call", "tool_result")] == ["tool_call", "tool_result"]
         assert c.get("/presentation").json()["widgets"][0]["type"] == "table"
         sent = mock.requests[0]
-        assert sent.purpose == "web.chat" and {t.name for t in sent.tools} >= {"create_widget", "inspect_data"}
+        assert sent.purpose == "chat.inform" and {t.name for t in sent.tools} >= {"create_widget", "inspect_data"}
         assert sent.tier.value == "local"
         assert c.get("/chat").json()["messages"][-1]["planner"] == "brain"
         assert c.delete("/chat").json()["deleted"] == 2
@@ -235,7 +235,7 @@ def test_when_the_model_never_calls_a_tool_correctly_the_rules_answer_and_say_so
         done_reason="stop",
         usage=Usage(prompt_tokens=10, completion_tokens=10),
     )
-    mock.script("web.chat", wrong, repeat=True)
+    mock.script("chat.inform", wrong, repeat=True)
     config = load_config(None)
     config.routing["local"].provider = "mock"  # type: ignore[index]
     config.routing["local"].model = "mock-model"  # type: ignore[index]

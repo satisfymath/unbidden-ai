@@ -27,7 +27,10 @@ class ToolCall(Contract):
     arguments: dict[str, Any]
 
 
-Source = Literal["prompt", "repo", "runtime", "database", "synthetic"]
+Source = Literal["prompt", "repo", "runtime", "database", "synthetic", "record"]
+# `record`: Unbidden's own digest of its records (counts, medians, levels, titles, ids), written by a pure function,
+# never raw rows, log lines or payloads. It is about the repository, so it is labelled like the repository's code
+# (public or private); the text patterns still raise it when it carries emails, IPs, log lines or secrets.
 
 
 class ContentLabel(StrEnum):

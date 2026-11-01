@@ -210,3 +210,24 @@ def test_envelopes_refuse_a_call_that_names_none_or_would_not_fit_and_amending_k
     monkeypatch.setenv("UNBIDDEN_ENVELOPE", "dev")
     ledger.reserve(est_usd=1.9, workspace="w", purpose="p", provider="meta", model="m", attempt=1)
     assert round(ledger.envelope_spent("eval"), 4) == 0.8 and round(ledger.envelope_spent("dev"), 4) == 1.9
+
+
+async def test_the_monthly_cap_is_shared_by_every_process_and_store_of_a_workspace(
+    spend_home: Path, mandate: Mandate
+) -> None:
+    """The web process and the engine keep their own stores; the mandate's monthly cap is counted in the machine
+    ledger, so a call recorded in one store cannot make room for another in a second store."""
+    from tests.unit.test_router import make_brain, request
+
+    mandate.business_constraints.maximum_monthly_spend_usd = 0.00001  # under one mock call at list price
+    verified(SpendLedger(), 5.0, reserve_released=True)
+    engine, _, remote_a = make_brain(Store(None), mandate.model_copy(deep=True))
+    web, _, remote_b = make_brain(Store(None), mandate.model_copy(deep=True))
+    remote_a.script("bridge.solve", "ok")
+    await engine.complete(request(Tier.FRONTIER, text="hello"))
+    assert SpendLedger().workspace_month_spend(mandate.workspace) > 0
+    assert web.month_remote_spend() == engine.month_remote_spend() > 0, "both read the same ledger"
+    with pytest.raises(SpendLimitReached):
+        await web.complete(request(Tier.FRONTIER, text="hello again"))
+    assert remote_b.requests == []
+    assert SpendLedger().workspace_month_spend("other") == 0.0

@@ -46,6 +46,11 @@ TASKS: dict[str, TaskSpec] = {
     "director.goal_plan": TaskSpec("heavy"),
     # The setup assistant's optional paid test: one short call where heavy work would go; never a silent fallback.
     "setup.probe": TaskSpec("heavy", escalate=False),
+    # The dashboard's chat. Informing (reading records, editing the canvas) is tool work over raw records: light and
+    # never leaves. Analysing (why, compare, recommend) is one call without tools over a bounded digest of the
+    # records (source `record`), routed like heavy work: frontier first when the digest may leave, local otherwise.
+    "chat.inform": TaskSpec("light", escalate=False, local_only=True),
+    "chat.analyze": TaskSpec("heavy"),
 }
 
 
@@ -71,4 +76,6 @@ TYPICAL_SOURCES: dict[str, tuple[Source, ...]] = {
     "forge.stats": ("runtime",),
     "forge.stats.bridge": ("synthetic",),
     "bridge.solve": ("synthetic",),
+    "chat.inform": ("runtime",),
+    "chat.analyze": ("record",),
 }

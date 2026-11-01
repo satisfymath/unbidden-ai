@@ -548,9 +548,7 @@ class Brain:
         )
 
     def month_remote_spend(self, *, now: datetime | None = None) -> float:
-        moment = (now or utc_now()).astimezone(UTC)
-        return sum(
-            run.cost.usd_remote
-            for run in self.store.list("model_runs", ModelRun)
-            if run.created_at.year == moment.year and run.created_at.month == moment.month
-        )
+        """The workspace's remote spend this month, from the machine ledger (shared by every process and store);
+        a store's `model_runs` are this process's records only, so they cannot be the cap's basis. Two workspaces
+        with the same name share a cap (the mandate's `workspace` is the repository name)."""
+        return self.spend.workspace_month_spend(self.mandate.workspace, now=now)

@@ -60,9 +60,10 @@ def classify(messages: Iterable[Message], *, repo_public: bool) -> Classificatio
     for message in messages:
         if message.source is None:
             part, why = ContentLabel.PRIVATE_CODE, f"{message.role} message of undeclared origin"
-        elif message.source == "repo":
+        elif message.source in ("repo", "record"):
             part = ContentLabel.PUBLIC_CODE if repo_public else ContentLabel.PRIVATE_CODE
-            why = f"repository content ({'public' if repo_public else 'not confirmed public'})"
+            what = "repository content" if message.source == "repo" else "a digest of unbidden's records"
+            why = f"{what} ({'public' if repo_public else 'not confirmed public'})"
         else:
             part, why = BY_SOURCE[message.source], f"{message.source} content"
         findings = _text_findings(message.content)

@@ -254,8 +254,23 @@ class ChatMessage(WebContract):
     results: list[ToolResult] = Field(default_factory=list)
     planner: Literal["rule", "brain"] | None = None
     model: str | None = None
+    route: ChatRoute | None = None
 
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+
+class ChatRoute(WebContract):
+    """How a turn was answered: what it asked for, which purpose was routed, where the model ran, or why it could
+    not. `blocked` carries the router's own reason; `hint` what would allow it (a command, never a change made)."""
+
+    intent: Literal["inform", "analyze", "act"]
+    purpose: str | None = None  # chat.inform, chat.analyze
+    tier: str | None = None  # local, code, frontier
+    model: str | None = None
+    reason: str | None = None  # the router's reason for the route taken
+    blocked: str | None = None
+    hint: str | None = None
+    action: str | None = None  # the operation an `act` message asked for
 
 
 class ChatRequest(WebContract):
