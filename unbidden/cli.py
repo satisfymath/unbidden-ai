@@ -295,7 +295,12 @@ def cmd_watch(args: argparse.Namespace) -> int:
 
             try:
                 dashboard = embed.serve(ws, runtime, port=getattr(args, "port", 8765))
-                log(f"dashboard served by this process: {dashboard.url} (it ends with the agent; the tab ends nothing)")
+                # The URL carries the session token: it goes to the person (`unbidden ui`, `unbidden status`), not
+                # to a log file.
+                log(
+                    f"dashboard served by this process on port {dashboard.port} (`unbidden ui` prints the URL; "
+                    "it ends with the agent; the tab ends nothing)"
+                )
             except RuntimeError as exc:  # one apart already: the agent runs without its own
                 log(f"dashboard not served here: {exc}")
         try:
