@@ -27,7 +27,7 @@ import httpx
 import yaml
 
 from bench.campaign12 import labs
-from bench.campaign12.common import HOME, LAB, LEDGER_HOME, REAL_HOME, Record, Step, env, ledger, run, scrub, unbidden
+from bench.campaign12.common import LAB, REAL_HOME, Record, Step, env, ledger, run, scrub, unbidden
 from bench.campaign12.level_a import archive, key_from_machine
 
 CYCLE_BOUND_S = 5400
@@ -38,16 +38,32 @@ FRONTEND = Path(__file__).resolve().parents[2] / "frontend"
 
 def gh(*args: str, timeout: int = 120) -> subprocess.CompletedProcess[str]:
     token = subprocess.run(["gh", "auth", "token", "-u", GH], capture_output=True, text=True, check=True).stdout.strip()
-    return subprocess.run(["gh", *args], capture_output=True, text=True, timeout=timeout, check=False,
-                          env={**os.environ, "GH_TOKEN": token})  # fmt: skip
+    return subprocess.run(
+        ["gh", *args],
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+        check=False,
+        env={**os.environ, "GH_TOKEN": token},
+    )
 
 
 def fork_for(repo: dict[str, Any], rec: Record) -> dict[str, Any]:
     """The campaign fork and its base branch at the pin. An existing fork of the same upstream is reused only by
     adding a `c12-base` branch (never reset); otherwise a new fork named `c12-<name>` is created."""
     upstream = repo["url"].removeprefix("https://github.com/").removesuffix(".git")
-    existing = gh("repo", "list", GH, "--fork", "--limit", "200", "--json", "name,parent",
-                  "--jq", f'.[] | select(.parent.owner.login + "/" + .parent.name == "{upstream}") | .name')  # fmt: skip
+    existing = gh(
+        "repo",
+        "list",
+        GH,
+        "--fork",
+        "--limit",
+        "200",
+        "--json",
+        "name,parent",
+        "--jq",
+        f'.[] | select(.parent.owner.login + "/" + .parent.name == "{upstream}") | .name',
+    )
     name = existing.stdout.strip().splitlines()[0] if existing.stdout.strip() else ""
     created = False
     if not name:
@@ -69,21 +85,34 @@ def fork_for(repo: dict[str, Any], rec: Record) -> dict[str, Any]:
         subprocess.run(
             ["git", "-C", str(tmp), "remote", "add", "fork", f"git@github-satisfymath:{slug}.git"], check=True
         )
-        push = subprocess.run(["git", "-C", str(tmp), "push", "-q", "fork", f"{repo['commit']}:refs/heads/{base}"],
-                              capture_output=True, text=True, timeout=1800)  # fmt: skip
+        push = subprocess.run(
+            ["git", "-C", str(tmp), "push", "-q", "fork", f"{repo['commit']}:refs/heads/{base}"],
+            capture_output=True,
+            text=True,
+            timeout=1800,
+        )
         rec.human.append({"step": f"push the pin to {slug}:{base}", "minutes": 1, "why": "the fork's campaign base"})
         if push.returncode != 0:
             rec.blocks.append(f"could not push the base branch to the fork: {push.stderr[-300:]}")
-    rec.human.append({"step": f"campaign fork {slug} ({'created' if created else 'existing, new branch only'})",
-                      "minutes": 1, "why": "pull requests and merges never go upstream"})  # fmt: skip
+    rec.human.append(
+        {
+            "step": f"campaign fork {slug} ({'created' if created else 'existing, new branch only'})",
+            "minutes": 1,
+            "why": "pull requests and merges never go upstream",
+        }
+    )
     return {"slug": slug, "base": base, "created": created, "upstream": upstream}
 
 
 def fork_state(slug: str, base: str) -> dict[str, Any]:
     """What the fork holds, read independently of Unbidden's records: open/merged pull requests against the base and
     the campaign branches."""
-    prs = gh("api", f"repos/{slug}/pulls?state=all&base={base}&per_page=50",
-             "--jq", '[.[] | {number, state, merged_at, head: .head.ref, title, created_at}]')  # fmt: skip
+    prs = gh(
+        "api",
+        f"repos/{slug}/pulls?state=all&base={base}&per_page=50",
+        "--jq",
+        "[.[] | {number, state, merged_at, head: .head.ref, title, created_at}]",
+    )
     branches = gh("api", f"repos/{slug}/branches?per_page=100", "--jq", '[.[].name | select(startswith("unbidden/"))]')
     try:
         return {"pulls": json.loads(prs.stdout or "[]"), "unbidden_branches": json.loads(branches.stdout or "[]")}
@@ -91,32 +120,69 @@ def fork_state(slug: str, base: str) -> dict[str, Any]:
         return {"error": (prs.stderr or branches.stderr)[-300:]}
 
 
-def write_mandate(repo_dir: Path, repo: dict[str, Any], fork: dict[str, Any], lab: dict[str, Any] | None,
-                  e: dict[str, str], rec: Record) -> None:  # fmt: skip
+def write_mandate(
+    repo_dir: Path,
+    repo: dict[str, Any],
+    fork: dict[str, Any],
+    lab: dict[str, Any] | None,
+    e: dict[str, str],
+    rec: Record,
+) -> None:
     """The product's own setup (scripted form), then the operations and GitHub target a person declares, written as
     YAML by the harness and validated by `unbidden mode`/`doctor` afterwards. Counted as human preparation."""
     key = key_from_machine()
     token = key_from_machine("GITHUB_TOKEN")
-    setup = rec.add(run("setup", [unbidden(), "setup", "--non-interactive", "--models", "api", "--mode", "autopilot",
-                                  "--budget", "2", "--dashboard", "later", "--model-key-stdin", "--github-token-stdin",
-                                  "--yes", "--json"], cwd=repo_dir, env_=e, timeout_s=600,
-                        stdin=f"{key}\n{token}\n"))  # fmt: skip
+    setup = rec.add(
+        run(
+            "setup",
+            [
+                unbidden(),
+                "setup",
+                "--non-interactive",
+                "--models",
+                "api",
+                "--mode",
+                "autopilot",
+                "--budget",
+                "2",
+                "--dashboard",
+                "later",
+                "--model-key-stdin",
+                "--github-token-stdin",
+                "--yes",
+                "--json",
+            ],
+            cwd=repo_dir,
+            env_=e,
+            timeout_s=600,
+            stdin=f"{key}\n{token}\n",
+        )
+    )
     rec.facts["setup"] = {"ok": setup.code == 0, "applied": (setup.json() or {}).get("applied")}
     path = repo_dir / ".unbidden" / "mandate.yaml"
     raw = yaml.safe_load(path.read_text())
     m = raw["mandate"]
     m["priorities"] = ["correctness", "performance of reads as data grows", "robustness"]
     m["egress"]["github"] = {"repository": fork["slug"], "base_branch": fork["base"], "max_open_pull_requests": 3}
-    m["egress"]["package_registries"] = ["pypi.org", "files.pythonhosted.org", "deb.debian.org",
-                                         "registry.npmjs.org", "ghcr.io", "registry-1.docker.io"]  # fmt: skip
+    m["egress"]["package_registries"] = [
+        "pypi.org",
+        "files.pythonhosted.org",
+        "deb.debian.org",
+        "registry.npmjs.org",
+        "ghcr.io",
+        "registry-1.docker.io",
+    ]
     m["models"]["private_code_to_frontier"] = "allow"  # public repositories, declared
     m["autonomy"]["use_new_capabilities"] = "allow"
     m["autonomy"]["act_on_connections"] = "allow" if lab and lab.get("writes") else "deny"
     if lab:
         m["operations"] = {
-            "deploy_steps": lab["deploy_steps"], "check_steps": lab["check_steps"], "check_image": lab["check_image"],
-            "max_deploys_per_hour": 6, "probe_every_s": 5.0,
-        }  # fmt: skip
+            "deploy_steps": lab["deploy_steps"],
+            "check_steps": lab["check_steps"],
+            "check_image": lab["check_image"],
+            "max_deploys_per_hour": 6,
+            "probe_every_s": 5.0,
+        }
         m["connections"] = lab["connections"]
     path.write_text(yaml.safe_dump(raw, sort_keys=False))
     rec.human.append(
@@ -139,8 +205,13 @@ def enable_autonomy(repo_dir: Path, lab: dict[str, Any] | None, e: dict[str, str
         return "autopilot"
     rec.add(run("map", [unbidden(), "map", "--json"], cwd=repo_dir, env_=e, timeout_s=900))
     drill = rec.add(run("drill", [unbidden(), "drill", "--json"], cwd=repo_dir, env_=e, timeout_s=1800))
-    rec.human.append({"step": "rollback drill (the product's command; the lab's steps)", "minutes": round(drill.seconds / 60, 1),
-                      "why": "autonomous requires a passed drill"})  # fmt: skip
+    rec.human.append(
+        {
+            "step": "rollback drill (the product's command; the lab's steps)",
+            "minutes": round(drill.seconds / 60, 1),
+            "why": "autonomous requires a passed drill",
+        }
+    )
     mode = rec.add(
         run("mode-autonomous", [unbidden(), "mode", "autonomous", "--json"], cwd=repo_dir, env_=e, timeout_s=300)
     )
@@ -169,16 +240,30 @@ def _store_counts(repo_dir: Path) -> dict[str, Any]:
         c.close()
     except sqlite3.Error as exc:
         return {"error": str(exc)}
-    return {"events": events, "docs": docs, "jobs": jobs,
-            "proposals": [{k: p.get(k) for k in ("id", "opportunity_id", "status", "branch", "evidence_level", "title")}
-                          | {"pr": (p.get("pr") or {}).get("url")} for p in proposals]}  # fmt: skip
+    return {
+        "events": events,
+        "docs": docs,
+        "jobs": jobs,
+        "proposals": [
+            {k: p.get(k) for k in ("id", "opportunity_id", "status", "branch", "evidence_level", "title")}
+            | {"pr": (p.get("pr") or {}).get("url")}
+            for p in proposals
+        ],
+    }
 
 
 def cycle(repo_dir: Path, e: dict[str, str], rec: Record, label: str, port: int, bound_s: float) -> dict[str, Any]:
     """One bounded cycle of the daemon serving its dashboard: start, wait until the queue is idle (or the bound),
     read the state, stop. The agent is never helped."""
-    start = rec.add(run(f"{label}-start", [unbidden(), "start", "--ui", "--port", str(port), "--interval", "60", "--json"],
-                        cwd=repo_dir, env_=e, timeout_s=300))  # fmt: skip
+    start = rec.add(
+        run(
+            f"{label}-start",
+            [unbidden(), "start", "--ui", "--port", str(port), "--interval", "60", "--json"],
+            cwd=repo_dir,
+            env_=e,
+            timeout_s=300,
+        )
+    )
     began = time.monotonic()
     idle_since: float | None = None
     last: dict[str, Any] = {}
@@ -196,8 +281,13 @@ def cycle(repo_dir: Path, e: dict[str, str], rec: Record, label: str, port: int,
         else:
             idle_since = None
     waited = round(time.monotonic() - began, 1)
-    out: dict[str, Any] = {"started": (start.json() or {}).get("started"), "waited_s": waited,
-                           "bound_hit": waited >= bound_s, "status_at_end": last.get("agent"), "counts": _store_counts(repo_dir)}  # fmt: skip
+    out: dict[str, Any] = {
+        "started": (start.json() or {}).get("started"),
+        "waited_s": waited,
+        "bound_hit": waited >= bound_s,
+        "status_at_end": last.get("agent"),
+        "counts": _store_counts(repo_dir),
+    }
     return out
 
 
@@ -214,9 +304,13 @@ def ui_and_chat(repo_dir: Path, e: dict[str, str], rec: Record, out_dir: Path, l
     try:
         sid = httpx.get(f"{base}/api/session", headers=headers, timeout=10).json()["sources"][0]["id"]
         summary = httpx.get(f"{base}/api/ws/{sid}/summary", headers=headers, timeout=30).json()
-        out["summary"] = {"mode": summary["workspace"]["mode"], "freshness": summary.get("freshness"),
-                          "counts": summary.get("counts"), "agent": summary["connection"].get("agent"),
-                          "key_present": summary["connection"]["route"]["remote"].get("key_present")}  # fmt: skip
+        out["summary"] = {
+            "mode": summary["workspace"]["mode"],
+            "freshness": summary.get("freshness"),
+            "counts": summary.get("counts"),
+            "agent": summary["connection"].get("agent"),
+            "key_present": summary["connection"]["route"]["remote"].get("key_present"),
+        }
         opps = httpx.get(f"{base}/api/ws/{sid}/opportunities", headers=headers, timeout=30).json()
         out["opportunities_total"] = opps.get("total")
         # a widget from existing data, by rules (no model), with its provenance
@@ -230,25 +324,55 @@ def ui_and_chat(repo_dir: Path, e: dict[str, str], rec: Record, out_dir: Path, l
             for _ in r.iter_lines():
                 pass
         pres = httpx.get(f"{base}/api/ws/{sid}/presentation", headers=headers, timeout=30).json()
-        out["widgets"] = [{"type": w["type"], "title": w["title"], "provenance": w.get("provenance", {}).get("completeness"),
-                           "source": w.get("provenance", {}).get("source")} for w in pres.get("widgets", [])]  # fmt: skip
+        out["widgets"] = [
+            {
+                "type": w["type"],
+                "title": w["title"],
+                "provenance": w.get("provenance", {}).get("completeness"),
+                "source": w.get("provenance", {}).get("source"),
+            }
+            for w in pres.get("widgets", [])
+        ]
     except Exception as exc:
         out["api_error"] = f"{type(exc).__name__}: {str(exc)[:200]}"
     # the browser
     shots = out_dir / f"ui-{label}"
-    node = run("ui-browser", ["node", str(Path(__file__).with_name("ui_check.mjs")), info["url"], str(shots)],
-               cwd=FRONTEND, env_={**os.environ, "HOME": str(REAL_HOME)}, timeout_s=300)  # fmt: skip
+    node = run(
+        "ui-browser",
+        ["node", str(Path(__file__).with_name("ui_check.mjs")), info["url"], str(shots)],
+        cwd=FRONTEND,
+        env_={**os.environ, "HOME": str(REAL_HOME)},
+        timeout_s=300,
+    )
     rec.steps.append(node.record())
     out["browser"] = node.json()
     # the chat from the terminal: deterministic, then an analysis (one routed call, recorded)
-    q1 = rec.add(run("chat-status", [unbidden(), "chat", "--json", "¿Qué ha hecho el agente hasta ahora y cuántas oportunidades hay?"],
-                     cwd=repo_dir, env_=e, timeout_s=300))  # fmt: skip
-    q2 = rec.add(run("chat-analyze", [unbidden(), "chat", "--json", "¿Qué hallazgo priorizarías y por qué? Di qué falta en el registro."],
-                     cwd=repo_dir, env_=e, timeout_s=600))  # fmt: skip
+    q1 = rec.add(
+        run(
+            "chat-status",
+            [unbidden(), "chat", "--json", "¿Qué ha hecho el agente hasta ahora y cuántas oportunidades hay?"],
+            cwd=repo_dir,
+            env_=e,
+            timeout_s=300,
+        )
+    )
+    q2 = rec.add(
+        run(
+            "chat-analyze",
+            [unbidden(), "chat", "--json", "¿Qué hallazgo priorizarías y por qué? Di qué falta en el registro."],
+            cwd=repo_dir,
+            env_=e,
+            timeout_s=600,
+        )
+    )
     for name, step in (("status", q1), ("analyze", q2)):
         d = step.json() or {}
-        out[f"chat_{name}"] = {"planner": d.get("planner"), "route": d.get("route"), "state": d.get("state"),
-                               "content": scrub(str(d.get("content", "")))[:400]}  # fmt: skip
+        out[f"chat_{name}"] = {
+            "planner": d.get("planner"),
+            "route": d.get("route"),
+            "state": d.get("state"),
+            "content": scrub(str(d.get("content", "")))[:400],
+        }
     return out
 
 
@@ -269,12 +393,19 @@ def level_b(
     repo_dir = labs.restore(repo, LAB)  # a clean checkout at the pin under the campaign lab, no .unbidden
     if repo.get("lab"):
         lab_info = labs.up(repo["lab"], LAB)  # compose, data, roles: human preparation
-        rec.human.append({"step": f"lab {repo['lab']} up and seeded", "minutes": round((time.monotonic() - t0) / 60, 1),
-                          "why": "the application's own services, synthetic data, a read-only role"})  # fmt: skip
+        rec.human.append(
+            {
+                "step": f"lab {repo['lab']} up and seeded",
+                "minutes": round((time.monotonic() - t0) / 60, 1),
+                "why": "the application's own services, synthetic data, a read-only role",
+            }
+        )
         rec.facts["lab"] = {k: v for k, v in lab_info.items() if k != "credentials"}
     # the fork is the origin the product sees (pull requests go there); upstream is never a remote of this checkout
-    subprocess.run(["git", "-C", str(repo_dir), "remote", "set-url", "origin", f"git@github-satisfymath:{fork['slug']}.git"],
-                   check=True)  # fmt: skip
+    subprocess.run(
+        ["git", "-C", str(repo_dir), "remote", "set-url", "origin", f"git@github-satisfymath:{fork['slug']}.git"],
+        check=True,
+    )
     write_mandate(repo_dir, repo, fork, lab_info, e, rec)
     rec.facts["doctor"] = (
         rec.add(run("doctor", [unbidden(), "doctor", "--json"], cwd=repo_dir, env_=e, timeout_s=600)).json() or {}
@@ -310,10 +441,20 @@ def level_b(
         labs.down(repo["lab"], LAB)
     path = rec.write(out_dir / name / f"B{run_no}.json")
     c1, c2 = rec.facts["cycle1"]["counts"], rec.facts["cycle2"]["counts"]
-    return {"name": name, "run": f"B{run_no}", "mode": rec.facts["mode_got"], "record": str(path),
-            "proposals_c1": len(c1.get("proposals", [])), "proposals_c2": len(c2.get("proposals", [])),
-            "pulls_after": len((rec.facts["fork_after_c2"].get("pulls") or [])), "spent_usd": rec.facts["spent_usd"],
-            "blocks": rec.blocks, "wall_s": round(sum(s["seconds"] for s in rec.steps) + rec.facts["cycle1"]["waited_s"] + rec.facts["cycle2"]["waited_s"], 1)}  # fmt: skip
+    return {
+        "name": name,
+        "run": f"B{run_no}",
+        "mode": rec.facts["mode_got"],
+        "record": str(path),
+        "proposals_c1": len(c1.get("proposals", [])),
+        "proposals_c2": len(c2.get("proposals", [])),
+        "pulls_after": len(rec.facts["fork_after_c2"].get("pulls") or []),
+        "spent_usd": rec.facts["spent_usd"],
+        "blocks": rec.blocks,
+        "wall_s": round(
+            sum(s["seconds"] for s in rec.steps) + rec.facts["cycle1"]["waited_s"] + rec.facts["cycle2"]["waited_s"], 1
+        ),
+    }
 
 
 def _egress_summary(step: Step) -> dict[str, Any]:

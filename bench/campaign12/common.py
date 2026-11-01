@@ -63,9 +63,14 @@ class Step:
 
     def record(self, keep: int = 4000) -> dict[str, Any]:
         return {
-            "name": self.name, "argv": [scrub(a) for a in self.argv], "code": self.code, "seconds": self.seconds,
-            "timed_out": self.timed_out, "stdout": scrub(self.stdout[-keep:]), "stderr": scrub(self.stderr[-keep:]),
-        }  # fmt: skip
+            "name": self.name,
+            "argv": [scrub(a) for a in self.argv],
+            "code": self.code,
+            "seconds": self.seconds,
+            "timed_out": self.timed_out,
+            "stdout": scrub(self.stdout[-keep:]),
+            "stderr": scrub(self.stderr[-keep:]),
+        }
 
 
 def run(
@@ -73,8 +78,9 @@ def run(
 ) -> Step:
     started = time.monotonic()
     try:
-        out = subprocess.run(argv, cwd=cwd, env=env_, capture_output=True, text=True, timeout=timeout_s, input=stdin,
-                             check=False)  # fmt: skip
+        out = subprocess.run(
+            argv, cwd=cwd, env=env_, capture_output=True, text=True, timeout=timeout_s, input=stdin, check=False
+        )
         return Step(name, argv, out.returncode, round(time.monotonic() - started, 1), out.stdout, out.stderr)
     except subprocess.TimeoutExpired as exc:
         out_s = (exc.stdout or b"").decode() if isinstance(exc.stdout, bytes) else (exc.stdout or "")
@@ -124,8 +130,12 @@ def install(wheel_dir: Path, version: str, *, port: int = 8790) -> dict[str, Any
     """Install the frozen wheel into the campaign HOME from a local server (there is no public release); idempotent.
     Returns the installer's record. The server is started here and stopped after."""
     HOME.mkdir(parents=True, exist_ok=True)
-    server = subprocess.Popen(["python3", "-m", "http.server", str(port), "--bind", "127.0.0.1"], cwd=wheel_dir,
-                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # fmt: skip
+    server = subprocess.Popen(
+        ["python3", "-m", "http.server", str(port), "--bind", "127.0.0.1"],
+        cwd=wheel_dir,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
     try:
         time.sleep(1)
         e = env("s12-pilot", "install") | {"UNBIDDEN_INSTALL_BASE": f"http://127.0.0.1:{port}"}

@@ -52,17 +52,31 @@ def clone(repo: dict[str, Any]) -> tuple[Path, dict[str, Any]]:
     target.mkdir(parents=True)
     subprocess.run(["git", "init", "-q", str(target)], check=True)
     subprocess.run(["git", "-C", str(target), "remote", "add", "origin", repo["url"]], check=True)
-    fetch = subprocess.run(["git", "-C", str(target), "fetch", "-q", "--depth", "1", "origin", repo["commit"]],
-                           capture_output=True, text=True, timeout=1800, check=False)  # fmt: skip
+    fetch = subprocess.run(
+        ["git", "-C", str(target), "fetch", "-q", "--depth", "1", "origin", repo["commit"]],
+        capture_output=True,
+        text=True,
+        timeout=1800,
+        check=False,
+    )
     if fetch.returncode != 0:  # a commit not reachable shallowly: the full history
-        fetch = subprocess.run(["git", "-C", str(target), "fetch", "-q", "origin"], capture_output=True, text=True,
-                               timeout=3600, check=False)  # fmt: skip
+        fetch = subprocess.run(
+            ["git", "-C", str(target), "fetch", "-q", "origin"],
+            capture_output=True,
+            text=True,
+            timeout=3600,
+            check=False,
+        )
     subprocess.run(["git", "-C", str(target), "checkout", "-q", "--detach", repo["commit"]], check=True)
     head = subprocess.run(
         ["git", "-C", str(target), "rev-parse", "HEAD"], capture_output=True, text=True
     ).stdout.strip()
-    return target, {"path": str(target), "head": head, "seconds": round(time.monotonic() - started, 1),
-                    "fetch_code": fetch.returncode}  # fmt: skip
+    return target, {
+        "path": str(target),
+        "head": head,
+        "seconds": round(time.monotonic() - started, 1),
+        "fetch_code": fetch.returncode,
+    }
 
 
 def ui_read(repo_dir: Path, port: int, e: dict[str, str], rec: Record) -> dict[str, Any]:
@@ -112,21 +126,52 @@ def level_a(repo: dict[str, Any], phase: str, out_dir: Path, port: int, candidat
     rec.facts["clone"] = cloned
     rec.human.append({"step": "clone at the pin", "minutes": round(cloned["seconds"] / 60, 1), "why": "harness"})
     key = key_from_machine()
-    setup = rec.add(run("setup", [unbidden(), "setup", "--non-interactive", "--models", "api", "--mode", "supervised",
-                                  "--budget", "0", "--dashboard", "later", "--model-key-stdin", "--yes", "--json"],
-                        cwd=repo_dir, env_=e, timeout_s=SHORT_S, stdin=key + "\n"))  # fmt: skip
+    setup = rec.add(
+        run(
+            "setup",
+            [
+                unbidden(),
+                "setup",
+                "--non-interactive",
+                "--models",
+                "api",
+                "--mode",
+                "supervised",
+                "--budget",
+                "0",
+                "--dashboard",
+                "later",
+                "--model-key-stdin",
+                "--yes",
+                "--json",
+            ],
+            cwd=repo_dir,
+            env_=e,
+            timeout_s=SHORT_S,
+            stdin=key + "\n",
+        )
+    )
     rec.facts["setup"] = {"ok": setup.code == 0, "applied": (setup.json() or {}).get("applied")}
     doctor = rec.add(run("doctor", [unbidden(), "doctor", "--json"], cwd=repo_dir, env_=e, timeout_s=SHORT_S))
     d = doctor.json() or {}
     rec.facts["doctor"] = {
-        "ok": d.get("ok"), "failed_required": d.get("failed_required"), "requirements": d.get("requirements"),
+        "ok": d.get("ok"),
+        "failed_required": d.get("failed_required"),
+        "requirements": d.get("requirements"),
         "scope": {c["check"]: (c["ok"], c["detail"]) for c in d.get("checks", []) if c["check"].startswith("scope")},
-    }  # fmt: skip
+    }
     scan = rec.add(run("scan", [unbidden(), "scan", "--json"], cwd=repo_dir, env_=e, timeout_s=CHECKS_TIMEOUT_S))
     s = scan.json() or {}
-    rec.facts["scan"] = {"ok": scan.code == 0, "timed_out": scan.timed_out, "seconds": scan.seconds,
-                         "languages": s.get("languages"), "reports": s.get("reports"), "opened": s.get("opened"),
-                         "problems": s.get("problems"), "blind_spots": s.get("blind_spots")}  # fmt: skip
+    rec.facts["scan"] = {
+        "ok": scan.code == 0,
+        "timed_out": scan.timed_out,
+        "seconds": scan.seconds,
+        "languages": s.get("languages"),
+        "reports": s.get("reports"),
+        "opened": s.get("opened"),
+        "problems": s.get("problems"),
+        "blind_spots": s.get("blind_spots"),
+    }
     inbox = rec.add(run("inbox", [unbidden(), "inbox", "--json"], cwd=repo_dir, env_=e, timeout_s=SHORT_S))
     opps = inbox.json() or []
     by_source: dict[str, int] = {}
@@ -136,15 +181,23 @@ def level_a(repo: dict[str, Any], phase: str, out_dir: Path, port: int, candidat
     status0 = rec.add(run("status0", [unbidden(), "status", "--json"], cwd=repo_dir, env_=e, timeout_s=SHORT_S))
     # The project's own checks run in the agent's first cycle (observe.head -> `baseline_checks`), in the sandbox,
     # without a model: start the agent and wait for that record (bounded), then read the lifecycle.
-    start = rec.add(run("start", [unbidden(), "start", "--interval", "3600", "--json"], cwd=repo_dir, env_=e,
-                        timeout_s=SHORT_S))  # fmt: skip
+    start = rec.add(
+        run("start", [unbidden(), "start", "--interval", "3600", "--json"], cwd=repo_dir, env_=e, timeout_s=SHORT_S)
+    )
     waited = _wait_for_checks(repo_dir, CHECKS_TIMEOUT_S)
     rec.facts["checks"] = _checks_record(repo_dir) | {"waited_s": waited}
     rec.facts["checks"]["image_age"] = _image_age(rec.facts["checks"].get("image_notes"))
     status = rec.add(run("status", [unbidden(), "status", "--json"], cwd=repo_dir, env_=e, timeout_s=SHORT_S))
     st = status.json() or {}
-    second = rec.add(run("start-again", [unbidden(), "start", "--interval", "3600", "--json"], cwd=repo_dir, env_=e,
-                         timeout_s=SHORT_S))  # fmt: skip
+    second = rec.add(
+        run(
+            "start-again",
+            [unbidden(), "start", "--interval", "3600", "--json"],
+            cwd=repo_dir,
+            env_=e,
+            timeout_s=SHORT_S,
+        )
+    )
     stop = rec.add(run("stop", [unbidden(), "stop", "--json"], cwd=repo_dir, env_=e, timeout_s=300))
     after = rec.add(run("status-after", [unbidden(), "status", "--json"], cwd=repo_dir, env_=e, timeout_s=SHORT_S))
     rec.facts["lifecycle"] = {
@@ -159,18 +212,31 @@ def level_a(repo: dict[str, Any], phase: str, out_dir: Path, port: int, candidat
     }
     rec.facts["ui"] = ui_read(repo_dir, port, e, rec)
     rec.facts["ledger_after"] = ledger(e["UNBIDDEN_ENVELOPE"])
-    rec.facts["spent_usd"] = round((rec.facts["ledger_after"]["envelope_spent_usd"] or 0)
-                                   - (rec.facts["ledger_before"]["envelope_spent_usd"] or 0), 4)  # fmt: skip
+    rec.facts["spent_usd"] = round(
+        (rec.facts["ledger_after"]["envelope_spent_usd"] or 0)
+        - (rec.facts["ledger_before"]["envelope_spent_usd"] or 0),
+        4,
+    )
     rec.facts["refused_by_cap"] = _count_log(repo_dir, "cap") if (repo_dir / ".unbidden" / "logs").exists() else None
     rec.facts["events"] = _events(repo_dir)
     rec.facts["archive"] = archive(repo_dir, f"{name}-A-{phase}")
     path = rec.write(out_dir / name / "A.json")
-    return {"name": name, "class": repo.get("class"), "family": repo.get("family"), "record": str(path),
-            "setup": rec.facts["setup"]["ok"], "doctor_ok": d.get("ok"), "scan_ok": rec.facts["scan"]["ok"],
-            "checks": rec.facts["checks"].get("status"), "collected": rec.facts["checks"].get("collected"),
-            "opps": rec.facts["inbox"]["total"], "lifecycle": rec.facts["lifecycle"],
-            "ui": rec.facts["ui"].get("opened"),
-            "spent_usd": rec.facts["spent_usd"], "wall_s": round(sum(s["seconds"] for s in rec.steps), 1)}  # fmt: skip
+    return {
+        "name": name,
+        "class": repo.get("class"),
+        "family": repo.get("family"),
+        "record": str(path),
+        "setup": rec.facts["setup"]["ok"],
+        "doctor_ok": d.get("ok"),
+        "scan_ok": rec.facts["scan"]["ok"],
+        "checks": rec.facts["checks"].get("status"),
+        "collected": rec.facts["checks"].get("collected"),
+        "opps": rec.facts["inbox"]["total"],
+        "lifecycle": rec.facts["lifecycle"],
+        "ui": rec.facts["ui"].get("opened"),
+        "spent_usd": rec.facts["spent_usd"],
+        "wall_s": round(sum(s["seconds"] for s in rec.steps), 1),
+    }
 
 
 def _baseline(repo_dir: Path) -> dict[str, Any] | None:
@@ -218,15 +284,20 @@ def _checks_record(repo_dir: Path) -> dict[str, Any]:
 def _image_age(notes: Any) -> dict[str, Any] | None:
     """Whether the dependency image existed before this run (cached from an earlier stage on this machine) or was
     built now: the wall time of 'environment reproduced' is honest only with this beside it."""
-    tag = next((n.split(" ")[1] for n in (notes or []) if isinstance(n, str) and n.startswith("image unbidden-deps")),
-               None)  # fmt: skip
+    tag = next(
+        (n.split(" ")[1] for n in (notes or []) if isinstance(n, str) and n.startswith("image unbidden-deps")), None
+    )
     if not tag:
         return None
-    out = subprocess.run(["docker", "image", "inspect", "--format", "{{.Created}}", tag], capture_output=True,
-                         text=True, check=False)  # fmt: skip
+    out = subprocess.run(
+        ["docker", "image", "inspect", "--format", "{{.Created}}", tag], capture_output=True, text=True, check=False
+    )
     created = out.stdout.strip()
-    return {"tag": tag, "created": created, "built_in_this_run": created[:16] >= time.strftime("%Y-%m-%dT%H:%M",
-                                                                                                time.gmtime(time.time() - 3600))}  # fmt: skip
+    return {
+        "tag": tag,
+        "created": created,
+        "built_in_this_run": created[:16] >= time.strftime("%Y-%m-%dT%H:%M", time.gmtime(time.time() - 3600)),
+    }
 
 
 def _count_log(repo_dir: Path, needle: str) -> int:
