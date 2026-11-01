@@ -68,7 +68,9 @@ class Step:
         }  # fmt: skip
 
 
-def run(name: str, argv: list[str], *, cwd: Path, env_: dict[str, str], timeout_s: float, stdin: str | None = None) -> Step:
+def run(
+    name: str, argv: list[str], *, cwd: Path, env_: dict[str, str], timeout_s: float, stdin: str | None = None
+) -> Step:
     started = time.monotonic()
     try:
         out = subprocess.run(argv, cwd=cwd, env=env_, capture_output=True, text=True, timeout=timeout_s, input=stdin,

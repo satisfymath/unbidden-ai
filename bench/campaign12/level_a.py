@@ -1,7 +1,7 @@
 """Campaign 12, Level A: the installed product on every repository of the corpus, no model spend.
 
-    uv run python -m bench.campaign12.level_a bench/campaign12/corpus.yaml --phase pilot --out docs/bench/campaign12/pilot
-        [--only a,b] [--port 8800]
+    uv run python -m bench.campaign12.level_a bench/campaign12/corpus.yaml --phase pilot \
+        --out docs/bench/campaign12/pilot [--only a,b] [--port 8800]
 
 Per repository, as a person would from a terminal: a fresh clone at the pin under ~/unbidden-lab/c12/repos/<name>;
 `unbidden setup --non-interactive --models api --mode supervised --budget 0 --dashboard later --model-key-stdin --yes`
@@ -27,7 +27,7 @@ from typing import Any
 import httpx
 import yaml
 
-from bench.campaign12.common import HOME, LAB, LEDGER_HOME, Record, env, ledger, run, scrub, unbidden
+from bench.campaign12.common import LAB, LEDGER_HOME, Record, env, ledger, run, scrub, unbidden
 
 CHECKS_TIMEOUT_S = 3600
 SHORT_S = 600
@@ -45,7 +45,7 @@ def key_from_machine(name: str = "MODEL_API_KEY") -> str:
 
 def clone(repo: dict[str, Any]) -> tuple[Path, dict[str, Any]]:
     """A fresh clone at the pin (a previous clone is removed: every run starts from the same state)."""
-    target = REPOS / repo["name"]
+    target = REPOS / f"c12-{repo['name']}"  # the directory names the workspace: campaign rows apart in the ledger
     started = time.monotonic()
     if target.exists():
         shutil.rmtree(target)
@@ -58,7 +58,9 @@ def clone(repo: dict[str, Any]) -> tuple[Path, dict[str, Any]]:
         fetch = subprocess.run(["git", "-C", str(target), "fetch", "-q", "origin"], capture_output=True, text=True,
                                timeout=3600, check=False)  # fmt: skip
     subprocess.run(["git", "-C", str(target), "checkout", "-q", "--detach", repo["commit"]], check=True)
-    head = subprocess.run(["git", "-C", str(target), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    head = subprocess.run(
+        ["git", "-C", str(target), "rev-parse", "HEAD"], capture_output=True, text=True
+    ).stdout.strip()
     return target, {"path": str(target), "head": head, "seconds": round(time.monotonic() - started, 1),
                     "fetch_code": fetch.returncode}  # fmt: skip
 
@@ -131,12 +133,14 @@ def level_a(repo: dict[str, Any], phase: str, out_dir: Path, port: int, candidat
     for o in opps if isinstance(opps, list) else []:
         by_source[o.get("source", "?")] = by_source.get(o.get("source", "?"), 0) + 1
     rec.facts["inbox"] = {"total": len(opps) if isinstance(opps, list) else None, "by_source": by_source}
-    # The project's checks, as the record of the first cycle keeps them (observe.checks is run by scan): read back.
     status0 = rec.add(run("status0", [unbidden(), "status", "--json"], cwd=repo_dir, env_=e, timeout_s=SHORT_S))
-    rec.facts["checks"] = _checks_record(repo_dir)
+    # The project's own checks run in the agent's first cycle (observe.head -> `baseline_checks`), in the sandbox,
+    # without a model: start the agent and wait for that record (bounded), then read the lifecycle.
     start = rec.add(run("start", [unbidden(), "start", "--interval", "3600", "--json"], cwd=repo_dir, env_=e,
                         timeout_s=SHORT_S))  # fmt: skip
-    time.sleep(25)
+    waited = _wait_for_checks(repo_dir, CHECKS_TIMEOUT_S)
+    rec.facts["checks"] = _checks_record(repo_dir) | {"waited_s": waited}
+    rec.facts["checks"]["image_age"] = _image_age(rec.facts["checks"].get("image_notes"))
     status = rec.add(run("status", [unbidden(), "status", "--json"], cwd=repo_dir, env_=e, timeout_s=SHORT_S))
     st = status.json() or {}
     second = rec.add(run("start-again", [unbidden(), "start", "--interval", "3600", "--json"], cwd=repo_dir, env_=e,
@@ -145,7 +149,7 @@ def level_a(repo: dict[str, Any], phase: str, out_dir: Path, port: int, candidat
     after = rec.add(run("status-after", [unbidden(), "status", "--json"], cwd=repo_dir, env_=e, timeout_s=SHORT_S))
     rec.facts["lifecycle"] = {
         "started": (start.json() or {}).get("started"),
-        "running_after_25s": (st.get("agent") or {}).get("running"),
+        "running_after_checks": (st.get("agent") or {}).get("running"),
         "second_start_refused": not (second.json() or {}).get("started") and bool((second.json() or {}).get("already")),
         "stopped": (stop.json() or {}).get("stopped"),
         "jobs_left_running": (stop.json() or {}).get("jobs_left_running"),
@@ -164,29 +168,65 @@ def level_a(repo: dict[str, Any], phase: str, out_dir: Path, port: int, candidat
     return {"name": name, "class": repo.get("class"), "family": repo.get("family"), "record": str(path),
             "setup": rec.facts["setup"]["ok"], "doctor_ok": d.get("ok"), "scan_ok": rec.facts["scan"]["ok"],
             "checks": rec.facts["checks"].get("status"), "collected": rec.facts["checks"].get("collected"),
-            "opps": rec.facts["inbox"]["total"], "lifecycle": rec.facts["lifecycle"], "ui": rec.facts["ui"].get("opened"),
+            "opps": rec.facts["inbox"]["total"], "lifecycle": rec.facts["lifecycle"],
+            "ui": rec.facts["ui"].get("opened"),
             "spent_usd": rec.facts["spent_usd"], "wall_s": round(sum(s["seconds"] for s in rec.steps), 1)}  # fmt: skip
 
 
-def _checks_record(repo_dir: Path) -> dict[str, Any]:
-    """What `observe.checks` recorded, read from the workspace's own state (kv `checks:<head>`), without the agent."""
+def _baseline(repo_dir: Path) -> dict[str, Any] | None:
     import sqlite3
 
     try:
         c = sqlite3.connect(str(repo_dir / ".unbidden" / "state.db"))
-        rows = c.execute("select key, value from kv where key like 'checks%' or key = 'last_scan'").fetchall()
+        row = c.execute("select value from kv where key = 'baseline_checks'").fetchone()
         c.close()
-    except sqlite3.Error as exc:
-        return {"error": str(exc)}
-    for key, value in rows:
-        if key.startswith("checks"):
-            try:
-                v = json.loads(value)
-            except ValueError:
-                continue
-            if isinstance(v, dict) and "status" in v:
-                return {k: v.get(k) for k in ("status", "collected", "failed", "why", "scope", "partial", "command")}
-    return {"status": None}
+    except sqlite3.Error:
+        return None
+    if not row:
+        return None
+    try:
+        v = json.loads(row[0])
+    except ValueError:
+        return None
+    return v if isinstance(v, dict) else None
+
+
+def _wait_for_checks(repo_dir: Path, timeout_s: float) -> float:
+    started = time.monotonic()
+    while time.monotonic() - started < timeout_s:
+        if _baseline(repo_dir) is not None:
+            break
+        time.sleep(10)
+    return round(time.monotonic() - started, 1)
+
+
+def _checks_record(repo_dir: Path) -> dict[str, Any]:
+    """What `observe.checks` recorded at the base (`baseline_checks`): status, tests collected, failed, why, scope."""
+    v = _baseline(repo_dir)
+    if v is None:
+        return {"status": None, "why": "no baseline_checks record (the first cycle did not reach it in time)"}
+    out = {k: v.get(k) for k in ("status", "collected", "why", "scope", "partial", "command", "rev")}
+    failed = v.get("failed")
+    out["failed"] = len(failed) if isinstance(failed, list) else failed
+    image = v.get("image") if isinstance(v.get("image"), dict) else {}
+    out["image_notes"] = image.get("notes")
+    stack = v.get("stack") if isinstance(v.get("stack"), dict) else {}
+    out["python"] = stack.get("python")
+    return out
+
+
+def _image_age(notes: Any) -> dict[str, Any] | None:
+    """Whether the dependency image existed before this run (cached from an earlier stage on this machine) or was
+    built now: the wall time of 'environment reproduced' is honest only with this beside it."""
+    tag = next((n.split(" ")[1] for n in (notes or []) if isinstance(n, str) and n.startswith("image unbidden-deps")),
+               None)  # fmt: skip
+    if not tag:
+        return None
+    out = subprocess.run(["docker", "image", "inspect", "--format", "{{.Created}}", tag], capture_output=True,
+                         text=True, check=False)  # fmt: skip
+    created = out.stdout.strip()
+    return {"tag": tag, "created": created, "built_in_this_run": created[:16] >= time.strftime("%Y-%m-%dT%H:%M",
+                                                                                                time.gmtime(time.time() - 3600))}  # fmt: skip
 
 
 def _count_log(repo_dir: Path, needle: str) -> int:
@@ -237,9 +277,11 @@ def main() -> None:
     summary = json.loads(summary_path.read_text()) if summary_path.exists() else []
     done = {s["name"] for s in summary}
     for repo in corpus["repos"]:
-        if only and repo["name"] not in only or (not only and repo["name"] in done):
+        if (only and repo["name"] not in only) or (not only and repo["name"] in done):
             continue
-        print(f"== {repo['name']} ({repo.get('class')}, {repo.get('family')}) load {os.getloadavg()[0]:.1f}", flush=True)
+        print(
+            f"== {repo['name']} ({repo.get('class')}, {repo.get('family')}) load {os.getloadavg()[0]:.1f}", flush=True
+        )
         line = level_a(repo, args.phase, out, args.port, candidate, wheel)
         summary = [s for s in summary if s["name"] != repo["name"]] + [line]
         summary_path.write_text(json.dumps(summary, indent=1, default=str))

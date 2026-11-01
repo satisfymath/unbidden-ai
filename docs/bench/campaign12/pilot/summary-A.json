@@ -1,0 +1,102 @@
+[
+ {
+  "name": "rich",
+  "class": "dev",
+  "family": "library",
+  "record": "docs/bench/campaign12/pilot/rich/A.json",
+  "setup": true,
+  "doctor_ok": true,
+  "scan_ok": true,
+  "checks": "passed",
+  "collected": 981,
+  "opps": 4,
+  "lifecycle": {
+   "started": true,
+   "running_after_checks": true,
+   "second_start_refused": true,
+   "stopped": true,
+   "jobs_left_running": 0,
+   "stale_after": false,
+   "kill_file": false,
+   "status0_ok": true
+  },
+  "ui": true,
+  "spent_usd": 0,
+  "wall_s": 32.2
+ },
+ {
+  "name": "marshmallow",
+  "class": "dev",
+  "family": "library",
+  "record": "docs/bench/campaign12/pilot/marshmallow/A.json",
+  "setup": true,
+  "doctor_ok": true,
+  "scan_ok": true,
+  "checks": "passed",
+  "collected": 1192,
+  "opps": 4,
+  "lifecycle": {
+   "started": true,
+   "running_after_checks": true,
+   "second_start_refused": true,
+   "stopped": true,
+   "jobs_left_running": 0,
+   "stale_after": false,
+   "kill_file": false,
+   "status0_ok": true
+  },
+  "ui": true,
+  "spent_usd": 0,
+  "wall_s": 15.3
+ },
+ {
+  "name": "pyjwt",
+  "class": "dev",
+  "family": "library",
+  "record": "docs/bench/campaign12/pilot/pyjwt/A.json",
+  "setup": true,
+  "doctor_ok": true,
+  "scan_ok": true,
+  "checks": "passed",
+  "collected": 476,
+  "opps": 0,
+  "lifecycle": {
+   "started": true,
+   "running_after_checks": true,
+   "second_start_refused": true,
+   "stopped": true,
+   "jobs_left_running": 0,
+   "stale_after": false,
+   "kill_file": false,
+   "status0_ok": true
+  },
+  "ui": true,
+  "spent_usd": 0,
+  "wall_s": 12.9
+ },
+ {
+  "name": "humanize",
+  "class": "dev",
+  "family": "library",
+  "record": "docs/bench/campaign12/pilot/humanize/A.json",
+  "setup": true,
+  "doctor_ok": true,
+  "scan_ok": true,
+  "checks": "infra_failed",
+  "collected": null,
+  "opps": 0,
+  "lifecycle": {
+   "started": true,
+   "running_after_checks": true,
+   "second_start_refused": true,
+   "stopped": true,
+   "jobs_left_running": 0,
+   "stale_after": false,
+   "kill_file": false,
+   "status0_ok": true
+  },
+  "ui": true,
+  "spent_usd": 0,
+  "wall_s": 11.4
+ }
+]
