@@ -19,6 +19,7 @@ from unbidden.contracts.experiment import Proposal, ProposalStatus
 from unbidden.contracts.guardian import EgressAttempt
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
 from unbidden.guardian.credentials import broker
+from unbidden.guardian.mandate_edit import MODES, autonomous_blockers, current_mode, write_mandate
 from unbidden.observe.scan import ScanDenied, scan
 from unbidden.workspace import Workspace, WorkspaceError, head_sha
 
@@ -360,48 +361,18 @@ def cmd_review(args: argparse.Namespace) -> int:
     return 0
 
 
-MODES: dict[str, dict[str, str]] = {
-    # Unbidden prepares everything and asks before anything reaches GitHub.
-    "supervised": {
-        "open_pull_requests": "require_approval",
-        "merge_pull_requests": "deny",
-        "deploy": "deny",
-        "rollback": "deny",
-        "use_new_capabilities": "require_approval",
-    },
-    # Unbidden opens pull requests on its own for what reaches the mandate's evidence level; people merge.
-    "autopilot": {
-        "open_pull_requests": "allow",
-        "merge_pull_requests": "deny",
-        "deploy": "deny",
-        "rollback": "deny",
-        "use_new_capabilities": "allow",
-    },
-    # Unbidden also merges L4 work, deploys it with the team's steps, judges every deploy, and rolls back to the
-    # last healthy version when one degrades or the system goes down. Requires a passed rollback drill.
-    "autonomous": {
-        "open_pull_requests": "allow",
-        "merge_pull_requests": "allow",
-        "deploy": "allow",
-        "rollback": "allow",
-        "use_new_capabilities": "allow",
-    },
-}
-
-
-def _current_mode(autonomy: dict[str, Any]) -> str:
-    return next((m for m, v in MODES.items() if all(autonomy.get(k, "deny") == x for k, x in v.items())), "custom")
+_current_mode = current_mode  # the modes and their checks live in guardian/mandate_edit.py
 
 
 def cmd_mode(args: argparse.Namespace) -> int:
     """Show or set how much unbidden may do on its own."""
-    import yaml
+    from unbidden.guardian.mandate_edit import apply_mode, read_raw
 
     ws = Workspace.find()
     ws.require()
-    raw = yaml.safe_load(ws.mandate_path.read_text())
+    raw = read_raw(ws.mandate_path)
     autonomy = raw["mandate"].setdefault("autonomy", {})
-    current = _current_mode(autonomy)
+    current = current_mode(autonomy)
     if args.mode is None:
         if _emit(args, {"mode": current, "autonomy": autonomy}):
             return 0
@@ -411,24 +382,12 @@ def cmd_mode(args: argparse.Namespace) -> int:
         return 0
     store = ws.store()
     if args.mode == "autonomous":
-        operations = raw["mandate"].get("operations") or {}
-        drill = store.get_value("rollback_drill") or {}
-        if not operations.get("deploy_steps"):
-            err.print("autonomous needs the team's deploy steps in the mandate (operations.deploy_steps)")
+        blockers = autonomous_blockers(raw, store)
+        if blockers:
+            err.print(blockers[0])
             return 2
-        if not drill.get("passed"):
-            err.print("autonomous needs a passed rollback drill first: run `unbidden drill`")
-            return 2
-    autonomy.update(MODES[args.mode])
-    ws.mandate_path.write_text(yaml.safe_dump(raw, sort_keys=False))
-    ws.mandate()  # validate what was written
-    store.append_event(
-        Event(
-            type=EventType.MANDATE_CHANGED,
-            actor=f"person:{getpass.getuser()}",
-            payload={"from": current, "to": args.mode, "autonomy": MODES[args.mode]},
-        )
-    )
+    applied = apply_mode(raw, args.mode)
+    write_mandate(ws.mandate_path, raw, store, {"from": current, "to": args.mode, "autonomy": applied})
     console.print(f"mode: [bold]{args.mode}[/] (was {current})")
     return 0
 
@@ -957,11 +916,11 @@ def cmd_probe(args: argparse.Namespace) -> int:
 
 def cmd_models(args: argparse.Namespace) -> int:
     """Show or set which models may serve this workspace. Secrets and production data stay local in every profile."""
-    import yaml
+    from unbidden.guardian.mandate_edit import apply_models, read_raw
 
     ws = Workspace.find()
     ws.require()
-    raw = yaml.safe_load(ws.mandate_path.read_text())
+    raw = read_raw(ws.mandate_path)
     models = raw["mandate"].setdefault("models", {"profile": "local-first", "private_code_to_frontier": "deny"})
     if args.profile is None and args.private_code is None:
         if _emit(args, models):
@@ -971,21 +930,9 @@ def cmd_models(args: argparse.Namespace) -> int:
             f"{models.get('private_code_to_frontier', 'deny')} · secrets and production data: always local"
         )
         return 0
-    before = dict(models)
-    if args.profile is not None:
-        models["profile"] = args.profile
-    if args.private_code is not None:
-        models["private_code_to_frontier"] = args.private_code
-    ws.mandate_path.write_text(yaml.safe_dump(raw, sort_keys=False))
-    ws.mandate()
-    ws.store().append_event(
-        Event(
-            type=EventType.MANDATE_CHANGED,
-            actor=f"person:{getpass.getuser()}",
-            payload={"models": {"from": before, "to": models}},
-        )
-    )
-    console.print(f"models: {models}")
+    before, after = apply_models(raw, profile=args.profile, private_code_to_frontier=args.private_code)
+    write_mandate(ws.mandate_path, raw, ws.store(), {"models": {"from": before, "to": after}})
+    console.print(f"models: {after}")
     return 0
 
 
