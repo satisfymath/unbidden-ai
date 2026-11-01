@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import time
 from pathlib import Path
 
 import pytest
@@ -16,8 +17,16 @@ def test_a_cycle_past_its_bound_is_stopped_whole_and_keeps_what_it_printed(tmp_p
     assert log.startswith("== cycle 3 (did not finish within 1 s; its process group was stopped)")
     assert "started" in log
     child = int(next(line for line in log.splitlines() if line.startswith("child")).split()[1])
-    with pytest.raises(ProcessLookupError):
-        os.kill(child, 0)
+    # On Linux the orphaned child is reparented and reaped a moment after the group is killed (GitHub's runner);
+    # macOS raises at once. Gone within two seconds either way.
+    deadline = time.monotonic() + 2
+    while True:
+        try:
+            os.kill(child, 0)
+        except ProcessLookupError:
+            break
+        assert time.monotonic() < deadline, f"child {child} still alive after the group was stopped"
+        time.sleep(0.05)
 
 
 def test_a_cycle_that_finishes_gives_its_exit_and_output(tmp_path: Path) -> None:
