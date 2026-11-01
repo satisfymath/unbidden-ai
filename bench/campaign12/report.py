@@ -44,6 +44,11 @@ def load(dirs: list[Path]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     return a, b
 
 
+def _could_not_run(ch: dict[str, Any]) -> str:
+    cnr = ch.get("could_not_run") or {}
+    return f"{cnr['tests']} ({', '.join(cnr.get('lacks') or [])})" if cnr.get("tests") else ""
+
+
 def level_a_table(records: list[dict[str, Any]], corpus: dict[str, dict[str, Any]]) -> list[str]:
     lines = [
         "| repo | class | family | setup | doctor | checks | collected | image | opps | agent | ui | spent | wall s |",
@@ -61,6 +66,7 @@ def level_a_table(records: list[dict[str, Any]], corpus: dict[str, dict[str, Any
         lines.append(
             f"| {r['repo']} | {meta.get('class')} | {meta.get('family')} | {'ok' if f.get('setup', {}).get('ok') else 'FAIL'} "
             f"| {'ok' if f.get('doctor', {}).get('ok') else 'required missing'} | {ch.get('status')} | {ch.get('collected') or ''} "
+            f"| {ch.get('failed') if ch.get('failed') is not None else ''} | {_could_not_run(ch)} "
             f"| {'built' if image.get('built_in_this_run') else ('cached' if image else '')} | {f.get('inbox', {}).get('total')} "
             f"| {'ok' if agent_ok else 'FAIL'} | {'ok' if f.get('ui', {}).get('opened') and f.get('ui', {}).get('session_ok') else 'FAIL'} "
             f"| {f.get('spent_usd')} | {round(sum(s['seconds'] for s in r['steps']) + (ch.get('waited_s') or 0))} |"

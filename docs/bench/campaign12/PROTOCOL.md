@@ -241,3 +241,8 @@ a release recommendation (no 1.0 label, no automatic release).
   remote. The harness keeps observing a cycle while an open pull request of the agent has CI pending (it waits
   longer, within the bound; the agent is never told). The report's Level B section lists the nine dimensions per
   class with numerators and denominators; `dev` is labelled calibration.
+- 2026-11-01, candidate moved once more before the freeze: `69b0702` → `8686674` (the classification rule's second
+  iteration: `could_not_run` kept apart from `failed`; see FINDINGS); wheel sha256 `a9154175…`. The fst copy test
+  (`pilot-copy`) ran on `69b0702`'s wheel (`cffdf7ac…`): the CI → merge → deploy path it exercises does not touch the
+  changed code (the suite runner's failure classification), and the tool is never reinstalled under a running run.
+  The frozen evaluation runs on `8686674` only. `corpus.yaml` keeps all three (candidate, wheel) pairs.

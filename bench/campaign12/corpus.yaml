@@ -4,11 +4,13 @@
 # `commit` is the pin every record refers to; `support` is the class declared BEFORE the first run (inside / near /
 # outside); `exposure` says what Unbidden and the developer saw before. Independent and frontier entries come from
 # bench/campaign12/corpus-candidates.md (the recorded rule) and are appended at the freeze.
-candidate: 69b0702258523e814cc42e0dfcb57eadf19fb7f5
-wheel_sha256: cffdf7ac7f49b39fef525e3452a9fc2008a48faba0fefb9378014fd9a2aa910f
+candidate: 8686674327b6ce2fba44b4c2640977fecd0da2e2
+wheel_sha256: a915417588329e4383cd5f07ba96499dc228976863792f8d51e46dfa634a3917
 version: 0.9.0
 pilot_candidate: 2f7eee504dd24d763a72079686161c8247416226  # phase 2 ran on this one; the freeze adds the codex-lb classification fix
 pilot_wheel_sha256: e8c7cc8a2ef849f25930b402393ddc18b04d5972206d1ee247ebe9796568856c
+copy_test_candidate: 69b0702258523e814cc42e0dfcb57eadf19fb7f5  # the fst copy test (pilot-copy) ran on this one: first classification rule only
+copy_test_wheel_sha256: cffdf7ac7f49b39fef525e3452a9fc2008a48faba0fefb9378014fd9a2aa910f
 repos:
 - name: fst
   url: https://github.com/fastapi/full-stack-fastapi-template

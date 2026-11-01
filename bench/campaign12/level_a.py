@@ -268,7 +268,7 @@ def _checks_record(repo_dir: Path) -> dict[str, Any]:
     v = _baseline(repo_dir)
     if v is None:
         return {"status": None, "why": "no baseline_checks record (the first cycle did not reach it in time)"}
-    out = {k: v.get(k) for k in ("status", "collected", "why", "scope", "partial", "command", "rev")}
+    out = {k: v.get(k) for k in ("status", "collected", "why", "scope", "partial", "command", "rev", "could_not_run")}
     failed = v.get("failed")
     out["failed"] = len(failed) if isinstance(failed, list) else failed
     image = v.get("image") if isinstance(v.get("image"), dict) else {}

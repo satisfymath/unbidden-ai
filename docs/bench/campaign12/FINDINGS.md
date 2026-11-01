@@ -128,3 +128,16 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
   differs).
 - 2026-11-01 · the existing campaign fork `satisfymath/c12-spoolman` renamed `c12-spoolman-fork` (GitHub keeps a
   redirect) so the plain copy can carry the authorized name · inventory · done.
+- 2026-11-01 · pre-freeze, fst on the copy (`pilot-copy`) · the agent logged "host busy (load 1.6-2.1): measurement
+  deferred" for several minutes while the harness ran other work on the same host (codex-lb's checks in the sandbox,
+  the unit suite): the product's own load gate holds (correct), and the campaign's wall-time numbers for that run
+  include waits the host caused, not the product. The pilot had concurrent runs too; the frozen evaluation runs one
+  thing at a time (`run_eval.sh`) · harness/observation (latency confound, named) · recorded.
+- 2026-11-01 · codex-lb re-run on `69b0702` (`pilot-fix`) still read `failed`: of its 34 failures 30 name the missing
+  `git`, 4 do not (a `CalledProcessError` from a script, three `exit 126` of a repository shell script), so the
+  all-or-nothing rule did not apply. The rule is replaced before the freeze: tests whose failure names an executable
+  the image lacks leave `failed` and are kept apart as `could_not_run` (test → tool) in the round, the summary, the
+  checks record (`{tests, lacks}`), the cycle's log line and the Level A record; a round with nothing else failed is
+  `infra_failed`. For codex-lb the honest record becomes "failed 4; 30 could not run: the image lacks git" ·
+  defect (classification), second iteration · fixed in the frozen candidate (next commit); re-verified as
+  `pilot-fix/codex-lb` after the fst copy test (not concurrently: see the load note above).
