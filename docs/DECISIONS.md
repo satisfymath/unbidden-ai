@@ -1269,8 +1269,8 @@ docs (`PLAN.md`, "Product 0.9 to 1.0"); the front end is David's, in his own ses
 stated rule (18 of 20 at run 7, `stage10-campaign/level-a-0ea665d`), not under the strict reading (10 pass
 outright). Criterion 2 (no known failure allows a false promotion or an action outside the mandate): no
 counterexample; the migration-naming fix of c840697 is unverified on codex-lb. Criterion 3 (controls 7 of 7 on the
-commit): 7 of 7 at 0102ccb; at 0ea665d the run was started as the last run of this campaign and its result stands as
-recorded in `stage10-controls/0ea665d/README.md`, whatever it is. Criterion 4 (repeatable cycles on three
+commit): **met**, 7 of 7 at 0ea665d (`stage10-controls/0ea665d/README.md`, the campaign's last run, on a host David
+quieted himself; nothing stopped), as at 0102ccb. Criterion 4 (repeatable cycles on three
 applications and two families): fst (performance, confirmed repeatedly under perf-v4), codex-lb (performance, two
 experiments, the same correct abstention), Aegra (consistency, once); Conduit's L4 is not revalidated under the
 current comparator; mealie's L4 did not hold on PostgreSQL. Partial. Criterion 5 (every block classified): met.

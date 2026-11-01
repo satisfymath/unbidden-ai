@@ -167,3 +167,4 @@ hosli-recs-redis-1 0.44%
 hosli-eval-api-1 0.13%
 hosli-eval-redis-1 0.40%
 hosli-eval-postgres-1 0.01%
+controls exit 0 23:15:29 1.70 1.49 1.56
