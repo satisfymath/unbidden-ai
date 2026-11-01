@@ -477,7 +477,7 @@ def main() -> None:
     args = parser.parse_args()
     corpus = yaml.safe_load(Path(args.corpus).read_text())
     repo = next(r for r in corpus["repos"] if r["name"] == args.repo)
-    out = Path(args.out).expanduser()
+    out = Path(args.out).expanduser().resolve()  # absolute: the browser check runs from frontend/
     line = level_b(repo, args.run, args.phase, out, args.port, corpus["candidate"], corpus["wheel_sha256"])
     summary_path = out / "summary-B.json"
     summary = json.loads(summary_path.read_text()) if summary_path.exists() else []

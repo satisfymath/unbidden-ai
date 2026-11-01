@@ -361,3 +361,23 @@ Totals: independent 14/20 (quota 2, 4, 5 filled; quota 1 and 3 short). Frontier 
 | 8 | weblate | web-django-large | 80852ad | inside support but ~5.8 GB, likely to time out |
 
 (Full fields and the per-class "product_should" expectation are in corpus-frontier.yaml.)
+
+## Extension search (prepared for David's decision; not part of the frozen set unless accepted)
+
+Written 2026-11-01 before any extension candidate was inspected, at the coordinator's request, to offer optional
+fillers for the two shortfalls (4 FastAPI applications with a database, 2 Flask applications). The accepted sets
+above are unchanged. Same criteria as the base rule (OSI license by GitHub, root Python manifest, a GitHub Actions
+job running pytest, a database service for applications, not a template/library/tutorial/LLM wrapper needing a paid
+key, not previously exposed, < 500 MB); exposure pre-filter as above. Rules, in this order, each run to its quota or
+the exhaustion of its window (first 60 non-exposed candidates, stars descending):
+
+| rule | query | fills |
+|---|---|---|
+| E1 | `language:Python stars:50..150 pushed:>2026-05-01 archived:false topic:fastapi` | FastAPI apps with a DB (up to 4) |
+| E2 | `language:Python stars:>100 pushed:>2026-05-01 archived:false topic:sqlalchemy`, applications only | FastAPI apps with a DB (remaining) |
+| E3 | `language:Python stars:>100 pushed:>2026-05-01 archived:false topic:postgresql`, applications only (FastAPI, Flask, Litestar, Starlette servers count) | FastAPI/ASGI apps (remaining) and Flask apps |
+| E4 | `language:Python stars:50..150 pushed:>2026-05-01 archived:false topic:flask`, applications with pytest in CI (DB preferred, not required) | Flask apps (up to 2) |
+
+Each accepted extension candidate goes to `corpus-extension.yaml` with `class: independent-extension` and
+`extension_rule: E1..E4`. Record format as above.
+

@@ -46,3 +46,9 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
 - 2026-11-01 · Level B pilot, rich B1 · the fork's CI does not run on pull requests against `c12-base` (Rich's
   workflows filter on `master`): "CI green on the fork" cannot be observed for libraries in this setup; the product
   would wait for CI before an autonomous merge · campaign setup limit · recorded.
+- 2026-11-01 · Level B pilot, marshmallow B1 · 4 opportunities (ruff/mypy) declined by the Director as outside the
+  team's CI scope, robustness probe 0 crashes, no proposal; one chat analysis said so from the record and named what
+  the digest lacks (severity, effort, risk) · supported abstention (valid outcome; US$0.018) · recorded.
+- 2026-11-01 · Level B pilot, marshmallow B1 · the second cycle's dashboard came up on 8861 although `start --ui
+  --port 8860` was asked: the port was still held (TIME_WAIT or the previous server's socket) and `free_port` moved on
+  without a word in `status` beyond the new URL · UX (say "8860 was busy; using 8861" in `start`'s output) · open.
