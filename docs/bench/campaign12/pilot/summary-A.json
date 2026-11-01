@@ -173,5 +173,30 @@
   "ui": true,
   "spent_usd": -0.0174,
   "wall_s": 29.0
+ },
+ {
+  "name": "codex-lb",
+  "class": "dev",
+  "family": "api-postgres",
+  "record": "docs/bench/campaign12/pilot/codex-lb/A.json",
+  "setup": true,
+  "doctor_ok": true,
+  "scan_ok": true,
+  "checks": "failed",
+  "collected": 6422,
+  "opps": 0,
+  "lifecycle": {
+   "started": true,
+   "running_after_checks": true,
+   "second_start_refused": true,
+   "stopped": true,
+   "jobs_left_running": 0,
+   "stale_after": false,
+   "kill_file": false,
+   "status0_ok": true
+  },
+  "ui": true,
+  "spent_usd": 0.0375,
+  "wall_s": 121.3
  }
 ]

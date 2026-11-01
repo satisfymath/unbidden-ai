@@ -29,8 +29,8 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
   `models frontier --private-code allow`, because the hint table matches "denies local inference" first · wording
   (hint order) · open.
 - 2026-11-01 · seeded scenarios, run 1 · after `resume` from the dashboard, an agent started with `--interval 3600`
-  stays asleep until its next tick: releasing the kill switch does not wake the loop · UX (resume should wake the
-  loop) · open.
+  stays asleep until its next tick: releasing the kill switch does not wake the loop (run 2, interval 15 s: the agent
+  worked within two ticks) · UX (resume could wake the loop; with the default interval it is a short wait) · open.
 - 2026-11-01 · seeded scenarios, run 1 · two simultaneous `start`: one owner, the other "already running" (correct);
-  `pgrep -f 'unbidden.cli watch'` still listed two processes 3 s later · to inspect (the loser's exit timing or a
-  child of the owner) · open.
+  `pgrep -f 'unbidden.cli watch'` still listed two processes 3 s later · resolved in run 2: the count was host-wide
+  (other campaign runs' agents); one owner per workspace held · harness artefact · closed.

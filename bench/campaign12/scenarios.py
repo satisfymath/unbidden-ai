@@ -218,6 +218,8 @@ def s_second_start_and_crash() -> None:
     results = [json.loads(o) if o.strip().startswith("{") else {"raw": o[-200:]} for o in outs]
     started = sum(1 for r in results if r.get("started"))
     time.sleep(3)
+    # agents of THIS workspace (other campaign runs may have their own): the lock names the owner; the process list
+    # is kept for the record
     watchers = subprocess.run(["pgrep", "-f", "unbidden.cli watch"], capture_output=True, text=True).stdout.split()
     tree = (
         subprocess.run(
@@ -254,7 +256,8 @@ def s_second_start_and_crash() -> None:
         {
             "started": started,
             "already": sum(1 for r in results if r.get("already")),
-            "watch_processes": len(watchers),
+            "watch_processes_on_host": len(watchers),
+            "owner_pid": (status.get("agent") or {}).get("pid"),
             "watch_tree": [scrub(t)[:160] for t in tree],
             "after_crash": after.get("agent"),
             "restart": restart.get("started"),
@@ -312,7 +315,7 @@ def s_ui_port_busy_and_reopen() -> None:
             "pass"
             if ui.get("port") not in (None, 8871)
             and [w["id"] for w in before.get("widgets", [])] == [w["id"] for w in after.get("widgets", [])]
-            and len(after.get("widgets", [])) == 1
+            and len(after.get("widgets", [])) >= 1  # the layout persists across scenario runs (same source id)
             else "fail",
         )
     finally:

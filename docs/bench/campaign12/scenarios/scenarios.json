@@ -16,20 +16,20 @@
   "scenario": "budget exhausted (machine ledger)",
   "expected": "the call is refused before it is sent, with the ledger's reason and a hint",
   "observed": {
-   "blocked": "the mandate denies local inference, and this call may not go remote: private_code leaves only renamed by the privacy bridge",
-   "hint": "`unbidden models local-first` allows the local model, or add the remote key with `unbidden setup credentials`",
+   "blocked": "refused: this call may cost up to US$0.0142 and US$0.0001 is left of US$0.00 permitted (verified balance US$0.00 (scenario nobudget (entered by david)); reserve US$0.00 held back)",
+   "hint": "`unbidden spend` shows the cap; the mandate's maximum_monthly_spend_usd is this project's monthly cap",
    "planner": "rule"
   },
-  "verdict": "fail"
+  "verdict": "pass"
  },
  {
   "scenario": "budget exhausted (mandate cap 0)",
   "expected": "refused with the cap's reason; US$0 spent",
   "observed": {
-   "blocked": null,
-   "hint": null
+   "blocked": "remote spend this month is US$0.00, at the US$0.00 cap",
+   "hint": "`unbidden spend` shows the cap; the mandate's maximum_monthly_spend_usd is this project's monthly cap"
   },
-  "verdict": "fail"
+  "verdict": "pass"
  },
  {
   "scenario": "Docker not available",
@@ -67,11 +67,16 @@
   "observed": {
    "started": 1,
    "already": 1,
-   "watch_processes": 2,
+   "watch_processes": 3,
+   "watch_tree": [
+    "1448     1 00:03 /Users/david/unbidden-lab/c12/home/tools/unbidden-ai/bin/python -m unbidden.cli watch --interval 3600.0",
+    "69837     1 06:07 /Users/david/unbidden-lab/c12/home/tools/unbidden-ai/bin/python -m unbidden.cli watch --interval 60.0 --ui --port 8860",
+    "87377     1 03:00 /Users/david/unbidden-lab/c12/home/tools/unbidden-ai/bin/python -m unbidden.cli watch --interval 3600.0"
+   ],
    "after_crash": {
     "running": false,
-    "pid": 87018,
-    "started_at": "2026-11-01T18:27:33.976422+00:00",
+    "pid": 1448,
+    "started_at": "2026-11-01T18:30:34.483706+00:00",
     "command": "watch",
     "log": "/Users/david/unbidden-lab/c12/repos/c12-humanize/.unbidden/logs/agent.log",
     "stale": true,
@@ -82,8 +87,8 @@
    "resumed_line": true,
    "stop": {
     "stopped": true,
-    "pid": 87692,
-    "waited_s": 0.4,
+    "pid": 1879,
+    "waited_s": 3.9,
     "forced": false,
     "timeout_s": 60,
     "jobs_left_running": 0
@@ -99,16 +104,19 @@
    "reused_second_time": false,
    "port2": 8873,
    "widgets_before": [
-    "w_c822862c7ee74cc1"
+    "w_c822862c7ee74cc1",
+    "w_9bc5000eb30f434e"
    ],
    "widgets_after": [
-    "w_c822862c7ee74cc1"
+    "w_c822862c7ee74cc1",
+    "w_9bc5000eb30f434e"
    ],
    "completeness": [
+    "complete",
     "complete"
    ]
   },
-  "verdict": "pass"
+  "verdict": "fail"
  },
  {
   "scenario": "kill switch engaged before start; inspect and resume from the dashboard",
@@ -118,7 +126,7 @@
    "waiting_logged": true,
    "dashboard_kill_switch": true,
    "resume_effect": "done",
-   "worked_after": false,
+   "worked_after": true,
    "stop": true
   },
   "verdict": "pass"

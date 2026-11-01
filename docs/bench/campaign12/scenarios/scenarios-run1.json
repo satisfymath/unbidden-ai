@@ -1,0 +1,138 @@
+[
+ {
+  "scenario": "credential rejected",
+  "expected": "doctor says the listing refuses the key; an analysis is refused or fails with the provider's status, never answered by rules as analysis; no key value in any output",
+  "observed": {
+   "doctor_meta": "the model listing refuses the key (401); calls may still work (see `unbidden spend`)",
+   "chat_planner": "rule",
+   "chat_blocked": "the model did not answer: meta 401: {\"error\":{\"code\":\"invalid_api_key\",\"message\":\"Unauthorized\",\"param\":null,\"type\":\"authentication_error\"}}",
+   "chat_content": "El modelo no respondió (meta 401: {\"error\":{\"code\":\"invalid_api_key\",\"message\":\"Unauthorized\",\"param\":null,\"type\":\"authentication_error\"}}); sin análisis. Lo leído queda abajo.",
+   "egress_rows": 1,
+   "key_leaked": false
+  },
+  "verdict": "pass"
+ },
+ {
+  "scenario": "budget exhausted (machine ledger)",
+  "expected": "the call is refused before it is sent, with the ledger's reason and a hint",
+  "observed": {
+   "blocked": "the mandate denies local inference, and this call may not go remote: private_code leaves only renamed by the privacy bridge",
+   "hint": "`unbidden models local-first` allows the local model, or add the remote key with `unbidden setup credentials`",
+   "planner": "rule"
+  },
+  "verdict": "fail"
+ },
+ {
+  "scenario": "budget exhausted (mandate cap 0)",
+  "expected": "refused with the cap's reason; US$0 spent",
+  "observed": {
+   "blocked": null,
+   "hint": null
+  },
+  "verdict": "fail"
+ },
+ {
+  "scenario": "Docker not available",
+  "expected": "doctor fails the required docker checks and explains; scan records the problem instead of crashing",
+  "observed": {
+   "doctor_exit": 1,
+   "docker_checks": {
+    "docker": [
+     false,
+     true,
+     "not running: the sandbox needs Docker"
+    ],
+    "docker buildx": [
+     false,
+     true,
+     "Docker is not running (install the buildx plugin or Docker Desktop; the sandbox cannot build images without it)"
+    ],
+    "docker compose": [
+     false,
+     true,
+     "Docker is not running (the map of the running system needs it)"
+    ]
+   },
+   "scan_exit": 0,
+   "scan_problems": [
+    "dependency image for python failed to build:\nERROR: Cannot connect to the Docker daemon at tcp://127.0.0.1:1. Is the docker daemon running?"
+   ],
+   "scan_stderr": ""
+  },
+  "verdict": "pass"
+ },
+ {
+  "scenario": "two simultaneous starts, then a crash during a job",
+  "expected": "exactly one agent starts (the other reports already running); after kill -9 status says stale with the job left running; the next start resumes it; stop is clean",
+  "observed": {
+   "started": 1,
+   "already": 1,
+   "watch_processes": 2,
+   "after_crash": {
+    "running": false,
+    "pid": 87018,
+    "started_at": "2026-11-01T18:27:33.976422+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c12/repos/c12-humanize/.unbidden/logs/agent.log",
+    "stale": true,
+    "jobs_running": 1,
+    "jobs_queued": 1
+   },
+   "restart": true,
+   "resumed_line": true,
+   "stop": {
+    "stopped": true,
+    "pid": 87692,
+    "waited_s": 0.4,
+    "forced": false,
+    "timeout_s": 60,
+    "jobs_left_running": 0
+   }
+  },
+  "verdict": "pass"
+ },
+ {
+  "scenario": "UI port busy; close and reopen",
+  "expected": "the dashboard takes the next free port without touching what holds 8871; after stop and reopen the same widgets are there; the empty opportunities table is a complete read of zero rows",
+  "observed": {
+   "port_taken": 8872,
+   "reused_second_time": false,
+   "port2": 8873,
+   "widgets_before": [
+    "w_c822862c7ee74cc1"
+   ],
+   "widgets_after": [
+    "w_c822862c7ee74cc1"
+   ],
+   "completeness": [
+    "complete"
+   ]
+  },
+  "verdict": "pass"
+ },
+ {
+  "scenario": "kill switch engaged before start; inspect and resume from the dashboard",
+  "expected": "the agent starts but waits ('kill switch engaged'); the dashboard opens, shows the switch and releases it; the agent then works; stop is clean",
+  "observed": {
+   "started": true,
+   "waiting_logged": true,
+   "dashboard_kill_switch": true,
+   "resume_effect": "done",
+   "worked_after": false,
+   "stop": true
+  },
+  "verdict": "pass"
+ },
+ {
+  "scenario": "partial read vs complete vs missing",
+  "expected": "a limited read says partial with its limit; the whole collection says complete; an entity the record does not hold says missing",
+  "observed": {
+   "full": "complete",
+   "full_rows": 3,
+   "partial": "partial",
+   "partial_limit": 2,
+   "missing": "missing"
+  },
+  "verdict": "pass"
+ }
+]
