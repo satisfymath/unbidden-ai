@@ -157,16 +157,27 @@ def _junit_failures(path: Path) -> list[str] | None:
 
 
 MESSAGES_KEPT = 20
+# A failure that is the environment's, not the code's: the test asked for an executable the sandbox image does not
+# hold (a bare name: `git`, `msgfmt`; a CI runner has them, the dependency image only what the project installs).
+MISSING_TOOL = re.compile(r"(?:FileNotFoundError|OSError): \[Errno 2\] No such file or directory: '(?P<tool>[\w.+-]+)'")
 
 
-def _junit(path: Path) -> tuple[list[str], int, dict[str, str]] | None:
-    """Failing test names, how many test cases the report holds, and each failure's message (its first lines, for
-    the first `MESSAGES_KEPT`), or None without a report."""
+def missing_tool(message: str) -> str | None:
+    """The executable a failure's message says the environment lacks, or None when the failure says something else."""
+    found = MISSING_TOOL.search(message)
+    return found.group("tool") if found else None
+
+
+def _junit(path: Path) -> tuple[list[str], int, dict[str, str], dict[str, int]] | None:
+    """Failing test names, how many test cases the report holds, each failure's message (its first lines, for the
+    first `MESSAGES_KEPT`) and, over every failure, how many named each executable the environment lacks; or None
+    without a report."""
     if not path.exists():
         return None
     root = ET.parse(path).getroot()
     failed: list[str] = []
     messages: dict[str, str] = {}
+    lacking: dict[str, int] = {}
     cases = 0
     for case in root.iter("testcase"):
         cases += 1
@@ -174,10 +185,13 @@ def _junit(path: Path) -> tuple[list[str], int, dict[str, str]] | None:
         if problem is not None:
             name = f"{case.get('classname', '')}::{case.get('name', '')}"
             failed.append(name)
+            text = (problem.get("message") or problem.text or "").strip()
             if len(messages) < MESSAGES_KEPT:
-                text = (problem.get("message") or problem.text or "").strip()
                 messages[name] = "\n".join(text.splitlines()[:4])[:400]
-    return failed, cases, messages
+            tool = missing_tool(text) or missing_tool(problem.text or "")
+            if tool:
+                lacking[tool] = lacking.get(tool, 0) + 1
+    return failed, cases, messages, lacking
 
 
 @dataclass(frozen=True)
@@ -187,6 +201,7 @@ class Round:
     collected: int | None  # test cases the runner reported; None when it does not say
     why: str | None = None  # for a round that told nothing about the code: how the run ended, and its last output
     messages: dict[str, str] = field(default_factory=dict[str, str])  # the report's message per failure (first ones)
+    retry: bool = True  # whether running the round again could tell more (a tool the image lacks will still be missing)
 
     @property
     def meaningful(self) -> bool:
@@ -249,10 +264,20 @@ def _round(
         return Round([], NOT_COLLECTED, 0, f"{_ended(result)} (no test report: no test ran)")
     names, collected = (report[0], report[1]) if report is not None else (None, None)
     messages = report[2] if report is not None else {}
+    lacking = report[3] if report is not None else {}
     if names and any(n == "pytest::internal" for n in names):
         # pytest itself crashed (TimeTracker, stage 10: an xdist worker died at the sandbox's limits, `Broken pipe`
         # to execnet): the run told nothing about the code; retried once with one worker.
         return Round(None, INFRA_FAILED, None, _ended(result))
+    if names and lacking and sum(lacking.values()) == len(names):
+        # Every failure says the environment lacks an executable (codex-lb, campaign 12, level A: 34 of 6,422 tests
+        # raised FileNotFoundError for `git`, which the dependency image does not hold, and nothing else failed).
+        # Those tests say nothing about the code: the environment is not reproduced, and the record says so, with
+        # the names and the count kept so a reader sees what could not run. Running again would not change it.
+        tools = ", ".join(f"`{t}`" for t in sorted(lacking))
+        why = (f"the sandbox image lacks {tools}: {len(names)} of {collected} tests could not run "
+               f"(FileNotFoundError); no test failed for another reason")  # fmt: skip
+        return Round(sorted(names), INFRA_FAILED, collected, why, messages, retry=False)
     if names and needs_network(result.stdout + result.stderr):
         names = [f"{n} (needs network)" for n in names]
     if names is None:
@@ -302,6 +327,8 @@ def run_suite(
                     result = Round(result.failed, result.status, result.collected,
                                    f"first attempt told nothing ({first_why[:300]}); retried with one xdist worker",
                                    result.messages)  # fmt: skip
+                break
+            if not result.retry:
                 break
             first_why = result.why
         failed_per_round.append(result.failed if result.failed is not None else [SUITE])

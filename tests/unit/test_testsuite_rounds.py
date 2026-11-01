@@ -73,3 +73,28 @@ def test_exit_zero_without_a_test_report_is_no_test_run_not_a_pass(tmp_path: Pat
     summary = run_suite(FakeRunner(tmp_path, [(0, None)]), tmp_path, IMAGE, PYTEST, rounds=1)  # type: ignore[arg-type]
     assert summary.round_status == ["not_collected"] and summary.collected_per_round == [0]
     assert "no test ran" in str(summary.infra_why[0])
+
+
+MISSING_GIT = "FileNotFoundError: [Errno 2] No such file or directory: 'git'"
+JUNIT_NO_GIT = f"""<testsuite tests="3"><testcase classname="t" name="a"/><testcase classname="t" name="b">
+<failure message="{MISSING_GIT}">Traceback...\n{MISSING_GIT}</failure></testcase><testcase classname="t" name="c">
+<error message="{MISSING_GIT}"/></testcase></testsuite>"""
+JUNIT_MIXED = f"""<testsuite tests="3"><testcase classname="t" name="a"/><testcase classname="t" name="b">
+<failure message="{MISSING_GIT}"/></testcase><testcase classname="t" name="c">
+<failure message="AssertionError: assert 1 == 2"/></testcase></testsuite>"""
+
+
+def test_failures_that_only_name_a_tool_the_image_lacks_are_the_environments_not_the_projects(tmp_path: Path) -> None:
+    # codex-lb (campaign 12, level A): 34 of 6,422 tests raised FileNotFoundError for `git`, absent from the
+    # dependency image, and the record read "failed" as if the project's tests failed.
+    runner = FakeRunner(tmp_path, [(1, JUNIT_NO_GIT)])
+    summary = run_suite(runner, tmp_path, IMAGE, PYTEST, rounds=1)  # type: ignore[arg-type]
+    assert summary.round_status == ["infra_failed"]
+    assert summary.failed_per_round == [["t::b", "t::c"]] and summary.collected_per_round == [3]  # kept, readable
+    assert "lacks `git`" in str(summary.infra_why[0]) and "2 of 3 tests could not run" in str(summary.infra_why[0])
+    assert runner.calls == 1  # not retried: the tool would still be missing
+
+
+def test_a_missing_tool_beside_a_real_failure_is_still_the_projects_failure(tmp_path: Path) -> None:
+    summary = run_suite(FakeRunner(tmp_path, [(1, JUNIT_MIXED)]), tmp_path, IMAGE, PYTEST, rounds=1)  # type: ignore[arg-type]
+    assert summary.round_status == ["ran"] and summary.failed_per_round == [["t::b", "t::c"]]
