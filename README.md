@@ -5,13 +5,14 @@
 Unbidden is a proactive engineering agent you install like a CLI. It lives in a repository, runs the team's
 own checks in an offline sandbox, finds improvements it can prove, measures them, and proposes them as pull
 requests that carry their evidence. With the autonomy you grant it, it can also merge, deploy, watch
-production and roll back.
+production and roll back. A dashboard and a chat read the same records; neither can make it act.
 
 It runs on Meta models. **Muse Glimmer** runs locally through Ollama and is the only model that ever sees
 secrets, logs or production data. **Muse Spark** (Meta Model API) takes the heavy work when the content is
 allowed to leave. Private code reaches Spark only after the privacy bridge has renamed it.
 
-Built at the Meta Global AI Developer Hackathon (October 26 – November 4, 2026).
+Built at the Meta Global AI Developer Hackathon (October 26 – November 4, 2026). Current version: **0.9.0,
+experimental candidate** (not 1.0; what that means is in [`docs/RELEASE.md`](docs/RELEASE.md)).
 
 ## What it has done on real repositories
 
@@ -24,74 +25,83 @@ Built at the Meta Global AI Developer Hackathon (October 26 – November 4, 2026
 | A private TypeScript monorepo | Sent code through the bridge with every non-public word renamed and a local outsider review. It analyzed each package the way its CI does | 0 domain words sent. 1,309 false type errors avoided; 857 lint findings outside the CI's scope declined |
 
 Every number above was measured during the event. How it was measured, and what went wrong on the way, is in
-[`docs/DECISIONS.md`](docs/DECISIONS.md).
+[`docs/DECISIONS.md`](docs/DECISIONS.md); every result at the level it reached is in [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
 
 ## Install
 
-The current release candidate, what it supports, its limits and a walked install from a clean checkout:
-[`docs/RELEASE.md`](docs/RELEASE.md). The commands below install from `main`.
+The full guide, with prerequisites, the walk, what costs tokens and what does not, and the limitations:
+[`docs/INSTALL.md`](docs/INSTALL.md). Unbidden installs as one wheel with the dashboard built inside, in its own
+environment with its own Python 3.12 (uv). The end user needs no Node and no Python of their own.
 
-Requirements:
-- Python 3.12 and [uv](https://docs.astral.sh/uv/)
-- Docker
-- [Ollama](https://ollama.com)
-- a Meta Model API key
-- optionally, a GitHub token to publish pull requests
+**One line, available once the first release is published** (there is no release yet; this fails today with
+"no published release found"):
 
 ```sh
-uv tool install git+https://github.com/satisfymath/unbidden-ai
-echo 'MODEL_API_KEY=...' >> ~/.unbidden/.env   # never committed, never sent anywhere but api.meta.ai
-cd your-repo
-unbidden init         # writes .unbidden/mandate.yaml: what it may do on its own (supervised by default)
-unbidden doctor --fix # checks Docker, the API, GitHub; picks and pulls the local model this machine can run
-unbidden scan         # runs the repository's own checks in the sandbox
-unbidden inbox        # opportunities, most proven first
-unbidden watch        # keep working in the background
+curl -LsSf https://github.com/satisfymath/unbidden-ai/releases/latest/download/install.sh | sh
 ```
 
-`unbidden doctor` picks the local model to fit the machine (D-020):
+**From local artifacts, which is what works today** (and how the installer is tested):
 
-| Memory | Local model |
-|---|---|
-| ≥ 42 GB | Glimmer 30B 8-bit |
-| ≥ 24 GB | Glimmer 30B 4-bit |
-| ≥ 6.5 GB | Llama 3.1 8B |
-| ≥ 3 GB | Llama 3.2 3B |
+```sh
+make dist                                   # from a checkout: dist/unbidden_ai-0.9.0-py3-none-any.whl + SHA256SUMS
+(cd dist && python3 -m http.server 8777 --bind 127.0.0.1 &)
+UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.9.0
+unbidden --version                          # unbidden 0.9.0
+```
+
+What the machine provides (each reported by `unbidden doctor` as required or optional for the option you chose):
+git; Docker with the buildx and compose plugins (the project's code runs only in the sandbox); Ollama for the
+`local` and `mixed` options; a Meta API key for `mixed` and `api`; a GitHub token only to open pull requests.
+
+Then:
+
+```sh
+cd your-repo
+unbidden              # first time: the setup assistant (no model is called); afterwards: the home screen
+unbidden doctor       # what works here, what is required for your option, what is optional
+unbidden start --ui   # the agent in the background, serving the dashboard from its own process
+unbidden status       # agent pid and log, dashboard URL, kill switch
+unbidden stop         # ends the agent cleanly; `unbidden start` resumes interrupted jobs
+```
+
+Verified by hand on macOS arm64 only; Linux x86-64 runs in GitHub Actions (CI jobs `check`, `frontend`, `installed`;
+results: TODO(fill)). `unbidden update` and `unbidden uninstall` keep `~/.unbidden` and every repository's `.unbidden/`.
 
 ## Where your code goes
 
-Every request is labeled with its most sensitive part:
+The assistant asks which of three options to use; it may recommend one, it never chooses:
 
-`instructions < synthetic < public_code < private_code < production_data < secret`
-
-How each label is routed depends on the profile:
-
-| Label | `local` | `local-first` (default) | `frontier` |
+| Option | Profile | Where calls go | Needs |
 |---|---|---|---|
-| secret, production data | local | local | local |
-| private code | local | renamed by the bridge, then Spark | Spark only if `private_code_to_frontier: allow`, else bridge |
-| public code, synthetic | local | Spark for heavy tasks, local fallback | Spark |
+| `local` | `local` | only a model on this machine (Ollama); nothing leaves | Ollama |
+| `mixed` | `local-first` | light work local; heavy work whose content may leave goes to Meta's API first, local fallback when the remote fails | Ollama; a Meta key (optional) |
+| `api` | `frontier`, local inference and local fallback denied | Meta's API only; a call that may not leave the machine is refused and says why | a Meta key |
 
-- **Public versus private.** Code counts as public only when GitHub confirms the repository is public. If that cannot be confirmed, the code is treated as private.
-- **Final check.** The egress gate re-checks the label and scans every payload before it leaves, whatever the router decided.
-- **Inspecting decisions.** `unbidden route` explains, without calling any model, where each task would go and why. `unbidden egress --payload` shows, byte for byte, everything that left the machine.
+Every request is labeled with its most sensitive part:
+`instructions < synthetic < public_code < private_code < production_data < secret`. In every option secrets and
+production data stay on the machine; private code leaves only renamed by the privacy bridge, or when the mandate says
+`private_code_to_frontier: allow`; code counts as public only when GitHub confirms the repository is public. The
+egress gate re-checks the label and scans every payload before it leaves, whatever the router decided.
+`unbidden route` explains where each task would go without calling any model; `unbidden egress --payload` shows,
+byte for byte, everything that left.
 
 ## Autonomy
 
-The mode is set by a person and audited:
+The mode is set by a person and audited; the assistant shows the effective permissions the mandate grants.
 
 ```sh
-unbidden mode supervised   # proposals wait for `unbidden review`
-unbidden mode autopilot    # opens proven pull requests on its own
+unbidden mode supervised   # asks before a pull request; never merges or deploys
+unbidden mode autopilot    # opens proven pull requests on its own; people merge
 unbidden drill             # proves rollback works: deploy previous, health green, deploy back
-unbidden mode autonomous   # also merges and deploys; refuses to switch on without a passed drill
+unbidden mode autonomous   # also merges L4 work, deploys with the team's steps, rolls back;
+                           # refuses without `operations.deploy_steps` and a passed drill
 ```
 
 In every mode:
 - Only proposals at L4 are merged, pinned to the commit that was measured.
 - A merge waits until the previous deploy has been judged.
 - A degraded deploy or an outage triggers a rollback and a hold, and only a person can release the hold (`unbidden hold release`).
-- `unbidden kill` stops everything.
+- `unbidden kill` freezes everything in every process until `unbidden resume`; `unbidden stop` only ends the agent.
 
 ## Evidence levels
 
@@ -106,26 +116,45 @@ In every mode:
 
 A claim's confidence is capped by its level. Only L4 and above becomes a pull request by default.
 
+## Dashboard and chat
+
+`unbidden start --ui` serves the dashboard from the agent's own process; `unbidden ui [--open]` opens or reuses one
+over the repository's `.unbidden/state.db`, read-only. Opening it, restoring the layout and showing records call no
+model. Widgets carry their provenance (source, mode, freshness, completeness); layout and conversation persist in
+`~/.unbidden/web/presentation.db`, so closing the browser or stopping the agent loses nothing. Closing the tab stops
+nothing; `ui --stop` stops only a dashboard served apart; the one the agent serves ends with `unbidden stop`.
+
+The chat, in the dashboard or as `unbidden chat "..."`, has three intents: **inform** (counts, status, tables,
+charts: answered by deterministic rules over the records, no remote call), **analyze** (why, recommend, risk,
+summary: one call routed like heavy work, within the mandate's monthly cap, refused with the router's reason when it
+may not go anywhere) and **act** (approve, deploy, kill...: always refused and pointed at the CLI or the actions
+panel). The same web workspace also serves a `--demo` (fixtures) and published records (`--record`, historical),
+neither of which runs the agent.
+
 ## Commands
 
 | Command | What it does |
 |---|---|
-| `init`, `doctor`, `status`, `map` | Set up, check the machine, see what Unbidden knows and cannot see. `map --scope <id>` walks from one component to what it rests on, with each fact's source and age; `map --connectors` says what each connector reads and costs |
-| `health` | Each service's errors and latency against its own baseline (from the project's Prometheus), where a degradation starts, and whether traces agree |
-| `scan`, `inbox`, `show`, `try`, `why` | Find opportunities, inspect them, run an experiment, see every decision and payload behind it |
-| `decide` | What the Director would do with each open opportunity, and why, without doing it |
-| `review`, `approve`, `reject` | Decide on waiting proposals |
-| `watch` | The background agent |
-| `mode`, `drill`, `deploys`, `hold`, `kill`, `resume` | Autonomy and operations. `deploys` says which commit each deploy runs and how that is known (verified, observed, inferred, unknown); `deploys --commit <sha>` finds the deploys that ran it |
-| `probe` | Property-based crash search on a Python package |
-| `investigate` | Read-only explanation of a failure between two versions |
-| `forge`, `logs` | Capabilities Unbidden builds for itself (log adapters; readers for text metrics endpoints with `forge stats <url>`), judged by an oracle with no model before use, and disabled with `forge disable` |
-| `models`, `route`, `egress` | Model profile, routing explanation, outbound audit |
+| `unbidden` | the setup assistant the first time, the home screen afterwards (state, agent, blocks, next action) |
+| `setup` | guided configuration: project, priorities, models, credentials, autonomy, connections, budget, dashboard; `--non-interactive` with flags; `setup <section>` redoes one |
+| `doctor`, `status`, `map` | check the machine for the chosen option; agent, dashboard and kill switch; what Unbidden knows and cannot see |
+| `start`, `stop`, `watch` | the agent in the background (`--ui` serves the dashboard), ended cleanly; or in the foreground of this terminal |
+| `ui`, `chat` | open or reuse the dashboard (`--stop` ends one served apart); the chat from the terminal |
+| `scan`, `inbox`, `show`, `try`, `why`, `decide` | find opportunities, inspect them, run an experiment, see every decision and payload |
+| `review`, `approve`, `reject` | decide on waiting proposals |
+| `mode`, `drill`, `deploy`, `deploys`, `hold`, `kill`, `resume` | autonomy and operations |
+| `health`, `errors`, `probe`, `investigate`, `forge`, `logs` | services against their baseline; recurring errors; property-based crash search; a failure between two versions; self-built capabilities |
+| `models`, `route`, `spend`, `egress` | model option, routing explanation, the machine ledger, outbound audit |
+| `update`, `uninstall` | the installer from inside the tool; data stays unless `--purge --yes` |
 
-Every command accepts `--json`.
+Most commands accept `--json`; the ones that only act (`approve`, `review`, `reject`, `kill`, `resume`, `watch`,
+`probe`, `approve-writes`) do not. One executor per workspace: a second `start` answers "already running", and the
+commands that execute jobs refuse with exit 2 while another process owns the workspace.
 
 ## Documentation
 
+- [`docs/INSTALL.md`](docs/INSTALL.md): the install guide, the walk, prerequisites, tokens, persistence, limitations.
+- [`docs/RELEASE.md`](docs/RELEASE.md): the current candidate, what it supports and what it does not.
 - [`docs/EVIDENCE.md`](docs/EVIDENCE.md): every result at the level it reached, the cross-repository benchmark and its
   frozen holdout, the negatives, and the cost.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): how the pieces fit, and what is guaranteed and what is not.
@@ -137,6 +166,7 @@ Every command accepts `--json`.
 ```sh
 make setup
 make check   # ruff, pyright, pytest
+make dist    # the wheel with the web workspace inside, and SHA256SUMS
 ```
 
 Apache-2.0.
