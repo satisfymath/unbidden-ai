@@ -83,3 +83,10 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
   present at the base and gone at the head (ruff run by the verifier), only the named files changed, no test file
   removed, no skip added; PR 4 (F811 in test files) re-checked in a fresh sandbox: the suite passes with the same 981
   tests collected as the base · verified (3/3) · recorded.
+- 2026-11-01 · Level B pilot, fst B1 (autonomous after the product's drill) · 22 min, 40 model calls, US$0.17: six
+  opportunities, the known `item.owner_id` foreign key without an index measured L4 (`DELETE /api/v1/users/me`
+  14.14 → 4.49 ms, permutation p = 0.0), proposed and published as PR #4 on the campaign fork; not merged: "the
+  repository declares CI workflows but none has run on" the pull request, so no autonomous merge and no deploy of
+  the change; the drill's deploy is the only one; the second cycle repeated nothing; the lab stayed healthy ·
+  observation + campaign setup limit (the fork's CI must run on the campaign base for the merge/deploy path to be
+  observable) · open.

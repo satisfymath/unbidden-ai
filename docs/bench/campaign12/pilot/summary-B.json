@@ -34,5 +34,17 @@
   "spent_usd": 0.746,
   "blocks": [],
   "wall_s": 2759.6
+ },
+ {
+  "name": "fst",
+  "run": "B1",
+  "mode": "autonomous",
+  "record": "/Users/david/unbidden-ai-campaign/docs/bench/campaign12/pilot/fst/B1.json",
+  "proposals_c1": 1,
+  "proposals_c2": 1,
+  "pulls_after": 1,
+  "spent_usd": 0.1685,
+  "blocks": [],
+  "wall_s": 1327.4
  }
 ]
