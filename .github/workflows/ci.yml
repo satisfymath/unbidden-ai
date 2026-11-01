@@ -101,8 +101,11 @@ jobs:
           print("doctor:", d["requirements"])
           PY
           "$U" --json | python3 -c "import json,sys; d=json.load(sys.stdin); print('home:', d['mode'], d['profile'])"
-          "$U" setup --non-interactive --models api --mode autonomous --budget 1 --dashboard later --yes --json > blocked.json; code=$?
-          test "$code" = 4 && python3 -c "import json; d=json.load(open('blocked.json')); assert d['blocked']=='autonomous' and d['blockers'], d"
+          code=0
+          "$U" setup --non-interactive --models api --mode autonomous --budget 1 --dashboard later --yes --json > blocked.json || code=$?
+          test "$code" = 4  # blocked: no deploy steps, no drill; nothing written
+          python3 -c "import json; d=json.load(open('blocked.json')); assert d['blocked']=='autonomous' and d['blockers'], d"
+          grep -q "open_pull_requests: require_approval" .unbidden/mandate.yaml  # still supervised
       - name: "The agent: start, status, a second start, stop; nothing left; no KILL file"
         run: |
           cd "$REPO"; export HOME="$SMOKE_HOME"; U="$UV_TOOL_BIN_DIR/unbidden"
