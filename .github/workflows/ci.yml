@@ -18,6 +18,124 @@ jobs:
       - run: uv run pyright
       - run: uv run pytest -q
 
+  # The web workspace: lint, types, unit tests, the production build, and the browser story against the Python
+  # server serving the built assets (Playwright, Chromium).
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --frozen
+      - run: cd frontend && npm ci
+      - run: cd frontend && npm run lint
+      - run: cd frontend && npm run typecheck
+      - run: cd frontend && npm test
+      - run: cd frontend && npm run build
+      - run: cd frontend && npx playwright install --with-deps chromium
+      - run: cd frontend && npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: frontend/test-results
+          if-no-files-found: ignore
+
+  # The installed artifact, not the checkout: the wheel (web workspace inside) installed by install.sh from a local
+  # server into an empty HOME, then the person's own walk with the installed command: setup (option api, without
+  # Ollama), doctor, the home screen, start/status/stop of the agent, the dashboard served from the installed package
+  # and the chat by rules. No model is called (US$0); Docker is only reported.
+  installed:
+    runs-on: ubuntu-latest
+    needs: [check, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Build the wheel with the web workspace inside
+        run: |
+          cd frontend && npm ci && npm run build && cd ..
+          uv build
+          (cd dist && sha256sum *.whl *.tar.gz > SHA256SUMS)
+          unzip -l dist/*.whl | grep unbidden/web/static/index.html
+          whl=$(basename dist/*.whl); v=${whl#unbidden_ai-}; v=${v%-py3-none-any.whl}
+          echo "VERSION=$v" >> "$GITHUB_ENV"
+          (cd dist && python3 -m http.server 8000 --bind 127.0.0.1 >/dev/null 2>&1 &)
+          sleep 1 && curl -fsS http://127.0.0.1:8000/SHA256SUMS
+      - name: An empty HOME, the installer, the command
+        run: |
+          home=$(mktemp -d)
+          echo "SMOKE_HOME=$home" >> "$GITHUB_ENV"
+          echo "UV_TOOL_DIR=$home/tools" >> "$GITHUB_ENV"
+          echo "UV_TOOL_BIN_DIR=$home/bin" >> "$GITHUB_ENV"
+          echo "UNBIDDEN_HOME=$home/.unbidden" >> "$GITHUB_ENV"
+          export UV_TOOL_DIR=$home/tools UV_TOOL_BIN_DIR=$home/bin
+          HOME="$home" UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8000 sh install.sh --yes --version "$VERSION"
+          test "$("$home/bin/unbidden" --version)" = "unbidden $VERSION"
+      - name: "Onboarding without a terminal: option api, supervised; doctor says what is required"
+        run: |
+          repo=$(mktemp -d) && echo "REPO=$repo" >> "$GITHUB_ENV"
+          cd "$repo" && git init -q . && git -c user.email=ci@example.com -c user.name=ci commit -q --allow-empty -m init
+          export HOME="$SMOKE_HOME"; U="$UV_TOOL_BIN_DIR/unbidden"
+          "$U" setup --non-interactive --models api --mode supervised --budget 1 --dashboard later --yes --json > setup.json
+          python3 -c "import json; d=json.load(open('setup.json')); assert d['applied'] and d['models']=='api', d"
+          grep -q "local_inference: deny" .unbidden/mandate.yaml
+          "$U" doctor --json > doctor.json || true
+          python3 - <<'PY'
+          import json; d = json.load(open("doctor.json"))
+          need = {c["check"]: c["required"] for c in d["checks"]}
+          assert need["ollama"] is False and need["local model"] is False, need
+          assert need["meta api"] is True, need
+          print("doctor:", d["requirements"])
+          PY
+          "$U" --json | python3 -c "import json,sys; d=json.load(sys.stdin); print('home:', d['mode'], d['profile'])"
+          "$U" setup --non-interactive --models api --mode autonomous --budget 1 --dashboard later --yes --json > blocked.json; code=$?
+          test "$code" = 4 && python3 -c "import json; d=json.load(open('blocked.json')); assert d['blocked']=='autonomous' and d['blockers'], d"
+      - name: "The agent: start, status, a second start, stop; nothing left; no KILL file"
+        run: |
+          cd "$REPO"; export HOME="$SMOKE_HOME"; U="$UV_TOOL_BIN_DIR/unbidden"
+          "$U" start --interval 3600 --json | tee start.json
+          python3 -c "import json; d=json.load(open('start.json')); assert d['started'], d"
+          "$U" status --json | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['agent']['running'], d; print('agent pid', d['agent']['pid'])"
+          "$U" start --interval 3600 --json | python3 -c "import json,sys; d=json.load(sys.stdin); assert not d['started'] and d.get('already'), d; print('second start refused')"
+          test "$(pgrep -fc 'unbidden.cli watch' || true)" = "1"
+          "$U" stop --json | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['stopped'], d; print('stopped', d)"
+          "$U" status --json | python3 -c "import json,sys; d=json.load(sys.stdin); assert not d['agent']['running'] and not d['agent'].get('stale'), d"
+          test ! -e .unbidden/KILL
+          tail -n 20 .unbidden/logs/agent.log || true
+      - name: "The dashboard from the installed package (no Node here), reused, stopped; the chat by rules"
+        run: |
+          cd "$REPO"; export HOME="$SMOKE_HOME"; U="$UV_TOOL_BIN_DIR/unbidden"
+          "$U" ui --json --port 8765 > ui.json
+          python3 -c "import json; d=json.load(open('ui.json')); assert not d['reused'] and '?s=' in d['url'], d"
+          url=$(python3 -c "import json; print(json.load(open('ui.json'))['url'].split('?')[0])")
+          curl -fsS "$url" > index.html && grep -q '<div id="root">' index.html && ! grep -q "make web-build" index.html
+          "$U" ui --json --port 8765 | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['reused'], d; print('reused pid', d['pid'])"
+          "$U" chat --planner rule "Grafica el gasto por corrida" --json | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['route']['intent']=='inform' and d['planner']=='rule', d; print('chat inform by rules')"
+          "$U" chat --planner rule "Aprueba la propuesta opp_1" --json | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['route']['intent']=='act' and d['results'][0]['error']['code']=='refused', d; print('chat act refused')"
+          "$U" ui --stop --json | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['stopped'], d"
+          "$U" status --json | python3 -c "import json,sys; d=json.load(sys.stdin); assert not d['agent']['running'], d"
+      - name: Docker on this runner (reported, not exercised)
+        run: if docker info >/dev/null 2>&1; then echo "docker present: $(docker --version)"; else echo "docker absent"; fi
+      - name: Uninstall keeps the data
+        run: |
+          export HOME="$SMOKE_HOME"
+          sh install.sh --uninstall --yes
+          test -f "$REPO/.unbidden/mandate.yaml" && test -d "$UNBIDDEN_HOME" || true
+          ! test -e "$UV_TOOL_BIN_DIR/unbidden"
+
   secrets:
     runs-on: ubuntu-latest
     steps:

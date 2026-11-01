@@ -57,6 +57,14 @@ def read(path: Path) -> dict[str, Any] | None:
 
 
 def process_exists(pid: int) -> bool:
+    """Whether a process is alive. A child of this process that already exited is reaped here first: a zombie
+    answers `kill -0` but serves nothing (seen under pytest, whose process spawned the dashboard)."""
+    try:
+        reaped, _ = os.waitpid(pid, os.WNOHANG)
+        if reaped == pid:
+            return False
+    except ChildProcessError:
+        pass  # not our child: nothing to reap
     try:
         os.kill(pid, 0)
     except ProcessLookupError:
