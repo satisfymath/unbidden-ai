@@ -153,10 +153,26 @@ def test_a_live_workspace_streams_new_events_without_duplicates(tmp_path: Path) 
         assert c.get("/summary").json()["connection"]["kill_switch"] is True
         assert c.post("/actions", {"operation": "resume", "idempotency_key": "k2"}).json()["effect"] == "done"
         assert not (repo / ".unbidden" / "KILL").exists()
+        # Decisions on a live workspace are written by the same module the CLI uses: the approval, its event and
+        # the publish job the agent picks up on its next cycle; the same request twice has one effect.
         r = c.post(
             "/actions", {"operation": "approve", "subject": "opp_demo000000000001", "idempotency_key": "k3"}
         ).json()
-        assert r["effect"] == "not_supported_here" and r["cli"] == "unbidden approve opp_demo000000000001"
+        assert r["effect"] == "done" and r["cli"] == "unbidden approve opp_demo000000000001"
+        assert "approved by" in r["detail"] and "next cycle" in r["detail"] and r["verdict"]["approval"]
+        granted = [e for e in store.events() if e.type is EventType.APPROVAL_GRANTED]
+        assert len(granted) == 1 and granted[0].actor.startswith("person:")
+        assert any(j.type == "github.publish" for j in store.jobs())
+        r2 = c.post(
+            "/actions", {"operation": "approve", "subject": "opp_demo000000000001", "idempotency_key": "k3"}
+        ).json()
+        assert (
+            r2["effect"] == "already" and len([e for e in store.events() if e.type is EventType.APPROVAL_GRANTED]) == 1
+        )
+        r = c.post("/actions", {"operation": "approve", "subject": "opp_nothing", "idempotency_key": "k3b"}).json()
+        assert r["effect"] == "refused" and "no proposal" in r["detail"]
+        r = c.post("/actions", {"operation": "deploy", "subject": "abc", "idempotency_key": "k3c"}).json()
+        assert r["effect"] == "not_supported_here" and r["cli"] == "unbidden deploy abc"
         r = c.post(
             "/actions", {"operation": "evaluate", "capability": "github.open_pull_request", "idempotency_key": "k4"}
         ).json()

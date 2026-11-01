@@ -257,53 +257,21 @@ def cmd_watch(args: argparse.Namespace) -> int:
 
 
 def _proposal_for(store: Any, opportunity_id: str) -> Proposal | None:
-    return store.get_by_key("proposals", opportunity_id, Proposal)
+    from unbidden.operate.decisions import proposal_for
+
+    return proposal_for(store, opportunity_id)
 
 
 def _approve(store: Any, proposal: Proposal, hours: float) -> None:
-    from datetime import timedelta
+    from unbidden.operate.decisions import approve
 
-    from unbidden.daemon.cycle import job
-    from unbidden.guardian.approvals import grant
-    from unbidden.publish.github import CAPABILITY
-
-    approval = grant(store, CAPABILITY, proposal.id, granted_by=getpass.getuser(), ttl=timedelta(hours=hours))
-    store.append_event(
-        Event(
-            type=EventType.APPROVAL_GRANTED,
-            actor=f"person:{approval.granted_by}",
-            entity_id=approval.id,
-            correlation_id=proposal.opportunity_id,
-            payload={"capability": CAPABILITY, "proposal": proposal.id},
-        )
-    )
-    store.enqueue(
-        job(
-            "github.publish",
-            f"{proposal.id}:{approval.id}",
-            {"id": proposal.id},
-            correlation_id=proposal.opportunity_id,
-        )
-    )
+    approve(store, proposal, by=getpass.getuser(), hours=hours)
 
 
 def _reject(store: Any, opp: Opportunity, reason: str) -> None:
-    opp.status = OpportunityStatus.DECLINED
-    opp.details = {**opp.details, "rejected_because": reason}
-    store.put("opportunities", opp)
-    proposal = _proposal_for(store, opp.id)
-    if proposal is not None and proposal.status is ProposalStatus.READY:
-        proposal.status = ProposalStatus.REJECTED
-        store.put("proposals", proposal)
-    store.append_event(
-        Event(
-            type=EventType.APPROVAL_REJECTED,
-            actor=f"person:{getpass.getuser()}",
-            entity_id=opp.id,
-            correlation_id=opp.id,
-            payload={"reason": reason},
-        )
-    )
+    from unbidden.operate.decisions import reject
+
+    reject(store, opp, by=getpass.getuser(), reason=reason)
 
 
 def cmd_approve(args: argparse.Namespace) -> int:

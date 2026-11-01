@@ -183,22 +183,29 @@ class Source:
                 Path.home() / ".unbidden" / ".env",
             ]
         )
+        from unbidden.guardian.credentials import broker
+
+        remote_provider = config.providers.get(code.provider) if code and code.provider in config.providers else None
+        key_env = (remote_provider.key_env if remote_provider else None) or "MODEL_API_KEY"
+        key_present = self.mode == "live" and broker().has(key_env)  # a live workspace loads its .env; records never
+        local_url = config.providers[local.provider].base_url if local and local.provider in config.providers else None
         return {
             "server": "local",
             "profile": profile,
             "local": {
                 "provider": local.provider if local else None,
                 "model": local.model if local else None,
-                "base_url": config.providers[local.provider].base_url
-                if local and local.provider in config.providers
-                else None,
+                "base_url": local_url,
+                "reachable": local_reachable(local_url) if local_url else False,
             },
             "remote": {
                 "provider": code.provider if code else None,
                 "model": code.model if code else None,
                 "credential_file_present": remote_key_file,
+                "key_present": key_present,
             },
             "local_inference": self.mandate.models.local_inference if self.mandate else "allow",
+            "local_fallback": self.mandate.models.local_fallback if self.mandate else "allow",
             "note": "the server runs on this machine; the model runs where the route says",
         }
 
@@ -289,6 +296,29 @@ class Source:
 # Constructors ------------------------------------------------------------------------------------------------
 
 
+_LOCAL_PROBE: dict[str, tuple[float, bool]] = {}
+LOCAL_PROBE_TTL_S = 30.0
+
+
+def local_reachable(base_url: str) -> bool:
+    """Whether the local model server answers, remembered for a short while: shown in the route and used by the
+    `auto` planner; a server that comes up later is seen on the next probe, never cached as absent for good."""
+    import time
+
+    import httpx
+
+    now = time.monotonic()
+    cached = _LOCAL_PROBE.get(base_url)
+    if cached and now - cached[0] < LOCAL_PROBE_TTL_S:
+        return cached[1]
+    try:
+        ok = httpx.get(f"{base_url}/api/tags", timeout=2).status_code == 200
+    except httpx.HTTPError:
+        ok = False
+    _LOCAL_PROBE[base_url] = (now, ok)
+    return ok
+
+
 def live(repo: Path, *, id_: str | None = None) -> Source:
     repo = repo.expanduser().resolve()
     state_dir = repo / ".unbidden"
@@ -297,6 +327,12 @@ def live(repo: Path, *, id_: str | None = None) -> Source:
     store = ReadOnlyStore(state_dir / "state.db")
     mandate = load_mandate(state_dir / "mandate.yaml") if (state_dir / "mandate.yaml").exists() else None
     config = load_config(state_dir / "config.yaml")
+    if mandate is not None:
+        # The workspace's credentials into the broker (never the environment), granted by purpose as the engine
+        # does: a chat routed to Meta's API sends the key the mandate names; records and the demo load nothing.
+        from unbidden.workspace import Workspace
+
+        Workspace(repo).load_env()
     notes = []
     if (state_dir / "web-dev-seed").exists():
         notes.append("development workspace: its records were written by this branch's seed, not by a run")
