@@ -53,6 +53,8 @@ MANDATE = """mandate:
     local_fallback: deny
     local_inference: deny
 """
+
+
 def registries(store: Path) -> list[str]:
     """The package registries the original run's mandate allowed (stage 10: fst's frontend needs npm, which a fixed
     Python-only list refused), with the ones every Python image needs."""
