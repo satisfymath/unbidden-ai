@@ -1,0 +1,40 @@
+{
+ "url": "http://127.0.0.1:8861/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "1 ruff-baseline F821 finding in examples/\tpropuesta\t4\tpropose_change",
+    "2 ruff-baseline F821 findings in rich/\tpropuesta\t4\tpropose_change",
+    "3 ruff-baseline F811 findings in tests/\tpropuesta\t4\tpropose_change",
+    "2 ruff-baseline F821 findings in tests/\texperimentando\t4\twait",
+    "",
+    "4 fila(s)",
+    "actual",
+    "workspace",
+    "01 nov, 15:37"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "2 widgets · Guardado"
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "2 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

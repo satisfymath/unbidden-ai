@@ -32,7 +32,7 @@ try {
   });
   await page.screenshot({ path: join(out, "01-space.png") });
   // the activity view
-  const activity = page.getByRole("button", { name: /Actividad|Activity/i }).first();
+  const activity = page.getByText(/^(Actividad|Activity)$/).first();
   if (await activity.count()) {
     await activity.click();
     await page.waitForTimeout(2500);
@@ -40,7 +40,7 @@ try {
     step("activity", { lines: t2.split("\n").slice(0, 40) });
     await page.screenshot({ path: join(out, "02-activity.png") });
   }
-  const experiments = page.getByRole("button", { name: /Experimentos|Experiments/i }).first();
+  const experiments = page.getByText(/^(Experimentos|Experiments)$/).first();
   if (await experiments.count()) {
     await experiments.click();
     await page.waitForTimeout(2500);
@@ -48,7 +48,7 @@ try {
     step("experiments", { lines: t3.split("\n").slice(0, 30) });
     await page.screenshot({ path: join(out, "03-experiments.png") });
   }
-  const space = page.getByRole("button", { name: /Espacio|Space/i }).first();
+  const space = page.getByText(/^(Espacio|Space)$/).first();
   if (await space.count()) { await space.click(); await page.waitForTimeout(1500); }
   // reload: the layout and the conversation must come back without a model call
   await page.reload({ waitUntil: "domcontentloaded" });
