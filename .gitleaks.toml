@@ -3,5 +3,8 @@
 useDefault = true
 
 [allowlist]
-description = "fake secrets planted by tests"
+description = "fake secrets planted by tests; Unbidden's own identifiers in bench records"
 paths = ['''tests/.*''']
+# `idempotency_key: "unbidden-<24 hex>"` in the bench's action records (docs/bench/ecosystem/**.json): an
+# identifier Unbidden mints for each API call it makes, never a credential (gitleaks' generic-api-key rule, PR #2).
+regexes = ['''unbidden-[0-9a-f]{24}''']
