@@ -431,7 +431,7 @@ def test_a_crashed_pytest_is_a_round_that_told_nothing_and_is_retried_with_one_w
         "</testcase></testsuite></testsuites>"
     )
     good = '<testsuites><testsuite><testcase classname="tests.a" name="t1"/></testsuite></testsuites>'
-    calls: list[dict[str, str] | None] = []
+    calls: list[dict[str, str]] = []
 
     class Runner:
         def run(self, spec, work):  # type: ignore[no-untyped-def]
