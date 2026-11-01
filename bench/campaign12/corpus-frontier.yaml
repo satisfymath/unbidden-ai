@@ -1,0 +1,179 @@
+# Campaign 12 - frontier set (8), deliberately outside or near the declared support, one per class.
+# Chosen 2026-11-01 by the same style of rule (query + first fit), read-only, commits pinned at inspection time.
+# Each entry states why it is frontier and what the product SHOULD say (out-of-scope diagnosis, partial run, or abstention).
+repos:
+  - name: librephotos
+    url: https://github.com/LibrePhotos/librephotos
+    license: MIT
+    size_kb: 206248
+    stars: 8123
+    default_branch: dev
+    commit: 8def36a24cd0435dc7338abde36d51ed9e8a7ad3
+    family: monorepo-subdir
+    build: npm+pip
+    python: []
+    checks: "image build workflows + api-client.yml (npm); backend tests are not a bare pytest CI job"
+    services: []
+    created: 2020-11-11
+    pushed: 2026-11-01
+    why: "rule: topic:django window, first fit with no root Python manifest. Root holds only package.json + apps/; the Python backend lives under apps/, not at the repository root."
+    preparation: "n/a (not run)"
+    risk: "polyglot monorepo; ML dependencies"
+    class: frontier
+    frontier_class: 1
+    frontier_why: "A monorepo whose root has no pyproject/requirements/setup; the Python project sits in a subdirectory."
+    product_should: "Report that there is no Python project at the repository root (declared support not met at root); either locate the package under apps/ and say the scope is that subdirectory, or abstain with a clear 'no root project' diagnosis. It must not claim the repo is unsupported outright without noting the subdir."
+
+  - name: netbox
+    url: https://github.com/netbox-community/netbox
+    license: Apache-2.0
+    size_kb: 230713
+    stars: 21829
+    default_branch: main
+    commit: ddcfe22db6147b59a0c0d5a904dcda8bfeb9398b
+    family: web-django
+    build: pip            # pyproject.toml + requirements.txt at root
+    python: ["3.12", "3.13", "3.14"]
+    checks: "ci.yml > (python matrix; services: postgres:18, redis:8) `python netbox/manage.py test --parallel` and `coverage run netbox/manage.py test` -- NOT pytest"
+    services: [postgres, redis]
+    created: 2016-02-29
+    pushed: 2026-10-31
+    why: "rule: topic:django window w04 / rank r06, first application whose CI uses Django's own test runner instead of pytest."
+    preparation: "n/a (not run)"
+    risk: "large; manage.py test semantics differ from pytest collection"
+    class: frontier
+    frontier_class: 2
+    frontier_why: "A Django application whose CI runs `manage.py test`, not pytest; fails the pytest-job criterion."
+    product_should: "Detect that the project's checks are the Django test runner (not pytest). Either reproduce `manage.py test` as the project's own checks and say so, or report that no pytest job exists (outside the pytest-declared support) and give a partial run / abstention rather than inventing a pytest invocation."
+
+  - name: archery
+    url: https://github.com/hhyo/Archery
+    license: Apache-2.0
+    size_kb: 25863
+    stars: 7085
+    default_branch: master
+    commit: a2675e236da8395940d7316483cdc54b177d2702
+    family: web-django-mysql
+    build: pip            # pyproject.toml + requirements.txt + dev-requirements.txt at root
+    python: ["3.11", "3.12"]
+    checks: "django.yml > (python 3.11/3.12; services: mysql:8.0, redis) `pytest --cov`; compose ships mysql:5.7 + redis + goinception"
+    services: [mysql, redis]
+    created: 2018-09-28
+    pushed: 2026-10-31
+    why: "rule: `language:Python topic:mysql stars:>150 pushed:>2026-05-01 archived:false`, sorted by stars; first application (not a driver/ORM/client) whose only database is MySQL -- hhyo/Archery (rank among apps after dbcli/mycli, sqlglot, PyMySQL which are tools/libraries)."
+    preparation: "n/a (not run)"
+    risk: "MySQL + redis; goinception service referenced in compose"
+    class: frontier
+    frontier_class: 3
+    frontier_why: "A Python (Django) application whose only database is MySQL; PostgreSQL is where the scope says consistency/performance is measured, so MySQL is near, not inside, support. (It does run pytest, so the test-reproduction part is in scope.)"
+    product_should: "Reproduce the pytest job against a MySQL service, but report that consistency/performance measurement is defined for PostgreSQL and abstain on (or clearly caveat) those measurements on MySQL -- a partial run, not a silent pass."
+
+  - name: resumeio-to-pdf
+    url: https://github.com/felipeall/resumeio-to-pdf
+    license: MIT
+    size_kb: 239
+    stars: 819
+    default_branch: main
+    commit: 108b5cf2586a2e1d38d97adbfd4558efa9994d9f
+    family: api-nodb
+    build: uv             # pyproject.toml + uv.lock at root; tests/ present
+    python: []            # CI sets no test interpreter matrix
+    checks: "ruff.yml only (lint). No pytest job despite a tests/ directory in the repo."
+    services: []
+    created: 2022-11-04
+    pushed: 2026-10-19
+    why: "rule: topic:fastapi window w09 / rank r99, first repo inside support (root pyproject, Python app) whose only CI workflow runs ruff and never invokes its tests."
+    preparation: "n/a (not run)"
+    risk: "at runtime it fetches from resume.io (network), but the repo's own tests are local"
+    class: frontier
+    frontier_class: 4
+    frontier_why: "A Python project with tests in the repo but NO test job in CI (CI runs lint only)."
+    product_should: "Report that CI defines no test job, so there is no CI contract to reproduce. Either run the repo's tests outside a CI contract and label them as such, or abstain -- but not claim a reproduced, passing CI test job that does not exist."
+
+  - name: ai-avatar-system
+    url: https://github.com/PunithVT/ai-avatar-system
+    license: MIT
+    size_kb: 2788
+    stars: 563
+    default_branch: main
+    commit: 0dee976c229b2b6d274f8d04784d7e5be964d7b6
+    family: python+typescript
+    build: pip            # backend/requirements.txt (no root Python manifest); frontend is npm
+    python: []            # backend CI uses a single PYTHON_VERSION env, not a visible matrix
+    checks: "ci.yml > backend `pytest tests/ --cov=app` (services: postgres:15, redis:7; env DATABASE_URL/REDIS/CELERY/SECRET provided) AND frontend npm lint/typecheck/build in the same workflow"
+    services: [postgres, redis]
+    created: 2025-11-30
+    pushed: 2026-09-18
+    why: "rule: topic:fastapi window w35 / rank r125, first mixed FastAPI-backend + TS-frontend project whose CI runs both a Python pytest job and the frontend toolchain."
+    preparation: "n/a (not run)"
+    risk: "ffmpeg system dependency; avatar/TTS model dependencies at runtime; Python manifest lives under backend/"
+    class: frontier
+    frontier_class: 5
+    frontier_why: "A mixed Python + TypeScript project where CI runs both; the Python backend sits under backend/ with its own pytest + postgres/redis."
+    product_should: "Identify the Python backend under backend/, reproduce its pytest job (postgres + redis), and explicitly scope out the TypeScript frontend -- reporting a backend-only analysis rather than attempting or claiming the JS build."
+
+  - name: zod
+    url: https://github.com/colinhacks/zod
+    license: MIT
+    size_kb: 27098
+    stars: 44241
+    default_branch: main
+    commit: 2554b70c3d4a80273381e61d527d820720626440
+    family: typescript
+    build: n/a
+    python: []
+    checks: "n/a (TypeScript project)"
+    services: []
+    created: 2020-03-07
+    pushed: 2026-10-30
+    why: "rule: a widely used TypeScript library NOT previously exposed (the satisfymath fork list already carries expressjs/express and fastify/fast-json-stringify; zod is fresh)."
+    preparation: "n/a (not run)"
+    risk: "n/a"
+    class: frontier
+    frontier_class: 6
+    frontier_why: "A TypeScript/Node project, entirely outside the declared Python support."
+    product_should: "Diagnose that there is no Python project (no pyproject/requirements/setup, language is TypeScript) and give a clean out-of-scope abstention -- no partial analysis."
+
+  - name: gin
+    url: https://github.com/gin-gonic/gin
+    license: MIT
+    size_kb: 10657
+    stars: 89467
+    default_branch: master
+    commit: 0f09c3a9b4626d9fe9979cf4d0521d6ae32ab646
+    family: go
+    build: n/a
+    python: []
+    checks: "n/a (Go project; `go test`)"
+    services: []
+    created: 2014-06-16
+    pushed: 2026-10-10
+    why: "rule: a widely used Go project NOT previously exposed (the fork list carries go-chi/chi and spf13/cobra; gin is fresh)."
+    preparation: "n/a (not run)"
+    risk: "n/a"
+    class: frontier
+    frontier_class: 7
+    frontier_why: "A Go project, entirely outside the declared Python support."
+    product_should: "Diagnose that the language is Go with no Python project present and give a clean out-of-scope abstention."
+
+  - name: weblate
+    url: https://github.com/WeblateOrg/weblate
+    license: GPL-3.0
+    size_kb: 6050510
+    stars: 6146
+    default_branch: main
+    commit: 80852ad7530516a32ebac7a40052f1c432ab4b73
+    family: web-django-large
+    build: pip
+    python: []
+    checks: "Django + large pytest-based suite; Postgres supported"
+    services: [postgres]
+    created: 2012-02-27
+    pushed: 2026-11-01
+    why: "rule: topic:django window, first repo inside support (Python/Django/Postgres) that is far over the size limit -- ~5.8 GB on GitHub (size_kb 6,050,510)."
+    preparation: "n/a (not run)"
+    risk: "~5.8 GB clone; very large history and test suite -- likely to exceed the time/space budget"
+    class: frontier
+    frontier_class: 8
+    frontier_why: "A Python/Django project inside the declared support but ~5.8 GB (far over the 500 MB cap), with a very large test suite likely to time out."
+    product_should: "Abstain on a resource bound: state that the repository exceeds the size/time budget (cannot be cloned/reproduced within limits) -- a resource-limit abstention, explicitly NOT a capability gap or an out-of-scope language diagnosis."

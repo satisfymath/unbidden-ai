@@ -1,0 +1,275 @@
+# Campaign 12 - independent set (never used with Unbidden, inside the declared support).
+# Selected 2026-11-01 by the rule written at the top of corpus-candidates.md. Read-only inspection; commits pinned
+# at inspection time (default branch HEAD). Quotas 1 (fastapi apps) and 3 (flask apps) fell short inside their
+# 60-candidate windows; the shortfalls are recorded in corpus-candidates.md. No criterion was relaxed.
+repos:
+  # ---- quota 1: topic:fastapi, applications with a database service (target 5, found 1) ----
+  - name: mimirq
+    url: https://github.com/skygazer42/MimirQ
+    license: Apache-2.0
+    size_kb: 448784
+    stars: 575
+    default_branch: main
+    commit: 5d08b54beb8011a17ce274319fb79a5f121568c9
+    family: api-postgres
+    build: pip            # requirements.txt + requirements-dev.txt, driven by make
+    python: ["3.11"]
+    checks: "ci.yml > (python 3.11; services: postgres:15, redis:7, minio) make test + python -m pytest tests/...; mixed TS web tested via pnpm/playwright in the same workflow (separate jobs)"
+    services: [postgres, redis, minio]
+    created: 2025-11-28
+    pushed: 2026-10-28
+    why: "rule 1 (topic:fastapi), window w34 / search rank r124; all criteria pass. Tests run with LLM_MOCK_ENABLED=true and dummy sk-test keys, so no paid provider is needed."
+    preparation: "postgres + redis + minio from CI service containers; copy .env.example; no real secrets (mock LLM)"
+    risk: "449 MB (near the 500 MB cap); redis + minio also required; Chinese-first docs; a separate live-core gate exists that would need real provider keys but is not the pytest job"
+    class: independent
+
+  # ---- quota 2: topic:django, applications with a pytest CI path (target 3, found 3) ----
+  - name: mediacms
+    url: https://github.com/mediacms-io/mediacms
+    license: AGPL-3.0
+    size_kb: 68511
+    stars: 5177
+    default_branch: main
+    commit: 9bf46be5f4dc00005dd66e868f1d1d23371acadb
+    family: web-django
+    build: pip            # pyproject.toml + requirements.txt + setup.cfg at root
+    python: ["3.x"]       # pytest runs inside the mediacms-dev docker image; exact interpreter not pinned in the workflow
+    checks: "python.yml > build & test via docker compose; `docker compose -f docker-compose-dev.yaml exec -T web pytest -n auto --cov`; services db=postgres:17.2, redis:alpine"
+    services: [postgres, redis]
+    created: 2020-12-15
+    pushed: 2026-10-26
+    why: "rule 2 (topic:django), window w23 / rank r27; CI invokes pytest (not manage.py test) so it qualifies for the independent set; all criteria pass"
+    preparation: "postgres + redis via the project's docker-compose-dev.yaml; no secrets"
+    risk: "tests run through docker compose (not a bare pytest invocation); mixed React frontend built in a separate job"
+    class: independent
+
+  - name: misago
+    url: https://github.com/rafalp/Misago
+    license: GPL-2.0
+    size_kb: 121427
+    stars: 2781
+    default_branch: main
+    commit: 4a37d19d3d9f74064c75cdda6856350b2daea5df
+    family: web-django
+    build: pip            # requirements.txt + requirements.in + setup.py at root
+    python: ["3.12"]
+    checks: "tests.yml > (python 3.12; service postgres:15) pytest --run-slow --cov=misago"
+    services: [postgres]
+    created: 2012-06-22
+    pushed: 2026-10-31
+    why: "rule 2 (topic:django), window w42 / rank r48; CI invokes pytest with a postgres service; all criteria pass"
+    preparation: "postgres service container from CI; COVERALLS_REPO_TOKEN is only used to upload coverage, not to run tests"
+    risk: "large history; React frontend present but not needed for the Python tests"
+    class: independent
+
+  - name: brightbean-studio
+    url: https://github.com/brightbeanxyz/brightbean-studio
+    license: AGPL-3.0
+    size_kb: 12342
+    stars: 2608
+    default_branch: main
+    commit: 1d11c52007a3f714979ff1b071d153e69a8c274a
+    family: web-django
+    build: pip            # pyproject.toml + requirements.txt at root
+    python: ["3.12"]
+    checks: "ci.yml > Test (pytest) (python 3.12; PostgreSQL 16 started on the runner, also docker-compose postgres:16-alpine) `pytest --cov=apps`; `python manage.py makemigrations --check`"
+    services: [postgres]
+    created: 2026-03-25
+    pushed: 2026-10-25
+    why: "rule 2 (topic:django), window w45 / rank r52; Django app, CI invokes pytest; all criteria pass"
+    preparation: "PostgreSQL 16 (runner service or compose); env secrets are test placeholders in CI"
+    risk: "young project; apps/ layout; social-media connectors are not exercised by the suite"
+    class: independent
+
+  # ---- quota 3: topic:flask, applications (target 3, found 1) ----
+  - name: traefik-manager
+    url: https://github.com/chr0nzz/traefik-manager
+    license: GPL-3.0
+    size_kb: 489402
+    stars: 1656
+    default_branch: main
+    commit: ebf6a8435efa0b344bf25c7027448b2b064e8be0
+    family: web-flask
+    build: pip            # requirements.txt + requirements-dev.txt + pytest.ini at root
+    python: ["3.11"]
+    checks: "tests.yml > pytest (python 3.11) `pytest -q --cov=core --cov=app`; a separate job runs Go `go test ./...`"
+    services: []
+    created: 2026-03-09
+    pushed: 2026-10-31
+    why: "rule 3 (topic:flask), window w20 / rank r34; Flask app with a pytest CI job; all criteria pass. No database (config-file driven)."
+    preparation: "none (no database)"
+    risk: "489 MB (near the 500 MB cap); polyglot (Go + a JS/TS part) though the Python test job is self-contained"
+    class: independent
+
+  # ---- quota 4: topic:library (stars>300), libraries without services, varied build tools (target 6, found 6) ----
+  - name: oauthlib
+    url: https://github.com/oauthlib/oauthlib
+    license: BSD-3-Clause
+    size_kb: 3412
+    stars: 2986
+    default_branch: master
+    commit: 179287a5f9067aac7b1c0d71c4c5e083ccbf58f2
+    family: library
+    build: tox            # tox.ini + Makefile; setuptools backend
+    python: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+    checks: "lint_python.yml + python-build.yml > `pytest` across a python matrix; tox.ini and Makefile targets"
+    services: []
+    created: 2011-11-19
+    pushed: 2026-10-31
+    why: "rule 4 (topic:library), window w06 / rank r07; pure-Python library, pytest in CI, no services; build tools tox + make"
+    preparation: "none"
+    risk: "none notable"
+    class: independent
+
+  - name: rdflib
+    url: https://github.com/RDFLib/rdflib
+    license: BSD-3-Clause
+    size_kb: 24596
+    stars: 2543
+    default_branch: main
+    commit: f87db10f58264d619e5b55f1567bfdca4bb02afc
+    family: library
+    build: uv             # uv.lock + tox.ini; setuptools backend
+    python: ["3.11", "3.12", "3.13", "3.14"]
+    checks: "validate.yaml > pytest (reported as *-pytest-junit-xml); tox.ini; uv.lock present"
+    services: []
+    created: 2012-02-03
+    pushed: 2026-10-28
+    why: "rule 4 (topic:library), window w10 / rank r11; RDF library, pytest in CI, no services; build tools uv + tox"
+    preparation: "none"
+    risk: "a devcontainer docker-compose exists but is not used by the test job"
+    class: independent
+
+  - name: graphtage
+    url: https://github.com/trailofbits/graphtage
+    license: LGPL-3.0
+    size_kb: 11714
+    stars: 2495
+    default_branch: master
+    commit: afa9b34ce09327bcd37bb40e9e61ca97c1baa80d
+    family: library
+    build: hatch          # hatchling backend, driven with uv (uv.lock)
+    python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    checks: "pythonpackage.yml > pytest; hatchling build backend; uv run used in CI"
+    services: []
+    created: 2020-04-21
+    pushed: 2026-10-30
+    why: "rule 4 (topic:library), window w11 / rank r12; semantic-diff library, pytest in CI, no services; build tools hatch (hatchling) + uv"
+    preparation: "none"
+    risk: "none notable"
+    class: independent
+
+  - name: python-progressbar
+    url: https://github.com/wolph/python-progressbar
+    license: BSD-3-Clause
+    size_kb: 3294
+    stars: 879
+    default_branch: develop
+    commit: 05a60c9a2c8fe88570a4bed734579320f9a2cfe8
+    family: library
+    build: pip            # setuptools backend; tox for extras; main.yml runs pytest directly
+    python: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
+    checks: "main.yml > pytest (python matrix); autofix.yml/docs.yml use `tox -e`"
+    services: []
+    created: 2012-02-20
+    pushed: 2026-11-01
+    why: "rule 4 (topic:library), window w25 / rank r26; progress-bar library, pytest in CI, no services; setuptools/pip build with a tox path"
+    preparation: "none"
+    risk: "terminal-oriented; CI runs pytest headless without issue"
+    class: independent
+
+  - name: python-mss
+    url: https://github.com/BoboTiG/python-mss
+    license: MIT
+    size_kb: 1925
+    stars: 1292
+    default_branch: main
+    commit: 6c00e6e9c735d4e65c8b72f2a732e463078a901e
+    family: library
+    build: hatch          # hatchling backend
+    python: ["3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
+    checks: "tests.yml > pytest (python matrix); hatchling backend"
+    services: []
+    created: 2013-07-01
+    pushed: 2026-10-26
+    why: "rule 4 (topic:library), python-library window w21 / rank r22; screenshot library, pytest in CI, no services; build tool hatch"
+    preparation: "a virtual display (Xvfb) is needed for the screen-capture tests on Linux"
+    risk: "tests exercise screen capture and may need a headless display (Xvfb); no network or paid service"
+    class: independent
+
+  - name: reader
+    url: https://github.com/lemon24/reader
+    license: BSD-3-Clause
+    size_kb: 7953
+    stars: 559
+    default_branch: master
+    commit: 4bac04ef9965930896c9acfc3bac01af0f4cbc96
+    family: library
+    build: tox            # tox.ini; setuptools backend
+    python: ["3.12", "3.13", "3.14", "3.15"]
+    checks: "build.yaml > `coverage run -m pytest --runslow` (python matrix); tox.ini"
+    services: []
+    created: 2017-12-24
+    pushed: 2026-11-01
+    why: "rule 4 (topic:library), window w36 / rank r37; feed-reader library (SQLite storage, in-process), pytest in CI, no service containers; build tool tox"
+    preparation: "none (SQLite is file-based, no service)"
+    risk: "none notable"
+    class: independent
+
+  # ---- quota 5: topic:cli, command-line tools (target 3, found 3) ----
+  - name: harlequin
+    url: https://github.com/tconbeer/harlequin
+    license: MIT
+    size_kb: 25555
+    stars: 6498
+    default_branch: main
+    commit: ad3ecef4ff12bc4c89b15fb9c6a628c424afb6e2
+    family: cli
+    build: hatch          # hatchling backend
+    python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    checks: "test.yml + static.yml > pytest (python matrix); hatchling backend"
+    services: []
+    created: 2023-05-02
+    pushed: 2026-11-01
+    why: "rule 5 (topic:cli), window w27 / rank r30; a terminal SQL IDE, pytest in CI; build tool hatch"
+    preparation: "none for the default suite (its SQLite/DuckDB adapters are in-process; the postgres adapter is optional)"
+    risk: "TUI app; the default tests use in-process databases, so no service container is required"
+    class: independent
+
+  - name: dooit
+    url: https://github.com/dooit-org/dooit
+    license: MIT
+    size_kb: 10698
+    stars: 2964
+    default_branch: main
+    commit: ba2a7efdbb56297ee7ed9273232cce265e3254da
+    family: cli
+    build: hatch          # hatchling backend
+    python: ["3.9", "3.10", "3.11", "3.12"]
+    checks: "pytest.yml > Pytest (python matrix); hatchling backend"
+    services: []
+    created: 2022-04-19
+    pushed: 2026-08-15
+    why: "rule 5 (topic:cli), window w50 / rank r55; a TUI to-do manager, pytest in CI; build tool hatch"
+    preparation: "none"
+    risk: "TUI app tested headless in CI"
+    class: independent
+
+  - name: pipx
+    url: https://github.com/pypa/pipx
+    license: MIT
+    size_kb: 7199
+    stars: 12984
+    default_branch: main
+    commit: 2ccbdf4c879c04f0dda457b47cb6a051146231bb
+    family: cli
+    build: hatch          # hatchling backend
+    python: ["3.11", "3.12", "3.13", "3.14", "3.15"]
+    checks: "tests.yml > pytest (python matrix); hatchling backend"
+    services: []
+    created: 2018-10-06
+    pushed: 2026-10-30
+    why: "rule 5 (topic:cli), window w13 / rank r15; a CLI to run/install Python applications, pytest in CI; build tool hatch"
+    preparation: "none for unit tests; some integration tests install packages"
+    risk: "part of the suite installs real packages (network); unit markers run offline"
+    class: independent
