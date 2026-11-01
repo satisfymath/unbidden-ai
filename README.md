@@ -65,7 +65,7 @@ unbidden stop         # ends the agent cleanly; `unbidden start` resumes interru
 ```
 
 Verified by hand on macOS arm64 only; Linux x86-64 runs in GitHub Actions (CI jobs `check`, `frontend`, `installed`;
-results: TODO(fill)). `unbidden update` and `unbidden uninstall` keep `~/.unbidden` and every repository's `.unbidden/`.
+CI run [41333127432](https://github.com/satisfymath/unbidden-ai/actions/runs/41333127432) on `2d72ce4`, 2026-11-01: `check`, `frontend`, `installed` and `secrets` all green). `unbidden update` and `unbidden uninstall` keep `~/.unbidden` and every repository's `.unbidden/`.
 
 ## Where your code goes
 

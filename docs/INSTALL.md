@@ -6,7 +6,7 @@ web workspace already built inside. The installer puts it in its own environment
 their own.
 
 Verified by hand on macOS on Apple Silicon (arm64) only. Linux x86-64 runs in GitHub Actions (CI jobs `check`,
-`frontend`, `installed`; results: TODO(fill)).
+`frontend`, `installed`; CI run [41333127432](https://github.com/satisfymath/unbidden-ai/actions/runs/41333127432) on `2d72ce4`, 2026-11-01: `check`, `frontend`, `installed` and `secrets` all green).
 
 ## One line
 
@@ -312,7 +312,8 @@ interrupted job; total spend US$0.0438. Details: `docs/PRODUCT-ONBOARDING-PLAN.m
 
 - **No public release yet.** The one-line install does not work until the first release is published; `unbidden
   update` without `--version` reports the same.
-- **Linux not verified by hand**: GitHub Actions is the only Linux evidence (results: TODO(fill)).
+- **Linux not verified by hand**: GitHub Actions is the only Linux evidence (CI run [41333127432](https://github.com/satisfymath/unbidden-ai/actions/runs/41333127432) on `2d72ce4`, 2026-11-01: `check`, `frontend`, `installed` and `secrets` all green; what
+  the `installed` job does and does not cover is in `docs/RELEASE.md`, "CI on Linux x86-64").
 - `doctor` checks the daemon and the buildx and compose plugins, each explained; without buildx a cycle records a
   `compatibility` block on the first build instead of work (seen on 2026-11-01 with an empty HOME).
 - A dashboard served apart (`unbidden ui`) keeps its own model runs and egress in `~/.unbidden/web/<source>-state.db`;

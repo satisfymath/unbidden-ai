@@ -1352,8 +1352,9 @@ passed (981 collected); a robustness probe with 3 calls to Meta's API found 1 pr
 cited the record's counts and blocks; 2 widgets by rules with provenance `live:rich-s11`; `stop` and a reopen kept the
 2 widgets and 8 messages; a second `start` refused; `kill -9` left a stale lock and the next `start` resumed 1 job;
 clean `stop`, no KILL file, 14 events before and after. Spend US$0.0438 of `s11-product`'s 3.80; the machine's cap
-unchanged. `make check` green. Linux x86-64: CI jobs `check`, `frontend`, `installed` on `ubuntu-latest`; results:
-TODO(fill) (nothing pushed at the time of writing).
+unchanged. `make check` green. Linux x86-64: CI jobs `check`, `frontend`, `installed` on `ubuntu-latest`; results: run
+41333127432 on `2d72ce4`, every job green (check 939 passed; frontend vitest 10 and Playwright 7; installed: every step;
+secrets clean). Docker was only reported there; no model was called; the real cycle ran on macOS arm64 only.
 
 **What is not.** No public release: the one-line install is documented as "available once the first release is
 published"; the local-artifact procedure is the one that works. Linux is not verified by hand. Options `local` and

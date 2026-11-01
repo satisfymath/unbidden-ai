@@ -8,7 +8,7 @@ on the engine's own records (D-064). Nothing is published, tagged, released, mer
 
 ## The exact point
 
-- Code: product branch `feat/63-product-onboarding` (SHA: TODO(fill)), cut from `main` at `d560b6f` (the merge of
+- Code: product branch `feat/63-product-onboarding` (code at `2d72ce4`, the commit CI validated; the head adds documentation only), cut from `main` at `d560b6f` (the merge of
   PR #2: 0.9.0 and the web workspace). `pyproject.toml` says `0.9.0`; `unbidden --version` prints `unbidden 0.9.0`.
   `uv.lock` pins every Python dependency (Python 3.12). This file is updated after the commit it names: read it from
   the branch head.
@@ -104,7 +104,7 @@ The one guide is `docs/INSTALL.md`. The short form, from a checkout, until a rel
 
 ```sh
 git clone https://github.com/satisfymath/unbidden-ai.git && cd unbidden-ai
-git checkout feat/63-product-onboarding       # the candidate named above (SHA: TODO(fill))
+git checkout feat/63-product-onboarding       # the candidate named above (code 2d72ce4 + docs)
 make dist                                      # Node 24 builds the web workspace; uv build; SHA256SUMS
 (cd dist && python3 -m http.server 8777 --bind 127.0.0.1 &)
 UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.9.0
@@ -162,14 +162,23 @@ Record: `docs/PRODUCT-ONBOARDING-PLAN.md`, "Validación real acotada". Not walke
 
 ## CI on Linux x86-64
 
-TODO(fill). What runs: `.github/workflows/ci.yml` on every push and pull request, jobs `check` (ruff, ruff format,
-pyright, pytest), `frontend` (lint, types, vitest, build, Playwright against the Python server) and `installed` (the
-wheel built with the web workspace inside, installed by `install.sh` from a local server into an empty HOME; setup
-`api` without a terminal; `doctor`; the home screen; `start`/`status`/a refused second `start`/`stop`; the dashboard
-from the installed package, reused and stopped; the chat by rules; uninstall keeping the data; no model called,
-Docker only reported), and `secrets` (gitleaks). `.github/workflows/release.yml` is manual (`workflow_dispatch`) and
-publishes nothing: it builds the wheel, sdist and `SHA256SUMS` and smoke-tests the installer on `ubuntu-latest`.
-Nothing was pushed from the product branch at the time of writing, so no run exists yet.
+Run [41333127432](https://github.com/satisfymath/unbidden-ai/actions/runs/41333127432) on `2d72ce4` (`ubuntu-latest`,
+x86-64, 2026-11-01), every job green. Reported apart, as each covers a different thing:
+
+| Job | What ran | Result |
+|---|---|---|
+| `check` | `uv sync --frozen`, ruff, ruff format, pyright, `pytest -q` (the deterministic suite, mocks for every model) | 939 passed, 2 skipped, 6 deselected (slow) |
+| `frontend` | `npm ci`, lint, typecheck, vitest, `npm run build`, Playwright (Chromium) against the Python server serving the built assets on the demo and a historical record | vitest 10 passed; Playwright 7 passed |
+| `installed` | the wheel built with the web workspace inside; `install.sh --yes --version 0.9.0` from a local server into an empty HOME; `unbidden --version`; `setup --non-interactive --models api --mode supervised` in a fresh repository; `doctor --json` (Ollama and the local model optional, Meta API required); the home screen; `setup --mode autonomous` refused with exit 4 and nothing written; `start` → `status` (running) → a second `start` refused → one `watch` process → `stop` → `status` (not running, not stale), no KILL file; `unbidden ui` serving the built `index.html` from the installed package (no Node on that path), reused on a second call, `chat` by rules (inform; an action refused), `ui --stop`; Docker reported (present on the runner, with buildx and compose); `install.sh --uninstall --yes` keeping the data | all steps passed |
+| `secrets` | gitleaks over the history | clean |
+
+What this does and does not show: artifact install and command resolution on Linux x86-64, yes; onboarding and the
+deterministic walk, yes; the daemon's start/stop/status and the dashboard from the installed package, yes; Docker,
+only its presence (no sandbox build, no cycle); no model was called (US$0). "Linux validated end to end" would
+require a real cycle with Docker and a model on a Linux host, which was not run. The real cycle, the chat analysis
+and the dashboard with real events were run on macOS arm64 only (`docs/bench/product-walk-2026-11-01/`).
+`release.yml` (manual, publishes nothing) could not be dispatched from the branch: GitHub only runs a
+`workflow_dispatch` workflow that exists on the default branch, so it waits for the merge.
 
 ## Preparing a project apart
 
