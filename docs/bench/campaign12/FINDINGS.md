@@ -52,3 +52,14 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
 - 2026-11-01 · Level B pilot, marshmallow B1 · the second cycle's dashboard came up on 8861 although `start --ui
   --port 8860` was asked: the port was still held (TIME_WAIT or the previous server's socket) and `free_port` moved on
   without a word in `status` beyond the new URL · UX (say "8860 was busy; using 8861" in `start`'s output) · open.
+- 2026-11-01 · Level A pilot, codex-lb · 34 of 6,422 tests failed in the sandbox with `FileNotFoundError: 'git'`:
+  the dependency image has no git, and the record says `failed` (a project failure) where the cause is the
+  environment · defect (classification: a missing system tool in the image should read as `infra_failed`, like
+  humanize's `msgfmt`) · open.
+- 2026-11-01 · Level A pilot, conduit · `blocked`: `asyncpg==0.26.0` has no arm64 wheel and the slim image has no
+  `gcc`; the stage-7 lab solved it by building the app image for linux/amd64 (human preparation). The product says
+  so in `scan`'s problems and in the record · limit (environment reproduction: no compiler, no platform fallback) ·
+  open.
+- 2026-11-01 · Level A pilot, development set · 12/12 installed, onboarded, agent lifecycle and dashboard; checks
+  reproduced with tests collected 10/12 (passed 8, project failures 2), environment failures 2 (humanize, conduit);
+  US$0 (cap 0 refused every model call; the refusal is in each agent log) · observation · recorded.

@@ -248,5 +248,55 @@
   "ui": true,
   "spent_usd": 0.0151,
   "wall_s": 48.0
+ },
+ {
+  "name": "timetracker",
+  "class": "dev",
+  "family": "web-flask",
+  "record": "docs/bench/campaign12/pilot/timetracker/A.json",
+  "setup": true,
+  "doctor_ok": true,
+  "scan_ok": true,
+  "checks": "failed",
+  "collected": 655,
+  "opps": 10,
+  "lifecycle": {
+   "started": true,
+   "running_after_checks": true,
+   "second_start_refused": true,
+   "stopped": true,
+   "jobs_left_running": 0,
+   "stale_after": false,
+   "kill_file": false,
+   "status0_ok": true
+  },
+  "ui": true,
+  "spent_usd": 0.0031,
+  "wall_s": 93.4
+ },
+ {
+  "name": "sqlmodel",
+  "class": "dev",
+  "family": "library",
+  "record": "docs/bench/campaign12/pilot/sqlmodel/A.json",
+  "setup": true,
+  "doctor_ok": true,
+  "scan_ok": true,
+  "checks": "passed",
+  "collected": 268,
+  "opps": 0,
+  "lifecycle": {
+   "started": true,
+   "running_after_checks": true,
+   "second_start_refused": true,
+   "stopped": true,
+   "jobs_left_running": 0,
+   "stale_after": false,
+   "kill_file": false,
+   "status0_ok": true
+  },
+  "ui": true,
+  "spent_usd": 0.0,
+  "wall_s": 30.0
  }
 ]
