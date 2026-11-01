@@ -697,3 +697,28 @@ stage10-regression/checks/`). The plan from here is one document, **`CAMPAIGN-v1
 and their order, the 20-repository development corpus and the rule for 8 reserved applications, the preparation
 gate, the independent evaluation's targets, the fixed exit criteria, the budget (US$11.21 available of the US$37.29
 cap; an incremental request prepared), time and stop conditions. Criteria do not move after results are known.
+
+## Product 0.9 to 1.0 (2026-11-01, D-063)
+
+The campaign to v1.0 paused at its gate (D-063): commit `0ea665d` is version 0.9.0, the experimental candidate, with
+`RESULTS.md` as its matrix. From here the work is product, in this order, each step measured on a person's minutes
+and decisions:
+
+1. **Clean installation walk**: Linux/x86-64 (a VM under OrbStack, declared virtualized) and macOS arm64 native, from
+   nothing to `unbidden doctor` green, written as `RELEASE.md` says and corrected where it lies.
+2. **`doctor` with a declared support matrix**: what Unbidden understands (pytest; uv, pip, poetry; GitHub Actions
+   jobs with service containers; tox; make; compose data services) and what it refuses with a cause up front
+   (Django's runner, JavaScript builds in Python jobs, other languages) — on `observe/scope.py`'s `diagnose`, so the
+   contract replaces trying and failing.
+3. **CLI and guided configuration**: `init`, credentials by reference, the mandate explained in the person's terms,
+   `prepare` as the one path (826c8e3).
+4. **The evidence report** as the central artifact (`unbidden report`: what was found, what was verified, by whom,
+   with what cost), and cancel, recover and clean.
+5. **Demo and docs.**
+6. **Measuring 0.9.0 from zero**: a clean installation, then the full cycle on a set of repositories (checks cost
+   US$0, `bench/level_a.py`; experiments draw on the US$9.57 left), reading every failure as the level-A READMEs do.
+   This is 0.9.0's evaluation; v1.0 stays a separate decision with its criteria in `CAMPAIGN-v1.md`.
+7. **Front end** on top of the report (David's session).
+
+Rules unchanged: no PR, merge, tag or release from this work; the cap and the ledger never reset; "experimental
+candidate" until the criteria hold.

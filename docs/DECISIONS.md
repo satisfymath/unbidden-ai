@@ -1255,3 +1255,49 @@ incremental request of US$8.30 (cap US$45.60) is prepared in the campaign docume
 confirmed under perf-v4 with the content comparison of dec7ba2 (the comparison of 49d3259 is recorded as superseded,
 not relied on); mealie's L4 is unconfirmed; Prefect's L4s of B-r14/A-r15/A-r16 are outside its CI's tool scopes and
 do not count.
+
+## D-063 · 2026-11-01 · The campaign pauses at its gate; 0.9.0 frozen as the experimental candidate; the work turns to product
+
+**Decided (David, 2026-11-01).** The campaign to v1.0 (`CAMPAIGN-v1.md`) stops at the preparation gate, at commit
+`0ea665d` of `feat/60-experiments`. That commit is frozen as **version 0.9.0, "experimental candidate"**
+(`pyproject.toml` only; no tag, no release, no PR, as every stage before). The criteria of v1.0 are not met and are
+not changed; they stay in `CAMPAIGN-v1.md` as written before any result was known. The work from here is product:
+installation, `doctor`'s declared support, CLI and configuration, the evidence report, cancel/recover/clean, demo and
+docs (`PLAN.md`, "Product 0.9 to 1.0"); the front end is David's, in his own session, on top of the report.
+
+**Where the gate stood.** Criterion 1 (16 of 20 development repositories reproduce their checks): met under the
+stated rule (18 of 20 at run 7, `stage10-campaign/level-a-0ea665d`), not under the strict reading (10 pass
+outright). Criterion 2 (no known failure allows a false promotion or an action outside the mandate): no
+counterexample; the migration-naming fix of c840697 is unverified on codex-lb. Criterion 3 (controls 7 of 7 on the
+commit): 7 of 7 at 0102ccb; at 0ea665d the run was started as the last run of this campaign and its result stands as
+recorded in `stage10-controls/0ea665d/README.md`, whatever it is. Criterion 4 (repeatable cycles on three
+applications and two families): fst (performance, confirmed repeatedly under perf-v4), codex-lb (performance, two
+experiments, the same correct abstention), Aegra (consistency, once); Conduit's L4 is not revalidated under the
+current comparator; mealie's L4 did not hold on PostgreSQL. Partial. Criterion 5 (every block classified): met.
+
+**Why pause rather than push.** What is demonstrated is enough to build a product on: environments and checks
+reproduced on 18 of 20 repositories without a repository named in code, an evaluator that abstains correctly and has
+promoted nothing false since perf-v3, consistency and authorization findings verified by the checker. What is
+missing, a natural improvement verified on an application nobody prepared for it, is not bought with more
+preparation rules: it needs the frozen evaluation on the reserved set, which costs more than the budget that is left
+(US$9.57 of 37.29) allows to repeat. The series of seven level-A runs also showed the cost of that road: each rule
+that widened the planner was measured on the whole corpus because twice it regressed another repository.
+
+**What "improvement" has meant, said plainly.** Verified improvements: performance (perf-v4). Verified findings:
+consistency (API against stored data), authorization (endpoints that answer without the credential they declare),
+crashes. Families with a detector but no verifier yet, which a future version would add each with its own standard
+of evidence: dependencies with a known vulnerability and a fixed version, N+1 and non-FK queries, configuration
+that cannot be discovered. A finding without an external, reproducible check is reported, never promoted.
+
+**Budget.** Spent US$27.7199 of the US$37.2945 cap; US$9.5746 available; envelopes `s10-dev` 13.00 (9.73 spent),
+`s10-eval` 3.50 (1.00), `s10-close` 3.80 (0). Nothing is reset. The incremental request of US$8.30 stays prepared and
+unauthorized. The remaining amount is reserved for measuring 0.9.0 from a clean installation (checks cost nothing;
+experiments draw on it), which is that version's evaluation.
+
+**What would resume the campaign.** A decision here, with: the reserved set selected by the recorded rule, the
+budget for one frozen evaluation and one repetition, and the product closing done, so that the evaluation measures
+installation and configuration as a person meets them.
+
+**Effect on earlier claims.** None withdrawn. Level A's honest counts (13, 12, 14, 14, 14, 17, 18 of 20) and the
+tool's counts (15, 16, 17, 17, 18, 19, 19) are both kept; the rule that separates them is stated in each README.
+Zero false promotions in stages 9 and 10 remains "nothing reached promotion", not precision.

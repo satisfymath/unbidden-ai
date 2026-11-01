@@ -1,4 +1,8 @@
-# Campaign to v1.0: robustness and generalization
+# Campaign to v1.0
+
+> **Paused at the gate, 2026-11-01 (D-063).** Commit `0ea665d` frozen as 0.9.0, experimental candidate. The
+> criteria below are unchanged; what met and what did not is in D-063 and `RESULTS.md`. The work continues in
+> `PLAN.md`, "Product 0.9 to 1.0". Resuming this campaign is a new decision.: robustness and generalization
 
 Written 2026-10-31 from the state after stage 10's frozen evaluation (`docs/bench/stage10-eval/README.md`: three
 technical blocks, zero experiments) and its first regressions (`docs/bench/stage10-regression/checks/README.md`: the
