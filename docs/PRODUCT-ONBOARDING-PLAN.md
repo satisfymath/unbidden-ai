@@ -604,3 +604,34 @@ idempotente y verificado, `unbidden setup --non-interactive` en los tres perfile
 `install.sh` desde servidor local → `unbidden --version`, `unbidden setup --non-interactive --models api …`,
 `unbidden doctor --json`, `unbidden`, `unbidden start`, `unbidden ui`, `unbidden stop`, `unbidden start`; Actions
 `ubuntu-latest` con los mismos pasos; corridas reales sólo con el envelope autorizado.
+
+---
+
+## Estado 2026-11-01: entregas A y B hechas (commits locales, sin push)
+
+Decisiones de David recogidas: Releases primero y PyPI después; elección explícita de modelos (se recomienda, nunca
+se activa solo); UI en el daemon si conserva un único escritor, con approve/reject/approve_writes/kill-resume y
+deploy/rollback como comando CLI; inglés con textos centralizados (`unbidden/setup/text.py`); envelope `s11-product`
+US$4.00 reasignado desde `s10-close` (cap y total intactos); README/RELEASE/PLAN/DECISIONS sólo en la entrega E;
+Linux validado en Actions x86-64 informando cuatro niveles por separado.
+
+**A (distribución)**: `pyproject.toml` incluye `unbidden/web/static/**` en wheel y sdist; `__version__` desde los
+metadatos instalados; `install.sh` (raíz y copia en `unbidden/distribution/`, idénticas por test) verifica SHA256 antes
+de `uv tool install --python 3.12`, es idempotente, `--version` permite volver atrás, `--uninstall` conserva los
+datos; `unbidden update` y `unbidden uninstall`; `make dist`; `.github/workflows/release.yml` sólo `workflow_dispatch`,
+construye y prueba en `ubuntu-latest` sin publicar; `docs/INSTALL.md`. Verificado en esta máquina: wheel de 925 KB
+con los cuatro assets del frontend, instalado desde un servidor local en un HOME vacío, `unbidden --version` 0.9.0, la
+UI servida por el venv de la herramienta sin Node, suma alterada rechazada, desinstalación con `~/.unbidden` intacto.
+
+**B (onboarding)**: `guardian/mandate_edit.py` (MODES, condiciones de autonomous, opciones de modelos, escritura
+validada y atómica con `MANDATE_CHANGED`; `mode` y `models` lo usan); `unbidden setup` interactivo y
+`--non-interactive` (local / mixed / api; api = frontier + local_inference deny + local_fallback deny y no exige
+Ollama); credenciales por nombre en `~/.unbidden/.env` (600, conservando otras claves), listado gratuito explicado,
+prueba pagada opt-in con coste máximo; autonomous explicado y degradado a una configuración válida; permisos
+efectivos por `PolicyEngine`; conexiones; presupuesto con el ledger; diff antes de escribir; reanudable
+(`.unbidden/setup.json`); `unbidden` sin argumentos abre el asistente o la pantalla de estado; `doctor` marca
+obligatorio/opcional según la opción. `make check`: 886 tests.
+
+**No validado**: URL pública (no hay release); el runner de Actions no se ejecutó (sin push); integración con Docker
+más allá de `docker info`; ciclo con modelo real (gasto US$0; `s11-product` 0 de 4.00). Pendiente C (lock de
+ejecutor, start/stop/status) y D (`unbidden ui`, chat, cap común, decisiones).
