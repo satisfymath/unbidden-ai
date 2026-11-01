@@ -2,30 +2,34 @@
 
 ## Level A
 
-**dev** (n=10; inside support 10)
-- installations/onboardings completed: 10/10 (100%, 95% CI 72-100%); doctor without a missing requirement: 10/10 (100%, 95% CI 72-100%)
-- checks executed (passed or failed, tests collected): 8/10 (80%, 95% CI 49-94%) of those inside support; green 7, project failures 1, environment failures/blocked 2, not reached/no tests 0
-- agent start/second start refused/stop: 10/10 (100%, 95% CI 72-100%); dashboard opened and answered: 10/10 (100%, 95% CI 72-100%); spend US$0.0886
+**dev** (n=12; inside support 12)
+- installations/onboardings completed: 12/12 (100%, 95% CI 76-100%); doctor without a missing requirement: 12/12 (100%, 95% CI 76-100%)
+- checks executed (passed or failed, tests collected): 10/12 (83%, 95% CI 55-95%) of those inside support; green 8, project failures 2, environment failures/blocked 2, not reached/no tests 0
+- agent start/second start refused/stop: 12/12 (100%, 95% CI 76-100%); dashboard opened and answered: 12/12 (100%, 95% CI 76-100%); spend US$0.0031
 
 | repo | class | family | setup | doctor | checks | collected | image | opps | agent | ui | spent | wall s |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| aegra | dev | api-postgres | ok | ok | passed | 2429 | cached | 0 | ok | ok | 0.006 | 112 |
-| codex-lb | dev | api-postgres | ok | ok | failed | 6422 | cached | 0 | ok | ok | 0.0375 | 342 |
-| conduit | dev | api-postgres | ok | ok | blocked |  |  | 0 | ok | ok | 0.0474 | 23 |
-| ctfd | dev | web-flask | ok | ok | passed | 679 | cached | 0 | ok | ok | 0.0151 | 398 |
-| fst | dev | api-postgres | ok | ok | passed | 58 | cached | 3 | ok | ok | 0 | 80 |
-| humanize | dev | library | ok | ok | infra_failed |  |  | 0 | ok | ok | 0 | 21 |
-| marshmallow | dev | library | ok | ok | passed | 1192 |  | 4 | ok | ok | 0 | 25 |
-| pyjwt | dev | library | ok | ok | passed | 476 |  | 0 | ok | ok | 0 | 33 |
-| rich | dev | library | ok | ok | passed | 981 |  | 4 | ok | ok | 0 | 52 |
-| spoolman | dev | api-postgres | ok | ok | passed | 278 | cached | 0 | ok | ok | -0.0174 | 49 |
+| aegra | dev | api-postgres | ok | ok | passed | 2429 | cached | 0 | ok | ok | 0.0 | 112 |
+| codex-lb | dev | api-postgres | ok | ok | failed | 6422 | cached | 0 | ok | ok | 0.0 | 342 |
+| conduit | dev | api-postgres | ok | ok | blocked |  |  | 0 | ok | ok | 0.0 | 23 |
+| ctfd | dev | web-flask | ok | ok | passed | 679 | cached | 0 | ok | ok | 0.0 | 398 |
+| fst | dev | api-postgres | ok | ok | passed | 58 | cached | 3 | ok | ok | 0.0 | 80 |
+| humanize | dev | library | ok | ok | infra_failed |  |  | 0 | ok | ok | 0.0 | 21 |
+| marshmallow | dev | library | ok | ok | passed | 1192 |  | 4 | ok | ok | 0.0 | 25 |
+| pyjwt | dev | library | ok | ok | passed | 476 |  | 0 | ok | ok | 0.0 | 33 |
+| rich | dev | library | ok | ok | passed | 981 |  | 4 | ok | ok | 0.0 | 52 |
+| spoolman | dev | api-postgres | ok | ok | passed | 278 | cached | 0 | ok | ok | 0.0 | 49 |
+| sqlmodel | dev | library | ok | ok | passed | 268 | cached | 0 | ok | ok | 0.0 | 70 |
+| timetracker | dev | web-flask | ok | ok | failed | 655 | cached | 10 | ok | ok | 0.0031 | 804 |
 
 ## Level B
 
 | repo | run | mode | c1 proposals | c2 proposals | PRs on fork | merged | deploys seen | duplicates | blocks | spent | UI | chat analyze |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
+| fst | B1 | autonomous | 1 | 1 | 1 | 0 | 1 | none | 0 | 0.1685 | ok | code |
 | marshmallow | B1 | autopilot | 0 | 0 | 0 | 0 | 0 | none | 0 | 0.0182 | ok | code |
 | rich | B1 | autopilot | 3 | 3 | 3 | 0 | 0 | none | 0 | 0.0735 | FAIL | code |
+| spoolman | B1 | autonomous | 0 | 0 | 0 | 0 | 1 | none | 0 | 0.746 | ok | code |
 
 ## Seeded scenarios (apart from natural findings)
 
@@ -36,6 +40,6 @@
 | budget exhausted (mandate cap 0) | pass |
 | Docker not available | pass |
 | two simultaneous starts, then a crash during a job | pass |
-| UI port busy; close and reopen | fail |
 | kill switch engaged before start; inspect and resume from the dashboard | pass |
 | partial read vs complete vs missing | pass |
+| UI port busy; close and reopen | pass |

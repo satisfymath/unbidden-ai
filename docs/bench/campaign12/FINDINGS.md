@@ -90,3 +90,7 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
   the change; the drill's deploy is the only one; the second cycle repeated nothing; the lab stayed healthy ·
   observation + campaign setup limit (the fork's CI must run on the campaign base for the merge/deploy path to be
   observable) · open.
+- 2026-11-01 · Level B pilot, fst B1 · 10 of 46 `world.endpoint_tables` payloads were blocked by the egress gate
+  ("payload contains 1 secret(s)"): the repository's own code holds values the scanner reads as secrets (its example
+  settings), so those endpoint-to-table readings never left and the map was built from the other 36 · observation
+  (correct refusal; the map's coverage is reduced by it) · recorded.
