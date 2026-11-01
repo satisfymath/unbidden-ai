@@ -74,6 +74,10 @@ def make_brain_for(planner: str, state_dir: Path) -> Any:
             except Exception as exc:  # no installed model fits: the provider will say so on the first call
                 print(f"local model: {exc}", file=sys.stderr)
             mandate = source.mandate or Mandate.model_validate(default_mandate(source.name, None)["mandate"])
+            # A chat turn tolerates a few rejected tool calls from a small local model; the engine's default (one
+            # repair) is tuned for its own, more constrained purposes. This copy is the web process's alone.
+            config = config.model_copy(deep=True)
+            config.brain.max_repairs = max(config.brain.max_repairs, 3)
             safe = "".join(c if c.isalnum() else "_" for c in source.id)
             store = Store(state_dir / f"{safe}-state.db")
             brain = Brain(

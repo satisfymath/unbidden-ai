@@ -26,18 +26,22 @@ from unbidden.director.blocks import COLLECTION as BLOCKS
 from unbidden.director.blocks import Block
 from unbidden.web import datasets
 from unbidden.web.contracts import (
+    Aggregate,
     ChatMessage,
     ChatRequest,
     ChatToolCall,
     DataRef,
     Edge,
     EntityRef,
+    Filter,
     Position,
     PresentationUpdate,
     Provenance,
     Size,
+    Sort,
     ToolError,
     ToolResult,
+    Transform,
     View,
     WidgetSpec,
     WidgetType,
@@ -91,15 +95,48 @@ class NoArgs(_Args):
     pass
 
 
+class InspectArgs(_Args):
+    """`inspect_data` as the model sees it: one flat object. A `DataRef` (dataset, params, transform) is also
+    accepted by the runtime, for callers that already hold one."""
+
+    dataset: str = Field(pattern=r"^[a-z][a-z0-9_.]*$", max_length=64, description="a dataset id from the catalogue")
+    params: dict[str, str | int | float | bool | None] = Field(
+        default_factory=dict, description='dataset parameters, e.g. {"experiment_id": "exp_1"}'
+    )
+    select: list[str] | None = Field(default=None, max_length=32)
+    filter: list[Filter] = Field(default_factory=list, max_length=16)
+    group_by: str | None = None
+    aggregate: Aggregate | None = None
+    sort: Sort | None = None
+    limit: int = Field(default=50, ge=1, le=5000)
+
+    def ref(self) -> DataRef:
+        return DataRef(
+            dataset=self.dataset,
+            params=self.params,
+            transform=Transform(
+                select=self.select,
+                filter=self.filter,
+                group_by=self.group_by,
+                aggregate=self.aggregate,
+                sort=self.sort,
+                limit=self.limit,
+            ),
+        )
+
+
 TOOLS: dict[str, tuple[type[BaseModel], str]] = {
     "inspect_data": (
-        DataRef,
-        "Read a dataset with a bounded transform; returns columns, a sample of rows and provenance.",
+        InspectArgs,
+        "Read a dataset: returns its columns, a sample of rows and provenance. Call it with the dataset id and, "
+        'optionally, params and a limit, e.g. {"dataset": "opportunities", "limit": 20}.',
     ),
     "create_widget": (
         CreateWidgetArgs,
-        "Add a widget to the canvas from a validated specification (type, title, "
-        "dataRef, view). Charts need a dataRef; x/y must be columns of the dataset.",
+        "Add a widget to the canvas from a validated specification (type, title, dataRef, view). Charts and "
+        'tables need a dataRef such as {"dataset": "experiment.samples", "params": {"experiment_id": "exp_1"}}; '
+        'a chart view is {"kind": "line|bar|scatter|distribution", "x": <column>, "y": <column>} and '
+        "x/y must be columns of that dataset.",
     ),
     "update_widget": (UpdateWidgetArgs, "Change a widget's title, view (kind, x, y, series), dataRef or size."),
     "connect_widgets": (
@@ -206,6 +243,8 @@ class ToolRuntime:
                 error=ToolError(code="unsupported", detail=f"no tool named {name!r}"),
             )
         model, _ = spec
+        if name == "inspect_data" and "transform" in arguments:
+            model = DataRef  # a caller holding a full reference, as the widgets do
         try:
             args = model.model_validate(arguments)
         except ValidationError as exc:
@@ -225,7 +264,8 @@ class ToolRuntime:
                 error=ToolError(code="invalid", detail=str(exc)),
             )
 
-    def tool_inspect_data(self, ref: DataRef) -> ToolResult:
+    def tool_inspect_data(self, args: InspectArgs | DataRef) -> ToolResult:
+        ref = args if isinstance(args, DataRef) else args.ref()
         probe = ref.model_copy(
             update={"transform": ref.transform.model_copy(update={"limit": min(ref.transform.limit, 20)})}
         )
@@ -732,10 +772,25 @@ class RulePlanner:
 
 # Brain-backed planner ----------------------------------------------------------------------------------------
 
-SYSTEM = """You are the assistant of Unbidden's web workspace. You answer in Spanish, briefly.
-You may only act through the tools. Never invent numbers: read them with inspect_data first. If the record lacks
-the data, say so and name what would produce it. A request to show something never runs an experiment, opens an
-access or deploys anything. Datasets available: {catalogue}. Selected widgets: {selected}."""
+SYSTEM = """You are the assistant of Unbidden's web workspace ({workspace}). You answer in Spanish, briefly.
+You may only act through the tools. Never invent numbers or findings: read them first with
+inspect_data({{"dataset": <id>, "params": {{...}}, "limit": 20}}) and answer from what it returns; one or two reads
+are usually enough, then answer the question with the numbers you read and their ids. To put something
+on the canvas use create_widget with a dataRef {{"dataset": <id>, "params": {{...}}}} and a view whose x/y are columns
+of that dataset. If the record lacks the data, say so and name what would produce it. A request to show something
+never runs an experiment, opens an access or deploys anything.
+Datasets (id: columns; params):
+{catalogue}
+Selected widgets: {selected}."""
+
+
+def _catalogue_lines() -> str:
+    lines = []
+    for d in datasets.catalogue():
+        cols = ", ".join(c["name"] for c in d["fields"])
+        params = ", ".join(d["params"]) or "none"
+        lines.append(f"- {d['id']}: {cols}; params: {params}")
+    return "\n".join(lines)
 
 
 class BrainPlanner:
@@ -754,7 +809,6 @@ class BrainPlanner:
         cancelled: threading.Event,
         correlation: str,
     ) -> tuple[str, list[ChatToolCall], list[ToolResult]]:
-        cat = ", ".join(f"{d['id']} ({', '.join(c['name'] for c in d['fields'][:6])})" for d in datasets.catalogue())
         selected = (
             "; ".join(
                 f"{w.id}: {w.type} «{w.title}»" + (f" entity {w.entity.kind}:{w.entity.id}" if w.entity else "")
@@ -762,23 +816,36 @@ class BrainPlanner:
             )
             or "none"
         )
-        messages = [Message(role="system", content=SYSTEM.format(catalogue=cat, selected=selected), source="prompt")]
+        workspace = f"{rt.source.name}, {rt.source.mode} mode"
+        system = SYSTEM.format(workspace=workspace, catalogue=_catalogue_lines(), selected=selected)
+        messages = [Message(role="system", content=system, source="prompt")]
         for m in history[-6:]:
             if m.role in ("user", "assistant") and m.content:
                 messages.append(Message(role=m.role, content=m.content[:2000], source="prompt"))
         messages.append(Message(role="user", content=text, source="prompt"))
         calls: list[ChatToolCall] = []
         results: list[ToolResult] = []
-        for _ in range(4):
+        rounds = 5
+        for round_no in range(rounds + 1):
             if cancelled.is_set():
                 return "Cancelado antes de completar la planificación.", calls, results
             emit("state", {"state": "thinking"})
+            last = round_no == rounds  # the round budget is spent: the model must answer from what it read
+            if last:
+                messages.append(
+                    Message(
+                        role="user",
+                        content="No more tool calls: answer now, in Spanish, from what the tools returned, "
+                        "and say what you did not get to read.",
+                        source="prompt",
+                    )
+                )
             response = await self.brain.complete(
                 LLMRequest(
                     purpose="web.chat",
                     tier=Tier.LOCAL,
                     messages=messages,
-                    tools=tool_specs(),
+                    tools=[] if last else tool_specs(),
                     tool_choice="auto",
                     max_tokens=1200,
                     correlation_id=correlation,
@@ -841,30 +908,26 @@ class ChatService:
             if brain is not None:
                 import asyncio
 
+                from unbidden.brain.router import BrainError
+
                 planner = BrainPlanner(brain)
                 history = self.presentation.messages(source.id)
-                reply, calls, results = asyncio.run(
-                    planner.run(request.content, rt, history, emit, cancelled, f"web:{user.id}")
-                )
+                try:
+                    reply, calls, results = asyncio.run(
+                        planner.run(request.content, rt, history, emit, cancelled, f"web:{user.id}")
+                    )
+                except BrainError as exc:
+                    # The model's answers were all rejected (or the route refused): the rules answer instead and
+                    # the message says so. Nothing the model attempted reached the canvas.
+                    emit("state", {"state": "thinking"})
+                    reply, calls, results = self._by_rules(source, request, rt, user, cancelled, emit)
+                    why = str(exc)[:200]
+                    reply = f"{reply} (El modelo local no produjo una respuesta válida: {why}. Respondí por reglas.)"
+                    planner_name = "rule"
                 run = getattr(brain, "served_by", {}).get("web.chat")
                 model = run.model if run else None
             else:
-                reply, plan = self.rule.plan(request.content, rt)
-                calls, results = [], []
-                for i, (name, args) in enumerate(plan):
-                    if cancelled.is_set():
-                        reply += f" Cancelado antes del paso {i + 1} de {len(plan)}; lo anterior queda aplicado."
-                        break
-                    self._phase[source.id] = "lectura" if name in ("inspect_data", "explain") else "construcción"
-                    emit("state", {"state": "reading" if name in ("inspect_data", "explain") else "building"})
-                    args = _bind(args, rt)
-                    call = ChatToolCall(id=f"call_{user.id[-8:]}_{i}", name=name, arguments=args)
-                    emit("tool_call", call.model_dump(mode="json"))
-                    result = rt.call(name, args)
-                    calls.append(call)
-                    results.append(result)
-                    emit("tool_result", result.model_dump(mode="json"))
-                reply = _narrate(reply, results)
+                reply, calls, results = self._by_rules(source, request, rt, user, cancelled, emit)
             state: Literal["done", "cancelled"] = "cancelled" if cancelled.is_set() else "done"
         except Exception as exc:  # the turn fails as a message, never as a dead stream
             reply, calls, results, state = f"Error: {type(exc).__name__}: {str(exc)[:300]}", [], [], "error"  # type: ignore[assignment]
@@ -886,6 +949,33 @@ class ChatService:
         emit("message", assistant.model_dump(mode="json", by_alias=True))
         emit("done", {"state": state})
         return assistant
+
+    def _by_rules(
+        self,
+        source: Source,
+        request: ChatRequest,
+        rt: ToolRuntime,
+        user: ChatMessage,
+        cancelled: threading.Event,
+        emit: Emit,
+    ) -> tuple[str, list[ChatToolCall], list[ToolResult]]:
+        reply, plan = self.rule.plan(request.content, rt)
+        calls: list[ChatToolCall] = []
+        results: list[ToolResult] = []
+        for i, (name, args) in enumerate(plan):
+            if cancelled.is_set():
+                reply += f" Cancelado antes del paso {i + 1} de {len(plan)}; lo anterior queda aplicado."
+                break
+            self._phase[source.id] = "lectura" if name in ("inspect_data", "explain") else "construcción"
+            emit("state", {"state": "reading" if name in ("inspect_data", "explain") else "building"})
+            args = _bind(args, rt)
+            call = ChatToolCall(id=f"call_{user.id[-8:]}_{i}", name=name, arguments=args)
+            emit("tool_call", call.model_dump(mode="json"))
+            result = rt.call(name, args)
+            calls.append(call)
+            results.append(result)
+            emit("tool_result", result.model_dump(mode="json"))
+        return _narrate(reply, results), calls, results
 
 
 def _bind(args: dict[str, Any], rt: ToolRuntime) -> dict[str, Any]:

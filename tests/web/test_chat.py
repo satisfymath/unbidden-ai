@@ -205,3 +205,52 @@ def test_the_brain_planner_goes_through_brain_complete_with_the_tools(tmp_path: 
 
 def test_cancel_reports_what_it_could_cancel(client: Client) -> None:
     assert client.post("/chat/cancel").json()["cancelled"] is False
+
+
+def test_inspect_data_takes_flat_arguments_and_a_full_reference(tmp_path: Path) -> None:
+    from unbidden.web.chat import ToolRuntime, tool_specs
+    from unbidden.web.presentation import PresentationStore
+    from unbidden.web.sources import demo
+
+    src = demo()
+    rt = ToolRuntime(src, PresentationStore(tmp_path / "p.db"), [])
+    flat = rt.call("inspect_data", {"dataset": "opportunities", "limit": 3})
+    assert flat.ok and flat.data is not None and len(flat.data["sample"]) <= 3
+    full = rt.call("inspect_data", {"dataset": "opportunities", "transform": {"limit": 3}})
+    assert full.ok and full.data is not None and full.data["columns"] == flat.data["columns"]
+    bad = rt.call("inspect_data", {"dataset": "opportunities", "params": {"x": {"limit": 500}}})
+    assert not bad.ok and bad.error is not None and bad.error.code == "invalid"
+    schema = next(t for t in tool_specs() if t.name == "inspect_data").parameters
+    assert schema["required"] == ["dataset"] and "transform" not in schema["properties"]
+
+
+def test_when_the_model_never_calls_a_tool_correctly_the_rules_answer_and_say_so(tmp_path: Path, mandate: Any) -> None:
+    from unbidden.web.sources import demo
+
+    src = demo()
+    src.streams = False
+    mock = MockProvider()
+    wrong = LLMResponse(
+        tool_calls=[ToolCall(id="c1", name="inspect_data", arguments={"params": {"transform": {"limit": 500}}})],
+        done_reason="stop",
+        usage=Usage(prompt_tokens=10, completion_tokens=10),
+    )
+    mock.script("web.chat", wrong, repeat=True)
+    config = load_config(None)
+    config.routing["local"].provider = "mock"  # type: ignore[index]
+    config.routing["local"].model = "mock-model"  # type: ignore[index]
+    brain = Brain(config, {"mock": mock}, Store(None), mandate)  # type: ignore[dict-item]
+    srv = make_server([src], tmp_path, brain_for=lambda _s: brain)
+    try:
+        c = Client(srv, src.id)
+        events = c.sse(
+            "/chat", {"content": "añade una tabla con los tests que fallaron", "selected": [], "planner": "brain"}
+        )
+        reply = [e for e in events if e[0] == "message" and e[2]["role"] == "assistant"][-1][2]
+        assert reply["state"] == "done" and reply["planner"] == "rule"
+        assert "Respondí por reglas" in reply["content"] and "inspect_data" in reply["content"]
+        assert reply["results"] and reply["results"][0]["ok"]
+        assert c.get("/presentation").json()["widgets"][0]["type"] == "table"
+        assert len(mock.requests) >= 2  # the engine asked the model to repair before giving up
+    finally:
+        srv.stop()

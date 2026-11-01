@@ -65,8 +65,9 @@ map scrolls horizontally when a world has many kinds; charts cap at 1,500 points
 - `unbidden ui` in `cli.py` (one line; see BASE.md) and the wheel including `unbidden/web/static/**`.
 - A paid chat turn on the Meta API: `web.chat` is local-only by the engine's rule for unknown purposes; no budget was
   authorised for this branch; the Brain path is exercised with the mock provider in `tests/web/test_chat.py`.
-  During this session the local model was deliberately not used for chat either, to keep the host quiet while the
-  engine session measured (`--planner rule`).
+  With Ollama up, `--planner auto` answers through the local model (verified on 2026-11-01 with
+  `muse-glimmer:30b`: it reads the datasets with `inspect_data` and answers from them, about a minute per turn on
+  this host). When every answer of the model is rejected, the rules answer and the message says so.
 - Approve / reject / deploy / rollback from the UI: they need the daemon (the store's writer) to accept commands;
   the UI returns `not_supported_here` with the exact CLI command.
 - Screenshot comparison: the engine stores page captures under `.unbidden/artifacts`; the card states their absence
