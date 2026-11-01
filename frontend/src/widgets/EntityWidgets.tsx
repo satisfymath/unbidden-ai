@@ -4,6 +4,7 @@ import { Check, Circle, CircleDot } from "lucide-react";
 import type { WidgetSpec } from "@/contracts";
 import { useStore } from "@/data/store";
 import { Empty, EvidenceList, KeyValue, LevelChip, Loading, StatusChip, fmtNum, fmtTime } from "./common";
+import { DecideButtons } from "./Decide";
 
 type Detail = {
   opportunity: Record<string, unknown>;
@@ -79,6 +80,7 @@ export function FindingWidget({ widget }: { widget: WidgetSpec }) {
         </div>
       ) : null}
       <EvidenceList items={evidence.slice(0, 5)} />
+      {String(o.status) === "open" ? <DecideButtons opportunityId={String(o.id)} canApprove={Boolean(detail.proposal && String((detail.proposal as { status?: unknown }).status) === "ready")} /> : null}
     </div>
   );
 }
@@ -184,6 +186,7 @@ export function ProposalWidget({ widget }: { widget: WidgetSpec }) {
         </pre>
       ))}
       {p.pr ? <div className="small muted">PR: {String((p.pr as { url?: string }).url ?? "")}</div> : <div className="tiny muted">Sin PR aún: se abre con aprobación (`unbidden approve {String(p.opportunity_id)}`).</div>}
+      {!p.pr && String(p.status) === "ready" ? <DecideButtons opportunityId={String(p.opportunity_id)} canApprove /> : null}
     </div>
   );
 }

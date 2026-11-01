@@ -12,6 +12,8 @@ const STATE_LABEL: Record<string, string> = {
   building: "Construyendo visualización…",
 };
 
+const INTENT_LABEL: Record<string, string> = { inform: "informar", analyze: "analizar", act: "acción (no desde el chat)" };
+
 const SUGGESTIONS = [
   "Muéstrame la latencia antes y después de este experimento",
   "Añade una tabla con los tests que fallaron",
@@ -19,6 +21,7 @@ const SUGGESTIONS = [
   "Explícame este bloqueo y añade sus dependencias al mapa",
   "Cambia ese gráfico a barras",
   "Deshaz la última tarjeta",
+  "¿Por qué sólo una oportunidad llegó a probarse?",
 ];
 
 export function ChatPanel() {
@@ -47,7 +50,9 @@ export function ChatPanel() {
   if (!open) return null;
   const selected = (presentation?.widgets ?? []).filter((w) => selection.includes(w.id));
   const route = summary?.connection.route;
-  const plannerNote = route?.local.model ? `el chat planifica con herramientas tipadas; con un modelo local (${route.local.model}) o por reglas si no responde` : "el chat planifica con herramientas tipadas";
+  const remoteNote = route?.remote.key_present ? `análisis por ${route.remote.model ?? "Meta API"} según el mandato` : "análisis: sin clave remota";
+  const localNote = route?.local.reachable ? `modelo local ${route.local.model ?? ""}` : "sin modelo local";
+  const plannerNote = `informar: registros y reglas · ${localNote} · ${remoteNote} · actuar: botones o CLI`;
   return (
     <>
       <div className="chat-backdrop" onClick={() => setOpen(false)} aria-hidden="true" />
@@ -92,7 +97,13 @@ export function ChatPanel() {
                 </div>
                 <span className="tiny muted">
                   {fmtTime(m.created_at)}{m.planner ? ` · ${m.planner === "brain" ? `modelo ${m.model ?? ""}` : "reglas"}` : ""}{m.state === "cancelled" ? " · cancelado" : ""}
+                  {m.route ? ` · ${INTENT_LABEL[m.route.intent]}${m.route.purpose ? ` · ${m.route.purpose}` : ""}${m.route.tier && m.route.intent === "analyze" && !m.route.blocked ? ` · ${m.route.tier === "local" ? "modelo local" : "Meta API"}` : ""}` : ""}
                 </span>
+                {m.route?.blocked ? (
+                  <span className="tiny" style={{ color: "var(--amber)" }} title={m.route.blocked}>
+                    sin modelo: {m.route.blocked.slice(0, 160)}{m.route.hint ? ` · lo permitiría: ${m.route.hint}` : ""}
+                  </span>
+                ) : null}
               </div>
             </div>
           ))}

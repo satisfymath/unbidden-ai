@@ -170,6 +170,17 @@ export type ToolResult = z.infer<typeof ToolResult>;
 export const ChatToolCall = z.object({ id: z.string(), name: z.string(), arguments: z.record(z.string(), z.unknown()) });
 export const ChatState = z.enum(["thinking", "reading", "building", "done", "error", "cancelled"]);
 export type ChatState = z.infer<typeof ChatState>;
+export const ChatRoute = z.object({
+  intent: z.enum(["inform", "analyze", "act"]),
+  purpose: z.string().nullable().optional(),
+  tier: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+  reason: z.string().nullable().optional(),
+  blocked: z.string().nullable().optional(),
+  hint: z.string().nullable().optional(),
+  action: z.string().nullable().optional(),
+});
+export type ChatRoute = z.infer<typeof ChatRoute>;
 export const ChatMessage = z.object({
   schema: z.number().optional(),
   id: z.string(),
@@ -182,6 +193,7 @@ export const ChatMessage = z.object({
   results: z.array(ToolResult).default([]),
   planner: z.enum(["rule", "brain"]).nullable().optional(),
   model: z.string().nullable().optional(),
+  route: ChatRoute.nullable().optional(),
 }).strict();
 export type ChatMessage = z.infer<typeof ChatMessage>;
 
@@ -222,9 +234,10 @@ export const Summary = z.object({
     route: z.object({
       server: z.string(),
       profile: z.string(),
-      local: z.object({ provider: z.string().nullable(), model: z.string().nullable(), base_url: z.string().nullable() }),
-      remote: z.object({ provider: z.string().nullable(), model: z.string().nullable(), credential_file_present: z.boolean() }),
+      local: z.object({ provider: z.string().nullable(), model: z.string().nullable(), base_url: z.string().nullable(), reachable: z.boolean().optional() }),
+      remote: z.object({ provider: z.string().nullable(), model: z.string().nullable(), credential_file_present: z.boolean(), key_present: z.boolean().optional() }),
       local_inference: z.string(),
+      local_fallback: z.string().optional(),
       note: z.string(),
     }),
     autonomy: z.object({
