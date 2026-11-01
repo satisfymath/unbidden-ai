@@ -52,6 +52,8 @@ def fresh_workspace(e: dict[str, str], *, budget: str = "0", key: str | None = N
             "api",
             "--mode",
             "supervised",
+            "--private-code",
+            "allow",
             "--budget",
             budget,
             "--dashboard",
@@ -156,7 +158,7 @@ def s_budget_exhausted() -> None:
     chat2 = (
         run(
             "chat",
-            [unbidden(), "chat", "--json", "¿Qué recomendarías revisar primero?"],
+            [unbidden(), "chat", "--json", "¿Por qué no hay oportunidades y qué revisarías primero?"],
             cwd=repo_dir2,
             env_=e2,
             timeout_s=300,
@@ -217,6 +219,15 @@ def s_second_start_and_crash() -> None:
     started = sum(1 for r in results if r.get("started"))
     time.sleep(3)
     watchers = subprocess.run(["pgrep", "-f", "unbidden.cli watch"], capture_output=True, text=True).stdout.split()
+    tree = (
+        subprocess.run(
+            ["ps", "-o", "pid=,ppid=,etime=,command=", "-p", ",".join(watchers)], capture_output=True, text=True
+        )
+        .stdout.strip()
+        .splitlines()
+        if watchers
+        else []
+    )
     status = run("status", [unbidden(), "status", "--json"], cwd=repo_dir, env_=e, timeout_s=60).json() or {}
     pid = (status.get("agent") or {}).get("pid")
     if pid:
@@ -244,6 +255,7 @@ def s_second_start_and_crash() -> None:
             "started": started,
             "already": sum(1 for r in results if r.get("already")),
             "watch_processes": len(watchers),
+            "watch_tree": [scrub(t)[:160] for t in tree],
             "after_crash": after.get("agent"),
             "restart": restart.get("started"),
             "resumed_line": "resumed" in log,
@@ -312,7 +324,7 @@ def s_kill_switch() -> None:
     repo_dir = fresh_workspace(e)
     run("kill", [unbidden(), "kill", "scenario"], cwd=repo_dir, env_=e, timeout_s=60)
     start = (
-        run("start", [unbidden(), "start", "--interval", "3600", "--json"], cwd=repo_dir, env_=e, timeout_s=120).json()
+        run("start", [unbidden(), "start", "--interval", "15", "--json"], cwd=repo_dir, env_=e, timeout_s=120).json()
         or {}
     )
     time.sleep(8)
@@ -328,7 +340,7 @@ def s_kill_switch() -> None:
         timeout=30,
         json={"operation": "resume", "idempotency_key": "scn-resume"},
     ).json()
-    time.sleep(8)
+    time.sleep(40)  # two ticks of the loop (interval 15 s): a released agent should have worked
     log2 = (repo_dir / ".unbidden" / "logs" / "agent.log").read_text(errors="replace")
     run("ui-stop", [unbidden(), "ui", "--stop", "--json"], cwd=repo_dir, env_=e, timeout_s=60)
     stop = run("stop", [unbidden(), "stop", "--json"], cwd=repo_dir, env_=e, timeout_s=120).json() or {}

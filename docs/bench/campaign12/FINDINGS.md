@@ -20,3 +20,17 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
 - 2026-11-01 · Level A pilot · the ledger's `spend_calls` shown by the dashboard for a workspace named like an earlier
   one (`humanize`) counted that earlier spend; the campaign names workspaces `c12-<name>` to keep rows apart ·
   limit (workspace = repository name) · known, documented in RELEASE.
+- 2026-11-01 · seeded scenarios, run 1 · "¿Qué recomendarías revisar primero?" was classified as informing (the
+  analysis patterns know `recomienda|recomiendas|recomendar`, not the conditional), so no model call was attempted
+  and the cap-0 refusal was not exercised · defect (chat intent coverage, ES conditional/subjunctive forms) · open.
+- 2026-11-01 · seeded scenarios, run 1 · option `api` on a repository GitHub has not confirmed public: an analysis is
+  refused by routing ("private_code leaves only renamed by the privacy bridge") before the ledger is reached; correct
+  by the data rules, but the hint offered was the local-inference one (`models local-first` / add a key), not
+  `models frontier --private-code allow`, because the hint table matches "denies local inference" first · wording
+  (hint order) · open.
+- 2026-11-01 · seeded scenarios, run 1 · after `resume` from the dashboard, an agent started with `--interval 3600`
+  stays asleep until its next tick: releasing the kill switch does not wake the loop · UX (resume should wake the
+  loop) · open.
+- 2026-11-01 · seeded scenarios, run 1 · two simultaneous `start`: one owner, the other "already running" (correct);
+  `pgrep -f 'unbidden.cli watch'` still listed two processes 3 s later · to inspect (the loser's exit timing or a
+  child of the owner) · open.
