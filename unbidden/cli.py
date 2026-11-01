@@ -1684,6 +1684,9 @@ def build_parser() -> argparse.ArgumentParser:
             p.add_argument("--json", action="store_true", help="machine-readable output")
         return p
 
+    from unbidden.distribution import register as register_distribution
+
+    register_distribution(command)  # `update` and `uninstall`: the installer's two commands
     prepare = command("prepare", cmd_prepare, "copy a repository apart, read its stack and CI, build its image and "
                                               "run its own checks; say every block")  # fmt: skip
     prepare.add_argument("source", help="a repository path or URL")
