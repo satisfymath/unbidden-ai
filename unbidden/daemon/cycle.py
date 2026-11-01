@@ -284,6 +284,7 @@ class Cycle:
         self._queue_needs()
         mandate = self.runtime.workspace.mandate()
         open_prs = len(self.store.list("proposals", Proposal, status=ProposalStatus.PR_OPENED.value))
+        pending = len(self.store.list("proposals", Proposal, status=ProposalStatus.READY.value))
         checked = self._checked_dirs()
         head = self.store.get_value("head")
         commands = ci_commands(self.runtime.workspace.repo, head) if head else ""
@@ -314,6 +315,7 @@ class Cycle:
                 mandate,
                 Context(
                     open_pull_requests=open_prs,
+                    pending_proposals=pending,
                     attempts=attempts,
                     checked_dirs=checked,
                     ci_commands=commands,
@@ -326,7 +328,8 @@ class Cycle:
                 ),
             )
             if decision.chosen is ActionKind.PROPOSE_CHANGE:
-                open_prs += 1  # the next opportunity sees the pull request this one will open
+                pending += 1  # the next opportunity sees the proposal this one will add (a pull request only if
+                # the mandate lets Unbidden open them on its own; the Director counts it then)
             decided.append((opp, decision, attempts))
         # One budget for the whole sweep: experiments go to the highest expected net value first, not the oldest.
         decided.sort(key=lambda d: -_chosen_utility(d[1]) if d[1].chosen is ActionKind.RUN_EXPERIMENT else 0.0)
