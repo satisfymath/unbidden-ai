@@ -1,11 +1,14 @@
 # Campaign 12 corpus (docs/bench/campaign12/PROTOCOL.md, section 5). Classes: dev (12, known: calibration and
-# regression), independent (20, frozen before any product run), frontier (8, outside or near the declared support).
+# regression), independent (19: 14 by the base rule + 5 by the recorded extension rule, accepted by David 2026-11-01;
+# the FastAPI-with-database quota keeps one declared gap), frontier (8, outside or near the declared support). 39 in all.
 # `commit` is the pin every record refers to; `support` is the class declared BEFORE the first run (inside / near /
 # outside); `exposure` says what Unbidden and the developer saw before. Independent and frontier entries come from
 # bench/campaign12/corpus-candidates.md (the recorded rule) and are appended at the freeze.
-candidate: 2f7eee504dd24d763a72079686161c8247416226
-wheel_sha256: e8c7cc8a2ef849f25930b402393ddc18b04d5972206d1ee247ebe9796568856c
+candidate: 69b0702258523e814cc42e0dfcb57eadf19fb7f5
+wheel_sha256: cffdf7ac7f49b39fef525e3452a9fc2008a48faba0fefb9378014fd9a2aa910f
 version: 0.9.0
+pilot_candidate: 2f7eee504dd24d763a72079686161c8247416226  # phase 2 ran on this one; the freeze adds the codex-lb classification fix
+pilot_wheel_sha256: e8c7cc8a2ef849f25930b402393ddc18b04d5972206d1ee247ebe9796568856c
 repos:
 - name: fst
   url: https://github.com/fastapi/full-stack-fastapi-template
@@ -405,6 +408,111 @@ repos:
   stars: 12984
   preparation: none for unit tests; some integration tests install packages
   risk: part of the suite installs real packages (network); unit markers run offline
+- name: recruitops-agent
+  url: https://github.com/849879772/recruitops-agent
+  commit: 1584307eef66b7e3f839e55cd74dd7e12d7b876d
+  license: MIT
+  class: independent
+  family: api-postgres
+  build: pip
+  support: inside
+  services:
+  - postgres
+  exposure: none (selected by the recorded extension rule, never used before; accepted by David 2026-11-01)
+  level_b: false
+  why: 'extension rule E1: E1 (topic:fastapi stars:50..150), window w08 / rank r9; FastAPI + SQLAlchemy + psycopg + pgvector app; compose provides the DB; pytest in CI; no provider keys in CI'
+  checks: 'ci.yml > python -m pytest -c pytest-public.ini (no DB in the job); scripts/check_migrations.py ''without a database''; compose: postgres=pgvector/pgvector:pg16 + api'
+  size_kb: 5960
+  stars: 147
+  python:
+  - '3.11'
+  preparation: pgvector/pg16 from compose for DB-backed work; the CI test job itself runs without a database
+  risk: very young (2026-09); the pytest job does not touch Postgres, so DB opportunities come from the app, not its suite; 'agent' naming but no LLM SDK in dependencies
+  extension_rule: E1
+- name: aiogramshopbot
+  url: https://github.com/ilyarolf/AiogramShopBot
+  commit: f886de2519c71bd6eae008b61c3c43d9822591aa
+  license: MIT
+  class: independent
+  family: api-postgres
+  build: pip
+  support: inside
+  services:
+  - postgres
+  - redis
+  exposure: none (selected by the recorded extension rule, never used before; accepted by David 2026-11-01)
+  level_b: false
+  why: 'extension rule E2: E2 (topic:sqlalchemy stars:>100, applications only), window w37 / rank r48; FastAPI webhook + aiogram shop app on asyncpg/SQLAlchemy; compose Postgres; pytest in CI; no secrets in CI'
+  checks: 'tests.yml > pip install -r requirements.txt; pytest (no services in the job); compose: postgres:18 + redis:latest + caddy + bot'
+  size_kb: 1084
+  stars: 249
+  python:
+  - '3.12'
+  preparation: postgres:18 + redis from compose; CI tests run without them
+  risk: crypto-payment integrations exist in the app but are not exercised by CI; the CI suite is DB-less
+  extension_rule: E2
+- name: gymhero
+  url: https://github.com/JakubPluta/gymhero
+  commit: 890b0db70d58a59d7589af34aff8bd58b5b876a2
+  license: MIT
+  class: independent
+  family: api-postgres
+  build: uv
+  support: inside
+  services:
+  - postgres
+  exposure: none (selected by the recorded extension rule, never used before; accepted by David 2026-11-01)
+  level_b: false
+  why: 'extension rule E2: E2 (topic:sqlalchemy stars:>100, applications only), window w41 / rank r52; FastAPI + SQLAlchemy + Alembic + Postgres CRUD application with a React frontend dir; pytest and a Postgres service in CI'
+  checks: 'ci.yaml > lint (ruff/mypy); test: uv run pytest --cov=gymhero tests/ (Testcontainers on the runner''s Docker); migrations: service postgres:16-alpine, alembic upgrade/downgrade/upgrade'
+  size_kb: 803
+  stars: 194
+  python:
+  - '3.13'
+  preparation: postgres:16-alpine service (as in the migrations job) or Docker for testcontainers
+  risk: small, self-described 'simple CRUD application' (few opportunities); testcontainers in the pytest job
+  extension_rule: E2
+- name: dinkydash
+  url: https://github.com/caspii/dinkydash
+  commit: d5985375989681c80193ca4da91e33867a32978e
+  license: MIT
+  class: independent
+  family: web-flask
+  build: pip
+  support: inside
+  services:
+  - postgres
+  exposure: none (selected by the recorded extension rule, never used before; accepted by David 2026-11-01)
+  level_b: false
+  why: 'extension rule E4: E4 window w33 / rank r33; Flask family-calendar app with a Postgres service and pytest in CI; no API key used by the suite; DB-backed alternate (fourth in window order) - the cleanest Postgres + in-range-interpreter Flask option if David prefers to swap it for biweeklybudget'
+  checks: test.yml > pytest (service postgres:17; DINKYDASH_TEST_DATABASE_URL) then a second pytest run without a database (postgres tests skip); playwright chromium installed
+  size_kb: 9260
+  stars: 99
+  python:
+  - '3.11'
+  preparation: postgres:17 service; playwright chromium
+  risk: under 100 stars; LLM-written content at runtime (not in tests)
+  extension_rule: E4
+- name: tracklater
+  url: https://github.com/eerovil/TrackLater
+  commit: 0b05b0a66be018914261e9d2c0a2be632d89d406
+  license: MIT
+  class: independent
+  family: web-flask
+  build: pip
+  support: inside
+  services: []
+  exposure: none (selected by the recorded extension rule, never used before; accepted by David 2026-11-01)
+  level_b: false
+  why: 'extension rule E4: E4 window w15 / rank r15; Flask time-tracking app with Flask-SQLAlchemy (file DB), pytest in CI; alternate (no DB service)'
+  checks: pythonapp.yml > pytest --cov=. (python 3.12)
+  size_kb: 821
+  stars: 126
+  python:
+  - '3.12'
+  preparation: none
+  risk: small suite
+  extension_rule: E4
 - name: librephotos
   url: https://github.com/LibrePhotos/librephotos
   commit: 8def36a24cd0435dc7338abde36d51ed9e8a7ad3

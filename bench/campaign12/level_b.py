@@ -28,6 +28,7 @@ import yaml
 
 from bench.campaign12 import labs
 from bench.campaign12.common import LAB, REAL_HOME, Record, Step, env, ledger, run, run_spend, scrub, unbidden
+from bench.campaign12.copies import ci_pending, copy_state, ensure_copy
 from bench.campaign12.level_a import archive, key_from_machine
 
 CYCLE_BOUND_S = 5400
@@ -49,75 +50,14 @@ def gh(*args: str, timeout: int = 120) -> subprocess.CompletedProcess[str]:
 
 
 def fork_for(repo: dict[str, Any], rec: Record) -> dict[str, Any]:
-    """The campaign fork and its base branch at the pin. An existing fork of the same upstream is reused only by
-    adding a `c12-base` branch (never reset); otherwise a new fork named `c12-<name>` is created."""
-    upstream = repo["url"].removeprefix("https://github.com/").removesuffix(".git")
-    existing = gh(
-        "repo",
-        "list",
-        GH,
-        "--fork",
-        "--limit",
-        "200",
-        "--json",
-        "name,parent",
-        "--jq",
-        f'.[] | select(.parent.owner.login + "/" + .parent.name == "{upstream}") | .name',
-    )
-    name = existing.stdout.strip().splitlines()[0] if existing.stdout.strip() else ""
-    created = False
-    if not name:
-        name = f"c12-{repo['name']}"
-        made = gh("repo", "fork", upstream, "--fork-name", name, "--clone=false", "--default-branch-only")
-        created = made.returncode == 0 or "already exists" in (made.stderr + made.stdout)
-        time.sleep(5)
-    slug = f"{GH}/{name}"
-    base = "c12-base"
-    branch = gh("api", f"repos/{slug}/branches/{base}")
-    if branch.returncode != 0:  # the base branch at the pin, pushed once from a throwaway clone
-        tmp = LAB / "fork-push" / repo["name"]
-        if tmp.exists():
-            subprocess.run(["rm", "-rf", str(tmp)], check=True)
-        tmp.mkdir(parents=True)
-        subprocess.run(["git", "init", "-q", str(tmp)], check=True)
-        subprocess.run(["git", "-C", str(tmp), "remote", "add", "origin", repo["url"]], check=True)
-        subprocess.run(["git", "-C", str(tmp), "fetch", "-q", "origin", repo["commit"]], check=True, timeout=1800)
-        subprocess.run(
-            ["git", "-C", str(tmp), "remote", "add", "fork", f"git@github-satisfymath:{slug}.git"], check=True
-        )
-        push = subprocess.run(
-            ["git", "-C", str(tmp), "push", "-q", "fork", f"{repo['commit']}:refs/heads/{base}"],
-            capture_output=True,
-            text=True,
-            timeout=1800,
-        )
-        rec.human.append({"step": f"push the pin to {slug}:{base}", "minutes": 1, "why": "the fork's campaign base"})
-        if push.returncode != 0:
-            rec.blocks.append(f"could not push the base branch to the fork: {push.stderr[-300:]}")
-    rec.human.append(
-        {
-            "step": f"campaign fork {slug} ({'created' if created else 'existing, new branch only'})",
-            "minutes": 1,
-            "why": "pull requests and merges never go upstream",
-        }
-    )
-    return {"slug": slug, "base": base, "created": created, "upstream": upstream}
+    """The campaign copy (`satisfymath/c12-<name>`, a plain public repository at the pin, its default branch the
+    upstream's; see `copies.py`) that the product sees as its GitHub repository. Forks were abandoned on 2026-11-01:
+    GitHub does not start `pull_request` workflows on them, so CI, merges and deploys were unobservable."""
+    return ensure_copy(repo, rec.human)
 
 
 def fork_state(slug: str, base: str) -> dict[str, Any]:
-    """What the fork holds, read independently of Unbidden's records: open/merged pull requests against the base and
-    the campaign branches."""
-    prs = gh(
-        "api",
-        f"repos/{slug}/pulls?state=all&base={base}&per_page=50",
-        "--jq",
-        "[.[] | {number, state, merged_at, head: .head.ref, title, created_at}]",
-    )
-    branches = gh("api", f"repos/{slug}/branches?per_page=100", "--jq", '[.[].name | select(startswith("unbidden/"))]')
-    try:
-        return {"pulls": json.loads(prs.stdout or "[]"), "unbidden_branches": json.loads(branches.stdout or "[]")}
-    except ValueError:
-        return {"error": (prs.stderr or branches.stderr)[-300:]}
+    return copy_state(slug, base)
 
 
 def write_mandate(
@@ -252,7 +192,15 @@ def _store_counts(repo_dir: Path) -> dict[str, Any]:
     }
 
 
-def cycle(repo_dir: Path, e: dict[str, str], rec: Record, label: str, port: int, bound_s: float) -> dict[str, Any]:
+def cycle(
+    repo_dir: Path,
+    e: dict[str, str],
+    rec: Record,
+    label: str,
+    port: int,
+    bound_s: float,
+    copy: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """One bounded cycle of the daemon serving its dashboard: start, wait until the queue is idle (or the bound),
     read the state, stop. The agent is never helped."""
     start = rec.add(
@@ -277,6 +225,11 @@ def cycle(repo_dir: Path, e: dict[str, str], rec: Record, label: str, port: int,
         if (agent.get("jobs_queued") or 0) + (agent.get("jobs_running") or 0) == 0:
             idle_since = idle_since or time.monotonic()
             if time.monotonic() - idle_since > 150:  # idle through two ticks of the loop
+                # An open pull request whose CI is still to come keeps the cycle observed (the agent polls it on its
+                # own ticks; the harness only waits longer, within the bound; nothing is said to the agent).
+                if copy and ci_pending(copy["slug"], copy["base"]):
+                    idle_since = time.monotonic()
+                    continue
                 break
         else:
             idle_since = None
@@ -380,7 +333,7 @@ def level_b(
     repo: dict[str, Any], run_no: int, phase: str, out_dir: Path, port: int, candidate: str, wheel: str
 ) -> dict[str, Any]:
     name = repo["name"]
-    envelope = "s12-pilot" if phase == "pilot" else "s12-eval"
+    envelope = "s12-pilot" if phase.startswith("pilot") else "s12-eval"
     e = env(envelope, f"c12-B{run_no}-{name}")
     rec = Record(repo=name, phase=phase, run=f"B{run_no}", candidate=candidate, wheel_sha256=wheel)
     rec.facts["repo"] = {k: repo.get(k) for k in ("url", "commit", "family", "class", "build", "lab")}
@@ -390,7 +343,14 @@ def level_b(
     rec.facts["fork_before"] = fork_state(fork["slug"], fork["base"])
     lab_info: dict[str, Any] | None = None
     t0 = time.monotonic()
-    repo_dir = labs.restore(repo, LAB)  # a clean checkout at the pin under the campaign lab, no .unbidden
+    # A clean checkout under the campaign lab, no .unbidden, at the copy's base head: the pin plus the one documented
+    # campaign commit (a proposal's base is the local HEAD; the product marks it stale when the remote base differs).
+    copy_url = f"https://github.com/{fork['slug']}"
+    existing = labs.repo_dir(repo, LAB)
+    if (existing / ".git").exists():
+        subprocess.run(["git", "-C", str(existing), "remote", "set-url", "origin", copy_url], check=True)
+    repo_dir = labs.restore({**repo, "url": copy_url, "commit": fork["base_sha"]}, LAB)
+    rec.facts["repo"]["copy_base_sha"] = fork["base_sha"]
     if repo.get("lab"):
         lab_info = labs.up(repo["lab"], LAB)  # compose, data, roles: human preparation
         rec.human.append(
@@ -402,7 +362,7 @@ def level_b(
         )
         rec.facts["lab"] = {k: v for k, v in lab_info.items() if k != "credentials"}
         rec.human.extend(lab_info.get("prep", []))
-    # the fork is the origin the product sees (pull requests go there); upstream is never a remote of this checkout
+    # the copy is the origin the product sees (pull requests go there); upstream is never a remote of this checkout
     subprocess.run(
         ["git", "-C", str(repo_dir), "remote", "set-url", "origin", f"git@github-satisfymath:{fork['slug']}.git"],
         check=True,
@@ -413,14 +373,14 @@ def level_b(
     )
     rec.facts["doctor"] = {k: rec.facts["doctor"].get(k) for k in ("ok", "failed_required", "requirements")}
     rec.facts["mode_got"] = enable_autonomy(repo_dir, lab_info, e, rec)
-    rec.facts["cycle1"] = cycle(repo_dir, e, rec, "c1", port, CYCLE_BOUND_S)
+    rec.facts["cycle1"] = cycle(repo_dir, e, rec, "c1", port, CYCLE_BOUND_S, fork)
     rec.facts["ui1"] = ui_and_chat(repo_dir, e, rec, out_dir / name / f"B{run_no}", "c1")
     rec.add(run("c1-stop", [unbidden(), "stop", "--json"], cwd=repo_dir, env_=e, timeout_s=300))
     rec.facts["fork_after_c1"] = fork_state(fork["slug"], fork["base"])
     if lab_info:
         rec.facts["lab_after_c1"] = labs.observe(repo["lab"], LAB)
     # the second cycle: from the same workspace, after a stop; nothing done must be done twice
-    rec.facts["cycle2"] = cycle(repo_dir, e, rec, "c2", port, CYCLE_BOUND_S // 2)
+    rec.facts["cycle2"] = cycle(repo_dir, e, rec, "c2", port, CYCLE_BOUND_S // 2, fork)
     rec.add(run("c2-stop", [unbidden(), "stop", "--json"], cwd=repo_dir, env_=e, timeout_s=300))
     rec.facts["fork_after_c2"] = fork_state(fork["slug"], fork["base"])
     if lab_info:

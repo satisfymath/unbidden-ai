@@ -209,3 +209,35 @@ a release recommendation (no 1.0 label, no automatic release).
   database (`brightbean-studio`, `misago`), the Flask application (`traefik-manager`), the first three libraries in
   the rule's order (`oauthlib`, `rdflib`, `graphtage`), two CLIs (`pipx`, `harlequin`). Applications without a health
   endpoint will not reach autonomous (recorded as a product limit); libraries and CLIs run in autopilot.
+- 2026-11-01, David's decisions before the freeze (verbatim where it matters): (1) corpus of **39** (12 development,
+  19 independent = 14 by the base rule + `recruitops-agent`, `aiogramshopbot`, `gymhero`, `dinkydash`, `tracklater`
+  by the recorded extension rule, 8 frontier), the FastAPI-with-database gap declared, no incompatible repository added
+  to reach 40; groups and denominators kept. (2) Public copies `satisfymath/c12-<name>`, only of the selected public
+  repositories, with: licenses, attribution and provenance kept; no existing repository overwritten; the upstream
+  commit pinned, any campaign configuration in separate documented commits; no secrets, `.env`, personal data or other
+  projects' configuration copied; no package published or external deploy through their workflows; the Meta API key
+  never a GitHub Actions secret; upstream never modified. Before the freeze, on a development copy: a pull request
+  starts the relevant checks; the checks belong to the PR's exact head; the product recognizes their result; red or
+  absent CI prevents the merge; green CI lets it continue when the other conditions hold; the deploy that follows
+  happens only in the authorized lab. The project's checks are never replaced by a workflow that always passes;
+  changes needed to run CI in a copy are documented as human preparation and checked to keep their coverage.
+  (3) codex-lb's misclassification corrected with a regression test and the case re-verified; humanize/msgfmt and
+  conduit/gcc recorded with causes, no hidden repository-specific fixes; Spoolman's 108 calls left as a cost finding.
+  (4) Then freeze code, wheel, harness, corpus, CI configuration, criteria and budget. (5) Level B composition: the 4
+  development repositories and the 8 independent ones, two runs each; development results are not added as
+  independent evidence. (6) The campaign runs inside the authorized envelopes without asking again; failures, blocks
+  and retries are kept; no code changes during the evaluation. (7) Report apart: installation and onboarding; checks
+  reproduced and coverage; discovery and experiments; pull requests published; CI observed; merges effective; deploys
+  and verified effects; UI and recovery; interventions, latency and cost. (8) No pull request is forced when there is
+  no valid improvement; seeded scenarios stay apart from natural findings.
+- 2026-11-01, candidate moved for the freeze: `2f7eee5` (pilot) → `69b0702` (adds only the codex-lb classification fix,
+  `unbidden/lab/testsuite.py` + tests); wheel sha256 `e8c7cc8a…` → `cffdf7ac…`, served from the same local server
+  and installed into the campaign HOME; `corpus.yaml` keeps both pairs. Pilot records stay as measured on `2f7eee5`.
+- 2026-11-01, copies (`bench/campaign12/copies.py`, frozen with the harness): per copy the pin is the upstream default
+  branch; ONE campaign commit on top removes the workflow files that would deploy, release, publish or act as bots
+  (the list and the reason per repository are in `COPIES`; Spoolman's `ci.yml` loses its two publishing jobs, the
+  test jobs byte for byte); Dependabot is disabled in the settings and its pull requests are never counted. The local
+  Level B checkout is restored at the copy's base head (pin + campaign commit) so a proposal's base matches the
+  remote. The harness keeps observing a cycle while an open pull request of the agent has CI pending (it waits
+  longer, within the bound; the agent is never told). The report's Level B section lists the nine dimensions per
+  class with numerators and denominators; `dev` is labelled calibration.

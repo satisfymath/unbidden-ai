@@ -102,3 +102,29 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
   state. Two ways out, both a person's call: enable workflows in each fork's Actions tab (the fork-state prompt the
   API does not expose) or plain copies `c12-<name>` (a public repository creation was blocked by this session's
   permission classifier; not attempted again) · campaign setup block · open, decision asked.
+- 2026-11-01 · before the freeze (David's instruction) · codex-lb's classification corrected in the candidate: a round
+  whose every failure names an executable the sandbox image lacks is `infra_failed`, the tool named, the test names
+  and the count kept; one real failure beside a missing tool stays the project's failure; the round is not retried
+  (`unbidden/lab/testsuite.py`, regression tests in `tests/unit/test_testsuite_rounds.py`) · defect (classification) ·
+  fixed in `69b0702` (the frozen candidate; the pilot ran on `2f7eee5`); the affected case re-run as Level A
+  `pilot-fix/codex-lb` on the new wheel.
+- 2026-11-01 · humanize (`msgfmt`) and conduit (`gcc` for `asyncpg`) stay as recorded: environment failures with their
+  causes (the dependency image does not install the system packages a CI job adds with apt; no compiler and no
+  platform fallback for a wheel-less dependency). No repository-specific fix in the harness · limit · open (phase 6
+  candidates: apt packages the CI job names; a compiler in the image when a dependency has no wheel).
+- 2026-11-01 · spoolman's 108 calls (83 `world.endpoint_tables` for a 68-resource map) stay a cost finding for the
+  report's improvement list; the scope is not widened now (David's instruction) · cost · open.
+- 2026-11-01 · copies instead of forks (authorized by David 2026-11-01): `satisfymath/c12-<name>`, plain public
+  repositories, the pin pushed as the upstream's default branch, provenance in the description and homepage, one
+  documented campaign commit per copy that removes the workflow files which would deploy, release, publish or act as
+  the project's bots (and cuts Spoolman's two publishing jobs out of `ci.yml`, its test jobs untouched). On
+  `c12-fst`, within a minute of the push, Dependabot opened five pull requests that each started the full CI
+  (test-backend, playwright, pre-commit, zizmor, test-docker-compose): `pull_request` workflows DO run on copies.
+  Dependabot's dynamic workflow is disabled in each copy's settings and its pull requests closed (not the agent's;
+  they are never counted) · campaign setup · recorded. GitHub registers a workflow only once an event triggers it, so
+  `deploy.yml` (push to master) could not have been disabled in the settings before the first merge would have run
+  it: hence the commit, not the settings. The copy's base is therefore pin + one commit; Level B restores the local
+  checkout at that head (a proposal's base is the local HEAD; the product marks a proposal stale when the remote base
+  differs).
+- 2026-11-01 · the existing campaign fork `satisfymath/c12-spoolman` renamed `c12-spoolman-fork` (GitHub keeps a
+  redirect) so the plain copy can carry the authorized name · inventory · done.
