@@ -199,3 +199,13 @@ a release recommendation (no 1.0 label, no automatic release).
   not in `scan` (analyzers only); Level A waits for that record (bounded) instead of reading it after `scan`. The
   dependency images of development repositories were cached on this machine from earlier stages: Level A records
   whether the image was built in the run or existed before, and "environment reproduced" time is read with that.
+- 2026-11-01, corpus selection done by the recorded rule (`corpus-candidates.md`): 14 independent repositories were
+  found, not 20. Quota 1 (FastAPI applications with a database) filled 1 of 5 and quota 3 (Flask applications) 1 of
+  3: at stars > 150 those topics are templates, libraries, LLM wrappers needing a paid key, or backend+frontend
+  monorepos without a root manifest. No criterion was relaxed. An extension search under a wider, also recorded, rule
+  (stars 50-150; `topic:sqlalchemy` / `topic:postgresql` applications) is being prepared as an option; the decision
+  (34 repositories, or 34 + the extension's candidates) is David's and is asked before the frozen evaluation starts.
+  Level B independent set, chosen now from the 14 by a rule and before any run: the two smallest applications with a
+  database (`brightbean-studio`, `misago`), the Flask application (`traefik-manager`), the first three libraries in
+  the rule's order (`oauthlib`, `rdflib`, `graphtage`), two CLIs (`pipx`, `harlequin`). Applications without a health
+  endpoint will not reach autonomous (recorded as a product limit); libraries and CLIs run in autopilot.
