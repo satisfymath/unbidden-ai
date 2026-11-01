@@ -27,7 +27,7 @@ from typing import Any
 import httpx
 import yaml
 
-from bench.campaign12.common import LAB, LEDGER_HOME, Record, env, ledger, run, scrub, unbidden
+from bench.campaign12.common import LAB, LEDGER_HOME, Record, env, ledger, run, run_spend, scrub, unbidden
 
 CHECKS_TIMEOUT_S = 3600
 SHORT_S = 600
@@ -212,11 +212,8 @@ def level_a(repo: dict[str, Any], phase: str, out_dir: Path, port: int, candidat
     }
     rec.facts["ui"] = ui_read(repo_dir, port, e, rec)
     rec.facts["ledger_after"] = ledger(e["UNBIDDEN_ENVELOPE"])
-    rec.facts["spent_usd"] = round(
-        (rec.facts["ledger_after"]["envelope_spent_usd"] or 0)
-        - (rec.facts["ledger_before"]["envelope_spent_usd"] or 0),
-        4,
-    )
+    rec.facts["run_spend"] = run_spend(e["UNBIDDEN_RUN"], e["UNBIDDEN_ENVELOPE"])
+    rec.facts["spent_usd"] = rec.facts["run_spend"]["usd"]
     rec.facts["refused_by_cap"] = _count_log(repo_dir, "cap") if (repo_dir / ".unbidden" / "logs").exists() else None
     rec.facts["events"] = _events(repo_dir)
     rec.facts["archive"] = archive(repo_dir, f"{name}-A-{phase}")

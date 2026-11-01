@@ -27,7 +27,7 @@ import httpx
 import yaml
 
 from bench.campaign12 import labs
-from bench.campaign12.common import LAB, REAL_HOME, Record, Step, env, ledger, run, scrub, unbidden
+from bench.campaign12.common import LAB, REAL_HOME, Record, Step, env, ledger, run, run_spend, scrub, unbidden
 from bench.campaign12.level_a import archive, key_from_machine
 
 CYCLE_BOUND_S = 5400
@@ -431,11 +431,8 @@ def level_b(
         rec.add(run("egress", [unbidden(), "egress", "--json"], cwd=repo_dir, env_=e, timeout_s=300))
     )
     rec.facts["ledger_after"] = ledger(envelope)
-    rec.facts["spent_usd"] = round(
-        (rec.facts["ledger_after"]["envelope_spent_usd"] or 0)
-        - (rec.facts["ledger_before"]["envelope_spent_usd"] or 0),
-        4,
-    )
+    rec.facts["run_spend"] = run_spend(e["UNBIDDEN_RUN"], e["UNBIDDEN_ENVELOPE"])
+    rec.facts["spent_usd"] = rec.facts["run_spend"]["usd"]
     rec.facts["archive"] = archive(repo_dir, f"{name}-B{run_no}-{phase}")
     if lab_info:
         labs.down(repo["lab"], LAB)

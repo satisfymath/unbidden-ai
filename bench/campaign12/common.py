@@ -88,6 +88,20 @@ def run(
         return Step(name, argv, -1, round(time.monotonic() - started, 1), str(out_s), str(err_s), timed_out=True)
 
 
+def run_spend(run_tag: str, envelope: str = "s12-pilot") -> dict[str, Any]:
+    """What THIS run's calls cost, by its run tag in the ledger: envelope deltas mix concurrent runs."""
+    step = run("spend", [unbidden(), "spend", "--json"], cwd=Path.home(), env_=env(envelope, "ledger"), timeout_s=60)
+    data = step.json() or {}
+    row = (data.get("by_run") or {}).get(run_tag) or {}
+    return {
+        "run": run_tag,
+        "calls": row.get("calls", 0),
+        "usd": round(row.get("usd", 0.0), 4),
+        "tokens_in": row.get("tokens_in", 0),
+        "tokens_out": row.get("tokens_out", 0),
+    }
+
+
 def ledger(envelope: str) -> dict[str, Any]:
     """What the ledger says now for one envelope (spent) and the machine (available); read with the installed tool."""
     step = run("spend", [unbidden(), "spend", "--json"], cwd=Path.home(), env_=env(envelope, "ledger"), timeout_s=60)
