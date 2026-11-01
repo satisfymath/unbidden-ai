@@ -94,3 +94,11 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
   ("payload contains 1 secret(s)"): the repository's own code holds values the scanner reads as secrets (its example
   settings), so those endpoint-to-table readings never left and the map was built from the other 36 · observation
   (correct refusal; the map's coverage is reduced by it) · recorded.
+- 2026-11-01 · forks and CI · on the campaign forks GitHub does not start `pull_request` workflows (fst fork: 15
+  workflows registered, 0 runs for PR #4 and for a throwaway probe PR #5 opened by the owner with `gh`; rich,
+  marshmallow, c12-spoolman: 0 workflows registered), while a `workflow_dispatch` run on the fst fork did execute.
+  The product therefore never sees CI on its pull requests there and, in autonomous mode, waits ("declares CI
+  workflows but none has run") instead of merging: the merge → deploy path cannot be observed on forks in this
+  state. Two ways out, both a person's call: enable workflows in each fork's Actions tab (the fork-state prompt the
+  API does not expose) or plain copies `c12-<name>` (a public repository creation was blocked by this session's
+  permission classifier; not attempted again) · campaign setup block · open, decision asked.

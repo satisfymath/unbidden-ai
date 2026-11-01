@@ -15,3 +15,6 @@ created, one line each, with the date.
 | clones | `~/unbidden-lab/c12/repos/c12-<name>` (Level A), `~/unbidden-lab/c12/<name>` (Level B) | 2026-11-01 | checkouts at the pins; `.unbidden/` archived to `~/unbidden-lab/c12/archive/` | remove with the directory |
 | scenario HOMEs | `/tmp/c12-scn-*` (throwaway ledgers for the credential and budget scenarios) | 2026-11-01 | seeded scenarios | removed by the script |
 | compose projects | `c12-fst`, `c12-spoolman` (labels `unbidden.lab.id=c12-fst|c12-spoolman`, volumes `c12-*-data`) | when Level B runs | labs | `labs.down(app)` (volumes included) |
+| diagnostic | fst fork: PR #5 `c12-ci-probe` (opened and closed, branch deleted); one `workflow_dispatch` run of `playwright.yml` on `c12-base` (run 41345639014) | 2026-11-01 | does the fork start workflows? (no for pull_request; yes for dispatch) | done; nothing left |
+| fork branch | `satisfymath/full-stack-fastapi-template:c12-base` and `satisfymath/marshmallow:c12-base` (existing forks; new branches at the pins) | 2026-11-01 | Level B bases | delete after the report |
+| pull requests | fork `rich` #2, #3, #4 (ruff fixes, autopilot, rich B1); fork `full-stack-fastapi-template` #4 (index on `item.owner_id`, L4, fst B1) | 2026-11-01 | the agent's own effects, evidence | keep open until the report; merge is a person's step (counted) |
