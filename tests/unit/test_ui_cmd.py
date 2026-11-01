@@ -51,8 +51,9 @@ def test_ui_opens_reuses_and_stops_only_the_dashboard(repo: Path, capsys: pytest
         assert "token" not in first, "the token is only in the URL and the 600 file"
         path = repo / ".unbidden" / "ui.json"
         assert oct(path.stat().st_mode & 0o777) == "0o600"
-        assert httpx.get(first["url"].split("?")[0] + "api/session",
-                         headers={"Authorization": f"Bearer {ann.read(path)['token']}"}).status_code == 200  # fmt: skip
+        token = (ann.read(path) or {})["token"]
+        headers = {"Authorization": f"Bearer {token}"}
+        assert httpx.get(first["url"].split("?")[0] + "api/session", headers=headers).status_code == 200
         assert main(["ui", "--json", "--port", "8801"]) == 0
         again = _json(capsys)
         assert again["reused"] is True and again["pid"] == first["pid"]

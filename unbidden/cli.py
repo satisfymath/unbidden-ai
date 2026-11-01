@@ -279,6 +279,7 @@ def cmd_watch(args: argparse.Namespace) -> int:
         raise KeyboardInterrupt
 
     previous = signal.signal(signal.SIGTERM, stop_early)
+    dashboard = None
     try:
         runtime = Runtime.open(ws)
 
@@ -289,6 +290,14 @@ def cmd_watch(args: argparse.Namespace) -> int:
             f"watching {runtime.workspace.repo} in the foreground: this ends with the terminal; "
             "background: unbidden start · freeze: unbidden kill"
         )
+        if getattr(args, "ui", False):
+            from unbidden.web import embed
+
+            try:
+                dashboard = embed.serve(ws, runtime, port=getattr(args, "port", 8765))
+                log(f"dashboard served by this process: {dashboard.url} (it ends with the agent; the tab ends nothing)")
+            except RuntimeError as exc:  # one apart already: the agent runs without its own
+                log(f"dashboard not served here: {exc}")
         try:
             asyncio.run(_watch_until_stopped(runtime, log, lock, interval_s=args.interval, once=args.once))
         except KeyboardInterrupt:
@@ -298,6 +307,10 @@ def cmd_watch(args: argparse.Namespace) -> int:
         console.print("stopped before the first cycle")
         return 0
     finally:
+        if dashboard is not None:
+            from unbidden.web import embed
+
+            embed.close(ws, dashboard)
         signal.signal(signal.SIGTERM, previous)
         lock.release()
 
@@ -341,7 +354,8 @@ def cmd_start(args: argparse.Namespace) -> int:
 
     ws = Workspace.find()
     ws.require()
-    result = service.start(ws, interval_s=args.interval, extra_args=["--ui"] if args.ui else [])
+    extra = ["--ui", "--port", str(args.port)] if args.ui else []
+    result = service.start(ws, interval_s=args.interval, extra_args=extra)
     ok = bool(result.get("started")) or "already" in result
     if _emit(args, result):
         return 0 if ok else 1
@@ -1508,12 +1522,16 @@ def cmd_status(args: argparse.Namespace) -> int:
     for o in opps:
         counts[o.status.value] = counts.get(o.status.value, 0) + 1
     agent = service.status(ws)
+    from unbidden.web import announce
+
+    ui = announce.alive(announce.ui_path(ws.dir))
     data = {
         "repo": str(ws.repo),
         "head": head_sha(ws.repo),
         "kill_switch": ws.killswitch().engaged,
         "agent": agent,
         "stale": agent["stale"],
+        "dashboard": announce.public(ui) if ui else None,
         "last_scan": store.get_value("last_scan"),
         "opportunities": counts,
     }
@@ -1521,6 +1539,11 @@ def cmd_status(args: argparse.Namespace) -> int:
         return 0
     console.print(f"[bold]{ws.repo.name}[/] head {data['head'][:12]}")
     console.print(_agent_line(agent))
+    if ui:
+        where = "served by the agent" if ui.get("in_daemon") else f"pid {ui['pid']}"
+        console.print(f"dashboard: {ui['url']} ({where})")
+    else:
+        console.print("dashboard: not open (`unbidden ui`)")
     if data["kill_switch"]:
         console.print("[red]kill switch engaged[/]: nothing runs until `unbidden resume`")
     console.print(f"opportunities: {counts or 'none yet'}")
@@ -2065,10 +2088,12 @@ def build_parser() -> argparse.ArgumentParser:
     watch = command("watch", cmd_watch, "keep working in the foreground of this terminal", json_out=False)
     watch.add_argument("--interval", type=float, default=30, help="seconds between looks at HEAD")
     watch.add_argument("--once", action="store_true", help="run one full cycle and exit")
-    watch.add_argument("--ui", action="store_true", help="also serve the dashboard from this process (delivery D)")
+    watch.add_argument("--ui", action="store_true", help="also serve the dashboard from this process")
+    watch.add_argument("--port", type=int, default=8765, help="the dashboard's preferred port (with --ui)")
     start = command("start", cmd_start, "run the agent in the background (log in .unbidden/logs/agent.log)")
     start.add_argument("--interval", type=float, default=30, help="seconds between looks at HEAD")
-    start.add_argument("--ui", action="store_true", help="also serve the dashboard from the agent (delivery D)")
+    start.add_argument("--ui", action="store_true", help="also serve the dashboard from the agent's process")
+    start.add_argument("--port", type=int, default=8765, help="the dashboard's preferred port (with --ui)")
     stop = command("stop", cmd_stop, "end the background agent cleanly; the kill switch is not touched")
     stop.add_argument("--timeout", type=float, default=60, help="seconds to wait before SIGKILL")
     approve = command("approve", cmd_approve, "allow the pull request of a proven opportunity", json_out=False)

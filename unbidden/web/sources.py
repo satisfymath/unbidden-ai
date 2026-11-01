@@ -209,6 +209,20 @@ class Source:
             "note": "the server runs on this machine; the model runs where the route says",
         }
 
+    def agent_info(self) -> dict[str, Any]:
+        """Whether an agent owns this workspace's jobs right now (the engine lock, delivery C); records have none."""
+        if self.mode != "live" or self.state_dir is None:
+            return {"running": False, "detail": f"{self.mode} record: no agent"}
+        from unbidden.daemon.owner import holder, stale
+
+        info = holder(self.state_dir)
+        if info:
+            return {"running": True, "pid": info.get("pid"), "started_at": info.get("started_at"),
+                    "command": info.get("command"), "detail": f"agent running, pid {info.get('pid')}"}  # fmt: skip
+        if stale(self.state_dir):
+            return {"running": False, "stale": True, "detail": "the last run ended without `unbidden stop`"}
+        return {"running": False, "detail": "agent not running: `unbidden start`"}
+
     def autonomy_info(self) -> dict[str, Any]:
         if self.mandate is None:
             return {"level": "unknown", "detail": "no mandate in this source", "fields": {}}
@@ -280,6 +294,7 @@ class Source:
                     "autonomy": self.autonomy_info(),
                     "kill_switch": kill.engaged if kill else None,
                     "streams": self.streams,
+                    "agent": self.agent_info(),
                 },
                 "activity": activity,
                 "counts": counts,

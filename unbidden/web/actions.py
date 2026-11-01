@@ -162,14 +162,10 @@ class Actions:
 
 
 def _agent_line(source: Source) -> str:
-    """Whether an agent is running on this workspace, from the engine lock (delivery C); unknown when absent."""
-    import importlib
+    """Whether an agent is running on this workspace, from the engine lock (delivery C)."""
+    from unbidden.daemon.owner import holder
 
-    try:
-        owner = importlib.import_module("unbidden.daemon.owner")
-    except ImportError:  # the lock module is not in this build
-        return "agent state unknown"
-    info = owner.holder(source.state_dir) if source.state_dir is not None else None
+    info = holder(source.state_dir) if source.state_dir is not None else None
     return f"agent running, pid {info['pid']}" if info else "agent not running: `unbidden start`"
 
 
