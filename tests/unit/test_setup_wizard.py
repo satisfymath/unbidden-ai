@@ -128,16 +128,51 @@ def test_local_and_mixed_options(repo: Path) -> None:
     assert len(events(repo, EventType.MANDATE_CHANGED)) == 2
 
 
-def test_autonomous_is_explained_and_the_configuration_stays_valid(repo: Path) -> None:
+def test_autonomous_blocked_keeps_the_previous_configuration_unless_a_fallback_is_named(repo: Path) -> None:
     out, buf = console()
+    before = (repo / ".unbidden" / "mandate.yaml").read_text() if (repo / ".unbidden" / "mandate.yaml").exists() else None
+    # --yes does not pick a mode for the person: scripted without --mode-fallback the setup stops, nothing written
     opts = Options(non_interactive=True, yes=True, models="local", mode="autonomous", budget=1.0, dashboard="never")
-    assert run(Workspace(repo), opts, out, io=scripted(models="local", mode="autonomous", dashboard="never")) == 0
+    assert run(Workspace(repo), opts, out, io=scripted(models="local", mode="autonomous", dashboard="never")) == 4
     text = buf.getvalue()
-    assert "deploy_steps" in text and "drill" in text
+    assert "deploy_steps" in text and "drill" in text and "--mode-fallback" in text
+    if before is not None:
+        assert (repo / ".unbidden" / "mandate.yaml").read_text() == before
     mandate = mandate_of(repo)
     assert mandate.autonomy.merge_pull_requests.value == "deny", "autonomous was not switched on"
-    assert mandate.autonomy.open_pull_requests.value == "allow", "the fallback is autopilot"
-    assert mandate.autonomy.act_on_connections.value == "deny"
+    assert mandate.autonomy.open_pull_requests.value != "allow", "no mode was chosen for the person"
+    assert mandate.models.profile != "local", "the models answer was not written either: nothing partial"
+    assert events(repo, EventType.MANDATE_CHANGED) == []
+    # named explicitly, the fallback is taken and said
+    opts = Options(non_interactive=True, yes=True, models="local", mode="autonomous", mode_fallback="autopilot",
+                   budget=1.0, dashboard="never")  # fmt: skip
+    io_ = scripted(models="local", mode="autonomous", mode_fallback="autopilot", dashboard="never")
+    assert run(Workspace(repo), opts, out, io=io_) == 0
+    mandate = mandate_of(repo)
+    assert mandate.autonomy.merge_pull_requests.value == "deny"
+    assert mandate.autonomy.open_pull_requests.value == "allow", "the fallback named is autopilot"
+    assert mandate.models.profile == "local"
+    assert "Until then: autopilot" in buf.getvalue()
+
+
+def test_autonomous_blocked_interactive_asks_for_the_other_mode_without_a_default(repo: Path) -> None:
+    out, buf = console()
+    opts = Options(yes=True, models="local", mode="autonomous", budget=1.0, dashboard="never")
+
+    class Asks(Scripted):
+        asked: list[tuple[str, str | None]] = []
+
+        def choice(self, key: str, prompt: str, choices: Any, default: str | None) -> str:
+            self.asked.append((key, default))
+            return super().choice(key, prompt, choices, default)
+
+    io_ = Asks({"models": "local", "mode": "autonomous", "mode_fallback": "supervised", "dashboard": "never",
+                "project": True, "priorities": "correctness", "budget": "1"}, {})  # fmt: skip
+    assert run(Workspace(repo), opts, out, io=io_) == 0
+    assert ("mode_fallback", None) in io_.asked, "the other mode is asked explicitly, with no default"
+    mandate = mandate_of(repo)
+    assert mandate.autonomy.open_pull_requests.value != "allow" and mandate.autonomy.merge_pull_requests.value == "deny"
+    assert "Until then: supervised" in buf.getvalue()
 
 
 def test_credentials_are_saved_by_name_and_never_shown(repo: Path) -> None:

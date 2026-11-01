@@ -50,6 +50,15 @@ class SetupError(RuntimeError):
     """A scripted setup lacks an answer, or an answer is not one of the choices."""
 
 
+class SetupBlocked(SetupError):
+    """The mode asked for cannot be switched on and no other mode was chosen explicitly: nothing is written."""
+
+    def __init__(self, mode: str, blockers: list[str]) -> None:
+        super().__init__(t("autonomy.blocked.result", mode=mode))
+        self.mode = mode
+        self.blockers = blockers
+
+
 @dataclass
 class Options:
     non_interactive: bool = False
@@ -60,6 +69,7 @@ class Options:
     models: str | None = None
     private_code: str | None = None
     mode: str | None = None
+    mode_fallback: str | None = None  # the mode to take when `mode` cannot be switched on; never chosen for the person
     act_on_connections: str | None = None
     priorities: list[str] | None = None
     budget: float | None = None
@@ -143,6 +153,8 @@ class Interactive:
 
     def choice(self, key: str, prompt: str, choices: Sequence[str], default: str | None) -> str:
         try:
+            if default is None:  # no default: an empty answer asks again, the person must choose
+                return str(Prompt.ask(prompt, choices=list(choices), console=self.console))
             return str(
                 Prompt.ask(prompt, choices=list(choices), default=default, console=self.console) or default or ""
             )
@@ -441,12 +453,16 @@ def step_autonomy(ctx: Context) -> None:
             for why in blockers:
                 ctx.say(f"  - {why}")
             ctx.notes.extend(blockers)
-            fallback = (
-                "autopilot"
-                if ctx.opts.non_interactive
-                else ctx.io.choice("mode_fallback", t("autonomy.fallback"), ("supervised", "autopilot"), "autopilot")
-            )
-            mode = fallback
+            # Nobody chooses the other mode for the person: scripted, --mode-fallback names it or the setup stops
+            # with the previous configuration intact (--yes only confirms the write, never a mode); interactive,
+            # the question has no default.
+            if ctx.opts.non_interactive:
+                if ctx.opts.mode_fallback is None:
+                    raise SetupBlocked(mode, blockers)
+                mode = ctx.io.choice("mode_fallback", t("autonomy.fallback"), ("supervised", "autopilot"), None)
+            else:
+                mode = ctx.io.choice("mode_fallback", t("autonomy.fallback"), ("supervised", "autopilot"), None)
+            ctx.say(t("autonomy.fallback.chosen", mode=mode))
     ctx.answers.mode = mode  # type: ignore[assignment]
     apply_mode(ctx.raw, mode)
     current = str((ctx.body.get("autonomy") or {}).get("act_on_connections", "deny"))
@@ -622,7 +638,8 @@ def show_summary(ctx: Context, data: dict[str, Any]) -> None:
 
 
 def run(ws: Workspace, opts: Options, out: Console, *, probe: Probe = probe_remote, io: IO | None = None) -> int:
-    """Walk the sections (or one), show the summary and the diff, write once. Exit 0 written, 3 nothing written."""
+    """Walk the sections (or one), show the summary and the diff, write once. Exit 0 written, 3 nothing written,
+    2 cancelled or an answer missing, 4 the mode asked for is blocked and no other mode was named."""
     created = ws.init()
     store = ws.store()
     raw = read_raw(ws.mandate_path)
@@ -639,7 +656,8 @@ def run(ws: Workspace, opts: Options, out: Console, *, probe: Probe = probe_remo
         if opts.non_interactive:
             scripted = {
                 "models": opts.models, "private_code": opts.private_code, "mode": opts.mode,
-                "act_on_connections": opts.act_on_connections, "dashboard": opts.dashboard,
+                "mode_fallback": opts.mode_fallback, "act_on_connections": opts.act_on_connections,
+                "dashboard": opts.dashboard,
             }  # fmt: skip
             names = (
                 (["MODEL_API_KEY"] if opts.model_key_stdin else [])
@@ -667,6 +685,17 @@ def run(ws: Workspace, opts: Options, out: Console, *, probe: Probe = probe_remo
             if name not in answers.completed:
                 answers.completed.append(name)
             save_answers(ws, answers)
+    except SetupBlocked as exc:
+        save_answers(ws, answers)
+        if opts.json:
+            print(json.dumps({"applied": False, "blocked": exc.mode, "blockers": exc.blockers,
+                              "mandate": str(ws.mandate_path)}, indent=2))  # fmt: skip
+        else:
+            out.print(f"[yellow]{exc}[/]")
+            for why in exc.blockers:
+                out.print(f"  - {why}")
+            out.print(t("autonomy.blocked.keep", path=ws.mandate_path))
+        return 4
     except SetupError as exc:
         save_answers(ws, answers)
         out.print(f"[yellow]{exc}[/]")

@@ -61,7 +61,13 @@ T: dict[str, str] = {
     "autonomy.autonomous": "autonomous: also merges L4 work, deploys with the team's steps and rolls back",
     "autonomy.ask": "Which mode?",
     "autonomy.blocked": "autonomous is not available yet:",
-    "autonomy.fallback": "Which mode until then?",
+    "autonomy.fallback": "Which mode until then? (no default; nothing is chosen for you)",
+    "autonomy.fallback.chosen": "Until then: {mode}.",
+    "autonomy.blocked.result": "blocked: {mode} cannot be switched on yet and no other mode was named",
+    "autonomy.blocked.keep": (
+        "Nothing written; {path} keeps its previous configuration. Name the mode to use until then with "
+        "--mode-fallback supervised|autopilot, or complete the requirements above."
+    ),
     "autonomy.connections.ask": "May it write through connections (typed, limited, undoable actions)?",
     "autonomy.effective": "Effective permissions",
     "connections.title": "Connections (optional)",

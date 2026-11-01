@@ -1591,6 +1591,7 @@ def cmd_setup(args: argparse.Namespace) -> int:
         models=args.models,
         private_code=args.private_code,
         mode=args.mode,
+        mode_fallback=args.mode_fallback,
         act_on_connections=args.act_on_connections,
         priorities=[p.strip() for p in args.priorities.split(",") if p.strip()] if args.priorities else None,
         budget=args.budget,
@@ -1705,6 +1706,11 @@ def build_parser() -> argparse.ArgumentParser:
     setup.add_argument("--models", choices=["local", "mixed", "api"], help="where model calls may go")
     setup.add_argument("--private-code", choices=["deny", "allow"], help="private code to Meta's API un-renamed")
     setup.add_argument("--mode", choices=sorted(MODES), help="supervised, autopilot or autonomous")
+    setup.add_argument(
+        "--mode-fallback",
+        choices=["supervised", "autopilot"],
+        help="the mode to take when --mode cannot be switched on yet (without it the setup stops, nothing written)",
+    )
     setup.add_argument("--act-on-connections", choices=["deny", "require_approval", "allow"])
     setup.add_argument("--priorities", help="comma-separated, e.g. correctness,performance")
     setup.add_argument("--budget", type=float, help="monthly cap for this project in US$")
