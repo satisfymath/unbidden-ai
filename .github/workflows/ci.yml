@@ -128,7 +128,10 @@ jobs:
           "$U" ui --stop --json | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['stopped'], d"
           "$U" status --json | python3 -c "import json,sys; d=json.load(sys.stdin); assert not d['agent']['running'], d"
       - name: Docker on this runner (reported, not exercised)
-        run: if docker info >/dev/null 2>&1; then echo "docker present: $(docker --version)"; else echo "docker absent"; fi
+        run: |
+          if docker info >/dev/null 2>&1; then echo "docker present: $(docker --version)"; else echo "docker absent"; fi
+          docker buildx version || echo "buildx absent"
+          docker compose version || echo "compose absent"
       - name: Uninstall keeps the data
         run: |
           export HOME="$SMOKE_HOME"

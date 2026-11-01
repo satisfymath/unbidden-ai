@@ -67,7 +67,7 @@ model option the mandate chose (`unbidden/setup/requirements.py`), and exits 1 o
 | The machine provides | Needed for | Required when |
 |---|---|---|
 | `git` | the repository Unbidden lives in | always |
-| Docker, with the **buildx** plugin and the **compose** plugin | the sandbox (the project's checks, experiments, probes) builds images with `docker build --progress=plain`, which needs BuildKit/buildx; the world map runs `docker compose ps` | the mandate allows observing or experimenting (every option by default). `doctor` checks that the daemon answers (`docker info`); an explicit check of buildx and compose: TODO(fill) |
+| Docker, with the **buildx** plugin and the **compose** plugin | the sandbox (the project's checks, experiments, probes) builds images with `docker build --progress=plain`, which needs BuildKit/buildx; the world map runs `docker compose ps` | the mandate allows observing or experimenting (every option by default). `doctor` checks the daemon (`docker info`) and both plugins (`docker buildx version`, `docker compose version`), required whenever Docker is |
 | [Ollama](https://ollama.com) with a model that fits the machine | local inference | options `local` and `mixed`; not used in `api` |
 | a Meta API key (`MODEL_API_KEY`) | remote inference | option `api` (required) and `mixed` (optional: heavy work goes local without it) |
 | a GitHub token (`GITHUB_TOKEN`) | opening pull requests | only when the mode opens them; without it proposals stay local branches |
@@ -313,11 +313,11 @@ interrupted job; total spend US$0.0438. Details: `docs/PRODUCT-ONBOARDING-PLAN.m
 - **No public release yet.** The one-line install does not work until the first release is published; `unbidden
   update` without `--version` reports the same.
 - **Linux not verified by hand**: GitHub Actions is the only Linux evidence (results: TODO(fill)).
-- `doctor` checks that Docker answers (`docker info`), not that the buildx and compose plugins are present; a missing
-  buildx shows up as a `compatibility` block on the first build (explicit check: TODO(fill)).
-- A dashboard served apart (`unbidden ui`) keeps its own model runs in `~/.unbidden/web/<source>-state.db`; the
-  agent's are in the repository's `.unbidden/state.db`. `unbidden egress` reads the repository's; the two are being
-  unified.
+- `doctor` checks the daemon and the buildx and compose plugins, each explained; without buildx a cycle records a
+  `compatibility` block on the first build instead of work (seen on 2026-11-01 with an empty HOME).
+- A dashboard served apart (`unbidden ui`) keeps its own model runs and egress in `~/.unbidden/web/<source>-state.db`;
+  the agent's are in the repository's `.unbidden/state.db`. `unbidden egress` lists both, each row with its origin
+  (`engine` or `dashboard apart`); `unbidden spend` always counted both (one machine ledger).
 - Two workspaces with the same repository name share a monthly cap (the ledger keys spend by workspace name).
 - `unbidden ui` has no `--state-dir`: the canvas and the conversation always live in `~/.unbidden/web`
   (`python -m unbidden.web --state-dir` has one).

@@ -85,10 +85,10 @@ command: `docs/INSTALL.md`.
 - **No public release.** Install from local artifacts; `unbidden update` without `--version` finds nothing.
 - **Linux not verified by hand**: GitHub Actions is the only Linux evidence (below).
 - An empty HOME has no Docker CLI plugins: without buildx the first build records a `compatibility` block
-  (`unknown flag: --progress`). `doctor` checks that Docker answers, not the plugins (explicit check: TODO(fill)).
-- A dashboard served apart keeps its own model runs in `~/.unbidden/web/<source>-state.db`; `unbidden egress` reads the
-  repository's `.unbidden/state.db`; the two are being unified. Two workspaces with the same repository name share a
-  monthly cap. `unbidden ui` has no `--state-dir`.
+  (`unknown flag: --progress`). `doctor` checks the daemon and both plugins (`docker buildx`, `docker compose`) and explains a missing one.
+- A dashboard served apart keeps its own model runs and egress in `~/.unbidden/web/<source>-state.db`; `unbidden
+  egress` lists them beside the engine's with their origin (`dashboard apart`), and the spend ledger is one. Two
+  workspaces with the same repository name share a monthly cap. `unbidden ui` has no `--state-dir`.
 - The chat's deterministic repertoire is the rules' list (status, tables, charts, explain, compare two runs, change a
   chart, undo); everything else needs a model.
 - Performance workloads are written by a model, and the verdict depends on the data they seed: the same index on
