@@ -324,7 +324,7 @@
    "available_usd": 69.4394,
    "permitted_usd": 97.2945
   },
-  "spent_usd": 0,
+  "spent_usd": 0.0,
   "refused_by_cap": 0,
   "events": {
    "analyzer.ran": 4,
@@ -335,7 +335,14 @@
    "repo.head_moved": 1,
    "world.changed": 2
   },
-  "archive": "/Users/david/unbidden-lab/c12/archive/marshmallow-A-pilot.tgz"
+  "archive": "/Users/david/unbidden-lab/c12/archive/marshmallow-A-pilot.tgz",
+  "spent_usd_envelope_delta_unreliable": 0,
+  "run_spend": {
+   "run": "c12-A-marshmallow",
+   "calls": 0,
+   "usd": 0.0,
+   "note": "no row for this run tag in the ledger (cap 0: every call refused)"
+  }
  },
  "human": [
   {

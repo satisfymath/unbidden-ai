@@ -97,28 +97,6 @@
   "verdict": "pass"
  },
  {
-  "scenario": "UI port busy; close and reopen",
-  "expected": "the dashboard takes the next free port without touching what holds 8871; after stop and reopen the same widgets are there; the empty opportunities table is a complete read of zero rows",
-  "observed": {
-   "port_taken": 8872,
-   "reused_second_time": false,
-   "port2": 8873,
-   "widgets_before": [
-    "w_c822862c7ee74cc1",
-    "w_9bc5000eb30f434e"
-   ],
-   "widgets_after": [
-    "w_c822862c7ee74cc1",
-    "w_9bc5000eb30f434e"
-   ],
-   "completeness": [
-    "complete",
-    "complete"
-   ]
-  },
-  "verdict": "fail"
- },
- {
   "scenario": "kill switch engaged before start; inspect and resume from the dashboard",
   "expected": "the agent starts but waits ('kill switch engaged'); the dashboard opens, shows the switch and releases it; the agent then works; stop is clean",
   "observed": {
@@ -140,6 +118,31 @@
    "partial": "partial",
    "partial_limit": 2,
    "missing": "missing"
+  },
+  "verdict": "pass"
+ },
+ {
+  "scenario": "UI port busy; close and reopen",
+  "expected": "the dashboard takes the next free port without touching what holds 8871; after stop and reopen the same widgets are there; the empty opportunities table is a complete read of zero rows",
+  "observed": {
+   "port_taken": 8872,
+   "reused_second_time": false,
+   "port2": 8873,
+   "widgets_before": [
+    "w_c822862c7ee74cc1",
+    "w_9bc5000eb30f434e",
+    "w_95c8e7b548114607"
+   ],
+   "widgets_after": [
+    "w_c822862c7ee74cc1",
+    "w_9bc5000eb30f434e",
+    "w_95c8e7b548114607"
+   ],
+   "completeness": [
+    "complete",
+    "complete",
+    "complete"
+   ]
   },
   "verdict": "pass"
  }
