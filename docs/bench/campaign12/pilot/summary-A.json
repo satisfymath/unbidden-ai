@@ -98,5 +98,80 @@
   "ui": true,
   "spent_usd": 0,
   "wall_s": 11.4
+ },
+ {
+  "name": "fst",
+  "class": "dev",
+  "family": "api-postgres",
+  "record": "docs/bench/campaign12/pilot/fst/A.json",
+  "setup": true,
+  "doctor_ok": true,
+  "scan_ok": true,
+  "checks": "passed",
+  "collected": 58,
+  "opps": 3,
+  "lifecycle": {
+   "started": true,
+   "running_after_checks": true,
+   "second_start_refused": true,
+   "stopped": true,
+   "jobs_left_running": 0,
+   "stale_after": false,
+   "kill_file": false,
+   "status0_ok": true
+  },
+  "ui": true,
+  "spent_usd": 0,
+  "wall_s": 49.9
+ },
+ {
+  "name": "conduit",
+  "class": "dev",
+  "family": "api-postgres",
+  "record": "docs/bench/campaign12/pilot/conduit/A.json",
+  "setup": true,
+  "doctor_ok": true,
+  "scan_ok": true,
+  "checks": "blocked",
+  "collected": null,
+  "opps": 0,
+  "lifecycle": {
+   "started": true,
+   "running_after_checks": true,
+   "second_start_refused": true,
+   "stopped": true,
+   "jobs_left_running": 0,
+   "stale_after": false,
+   "kill_file": false,
+   "status0_ok": true
+  },
+  "ui": true,
+  "spent_usd": 0.0474,
+  "wall_s": 13.4
+ },
+ {
+  "name": "spoolman",
+  "class": "dev",
+  "family": "api-postgres",
+  "record": "docs/bench/campaign12/pilot/spoolman/A.json",
+  "setup": true,
+  "doctor_ok": true,
+  "scan_ok": true,
+  "checks": "passed",
+  "collected": 278,
+  "opps": 0,
+  "lifecycle": {
+   "started": true,
+   "running_after_checks": true,
+   "second_start_refused": true,
+   "stopped": true,
+   "jobs_left_running": 0,
+   "stale_after": false,
+   "kill_file": false,
+   "status0_ok": true
+  },
+  "ui": true,
+  "spent_usd": -0.0174,
+  "wall_s": 29.0
  }
 ]

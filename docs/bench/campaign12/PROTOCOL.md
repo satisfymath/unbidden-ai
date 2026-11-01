@@ -187,3 +187,15 @@ record. `INVENTORY.md` (forks, branches, labs, HOMEs, containers, volumes), `cor
 aggregate report (`REPORT.md`) with the failure/cause matrix, before/after comparisons for corrections, cumulative
 cost, the prioritized improvement list, the conclusion on which product promises hold and which need narrowing, and
 a release recommendation (no 1.0 label, no automatic release).
+
+## Amendments (dated; nothing above is edited)
+
+- 2026-11-01, before any Level B run: the four development repositories of Level B are `fst`, `spoolman`, `rich`,
+  `marshmallow` (not `conduit`): the rollback drill needs a health endpoint the application exposes, and Conduit has
+  none (`GET /api/tags` is not a health check); Spoolman (`/api/v1/health`) and fst (`/api/v1/utils/health-check/`)
+  have one and build from their repositories. Conduit stays in Level A, and "an application without a health
+  endpoint cannot reach autonomous" is recorded as a product limit to state, not worked around.
+- 2026-11-01, pilot finding: the project's checks run in the agent's first cycle (`observe.head` → `baseline_checks`),
+  not in `scan` (analyzers only); Level A waits for that record (bounded) instead of reading it after `scan`. The
+  dependency images of development repositories were cached on this machine from earlier stages: Level A records
+  whether the image was built in the run or existed before, and "environment reproduced" time is read with that.
