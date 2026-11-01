@@ -164,3 +164,9 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
 - 2026-11-01 · `c12-fst` · the squash merge the product performed carries the token owner's name as author (GitHub
   attributes API merges to the token's user); the commit message is the agent's proposal title and body with the PR
   number · observation · recorded.
+- 2026-11-01 · codex-lb re-verified on the frozen wheel (`pilot-fix/codex-lb/A.json`, candidate `8686674`): checks
+  `failed` with 6,422 collected, **failed 4, could_not_run 30 (lacks: git)**; the record's `why` ends with "30 test(s)
+  could not run: the sandbox image lacks `git`". The 4 remaining failures (a script's `CalledProcessError`, three
+  `exit 126` of a repository shell script) are left as the project's until a cause is shown; they may also be the
+  environment's (an executable bit or a tool the script needs) and are listed for phase 6 · verified · closed for
+  the freeze.

@@ -180,8 +180,9 @@ def ensure_copy(repo: dict[str, Any], human: list[dict[str, Any]] | None = None)
     )
     state: dict[str, Any] = {"slug": slug, "base": branch, "upstream": upstream, "kind": "copy", "created": False}
     exists = gh("api", f"repos/{slug}")
-    if exists.returncode == 0:
-        info = json.loads(exists.stdout)
+    # a renamed repository leaves a redirect: `repos/<slug>` answers with another full_name; that is not this copy
+    info = json.loads(exists.stdout) if exists.returncode == 0 else {}
+    if info and info.get("full_name", "").lower() == slug.lower():
         if info.get("fork"):
             raise RuntimeError(f"{slug} is a fork, not a copy: refusing to use it")
     else:
@@ -228,14 +229,26 @@ def ensure_copy(repo: dict[str, Any], human: list[dict[str, Any]] | None = None)
         )
         time.sleep(3)
         gh("repo", "edit", slug, "--default-branch", branch)
-    head = gh("api", f"repos/{slug}/branches/{branch}", "--jq", ".commit.sha").stdout.strip()
-    state["pin_pushed"] = head == repo["commit"]
     # the campaign commit: workflow files removed (and Spoolman's ci.yml cut), once, documented, on top of the pin
     state["prep"] = _prepare_commit(repo, slug, branch, plan, human)
-    state["base_sha"] = gh("api", f"repos/{slug}/branches/{branch}", "--jq", ".commit.sha").stdout.strip()
     state["pin"] = repo["commit"]
-    # Dependabot: its dynamic workflow disabled, security pull requests off (settings, no commit)
+    # the base must be exactly pin + campaign commit: after a run (a merge moved it) it is put back there, the
+    # agent's branches deleted and its open pull requests closed (the records already hold them; GitHub keeps them)
+    state["restore"] = restore_base(repo, slug, branch, human)
+    state["base_sha"] = state["restore"]["base_sha"]
+    state["pin_in_history"] = state["restore"]["pin_in_history"]
+    # Dependabot: its dynamic workflow disabled, security pull requests off (settings, no commit), and whatever pull
+    # requests it opened before that closed (not the agent's; never counted)
     gh("api", "-X", "DELETE", f"repos/{slug}/automated-security-fixes")
+    bots = gh(
+        "api",
+        f"repos/{slug}/pulls?state=open&per_page=50",
+        "--jq",
+        '[.[] | select(.user.login == "dependabot[bot]") | .number]',
+    )
+    for number in json.loads(bots.stdout or "[]"):
+        gh("api", "-X", "PATCH", f"repos/{slug}/pulls/{number}", "-f", "state=closed")
+    state["dependabot_prs_closed"] = json.loads(bots.stdout or "[]")
     disabled: list[str] = []
     for attempt in range(3):
         listed = gh("api", f"repos/{slug}/actions/workflows?per_page=100", "--jq", "[.workflows[] | {id, path, state}]")
@@ -320,6 +333,89 @@ def _prepare_commit(
                   + (f", {edit['file']} cut" if edited else ""), "minutes": 5,
                   "why": "no deploy, release, package or bot runs from the copy; the checks stay as written"})  # fmt: skip
     return {"applied": True, "sha": sha, "removed": removed, "edited": edited}
+
+
+def campaign_head(repo: dict[str, Any], slug: str, branch: str) -> tuple[str | None, bool]:
+    """The commit the base should be at (the campaign commit whose parent is the pin, else the pin itself) and
+    whether the pin is in the branch's history."""
+    cmp = gh("api", f"repos/{slug}/compare/{repo['commit']}...{branch}")
+    if cmp.returncode != 0:
+        return None, False
+    data = json.loads(cmp.stdout)
+    in_history = data.get("status") in ("ahead", "identical")
+    for c in data.get("commits") or []:
+        parents = [p["sha"] for p in c.get("parents") or []]
+        if (
+            parents == [repo["commit"]]
+            and (c.get("commit") or {}).get("author", {}).get("name") == "Unbidden campaign 12"
+        ):
+            return c["sha"], in_history
+    return (repo["commit"] if in_history else None), in_history
+
+
+def restore_base(repo: dict[str, Any], slug: str, branch: str, human: list[dict[str, Any]]) -> dict[str, Any]:
+    """The copy as a run must find it: base at pin + campaign commit, no `unbidden/*` branch, no open agent pull
+    request. Done only when something differs; everything closed or moved stays readable on GitHub."""
+    expected, in_history = campaign_head(repo, slug, branch)
+    head = gh("api", f"repos/{slug}/branches/{branch}", "--jq", ".commit.sha").stdout.strip()
+    out: dict[str, Any] = {
+        "expected": expected,
+        "head_before": head,
+        "pin_in_history": in_history,
+        "closed": [],
+        "deleted": [],
+    }
+    if expected is None:
+        out["error"] = "the pin is not in the base's history: not touched"
+        out["base_sha"] = head
+        return out
+    prs = gh(
+        "api",
+        f"repos/{slug}/pulls?state=open&base={branch}&per_page=50",
+        "--jq",
+        '[.[] | select(.head.ref | startswith("unbidden/")) | .number]',
+    )
+    for number in json.loads(prs.stdout or "[]"):
+        gh("api", "-X", "PATCH", f"repos/{slug}/pulls/{number}", "-f", "state=closed")
+        gh(
+            "api",
+            "-X",
+            "POST",
+            f"repos/{slug}/issues/{number}/comments",
+            "-f",
+            "body=Campaign 12: this run ended and the copy is restored to its base for the next run; the record keeps this pull request as it was.",
+        )
+        out["closed"].append(number)
+    branches = gh("api", f"repos/{slug}/branches?per_page=100", "--jq", '[.[].name | select(startswith("unbidden/"))]')
+    for name in json.loads(branches.stdout or "[]"):
+        gh("api", "-X", "DELETE", f"repos/{slug}/git/refs/heads/{name}")
+        out["deleted"].append(name)
+    if head != expected:
+        tmp = LAB / "copy-restore" / repo["name"]
+        if tmp.exists():
+            subprocess.run(["rm", "-rf", str(tmp)], check=True)
+        tmp.mkdir(parents=True)
+        subprocess.run(["git", "init", "-q", str(tmp)], check=True)
+        subprocess.run(["git", "-C", str(tmp), "remote", "add", "copy", f"git@github-{GH}:{slug}.git"], check=True)
+        subprocess.run(["git", "-C", str(tmp), "fetch", "-q", "copy", branch], check=True, timeout=1800)
+        push = subprocess.run(
+            ["git", "-C", str(tmp), "push", "-q", "--force", "copy", f"{expected}:refs/heads/{branch}"],
+            capture_output=True,
+            text=True,
+            timeout=600,
+        )
+        if push.returncode != 0:
+            out["error"] = f"could not restore the base: {push.stderr[-300:]}"
+        else:
+            human.append(
+                {
+                    "step": f"restore {slug}:{branch} to {expected[:12]} (pin + campaign commit); {len(out['closed'])} PR(s) closed, {len(out['deleted'])} branch(es) deleted",
+                    "minutes": 1,
+                    "why": "every run starts from the same base",
+                }
+            )
+    out["base_sha"] = gh("api", f"repos/{slug}/branches/{branch}", "--jq", ".commit.sha").stdout.strip()
+    return out
 
 
 def copy_state(slug: str, base: str) -> dict[str, Any]:
