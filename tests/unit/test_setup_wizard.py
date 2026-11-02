@@ -270,7 +270,7 @@ def test_scripted_setup_without_choices_takes_the_facts_and_the_defaults(repo: P
     data = json.loads(capsys.readouterr().out)
     assert data["applied"] and data["models"] == "local" and data["mode"] == "supervised"
     assert data["found"]["option"] == "local" and data["found"]["github"] is None
-    assert data["defaulted"] == ["priorities", "credentials", "connections", "dashboard", "private_code"]
+    assert data["defaulted"] == ["priorities", "credentials", "connections", "dashboard", "private_code", "language"]
     assert any("No model yet" in note for note in data["notes"])
     assert "no commit" not in buf.getvalue()
     mandate = mandate_of(repo)
@@ -367,7 +367,10 @@ def test_with_a_key_saved_and_no_gh_the_walk_asks_github_the_mode_and_apply(repo
     text = buf.getvalue()
     assert "Found" in text and "repository acme/shop" in text and "model key MODEL_API_KEY: saved" in text
     assert "model option: api (a key is here and no local model is installed)" in text
-    assert "not asked, defaults kept: priorities, credentials, connections, budget, dashboard, private_code" in text
+    assert (
+        "not asked, defaults kept: priorities, credentials, connections, budget, dashboard, private_code, language"
+        in text
+    )
     mandate = mandate_of(repo)
     assert mandate.models.profile == "frontier" and mandate.business_constraints.maximum_monthly_spend_usd == 10
     assert mandate.priorities == ["correctness", "maintainability", "security"] or mandate.priorities
@@ -460,3 +463,22 @@ def test_a_repository_without_a_commit_is_set_up_too(tmp_path: Path, monkeypatch
     text = buf.getvalue()
     assert "no commit yet" in text and "no GitHub remote named origin" in text
     assert "connections: no compose file at HEAD" in text
+
+
+def test_the_language_section_saves_the_choice_and_the_found_block_says_it(repo: Path, monkeypatch) -> None:
+    from unbidden import i18n
+
+    monkeypatch.delenv("UNBIDDEN_LANG", raising=False)
+    i18n.clear()
+    out, buf = console()
+    ws = Workspace(repo)
+    ws.init()
+    assert run(ws, Options(section="language"), out, io=Asks({"language": "es", "apply": True})) == 0
+    assert machine.load_prefs().language == "es" and i18n.language() == "es"
+    assert "Idioma: español (guardado en esta máquina)" in buf.getvalue()
+    out, buf = console()
+    io_ = Asks({"github_access": "skip", "mode": "supervised", "apply": True}, {"MODEL_API_KEY": ""})
+    assert run(ws, Options(), out, io=io_) == 0
+    text = buf.getvalue()
+    assert "Encontrado" in text and "opción de modelo: local" in text and "Mandato escrito" in text
+    i18n.clear()

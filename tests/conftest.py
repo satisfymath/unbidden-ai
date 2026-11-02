@@ -35,6 +35,15 @@ def spend_home(tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.Mon
 
 
 @pytest.fixture(autouse=True)
+def english(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The suite reads English whatever the developer's locale; the language tests and the web tests set theirs."""
+    from unbidden import i18n
+
+    monkeypatch.setenv("UNBIDDEN_LANG", "en")
+    i18n.clear()
+
+
+@pytest.fixture(autouse=True)
 def no_gh_cli(monkeypatch: pytest.MonkeyPatch) -> None:
     """Unit tests never pick up the developer's real `gh` sign-in; a test of that path fakes `gh` itself."""
     from unbidden.setup import github_access

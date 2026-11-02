@@ -99,3 +99,14 @@ def server(demo_source: Source, tmp_path: Path) -> Iterator[WebServer]:
 @pytest.fixture
 def client(server: WebServer, demo_source: Source) -> Client:
     return Client(server, demo_source.id)
+
+
+@pytest.fixture(autouse=True)
+def spanish_chat(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    """The dashboard is Spanish, and so are these tests' expectations: the chat answers in Spanish here."""
+    from unbidden import i18n
+
+    monkeypatch.setenv("UNBIDDEN_LANG", "es")
+    i18n.clear()
+    yield
+    i18n.clear()

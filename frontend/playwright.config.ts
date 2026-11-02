@@ -18,7 +18,7 @@ export default defineConfig({
   outputDir: "./test-results",
   use: { baseURL: `http://127.0.0.1:${port}`, viewport: { width: 1500, height: 950 }, trace: "retain-on-failure" },
   webServer: {
-    command: `npm run build && cd .. && UNBIDDEN_HOME=${state} uv run python -m unbidden.web --demo --record docs/bench/stage9-demo/DEMO-B-1 --port ${port} --no-tick --planner rule --state-dir ${state}/web --token ${TOKEN}`,
+    command: `npm run build && cd .. && UNBIDDEN_HOME=${state} UNBIDDEN_LANG=es uv run python -m unbidden.web --demo --record docs/bench/stage9-demo/DEMO-B-1 --port ${port} --no-tick --planner rule --state-dir ${state}/web --token ${TOKEN}`,
     url: `http://127.0.0.1:${port}/`,
     reuseExistingServer: false,
     timeout: 180_000,

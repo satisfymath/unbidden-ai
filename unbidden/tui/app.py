@@ -323,6 +323,8 @@ class UnbiddenApp(App[int]):
             case "setup":
                 self._say(t("cmd.setup.push"))
                 self._setup(cmd.args[0] if cmd.args else None)
+            case "language":
+                self._language(cmd.words[0] if cmd.words else None)
             case _:
                 self._say(t("cmd.unknown", name=cmd.name))
 
@@ -344,6 +346,23 @@ class UnbiddenApp(App[int]):
             self.feed.add(Entry(verb="Noting", text=line, kind="note"))
         self._say(t("cmd.help.chat"))
         self._say(t("cmd.help.keys"))
+
+    def _language(self, code: str | None) -> None:
+        """Say the language, or change it: saved on this machine; the header, bar and prompt follow at once."""
+        from unbidden import i18n
+
+        if code is None:
+            self._say(t("cmd.language.now", name=i18n.name(), how=t(f"lang.how.{i18n.source()}")))
+            return
+        code = code.lower()
+        if code not in i18n.LANGUAGES:
+            self._say(t("cmd.language.unknown", code=code, codes=", ".join(i18n.LANGUAGES)))
+            return
+        i18n.set_language(code)
+        self.prompt.placeholder = t("prompt.placeholder")
+        self.query_one(Header).refresh_line()
+        self.bar.refresh_line()
+        self._say(t("cmd.language.set", name=i18n.name()))
 
     def _setup(self, section: str | None) -> None:
         redo_all = section == "--all"

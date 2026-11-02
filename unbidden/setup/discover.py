@@ -43,17 +43,21 @@ class Found:
         return self.recommendation.installed and self.recommendation.fits
 
     def option(self) -> tuple[str, str]:
-        """The model option the facts amount to, and why. Nothing here spends: `local` without a model is said."""
+        """The model option the facts amount to, and the text key of why (`models.why.*` in setup/text.py).
+        Nothing here spends: `local` without a model is said."""
         if self.key_present and self.local_model:
-            return "mixed", "a key and a local model are both here"
+            return "mixed", "models.why.mixed"
         if self.key_present:
-            return "api", "a key is here and no local model is installed"
+            return "api", "models.why.api"
         if self.local_model:
-            return "local", "a local model is installed and no key is saved"
-        return "local", "no key and no local model yet"
+            return "local", "models.why.local"
+        return "local", "models.why.none"
 
     def as_dict(self) -> dict[str, Any]:
+        from unbidden.setup.text import t
+
         option, why = self.option()
+        why = t(why)
         return {
             "repository": self.slug or self.name,
             "branch": self.branch,

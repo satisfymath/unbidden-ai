@@ -74,7 +74,8 @@ class MachinePrefs(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
     dashboard: Literal["ask", "always", "never"] = "ask"
-    language: str = "en"
+    language: str | None = None  # None: follow the terminal's locale (unbidden/i18n.py)
+    language_chosen: bool = False  # True once a person chose; 0.10 wrote `language: en` without anyone choosing
 
 
 def prefs_path() -> Path:
@@ -86,6 +87,8 @@ def load_prefs() -> MachinePrefs:
     if not path.exists():
         return MachinePrefs()
     raw = yaml.safe_load(path.read_text()) or {}
+    if raw.get("language") == "en" and not raw.get("language_chosen"):
+        raw["language"] = None  # 0.10 wrote "en" on every machine without anyone choosing it
     return MachinePrefs.model_validate(raw)
 
 

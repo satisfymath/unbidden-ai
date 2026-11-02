@@ -27,7 +27,7 @@ def test_every_entry_formats_with_its_named_placeholders(key: str) -> None:
 
 def test_no_entry_is_unreferenced() -> None:
     package = Path(text.__file__).parent
-    code = "\n".join(p.read_text() for p in package.glob("*.py") if p.name != "text.py")
+    code = "\n".join(p.read_text() for p in package.glob("*.py") if not p.name.startswith("text"))
     unreferenced = [
         k for k in text.T if f'"{k}"' not in code and f"'{k}'" not in code and not _built_dynamically(k, code)
     ]
@@ -37,6 +37,10 @@ def test_no_entry_is_unreferenced() -> None:
 def _built_dynamically(key: str, code: str) -> bool:
     """A key chosen at run time (`"open.highlight.ask" if asks else "open.highlight"`) is still referenced."""
     stem = key.rsplit(".", 1)[0]
+    if key.startswith("cmd.") and key.endswith((".usage", ".help")):  # Spec builds them from the command's name
+        return 'f"cmd.{self.name}.usage"' in code and key.split(".")[1] in code
+    if key.startswith("lang.how."):  # t(f"lang.how.{i18n.source()}")
+        return 'f"lang.how.{' in code
     return f'"{stem}' in code and any(f'"{key}"' in line or f"'{key}'" in line for line in code.splitlines())
 
 

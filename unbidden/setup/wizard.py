@@ -46,7 +46,7 @@ from unbidden.workspace import Workspace
 # whether to apply. Everything else is found or has a default shown in the summary; the advanced sections run only
 # by name (`unbidden setup budget`, `/setup connections`) or with --all.
 SECTIONS = ("found", "models", "autonomy")
-ADVANCED = ("priorities", "credentials", "connections", "budget", "dashboard", "private_code")
+ADVANCED = ("priorities", "credentials", "connections", "budget", "dashboard", "private_code", "language")
 ALL = SECTIONS + ADVANCED
 OLD_NAMES = {"project": "found"}  # a setup.json written by 0.10
 ModelOption = Literal["local", "mixed", "api"]
@@ -301,6 +301,9 @@ def step_found(ctx: Context) -> None:
     state = t("found.key.present") if found.key_present else t("found.key.absent")
     ctx.say(t("found.key", name=found.key_env, state=state))
     _github_access(ctx, found)
+    from unbidden import i18n
+
+    ctx.say(t("found.language", name=i18n.name(), how=t(f"lang.how.{i18n.source()}")))
     ctx.answers.found = found.as_dict()
 
 
@@ -379,10 +382,10 @@ def step_models(ctx: Context) -> None:
             ctx.say(t("models.key.skipped"))
     found.key_present = key_present
     if ctx.opts.models is not None:
-        option, why = ctx.opts.models, t("models.why.flag")
+        option, why = ctx.opts.models, "models.why.flag"
     else:
         option, why = found.option()
-    ctx.say(t("models.chosen", option=option, why=why))
+    ctx.say(t("models.chosen", option=option, why=t(why)))
     if option == "local" and not found.local_model and not found.ollama_present:
         ctx.say(t("models.none"))
         ctx.notes.append(t("models.none"))
@@ -410,6 +413,15 @@ def step_models(ctx: Context) -> None:
     apply_models(ctx.raw, private_code_to_frontier=private)
     if ctx.opts.probe and key_present:
         _offer_probe(ctx)
+
+
+def step_language(ctx: Context) -> None:
+    from unbidden import i18n
+
+    ctx.title("language.title")
+    code = ctx.io.choice("language", t("language.ask"), tuple(i18n.LANGUAGES), i18n.language())
+    i18n.set_language(code)
+    ctx.say(t("found.language", name=i18n.name(), how=t("lang.how.saved")))
 
 
 def step_private_code(ctx: Context) -> None:
@@ -702,6 +714,7 @@ STEPS: dict[str, Callable[[Context], None]] = {
     "budget": step_budget,
     "dashboard": step_dashboard,
     "private_code": step_private_code,
+    "language": step_language,
 }
 
 
@@ -772,6 +785,7 @@ def _flagged(opts: Options, section: str) -> bool:
         "budget": opts.budget is not None,
         "dashboard": opts.dashboard is not None,
         "private_code": opts.private_code is not None,
+        "language": False,
     }[section]
 
 
