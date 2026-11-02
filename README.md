@@ -33,14 +33,14 @@ The full guide, with prerequisites, the walk, what costs tokens and what does no
 [`docs/INSTALL.md`](docs/INSTALL.md). Unbidden installs as one wheel with the dashboard built inside, in its own
 environment with its own Python 3.12 (uv). The end user needs no Node and no Python of their own.
 
-**One line, available once the first release is published** (there is no release yet; this fails today with
-"no published release found"):
+**One line** (macOS on Apple Silicon, Linux x86-64; the script is served from [unbidden.cl](https://unbidden.cl) and
+downloads the wheel of the latest GitHub release, verified against its `SHA256SUMS`):
 
 ```sh
-curl -LsSf https://github.com/satisfymath/unbidden-ai/releases/latest/download/install.sh | sh
+curl -fsSL https://unbidden.cl/install.sh | sh
 ```
 
-**From local artifacts, which is what works today** (and how the installer is tested):
+**From local artifacts** (how the installer is tested, and how to install an unreleased build):
 
 ```sh
 make dist                                   # from a checkout: dist/unbidden_ai-0.9.0-py3-none-any.whl + SHA256SUMS

@@ -10,13 +10,15 @@ Verified by hand on macOS on Apple Silicon (arm64) only. Linux x86-64 runs in Gi
 
 ## One line
 
-> **Available once the first release is published.** There is no release on GitHub yet, so this line fails today with
-> "no published release found". Until then use the [local-artifact procedure](#installing-from-local-artifacts-today)
-> below, which is also how the installer is tested.
-
 ```sh
-curl -LsSf https://github.com/satisfymath/unbidden-ai/releases/latest/download/install.sh | sh
+curl -fsSL https://unbidden.cl/install.sh | sh
 ```
+
+The script is the repository's `install.sh`, served from [unbidden.cl](https://unbidden.cl) (Cloudflare Pages, published
+from `main` by the `Site` workflow); the same file is attached to every GitHub release
+(`https://github.com/satisfymath/unbidden-ai/releases/latest/download/install.sh`) and shipped inside the wheel. Without a
+published release it stops with "no published release found": the [local-artifact procedure](#installing-from-local-artifacts-today)
+below installs an unreleased build and is how the installer is tested.
 
 What it does, in order: detects the platform; finds `uv` or asks to install it with its official installer; downloads
 `unbidden_ai-X.Y.Z-py3-none-any.whl` and `SHA256SUMS` from the release; verifies the sha256 and refuses on a mismatch;
@@ -245,7 +247,7 @@ real on live sources only; deploy and rollback name the CLI command instead of r
 ## Update, rollback, uninstall
 
 ```sh
-unbidden update                     # the latest published release (none yet: see "One line")
+unbidden update                     # the latest published release
 unbidden update --version 0.9.0     # a fixed version: also how you roll back after a failed update
 unbidden uninstall                  # shows what would happen
 unbidden uninstall --yes            # uv tool uninstall unbidden-ai; data stays
@@ -310,8 +312,6 @@ interrupted job; total spend US$0.0438. Details: `docs/PRODUCT-ONBOARDING-PLAN.m
 
 ## Known limitations
 
-- **No public release yet.** The one-line install does not work until the first release is published; `unbidden
-  update` without `--version` reports the same.
 - **Linux not verified by hand**: GitHub Actions is the only Linux evidence (CI run [41333127432](https://github.com/satisfymath/unbidden-ai/actions/runs/41333127432) on `2d72ce4`, 2026-11-01: `check`, `frontend`, `installed` and `secrets` all green; what
   the `installed` job does and does not cover is in `docs/RELEASE.md`, "CI on Linux x86-64").
 - `doctor` checks the daemon and the buildx and compose plugins, each explained; without buildx a cycle records a
