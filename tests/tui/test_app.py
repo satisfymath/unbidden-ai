@@ -130,11 +130,22 @@ async def test_a_first_run_opens_setup_and_ctrl_c_keeps_the_answers(bare: Worksp
         assert isinstance(app.screen, SetupScreen)
         log = "\n".join("".join(s.text for s in line) for line in app.screen.query_one("#log", RichLog).lines)
         assert "Unbidden is not set up in this repository yet" in log and "Project" in log
-        await pilot.press("enter")  # confirm the project (default yes)
+        from textual.widgets import OptionList
+
+        menu = app.screen.query_one("#choices", OptionList)
+        assert menu.display and menu.option_count == 2 and menu.highlighted == 0  # Yes is the default
+        await pilot.press("enter")  # confirm the project
         for _ in range(40):
             await pilot.pause(0.1)
             if app.screen._pending is not None and app.screen._pending[0].key == "priorities":  # type: ignore[attr-defined]
                 break
+        assert not menu.display and app.screen.query_one("#answer", Input).display  # a text answer
+        await pilot.press("enter")  # the default priorities
+        for _ in range(40):
+            await pilot.pause(0.1)
+            if app.screen._pending is not None and app.screen._pending[0].key == "models":  # type: ignore[attr-defined]
+                break
+        assert menu.display and menu.option_count == 3  # local, mixed, api as a menu
         await pilot.press("ctrl+c")
         for _ in range(40):
             await pilot.pause(0.1)
