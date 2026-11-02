@@ -6,6 +6,7 @@ import argparse
 import getpass
 import json
 import sys
+import time
 from collections.abc import Sequence
 from datetime import datetime
 from typing import Any
@@ -19,6 +20,7 @@ from unbidden.contracts.experiment import Proposal, ProposalStatus
 from unbidden.contracts.guardian import EgressAttempt
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
 from unbidden.guardian.credentials import broker
+from unbidden.guardian.mandate_edit import MODES, autonomous_blockers, current_mode, write_mandate
 from unbidden.observe.scan import ScanDenied, scan
 from unbidden.workspace import Workspace, WorkspaceError, head_sha
 
@@ -33,6 +35,15 @@ def _emit(args: argparse.Namespace, data: Any) -> bool:
         print(json.dumps(data, indent=2, default=str))
         return True
     return False
+
+
+def _own(ws: Workspace, command: str) -> Any:
+    """The engine lock, for the commands that execute jobs or effects in this process (daemon/owner.py). Decisions
+    (`approve`, `mode`, `kill`, ...) do not take it: they are short transactions the loop reads on its next cycle."""
+    from unbidden.daemon.owner import EngineLock
+
+    ws.require()
+    return EngineLock.acquire(ws.dir, command)
 
 
 def cmd_init(args: argparse.Namespace) -> int:
@@ -99,7 +110,14 @@ def cmd_prepare(args: argparse.Namespace) -> int:
 
 def cmd_scan(args: argparse.Namespace) -> int:
     ws = Workspace.find()
-    ws.require()
+    lock = _own(ws, "scan")
+    try:
+        return _scan(args, ws)
+    finally:
+        lock.release()
+
+
+def _scan(args: argparse.Namespace, ws: Workspace) -> int:
     store = ws.store()
     rev = head_sha(ws.repo)
     with console.status("scanning") as status:
@@ -170,12 +188,21 @@ def cmd_show(args: argparse.Namespace) -> int:
 
 def cmd_try(args: argparse.Namespace) -> int:
     """Run one experiment now, in the foreground."""
+    ws = Workspace.find()
+    lock = _own(ws, "try")
+    try:
+        return _try(args, ws)
+    finally:
+        lock.release()
+
+
+def _try(args: argparse.Namespace, ws: Workspace) -> int:
     import asyncio
 
     from unbidden.lab.fixlab import FixLab
     from unbidden.runtime import Runtime
 
-    runtime = Runtime.open(Workspace.find())
+    runtime = Runtime.open(ws)
     opp = runtime.store.get("opportunities", args.id, Opportunity)
     if opp is None:
         err.print(f"no opportunity {args.id}")
@@ -236,73 +263,171 @@ def cmd_try(args: argparse.Namespace) -> int:
 
 
 def cmd_watch(args: argparse.Namespace) -> int:
-    """Run in the foreground until interrupted (or one full cycle with --once)."""
+    """Run in the foreground until stopped (SIGTERM, SIGINT), or one full cycle with --once. This process owns
+    the workspace's jobs while it runs (daemon/owner.py); `--ui` is accepted here and served by delivery D."""
     import asyncio
+    import signal
 
-    from unbidden.daemon.loop import watch
     from unbidden.runtime import Runtime
 
-    runtime = Runtime.open(Workspace.find())
+    ws = Workspace.find()
+    lock = _own(ws, "watch")
 
-    def log(message: str) -> None:
-        console.print(f"[dim]{datetime.now():%H:%M:%S}[/] {message}")
+    # From the moment this process owns the workspace, a stop ends it cleanly: before the loop runs (while the
+    # runtime opens) a SIGTERM is a KeyboardInterrupt, caught below; inside the loop, the event loop's handlers.
+    def stop_early(*_: object) -> None:
+        raise KeyboardInterrupt
 
-    log(f"watching {runtime.workspace.repo} (ctrl-c to stop, `unbidden kill` to freeze)")
+    previous = signal.signal(signal.SIGTERM, stop_early)
+    dashboard = None
     try:
-        asyncio.run(watch(runtime, log=log, interval_s=args.interval, once=args.once))
+        runtime = Runtime.open(ws)
+
+        def log(message: str) -> None:
+            console.print(f"[dim]{datetime.now():%H:%M:%S}[/] {message}")
+
+        log(
+            f"watching {runtime.workspace.repo} in the foreground: this ends with the terminal; "
+            "background: unbidden start · freeze: unbidden kill"
+        )
+        if getattr(args, "ui", False):
+            from unbidden.web import embed
+
+            try:
+                dashboard = embed.serve(ws, runtime, port=getattr(args, "port", 8765))
+                # The URL carries the session token: it goes to the person (`unbidden ui`, `unbidden status`), not
+                # to a log file.
+                log(
+                    f"dashboard served by this process on port {dashboard.port} (`unbidden ui` prints the URL; "
+                    "it ends with the agent; the tab ends nothing)"
+                )
+            except RuntimeError as exc:  # one apart already: the agent runs without its own
+                log(f"dashboard not served here: {exc}")
+        try:
+            asyncio.run(_watch_until_stopped(runtime, log, lock, interval_s=args.interval, once=args.once))
+        except KeyboardInterrupt:
+            log("stopped")
+        return 0
     except KeyboardInterrupt:
+        console.print("stopped before the first cycle")
+        return 0
+    finally:
+        if dashboard is not None:
+            from unbidden.web import embed
+
+            embed.close(ws, dashboard)
+        signal.signal(signal.SIGTERM, previous)
+        lock.release()
+
+
+async def _watch_until_stopped(runtime: Any, log: Any, lock: Any, *, interval_s: float, once: bool) -> None:
+    """`watch` with SIGTERM and SIGINT turned into a clean stop; a second signal ends the process at once (130)."""
+    import asyncio
+    import os
+    import signal
+
+    from unbidden.daemon.loop import watch
+
+    stopping = asyncio.Event()
+    loop = asyncio.get_running_loop()
+    asked = 0
+
+    def on_signal(signum: int) -> None:
+        nonlocal asked
+        asked += 1
+        if asked > 1:
+            log("stopping now")
+            lock.release()
+            os._exit(130)
+        log(f"{signal.Signals(signum).name}: stopping after the current job (send it again to exit at once)")
+        stopping.set()
+
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        loop.add_signal_handler(sig, on_signal, sig)
+    try:
+        await watch(runtime, log=log, interval_s=interval_s, once=once, stopping=stopping)
+    finally:
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            loop.remove_signal_handler(sig)
+    if stopping.is_set():
         log("stopped")
+
+
+def cmd_start(args: argparse.Namespace) -> int:
+    """Run the agent in the background: `unbidden watch` in its own session, logging to .unbidden/logs/agent.log."""
+    from unbidden.daemon import service
+
+    ws = Workspace.find()
+    ws.require()
+    extra = ["--ui", "--port", str(args.port)] if args.ui else []
+    result = service.start(ws, interval_s=args.interval, extra_args=extra)
+    ok = bool(result.get("started")) or "already" in result
+    if _emit(args, result):
+        return 0 if ok else 1
+    if result.get("started"):
+        console.print(
+            f"agent started: pid {result['pid']} · log {result['log']} · see: unbidden status · stop: unbidden stop"
+        )
+        return 0
+    if "already" in result:
+        h = result["already"]
+        console.print(f"already running: pid {h.get('pid')} since {h.get('started_at')} (unbidden {h.get('command')})")
+        return 0
+    exit_code = result.get("exit")
+    ended = f"exited with code {exit_code}" if exit_code is not None else str(result.get("note"))
+    err.print(f"[red]the agent {ended} before it owned the workspace[/]; the end of its log:")
+    for line in result.get("log_tail", []):
+        err.print(f"  {line}", markup=False, highlight=False)
+    return 1
+
+
+def cmd_stop(args: argparse.Namespace) -> int:
+    """End the background agent cleanly. The kill switch is not touched: nothing stays frozen."""
+    from unbidden.daemon import service
+
+    ws = Workspace.find()
+    ws.require()
+    result = service.stop(ws, timeout_s=args.timeout)
+    if _emit(args, result):
+        return 0
+    _print_stop(result)
     return 0
 
 
+def _print_stop(result: dict[str, Any]) -> None:
+    if result.get("stopped"):
+        console.print(f"agent stopped (pid {result['pid']}, {result['waited_s']:.1f} s)")
+        left = int(result.get("jobs_left_running") or 0)
+        if left:
+            console.print(f"{left} job(s) were still running; they resume on the next start")
+        if result.get("forced"):
+            console.print(f"[yellow]forced after {result['timeout_s']:g} s[/]")
+        return
+    console.print("agent is not running")
+    if result.get("stale"):
+        last = result.get("last") or {}
+        console.print(
+            f"the last run (pid {last.get('pid')}) ended without 'unbidden stop'; "
+            f"{result.get('jobs_running', 0)} job(s) resume on start"
+        )
+
+
 def _proposal_for(store: Any, opportunity_id: str) -> Proposal | None:
-    return store.get_by_key("proposals", opportunity_id, Proposal)
+    from unbidden.operate.decisions import proposal_for
+
+    return proposal_for(store, opportunity_id)
 
 
 def _approve(store: Any, proposal: Proposal, hours: float) -> None:
-    from datetime import timedelta
+    from unbidden.operate.decisions import approve
 
-    from unbidden.daemon.cycle import job
-    from unbidden.guardian.approvals import grant
-    from unbidden.publish.github import CAPABILITY
-
-    approval = grant(store, CAPABILITY, proposal.id, granted_by=getpass.getuser(), ttl=timedelta(hours=hours))
-    store.append_event(
-        Event(
-            type=EventType.APPROVAL_GRANTED,
-            actor=f"person:{approval.granted_by}",
-            entity_id=approval.id,
-            correlation_id=proposal.opportunity_id,
-            payload={"capability": CAPABILITY, "proposal": proposal.id},
-        )
-    )
-    store.enqueue(
-        job(
-            "github.publish",
-            f"{proposal.id}:{approval.id}",
-            {"id": proposal.id},
-            correlation_id=proposal.opportunity_id,
-        )
-    )
+    approve(store, proposal, by=getpass.getuser(), hours=hours)
 
 
 def _reject(store: Any, opp: Opportunity, reason: str) -> None:
-    opp.status = OpportunityStatus.DECLINED
-    opp.details = {**opp.details, "rejected_because": reason}
-    store.put("opportunities", opp)
-    proposal = _proposal_for(store, opp.id)
-    if proposal is not None and proposal.status is ProposalStatus.READY:
-        proposal.status = ProposalStatus.REJECTED
-        store.put("proposals", proposal)
-    store.append_event(
-        Event(
-            type=EventType.APPROVAL_REJECTED,
-            actor=f"person:{getpass.getuser()}",
-            entity_id=opp.id,
-            correlation_id=opp.id,
-            payload={"reason": reason},
-        )
-    )
+    from unbidden.operate.decisions import reject
+
+    reject(store, opp, by=getpass.getuser(), reason=reason)
 
 
 def cmd_approve(args: argparse.Namespace) -> int:
@@ -360,48 +485,18 @@ def cmd_review(args: argparse.Namespace) -> int:
     return 0
 
 
-MODES: dict[str, dict[str, str]] = {
-    # Unbidden prepares everything and asks before anything reaches GitHub.
-    "supervised": {
-        "open_pull_requests": "require_approval",
-        "merge_pull_requests": "deny",
-        "deploy": "deny",
-        "rollback": "deny",
-        "use_new_capabilities": "require_approval",
-    },
-    # Unbidden opens pull requests on its own for what reaches the mandate's evidence level; people merge.
-    "autopilot": {
-        "open_pull_requests": "allow",
-        "merge_pull_requests": "deny",
-        "deploy": "deny",
-        "rollback": "deny",
-        "use_new_capabilities": "allow",
-    },
-    # Unbidden also merges L4 work, deploys it with the team's steps, judges every deploy, and rolls back to the
-    # last healthy version when one degrades or the system goes down. Requires a passed rollback drill.
-    "autonomous": {
-        "open_pull_requests": "allow",
-        "merge_pull_requests": "allow",
-        "deploy": "allow",
-        "rollback": "allow",
-        "use_new_capabilities": "allow",
-    },
-}
-
-
-def _current_mode(autonomy: dict[str, Any]) -> str:
-    return next((m for m, v in MODES.items() if all(autonomy.get(k, "deny") == x for k, x in v.items())), "custom")
+_current_mode = current_mode  # the modes and their checks live in guardian/mandate_edit.py
 
 
 def cmd_mode(args: argparse.Namespace) -> int:
     """Show or set how much unbidden may do on its own."""
-    import yaml
+    from unbidden.guardian.mandate_edit import apply_mode, read_raw
 
     ws = Workspace.find()
     ws.require()
-    raw = yaml.safe_load(ws.mandate_path.read_text())
+    raw = read_raw(ws.mandate_path)
     autonomy = raw["mandate"].setdefault("autonomy", {})
-    current = _current_mode(autonomy)
+    current = current_mode(autonomy)
     if args.mode is None:
         if _emit(args, {"mode": current, "autonomy": autonomy}):
             return 0
@@ -411,24 +506,12 @@ def cmd_mode(args: argparse.Namespace) -> int:
         return 0
     store = ws.store()
     if args.mode == "autonomous":
-        operations = raw["mandate"].get("operations") or {}
-        drill = store.get_value("rollback_drill") or {}
-        if not operations.get("deploy_steps"):
-            err.print("autonomous needs the team's deploy steps in the mandate (operations.deploy_steps)")
+        blockers = autonomous_blockers(raw, store)
+        if blockers:
+            err.print(blockers[0])
             return 2
-        if not drill.get("passed"):
-            err.print("autonomous needs a passed rollback drill first: run `unbidden drill`")
-            return 2
-    autonomy.update(MODES[args.mode])
-    ws.mandate_path.write_text(yaml.safe_dump(raw, sort_keys=False))
-    ws.mandate()  # validate what was written
-    store.append_event(
-        Event(
-            type=EventType.MANDATE_CHANGED,
-            actor=f"person:{getpass.getuser()}",
-            payload={"from": current, "to": args.mode, "autonomy": MODES[args.mode]},
-        )
-    )
+    applied = apply_mode(raw, args.mode)
+    write_mandate(ws.mandate_path, raw, store, {"from": current, "to": args.mode, "autonomy": applied})
     console.print(f"mode: [bold]{args.mode}[/] (was {current})")
     return 0
 
@@ -436,12 +519,19 @@ def cmd_mode(args: argparse.Namespace) -> int:
 def cmd_deploy(args: argparse.Namespace) -> int:
     """Deploy a local commit or branch (a proposal not published, say) with the mandate's steps, as the merge path
     would: the same Guardian checks and rate limit, the same ledger binding, the same event the live watcher judges."""
+    ws = Workspace.find()
+    lock = _own(ws, "deploy")
+    try:
+        return _deploy(args, ws)
+    finally:
+        lock.release()
+
+
+def _deploy(args: argparse.Namespace, ws: Workspace) -> int:
     import subprocess
 
     from unbidden.operate.deploy import OperationRefused, deploy
 
-    ws = Workspace.find()
-    ws.require()
     found = subprocess.run(["git", "-C", str(ws.repo), "rev-parse", "--verify", f"{args.ref}^{{commit}}"],
                            capture_output=True, text=True, check=False)  # fmt: skip
     if found.returncode != 0:
@@ -464,13 +554,20 @@ def cmd_deploy(args: argparse.Namespace) -> int:
 
 def cmd_drill(args: argparse.Namespace) -> int:
     """Prove rollback works: deploy the previous version with the team's steps, check health, deploy back."""
+    ws = Workspace.find()
+    lock = _own(ws, "drill")
+    try:
+        return _drill(args, ws)
+    finally:
+        lock.release()
+
+
+def _drill(args: argparse.Namespace, ws: Workspace) -> int:
     import subprocess
 
     from unbidden.contracts.world import WorldModel
     from unbidden.operate.deploy import drill
 
-    ws = Workspace.find()
-    ws.require()
     store = ws.store()
     world = store.get("world", "world", WorldModel)
     health = next(
@@ -700,14 +797,25 @@ def cmd_why(args: argparse.Namespace) -> int:
 
 
 def cmd_forge(args: argparse.Namespace) -> int:
-    """Build, list or approve capabilities Unbidden made for itself."""
+    """Build, list or approve capabilities Unbidden made for itself. Building and reading stats execute work in this
+    process, so they own the workspace meanwhile; listing, approving and disabling are short writes."""
+    ws = Workspace.find()
+    lock = _own(ws, f"forge {args.action}") if args.action in ("build", "stats") else None
+    try:
+        return _forge(args, ws)
+    finally:
+        if lock is not None:
+            lock.release()
+
+
+def _forge(args: argparse.Namespace, ws: Workspace) -> int:
     import asyncio
 
     from unbidden.forge.adapter import LogAdapter
     from unbidden.forge.build import Forge, compose_logs
     from unbidden.runtime import Runtime
 
-    runtime = Runtime.open(Workspace.find())
+    runtime = Runtime.open(ws)
     store = runtime.store
     if args.action == "stats":
         return _forge_stats(runtime, args.target)
@@ -870,12 +978,21 @@ def cmd_logs(args: argparse.Namespace) -> int:
 
 def cmd_investigate(args: argparse.Namespace) -> int:
     """Explain a failure between a healthy and a failed version, read-only, with the local model."""
+    ws = Workspace.find()
+    lock = _own(ws, "investigate")
+    try:
+        return _investigate(args, ws)
+    finally:
+        lock.release()
+
+
+def _investigate(args: argparse.Namespace, ws: Workspace) -> int:
     import asyncio
 
     from unbidden.research.investigate import Investigation
     from unbidden.runtime import Runtime
 
-    runtime = Runtime.open(Workspace.find())
+    runtime = Runtime.open(ws)
     incident = args.incident or f"version {args.bad[:12]} failed where {args.good[:12]} worked"
     investigation = Investigation(
         runtime.workspace.repo,
@@ -906,12 +1023,21 @@ def cmd_investigate(args: argparse.Namespace) -> int:
 
 def cmd_probe(args: argparse.Namespace) -> int:
     """Look for crashes in a package with property-based tests a model writes, run offline."""
+    ws = Workspace.find()
+    lock = _own(ws, "probe")
+    try:
+        return _probe(args, ws)
+    finally:
+        lock.release()
+
+
+def _probe(args: argparse.Namespace, ws: Workspace) -> int:
     import asyncio
 
     from unbidden.research.robustness import RobustnessProbe, parse_crashes, probe_package, property_violations
     from unbidden.runtime import Runtime
 
-    runtime = Runtime.open(Workspace.find())
+    runtime = Runtime.open(ws)
     rev = head_sha(runtime.workspace.repo)
     _, images = runtime.stack_and_images(rev)
     if "python" not in images:
@@ -957,11 +1083,11 @@ def cmd_probe(args: argparse.Namespace) -> int:
 
 def cmd_models(args: argparse.Namespace) -> int:
     """Show or set which models may serve this workspace. Secrets and production data stay local in every profile."""
-    import yaml
+    from unbidden.guardian.mandate_edit import apply_models, read_raw
 
     ws = Workspace.find()
     ws.require()
-    raw = yaml.safe_load(ws.mandate_path.read_text())
+    raw = read_raw(ws.mandate_path)
     models = raw["mandate"].setdefault("models", {"profile": "local-first", "private_code_to_frontier": "deny"})
     if args.profile is None and args.private_code is None:
         if _emit(args, models):
@@ -971,21 +1097,9 @@ def cmd_models(args: argparse.Namespace) -> int:
             f"{models.get('private_code_to_frontier', 'deny')} · secrets and production data: always local"
         )
         return 0
-    before = dict(models)
-    if args.profile is not None:
-        models["profile"] = args.profile
-    if args.private_code is not None:
-        models["private_code_to_frontier"] = args.private_code
-    ws.mandate_path.write_text(yaml.safe_dump(raw, sort_keys=False))
-    ws.mandate()
-    ws.store().append_event(
-        Event(
-            type=EventType.MANDATE_CHANGED,
-            actor=f"person:{getpass.getuser()}",
-            payload={"models": {"from": before, "to": models}},
-        )
-    )
-    console.print(f"models: {models}")
+    before, after = apply_models(raw, profile=args.profile, private_code_to_frontier=args.private_code)
+    write_mandate(ws.mandate_path, raw, ws.store(), {"models": {"from": before, "to": after}})
+    console.print(f"models: {after}")
     return 0
 
 
@@ -1040,16 +1154,27 @@ def cmd_route(args: argparse.Namespace) -> int:
 
 def cmd_egress(args: argparse.Namespace) -> int:
     """Everything that left this machine, or tried to: destination, purpose, size, and the exact payload."""
+    from unbidden.web.sources import apart_records
+
     ws = Workspace.find()
     ws.require()
-    attempts = sorted(ws.store().list("egress", EgressAttempt), key=lambda a: a.created_at)
-    if _emit(args, [a.model_dump(mode="json") for a in attempts]):
+    # The engine's own records, plus those of a dashboard served apart from the agent (its chat has its own store
+    # under ~/.unbidden/web): one listing, each row with its origin, none counted twice.
+    rows = [(a, "engine") for a in ws.store().list("egress", EgressAttempt)]
+    seen = {a.id for a, _ in rows}
+    for store in apart_records(ws.repo):
+        rows.extend((a, "dashboard apart") for a in store.list("egress", EgressAttempt) if a.id not in seen)
+        store.close()
+    rows.sort(key=lambda pair: pair[0].created_at)
+    attempts = [a for a, _ in rows]
+    if _emit(args, [a.model_dump(mode="json") | {"origin": origin} for a, origin in rows]):
         return 0
-    for a in attempts[-args.last :]:
+    for a, origin in rows[-args.last :]:
         mark = {"allowed_sent": "[green]sent[/]", "blocked": "[red]blocked[/]"}.get(a.status, a.status)
+        tag = "" if origin == "engine" else "  [dim](dashboard apart)[/]"
         console.print(
             f"{a.created_at:%m-%d %H:%M} {mark:22} {a.destination:16} {a.purpose:26} "
-            f"{a.verdict.payload_bytes:>7} B  {'; '.join(a.verdict.reasons)[:80]}"
+            f"{a.verdict.payload_bytes:>7} B  {'; '.join(a.verdict.reasons)[:80]}{tag}"
         )
         if args.payload and a.status != "blocked":
             console.print(a.payload, markup=False, highlight=False)
@@ -1077,9 +1202,7 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         ("ollama", bool(installed), f"{len(installed)} model(s) at {ollama_url}" if installed else "not reachable")
     )
     rec = recommend(machine, installed)
-    checks.append(
-        ("machine", True, f"{machine.chip}, {machine.total_gb:.0f} GB, {machine.model_budget_gb:.0f} GB for a model")
-    )
+    checks.append(("machine", machine.known, machine.describe))
     checks.append(
         (
             "local model",
@@ -1087,12 +1210,16 @@ def cmd_doctor(args: argparse.Namespace) -> int:
             f"{rec.model.tag} ({rec.reason})" + ("" if rec.installed else " · not installed: `unbidden doctor --fix`"),
         )
     )
-    if rec.profile_hint:
+    if rec.profile_hint and not machine.known:
+        checks.append(("profile", True, "memory unknown: option api (`unbidden models frontier`) needs no local model"))
+    elif rec.profile_hint:
         checks.append(("profile", True, f"small local capacity: consider `unbidden models {rec.profile_hint}`"))
     docker = (
         shutil.which("docker") and subprocess.run(["docker", "info"], capture_output=True, check=False).returncode == 0
     )
     checks.append(("docker", bool(docker), "running" if docker else "not running: the sandbox needs Docker"))
+    for name, ok, detail in docker_plugins(bool(docker)):
+        checks.append((name, ok, detail))
     key = broker().has("MODEL_API_KEY")
     checks.append(("meta api", *meta_api_status(key)))
     checks.append(
@@ -1102,9 +1229,10 @@ def cmd_doctor(args: argparse.Namespace) -> int:
             "GITHUB_TOKEN set" if broker().has("GITHUB_TOKEN") else "no GITHUB_TOKEN: proposals stay local branches",
         )
     )
+    mandate_for_doctor = None
     if ws.initialized:
         try:
-            mandate = ws.mandate()
+            mandate = mandate_for_doctor = ws.mandate()
             checks.append(
                 ("mandate", True, f"profile {mandate.models.profile}, PRs {mandate.autonomy.open_pull_requests.value}")
             )
@@ -1126,38 +1254,74 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         console.print(f"pulling {rec.model.tag} ...")
         pulled = subprocess.run(["ollama", "pull", rec.model.tag], check=False).returncode == 0
         checks.append(("fix", pulled, f"{'pulled' if pulled else 'could not pull'} {rec.model.tag}"))
-    if _emit(args, [{"check": n, "ok": ok, "detail": d} for n, ok, d in checks]):
-        return 0
+    # Required or optional follows the option the mandate chose: `api` needs no Ollama, `local` needs no key.
+    from unbidden.setup.requirements import doctor_requirements, explain
+
+    needs = doctor_requirements(mandate_for_doctor)
+    required = {name for name, need in needs.items() if need == "required"}
+    failed_required = [name for name, ok, _ in checks if not ok and name in required]
+    if _emit(
+        args,
+        {
+            "checks": [{"check": n, "ok": ok, "required": n in required, "detail": d} for n, ok, d in checks],
+            "requirements": explain(needs, mandate_for_doctor),
+            "ok": not failed_required,
+            "failed_required": failed_required,
+        },
+    ):
+        return 0 if not failed_required else 1
+    console.print(f"[dim]{explain(needs, mandate_for_doctor)}[/]")
     for name, ok, detail in checks:
-        console.print(f"  {'[green]ok[/]' if ok else '[yellow]!![/]'}  {name:12} {detail}")
-    return 0 if all(ok for name, ok, _ in checks if name in ("ollama", "local model", "docker")) else 1
+        if ok:
+            mark = "[green]ok[/]"
+        elif name in required:
+            mark = "[red]!![/]"
+        else:
+            mark = "[yellow]--[/]"
+        tag = "" if ok else (" (required)" if name in required else " (optional)")
+        console.print(f"  {mark}  {name:12} {detail}{tag}")
+    return 0 if not failed_required else 1
 
 
 def cmd_map(args: argparse.Namespace) -> int:
-    """Discover the system (repository, running containers, live API, database) and show the World Model."""
+    """Discover the system (repository, running containers, live API, database) and show the World Model.
+    Discovering runs connectors in this process, so it owns the workspace meanwhile; --cached and --scope only read."""
+    if args.connectors:
+        return _map_connectors(args)
+    ws = Workspace.find()
+    lock = None if (args.cached or args.scope) else _own(ws, "map")
+    try:
+        return _map(args, ws)
+    finally:
+        if lock is not None:
+            lock.release()
+
+
+def _map_connectors(args: argparse.Namespace) -> int:
+    from unbidden.world.connectors import CONNECTORS, NOT_COVERED
+
+    if _emit(args, {"connectors": [c.model_dump() for c in CONNECTORS], "not_covered": NOT_COVERED}):
+        return 0
+    for c in CONNECTORS:
+        console.print(f"[bold]{c.ref}[/] ({c.capability}, {'read-only' if c.read_only else 'writes'}) {c.purpose}")
+        console.print(
+            f"    discovers {', '.join(c.discovers)}" + (f"; measures {', '.join(c.measures)}" if c.measures else "")
+        )
+        console.print(f"    cost: {c.cost}\n    scope: {c.scope}")
+    console.print("\n[bold]Not covered[/]")
+    for what, why in NOT_COVERED.items():
+        console.print(f"  - {what}: {why}")
+    return 0
+
+
+def _map(args: argparse.Namespace, ws: Workspace) -> int:
     import asyncio
 
     from unbidden.contracts.world import WorldModel
     from unbidden.runtime import Runtime
     from unbidden.world.discover import discover
 
-    if args.connectors:
-        from unbidden.world.connectors import CONNECTORS, NOT_COVERED
-
-        if _emit(args, {"connectors": [c.model_dump() for c in CONNECTORS], "not_covered": NOT_COVERED}):
-            return 0
-        for c in CONNECTORS:
-            console.print(f"[bold]{c.ref}[/] ({c.capability}, {'read-only' if c.read_only else 'writes'}) {c.purpose}")
-            console.print(
-                f"    discovers {', '.join(c.discovers)}"
-                + (f"; measures {', '.join(c.measures)}" if c.measures else "")
-            )
-            console.print(f"    cost: {c.cost}\n    scope: {c.scope}")
-        console.print("\n[bold]Not covered[/]")
-        for what, why in NOT_COVERED.items():
-            console.print(f"  - {what}: {why}")
-        return 0
-    runtime = Runtime.open(Workspace.find())
+    runtime = Runtime.open(ws)
     repo = runtime.workspace.repo
     if args.cached or args.scope:
         world = runtime.store.get("world", "world", WorldModel)
@@ -1366,6 +1530,8 @@ def cmd_errors(args: argparse.Namespace) -> int:
 
 
 def cmd_status(args: argparse.Namespace) -> int:
+    from unbidden.daemon import service
+
     ws = Workspace.find()
     ws.require()
     store = ws.store()
@@ -1373,21 +1539,72 @@ def cmd_status(args: argparse.Namespace) -> int:
     counts: dict[str, int] = {}
     for o in opps:
         counts[o.status.value] = counts.get(o.status.value, 0) + 1
+    agent = service.status(ws)
+    from unbidden.web import announce
+
+    ui = announce.alive(announce.ui_path(ws.dir))
     data = {
         "repo": str(ws.repo),
         "head": head_sha(ws.repo),
         "kill_switch": ws.killswitch().engaged,
+        "agent": agent,
+        "stale": agent["stale"],
+        "dashboard": announce.public(ui) if ui else None,
         "last_scan": store.get_value("last_scan"),
         "opportunities": counts,
     }
     if _emit(args, data):
         return 0
     console.print(f"[bold]{ws.repo.name}[/] head {data['head'][:12]}")
+    console.print(_agent_line(agent))
+    if ui:
+        where = "served by the agent" if ui.get("in_daemon") else f"pid {ui['pid']}"
+        console.print(f"dashboard: {ui['url']} ({where})")
+    else:
+        console.print("dashboard: not open (`unbidden ui`)")
     if data["kill_switch"]:
         console.print("[red]kill switch engaged[/]: nothing runs until `unbidden resume`")
     console.print(f"opportunities: {counts or 'none yet'}")
     store.close()
     return 0
+
+
+def _agent_line(agent: dict[str, Any]) -> str:
+    from unbidden.setup.text import t
+
+    if agent["running"]:
+        return t("home.agent.running", pid=agent["pid"], since=agent["started_at"], log=agent["log"])
+    if agent["stale"]:
+        return t("home.agent.stale", pid=agent["pid"], jobs=agent["jobs_running"])
+    return t("home.agent.stopped")
+
+
+def docker_plugins(docker_up: bool, run: Any = None) -> list[tuple[str, bool, str]]:
+    """The two Docker CLI plugins the engine needs, checked before any work that needs them: buildx (the sandbox
+    builds images with BuildKit, `docker build --progress=plain`; the legacy builder rejects that flag) and compose
+    (the map of the running system reads `docker compose ps`). Docker finds plugins in `$DOCKER_CONFIG/cli-plugins`
+    or `~/.docker/cli-plugins`: a HOME without them has a daemon but no builder."""
+    import subprocess
+
+    def _version(*argv: str) -> tuple[bool, str]:
+        if not docker_up:
+            return False, "Docker is not running"
+        try:
+            out = (run or subprocess.run)(["docker", *argv], capture_output=True, text=True, check=False, timeout=15)
+        except (OSError, subprocess.SubprocessError) as exc:
+            return False, f"not available ({type(exc).__name__})"
+        if out.returncode == 0 and out.stdout.strip():
+            return True, out.stdout.strip().splitlines()[0][:60]
+        said = (out.stderr or out.stdout).strip().splitlines()
+        return False, said[0][:80] if said else "absent"
+
+    ok_b, detail_b = _version("buildx", "version")
+    ok_c, detail_c = _version("compose", "version")
+    where = " (install the buildx plugin or Docker Desktop; the sandbox cannot build images without it)"
+    return [
+        ("docker buildx", ok_b, detail_b + ("" if ok_b else where)),
+        ("docker compose", ok_c, detail_c + ("" if ok_c else " (the map of the running system needs it)")),
+    ]
 
 
 def meta_api_status(key: bool, get: Any = None) -> tuple[bool, str]:
@@ -1591,10 +1808,16 @@ def cmd_activity(args: argparse.Namespace) -> int:
 
 
 def cmd_kill(args: argparse.Namespace) -> int:
+    """Freeze: no job, effect or model call, in any process, until `unbidden resume`. With --stop, also end the
+    background agent (which `stop` alone would do without freezing anything)."""
     ws = Workspace.find()
     ws.require()
     ws.killswitch().engage(args.reason)
     console.print("Kill switch engaged. No job starts and no model is called until `unbidden resume`.")
+    if getattr(args, "stop", False):
+        from unbidden.daemon import service
+
+        _print_stop(service.stop(ws))
     return 0
 
 
@@ -1606,10 +1829,233 @@ def cmd_resume(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_ui(args: argparse.Namespace) -> int:
+    """Open or reuse the project's dashboard. The dashboard is a reader of the workspace's state plus the chat and the
+    decisions panel: opening it runs no job and calls no model; closing the tab or stopping it stops no agent."""
+    import subprocess
+
+    from unbidden.web import announce as ann
+
+    ws = Workspace.find()
+    ws.require()
+    path = ann.ui_path(ws.dir)
+    if args.stop:
+        result = ann.stop(path)
+        if _emit(args, result):
+            return 0 if result["stopped"] else 1
+        console.print(f"dashboard stopped (pid {result['pid']})" if result["stopped"] else result["reason"])
+        return 0 if result["stopped"] else 1
+    info = ann.alive(path)
+    reused = info is not None
+    log = ws.dir / "logs" / "ui.log"
+    if info is None:
+        if not (ws.dir / "state.db").exists():
+            ws.store().close()  # the dashboard reads the workspace's own state; an empty one shows empty states
+        log.parent.mkdir(parents=True, exist_ok=True)
+        if log.exists() and log.stat().st_size > 20_000_000:
+            log.replace(log.with_suffix(".log.1"))
+        cmd = [sys.executable, "-m", "unbidden.web", "--workspace", str(ws.repo), "--announce", str(path),
+               "--port", str(args.port), "--planner", args.planner]  # fmt: skip
+        with log.open("ab") as out:
+            subprocess.Popen(
+                cmd, cwd=ws.repo, stdin=subprocess.DEVNULL, stdout=out, stderr=subprocess.STDOUT,
+                start_new_session=True, close_fds=True,
+            )  # fmt: skip
+        end = time.monotonic() + 15
+        while info is None and time.monotonic() < end:
+            time.sleep(0.2)
+            info = ann.read(path)
+            if info is not None and not ann.answers(info):
+                info = None
+        if info is None:
+            tail = log.read_text(errors="replace").splitlines()[-15:] if log.exists() else []
+            if _emit(args, {"started": False, "log": str(log), "log_tail": tail}):
+                return 1
+            err.print(f"[red]the dashboard did not come up[/]; log: {log}")
+            for line in tail:
+                err.print(f"  {line}")
+            return 1
+    if args.open:
+        import webbrowser
+
+        webbrowser.open(info["url"])
+    data = {**ann.public(info), "url": info["url"], "reused": reused, "log": str(log)}
+    if _emit(args, data):
+        return 0
+    where = "served by the agent" if info.get("in_daemon") else f"pid {info['pid']}"
+    console.print(f"dashboard {'already open' if reused else 'open'} ({where}): {info['url']}")
+    console.print("closing the tab stops nothing; `unbidden ui --stop` stops the dashboard only; the agent: "
+                  "`unbidden start` / `unbidden stop`")  # fmt: skip
+    return 0
+
+
+def cmd_chat(args: argparse.Namespace) -> int:
+    """The dashboard's chat from the terminal, over the same records, decisions and route: inform (records, no
+    model), analyze (one routed call over a digest), act (refused: the CLI's own commands do that)."""
+    from unbidden.web.__main__ import make_brain_for, web_home
+    from unbidden.web.chat import ChatService
+    from unbidden.web.contracts import ChatRequest
+    from unbidden.web.presentation import PresentationStore
+    from unbidden.web.sources import live
+
+    ws = Workspace.find()
+    ws.require()
+    if not (ws.dir / "state.db").exists():
+        ws.store().close()
+    source = live(ws.repo)
+    state_dir = web_home()
+    state_dir.mkdir(parents=True, exist_ok=True)
+    service = ChatService(PresentationStore(state_dir / "presentation.db"), make_brain_for(args.planner, state_dir))
+
+    def emit(event: str, data: dict[str, Any]) -> None:
+        if event == "state" and not args.json:
+            err.print(f"[dim]{data.get('state')}{': ' + str(data['detail']) if data.get('detail') else ''}[/]")
+        elif event == "tool_result" and not args.json:
+            mark = "ok" if data.get("ok") else "!!"
+            err.print(f"[dim]{mark} {data.get('tool')}: {data.get('summary')}[/]")
+
+    def one(text: str) -> int:
+        message = service.turn(source, ChatRequest(content=text, planner=args.planner), emit)
+        if args.json:
+            print(message.model_dump_json(by_alias=True, indent=2))
+        else:
+            console.print(message.content, soft_wrap=True)
+            route = message.route
+            if route is not None:
+                via = route.model or route.tier or "no model"
+                note = f"[dim]{route.intent} · {route.purpose or 'rules'} · {via}"
+                if route.blocked:
+                    note += f" · blocked: {route.blocked}"
+                console.print(note + "[/]")
+        return 0 if message.state != "error" else 1
+
+    if args.message:
+        return one(" ".join(args.message))
+    if not sys.stdin.isatty():
+        code = 0
+        for line in sys.stdin:
+            if line.strip():
+                code = max(code, one(line.strip()))
+        return code
+    console.print("[dim]unbidden chat · empty line or ctrl-d ends[/]")
+    while True:
+        try:
+            text = input("> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return 0
+        if not text:
+            return 0
+        one(text)
+
+
+def cmd_setup(args: argparse.Namespace) -> int:
+    """The guided configuration: project, priorities, models, credentials, autonomy, connections, budget, dashboard.
+    Deterministic, resumable, shows the diff before writing; `--non-interactive` takes the answers from flags."""
+    from unbidden.setup.wizard import Options, SetupError, run
+
+    ws = Workspace.find()
+    opts = Options(
+        non_interactive=args.non_interactive,
+        yes=args.yes,
+        section=args.section,
+        redo_all=args.all,
+        show=args.show,
+        models=args.models,
+        private_code=args.private_code,
+        mode=args.mode,
+        mode_fallback=args.mode_fallback,
+        act_on_connections=args.act_on_connections,
+        priorities=[p.strip() for p in args.priorities.split(",") if p.strip()] if args.priorities else None,
+        budget=args.budget,
+        dashboard=args.dashboard,
+        model_key_stdin=args.model_key_stdin,
+        github_token_stdin=args.github_token_stdin,
+        credentials_stdin=args.credential or [],
+        connections=args.connection or [],
+        pull_model=args.pull_model,
+        probe=args.probe,
+        json=getattr(args, "json", False),
+    )
+    try:
+        return run(ws, opts, err if opts.json else console)  # with --json, stdout carries only the JSON
+    except SetupError as exc:
+        err.print(f"[red]unbidden setup:[/] {exc}")
+        return 2
+
+
+def cmd_home(args: argparse.Namespace) -> int:
+    """What `unbidden` shows with no command: the project's state, blocks and the next action."""
+    from unbidden.brain.spend import SpendLedger
+    from unbidden.daemon import service
+    from unbidden.setup.text import t
+
+    try:
+        ws = Workspace.find()
+    except WorkspaceError:
+        if _emit(args, {"workspace": None, "next": "cd into a git repository"}):
+            return 0
+        console.print(t("home.nogit"))
+        return 2
+    if not ws.initialized:
+        if _emit(args, {"repo": str(ws.repo), "initialized": False, "next": "unbidden setup"}):
+            return 0
+        console.print(t("home.unset"))
+        return 0
+    store = ws.store()
+    mandate = ws.mandate()
+    opps = store.list("opportunities", Opportunity)
+    counts: dict[str, int] = {}
+    for o in opps:
+        counts[o.status.value] = counts.get(o.status.value, 0) + 1
+    ledger = SpendLedger().status()
+    last_scan = store.get_value("last_scan")
+    killed = ws.killswitch().engaged
+    agent = service.status(ws)
+    if killed:
+        nxt = "unbidden resume"
+    elif last_scan is None:
+        nxt = "unbidden scan"
+    elif not agent["running"]:
+        nxt = "unbidden start"
+    elif counts.get("proposed") or counts.get("validated"):
+        nxt = "unbidden inbox"
+    else:
+        nxt = "unbidden activity"
+    data = {
+        "repo": str(ws.repo),
+        "head": head_sha(ws.repo),
+        "mode": _current_mode(mandate.autonomy.model_dump(mode="json")),
+        "profile": mandate.models.profile,
+        "local_inference": mandate.models.local_inference,
+        "kill_switch": killed,
+        "agent": agent,
+        "last_scan": last_scan,
+        "opportunities": counts,
+        "spend": {"spent_usd": round(ledger.spent_usd, 4), "available_usd": round(ledger.available_usd, 4)},
+        "next": nxt,
+    }
+    if _emit(args, data):
+        return 0
+    title = t("home.title", repo=ws.repo.name, head=data["head"][:12], mode=data["mode"], profile=data["profile"])
+    console.print(f"[bold]{title}[/]")
+    if killed:
+        console.print(f"[red]{t('home.kill')}[/]")
+    console.print(_agent_line(agent))
+    console.print(t("home.opps", counts=counts or "none yet"))
+    console.print(t("home.scan", when=last_scan) if last_scan else t("home.scan.none"))
+    console.print(t("home.spend", spent=ledger.spent_usd, available=ledger.available_usd))
+    console.print(f"[bold]{t('home.next', action=nxt)}[/]")
+    console.print(f"[dim]{t('home.commands')}[/]")
+    store.close()
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="unbidden", description="Intelligence that doesn't wait for instructions.")
     parser.add_argument("--version", action="version", version=f"unbidden {__version__}")
-    sub = parser.add_subparsers(dest="command", required=True)
+    parser.add_argument("--json", action="store_true", help="machine-readable output (with no command: the state)")
+    sub = parser.add_subparsers(dest="command", required=False)
 
     def command(name: str, handler: Any, help_text: str, *, json_out: bool = True) -> argparse.ArgumentParser:
         p = sub.add_parser(name, help=help_text)
@@ -1618,6 +2064,9 @@ def build_parser() -> argparse.ArgumentParser:
             p.add_argument("--json", action="store_true", help="machine-readable output")
         return p
 
+    from unbidden.distribution import register as register_distribution
+
+    register_distribution(command)  # `update` and `uninstall`: the installer's two commands
     prepare = command("prepare", cmd_prepare, "copy a repository apart, read its stack and CI, build its image and "
                                               "run its own checks; say every block")  # fmt: skip
     prepare.add_argument("source", help="a repository path or URL")
@@ -1625,6 +2074,35 @@ def build_parser() -> argparse.ArgumentParser:
     prepare.add_argument("--into", help="where the isolated copy goes (default: ~/unbidden-lab/<name>)")
     prepare.add_argument("--mandate", help="a mandate file to copy into the workspace (default: the generated one)")
     command("init", cmd_init, "set up unbidden in this repository")
+    setup = command("setup", cmd_setup, "guided configuration: models, credentials, autonomy, connections, budget")
+    setup.add_argument("section", nargs="?", choices=["project", "priorities", "models", "credentials", "autonomy",
+                                                      "connections", "budget", "dashboard"],
+                       help="redo one section (default: the ones not answered yet)")  # fmt: skip
+    setup.add_argument("--all", action="store_true", help="walk every section again")
+    setup.add_argument("--show", action="store_true", help="the effective configuration, no questions")
+    setup.add_argument("--non-interactive", action="store_true", help="answers from flags; --yes applies them")
+    setup.add_argument("--yes", action="store_true", help="apply without asking (shows the diff either way)")
+    setup.add_argument("--models", choices=["local", "mixed", "api"], help="where model calls may go")
+    setup.add_argument("--private-code", choices=["deny", "allow"], help="private code to Meta's API un-renamed")
+    setup.add_argument("--mode", choices=sorted(MODES), help="supervised, autopilot or autonomous")
+    setup.add_argument(
+        "--mode-fallback",
+        choices=["supervised", "autopilot"],
+        help="the mode to take when --mode cannot be switched on yet (without it the setup stops, nothing written)",
+    )
+    setup.add_argument("--act-on-connections", choices=["deny", "require_approval", "allow"])
+    setup.add_argument("--priorities", help="comma-separated, e.g. correctness,performance")
+    setup.add_argument("--budget", type=float, help="monthly cap for this project in US$")
+    setup.add_argument("--dashboard", choices=["now", "later", "never"])
+    setup.add_argument("--model-key-stdin", action="store_true", help="read MODEL_API_KEY from the first stdin line")
+    setup.add_argument("--github-token-stdin", action="store_true", help="read GITHUB_TOKEN from the next stdin line")
+    setup.add_argument("--credential", action="append", metavar="NAME",
+                       help="a connection credential whose value follows on stdin (repeatable, in order)")  # fmt: skip
+    setup.add_argument("--connection", action="append", metavar="SPEC",
+                       help="id=..,kind=postgres|http_api,location=..[,environment=..,credential_ref=..,username=..,"
+                            "docs=..,permissions=read+write:x]")  # fmt: skip
+    setup.add_argument("--pull-model", action="store_true", help="download the recommended local model if missing")
+    setup.add_argument("--probe", action="store_true", help="run the one paid inference test (shows its max cost)")
     command("scan", cmd_scan, "run the repository's own checks in the sandbox and record opportunities")
     map_ = command("map", cmd_map, "discover the system and show what is known, how, and what cannot be seen")
     map_.add_argument("--cached", action="store_true", help="show the last map without discovering again")
@@ -1653,9 +2131,17 @@ def build_parser() -> argparse.ArgumentParser:
     try_ = command("try", cmd_try, "run an experiment on one opportunity now")
     try_.add_argument("id")
     try_.add_argument("--bridge", action="store_true", help="go straight to Muse Spark through the privacy bridge")
-    watch = command("watch", cmd_watch, "keep working in the background of this terminal", json_out=False)
+    watch = command("watch", cmd_watch, "keep working in the foreground of this terminal", json_out=False)
     watch.add_argument("--interval", type=float, default=30, help="seconds between looks at HEAD")
     watch.add_argument("--once", action="store_true", help="run one full cycle and exit")
+    watch.add_argument("--ui", action="store_true", help="also serve the dashboard from this process")
+    watch.add_argument("--port", type=int, default=8765, help="the dashboard's preferred port (with --ui)")
+    start = command("start", cmd_start, "run the agent in the background (log in .unbidden/logs/agent.log)")
+    start.add_argument("--interval", type=float, default=30, help="seconds between looks at HEAD")
+    start.add_argument("--ui", action="store_true", help="also serve the dashboard from the agent's process")
+    start.add_argument("--port", type=int, default=8765, help="the dashboard's preferred port (with --ui)")
+    stop = command("stop", cmd_stop, "end the background agent cleanly; the kill switch is not touched")
+    stop.add_argument("--timeout", type=float, default=60, help="seconds to wait before SIGKILL")
     approve = command("approve", cmd_approve, "allow the pull request of a proven opportunity", json_out=False)
     approve.add_argument("id")
     approve.add_argument("--hours", type=float, default=24, help="how long the approval stays valid")
@@ -1720,19 +2206,46 @@ def build_parser() -> argparse.ArgumentParser:
     why.add_argument("--payload", action="store_true", help="print each outbound payload byte for byte")
     show = command("show", cmd_show, "one opportunity with its full history")
     show.add_argument("id")
-    kill = command("kill", cmd_kill, "stop everything now", json_out=False)
+    ui = command("ui", cmd_ui, "open or reuse the project's dashboard (reads the state; starts no job)")
+    ui.add_argument("--open", action="store_true", help="open the browser")
+    ui.add_argument("--stop", action="store_true", help="stop the dashboard served apart (never the agent)")
+    ui.add_argument("--port", type=int, default=8765, help="preferred port (the next free one is taken if busy)")
+    ui.add_argument("--planner", choices=["auto", "rule", "brain"], default="auto", help="how the chat plans")
+    chat = command("chat", cmd_chat, "the dashboard's chat from the terminal: inform, analyze; never act")
+    chat.add_argument("message", nargs="*", help="one message (default: read messages from stdin or a prompt)")
+    chat.add_argument("--planner", choices=["auto", "rule", "brain"], default="auto")
+    kill = command("kill", cmd_kill, "freeze everything now, in every process, until `unbidden resume`", json_out=False)
     kill.add_argument("reason", nargs="?", default="engaged from the CLI")
+    kill.add_argument("--stop", action="store_true", help="also end the background agent")
     command("resume", cmd_resume, "release the kill switch", json_out=False)
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.command is None:  # `unbidden` alone: the assistant the first time, the project's state after
+        return _no_command(args)
     try:
         return int(args.handler(args))
     except (WorkspaceError, ScanDenied) as exc:
         err.print(f"[red]unbidden:[/] {exc}")
         return 2
+
+
+def _no_command(args: argparse.Namespace) -> int:
+    try:
+        ws = Workspace.find()
+    except WorkspaceError:
+        return cmd_home(args)
+    if not ws.initialized and not getattr(args, "json", False):  # --json reports, never asks
+        args.non_interactive = args.yes = args.all = args.show = False
+        args.section = args.models = args.private_code = args.mode = args.mode_fallback = None
+        args.act_on_connections = None
+        args.priorities = args.budget = args.dashboard = None
+        args.model_key_stdin = args.github_token_stdin = args.pull_model = args.probe = False
+        args.credential = args.connection = None
+        return cmd_setup(args)
+    return cmd_home(args)
 
 
 if __name__ == "__main__":

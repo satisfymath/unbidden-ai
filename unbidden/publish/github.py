@@ -341,3 +341,23 @@ class Publisher:
             )
         self.store.put("proposals", proposal)
         return proposal
+
+
+def reconcile_publishing(store: Store) -> list[Proposal]:
+    """Proposals left PUBLISHING by a run that ended (a crash, a forced stop) go back to READY: with one executor per
+    workspace nobody else can be publishing. The effect is not repeated blindly: the next publish asks GitHub for a
+    pull request on the branch first and reuses it (`find_pr`), and a push of the same commit is idempotent."""
+    stuck = store.list("proposals", Proposal, status=ProposalStatus.PUBLISHING.value)
+    for proposal in stuck:
+        proposal.status = ProposalStatus.READY
+        store.put("proposals", proposal)
+        store.append_event(
+            Event(
+                type=EventType.PROPOSAL_READY,
+                actor=ACTOR,
+                entity_id=proposal.id,
+                correlation_id=proposal.opportunity_id,
+                payload={"reconciled": "publishing -> ready", "why": "the run publishing it ended"},
+            )
+        )
+    return stuck

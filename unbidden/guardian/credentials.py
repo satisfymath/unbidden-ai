@@ -49,6 +49,12 @@ class CredentialBroker:
         else:
             os.environ.pop(name, None)
 
+    def hold(self, name: str, value: str) -> None:
+        """A value a person just entered (the setup assistant): held for this process, replacing an older one.
+        The file it was saved to is read by the next process; this keeps the current one consistent with it."""
+        self._values[name] = value
+        os.environ.pop(name, None)
+
     def _absorb(self, name: str) -> None:
         """A granted secret exported in the environment after the grant is taken from it on first use."""
         if name in self._grants and name not in self._values and name in os.environ:

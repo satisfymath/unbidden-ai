@@ -35,16 +35,18 @@ def web_home() -> Path:
 
 
 def ollama_reachable(base_url: str) -> bool:
-    import httpx
+    from unbidden.web.sources import local_reachable
 
-    try:
-        return httpx.get(f"{base_url}/api/tags", timeout=2).status_code == 200
-    except httpx.HTTPError:
-        return False
+    return local_reachable(base_url)
 
 
-def make_brain_for(planner: str, state_dir: Path) -> Any:
-    """A Brain per source, with the web process's own store for its records; None when no model is reachable."""
+def make_brain_for(planner: str, state_dir: Path, *, shared: Any | None = None) -> Any:
+    """A Brain per source, with the web process's own store for its records. No precondition on Ollama: the Brain
+    itself decides whether a call may go to Meta's API (the mandate's option and the key the broker holds) and
+    finds out on the call whether the local server answers. A source whose option offers no route at all (no key
+    and the local server down) still gets a Brain: its refusal carries the router's reason into the message.
+    `shared` (the agent serving its own dashboard) is a Brain used for every live source instead: one store, one
+    egress record, one monthly cap check in the same process as the engine."""
     from unbidden.brain.router import Brain
     from unbidden.brain.spend import SpendLedger
     from unbidden.config import load_config
@@ -59,30 +61,34 @@ def make_brain_for(planner: str, state_dir: Path) -> Any:
     def brain_for(source: Source) -> Any | None:
         if planner == "rule":
             return None
+        if shared is not None and source.mode == "live":
+            return shared
         with lock:
             if source.id in cache:
                 return cache[source.id]
             config = source.config or load_config(None)
-            local = config.providers.get("ollama")
-            if local is None or not ollama_reachable(local.base_url):
-                cache[source.id] = None
-                if planner == "brain":
-                    print("no local model reachable: the chat answers by rules", file=sys.stderr)
-                return None
-            try:
-                resolve_local_model(config)
-            except Exception as exc:  # no installed model fits: the provider will say so on the first call
-                print(f"local model: {exc}", file=sys.stderr)
             mandate = source.mandate or Mandate.model_validate(default_mandate(source.name, None)["mandate"])
+            local = config.providers.get("ollama")
+            local_up = local is not None and ollama_reachable(local.base_url)
+            if local_up:
+                try:
+                    resolve_local_model(config)
+                except Exception as exc:  # no installed model fits: the provider will say so on the first call
+                    print(f"local model: {exc}", file=sys.stderr)
+            elif mandate.models.local_inference != "deny" and planner == "brain":
+                print(f"{source.id}: no local model server answers; remote calls follow the mandate", file=sys.stderr)
             # A chat turn tolerates a few rejected tool calls from a small local model; the engine's default (one
             # repair) is tuned for its own, more constrained purposes. This copy is the web process's alone.
             config = config.model_copy(deep=True)
             config.brain.max_repairs = max(config.brain.max_repairs, 3)
             safe = "".join(c if c.isalnum() else "_" for c in source.id)
-            store = Store(state_dir / f"{safe}-state.db")
+            store = Store(state_dir / f"{safe}-state.db")  # see sources.apart_store_path: the CLI reads it back
             brain = Brain(
                 config, build_providers(config), store, mandate, killswitch=source.killswitch(), spend=SpendLedger()
             )
+            if source.mode == "live" and source.store is not None:
+                cached = source.store.get_value("repo_visibility") or {}  # what the engine last confirmed; no network
+                brain.repo_public = bool(cached.get("public"))
             cache[source.id] = brain
             return brain
 
@@ -139,6 +145,11 @@ def main(argv: list[str] | None = None) -> int:
         default=os.environ.get("UNBIDDEN_WEB_TOKEN"),
         help="a fixed session token (tests and scripts); by default a random one is generated",
     )
+    parser.add_argument(
+        "--announce",
+        metavar="PATH",
+        help="write where this dashboard is (url, port, pid; mode 600) once the port is bound, for `unbidden ui`",
+    )
     args = parser.parse_args(argv)
     try:
         app, sources = build(args)
@@ -150,6 +161,18 @@ def main(argv: list[str] | None = None) -> int:
 
         srv.app_log_enabled = True
     server = WebServer(app, args.host, app.port)
+    announced: Path | None = None
+    if args.announce:
+        from unbidden.web.announce import announce
+
+        announced = Path(args.announce)
+        announce(announced, host=args.host, port=server.port, token=app.token, in_daemon=False)
+        import signal
+
+        def _term(_sig: int, _frame: Any) -> None:
+            raise KeyboardInterrupt  # the same clean exit as ctrl-c: the announcement is withdrawn below
+
+        signal.signal(signal.SIGTERM, _term)
     for s in sources:
         print(f"  {s.mode:<10} {s.id}  {' · '.join(s.notes)[:100]}", file=sys.stderr)
     print(f"\n  {server.url}\n", file=sys.stderr)
@@ -178,6 +201,10 @@ def main(argv: list[str] | None = None) -> int:
     finally:
         stop.set()
         server.stop()
+        if announced is not None:
+            from unbidden.web.announce import withdraw
+
+            withdraw(announced)
     return 0
 
 

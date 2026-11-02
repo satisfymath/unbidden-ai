@@ -34,6 +34,11 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["unbidden"]
+# The built web workspace (frontend/ -> unbidden/web/static/) is ignored by git; hatch ships it anyway when present.
+artifacts = ["unbidden/web/static/**"]
+
+[tool.hatch.build.targets.sdist]
+artifacts = ["unbidden/web/static/**"]
 
 [tool.ruff]
 line-length = 120

@@ -21,6 +21,13 @@ class Machine:
     apple_silicon: bool
     gpu_gb: float  # dedicated GPU memory (NVIDIA); 0 on Apple silicon, whose memory is unified
     chip: str
+    known: bool = True  # False when the memory size could not be read: nothing is sized from a zero
+
+    @property
+    def describe(self) -> str:
+        if not self.known:
+            return f"{self.chip}, memory unknown (could not be read)"
+        return f"{self.chip}, {self.total_gb:.0f} GB, {self.model_budget_gb:.0f} GB for a model"
 
     @property
     def model_budget_gb(self) -> float:
@@ -55,30 +62,42 @@ CATALOG_GGUF = (
 
 
 def _run(*argv: str) -> str:
-    try:
-        return subprocess.run(argv, capture_output=True, text=True, check=False, timeout=10).stdout.strip()
-    except (OSError, subprocess.TimeoutExpired):
-        return ""
+    # `sysctl` lives in /usr/sbin, which a reduced PATH may lack: the absolute path is tried too.
+    candidates = [argv] + ([(f"/usr/sbin/{argv[0]}", *argv[1:])] if not argv[0].startswith("/") else [])
+    for command in candidates:
+        try:
+            out = subprocess.run(command, capture_output=True, text=True, check=False, timeout=10).stdout.strip()
+        except (OSError, subprocess.TimeoutExpired):
+            continue
+        if out:
+            return out
+    return ""
 
 
 def detect() -> Machine:
     system = platform.system()
     apple = system == "Darwin" and platform.machine() == "arm64"
     total = 0.0
+    known = False
     if system == "Darwin":
-        total = int(_run("sysctl", "-n", "hw.memsize") or 0) / 1024**3
+        raw = _run("sysctl", "-n", "hw.memsize")
+        if raw.isdigit() and int(raw) > 0:
+            total, known = int(raw) / 1024**3, True
         chip = _run("sysctl", "-n", "machdep.cpu.brand_string") or "Apple"
     else:
         meminfo = Path("/proc/meminfo")
         if meminfo.exists():
-            first = meminfo.read_text().splitlines()[0].split()
-            total = int(first[1]) / 1024**2
+            try:
+                first = meminfo.read_text().splitlines()[0].split()
+                total, known = int(first[1]) / 1024**2, True
+            except (OSError, IndexError, ValueError):
+                known = False
         chip = platform.processor() or platform.machine()
     gpu = 0.0
     if not apple and shutil.which("nvidia-smi"):
         values = _run("nvidia-smi", "--query-gpu=memory.total", "--format=csv,noheader,nounits").splitlines()
         gpu = sum(float(v) for v in values if v.strip().replace(".", "").isdigit()) / 1024
-    return Machine(round(total, 1), apple, round(gpu, 1), chip)
+    return Machine(round(total, 1), apple, round(gpu, 1), chip, known)
 
 
 @dataclass(frozen=True)
@@ -93,6 +112,17 @@ class Recommendation:
 def recommend(machine: Machine, installed: set[str]) -> Recommendation:
     """The best model that fits; an installed one is preferred over a better one that would need a download."""
     catalog = CATALOG_APPLE if machine.apple_silicon else CATALOG_GGUF
+    if not machine.known:
+        # Nothing is sized from an unknown machine: the smallest model is named only as a floor, not recommended.
+        smallest = catalog[-1]
+        return Recommendation(
+            smallest,
+            smallest.tag in installed,
+            False,
+            "memory unknown: the machine's memory size could not be read, so no local model is sized for it; "
+            f"the smallest local model ({smallest.tag}) needs {smallest.loaded_gb:.0f} GB",
+            "frontier",
+        )
     budget = machine.model_budget_gb
     fitting = [m for m in catalog if m.loaded_gb <= budget]
     if not fitting:

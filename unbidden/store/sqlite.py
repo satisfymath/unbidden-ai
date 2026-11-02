@@ -123,6 +123,8 @@ class Store:
         (version,) = self._conn.execute("PRAGMA user_version").fetchone()
         if version > SCHEMA_VERSION:
             raise RuntimeError(f"state was written by a newer unbidden (schema {version} > {SCHEMA_VERSION})")
+        if version == SCHEMA_VERSION:
+            return  # nothing to migrate: opening the state writes nothing, so a reader never waits on the writer
         self._conn.executescript(_SCHEMA)
         columns = {row[1] for row in self._conn.execute("PRAGMA table_info(rounds)")}
         if "deploy" not in columns:  # schema 1 -> 2: rounds belong to a deploy, not only to a version

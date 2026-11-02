@@ -256,6 +256,16 @@ class SpendLedger:
             )
         return name
 
+    def workspace_month_spend(self, workspace: str, *, now: datetime | None = None) -> float:
+        """What a workspace's remote calls cost this calendar month (UTC), reservations in flight included: the
+        mandate's monthly cap is checked here, in the one ledger every process of this machine writes, so a chat
+        in the web process and the engine's own calls count against the same cap (not each against its own store)."""
+        moment = (now or utc_now()).astimezone(UTC)
+        start = moment.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        query = f"SELECT COALESCE(SUM({CHARGED}), 0) FROM requests WHERE workspace = ? AND created_at >= ?"
+        with closing(self._connect()) as db:
+            return float(db.execute(query, (workspace, _iso(start))).fetchone()[0])
+
     def envelope_spent(self, name: str, db: sqlite3.Connection | None = None) -> float:
         budget = self.budget()
         query = f"SELECT COALESCE(SUM({CHARGED}), 0) FROM requests WHERE envelope = ?"

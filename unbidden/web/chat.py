@@ -2,10 +2,15 @@
 
 Two planners share one runtime. `RulePlanner` is deterministic and offline: it reads the request for a few intents
 (a chart of latency, a table of failed tests, spend by run, explain a block, change a chart's kind, compare two
-runs, undo). `BrainPlanner` gives the same tools to a model through `Brain.complete` (purpose `web.chat`: by the
-engine's rule for unknown purposes it is light and local-only; Guardian, egress, classification, spend and the kill
-switch all apply). Neither planner runs code from the model: a tool call is validated against the widget contracts
-and the dataset catalogue, and a request to *show* never runs an experiment or acquires an access.
+runs, undo). `BrainPlanner` gives the same tools to a model through `Brain.complete` (purpose `chat.inform`: light
+and local-only in `brain/tasks.py`; Guardian, egress, classification, spend and the kill switch all apply). Neither
+planner runs code from the model: a tool call is validated against the widget contracts and the dataset catalogue,
+and a request to *show* never runs an experiment or acquires an access.
+
+Three intents (`unbidden/chat/intent.py`): informing is the tool work above; analysing (why, compare, recommend) is
+one call without tools over a bounded digest of the records (`chat.analyze`, routed like heavy work, refused with
+the router's reason when it may not go anywhere); acting (approve, deploy, kill...) is refused and pointed at the
+actions panel or the CLI, which go through the project's effective permissions.
 """
 
 from __future__ import annotations
@@ -19,6 +24,9 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from unbidden.chat.digest import evidence_digest
+from unbidden.chat.hints import hint_for
+from unbidden.chat.intent import action_asked, classify_intent
 from unbidden.contracts.experiment import Experiment, Proposal
 from unbidden.contracts.llm import LLMRequest, Message, Tier, ToolSpec
 from unbidden.contracts.opportunity import Opportunity
@@ -29,6 +37,7 @@ from unbidden.web.contracts import (
     Aggregate,
     ChatMessage,
     ChatRequest,
+    ChatRoute,
     ChatToolCall,
     DataRef,
     Edge,
@@ -50,6 +59,24 @@ from unbidden.web.presentation import PresentationStore
 from unbidden.web.sources import Source
 
 Emit = Callable[[str, dict[str, Any]], None]
+
+# Where each action the chat refuses is done: the actions panel of the dashboard (live workspaces) or the CLI.
+ACTION_WHERE = {
+    "approve": "the Approve button on the proposal, or `unbidden approve <id>`",
+    "reject": "the Reject button on the opportunity, or `unbidden reject <id> --reason '...'`",
+    "deploy": "`unbidden deploy <ref>` (the mandate's deploy steps; the dashboard shows the command)",
+    "rollback": "`unbidden deploy --rollback`",
+    "merge": "a person merges on GitHub; autonomous mode merges L4 work (`unbidden mode`)",
+    "kill": "the kill switch button, or `unbidden kill`",
+    "resume": "the resume button, or `unbidden resume`",
+    "experiment": "`unbidden try <opportunity>` or the agent's own cycle (`unbidden start`)",
+}
+
+ANALYZE_SYSTEM = """You are the analyst of Unbidden's dashboard. You receive a digest of Unbidden's own records
+(counts, levels, statuses, titles, ids, medians) and a question. Answer in the language the question is written in,
+briefly, from the digest alone: cite the ids and numbers you rely on, say what the digest does not contain instead
+of guessing, and never invent a metric, a finding or an improvement. You cannot act: do not promise to approve,
+deploy, merge, run or stop anything; name the command or button when the person should decide something."""
 
 
 # Tool arguments ----------------------------------------------------------------------------------------------
@@ -762,12 +789,41 @@ class RulePlanner:
             if ents:
                 return "Explico lo seleccionado.", [("explain", {"entity": ents[0].model_dump()})]
             return "Selecciona una tarjeta (hallazgo, experimento, bloqueo) y te la explico con sus referencias.", []
+        if re.search(
+            r"\b(estado|status|que ha hecho|que hizo|what has|what did|cuant\w*|how many|hasta ahora|so far|"
+            r"que hay|what is there|registros?|records?)\b",
+            t,
+        ):
+            return _status_reply(rt), []  # a deterministic reading of the record: counts, jobs, blocks, agent
         return (
             "No he entendido la petición. Puedo: graficar la latencia antes y después de un experimento, añadir una "
             "tabla con los tests que fallaron, graficar el gasto por corrida, explicar un bloqueo y añadir sus "
             "dependencias al mapa, cambiar un gráfico a barras/líneas, comparar dos ejecuciones seleccionadas, "
             "renombrar o redimensionar una tarjeta, y deshacer la última tarjeta."
         ), []
+
+
+def _status_reply(rt: ToolRuntime) -> str:
+    """What the record says, from the source's summary and the blocks collection; no model, no invention."""
+    summary = rt.source.summary()
+    counts = summary.get("counts", {})
+    jobs = summary.get("jobs", {})
+    agent = (summary.get("connection") or {}).get("agent") or {}
+    ws = summary.get("workspace", {})
+    lines = [
+        f"Registro de {ws.get('name')} ({ws.get('mode')}, head {str(ws.get('head') or '')[:12]}): "
+        f"{counts.get('opportunities', 0)} oportunidades, {counts.get('experiments', 0)} experimentos, "
+        f"{counts.get('proposals', 0)} propuestas, {counts.get('events', 0)} eventos, "
+        f"{counts.get('model_runs', 0)} llamadas a modelos, {counts.get('blocks', 0)} bloqueos.",
+        "Jobs: " + (", ".join(f"{k} {v}" for k, v in sorted(jobs.items())) or "ninguno"),
+    ]
+    blocks = rt.source.store.list(BLOCKS, Block)
+    for b in blocks[:5]:
+        lines.append(f"Bloqueo {b.kind} en «{b.operation[:60]}»: {b.evidence[:140]}")
+    if agent.get("detail"):
+        lines.append(f"Agente: {agent['detail']}.")
+    lines.append("Para un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.")
+    return "\n".join(lines)
 
 
 # Brain-backed planner ----------------------------------------------------------------------------------------
@@ -842,7 +898,7 @@ class BrainPlanner:
                 )
             response = await self.brain.complete(
                 LLMRequest(
-                    purpose="web.chat",
+                    purpose="chat.inform",
                     tier=Tier.LOCAL,
                     messages=messages,
                     tools=[] if last else tool_specs(),
@@ -893,6 +949,8 @@ class ChatService:
         return {"cancelled": True, "detail": f"cancelación pedida durante: {phase}; lo ya aplicado al lienzo permanece"}
 
     def turn(self, source: Source, request: ChatRequest, emit: Emit) -> ChatMessage:
+        """One message: decide what it asks for (inform, analyze, act), answer the way that intent allows, and say
+        in the message how it was answered (`route`): which purpose, where the model ran, or why it could not."""
         cancelled = threading.Event()
         self._cancel[source.id] = cancelled
         self._phase[source.id] = "planificación"
@@ -901,33 +959,24 @@ class ChatService:
         emit("message", user.model_dump(mode="json", by_alias=True))
         rt = ToolRuntime(source, self.presentation, request.selected)
         emit("state", {"state": "thinking"})
+        intent = classify_intent(request.content)
+        route = ChatRoute(intent=intent)
         brain = None if request.planner == "rule" else self.brain_for(source)
-        planner_name: Literal["rule", "brain"] = "brain" if brain is not None else "rule"
-        model = None
+        planner_name: Literal["rule", "brain"] = "rule"
+        model: str | None = None
+        calls: list[ChatToolCall] = []
+        results: list[ToolResult] = []
         try:
-            if brain is not None:
-                import asyncio
-
-                from unbidden.brain.router import BrainError
-
-                planner = BrainPlanner(brain)
-                history = self.presentation.messages(source.id)
-                try:
-                    reply, calls, results = asyncio.run(
-                        planner.run(request.content, rt, history, emit, cancelled, f"web:{user.id}")
-                    )
-                except BrainError as exc:
-                    # The model's answers were all rejected (or the route refused): the rules answer instead and
-                    # the message says so. Nothing the model attempted reached the canvas.
-                    emit("state", {"state": "thinking"})
-                    reply, calls, results = self._by_rules(source, request, rt, user, cancelled, emit)
-                    why = str(exc)[:200]
-                    reply = f"{reply} (El modelo local no produjo una respuesta válida: {why}. Respondí por reglas.)"
-                    planner_name = "rule"
-                run = getattr(brain, "served_by", {}).get("web.chat")
-                model = run.model if run else None
+            if intent == "act":
+                reply, results = self._refuse_action(request, route)
+            elif intent == "analyze":
+                reply, calls, results, planner_name, model = self._analyze(
+                    source, request, rt, user, brain, cancelled, emit, route
+                )
             else:
-                reply, calls, results = self._by_rules(source, request, rt, user, cancelled, emit)
+                reply, calls, results, planner_name, model = self._inform(
+                    source, request, rt, user, brain, cancelled, emit, route
+                )
             state: Literal["done", "cancelled"] = "cancelled" if cancelled.is_set() else "done"
         except Exception as exc:  # the turn fails as a message, never as a dead stream
             reply, calls, results, state = f"Error: {type(exc).__name__}: {str(exc)[:300]}", [], [], "error"  # type: ignore[assignment]
@@ -943,12 +992,196 @@ class ChatService:
             results=results,
             planner=planner_name,
             model=model,
+            route=route,
             context={"selected": request.selected},
         )
         self.presentation.add_message(source.id, assistant)
         emit("message", assistant.model_dump(mode="json", by_alias=True))
         emit("done", {"state": state})
         return assistant
+
+    # The three intents ------------------------------------------------------------------------------------------
+
+    def _refuse_action(self, request: ChatRequest, route: ChatRoute) -> tuple[str, list[ToolResult]]:
+        """The chat never approves, rejects, deploys, merges, freezes or starts anything: those go through the
+        actions panel or the CLI, under the project's effective permissions and their own audit."""
+        action = action_asked(request.content) or "act"
+        route.action = action
+        route.reason = "the chat informs and analyses; actions go through the actions panel or the CLI"
+        where = ACTION_WHERE.get(action, "the CLI")
+        detail = f"«{action}» is an action, not a question: use {where}"
+        result = ToolResult(
+            ok=False,
+            tool="act",
+            summary=f"{action}: not done from the chat",
+            error=ToolError(code="refused", detail=detail, need=where),
+        )
+        reply = (
+            f"No lo hago desde el chat: «{action}» es una acción, no una consulta. Para hacerla: {where}. Pasa por los "
+            f"permisos efectivos del proyecto y queda en la auditoría. Si quieres, te muestro o analizo lo que hay "
+            f"antes de decidir."
+        )
+        return reply, [result]
+
+    def _inform(
+        self,
+        source: Source,
+        request: ChatRequest,
+        rt: ToolRuntime,
+        user: ChatMessage,
+        brain: Any | None,
+        cancelled: threading.Event,
+        emit: Emit,
+        route: ChatRoute,
+    ) -> tuple[str, list[ChatToolCall], list[ToolResult], Literal["rule", "brain"], str | None]:
+        """Reading records and editing the canvas: tools over raw records, which never leave. The local model may
+        plan the tool calls; without one (or when the mandate denies local inference) the rules do, and a request
+        that needs no model (show, table, chart) is answered without one either way."""
+        denies_local = source.mandate is not None and source.mandate.models.local_inference == "deny"
+        if brain is None:
+            route.reason = (
+                "rules planner asked" if request.planner == "rule" else "no model for this source: answered by rules"
+            )
+        elif denies_local:
+            route.reason = "the mandate denies local inference; reading records needs no model: answered by rules"
+        if brain is None or denies_local:
+            reply, calls, results = self._by_rules(source, request, rt, user, cancelled, emit)
+            return reply, calls, results, "rule", None
+        import asyncio
+
+        from unbidden.brain.router import BrainError
+
+        route.purpose, route.tier = "chat.inform", "local"
+        planner = BrainPlanner(brain)
+        history = self.presentation.messages(source.id)
+        try:
+            reply, calls, results = asyncio.run(
+                planner.run(request.content, rt, history, emit, cancelled, f"web:{user.id}")
+            )
+        except BrainError as exc:
+            # The model's answers were all rejected (or the route refused): the rules answer instead and the
+            # message says so. Nothing the model attempted reached the canvas.
+            emit("state", {"state": "thinking"})
+            reply, calls, results = self._by_rules(source, request, rt, user, cancelled, emit)
+            why = str(exc)[:200]
+            reply = f"{reply} (El modelo local no produjo una respuesta válida: {why}. Respondí por reglas.)"
+            route.blocked, route.hint = why, hint_for(why)
+            return reply, calls, results, "rule", None
+        run = getattr(brain, "served_by", {}).get("chat.inform")
+        model = run.model if run else None
+        route.model, route.reason = model, (run.route_reason if run else None)
+        return reply, calls, results, "brain", model
+
+    def _analyze(
+        self,
+        source: Source,
+        request: ChatRequest,
+        rt: ToolRuntime,
+        user: ChatMessage,
+        brain: Any | None,
+        cancelled: threading.Event,
+        emit: Emit,
+        route: ChatRoute,
+    ) -> tuple[str, list[ChatToolCall], list[ToolResult], Literal["rule", "brain"], str | None]:
+        """Why, compare, recommend: first the local reading (tools over raw records, nothing leaves), then ONE model
+        call without tools over a bounded digest of the records (source `record`), routed like heavy work: Meta's
+        API first when the digest may leave, the local model otherwise, and a refusal said with the router's reason
+        when neither may. The rules never answer an analysis as if it were one."""
+        route.purpose = "chat.analyze"
+        calls: list[ChatToolCall] = []
+        results: list[ToolResult] = []
+        reading = ""
+        _, plan = self.rule.plan(request.content, rt)
+        if plan:  # the question also asks to see something: do that part by rules first
+            reading, calls, results = self._by_rules(source, request, rt, user, cancelled, emit)
+        digest = evidence_digest(
+            source.summary(), self._selected_entities(rt), [r.model_dump(mode="json") for r in results]
+        )
+        if brain is None:
+            route.blocked = (
+                "rules planner asked: no model"
+                if request.planner == "rule"
+                else "no model is reachable for this source"
+            )
+            route.hint = "`unbidden doctor` says which model this option needs"
+            reply = f"No puedo analizar esto con un modelo ({route.blocked}). {route.hint}."
+            return _join(reply, reading), calls, results, "rule", None
+        import asyncio
+
+        from unbidden.brain.providers import ProviderError
+        from unbidden.brain.router import (
+            EgressBlocked,
+            KillSwitchEngaged,
+            ModelFailed,
+            PolicyDenied,
+            SecretInPrompt,
+            SpendLimitReached,
+        )
+
+        messages = [Message(role="system", content=ANALYZE_SYSTEM, source="prompt")]
+        for m in self.presentation.messages(source.id)[-5:-1]:
+            if m.role == "user" and m.content:
+                messages.append(Message(role="user", content=m.content[:1000], source="prompt"))
+            elif m.role == "assistant" and m.content:  # earlier answers derive from the records: labelled as such
+                messages.append(Message(role="assistant", content=m.content[:1000], source="record"))
+        messages.append(Message(role="user", content=f"Records digest:\n{digest}", source="record"))
+        messages.append(Message(role="user", content=request.content, source="prompt"))
+        llm_request = LLMRequest(
+            purpose="chat.analyze", tier=Tier.CODE, messages=messages, max_tokens=900, correlation_id=f"web:{user.id}"
+        )
+        decision, classification = brain.decide(llm_request)
+        route.tier, route.reason = (
+            decision.tier.value,
+            f"{decision.reason}; digest labelled {classification.label.value}",
+        )
+        emit("state", {"state": "thinking", "detail": f"analysing via {decision.tier.value}"})
+        try:
+            response = asyncio.run(brain.complete(llm_request))
+        except (PolicyDenied, EgressBlocked, SpendLimitReached, KillSwitchEngaged, SecretInPrompt) as exc:
+            why = str(exc)[:300]
+            route.blocked, route.hint = why, hint_for(why)
+            reply = f"No puedo analizar esto con un modelo: {why}."
+            if route.hint:
+                reply += f" Lo permitiría: {route.hint}."
+            return _join(reply, reading), calls, results, "rule", None
+        except (ModelFailed, ProviderError) as exc:
+            why = str(exc)[:300]
+            route.blocked = f"the model did not answer: {why}"
+            reply = f"El modelo no respondió ({why}); sin análisis. Lo leído queda abajo."
+            return _join(reply, reading), calls, results, "rule", None
+        run = getattr(brain, "served_by", {}).get("chat.analyze")
+        model = run.model if run else None
+        route.model = model
+        if run is not None:
+            route.tier, route.reason = run.tier.value, run.route_reason or route.reason
+        reply = response.content.strip() or "(sin respuesta)"
+        return _join(reply, reading), calls, results, "brain", model
+
+    def _selected_entities(self, rt: ToolRuntime) -> list[dict[str, Any]]:
+        """The entities in context as the digest may carry them: titles, statuses, levels, decisions; no payloads."""
+        out: list[dict[str, Any]] = []
+        store = rt.source.store
+        for e in rt.entities()[:6]:
+            if e.kind == "opportunity":
+                opp = store.get("opportunities", e.id, Opportunity)
+                if opp is not None:
+                    d, v = opp.details.get("decision") or {}, opp.details.get("verdict") or {}
+                    out.append({"opportunity": opp.id, "title": opp.title[:120], "status": opp.status.value,
+                                "level": int(opp.evidence_level), "source": opp.source,
+                                "decision": {"chosen": d.get("chosen"), "reason": str(d.get("reason", ""))[:200]},
+                                "verdict": {"outcome": v.get("outcome"), "improved": v.get("improved")}})  # fmt: skip
+            elif e.kind == "experiment":
+                exp = store.get("experiments", e.id, Experiment)
+                if exp is not None:
+                    out.append({"experiment": exp.id, "opportunity": exp.opportunity_id,
+                                "sessions": len(exp.sessions), "samples_before": len(exp.samples_before_ms),
+                                "samples_after": len(exp.samples_after_ms)})  # fmt: skip
+            elif e.kind == "block":
+                block = store.get(BLOCKS, e.id, Block)
+                if block is not None:
+                    out.append({"block": block.id, "kind": block.kind, "operation": block.operation[:120],
+                                "needs": str(getattr(block, "needs", ""))[:200]})  # fmt: skip
+        return out
 
     def _by_rules(
         self,
@@ -976,6 +1209,10 @@ class ChatService:
             results.append(result)
             emit("tool_result", result.model_dump(mode="json"))
         return _narrate(reply, results), calls, results
+
+
+def _join(reply: str, reading: str) -> str:
+    return f"{reply}\n\n{reading}" if reading else reply
 
 
 def _bind(args: dict[str, Any], rt: ToolRuntime) -> dict[str, Any]:

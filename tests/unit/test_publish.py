@@ -245,3 +245,63 @@ def test_an_autonomous_deploy_needs_a_merged_proposal_with_l4_contained_in_the_t
     with pytest.raises(OperationRefused, match="does not contain"):
         merged_evidence(path, store, prop.id, sha)
     merged_evidence(path, store, prop.id, prop.merge_sha)
+
+
+def test_an_interrupted_publish_does_not_repeat_the_effect_when_it_runs_again(
+    store: Store, mandate: Mandate, repo: tuple[Path, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A stop (or a crash) in the middle of publishing: the branch was pushed, the pull request not yet opened. The
+    requeued job publishes again; it asks GitHub for a pull request on the branch first and reuses what exists, and a
+    push of the same commit is idempotent. A proposal left PUBLISHING by a dead run is reconciled to READY at the one
+    executor's start, never published twice."""
+    from unbidden.guardian.killswitch import Cancelled
+    from unbidden.publish.github import reconcile_publishing
+
+    path, base = repo
+    monkeypatch.setenv("GITHUB_TOKEN", "t0ken-value-123")
+    pushed: list[str] = []
+    monkeypatch.setattr(github, "push_branch", lambda *a, **k: pushed.append(a[2]))  # type: ignore[misc]
+    created: list[dict[str, object]] = []
+    pulls: list[dict[str, object]] = []  # what GitHub holds after the first, interrupted run
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET" and request.url.path.endswith("/pulls"):
+            return httpx.Response(200, json=pulls)
+        if request.method == "POST":
+            if interrupt["now"]:
+                # The branch is pushed and GitHub opened the pull request, but the agent was stopped before it
+                # could read the answer: what a crash between the effect and its record looks like.
+                pulls.append({"number": 7, "html_url": "https://github.com/acme/shop/pull/7",
+                              "head": {"ref": "unbidden/fix-a", "sha": base}, "state": "open"})  # fmt: skip
+                raise Cancelled("unbidden stop")
+            created.append(json.loads(request.content))
+            return httpx.Response(201, json={"number": 8, "html_url": "https://github.com/acme/shop/pull/8",
+                                              "head": {"ref": "unbidden/fix-a", "sha": base}})  # fmt: skip
+        return httpx.Response(404)
+
+    interrupt = {"now": True}
+    client = GitHubClient("acme/shop", "GITHUB_TOKEN", transport=httpx.MockTransport(handle))
+    publisher = Publisher(path, store, mandate, client)
+    prop = proposal(base)
+    store.put("proposals", prop)
+    grant(store, CAPABILITY, prop.id, "david", ttl=__import__("datetime").timedelta(hours=1))
+    with pytest.raises(Cancelled):
+        publisher.publish(prop, "+fix")
+    stored = store.get("proposals", prop.id, Proposal)
+    assert stored is not None and stored.status is ProposalStatus.READY, "a clean stop puts the proposal back"
+    assert pushed == ["unbidden/fix-a"] and created == []
+    # the job runs again (requeued): the pull request GitHub already holds is reused; nothing is pushed or opened twice
+    interrupt["now"] = False
+    opened = publisher.publish(stored, "+fix")
+    assert opened.status is ProposalStatus.PR_OPENED and opened.pr is not None and opened.pr.number == 7
+    assert pushed == ["unbidden/fix-a"] and created == [], "no second push, no second pull request"
+    assert len([e for e in store.events() if e.type.value == "proposal.published"]) == 1
+    # a crash instead of a clean stop leaves PUBLISHING behind: the next start reconciles it
+    stored = store.get("proposals", prop.id, Proposal)
+    assert stored is not None
+    stored.status = ProposalStatus.PUBLISHING
+    store.put("proposals", stored)
+    assert [p.id for p in reconcile_publishing(store)] == [prop.id]
+    again = store.get("proposals", prop.id, Proposal)
+    assert again is not None and again.status is ProposalStatus.READY
+    assert reconcile_publishing(store) == []

@@ -722,3 +722,15 @@ and decisions:
 
 Rules unchanged: no PR, merge, tag or release from this work; the cap and the ledger never reset; "experimental
 candidate" until the criteria hold.
+
+### Status 2026-11-01: deliveries A to E done on `feat/63-product-onboarding` (local commits, nothing pushed)
+
+Steps 1, 3, 5 and the operational half of 4 above are built and documented: an installable wheel with the dashboard
+inside, `unbidden setup` with the three model options and the effective permissions, one executor per workspace with
+`start`/`stop`/`status`, the dashboard and the chat on the engine's own records, `docs/INSTALL.md` as the one install
+guide, `README.md` and `docs/RELEASE.md` rewritten for this candidate. The record of what was built and the one real
+validation (macOS arm64, the fork of Rich, option `api`, US$0.0438) is `docs/PRODUCT-ONBOARDING-PLAN.md` (its two
+"Estado" sections) and D-064. Not done: a public release (the one-line install waits for it), Linux by hand (GitHub
+Actions is the Linux check), `doctor`'s declared support matrix beyond `observe/scope.py`'s diagnosis (step 2), the
+evidence report as a command (step 4), a recorded product demo, and step 6, measuring 0.9.0 from a clean installation,
+which has not started. The version stays 0.9.0, experimental candidate.

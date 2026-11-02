@@ -1301,3 +1301,75 @@ installation and configuration as a person meets them.
 **Effect on earlier claims.** None withdrawn. Level A's honest counts (13, 12, 14, 14, 14, 17, 18 of 20) and the
 tool's counts (15, 16, 17, 17, 18, 19, 19) are both kept; the rule that separates them is stated in each README.
 Zero false promotions in stages 9 and 10 remains "nothing reached promotion", not precision.
+
+## D-064 · 2026-11-01 · The product phase: installable wheel, guided setup, one executor per workspace, dashboard and chat on the engine
+
+**Decided (David, 2026-11-01; recorded with the plan `docs/PRODUCT-ONBOARDING-PLAN.md`).** After D-063 the work is
+product, on `feat/63-product-onboarding` cut from `main` at `d560b6f`, in five deliveries: A distribution, B
+onboarding, C operation, D dashboard and chat, E documentation. The version stays **0.9.0, experimental candidate**;
+the criteria of v1.0 (`CAMPAIGN-v1.md`) and the evidence criteria are not changed; no PR, merge, tag or release.
+David's choices: GitHub Releases first, PyPI later; the person chooses the model option explicitly (the assistant may
+recommend, never chooses, and a blocked `autonomous` picks no other mode by itself); the dashboard runs inside the
+agent's process when that keeps one writer, with approve, reject, approve writes and kill/resume as real actions and
+deploy/rollback naming the CLI command; English with every sentence of the assistant in one table
+(`unbidden/setup/text.py`); the envelope `s11-product` (US$3.80 from `s10-close`; cap and total unchanged) for the
+only paid validation; README, RELEASE, PLAN and DECISIONS touched only in delivery E; Linux validated in GitHub
+Actions x86-64, not by hand.
+
+**What was built.** *A*: the wheel carries the built web workspace (`unbidden/web/static/**`) and the installer;
+`install.sh` (root and `unbidden/distribution/`, identical by test) verifies the sha256 against `SHA256SUMS` before
+`uv tool install --python 3.12 --reinstall`, is idempotent, `--version` rolls back, `--uninstall` keeps `~/.unbidden`
+and every `.unbidden/`; `unbidden update` and `unbidden uninstall [--purge --yes]`; `make dist`;
+`.github/workflows/release.yml`, manual only, publishes nothing. *B*: `guardian/mandate_edit.py` (MODES, the
+conditions of `autonomous`, MODEL_OPTIONS `local` = profile `local`, `mixed` = `local-first`, `api` = `frontier` with
+local inference and local fallback denied; validated atomic write with `MANDATE_CHANGED`); `unbidden setup`,
+interactive and `--non-interactive`, resumable (`.unbidden/setup.json`), credentials by name in `~/.unbidden/.env`
+(mode 600, `--model-key-stdin`, `--github-token-stdin`), the optional paid probe with its worst cost shown first, the
+effective permissions table from the `PolicyEngine`, the diff before writing; `unbidden` alone opens the assistant or
+the home screen; `doctor` marks each check required or optional for the option. *C*: `daemon/owner.py` (a kernel
+`flock` on `.unbidden/engine.lock`, the holder written after acquiring; stale = file present and lock free, no pid
+heuristics), `daemon/service.py` (`start` in its own session with the log in `.unbidden/logs/agent.log`; `stop`
+SIGTERM, wait for the lock, SIGKILL past the timeout; `status`), the `stopping` event in the loop (the job in progress
+returns to the queue without spending an attempt), `_own()` on `watch`, `scan`, `try`, `deploy`, `drill`, `map`,
+`forge build|stats`, `probe`, `investigate` (exit 2 with the owner's pid); short decisions never take the lock;
+`kill --stop`; nothing at boot. *D*: `unbidden ui` (opens or reuses by `.unbidden/ui.json`, mode 600, the token never
+in argv; `--stop` ends only a dashboard served apart), `start --ui` and `watch --ui` (`web/embed.py`: the agent's own
+Brain and store), `operate/decisions.py` shared by CLI and dashboard, the chat's three intents
+(`unbidden/chat/intent.py`: inform by rules or the local model, `chat.inform` local-only; analyze with one call over a
+bounded digest, `chat.analyze`, routed like heavy work and refused with the router's reason; act refused and pointed
+at the CLI), the monthly cap read from the machine ledger by every process (`SpendLedger.workspace_month_spend`),
+`unbidden chat` in the terminal; CI jobs `frontend` and `installed`. *E*: `README.md`, `docs/INSTALL.md` (the one
+install guide), `docs/RELEASE.md`, this decision, `PLAN.md`.
+
+**What was verified (2026-11-01, macOS arm64; details in the plan's "Validación real acotada").** `make dist` built
+`unbidden_ai-0.9.0-py3-none-any.whl` (~950 KB, the web workspace inside) and `SHA256SUMS`; `install.sh` from a local
+`http.server` into an empty HOME; `unbidden --version` = 0.9.0; an altered checksum refused; uninstall kept the data.
+On a dedicated clone of the fork `satisfymath/rich` at `9d8f9a372cc5`, option `api`, mode `supervised`, cap US$1.5,
+with the real ledger (`UNBIDDEN_HOME`), the machine's key on stdin and `DOCKER_CONFIG` from the host (declared; the
+first attempt without it recorded two `compatibility` blocks for the missing buildx plugin): the project's checks
+passed (981 collected); a robustness probe with 3 calls to Meta's API found 1 property violation kept for a person
+(L1); 14 events, 0 opportunities; the dashboard served by the agent showed them; one chat analysis call (US$0.0051)
+cited the record's counts and blocks; 2 widgets by rules with provenance `live:rich-s11`; `stop` and a reopen kept the
+2 widgets and 8 messages; a second `start` refused; `kill -9` left a stale lock and the next `start` resumed 1 job;
+clean `stop`, no KILL file, 14 events before and after. Spend US$0.0438 of `s11-product`'s 3.80; the machine's cap
+unchanged. `make check` green. Linux x86-64: CI jobs `check`, `frontend`, `installed` on `ubuntu-latest`; results: run
+41333127432 on `2d72ce4`, every job green (check 939 passed; frontend vitest 10 and Playwright 7; installed: every step;
+secrets clean). Docker was only reported there; no model was called; the real cycle ran on macOS arm64 only.
+
+**What is not.** No public release: the one-line install is documented as "available once the first release is
+published"; the local-artifact procedure is the one that works. Linux is not verified by hand. Options `local` and
+`mixed`, modes `autopilot` and `autonomous`, and connections were configured by tests, not walked with a model. No
+improvement was found on Rich in this walk (none was needed to validate it), so nothing here adds to the evidence of
+D-062 and D-063; zero false promotions remains "nothing reached promotion". `doctor` checks that Docker answers, not
+its buildx and compose plugins. A dashboard served apart keeps its model runs in `~/.unbidden/web/<source>-state.db`,
+which `unbidden egress` does not read yet. Two workspaces with the same repository name share a monthly cap.
+`unbidden ui` has no `--state-dir`. The chat's deterministic repertoire is the rules' list; the rest needs a model.
+The product walk has no recorded demo. Measuring 0.9.0 from a clean installation (PLAN step 6) has not started;
+US$9.5308 of the US$37.2945 cap remain for it.
+
+**Follow-ups.** The first release (decision 8.1 of the plan, apart): a `v*` tag, `release.yml`'s publish job, then
+the one-line install verified from the published URL. `doctor` checking buildx and compose explicitly. One record of
+model runs for the agent and a dashboard served apart, so `egress` lists every call with its origin. A product demo
+recorded from the installed tool. The RELEASE's CI and integration sections filled from a real run. Then PLAN step 6.
+
+**Effect on earlier claims.** None withdrawn; nothing here promotes or revalidates a result.

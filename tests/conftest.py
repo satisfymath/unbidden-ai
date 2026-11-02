@@ -65,3 +65,50 @@ def mandate() -> Mandate:
             github=GitHubPolicy(repository="acme/shop"),
         ),
     )
+
+
+# A stand-in for the background agent: a child process that takes the engine lock as `unbidden watch` would, ends
+# cleanly on SIGTERM, and whose command line names unbidden (owner.alive_holder looks for that). With a second
+# argument "exit-dirty" it leaves without releasing when its stdin closes, like a crash would.
+STANDIN_AGENT = """
+import signal, sys, time
+from pathlib import Path
+from unbidden.daemon.owner import EngineLock
+lock = EngineLock.acquire(Path(sys.argv[1]), "watch")
+def bye(*_):
+    lock.release()
+    sys.exit(0)
+signal.signal(signal.SIGTERM, bye)
+print("held", flush=True)
+if len(sys.argv) > 2 and sys.argv[2] == "exit-dirty":
+    sys.stdin.readline()
+    sys.exit(0)
+time.sleep(120)
+"""
+
+
+@pytest.fixture
+def standin_argv():  # type: ignore[no-untyped-def]
+    """argv for the stand-in agent over a state directory: `standin_argv(state_dir, *modes)`."""
+    import sys
+
+    def argv(state_dir: Path, *modes: str) -> list[str]:
+        return [sys.executable, "-c", STANDIN_AGENT, str(state_dir), *modes]
+
+    return argv
+
+
+@pytest.fixture
+def reaper():  # type: ignore[no-untyped-def]
+    """Child processes a test starts; whatever happens, none outlives the test."""
+    import contextlib
+    import os
+    import signal
+
+    pids: list[int] = []
+    yield pids
+    for pid in pids:
+        with contextlib.suppress(ProcessLookupError):
+            os.kill(pid, signal.SIGKILL)
+        with contextlib.suppress(ChildProcessError, OSError):
+            os.waitpid(pid, 0)

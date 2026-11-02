@@ -58,8 +58,8 @@ export function SettingsPopover() {
         <h4>Dónde corre cada cosa</h4>
         <div className="col small" style={{ gap: 4 }}>
           <div className="row"><span className="muted" style={{ width: 110 }}>Servidor</span><span>este equipo (loopback)</span></div>
-          <div className="row"><span className="muted" style={{ width: 110 }}>Modelo local</span><span className="mono ellipsis">{route.local.model ?? "—"} <span className="muted">· {route.local.provider}</span></span></div>
-          <div className="row"><span className="muted" style={{ width: 110 }}>Modelo remoto</span><span className="mono ellipsis">{route.remote.model ?? "—"} <span className="muted">· {route.remote.provider} · {route.remote.credential_file_present ? "credencial presente" : "sin credencial"}</span></span></div>
+          <div className="row"><span className="muted" style={{ width: 110 }}>Modelo local</span><span className="mono ellipsis">{route.local.model ?? "—"} <span className="muted">· {route.local.provider} · {route.local.reachable ? "responde" : "no responde"}</span></span></div>
+          <div className="row"><span className="muted" style={{ width: 110 }}>Modelo remoto</span><span className="mono ellipsis">{route.remote.model ?? "—"} <span className="muted">· {route.remote.provider} · {route.remote.key_present ? "clave cargada" : route.remote.credential_file_present ? "archivo .env presente, clave no cargada" : "sin credencial"}</span></span></div>
           <div className="row"><span className="muted" style={{ width: 110 }}>Perfil</span><span>{route.profile}{route.local_inference === "deny" ? " · sin inferencia local" : ""}</span></div>
           <div className="tiny muted">{route.note}</div>
         </div>

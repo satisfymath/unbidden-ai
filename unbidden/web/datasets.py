@@ -100,9 +100,17 @@ def resolve(source: Source, ref: DataRef) -> DataResult:
     rows, columns = apply_transform(rows, columns, ref.transform)
     truncated = total > len(rows) and ref.transform.group_by is None
     prov = source.provenance(scope=_scope(ref), note=note)
-    if not rows:
-        prov.completeness = "missing"
-        prov.note = note or f"{spec.title}: the record holds no rows for this request"
+    if not rows and total == 0:
+        if ref.params:
+            # Asked about one thing (an experiment, a run) and the record holds nothing for it: not available.
+            prov.completeness = "missing"
+            prov.note = note or f"{spec.title}: the record holds nothing for this request"
+        else:
+            # The whole collection was read and it is empty: a complete read of zero rows, not missing data.
+            prov.completeness = "complete"
+            prov.note = note or f"{spec.title}: zero rows in this record"
+    elif not rows:  # the transform filtered every row out: the read was complete
+        prov.note = note or f"{spec.title}: {total} row(s) in the record, none match this request"
     elif truncated:
         prov.completeness, prov.limit = "partial", ref.transform.limit
     return DataResult(columns=columns, rows=rows, provenance=prov, truncated=truncated, total=total)
