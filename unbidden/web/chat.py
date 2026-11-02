@@ -500,7 +500,10 @@ class ToolRuntime:
             ),
         )
         return ToolResult(
-            ok=True, tool="connect_widgets", summary=f"conectados ({args.kind}: {args.label})", edge_id=edge.id
+            ok=True,
+            tool="connect_widgets",
+            summary=wt("tool.connected", kind=args.kind, label=args.label),
+            edge_id=edge.id,
         )
 
     def tool_undo_presentation(self, _: NoArgs) -> ToolResult:
@@ -515,7 +518,7 @@ class ToolRuntime:
                 error=ToolError(code="refused", detail="the canvas has no earlier version"),
             )
         what = reasons.get(int(before["version"]), "the last change")
-        return ToolResult(ok=True, tool="undo_presentation", summary=f"deshecho: {what}")
+        return ToolResult(ok=True, tool="undo_presentation", summary=wt("tool.undone", what=what))
 
     def tool_explain(self, args: ExplainArgs) -> ToolResult:
         store = self.source.store

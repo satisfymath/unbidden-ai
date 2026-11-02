@@ -5,6 +5,8 @@ from __future__ import annotations
 
 T: dict[str, str] = {
     "tool.added": "added «{title}»",
+    "tool.connected": "connected ({kind}: {label})",
+    "tool.undone": "undone: {what}",
     "tool.added.nodata": " (no data: {note})",
     "change.title": "title",
     "change.size": "size",
