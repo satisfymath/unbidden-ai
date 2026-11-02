@@ -79,9 +79,11 @@ def test_status_reports_the_agent_and_the_kill_switch(repo: Path, capsys: pytest
 def models_ready(monkeypatch: pytest.MonkeyPatch) -> None:
     """The start guard sees the recommended local model as installed, without an Ollama on this machine."""
     import unbidden.runtime as runtime
-    from unbidden.brain.hardware import detect, recommend
+    from unbidden.brain import hardware
 
-    tag = recommend(detect(), set()).model.tag
+    machine = hardware.Machine(total_gb=16.0, apple_silicon=True, chip="test", gpu_gb=0.0)  # CI's memory may be unknown
+    monkeypatch.setattr(hardware, "detect", lambda: machine)
+    tag = hardware.recommend(machine, set()).model.tag
     monkeypatch.setattr(runtime, "installed_models", lambda url: {tag})
 
 
