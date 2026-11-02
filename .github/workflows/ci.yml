@@ -106,9 +106,14 @@ jobs:
           test "$code" = 4  # blocked: no deploy steps, no drill; nothing written
           python3 -c "import json; d=json.load(open('blocked.json')); assert d['blocked']=='autonomous' and d['blockers'], d"
           grep -q "open_pull_requests: require_approval" .unbidden/mandate.yaml  # still supervised
-      - name: "The agent: start, status, a second start, stop; nothing left; no KILL file"
+      - name: "The agent: refused without the option's key; start, status, a second start, stop; nothing left; no KILL file"
         run: |
           cd "$REPO"; export HOME="$SMOKE_HOME"; U="$UV_TOOL_BIN_DIR/unbidden"
+          code=0
+          "$U" start --interval 3600 --json > refused.json || code=$?
+          test "$code" = 4  # option api without MODEL_API_KEY: every cycle would fail, so nothing starts
+          python3 -c "import json; d=json.load(open('refused.json')); assert not d['started'] and [c['check'] for c in d['refused']] == ['meta api'], d; print('refused:', d['refused'])"
+          export MODEL_API_KEY=ci-dummy  # presence is what the guard checks; nothing here calls the API
           "$U" start --interval 3600 --json | tee start.json
           python3 -c "import json; d=json.load(open('start.json')); assert d['started'], d"
           "$U" status --json | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['agent']['running'], d; print('agent pid', d['agent']['pid'])"

@@ -16,9 +16,7 @@ SCHEMA = {"type": "object", "properties": {"a": {"type": "integer"}}, "required"
 
 def provider(handler: httpx.MockTransport, monkeypatch: pytest.MonkeyPatch) -> OpenAICompatProvider:
     monkeypatch.setenv("TEST_KEY", "k-123456")
-    p = OpenAICompatProvider("meta", "https://api.meta.ai/v1", "TEST_KEY")
-    p._client = httpx.AsyncClient(base_url=p.base_url, transport=handler)  # pyright: ignore[reportPrivateUsage]
-    return p
+    return OpenAICompatProvider("meta", "https://api.meta.ai/v1", "TEST_KEY", transport=handler)
 
 
 def req() -> LLMRequest:

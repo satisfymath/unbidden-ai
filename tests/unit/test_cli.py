@@ -75,9 +75,49 @@ def test_status_reports_the_agent_and_the_kill_switch(repo: Path, capsys: pytest
     assert "agent: not running" in capsys.readouterr().out
 
 
-def test_start_status_stop_round_trip(
+@pytest.fixture
+def models_ready(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The start guard sees the recommended local model as installed, without an Ollama on this machine."""
+    import unbidden.runtime as runtime
+    from unbidden.brain.hardware import detect, recommend
+
+    tag = recommend(detect(), set()).model.tag
+    monkeypatch.setattr(runtime, "installed_models", lambda url: {tag})
+
+
+def test_start_refuses_without_the_options_model_and_force_starts(
     repo: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch, standin_argv, reaper: list[int]
 ) -> None:
+    """The agent must not run where every cycle would fail: the default mandate (local-first) needs Ollama."""
+    import unbidden.runtime as runtime
+    from unbidden.daemon import service
+
+    main(["init"])
+    _commit(repo)
+    monkeypatch.setattr(runtime, "installed_models", lambda url: set())
+    monkeypatch.setattr(service, "agent_command", lambda interval_s, extra_args=(): standin_argv(repo / ".unbidden"))
+    capsys.readouterr()
+    assert main(["start", "--json"]) == 4
+    refused = json.loads(capsys.readouterr().out)
+    assert refused["started"] is False
+    assert [c["check"] for c in refused["refused"]] == ["ollama"]
+    assert refused["refused"][0]["fix"] == "unbidden setup models"
+    assert main(["start"]) == 4
+    errors = " ".join(capsys.readouterr().err.split())
+    assert "not started: the agent would fail every cycle here" in errors and "ollama: not reachable" in errors
+    assert main(["status", "--json"]) == 0
+    assert json.loads(capsys.readouterr().out)["agent"]["running"] is False
+    assert main(["start", "--force", "--json"]) == 0
+    started = json.loads(capsys.readouterr().out)
+    assert started["started"] is True
+    reaper.append(started["pid"])
+    assert main(["stop", "--json"]) == 0
+
+
+def test_start_status_stop_round_trip(
+    repo: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch, standin_argv, reaper: list[int],
+    models_ready: None,
+) -> None:  # fmt: skip
     from unbidden.daemon import owner, service
 
     main(["init"])
@@ -106,8 +146,9 @@ def test_start_status_stop_round_trip(
 
 
 def test_kill_stop_freezes_and_ends_the_agent(
-    repo: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch, standin_argv, reaper: list[int]
-) -> None:
+    repo: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch, standin_argv, reaper: list[int],
+    models_ready: None,
+) -> None:  # fmt: skip
     from unbidden.daemon import owner, service
 
     main(["init"])

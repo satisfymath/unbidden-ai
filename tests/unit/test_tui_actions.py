@@ -52,3 +52,12 @@ def test_inbox_sorts_by_evidence_and_why_reads_the_record(repo: Path) -> None:
     assert lines[0].text.startswith("[bold]validated[/] · L4")
     assert actions.why(store, "opp_zz")[0].text == "No opportunity opp_zz."
     store.close()
+
+
+def test_start_is_refused_in_the_app_with_the_fixing_command(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    import unbidden.runtime as runtime
+
+    monkeypatch.setattr(runtime, "installed_models", lambda url: set())
+    lines = actions.start(Workspace.find())
+    assert lines[-2].accent and lines[-2].text.startswith("Not started: the agent would fail every cycle here")
+    assert lines[-1].text == "  ollama: not reachable at http://localhost:11434 · unbidden setup models"

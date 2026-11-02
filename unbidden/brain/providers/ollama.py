@@ -10,6 +10,7 @@ from typing import Any
 import httpx
 
 from unbidden.brain.providers import ProviderError, ProviderThrottled
+from unbidden.brain.providers.clients import ClientPerLoop
 from unbidden.contracts.llm import LLMRequest, LLMResponse, Message, ToolCall, Usage
 
 # With thinking off, some builds leave end-of-turn tokens in the content.
@@ -26,13 +27,28 @@ def _message(m: Message) -> dict[str, Any]:
 class OllamaProvider:
     name = "ollama"
 
-    def __init__(self, host: str, *, num_ctx: int = 32768, keep_alive: str = "30m", timeout_s: float = 1800) -> None:
-        self._client = httpx.AsyncClient(base_url=host.rstrip("/"), timeout=timeout_s)
+    def __init__(
+        self,
+        host: str,
+        *,
+        num_ctx: int = 32768,
+        keep_alive: str = "30m",
+        timeout_s: float = 1800,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
+        self.base_url = host.rstrip("/")
+        self._timeout_s = timeout_s
+        self._transport = transport
+        self._clients = ClientPerLoop(lambda: httpx.AsyncClient(base_url=self.base_url, timeout=timeout_s,
+                                                                transport=transport))  # fmt: skip
         self._num_ctx = num_ctx
         self._keep_alive = keep_alive
 
+    def _client(self) -> httpx.AsyncClient:
+        return self._clients.current()
+
     async def show(self, model: str) -> dict[str, Any]:
-        response = await self._client.post("/api/show", json={"model": model})
+        response = await self._client().post("/api/show", json={"model": model})
         response.raise_for_status()
         return response.json()
 
@@ -59,7 +75,7 @@ class OllamaProvider:
             body["format"] = request.response_schema
         started = time.monotonic()
         try:
-            response = await self._client.post("/api/chat", json=body)
+            response = await self._client().post("/api/chat", json=body)
         except httpx.HTTPError as exc:
             raise ProviderError(f"ollama unreachable: {exc}") from exc
         if response.status_code == 429:
@@ -94,4 +110,4 @@ class OllamaProvider:
         )
 
     async def aclose(self) -> None:
-        await self._client.aclose()
+        await self._clients.aclose()

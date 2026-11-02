@@ -13,6 +13,7 @@ from typing import Any
 import httpx
 
 from unbidden.brain.providers import ProviderError, ProviderRejected, ProviderThrottled
+from unbidden.brain.providers.clients import ClientPerLoop
 from unbidden.contracts.llm import LLMRequest, LLMResponse, Message, ToolCall, Usage
 from unbidden.guardian.credentials import broker
 
@@ -49,6 +50,7 @@ class OpenAICompatProvider:
         *,
         required_tool_choice: bool = True,
         timeout_s: float = 300,
+        transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
         self.name = name
         # Meta's API accepts only tool_choice="auto"; "required" then becomes an instruction, and the router
@@ -56,7 +58,11 @@ class OpenAICompatProvider:
         self.required_tool_choice = required_tool_choice
         self.base_url = base_url.rstrip("/")
         self.key_env = key_env
-        self._client = httpx.AsyncClient(base_url=self.base_url, timeout=timeout_s)
+        self._clients = ClientPerLoop(lambda: httpx.AsyncClient(base_url=self.base_url, timeout=timeout_s,
+                                                                transport=transport))  # fmt: skip
+
+    def _client(self) -> httpx.AsyncClient:
+        return self._clients.current()
 
     @property
     def host(self) -> str:
@@ -112,7 +118,7 @@ class OpenAICompatProvider:
         return body
 
     async def list_models(self) -> list[str]:
-        response = await self._client.get("/models", headers=self._headers())
+        response = await self._client().get("/models", headers=self._headers())
         response.raise_for_status()
         return sorted(m["id"] for m in response.json().get("data", []))
 
@@ -127,7 +133,7 @@ class OpenAICompatProvider:
     async def _send(self, body: dict[str, Any]) -> LLMResponse:
         started = time.monotonic()
         try:
-            response = await self._client.post("/chat/completions", json=body, headers=self._headers())
+            response = await self._client().post("/chat/completions", json=body, headers=self._headers())
         except httpx.HTTPError as exc:
             raise ProviderError(f"{self.name} unreachable: {exc}") from exc
         if response.status_code == 429:
@@ -161,4 +167,4 @@ class OpenAICompatProvider:
         )
 
     async def aclose(self) -> None:
-        await self._client.aclose()
+        await self._clients.aclose()

@@ -1,6 +1,6 @@
 # Installing Unbidden
 
-This is the one install guide. Unbidden 0.10.1 (experimental candidate; not 1.0) ships as one Python wheel with the
+This is the one install guide. Unbidden 0.10.2 (experimental candidate; not 1.0) ships as one Python wheel with the
 web workspace already built inside. The installer puts it in its own environment with its own Python 3.12 through
 [uv](https://docs.astral.sh/uv/); nothing else on the machine changes. The end user needs no Node and no Python of
 their own.
@@ -31,10 +31,10 @@ Build the files from a checkout (`make dist`: builds the web workspace with Node
 `SHA256SUMS`), serve the directory, point the installer at it. `http://` is accepted only for loopback addresses.
 
 ```sh
-make dist                                   # dist/unbidden_ai-0.10.1-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
+make dist                                   # dist/unbidden_ai-0.10.2-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
 (cd dist && python3 -m http.server 8777 --bind 127.0.0.1 &)
-UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.10.1
-unbidden --version                          # unbidden 0.10.1
+UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.10.2
+unbidden --version                          # unbidden 0.10.2
 ```
 
 Only the person building the wheel needs Node; the wheel carries the built assets, so the installed tool serves the
@@ -158,8 +158,12 @@ scan, spend on this machine, and the next command. The app shows the same in its
 
 ### `unbidden start`, `stop`, `status`
 
-`start` runs `unbidden watch` in its own session, detached from the terminal, with its output in
-`.unbidden/logs/agent.log`; closing the terminal does not stop it. With `--ui [--port 8765]` the same process also
+`start` first checks, without any network call, that the option's model exists on this machine: Ollama reachable
+with the recommended model pulled (options local and mixed), or the API key held (option api). If not, nothing
+starts: exit 4 with the one command that fixes it (`unbidden doctor --fix`, `unbidden setup models`), because
+every cycle would fail; `--force` starts anyway. Docker absent, or no GitHub token while the mandate lets proposals
+become pull requests, only warn. Then `start` runs `unbidden watch` in its own session, detached from the terminal,
+with its output in `.unbidden/logs/agent.log`; closing the terminal does not stop it. With `--ui [--port 8765]` the same process also
 serves the dashboard (`unbidden/web/embed.py`: one store, one egress record, one monthly cap check); `--interval S`
 is the pause between looks at HEAD. `unbidden watch` is the same agent in the foreground, and ends with the terminal
 (it says so when it starts).
@@ -272,7 +276,7 @@ real on live sources only; deploy and rollback name the CLI command instead of r
 
 ```sh
 unbidden update                     # the latest published release
-unbidden update --version 0.10.1     # a fixed version: also how you roll back after a failed update
+unbidden update --version 0.10.2     # a fixed version: also how you roll back after a failed update
 unbidden uninstall                  # shows what would happen
 unbidden uninstall --yes            # uv tool uninstall unbidden-ai; data stays
 unbidden uninstall --purge --yes    # also deletes ~/.unbidden and this repository's .unbidden/ (listed first)

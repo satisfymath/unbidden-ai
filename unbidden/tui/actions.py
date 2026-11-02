@@ -14,15 +14,26 @@ def _note(text: str, *, verb: str = "Noting", accent: bool = False, detail: str 
     return Entry(verb=verb, text=text, kind="note", accent=accent, detail=detail)  # type: ignore[arg-type]
 
 
-def start(ws: Any, *, ui: bool = False, interval_s: float = 30.0) -> list[Entry]:
+def start(ws: Any, *, ui: bool = False, force: bool = False, interval_s: float = 30.0) -> list[Entry]:
     from unbidden.daemon import service
+    from unbidden.setup.requirements import start_checks
 
+    lines: list[Entry] = []
+    if not force:
+        verdict = start_checks(ws)
+        lines.extend(_note(t("cmd.start.warning", name=c.name, detail=c.detail, fix=c.fix)) for c in verdict.warnings)
+        if not verdict.ok:
+            lines.append(_note(t("cmd.start.refused"), accent=True))
+            lines.extend(
+                _note(t("cmd.start.refused.line", name=c.name, detail=c.detail, fix=c.fix)) for c in verdict.refused
+            )
+            return lines
     result = service.start(ws, interval_s=interval_s, extra_args=["--ui"] if ui else ())
     if result.get("started"):
-        return [_note(t("cmd.start.started", pid=result["pid"], log=result["log"]))]
+        return [*lines, _note(t("cmd.start.started", pid=result["pid"], log=result["log"]))]
     if result.get("already"):
-        return [_note(t("cmd.start.already", pid=result["already"].get("pid")))]
-    lines = [_note(t("cmd.start.failed", exit=result.get("exit")))]
+        return [*lines, _note(t("cmd.start.already", pid=result["already"].get("pid")))]
+    lines.append(_note(t("cmd.start.failed", exit=result.get("exit"))))
     lines.extend(_note(f"  {line}") for line in result.get("log_tail", [])[-8:])
     return lines
 

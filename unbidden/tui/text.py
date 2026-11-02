@@ -34,6 +34,9 @@ T: dict[str, str] = {
     "cmd.start.started": "The agent runs in the background as pid {pid}; its log is {log}.",
     "cmd.start.already": "The agent already runs as pid {pid}.",
     "cmd.start.failed": "The agent exited with {exit} before taking the workspace; the end of its log:",
+    "cmd.start.refused": "Not started: the agent would fail every cycle here. Fix it, or /start --force.",
+    "cmd.start.refused.line": "  {name}: {detail} · {fix}",
+    "cmd.start.warning": "{name}: {detail} · {fix}",
     "cmd.stop.stopped": "The agent stopped (pid {pid}) after {waited:.0f} s.",
     "cmd.stop.forced": (
         "The agent did not stop in {timeout:.0f} s and was killed; {jobs} job(s) resume on the next start."

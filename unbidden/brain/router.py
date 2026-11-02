@@ -148,6 +148,14 @@ class Brain:
         self.repo_public = False  # set by the runtime only when GitHub confirms it; unknown means private
         self.served_by: dict[str, ModelRun] = {}  # purpose -> the last run that answered it, for honest attribution
 
+    async def aclose(self) -> None:
+        """Close every provider's HTTP client of the current event loop. Called before an `asyncio.run` that
+        borrowed this Brain returns, so a cached Brain never keeps connections of a closed loop."""
+        for provider in self.providers.values():
+            close = getattr(provider, "aclose", None)
+            if close is not None:
+                await close()
+
     def route(self, tier: Tier) -> tuple[Route, LLMProvider]:
         route = self.config.routing.get(tier)
         if route is None:

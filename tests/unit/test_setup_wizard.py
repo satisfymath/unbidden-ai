@@ -296,3 +296,16 @@ def test_cli_without_a_command_runs_setup_then_home(repo: Path, capsys: pytest.C
     by_name = {c["check"]: c for c in doctor["checks"]}
     assert by_name["ollama"]["required"] is False and by_name["meta api"]["required"] is True
     assert "optional" in doctor["requirements"]
+
+
+def test_a_frontier_profile_with_local_inference_allowed_is_the_api_option_and_needs_no_ollama() -> None:
+    from unbidden.contracts.guardian import Mandate
+    from unbidden.setup.requirements import doctor_requirements, explain, option_of
+
+    mandate = Mandate(workspace="t")
+    mandate.models.profile = "frontier"
+    mandate.models.local_inference = "allow"
+    needs = doctor_requirements(mandate)
+    assert needs["ollama"] == "optional" and needs["meta api"] == "required"
+    assert option_of(mandate.models) == "api" and option_of({"profile": "frontier"}) == "api"
+    assert explain(needs, mandate).startswith("option api")
