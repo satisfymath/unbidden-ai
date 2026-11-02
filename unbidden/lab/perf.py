@@ -1280,7 +1280,9 @@ class PerfLab:
                 origin = "rule"  # written by Unbidden from the finding, no model involved
                 self.progress(f"candidate: index on {table}.{column}, written from the finding")
         for attempt in range(0 if candidate_files else 2):
-            self.progress(f"asking the local model for the schema change (attempt {attempt + 1})")
+            self.progress(
+                f"asking {self.brain.where('lab.perf_candidate')} for the schema change (attempt {attempt + 1})"
+            )
             candidate_files = await self._ask_files(
                 "lab.perf_candidate", content, opp, cand_prompt.sha256, 4000, result.notes
             )
@@ -1296,7 +1298,7 @@ class PerfLab:
             )
             candidate_files = None
         if not candidate_files:
-            result.notes.append("the local model gave no schema change that keeps the repository's checks clean")
+            result.notes.append("the model gave no schema change that keeps the repository's checks clean")
             return None
         base_dir = snapshot(self.repo, rev)
         candidate = Candidate(

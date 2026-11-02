@@ -151,7 +151,7 @@ class RobustLab:
         plan = test_plan(self.repo, rev, self.stack, "python")
         feedback = ""
         for attempt in range(self.attempts):
-            self.progress(f"asking the local model for a fix (attempt {attempt + 1})")
+            self.progress(f"asking {self.brain.where('lab.robust_fix')} for a fix (attempt {attempt + 1})")
             candidate = await self._candidate(opp, rev, test, feedback)
             if candidate is None:
                 feedback = "the answer had no usable file block"

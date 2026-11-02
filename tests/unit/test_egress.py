@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from unbidden.contracts.guardian import Mandate
@@ -38,3 +40,10 @@ def test_github_payload_may_name_code_but_not_secrets(mandate: Mandate) -> None:
 
 def test_github_needs_a_configured_repository() -> None:
     assert not evaluate_github(Mandate(workspace="x"), "api.github.com", "hello").allowed
+
+
+def test_public_code_serialized_as_json_passes_when_its_raw_form_does(mandate: Mandate) -> None:
+    code = "def create(user_in: UserCreate) -> User:\n    return User(password=user_in.password)\n"
+    payload = json.dumps({"messages": [{"role": "user", "content": code}]})
+    verdict = evaluate_synthetic(mandate, "api.meta.ai", payload, SensitiveTermIndex())
+    assert verdict.allowed, verdict.reasons

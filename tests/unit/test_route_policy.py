@@ -77,3 +77,18 @@ def test_planning_and_reading_documentation_go_remote_only_when_their_content_ma
     real = decide_route("local-first", task_for(purpose), ContentLabel.PRODUCTION_DATA)
     assert real.tier is Tier.LOCAL and not real.remote_allowed
     assert decide_route("local", task_for(purpose), ContentLabel.SYNTHETIC).tier is Tier.LOCAL
+
+
+def test_apply_mandate_shows_what_the_call_would_do() -> None:
+    from unbidden.brain.route_policy import apply_mandate
+
+    remote_first = decide_route("frontier", HEAVY, L.PUBLIC_CODE)
+    assert remote_first.fallback is Tier.LOCAL
+    shown = apply_mandate(remote_first, local_inference="allow", local_fallback="deny")
+    assert (shown.fallback, shown.fallback_refused, shown.denied) == (None, Tier.LOCAL, None)
+    shown = apply_mandate(remote_first, local_inference="deny", local_fallback="allow")
+    assert (shown.fallback, shown.fallback_refused, shown.denied) == (None, Tier.LOCAL, None)
+    assert apply_mandate(remote_first, local_inference="allow", local_fallback="allow") == remote_first
+    local = decide_route("frontier", HEAVY, L.PRODUCTION_DATA)
+    denied = apply_mandate(local, local_inference="deny", local_fallback="allow")
+    assert denied.tier is Tier.LOCAL and denied.denied is not None and "never leaves" in denied.denied

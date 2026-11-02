@@ -16,14 +16,17 @@ _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("private_key", re.compile(r"-----BEGIN (?:[A-Z]+ )?PRIVATE KEY-----")),
     ("bearer_token", re.compile(r"\bBearer\s+([A-Za-z0-9._~+/-]{20,}=*)")),
     ("url_credentials", re.compile(r"\b[a-z][a-z0-9+.-]*://[^\s/:@]+:([^\s/@]{3,})@")),
-    # name=value assignments whose name says it holds a credential, in env, yaml, inline or quoted form.
+    # name=value assignments whose name says it holds a credential, in env, yaml, inline or quoted form. A backslash
+    # ends the value: in text serialized as JSON a newline is the two characters `\n`, and `password=user_in.password\n`
+    # must be judged as its raw form is (stage 11: the egress gate refused requests over public code that the prompt
+    # guard had passed).
     (
         "credential_assignment",
         re.compile(
             r"""(?ix)
             \b[\w.-]*(?:password|passwd|secret|token|api[_-]?key|private[_-]?key|access[_-]?key)[\w.-]*
             ["']?\s*[:=]\s*
-            ["']?(?P<value>[^\s"',;}{()\[\]]{6,})
+            ["']?(?P<value>[^\s"',;}{()\[\]\\]{6,})
             """
         ),
     ),
@@ -38,7 +41,7 @@ _PLACEHOLDER = re.compile(
         |true|false|null|none|undefined
         |str|string|int|bytes|optional\[.*
         |(?:bool|int|float|str|bytes|dict|list|tuple|optional|union)(?:\[[^=]*\])?=.*   # annotation with a default
-        |(?:x+|\*+|\.{3,}|changeme|placeholder|redacted|example|dummy|your[_-].*|xxx.*)
+        |(?:x+|\*+|\.{3,}|change[_-]?(?:me|this)|placeholder|redacted|example|dummy|your[_-].*|xxx.*)
         |os\.environ.*|process\.env.*|getenv.*|settings\..*|config\..*|env\..*
     )$""",
 )
@@ -85,7 +88,22 @@ class SensitiveTermIndex:
 _CODE_NAME = re.compile(r"^[a-z_][a-z_]*$")
 _CODE_PATH = re.compile(r"^[a-z_][a-z0-9_]*(?:\.[a-z_][a-z0-9_]*)+$")  # reservation.reservation_token
 _IDENTIFIER = re.compile(r"^[A-Za-z_]\w*$")
+_TYPE_NAME = re.compile(r"^[A-Z][A-Za-z0-9]*[a-z][A-Za-z0-9]*$")  # CamelCase (TokenDep, SecretStr); not a CONSTANT
 _MASKED = re.compile(r"^.{0,2}\*{3}$")  # what `_mask` leaves
+
+
+def _is_annotation(match: re.Match[str]) -> bool:
+    """`def login(token: TokenDep)`, `(password: SecretStr = Form())`: a parameter's type, not a value.
+
+    Only inside a parameter list (after `(` or `,`) and followed by `)`, `,` or `=`: `password: MyPassw0rd` in a YAML
+    file is still judged as a possible secret.
+    """
+    text, start, end = match.string, match.start("value"), match.end("value")
+    if not _TYPE_NAME.match(match.group("value")):
+        return False
+    separator = text[match.start() : start].rstrip("\"' ")
+    before, after = text[: match.start()].rstrip(), text[end:].lstrip()
+    return separator.endswith(":") and before.endswith(("(", ",")) and after.startswith((")", ",", "="))
 
 
 def _is_code_reference(match: re.Match[str]) -> bool:
@@ -99,7 +117,7 @@ def _is_code_reference(match: re.Match[str]) -> bool:
     if end < len(text) and text[end] in "([.":
         return True
     value = match.group("value")
-    if _CODE_NAME.match(value) or _CODE_PATH.match(value):
+    if _CODE_NAME.match(value) or _CODE_PATH.match(value) or _is_annotation(match):
         return True
     # `ORMCsrfToken = CsrfToken`: a name assigned to a name it ends with is an alias, not a value (stage 10, Prefect).
     name = text[match.start() : start].rstrip("\"' :=")

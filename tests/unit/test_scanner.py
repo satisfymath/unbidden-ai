@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -143,3 +144,32 @@ def test_the_router_masks_repository_text_and_still_refuses_other_secrets(tmp_pa
     )
     with pytest.raises(SecretInPrompt):
         brain._guard_prompt(brain._mask_repository(other))  # pyright: ignore[reportPrivateUsage]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "password=user_in.password\n",  # stage 11: flagged only once serialized as JSON, where `\n` is two characters
+        "token=password_reset_token\n",
+        "hashed_password = get_password_hash(password)\n",
+        "def login(session: SessionDep, token: TokenDep) -> Token:",  # a parameter's type annotation
+        "async def reset(*, password: SecretStr = Form()) -> None:",
+        "SECRET_KEY=changethis",  # the FastAPI template's placeholder
+        "POSTGRES_PASSWORD: changethis",
+    ],
+)
+def test_repository_code_is_judged_the_same_raw_and_serialized_as_json(text: str) -> None:
+    assert not secret_hits(scan(text)), text
+    assert not secret_hits(scan(json.dumps({"content": text}))), text
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "DB_PASSWORD=Xk9fT2qLm8",
+        "password: MyPassw0rd",  # YAML; it looks like a type name but is not a parameter's annotation
+        "postgres://app:Xk9fT2qLm8@db/shop",
+    ],
+)
+def test_real_secrets_are_still_refused_serialized_as_json(text: str) -> None:
+    assert secret_hits(scan(json.dumps({"content": text}))), text
