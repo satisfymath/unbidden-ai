@@ -30,6 +30,52 @@ T: dict[str, str] = {
     "bar.age": "{seconds} s ago",
     "bar.age.none": "no events",
     # the prompt
+    # commands: what /help lists
+    "cmd.help.usage": "/help",
+    "cmd.help.help": "what you can do here",
+    "cmd.start.usage": "/start [--ui] [--force]",
+    "cmd.start.help": "run the agent in the background; --ui serves the dashboard",
+    "cmd.stop.usage": "/stop",
+    "cmd.stop.help": "stop the agent cleanly; nothing stays frozen",
+    "cmd.kill.usage": "/kill [reason]",
+    "cmd.kill.help": "engage the kill switch: nothing runs or leaves until /resume",
+    "cmd.resume.usage": "/resume",
+    "cmd.resume.help": "release the kill switch",
+    "cmd.inbox.usage": "/inbox [--all]",
+    "cmd.inbox.help": "open opportunities, most proven first",
+    "cmd.why.usage": "/why <id>",
+    "cmd.why.help": "every decision, verdict and outbound payload behind one opportunity",
+    "cmd.approve.usage": "/approve <id> [--hours N]",
+    "cmd.approve.help": "let the pull request for this opportunity open",
+    "cmd.reject.usage": "/reject <id> <reason>",
+    "cmd.reject.help": "close this opportunity with your reason",
+    "cmd.activity.usage": "/activity",
+    "cmd.activity.help": "found, decided, checked, asked, proven, spent",
+    "cmd.spend.usage": "/spend",
+    "cmd.spend.help": "the machine's spend ledger and its cap",
+    "cmd.doctor.usage": "/doctor",
+    "cmd.doctor.help": "what this machine provides, required or optional for your option",
+    "cmd.ui.usage": "/ui [--open]",
+    "cmd.ui.help": "open or reuse the dashboard in the browser",
+    "cmd.setup.usage": "/setup [section|--all]",
+    "cmd.setup.help": "found, model access, permissions; more by name",
+    "cmd.language.usage": "/language [en|es]",
+    "cmd.language.help": "the language Unbidden speaks to you; saved on this machine",
+    "cmd.log.usage": "/log",
+    "cmd.log.help": "show or hide the agent's log",
+    "cmd.verbose.usage": "/verbose",
+    "cmd.verbose.help": "show or hide every allowed egress and model call",
+    "cmd.clear.usage": "/clear",
+    "cmd.clear.help": "clear the feed",
+    "cmd.quit.usage": "/quit",
+    "cmd.quit.help": "leave; the agent keeps running",
+    "cmd.language.now": "Language: {name} ({how}). /language en or /language es changes it.",
+    "cmd.language.set": "Language: {name}, saved on this machine.",
+    "cmd.language.unknown": "No language {code}. One of: {codes}.",
+    "lang.how.env": "from UNBIDDEN_LANG",
+    "lang.how.saved": "saved on this machine",
+    "lang.how.locale": "from the terminal's locale",
+    "lang.how.default": "the default",
     # commands
     "cmd.start.started": "The agent runs in the background as pid {pid}; its log is {log}.",
     "cmd.start.already": "The agent already runs as pid {pid}.",
@@ -160,4 +206,7 @@ LEVEL_NAMES = {1: "suspicion", 2: "reproduced", 3: "lab", 4: "validated", 5: "op
 
 
 def t(key: str, **kwargs: object) -> str:
-    return T[key].format(**kwargs) if kwargs else T[key]
+    from unbidden.i18n import lookup
+    from unbidden.tui import text_es
+
+    return lookup(T, {"es": text_es.T}, key, **kwargs)

@@ -1,4 +1,13 @@
-# Unbidden 0.11.0, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.12.0, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.12.0 (2026-11-02): Spanish
+
+What Unbidden says to the person follows a language: the app, the setup assistant, the home screen, `/help`, the
+chat's own sentences and the installer's closing lines, in English or Spanish. Resolved from `UNBIDDEN_LANG`, then
+the choice saved on the machine (`/language es|en`, `unbidden setup language`), then the terminal's locale, then
+English; a key a translation lacks falls back to English. Not translated: the other CLI commands, the engine's
+records (reasons, titles, pull request text stay as recorded) and the web dashboard, which stays Spanish. A third
+language is one `text_<code>.py` per table. `docs/INSTALL.md`, "Languages".
 
 ## 0.11.0 (2026-11-02): setup asks three things
 
@@ -38,7 +47,7 @@ already existed (start, stop, kill switch, approve, reject, chat). `docs/INSTALL
 on macOS arm64 with the built wheel installed by `install.sh` into an empty HOME and driven in a pseudoterminal; CI
 unchanged (without a terminal, `unbidden` is the text home screen). Everything below describes 0.9.0 and still holds.
 
-**Status: 0.11.0, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
+**Status: 0.12.0, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
 met when the campaign paused at its gate (D-063); they are not changed here. The one that blocks 1.0: no useful cycle
 has been shown on an application not used in development. This candidate adds the product around the same engine:
 an installable wheel, a guided setup, one executor per workspace with a background agent, and the dashboard and chat

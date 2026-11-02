@@ -67,10 +67,11 @@ def test_an_empty_repository_is_found_without_a_commit(repo: Path) -> None:
     found = discover(Workspace(repo))
     assert found.slug == "acme/shop" and found.head is None and found.scope == []
     assert found.compose_path is None and found.services == [] and found.external == []
-    assert found.option() == ("local", "no key and no local model yet")
+    assert found.option() == ("local", "models.why.none")
     assert found.github.source is None and not found.key_present
     data = found.as_dict()
     assert data["repository"] == "acme/shop" and data["option"] == "local" and data["github"] is None
+    assert data["option_why"] == "no key and no local model yet"
 
 
 def test_compose_services_and_external_urls_are_read_at_head(repo: Path) -> None:
@@ -100,7 +101,7 @@ def test_a_saved_key_and_a_local_model_make_the_mixed_option(repo: Path, monkeyp
     monkeypatch.setattr(runtime, "installed_models", lambda url: {tag})
     found = discover(Workspace(repo))
     assert found.key_present and found.local_model and found.ollama_present
-    assert found.option() == ("mixed", "a key and a local model are both here")
+    assert found.option() == ("mixed", "models.why.mixed")
     assert broker().has("MODEL_API_KEY")  # loaded, never shown
 
     monkeypatch.setattr(runtime, "installed_models", lambda url: set())

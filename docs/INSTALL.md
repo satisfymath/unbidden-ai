@@ -1,6 +1,6 @@
 # Installing Unbidden
 
-This is the one install guide. Unbidden 0.11.0 (experimental candidate; not 1.0) ships as one Python wheel with the
+This is the one install guide. Unbidden 0.12.0 (experimental candidate; not 1.0) ships as one Python wheel with the
 web workspace already built inside. The installer puts it in its own environment with its own Python 3.12 through
 [uv](https://docs.astral.sh/uv/); nothing else on the machine changes. The end user needs no Node and no Python of
 their own.
@@ -31,10 +31,10 @@ Build the files from a checkout (`make dist`: builds the web workspace with Node
 `SHA256SUMS`), serve the directory, point the installer at it. `http://` is accepted only for loopback addresses.
 
 ```sh
-make dist                                   # dist/unbidden_ai-0.11.0-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
+make dist                                   # dist/unbidden_ai-0.12.0-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
 (cd dist && python3 -m http.server 8777 --bind 127.0.0.1 &)
-UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.11.0
-unbidden --version                          # unbidden 0.11.0
+UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.12.0
+unbidden --version                          # unbidden 0.12.0
 ```
 
 Only the person building the wheel needs Node; the wheel carries the built assets, so the installed tool serves the
@@ -131,6 +131,18 @@ The text interface is unchanged for scripts and for people who prefer it: `unbid
 screen, `unbidden --json` the same as data, `UNBIDDEN_PLAIN=1` in the environment makes `unbidden` always text, and
 without a terminal (a pipe, CI, `TERM=dumb`, fewer than 60 columns) `unbidden` never opens the app. `unbidden app`
 opens it explicitly (exit 2 without a terminal).
+
+### Languages
+
+Unbidden speaks English or Spanish to the person: the app, the setup assistant, the home screen, `/help`, the
+chat's own sentences and the installer's closing lines. The language comes from `UNBIDDEN_LANG` (`en` or `es`),
+else the choice saved on this machine (`/language es` in the app, `unbidden setup language`, kept in
+`~/.unbidden/machine.yaml`), else the terminal's locale (`LC_ALL`, `LC_MESSAGES`, `LANG`), else English. The
+first run under `LANG=es_CL.UTF-8` is in Spanish and the found block says so. Not translated yet: the other CLI
+commands (`inbox`, `why`, `doctor`, `status`, errors), the engine's records (reasons, titles and pull request text
+stay as recorded, in English), and the web dashboard, which stays Spanish while the chat follows the language. A
+third language is one `text_<code>.py` next to each table (`unbidden/setup`, `unbidden/tui`, `unbidden/web`) and
+a name in `unbidden/i18n.py`.
 
 ### `unbidden setup`
 
@@ -294,7 +306,7 @@ real on live sources only; deploy and rollback name the CLI command instead of r
 
 ```sh
 unbidden update                     # the latest published release
-unbidden update --version 0.11.0     # a fixed version: also how you roll back after a failed update
+unbidden update --version 0.12.0     # a fixed version: also how you roll back after a failed update
 unbidden uninstall                  # shows what would happen
 unbidden uninstall --yes            # uv tool uninstall unbidden-ai; data stays
 unbidden uninstall --purge --yes    # also deletes ~/.unbidden and this repository's .unbidden/ (listed first)

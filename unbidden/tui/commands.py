@@ -5,13 +5,22 @@ from __future__ import annotations
 import shlex
 from dataclasses import dataclass, field
 
+from unbidden.tui.text import t
+
 
 @dataclass(frozen=True)
 class Spec:
-    usage: str
-    help: str
+    name: str
     min_args: int = 0
     max_args: int | None = 0  # None: any number
+
+    @property
+    def usage(self) -> str:  # the usage and the help live in the text table, so /help follows the language
+        return t(f"cmd.{self.name}.usage")
+
+    @property
+    def help(self) -> str:
+        return t(f"cmd.{self.name}.help")
 
 
 @dataclass(frozen=True)
@@ -31,24 +40,25 @@ class Command:
 
 
 SPECS: dict[str, Spec] = {
-    "help": Spec("/help", "what you can do here"),
-    "start": Spec("/start [--ui] [--force]", "run the agent in the background; --ui serves the dashboard", 0, 2),
-    "stop": Spec("/stop", "stop the agent cleanly; nothing stays frozen"),
-    "kill": Spec("/kill [reason]", "engage the kill switch: nothing runs or leaves until /resume", 0, None),
-    "resume": Spec("/resume", "release the kill switch"),
-    "inbox": Spec("/inbox [--all]", "open opportunities, most proven first", 0, 1),
-    "why": Spec("/why <id>", "every decision, verdict and outbound payload behind one opportunity", 1, 1),
-    "approve": Spec("/approve <id> [--hours N]", "let the pull request for this opportunity open", 1, 3),
-    "reject": Spec("/reject <id> <reason>", "close this opportunity with your reason", 2, None),
-    "activity": Spec("/activity", "found, decided, checked, asked, proven, spent"),
-    "spend": Spec("/spend", "the machine's spend ledger and its cap"),
-    "doctor": Spec("/doctor", "what this machine provides, required or optional for your option"),
-    "ui": Spec("/ui [--open]", "open or reuse the dashboard in the browser", 0, 1),
-    "setup": Spec("/setup [section|--all]", "found, model access, permissions; more by name", 0, 1),
-    "log": Spec("/log", "show or hide the agent's log"),
-    "verbose": Spec("/verbose", "show or hide every allowed egress and model call"),
-    "clear": Spec("/clear", "clear the feed"),
-    "quit": Spec("/quit", "leave; the agent keeps running"),
+    "help": Spec("help"),
+    "start": Spec("start", 0, 2),
+    "stop": Spec("stop"),
+    "kill": Spec("kill", 0, None),
+    "resume": Spec("resume"),
+    "inbox": Spec("inbox", 0, 1),
+    "why": Spec("why", 1, 1),
+    "approve": Spec("approve", 1, 3),
+    "reject": Spec("reject", 2, None),
+    "activity": Spec("activity"),
+    "spend": Spec("spend"),
+    "doctor": Spec("doctor"),
+    "ui": Spec("ui", 0, 1),
+    "setup": Spec("setup", 0, 1),
+    "language": Spec("language", 0, 1),
+    "log": Spec("log"),
+    "verbose": Spec("verbose"),
+    "clear": Spec("clear"),
+    "quit": Spec("quit"),
 }
 
 ALIASES: dict[str, str] = {"q": "quit", "exit": "quit", "h": "help", "?": "help", "status": "activity"}

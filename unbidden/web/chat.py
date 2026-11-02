@@ -57,20 +57,18 @@ from unbidden.web.contracts import (
 )
 from unbidden.web.presentation import PresentationStore
 from unbidden.web.sources import Source
+from unbidden.web.text import T as WEB_TEXT
+from unbidden.web.text import t as wt
 
 Emit = Callable[[str, dict[str, Any]], None]
 
-# Where each action the chat refuses is done: the actions panel of the dashboard (live workspaces) or the CLI.
-ACTION_WHERE = {
-    "approve": "the Approve button on the proposal, or `unbidden approve <id>`",
-    "reject": "the Reject button on the opportunity, or `unbidden reject <id> --reason '...'`",
-    "deploy": "`unbidden deploy <ref>` (the mandate's deploy steps; the dashboard shows the command)",
-    "rollback": "`unbidden deploy --rollback`",
-    "merge": "a person merges on GitHub; autonomous mode merges L4 work (`unbidden mode`)",
-    "kill": "the kill switch button, or `unbidden kill`",
-    "resume": "the resume button, or `unbidden resume`",
-    "experiment": "`unbidden try <opportunity>` or the agent's own cycle (`unbidden start`)",
-}
+
+def language_name() -> str:
+    """The language the model is told to answer in: the person's (unbidden/i18n.py)."""
+    from unbidden.i18n import name
+
+    return name()
+
 
 ANALYZE_SYSTEM = """You are the analyst of Unbidden's dashboard. You receive a digest of Unbidden's own records
 (counts, levels, statuses, titles, ids, medians) and a question. Answer in the language the question is written in,
@@ -411,7 +409,7 @@ class ToolRuntime:
             ),
         )
         self.created.append(widget.id)
-        summary = f"añadido «{widget.title}»" + (f" (sin datos: {note})" if note else "")
+        summary = wt("tool.added", title=widget.title) + (wt("tool.added.nodata", note=note) if note else "")
         return ToolResult(
             ok=True,
             tool="create_widget",
@@ -432,11 +430,11 @@ class ToolRuntime:
             )
         changes = []
         if args.title:
-            found.title, changes = args.title, [*changes, "título"]
+            found.title, changes = args.title, [*changes, wt("change.title")]
         if args.size:
-            found.size, changes = args.size, [*changes, "tamaño"]
+            found.size, changes = args.size, [*changes, wt("change.size")]
         if args.dataRef:
-            found.dataRef, changes = args.dataRef, [*changes, "datos"]
+            found.dataRef, changes = args.dataRef, [*changes, wt("change.data")]
         if args.view:
             merged = {
                 **found.view.model_dump(),
@@ -528,30 +526,29 @@ class ToolRuntime:
             if opp is None:
                 return self._not_found("opportunity", e.id)
             d, v = opp.details.get("decision") or {}, opp.details.get("verdict") or {}
-            text = (
-                f"{opp.title}\n\n{opp.summary}\n\nNivel L{int(opp.evidence_level)}, estado {opp.status.value}. "
-                f"Decisión: {d.get('chosen', '—')} — {d.get('reason', 'sin motivo registrado')}."
-            )
+            text = wt(
+                "explain.opportunity", title=opp.title, summary=opp.summary, level=int(opp.evidence_level),
+                status=opp.status.value, chosen=d.get("chosen", "—"), reason=d.get("reason") or wt("explain.noreason"),
+            )  # fmt: skip
             if v:
-                text += (
-                    f"\nVeredicto: {v.get('outcome') or ('mejoró' if v.get('improved') else 'sin mejora')}; "
-                    + "; ".join(v.get("reasons") or [])
+                outcome = v.get("outcome") or (
+                    wt("explain.improved") if v.get("improved") else wt("explain.notimproved")
                 )
+                text += wt("explain.verdict", outcome=outcome, reasons="; ".join(v.get("reasons") or []))
             if opp.details.get("blocked"):
-                text += f"\nBloqueado: {opp.details['blocked'].get('why')}"
+                text += wt("explain.blocked", why=opp.details["blocked"].get("why"))
             evidence = [x.model_dump(mode="json") for x in opp.evidence[:6]]
             events = store.events(correlation_id=opp.id, limit=50)
-            text += (
-                "\n\nHistorial: " + "; ".join(f"{ev.ts:%H:%M} {ev.type.value}" for ev in events[-8:]) if events else ""
-            )
+            if events:
+                text += wt("explain.history", items="; ".join(f"{ev.ts:%H:%M} {ev.type.value}" for ev in events[-8:]))
         elif e.kind == "block":
             block = store.get(BLOCKS, e.id, Block)
             if block is None:
                 return self._not_found("block", e.id)
-            text = (
-                f"Bloqueo ({block.kind}) en «{block.operation}».\n\nEvidencia: {block.evidence[:400]}\n\n"
-                f"Lo mínimo que lo desbloquea: {block.needs}.\nAl darlo continúa: {block.continues}."
-            )
+            text = wt(
+                "explain.block", kind=block.kind, operation=block.operation, evidence=block.evidence[:400],
+                needs=block.needs, continues=block.continues,
+            )  # fmt: skip
             evidence = [{"kind": "config", "locator": ".unbidden/mandate.yaml", "note": "egress.package_registries"}]
         elif e.kind == "experiment":
             exp = store.get("experiments", e.id, Experiment)
@@ -559,15 +556,16 @@ class ToolRuntime:
                 return self._not_found("experiment", e.id)
             opp = store.get("opportunities", exp.opportunity_id, Opportunity)
             v = (opp.details.get("verdict") if opp else None) or {}
-            text = (
-                f"Experimento {exp.id} sobre «{opp.title if opp else exp.opportunity_id}»: "
-                f"{len(exp.sessions)} sesiones, "
-                f"{len(exp.control)} de control, {len(exp.confirmation)} de confirmación; coste US${exp.cost.usd:.4f}."
-            )
+            text = wt(
+                "explain.experiment", id=exp.id, title=opp.title if opp else exp.opportunity_id,
+                sessions=len(exp.sessions), control=len(exp.control), confirmation=len(exp.confirmation),
+                usd=exp.cost.usd,
+            )  # fmt: skip
             if v:
-                text += f"\nVeredicto: {v.get('outcome', '—')} (L{v.get('evidence_level', '?')}): " + "; ".join(
-                    v.get("reasons") or []
-                )
+                text += wt(
+                    "explain.experiment.verdict", outcome=v.get("outcome", "—"), level=v.get("evidence_level", "?"),
+                    reasons="; ".join(v.get("reasons") or []),
+                )  # fmt: skip
             evidence = [{"kind": "experiment", "locator": exp.id}]
         else:
             conn = store._conn
@@ -610,22 +608,22 @@ class RulePlanner:
     def plan(self, text: str, rt: ToolRuntime) -> tuple[str, Plan]:
         t = _norm(text)
         if re.search(r"\b(deshaz|deshacer|undo|revierte)\b", t):
-            return "Deshago el último cambio del lienzo.", [("undo_presentation", {})]
+            return wt("rule.undo"), [("undo_presentation", {})]
         m = re.search(r"\b(titul|renombr|rename|title)\w*\b.*?[\"'«“](.+?)[\"'»”]", t)
         if m:
             target = rt.selected_widgets()
             if not target:
-                return "Selecciona la tarjeta que quieres renombrar.", []
-            return "Cambio el título.", [("update_widget", {"id": target[0].id, "title": text[m.start(2) : m.end(2)]})]
+                return wt("rule.select.rename"), []
+            return wt("rule.rename"), [("update_widget", {"id": target[0].id, "title": text[m.start(2) : m.end(2)]})]
         if re.search(r"\b(mas grande|agranda|amplia|bigger|larger|enlarge)\b", t) or re.search(
             r"\b(mas pequen|reduce|smaller|achica)\w*", t
         ):
             target = rt.selected_widgets() or ([rt.chart_in_context()] if rt.chart_in_context() else [])
             if not target or target[0] is None:
-                return "Selecciona la tarjeta cuyo tamaño quieres cambiar.", []
+                return wt("rule.select.resize"), []
             f = 1.3 if re.search(r"grande|agranda|amplia|bigger|larger|enlarge", t) else 0.75
             w = target[0]
-            return "Cambio el tamaño.", [
+            return wt("rule.resize"), [
                 (
                     "update_widget",
                     {
@@ -638,27 +636,24 @@ class RulePlanner:
             if re.search(r"\b(cambia|convierte|pon|pasa|change|switch|make|turn)\b", t) and any(w in t for w in words):
                 chart = rt.chart_in_context()
                 if chart is None:
-                    return "No hay ningún gráfico en el lienzo ni seleccionado que pueda cambiar.", []
-                return f"Cambio «{chart.title}» a {kind}.", [
+                    return wt("rule.nochart"), []
+                return wt("rule.chart.kind", title=chart.title, kind=kind), [
                     ("update_widget", {"id": chart.id, "view": {"kind": kind}})
                 ]
         if re.search(r"\bcompar", t):
             exps = rt.experiments_in_context()
             if len(exps) < 2:
-                return (
-                    "Para comparar necesito dos ejecuciones compatibles seleccionadas (dos tarjetas de experimento "
-                    "o de hallazgo con experimento). Ahora mismo tengo " + str(len(exps)) + "."
-                ), []
+                return wt("rule.compare.need", n=len(exps)), []
             a, b = exps[0], exps[1]
             ref = {"dataset": "experiment.compare", "params": {"experiment_a": a.id, "experiment_b": b.id}}
             return (
-                f"Comparo las sesiones de {a.id} y {b.id}: medianas por brazo y posición.",
+                wt("rule.compare", a=a.id, b=b.id),
                 [
                     (
                         "create_widget",
                         {
                             "type": "chart",
-                            "title": f"Comparación · {a.id[-6:]} vs {b.id[-6:]}",
+                            "title": wt("rule.compare.title", a=a.id[-6:], b=b.id[-6:]),
                             "dataRef": ref,
                             "view": {"kind": "bar", "x": "experiment", "y": "median_ms", "series": "arm"},
                         },
@@ -668,14 +663,11 @@ class RulePlanner:
         if re.search(r"\b(latenc|latency|antes y despues|before and after|rendimiento)\b", t):
             exp = rt.experiment_in_context()
             if exp is None:
-                return (
-                    "No hay ningún experimento con muestras en este espacio: nada que graficar. Cuando el motor "
-                    "ejecute uno (`unbidden try <oportunidad>`), podré mostrar sus latencias."
-                ), []
+                return wt("rule.noexperiment"), []
             opp = rt.source.store.get("opportunities", exp.opportunity_id, Opportunity)
-            title = f"Latencia antes y después · {(opp.title if opp else exp.id)[:60]}"
+            title = wt("rule.latency.title", title=(opp.title if opp else exp.id)[:60])
             return (
-                f"Grafico las muestras de latencia del experimento {exp.id} por brazo.",
+                wt("rule.latency", id=exp.id),
                 [
                     (
                         "create_widget",
@@ -693,13 +685,13 @@ class RulePlanner:
             exp = rt.experiment_in_context()
             params = {"experiment_id": exp.id} if exp and rt.entities() else {}
             return (
-                "Añado una tabla con los tests que fallaron en alguna ronda.",
+                wt("rule.failed.tests"),
                 [
                     (
                         "create_widget",
                         {
                             "type": "table",
-                            "title": "Tests que fallaron",
+                            "title": wt("rule.failed.tests.title"),
                             "dataRef": {"dataset": "tests.failed", "params": params},
                             "view": {"kind": "table", "columns": ["arm", "round", "test"]},
                         },
@@ -742,7 +734,7 @@ class RulePlanner:
             selected = [e for e in rt.entities() if e.kind == "block"]
             block = next((b for b in blocks if selected and b.id == selected[0].id), blocks[0] if blocks else None)
             if block is None:
-                return "No hay ningún bloqueo registrado en este espacio.", []
+                return wt("rule.noblock"), []
             plan: Plan = [("explain", {"entity": {"kind": "block", "id": block.id}})]
             if re.search(r"\b(depend|mapa|map)", t):
                 plan.append(
@@ -750,7 +742,7 @@ class RulePlanner:
                         "create_widget",
                         {
                             "type": "system_map",
-                            "title": "Dependencias del bloqueo",
+                            "title": wt("rule.block.map.title"),
                             "dataRef": {"dataset": "world.relations"},
                             "view": {"kind": "map"},
                             "entity": {"kind": "block", "id": block.id},
@@ -767,23 +759,23 @@ class RulePlanner:
                                 "source": anchor,
                                 "target": "$last",
                                 "kind": "trace",
-                                "label": "depende de",
+                                "label": wt("rule.block.map.label"),
                                 "justification": f"the block names the operation «{block.operation[:60]}»; "
                                 "the map shows the resources it reaches",
                             },
                         )
                     )
-            return "Explico el bloqueo" + (" y añado sus dependencias al mapa." if len(plan) > 1 else "."), plan
+            return wt("rule.explain.block", more=wt("rule.explain.block.map") if len(plan) > 1 else "."), plan
         m = re.search(r"\b(tabla|table|lista|list)\b.*\b(oportunidad|opportunit|hallazgo|finding)", t)
         if m:
             return (
-                "Añado una tabla con las oportunidades.",
+                wt("rule.opportunities"),
                 [
                     (
                         "create_widget",
                         {
                             "type": "table",
-                            "title": "Oportunidades",
+                            "title": wt("rule.opportunities.title"),
                             "dataRef": {
                                 "dataset": "opportunities",
                                 "transform": {"sort": {"field": "level", "dir": "desc"}},
@@ -796,20 +788,15 @@ class RulePlanner:
         if re.search(r"\b(explica|explain|por que|why|que es)\b", t):
             ents = rt.entities()
             if ents:
-                return "Explico lo seleccionado.", [("explain", {"entity": ents[0].model_dump()})]
-            return "Selecciona una tarjeta (hallazgo, experimento, bloqueo) y te la explico con sus referencias.", []
+                return wt("rule.explain.selected"), [("explain", {"entity": ents[0].model_dump()})]
+            return wt("rule.select.explain"), []
         if re.search(
             r"\b(estado|status|que ha hecho|que hizo|what has|what did|cuant\w*|how many|hasta ahora|so far|"
             r"que hay|what is there|registros?|records?)\b",
             t,
         ):
             return _status_reply(rt), []  # a deterministic reading of the record: counts, jobs, blocks, agent
-        return (
-            "No he entendido la petición. Puedo: graficar la latencia antes y después de un experimento, añadir una "
-            "tabla con los tests que fallaron, graficar el gasto por corrida, explicar un bloqueo y añadir sus "
-            "dependencias al mapa, cambiar un gráfico a barras/líneas, comparar dos ejecuciones seleccionadas, "
-            "renombrar o redimensionar una tarjeta, y deshacer la última tarjeta."
-        ), []
+        return wt("rule.unknown"), []
 
 
 def _status_reply(rt: ToolRuntime) -> str:
@@ -820,24 +807,32 @@ def _status_reply(rt: ToolRuntime) -> str:
     agent = (summary.get("connection") or {}).get("agent") or {}
     ws = summary.get("workspace", {})
     lines = [
-        f"Registro de {ws.get('name')} ({ws.get('mode')}, head {str(ws.get('head') or '')[:12]}): "
-        f"{counts.get('opportunities', 0)} oportunidades, {counts.get('experiments', 0)} experimentos, "
-        f"{counts.get('proposals', 0)} propuestas, {counts.get('events', 0)} eventos, "
-        f"{counts.get('model_runs', 0)} llamadas a modelos, {counts.get('blocks', 0)} bloqueos.",
-        "Jobs: " + (", ".join(f"{k} {v}" for k, v in sorted(jobs.items())) or "ninguno"),
+        wt(
+            "status.line",
+            name=ws.get("name"),
+            mode=ws.get("mode"),
+            head=str(ws.get("head") or "")[:12],
+            opportunities=counts.get("opportunities", 0),
+            experiments=counts.get("experiments", 0),
+            proposals=counts.get("proposals", 0),
+            events=counts.get("events", 0),
+            model_runs=counts.get("model_runs", 0),
+            blocks=counts.get("blocks", 0),
+        ),
+        wt("status.jobs", jobs=", ".join(f"{k} {v}" for k, v in sorted(jobs.items())) or wt("status.jobs.none")),
     ]
     blocks = rt.source.store.list(BLOCKS, Block)
     for b in blocks[:5]:
-        lines.append(f"Bloqueo {b.kind} en «{b.operation[:60]}»: {b.evidence[:140]}")
+        lines.append(wt("status.block", kind=b.kind, operation=b.operation[:60], evidence=b.evidence[:140]))
     if agent.get("detail"):
-        lines.append(f"Agente: {agent['detail']}.")
-    lines.append("Para un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.")
+        lines.append(wt("status.agent", detail=agent["detail"]))
+    lines.append(wt("status.hint"))
     return "\n".join(lines)
 
 
 # Brain-backed planner ----------------------------------------------------------------------------------------
 
-SYSTEM = """You are the assistant of Unbidden's web workspace ({workspace}). You answer in Spanish, briefly.
+SYSTEM = """You are the assistant of Unbidden's web workspace ({workspace}). You answer in {language}, briefly.
 You may only act through the tools. Never invent numbers or findings: read them first with
 inspect_data({{"dataset": <id>, "params": {{...}}, "limit": 20}}) and answer from what it returns; one or two reads
 are usually enough, then answer the question with the numbers you read and their ids. To put something
@@ -882,7 +877,8 @@ class BrainPlanner:
             or "none"
         )
         workspace = f"{rt.source.name}, {rt.source.mode} mode"
-        system = SYSTEM.format(workspace=workspace, catalogue=_catalogue_lines(), selected=selected)
+        system = SYSTEM.format(workspace=workspace, catalogue=_catalogue_lines(), selected=selected,
+                               language=language_name())  # fmt: skip
         messages = [Message(role="system", content=system, source="prompt")]
         for m in history[-6:]:
             if m.role in ("user", "assistant") and m.content:
@@ -893,15 +889,15 @@ class BrainPlanner:
         rounds = 5
         for round_no in range(rounds + 1):
             if cancelled.is_set():
-                return "Cancelado antes de completar la planificación.", calls, results
+                return wt("brain.cancelled"), calls, results
             emit("state", {"state": "thinking"})
             last = round_no == rounds  # the round budget is spent: the model must answer from what it read
             if last:
                 messages.append(
                     Message(
                         role="user",
-                        content="No more tool calls: answer now, in Spanish, from what the tools returned, "
-                        "and say what you did not get to read.",
+                        content=f"No more tool calls: answer now, in {language_name()}, from what the tools "
+                        "returned, and say what you did not get to read.",
                         source="prompt",
                     )
                 )
@@ -953,16 +949,16 @@ class ChatService:
         ev = self._cancel.get(source_id)
         phase = self._phase.get(source_id)
         if ev is None or phase in (None, "done"):
-            return {"cancelled": False, "detail": "no hay ningún turno en curso"}
+            return {"cancelled": False, "detail": wt("cancel.none")}
         ev.set()
-        return {"cancelled": True, "detail": f"cancelación pedida durante: {phase}; lo ya aplicado al lienzo permanece"}
+        return {"cancelled": True, "detail": wt("cancel.during", phase=wt(f"phase.{phase}"))}
 
     def turn(self, source: Source, request: ChatRequest, emit: Emit) -> ChatMessage:
         """One message: decide what it asks for (inform, analyze, act), answer the way that intent allows, and say
         in the message how it was answered (`route`): which purpose, where the model ran, or why it could not."""
         cancelled = threading.Event()
         self._cancel[source.id] = cancelled
-        self._phase[source.id] = "planificación"
+        self._phase[source.id] = "planning"
         user = ChatMessage(role="user", content=request.content, context={"selected": request.selected})
         self.presentation.add_message(source.id, user)
         emit("message", user.model_dump(mode="json", by_alias=True))
@@ -990,7 +986,7 @@ class ChatService:
         except Exception as exc:  # the turn fails as a message, never as a dead stream
             reply, calls, results, state = f"Error: {type(exc).__name__}: {str(exc)[:300]}", [], [], "error"  # type: ignore[assignment]
             if planner_name == "brain":
-                reply += " (la ruta por el modelo falló; prueba de nuevo o usa el planificador por reglas)"
+                reply += wt("brain.failed")
         finally:
             self._phase[source.id] = "done"
         assistant = ChatMessage(
@@ -1017,7 +1013,7 @@ class ChatService:
         action = action_asked(request.content) or "act"
         route.action = action
         route.reason = "the chat informs and analyses; actions go through the actions panel or the CLI"
-        where = ACTION_WHERE.get(action, "the CLI")
+        where = wt(f"where.{action}") if f"where.{action}" in WEB_TEXT else "the CLI"
         detail = f"«{action}» is an action, not a question: use {where}"
         result = ToolResult(
             ok=False,
@@ -1025,11 +1021,7 @@ class ChatService:
             summary=f"{action}: not done from the chat",
             error=ToolError(code="refused", detail=detail, need=where),
         )
-        reply = (
-            f"No lo hago desde el chat: «{action}» es una acción, no una consulta. Para hacerla: {where}. Pasa por los "
-            f"permisos efectivos del proyecto y queda en la auditoría. Si quieres, te muestro o analizo lo que hay "
-            f"antes de decidir."
-        )
+        reply = wt("refuse.action", action=action, where=where)
         return reply, [result]
 
     def _inform(
@@ -1073,7 +1065,7 @@ class ChatService:
             emit("state", {"state": "thinking"})
             reply, calls, results = self._by_rules(source, request, rt, user, cancelled, emit)
             why = str(exc)[:200]
-            reply = f"{reply} (El modelo local no produjo una respuesta válida: {why}. Respondí por reglas.)"
+            reply = wt("brain.rules", reply=reply, why=why)
             route.blocked, route.hint = why, hint_for(why)
             return reply, calls, results, "rule", None
         run = getattr(brain, "served_by", {}).get("chat.inform")
@@ -1149,14 +1141,14 @@ class ChatService:
         except (PolicyDenied, EgressBlocked, SpendLimitReached, KillSwitchEngaged, SecretInPrompt) as exc:
             why = str(exc)[:300]
             route.blocked, route.hint = why, hint_for(why)
-            reply = f"No puedo analizar esto con un modelo: {why}."
+            reply = wt("analyze.refused", why=why)
             if route.hint:
-                reply += f" Lo permitiría: {route.hint}."
+                reply += wt("analyze.hint", hint=route.hint)
             return _join(reply, reading), calls, results, "rule", None
         except (ModelFailed, ProviderError) as exc:
             why = str(exc)[:300]
             route.blocked = f"the model did not answer: {why}"
-            reply = f"El modelo no respondió ({why}); sin análisis. Lo leído queda abajo."
+            reply = wt("analyze.noanswer", why=why)
             return _join(reply, reading), calls, results, "rule", None
         run = getattr(brain, "served_by", {}).get("chat.analyze")
         model = run.model if run else None
@@ -1206,9 +1198,9 @@ class ChatService:
         results: list[ToolResult] = []
         for i, (name, args) in enumerate(plan):
             if cancelled.is_set():
-                reply += f" Cancelado antes del paso {i + 1} de {len(plan)}; lo anterior queda aplicado."
+                reply += wt("plan.cancelled", step=i + 1, total=len(plan))
                 break
-            self._phase[source.id] = "lectura" if name in ("inspect_data", "explain") else "construcción"
+            self._phase[source.id] = "reading" if name in ("inspect_data", "explain") else "building"
             emit("state", {"state": "reading" if name in ("inspect_data", "explain") else "building"})
             args = _bind(args, rt)
             call = ChatToolCall(id=f"call_{user.id[-8:]}_{i}", name=name, arguments=args)

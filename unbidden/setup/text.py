@@ -27,6 +27,7 @@ T: dict[str, str] = {
     "found.github.browser": "signed in through the browser",
     "found.github.token": "a token you pasted",
     "found.github.none": "none: proposals stay local branches",
+    "found.language": "Language: {name} ({how}); /language or `unbidden setup language` changes it",
     "github.ask": "GitHub access for pull requests?",
     "github.browser": "browser: sign in to GitHub in the browser (full repository access)",
     "github.token": "token: paste a token (fine-grained, this repository, contents and pull requests)",
@@ -42,6 +43,10 @@ T: dict[str, str] = {
     "models.key.skipped": "No key. Later: `unbidden setup models`.",
     "models.chosen": "model option: {option} ({why}); `unbidden setup models` changes it",
     "models.why.flag": "chosen by --models",
+    "models.why.mixed": "a key and a local model are both here",
+    "models.why.api": "a key is here and no local model is installed",
+    "models.why.local": "a local model is installed and no key is saved",
+    "models.why.none": "no key and no local model yet",
     "models.none": (
         "No model yet: install Ollama (ollama.com) and run `unbidden setup models`, or add a key; `unbidden start` "
         "refuses until one exists."
@@ -113,6 +118,12 @@ T: dict[str, str] = {
         "analysis can."
     ),
     "dashboard.ask": "Dashboard: open it after setup (now), later from the CLI (later), or not at all (never)?",
+    "language.title": "Language",
+    "lang.how.env": "from UNBIDDEN_LANG",
+    "lang.how.saved": "saved on this machine",
+    "lang.how.locale": "from the terminal's locale",
+    "lang.how.default": "the default",
+    "language.ask": "Which language should Unbidden speak to you?",
     "summary.title": "Summary",
     "summary.models": "models: {option} (profile {profile}, private code to frontier: {private})",
     "summary.mode": "mode: {mode} · writes through connections: {connections}",
@@ -155,4 +166,7 @@ T: dict[str, str] = {
 
 
 def t(key: str, **kwargs: object) -> str:
-    return T[key].format(**kwargs) if kwargs else T[key]
+    from unbidden.i18n import lookup
+    from unbidden.setup import text_es
+
+    return lookup(T, {"es": text_es.T}, key, **kwargs)

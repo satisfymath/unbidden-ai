@@ -2,8 +2,8 @@
 # Unbidden installer: one wheel, verified, installed as a uv tool with its own Python 3.12.
 #
 #   curl -LsSf <release>/install.sh | sh                 (once a release exists; see docs/INSTALL.md)
-#   sh install.sh --version 0.11.0                        (a fixed version, also a rollback)
-#   UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.11.0   (local artifacts)
+#   sh install.sh --version 0.12.0                        (a fixed version, also a rollback)
+#   UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.12.0   (local artifacts)
 #   sh install.sh --uninstall                            (keeps ~/.unbidden and every .unbidden/)
 #
 # Options     --version X.Y.Z   the release to install (env UNBIDDEN_VERSION); default: the latest GitHub release
@@ -29,6 +29,35 @@ UNINSTALL=0
 
 say() { printf '%s\n' "$*" >&2; }
 die() { say "unbidden install: $1"; exit "${2:-1}"; }
+
+# The language the final lines speak: UNBIDDEN_LANG, else the terminal's locale; English otherwise.
+LANG_CODE=en
+case "${UNBIDDEN_LANG:-${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}}" in es*) LANG_CODE=es ;; esac
+msg() {  # msg KEY [ARGS...]: one sentence in the language, English when the key has no translation
+  key="$1"; shift
+  case "$LANG_CODE:$key" in
+    es:installed) printf 'unbidden-ai %s instalado: %s' "$@" ;;
+    es:next)      printf '  siguiente: cd tu-repo && unbidden' ;;
+    es:update)    printf '  actualizar: unbidden update        volver atrás: sh install.sh --version <anterior>        quitar: sh install.sh --uninstall' ;;
+    es:path)      printf '%s no está en tu PATH.' "$@" ;;
+    es:path.open) printf 'Abre una terminal nueva, o corre la línea de abajo en esta.' ;;
+    es:path.add)  printf 'Añádelo tú con una de estas:' ;;
+    es:kept)      printf 'Conservado, sin tocar:' ;;
+    es:kept.home) printf '  %s            estado de la máquina (libro de gasto, lienzo web, credenciales compartidas en .env)' "$@" ;;
+    es:kept.repo) printf '  .unbidden/ en cada repositorio donde corriste unbidden (mandato, registros)' ;;
+    es:kept.note) printf 'Bórralos tú si quieres que desaparezcan; uv y su Python quedan para otras herramientas.' ;;
+    *:installed)  printf 'unbidden-ai %s installed: %s' "$@" ;;
+    *:next)       printf '  next:     cd your-repo && unbidden' ;;
+    *:update)     printf '  update:   unbidden update        rollback: sh install.sh --version <previous>        remove: sh install.sh --uninstall' ;;
+    *:path)       printf '%s is not on your PATH.' "$@" ;;
+    *:path.open)  printf 'Open a new terminal, or run the line below in this one.' ;;
+    *:path.add)   printf 'Add it yourself with one of:' ;;
+    *:kept)       printf 'Kept, untouched:' ;;
+    *:kept.home)  printf '  %s            machine-wide state (spend ledger, web canvas, shared credentials in .env)' "$@" ;;
+    *:kept.repo)  printf '  .unbidden/ in every repository you ran unbidden in (mandate, store, records)' ;;
+    *:kept.note)  printf 'Delete them yourself if you want them gone; uv and its Python stay for other tools.' ;;
+  esac
+}
 
 usage() {
   sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'
@@ -113,10 +142,10 @@ if [ "$UNINSTALL" = 1 ]; then
     say "$NAME is not installed as a uv tool; nothing to remove."
   fi
   say ""
-  say "Kept, untouched:"
-  say "  $DATA_HOME            machine-wide state (spend ledger, web canvas, shared credentials in .env)"
-  say "  .unbidden/ in every repository you ran unbidden in (mandate, store, records)"
-  say "Delete them yourself if you want them gone; uv and its Python stay for other tools."
+  say "$(msg kept)"
+  say "$(msg kept.home "$DATA_HOME")"
+  say "$(msg kept.repo)"
+  say "$(msg kept.note)"
   exit 0
 fi
 
@@ -193,12 +222,12 @@ on_path=0
 case ":$PATH:" in *":$BIN_DIR:"*) on_path=1 ;; esac
 if [ "$on_path" = 0 ]; then
   say ""
-  say "$BIN_DIR is not on your PATH."
+  say "$(msg path "$BIN_DIR")"
   if [ "$YES" = 0 ] && [ "$TTY" = 1 ] && ask "Let uv add it to your shell's startup file (uv tool update-shell)?"; then
     "$UV" tool update-shell >&2 || true
-    say "Open a new terminal, or run the line below in this one."
+    say "$(msg path.open)"
   fi
-  say "Add it yourself with one of:"
+  say "$(msg path.add)"
   say "  zsh:   echo 'export PATH=\"$BIN_DIR:\$PATH\"' >> ~/.zshrc && source ~/.zshrc"
   say "  bash:  echo 'export PATH=\"$BIN_DIR:\$PATH\"' >> ~/.bashrc && source ~/.bashrc"
   say "  fish:  fish_add_path $BIN_DIR"
@@ -207,8 +236,8 @@ fi
 # --- done --------------------------------------------------------------------------------------------------------
 
 say ""
-say "unbidden-ai $VERSION installed: $BIN_DIR/unbidden"
+say "$(msg installed "$VERSION" "$BIN_DIR/unbidden")"
 TOOL_PY="$("$UV" tool dir)/$NAME/bin/python"
 say "  platform: $PLATFORM; python: $("$TOOL_PY" --version 2>/dev/null || echo 'in the tool environment')"
-say "  next:     cd your-repo && unbidden"
-say "  update:   unbidden update        rollback: sh install.sh --version <previous>        remove: sh install.sh --uninstall"
+say "$(msg next)"
+say "$(msg update)"
