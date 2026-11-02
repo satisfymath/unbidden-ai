@@ -1,4 +1,13 @@
-# Unbidden 0.10.1, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.10.2, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.10.2 (2026-11-02): a chat question answered twice, and a start that refuses what cannot run
+
+- A chat turn in the app or the dashboard failed on the second question with `RuntimeError: Event loop is closed`:
+  each provider kept one HTTP client for life while every turn ran its own event loop. Now a client belongs to the
+  loop that uses it and is closed before that loop ends (`unbidden/brain/providers/clients.py`, `Brain.aclose`).
+- `unbidden start` and `/start` first check, without any network call, that the option's model exists here
+  (Ollama reachable with the recommended model pulled, or the API key held). If not, nothing starts: exit 4 with
+  the one command that fixes it; `--force` starts anyway. Docker absent or a missing GitHub token only warn.
 
 ## 0.10.1 (2026-11-02): the mark and the menus
 
@@ -17,7 +26,7 @@ already existed (start, stop, kill switch, approve, reject, chat). `docs/INSTALL
 on macOS arm64 with the built wheel installed by `install.sh` into an empty HOME and driven in a pseudoterminal; CI
 unchanged (without a terminal, `unbidden` is the text home screen). Everything below describes 0.9.0 and still holds.
 
-**Status: 0.10.1, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
+**Status: 0.10.2, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
 met when the campaign paused at its gate (D-063); they are not changed here. The one that blocks 1.0: no useful cycle
 has been shown on an application not used in development. This candidate adds the product around the same engine:
 an installable wheel, a guided setup, one executor per workspace with a background agent, and the dashboard and chat

@@ -429,8 +429,15 @@ def probe_remote(ws: Workspace) -> dict[str, Any]:
         ],
         max_tokens=16,
     )
+
+    async def once() -> Any:
+        try:
+            return await brain.complete(request)
+        finally:
+            await brain.aclose()
+
     try:
-        response = asyncio.run(brain.complete(request))
+        response = asyncio.run(once())
     except BrainError as exc:
         return {"ok": False, "why": f"{type(exc).__name__}: {exc}"}
     except Exception as exc:  # a provider error is reported, never raised at the person
@@ -622,10 +629,9 @@ def summary(ctx: Context, mandate: Mandate) -> dict[str, Any]:
 
 def _option_of(models: dict[str, Any]) -> str:
     """The option a models policy amounts to (for a mandate written by hand or an earlier version)."""
-    profile = models.get("profile", "local-first")
-    if profile == "frontier" and models.get("local_inference") == "deny":
-        return "api"
-    return {"local": "local", "local-first": "mixed"}.get(profile, "custom")
+    from unbidden.setup.requirements import option_of
+
+    return option_of(models)
 
 
 def show_summary(ctx: Context, data: dict[str, Any]) -> None:

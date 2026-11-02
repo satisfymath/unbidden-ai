@@ -359,6 +359,20 @@ def cmd_start(args: argparse.Namespace) -> int:
 
     ws = Workspace.find()
     ws.require()
+    if not getattr(args, "force", False):
+        from unbidden.setup.requirements import start_checks
+
+        verdict = start_checks(ws)
+        for check in verdict.warnings:
+            if not getattr(args, "json", False):
+                err.print(f"[yellow]{check.name}: {check.detail}[/] · {check.fix}", highlight=False)
+        if not verdict.ok:
+            if _emit(args, {"started": False, **verdict.as_dict()}):
+                return 4
+            err.print("[red]not started[/]: the agent would fail every cycle here. Fix, or `unbidden start --force`:")
+            for check in verdict.refused:
+                err.print(f"  {check.name}: {check.detail} · {check.fix}", highlight=False)
+            return 4
     extra = ["--ui", "--port", str(args.port)] if args.ui else []
     result = service.start(ws, interval_s=args.interval, extra_args=extra)
     ok = bool(result.get("started")) or "already" in result
@@ -2187,6 +2201,7 @@ def build_parser() -> argparse.ArgumentParser:
     start.add_argument("--interval", type=float, default=30, help="seconds between looks at HEAD")
     start.add_argument("--ui", action="store_true", help="also serve the dashboard from the agent's process")
     start.add_argument("--port", type=int, default=8765, help="the dashboard's preferred port (with --ui)")
+    start.add_argument("--force", action="store_true", help="start even when the option's model is missing")
     stop = command("stop", cmd_stop, "end the background agent cleanly; the kill switch is not touched")
     stop.add_argument("--timeout", type=float, default=60, help="seconds to wait before SIGKILL")
     approve = command("approve", cmd_approve, "allow the pull request of a proven opportunity", json_out=False)

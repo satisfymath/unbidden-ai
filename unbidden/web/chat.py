@@ -19,7 +19,7 @@ import json
 import re
 import threading
 import unicodedata
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -181,6 +181,15 @@ TOOLS: dict[str, tuple[type[BaseModel], str]] = {
         "the record, with evidence references.",
     ),
 }
+
+
+async def _closing[T](brain: Any, coroutine: Coroutine[Any, Any, T]) -> T:
+    """Run one turn on this loop and close the Brain's HTTP clients of this loop before `asyncio.run` returns:
+    the Brain is cached per source and outlives the loop (providers/clients.py)."""
+    try:
+        return await coroutine
+    finally:
+        await brain.aclose()
 
 
 def tool_specs() -> list[ToolSpec]:
@@ -1056,7 +1065,7 @@ class ChatService:
         history = self.presentation.messages(source.id)
         try:
             reply, calls, results = asyncio.run(
-                planner.run(request.content, rt, history, emit, cancelled, f"web:{user.id}")
+                _closing(brain, planner.run(request.content, rt, history, emit, cancelled, f"web:{user.id}"))
             )
         except BrainError as exc:
             # The model's answers were all rejected (or the route refused): the rules answer instead and the
@@ -1136,7 +1145,7 @@ class ChatService:
         )
         emit("state", {"state": "thinking", "detail": f"analysing via {decision.tier.value}"})
         try:
-            response = asyncio.run(brain.complete(llm_request))
+            response = asyncio.run(_closing(brain, brain.complete(llm_request)))
         except (PolicyDenied, EgressBlocked, SpendLimitReached, KillSwitchEngaged, SecretInPrompt) as exc:
             why = str(exc)[:300]
             route.blocked, route.hint = why, hint_for(why)

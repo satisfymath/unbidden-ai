@@ -32,7 +32,7 @@ class Command:
 
 SPECS: dict[str, Spec] = {
     "help": Spec("/help", "what you can do here"),
-    "start": Spec("/start [--ui]", "run the agent in the background; --ui serves the dashboard from it", 0, 1),
+    "start": Spec("/start [--ui] [--force]", "run the agent in the background; --ui serves the dashboard", 0, 2),
     "stop": Spec("/stop", "stop the agent cleanly; nothing stays frozen"),
     "kill": Spec("/kill [reason]", "engage the kill switch: nothing runs or leaves until /resume", 0, None),
     "resume": Spec("/resume", "release the kill switch"),

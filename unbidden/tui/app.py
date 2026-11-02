@@ -272,7 +272,9 @@ class UnbiddenApp(App[int]):
                     self._log_pos = 0
                     self._tail_log()
             case "start":
-                self._run_action("start", lambda: actions.start(self.ws, ui="--ui" in cmd.flags))
+                self._run_action(
+                    "start", lambda: actions.start(self.ws, ui="--ui" in cmd.flags, force="--force" in cmd.flags)
+                )
             case "stop":
                 self._run_action("stop", lambda: actions.stop(self.ws))
             case "kill":
