@@ -6,35 +6,53 @@ from __future__ import annotations
 T: dict[str, str] = {
     "welcome": "Unbidden is not set up in this repository yet. This takes a few minutes and calls no model.",
     "resume": "Picking up where setup stopped ({done}); answered sections are kept; `setup --all` redoes them.",
-    "project.title": "Project",
-    "project.repo": "repository {repo} · branch {branch} · head {head}",
-    "project.scope.ok": "in scope",
-    "project.scope.no": "outside what this version supports",
-    "project.confirm": "Set up Unbidden here?",
+    "found.title": "Found",
+    "found.repo": "repository {repo} · branch {branch} · head {head}",
+    "found.repo.nocommit": "repository {repo} · branch {branch} · no commit yet (the compose files are read at HEAD)",
+    "found.noremote": "  no GitHub remote named origin: proposals stay local branches until one exists",
+    "found.scope.ok": "in scope",
+    "found.scope.no": "outside what this version supports",
+    "found.compose": "compose service, read on its own",
+    "found.notgranted": "found in compose env, not granted",
+    "found.connections": "connections, as committed at HEAD in {path}: {items}",
+    "found.connections.none": "none declared",
+    "found.connections.nocompose": "connections: no compose file at HEAD; `unbidden setup connections` adds one",
+    "found.key": "model key {name}: {state}",
+    "found.key.present": "saved on this machine",
+    "found.key.absent": "none yet",
+    "found.github": "GitHub access: {source}",
+    "found.github.file": "a token saved for Unbidden",
+    "found.github.env": "a token from the environment",
+    "found.github.gh": "the gh CLI's sign-in (held while Unbidden runs, never copied)",
+    "found.github.browser": "signed in through the browser",
+    "found.github.token": "a token you pasted",
+    "found.github.none": "none: proposals stay local branches",
+    "github.ask": "GitHub access for pull requests?",
+    "github.browser": "browser: sign in to GitHub in the browser (full repository access)",
+    "github.token": "token: paste a token (fine-grained, this repository, contents and pull requests)",
+    "github.skip": "skip: proposals stay local branches; `unbidden setup credentials` later",
     "priorities.title": "Priorities",
     "priorities.ask": "What should it look for first? (comma-separated; e.g. correctness, performance, consistency)",
-    "models.title": "Models",
-    "models.explain": (
-        "Where model calls may go. In every option secrets and production data stay on this machine, private code "
-        "leaves only renamed by the privacy bridge or when you allow it, and the egress gate re-checks every payload."
+    "models.title": "Model access",
+    "models.key.why": (
+        "A Meta API key lets heavy work go to Meta's API (secrets and production data never leave; private code "
+        "only renamed by the privacy bridge). Without one, only the local model works."
     ),
-    "models.local": "local: only a model on this machine (Ollama). Nothing leaves. Heavy work is slower and smaller.",
-    "models.mixed": (
-        "mixed: local first; heavy tasks whose content may leave go to Meta's API first and fall back to the "
-        "local model when the remote call fails."
+    "models.key.ask": "{name} (hidden; Enter to skip and use the local model only)",
+    "models.key.skipped": "No key. Later: `unbidden setup models`.",
+    "models.chosen": "model option: {option} ({why}); `unbidden setup models` changes it",
+    "models.why.flag": "chosen by --models",
+    "models.none": (
+        "No model yet: install Ollama (ollama.com) and run `unbidden setup models`, or add a key; `unbidden start` "
+        "refuses until one exists."
     ),
-    "models.api": (
-        "api: Meta's API only. No local model is needed or used (local inference and local fallback denied). A call "
-        "that may not leave the machine is refused and says why."
-    ),
-    "models.ask": "Which option?",
-    "models.recommend": "Recommended here: {option} ({why}). Nothing is chosen for you.",
     "models.hardware": "machine: {described}",
     "models.local_model": "local model for this machine: {tag} ({reason}){installed}",
     "models.not_installed": " · not installed",
     "models.pull.ask": "Download {tag} now? About {gb:.0f} GB on disk and in memory while it runs.",
     "models.pull.skip": "Not downloaded. Later: `unbidden doctor --fix`.",
     "models.private_code.ask": "May private code reach Meta's API un-renamed? (deny keeps it behind the bridge)",
+    "private_code.title": "Private code",
     "credentials.title": "Credentials",
     "credentials.where": "Saved to {path} (mode 600), referenced by name; never written to the repository or logs.",
     "credentials.have": "{name} is already saved. Keep it?",
@@ -59,7 +77,7 @@ T: dict[str, str] = {
     "autonomy.supervised": "supervised: prepares everything, asks before a pull request; never merges or deploys",
     "autonomy.autopilot": "autopilot: opens pull requests on its own for proven work; people merge",
     "autonomy.autonomous": "autonomous: also merges L4 work, deploys with the team's steps and rolls back",
-    "autonomy.ask": "Which mode?",
+    "autonomy.ask": "How much may Unbidden do on its own?",
     "autonomy.blocked": "autonomous is not available yet:",
     "autonomy.fallback": "Which mode until then? (no default; nothing is chosen for you)",
     "autonomy.fallback.chosen": "Until then: {mode}.",
@@ -71,7 +89,8 @@ T: dict[str, str] = {
     "autonomy.connections.ask": "May it write through connections (typed, limited, undoable actions)?",
     "autonomy.effective": "Effective permissions",
     "connections.title": "Connections (optional)",
-    "connections.ask": "Add a connection? (postgres, http_api, none)",
+    "connections.ask": "Grant a connection? (one found in compose, or a new postgres or http_api; none to finish)",
+    "connections.prefilled": "  {kind} {location}, from the compose files; Enter keeps each suggested value",
     "connections.id": "connection id (e.g. shop-db)",
     "connections.location": "location (postgres: host:port/db · http_api: http://host:port)",
     "connections.docs": "OpenAPI document URL (optional)",
@@ -99,7 +118,10 @@ T: dict[str, str] = {
     "summary.mode": "mode: {mode} · writes through connections: {connections}",
     "summary.budget": "monthly cap: US${budget:.2f}",
     "summary.credentials": "credentials saved: {names}",
+    "summary.github": "GitHub access: {source}",
+    "summary.priorities": "priorities: {names}",
     "summary.dashboard": "dashboard: {choice}",
+    "summary.defaults": "not asked, defaults kept: {names} (`unbidden setup <section>` changes one)",
     "summary.diff": "Changes to {path}:",
     "summary.nodiff": "No change to the mandate.",
     "summary.apply": "Apply these changes?",

@@ -214,6 +214,12 @@ class Workspace:
         held = broker()
         held.load([self.dir / ".env", Path.home() / ".unbidden" / ".env"])
         held.grant("GITHUB_TOKEN", "github")
+        if not held.has("GITHUB_TOKEN"):  # the gh CLI's sign-in, held for this process, never copied to a file
+            from unbidden.setup.github_access import gh_token
+
+            token = gh_token()
+            if token:
+                held.hold("GITHUB_TOKEN", token)
         if self.initialized:
             for provider in self.config().providers.values():
                 if provider.key_env:

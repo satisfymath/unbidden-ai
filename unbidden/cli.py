@@ -2001,6 +2001,16 @@ def cmd_chat(args: argparse.Namespace) -> int:
         one(text)
 
 
+def setup_defaults() -> dict[str, Any]:
+    """Every `setup` flag at its default, for a first run without the subcommand (`unbidden` alone)."""
+    return {
+        "non_interactive": False, "yes": False, "all": False, "show": False, "section": None, "models": None,
+        "private_code": None, "mode": None, "mode_fallback": None, "act_on_connections": None, "priorities": None,
+        "budget": None, "dashboard": None, "model_key_stdin": False, "github_token_stdin": False,
+        "pull_model": False, "probe": False, "credential": None, "connection": None,
+    }  # fmt: skip
+
+
 def cmd_setup(args: argparse.Namespace) -> int:
     """The guided configuration: project, priorities, models, credentials, autonomy, connections, budget, dashboard.
     Deterministic, resumable, shows the diff before writing; `--non-interactive` takes the answers from flags."""
@@ -2135,10 +2145,11 @@ def build_parser() -> argparse.ArgumentParser:
     prepare.add_argument("--into", help="where the isolated copy goes (default: ~/unbidden-lab/<name>)")
     prepare.add_argument("--mandate", help="a mandate file to copy into the workspace (default: the generated one)")
     command("init", cmd_init, "set up unbidden in this repository")
-    setup = command("setup", cmd_setup, "guided configuration: models, credentials, autonomy, connections, budget")
-    setup.add_argument("section", nargs="?", choices=["project", "priorities", "models", "credentials", "autonomy",
-                                                      "connections", "budget", "dashboard"],
-                       help="redo one section (default: the ones not answered yet)")  # fmt: skip
+    from unbidden.setup.wizard import ALL as SETUP_SECTIONS
+
+    setup = command("setup", cmd_setup, "guided configuration: found, model access, permissions; more by name")
+    setup.add_argument("section", nargs="?", choices=list(SETUP_SECTIONS),
+                       help="one section by name (default: found, models, autonomy)")  # fmt: skip
     setup.add_argument("--all", action="store_true", help="walk every section again")
     setup.add_argument("--show", action="store_true", help="the effective configuration, no questions")
     setup.add_argument("--non-interactive", action="store_true", help="answers from flags; --yes applies them")
@@ -2337,12 +2348,8 @@ def _no_command(args: argparse.Namespace) -> int:
     if not ws.initialized and _wants_app(args):  # the assistant inside the app, then the feed
         return _run_app(ws)
     if not ws.initialized and not getattr(args, "json", False):  # --json reports, never asks
-        args.non_interactive = args.yes = args.all = args.show = False
-        args.section = args.models = args.private_code = args.mode = args.mode_fallback = None
-        args.act_on_connections = None
-        args.priorities = args.budget = args.dashboard = None
-        args.model_key_stdin = args.github_token_stdin = args.pull_model = args.probe = False
-        args.credential = args.connection = None
+        for name, value in setup_defaults().items():
+            setattr(args, name, value)
         return cmd_setup(args)
     if ws.initialized and _wants_app(args):
         return _run_app(ws)

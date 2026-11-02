@@ -44,7 +44,7 @@ SPECS: dict[str, Spec] = {
     "spend": Spec("/spend", "the machine's spend ledger and its cap"),
     "doctor": Spec("/doctor", "what this machine provides, required or optional for your option"),
     "ui": Spec("/ui [--open]", "open or reuse the dashboard in the browser", 0, 1),
-    "setup": Spec("/setup [section|--all]", "the guided configuration, resumable", 0, 1),
+    "setup": Spec("/setup [section|--all]", "found, model access, permissions; more by name", 0, 1),
     "log": Spec("/log", "show or hide the agent's log"),
     "verbose": Spec("/verbose", "show or hide every allowed egress and model call"),
     "clear": Spec("/clear", "clear the feed"),

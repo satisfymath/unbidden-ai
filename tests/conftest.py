@@ -35,6 +35,15 @@ def spend_home(tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.Mon
 
 
 @pytest.fixture(autouse=True)
+def no_gh_cli(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Unit tests never pick up the developer's real `gh` sign-in; a test of that path fakes `gh` itself."""
+    from unbidden.setup import github_access
+
+    monkeypatch.setenv(github_access.OPT_OUT, "off")
+    github_access.forget_gh_token()
+
+
+@pytest.fixture(autouse=True)
 def no_ci_reads(monkeypatch: pytest.MonkeyPatch) -> None:
     """Unit tests never ask GitHub about a commit or a repository; a test that needs an answer sets its own."""
     import unbidden.observe.ci as ci

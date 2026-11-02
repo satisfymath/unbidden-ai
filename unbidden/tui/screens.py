@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import threading
 from collections.abc import Callable
 from concurrent.futures import Future
 from contextlib import suppress
@@ -83,6 +84,7 @@ class SetupScreen(Screen[int]):
         self._pending: tuple[Ask, Future[Any]] | None = None
         self._values: list[Any] = []  # what each menu option answers with, by position
         self.code: int | None = None
+        self.cancel = threading.Event()  # Ctrl+C while the wizard waits on something that is not a question
 
     def compose(self) -> ComposeResult:
         yield Static(brand.banner(80, version=__version__), id="banner")
@@ -142,7 +144,7 @@ class SetupScreen(Screen[int]):
         )
         opts = Options(section=self.section, redo_all=self.redo_all)
         try:
-            code = run(self.ws, opts, out, io=AppIO(self._ask_from_worker), pull=self._pull)
+            code = run(self.ws, opts, out, io=AppIO(self._ask_from_worker), pull=self._pull, cancel=self.cancel)
         except SetupError as exc:
             if str(exc) != INTERRUPTED:
                 self.app.call_from_thread(self._emit_line, f"setup: {exc}")
@@ -233,6 +235,7 @@ class SetupScreen(Screen[int]):
             future.set_result(value)
 
     def action_interrupt(self) -> None:
+        self.cancel.set()
         if self._pending is not None:
             _, future = self._pending
             self._pending = None

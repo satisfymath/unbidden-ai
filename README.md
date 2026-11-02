@@ -11,7 +11,7 @@ It runs on Meta models. **Muse Glimmer** runs locally through Ollama and is the 
 secrets, logs or production data. **Muse Spark** (Meta Model API) takes the heavy work when the content is
 allowed to leave. Private code reaches Spark only after the privacy bridge has renamed it.
 
-Built at the Meta Global AI Developer Hackathon (October 26 – November 4, 2026). Current version: **0.10.2,
+Built at the Meta Global AI Developer Hackathon (October 26 – November 4, 2026). Current version: **0.11.0,
 experimental candidate** (not 1.0; what that means is in [`docs/RELEASE.md`](docs/RELEASE.md)).
 
 ## What it has done on real repositories
@@ -43,10 +43,10 @@ curl -fsSL https://unbidden.cl/install.sh | sh
 **From local artifacts** (how the installer is tested, and how to install an unreleased build):
 
 ```sh
-make dist                                   # from a checkout: dist/unbidden_ai-0.10.2-py3-none-any.whl + SHA256SUMS
+make dist                                   # from a checkout: dist/unbidden_ai-0.11.0-py3-none-any.whl + SHA256SUMS
 (cd dist && python3 -m http.server 8777 --bind 127.0.0.1 &)
-UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.10.2
-unbidden --version                          # unbidden 0.10.2
+UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.11.0
+unbidden --version                          # unbidden 0.11.0
 ```
 
 What the machine provides (each reported by `unbidden doctor` as required or optional for the option you chose):
@@ -69,7 +69,7 @@ CI run [41333127432](https://github.com/satisfymath/unbidden-ai/actions/runs/413
 
 ## Where your code goes
 
-The assistant asks which of three options to use; it may recommend one, it never chooses:
+The assistant derives the option from what the machine has (a key, a local model) and says why; `setup models` overrides it:
 
 | Option | Profile | Where calls go | Needs |
 |---|---|---|---|
@@ -136,7 +136,7 @@ neither of which runs the agent.
 | Command | What it does |
 |---|---|
 | `unbidden` | the setup assistant the first time, the home screen afterwards (state, agent, blocks, next action) |
-| `setup` | guided configuration: project, priorities, models, credentials, autonomy, connections, budget, dashboard; `--non-interactive` with flags; `setup <section>` redoes one |
+| `setup` | three questions at most: the model key when none is found, how much it may do on its own, apply; the rest is found (repository, GitHub access, scope, compose connections, machine) or kept at a default, changed by name (`setup budget`, `setup connections`); `--non-interactive` with flags |
 | `doctor`, `status`, `map` | check the machine for the chosen option; agent, dashboard and kill switch; what Unbidden knows and cannot see |
 | `start`, `stop`, `watch` | the agent in the background (`--ui` serves the dashboard), ended cleanly; or in the foreground of this terminal |
 | `ui`, `chat` | open or reuse the dashboard (`--stop` ends one served apart); the chat from the terminal |

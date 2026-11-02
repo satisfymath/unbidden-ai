@@ -16,7 +16,7 @@ from rich.console import Console
 
 from unbidden.contracts.events import EventType
 from unbidden.contracts.guardian import Mandate
-from unbidden.guardian.credentials import broker
+from unbidden.guardian.credentials import broker, reset
 from unbidden.setup import machine
 from unbidden.setup.requirements import doctor_requirements, explain
 from unbidden.setup.wizard import Options, Scripted, SetupError, load_answers, run
@@ -32,6 +32,9 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     home = tmp_path / "home"
     home.mkdir()
     monkeypatch.setenv("HOME", str(home))
+    for name in ("MODEL_API_KEY", "GITHUB_TOKEN", "GH_TOKEN"):  # never the developer's own
+        monkeypatch.delenv(name, raising=False)
+    reset()
     repo = tmp_path / "shop"
     repo.mkdir()
     subprocess.run(["git", "init", "-q", str(repo)], check=True)
@@ -65,6 +68,9 @@ def offline(monkeypatch: pytest.MonkeyPatch) -> None:
     from unbidden.brain import hardware
 
     monkeypatch.setattr(runtime, "installed_models", lambda url: set())
+    from unbidden.setup import discover as discover_
+
+    monkeypatch.setattr(discover_, "_ollama_installed", lambda: False)
     monkeypatch.setattr(
         cli, "meta_api_status", lambda key, get=None: (False, "the model listing refuses the key (401)")
     )
@@ -212,7 +218,7 @@ def test_probe_is_opt_in_and_refusing_it_still_saves(repo: Path) -> None:
                    model_key_stdin=True)  # fmt: skip
     io_ = scripted(models="api", mode="supervised", dashboard="later", secrets={"MODEL_API_KEY": FAKE_KEY})
     assert run(Workspace(repo), opts, out, io=io_, probe=probe) == 0
-    assert calls == [] and "Skipped" in buf.getvalue()
+    assert calls == [] and "Inference works" not in buf.getvalue()
     assert mandate_of(repo).models.profile == "frontier"
 
     out, buf = console()
@@ -247,7 +253,7 @@ def test_interrupted_setup_keeps_the_answers_so_far(repo: Path) -> None:
     opts = Options(non_interactive=True, yes=True, models="mixed", budget=2.0, dashboard="later")
     assert run(ws, opts, out, io=Quits({"models": "mixed", "dashboard": "later"}, {})) == 2
     answers = load_answers(ws)
-    assert answers.models == "mixed" and answers.completed == ["project", "priorities", "models", "credentials"]
+    assert answers.models == "mixed" and answers.completed == ["found", "models"]
     assert "models" not in yaml.safe_load(ws.mandate_path.read_text())["mandate"]
 
     # the interactive walk resumes at autonomy; the scripted one takes the flags as the whole specification
@@ -256,11 +262,19 @@ def test_interrupted_setup_keeps_the_answers_so_far(repo: Path) -> None:
     assert mandate_of(repo).models.profile == "local-first"
 
 
-def test_scripted_setup_demands_the_choices(repo: Path) -> None:
-    out, _ = console()
-    opts = Options(non_interactive=True, yes=True, budget=1.0)
-    assert run(Workspace(repo), opts, out, io=scripted()) == 2
-    assert "models" not in yaml.safe_load(Workspace(repo).mandate_path.read_text())["mandate"]
+def test_scripted_setup_without_choices_takes_the_facts_and_the_defaults(repo: Path, capsys: Any) -> None:
+    """No key, no local model: the option is local (said as 'no model yet'), the mode supervised, the rest kept."""
+    out, buf = console()
+    opts = Options(non_interactive=True, yes=True, budget=1.0, json=True)
+    assert run(Workspace(repo), opts, out, io=scripted()) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["applied"] and data["models"] == "local" and data["mode"] == "supervised"
+    assert data["found"]["option"] == "local" and data["found"]["github"] is None
+    assert data["defaulted"] == ["priorities", "credentials", "connections", "dashboard", "private_code"]
+    assert any("No model yet" in note for note in data["notes"])
+    assert "no commit" not in buf.getvalue()
+    mandate = mandate_of(repo)
+    assert mandate.models.profile == "local" and mandate.autonomy.open_pull_requests.value == "require_approval"
 
 
 def test_connections_land_in_the_mandate_with_credentials_in_the_project_env(repo: Path) -> None:
@@ -309,3 +323,140 @@ def test_a_frontier_profile_with_local_inference_allowed_is_the_api_option_and_n
     assert needs["ollama"] == "optional" and needs["meta api"] == "required"
     assert option_of(mandate.models) == "api" and option_of({"profile": "frontier"}) == "api"
     assert explain(needs, mandate).startswith("option api")
+
+
+# --- the walk that asks three things ------------------------------------------------------------------------------
+
+
+class Asks(Scripted):
+    """Records every question asked, so a test can say what was and was not asked."""
+
+    def __init__(self, answers: dict[str, Any], secrets: dict[str, str] | None = None) -> None:
+        super().__init__(answers, secrets or {})
+        self.asked: list[str] = []
+
+    def choice(self, key: str, prompt: str, choices: Sequence[str], default: str | None) -> str:
+        self.asked.append(key)
+        value = self.answers.get(key)
+        if isinstance(value, list):  # one answer per time the question comes back
+            self.answers[key] = value[1:] if len(value) > 1 else value[-1]
+            assert value[0] in choices, (value[0], choices)
+            return str(value[0])
+        return super().choice(key, prompt, choices, default)
+
+    def text(self, key: str, prompt: str, default: str | None) -> str:
+        self.asked.append(key)
+        return super().text(key, prompt, default)
+
+    def secret(self, key: str, prompt: str) -> str:
+        self.asked.append(key)
+        return super().secret(key, prompt)
+
+    def confirm(self, key: str, prompt: str, default: bool) -> bool:
+        self.asked.append(key)
+        return super().confirm(key, prompt, default)
+
+
+def test_with_a_key_saved_and_no_gh_the_walk_asks_github_the_mode_and_apply(repo: Path) -> None:
+    out, buf = console()
+    env = machine.machine_env()
+    machine.write_env(env, {"MODEL_API_KEY": FAKE_KEY})
+    io_ = Asks({"github_access": "skip", "mode": "supervised", "apply": True})
+    assert run(Workspace(repo), Options(), out, io=io_) == 0
+    assert io_.asked == ["github_access", "mode", "apply"]
+    text = buf.getvalue()
+    assert "Found" in text and "repository acme/shop" in text and "model key MODEL_API_KEY: saved" in text
+    assert "model option: api (a key is here and no local model is installed)" in text
+    assert "not asked, defaults kept: priorities, credentials, connections, budget, dashboard, private_code" in text
+    mandate = mandate_of(repo)
+    assert mandate.models.profile == "frontier" and mandate.business_constraints.maximum_monthly_spend_usd == 10
+    assert mandate.priorities == ["correctness", "maintainability", "security"] or mandate.priorities
+
+
+def test_without_a_key_the_walk_asks_for_it_and_skipping_keeps_the_local_option(repo: Path) -> None:
+    out, buf = console()
+    io_ = Asks({"github_access": "skip", "mode": "autopilot", "apply": True}, {"MODEL_API_KEY": ""})
+    assert run(Workspace(repo), Options(), out, io=io_) == 0
+    assert io_.asked == ["github_access", "MODEL_API_KEY", "mode", "apply"]
+    text = buf.getvalue()
+    assert "No key." in text and "model option: local (no key and no local model yet)" in text
+    assert "No model yet" in text
+    assert mandate_of(repo).models.profile == "local"
+    assert mandate_of(repo).autonomy.open_pull_requests.value == "allow"
+
+
+def test_a_pasted_key_is_saved_by_name_and_makes_the_option_api(repo: Path) -> None:
+    out, buf = console()
+    io_ = Asks({"github_access": "skip", "mode": "supervised", "apply": True}, {"MODEL_API_KEY": FAKE_KEY})
+    assert run(Workspace(repo), Options(), out, io=io_) == 0
+    assert machine.read_env(machine.machine_env())["MODEL_API_KEY"] == FAKE_KEY
+    assert FAKE_KEY not in buf.getvalue() and "MODEL_API_KEY saved" in buf.getvalue()
+    assert "model option: api" in buf.getvalue()
+    assert mandate_of(repo).models.profile == "frontier"
+
+
+def test_a_github_token_pasted_in_the_found_block_is_saved(repo: Path) -> None:
+    out, buf = console()
+    io_ = Asks({"github_access": "token", "mode": "supervised", "apply": True},
+               {"MODEL_API_KEY": "", "GITHUB_TOKEN": "ghp_fake_token_0123456789"})  # fmt: skip
+    assert run(Workspace(repo), Options(), out, io=io_) == 0
+    assert machine.read_env(machine.machine_env())["GITHUB_TOKEN"] == "ghp_fake_token_0123456789"
+    assert "ghp_fake" not in buf.getvalue() and "GITHUB_TOKEN saved" in buf.getvalue()
+    assert load_answers(Workspace(repo)).github_source is None  # answers are deleted after a successful run
+    changed = events(repo, EventType.MANDATE_CHANGED)[0]
+    assert changed.payload["setup"]["credentials"] == ["GITHUB_TOKEN"]
+
+
+def test_the_found_block_lists_compose_connections_and_grants_none(repo: Path) -> None:
+    (repo / "compose.yaml").write_text(
+        "services:\n  db:\n    image: postgres:16\n  app:\n    image: shop\n    environment:\n"
+        "      DATABASE_URL: postgres://u:p@db:5432/shop\n      BILLING_URL: https://billing.example.com/v1\n"
+    )
+    subprocess.run(["git", "-C", str(repo), "add", "compose.yaml"], check=True)
+    subprocess.run(["git", "-C", str(repo), "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "c"],
+                   check=True)  # fmt: skip
+    out, buf = console()
+    io_ = Asks({"github_access": "skip", "mode": "supervised", "apply": True}, {"MODEL_API_KEY": ""})
+    assert run(Workspace(repo), Options(), out, io=io_) == 0
+    text = buf.getvalue()
+    assert "connections, as committed at HEAD in compose.yaml: postgres db (compose service, read on its own), "
+    assert "http_api https://billing.example.com:443 (found in compose env, not granted)" in text
+    assert mandate_of(repo).connections == []
+    # the advanced section pre-fills the one found
+    out, buf = console()
+    io_ = Asks({"connection_kind": ["http_api https://billing.example.com:443", "none"], "apply": True})
+    opts = Options(section="connections")
+    assert run(Workspace(repo), opts, out, io=io_) == 0, buf.getvalue()
+    assert "connection_location" not in io_.asked and "connection_id" in io_.asked
+    grant = mandate_of(repo).connections[0]
+    assert grant.kind == "http_api" and grant.location == "https://billing.example.com:443"
+    assert grant.environment == "staging" and grant.permissions == ["read"]
+
+
+def test_a_setup_json_from_0_10_resumes_under_the_new_names(repo: Path) -> None:
+    ws = Workspace(repo)
+    ws.init()
+    (repo / ".unbidden" / "setup.json").write_text(json.dumps({
+        "version": 1, "priorities": ["correctness"], "models": "mixed", "completed": ["project", "priorities", "models"]
+    }))  # fmt: skip
+    out, buf = console()
+    io_ = Asks({"mode": "supervised", "apply": True})
+    assert run(ws, Options(), out, io=io_) == 0
+    assert io_.asked == ["mode", "apply"], "found and models were done; only autonomy and apply remain"
+    assert "Picking up where setup stopped (found, priorities, models)" in buf.getvalue()
+
+
+def test_a_repository_without_a_commit_is_set_up_too(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    bare = tmp_path / "bare"
+    bare.mkdir()
+    subprocess.run(["git", "init", "-q", str(bare)], check=True)
+    monkeypatch.chdir(bare)
+    out, buf = console()
+    io_ = Asks({"github_access": "skip", "mode": "supervised", "apply": True}, {"MODEL_API_KEY": ""})
+    assert run(Workspace(bare), Options(), out, io=io_) == 0
+    text = buf.getvalue()
+    assert "no commit yet" in text and "no GitHub remote named origin" in text
+    assert "connections: no compose file at HEAD" in text

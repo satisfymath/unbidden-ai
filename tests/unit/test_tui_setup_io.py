@@ -41,6 +41,9 @@ def offline(monkeypatch: pytest.MonkeyPatch) -> None:
     from unbidden.brain import hardware
 
     monkeypatch.setattr(runtime, "installed_models", lambda url: set())
+    from unbidden.setup import discover as discover_
+
+    monkeypatch.setattr(discover_, "_ollama_installed", lambda: False)
     monkeypatch.setattr(cli, "meta_api_status", lambda key, get=None: (False, "the model listing refuses the key"))
     monkeypatch.setattr(
         hardware, "detect", lambda: hardware.Machine(total_gb=16.0, apple_silicon=True, chip="test", gpu_gb=0.0)
@@ -72,14 +75,14 @@ def _console() -> tuple[Console, io.StringIO]:
 
 def test_the_wizard_completes_through_the_adapter(repo: Path) -> None:
     out, buf = _console()
-    answers = Answers({"project": "y", "priorities": "correctness", "models": "api", "private_code": "deny",
-                       "MODEL_API_KEY": "", "mode": "supervised", "act_on_connections": "",
-                       "connection_kind": "none", "budget": "2", "dashboard": "never", "apply": "y"})  # fmt: skip
+    answers = Answers({"github_access": "skip", "MODEL_API_KEY": "", "mode": "supervised", "apply": "y"})
     code = run(Workspace(repo), Options(), out, io=AppIO(answers))
     assert code == 0, buf.getvalue()
     assert (repo / ".unbidden" / "mandate.yaml").exists()
-    assert [a.kind for a in answers.asked if a.key == "models"] == ["choice"]
-    assert "api" in buf.getvalue()
+    assert [(a.key, a.kind) for a in answers.asked] == [
+        ("github_access", "choice"), ("MODEL_API_KEY", "secret"), ("mode", "choice"), ("apply", "confirm")
+    ]  # fmt: skip
+    assert "model option: local" in buf.getvalue()
 
 
 def test_an_empty_answer_takes_the_default_and_a_bad_choice_asks_again(repo: Path) -> None:
@@ -101,11 +104,11 @@ def test_an_empty_answer_takes_the_default_and_a_bad_choice_asks_again(repo: Pat
 
 def test_a_cancelled_future_keeps_the_answers_and_returns_2(repo: Path) -> None:
     out, buf = _console()
-    answers = Answers({"project": "y", "priorities": "correctness"}, cancel_at="models")
+    answers = Answers({"github_access": "skip", "MODEL_API_KEY": ""}, cancel_at="mode")
     code = run(Workspace(repo), Options(), out, io=AppIO(answers))
     assert code == 2
     kept = load_answers(Workspace(repo))
-    assert "project" in kept.completed and "priorities" in kept.completed and "models" not in kept.completed
+    assert kept.completed == ["found", "models"] and kept.models == "local"
     assert "setup.json" in buf.getvalue() or (repo / ".unbidden" / "setup.json").exists()
 
 

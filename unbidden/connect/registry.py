@@ -16,7 +16,6 @@ change of state is recorded with its reason and as an event; anything that uses 
 from __future__ import annotations
 
 import re
-import subprocess
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -61,6 +60,11 @@ def config_hints(repo: Path, rev: str = "HEAD") -> list[tuple[str, str, str]]:
     compose = load_compose(repo, rev)
     if compose is None:
         return []
+    return hints_of(compose)
+
+
+def hints_of(compose: Any) -> list[tuple[str, str, str]]:
+    """The same, from compose files already loaded (setup reads them once for several facts)."""
     inside = set(compose.services)
     found = []
     for service in compose.services.values():
@@ -74,9 +78,10 @@ def config_hints(repo: Path, rev: str = "HEAD") -> list[tuple[str, str, str]]:
 
 
 def github_remote(repo: Path) -> str | None:
-    out = subprocess.run(["git", "-C", str(repo), "remote", "get-url", "origin"], capture_output=True, text=True)
-    match = re.search(r"github\.com[:/]([\w.-]+/[\w.-]+?)(?:\.git)?$", out.stdout.strip())
-    return match.group(1) if match else None
+    """The `owner/repo` of origin, read the one way the workspace reads it (SSH host aliases included)."""
+    from unbidden.workspace import github_slug
+
+    return github_slug(repo)
 
 
 def _from_world(world: WorldModel | None) -> list[tuple[Connection, str]]:

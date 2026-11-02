@@ -1,6 +1,6 @@
 # Installing Unbidden
 
-This is the one install guide. Unbidden 0.10.2 (experimental candidate; not 1.0) ships as one Python wheel with the
+This is the one install guide. Unbidden 0.11.0 (experimental candidate; not 1.0) ships as one Python wheel with the
 web workspace already built inside. The installer puts it in its own environment with its own Python 3.12 through
 [uv](https://docs.astral.sh/uv/); nothing else on the machine changes. The end user needs no Node and no Python of
 their own.
@@ -31,10 +31,10 @@ Build the files from a checkout (`make dist`: builds the web workspace with Node
 `SHA256SUMS`), serve the directory, point the installer at it. `http://` is accepted only for loopback addresses.
 
 ```sh
-make dist                                   # dist/unbidden_ai-0.10.2-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
+make dist                                   # dist/unbidden_ai-0.11.0-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
 (cd dist && python3 -m http.server 8777 --bind 127.0.0.1 &)
-UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.10.2
-unbidden --version                          # unbidden 0.10.2
+UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.11.0
+unbidden --version                          # unbidden 0.11.0
 ```
 
 Only the person building the wheel needs Node; the wheel carries the built assets, so the installed tool serves the
@@ -113,7 +113,7 @@ unbidden start               # resumes: interrupted jobs return to the queue fir
 `unbidden` with no arguments, on a terminal of at least 60 columns, opens the app: full screen, the feed of what
 the agent discovers, investigates, tries and proves in the middle, a prompt at the bottom, a status bar under it
 (agent, jobs, mode, model option, spend available, dashboard URL, age of the last event). In a repository without
-`.unbidden/` the app opens the setup assistant first, with the same questions as `unbidden setup` below; when it
+`.unbidden/` the app opens the setup assistant first (three questions at most; `unbidden setup` below); when it
 finishes the feed opens. Every sentence the app says is in `unbidden/tui/text.py`.
 
 At the prompt, plain text is a question for the agent (the same routes and spend rules as `unbidden chat`; with the
@@ -135,17 +135,34 @@ opens it explicitly (exit 2 without a terminal).
 ### `unbidden setup`
 
 The first `unbidden` inside a repository without `.unbidden/` opens the assistant (`unbidden setup` in text, inside
-the app on a terminal; every sentence it says is in `unbidden/setup/text.py`). It calls no model. Sections, in order: project (repository, branch, head,
-whether the stack is inside what this version supports), priorities, models (the three options below), credentials,
-autonomy and scope, connections (optional), budget, dashboard. It shows the diff of `.unbidden/mandate.yaml` before
-writing, records `MANDATE_CHANGED`, and can be interrupted: answered sections are kept in `.unbidden/setup.json`,
-`unbidden setup <section>` redoes one, `setup --all` redoes all, `setup --show` prints the effective configuration.
+the app on a terminal; every sentence it says is in `unbidden/setup/text.py`). It calls no model and asks three
+things at most:
 
-Without a terminal:
+1. **Found** (no question): the repository and its GitHub remote; where GitHub access comes from (a token saved for
+   Unbidden, one in the environment, or the `gh` CLI's sign-in, held while Unbidden runs and never copied to a
+   file); the scope (stack, tests, database); the connections the compose files declare at HEAD (services are read
+   on their own; external URLs are listed as found, not granted); the machine, Ollama and its models; whether a
+   model key is saved; the option those facts amount to (`mixed` with a key and a local model, `api` with a key
+   only, `local` with a local model only). When no GitHub access exists it offers one menu: sign in through the
+   browser (once the OAuth App is registered), paste a token, or skip (proposals stay local branches).
+2. **Model access**: only when no key is found, "paste your Meta API key (Enter to skip: the local model only)";
+   then, when the option needs a local model that is not pulled, "download it now?".
+3. **Permissions**: how much Unbidden may do on its own: supervised (default), autopilot, autonomous (blocked
+   until the deploy ledger exists; the follow-up question has no default).
+
+Then the summary, the diff of `.unbidden/mandate.yaml`, and "Apply?". Priorities, budget (US$10 a month),
+dashboard, private code to the frontier (deny) and manual connections keep their defaults, shown in the summary
+with the section that changes each: `unbidden setup budget`, `/setup connections` (pre-filled from what compose
+declares), `setup --all` walks everything, `setup --show` prints the effective configuration. It records
+`MANDATE_CHANGED`, and can be interrupted: answered sections are kept in `.unbidden/setup.json`; the next run
+resumes.
+
+Without a terminal, every flag is optional: the facts choose the option, the mode keeps the mandate's (supervised
+on a first run), the rest keep their defaults; the JSON lists `found` and `defaulted`:
 
 ```sh
-unbidden setup --non-interactive --models local|mixed|api --mode supervised|autopilot|autonomous \
-  [--mode-fallback supervised|autopilot] --budget <USD> --dashboard now|later|never \
+unbidden setup --non-interactive [--models local|mixed|api] [--mode supervised|autopilot|autonomous] \
+  [--mode-fallback supervised|autopilot] [--budget <USD>] [--dashboard now|later|never] \
   [--model-key-stdin] [--github-token-stdin] [--private-code deny|allow] [--priorities a,b] \
   [--pull-model] [--probe] --yes [--json]
 ```
@@ -197,7 +214,8 @@ effective permissions.
 
 ## The three model options
 
-The assistant asks which option explicitly; it may recommend one (and say why), it never chooses. Every option is a
+The assistant derives the option from what the machine has and says why; `--models` or `unbidden setup models`
+overrides it. Every option is a
 `models` section of the mandate (`unbidden/guardian/mandate_edit.py`, `MODEL_OPTIONS`).
 
 | Option | Mandate | Where calls go | Needs |
@@ -276,7 +294,7 @@ real on live sources only; deploy and rollback name the CLI command instead of r
 
 ```sh
 unbidden update                     # the latest published release
-unbidden update --version 0.10.2     # a fixed version: also how you roll back after a failed update
+unbidden update --version 0.11.0     # a fixed version: also how you roll back after a failed update
 unbidden uninstall                  # shows what would happen
 unbidden uninstall --yes            # uv tool uninstall unbidden-ai; data stays
 unbidden uninstall --purge --yes    # also deletes ~/.unbidden and this repository's .unbidden/ (listed first)
