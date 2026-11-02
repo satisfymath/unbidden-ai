@@ -1,6 +1,6 @@
 # Installing Unbidden
 
-This is the one install guide. Unbidden 0.9.0 (experimental candidate; not 1.0) ships as one Python wheel with the
+This is the one install guide. Unbidden 0.10.0 (experimental candidate; not 1.0) ships as one Python wheel with the
 web workspace already built inside. The installer puts it in its own environment with its own Python 3.12 through
 [uv](https://docs.astral.sh/uv/); nothing else on the machine changes. The end user needs no Node and no Python of
 their own.
@@ -31,10 +31,10 @@ Build the files from a checkout (`make dist`: builds the web workspace with Node
 `SHA256SUMS`), serve the directory, point the installer at it. `http://` is accepted only for loopback addresses.
 
 ```sh
-make dist                                   # dist/unbidden_ai-0.9.0-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
+make dist                                   # dist/unbidden_ai-0.10.0-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
 (cd dist && python3 -m http.server 8777 --bind 127.0.0.1 &)
-UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.9.0
-unbidden --version                          # unbidden 0.9.0
+UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.10.0
+unbidden --version                          # unbidden 0.10.0
 ```
 
 Only the person building the wheel needs Node; the wheel carries the built assets, so the installed tool serves the
@@ -98,7 +98,7 @@ the image is built. That is why Docker is the one dependency of every function t
 
 ```sh
 cd your-repo
-unbidden                     # first time: the setup assistant; afterwards: the home screen
+unbidden                     # the app: the setup assistant the first time, then the live feed (--plain for text)
 unbidden doctor              # what works here, and what is required or optional for the option you chose
 unbidden start --ui          # the agent in the background, serving the dashboard from its own process
 unbidden status              # agent pid, log, whether the last run ended badly; dashboard URL; kill switch
@@ -108,10 +108,34 @@ unbidden stop                # ends the agent cleanly (and the dashboard it serv
 unbidden start               # resumes: interrupted jobs return to the queue first
 ```
 
-### `unbidden` and `unbidden setup`
+### A first run: the app
 
-The first `unbidden` inside a repository without `.unbidden/` opens the assistant (`unbidden setup`; every sentence
-it says is in `unbidden/setup/text.py`). It calls no model. Sections, in order: project (repository, branch, head,
+`unbidden` with no arguments, on a terminal of at least 60 columns, opens the app: full screen, the feed of what
+the agent discovers, investigates, tries and proves in the middle, a prompt at the bottom, a status bar under it
+(agent, jobs, mode, model option, spend available, dashboard URL, age of the last event). In a repository without
+`.unbidden/` the app opens the setup assistant first, with the same questions as `unbidden setup` below; when it
+finishes the feed opens. Every sentence the app says is in `unbidden/tui/text.py`.
+
+At the prompt, plain text is a question for the agent (the same routes and spend rules as `unbidden chat`; with the
+`local` option, or `--planner rule`, it costs US$0) and `/` starts a command. `/help` lists them: `/start [--ui]`,
+`/stop`, `/status` (the activity table), `/inbox [--all]`, `/why <id>`, `/approve <id> [--hours N]`,
+`/reject <id> <reason>`, `/kill [reason]`, `/resume`, `/spend`, `/doctor`, `/ui [--open]`, `/activity`, `/log`,
+`/setup [section|--all]`, `/verbose`, `/clear`, `/quit`. Tab completes a command; up and down walk the history.
+
+Keys: Ctrl+C cancels a running answer, else clears the prompt, else asks for a second press to quit. Quitting the
+app stops no agent: `/stop` does. Esc cancels an answer or closes a panel. Ctrl+D on an empty prompt quits.
+Ctrl+L clears the feed. PageUp and PageDown scroll it. During setup, Ctrl+C keeps the answers given so far in
+`.unbidden/setup.json`; `/setup` resumes.
+
+The text interface is unchanged for scripts and for people who prefer it: `unbidden --plain` prints the home
+screen, `unbidden --json` the same as data, `UNBIDDEN_PLAIN=1` in the environment makes `unbidden` always text, and
+without a terminal (a pipe, CI, `TERM=dumb`, fewer than 60 columns) `unbidden` never opens the app. `unbidden app`
+opens it explicitly (exit 2 without a terminal).
+
+### `unbidden setup`
+
+The first `unbidden` inside a repository without `.unbidden/` opens the assistant (`unbidden setup` in text, inside
+the app on a terminal; every sentence it says is in `unbidden/setup/text.py`). It calls no model. Sections, in order: project (repository, branch, head,
 whether the stack is inside what this version supports), priorities, models (the three options below), credentials,
 autonomy and scope, connections (optional), budget, dashboard. It shows the diff of `.unbidden/mandate.yaml` before
 writing, records `MANDATE_CHANGED`, and can be interrupted: answered sections are kept in `.unbidden/setup.json`,
@@ -128,9 +152,9 @@ unbidden setup --non-interactive --models local|mixed|api --mode supervised|auto
 
 `--yes` applies (the diff is shown either way); `--model-key-stdin` reads the key from the first stdin line and
 `--github-token-stdin` the token from the next, so neither appears in argv, the shell history or the output.
-Afterwards `unbidden` alone is the home screen: repository, head, mode, profile, whether the agent runs (pid, since
-when, log) or ended without `stop`, the kill switch, opportunities, last scan, spend on this machine, and the next
-command.
+Afterwards `unbidden --plain` (or `unbidden` without a terminal) is the home screen in text: repository, head, mode,
+profile, whether the agent runs (pid, since when, log) or ended without `stop`, the kill switch, opportunities, last
+scan, spend on this machine, and the next command. The app shows the same in its header, bar and opening block.
 
 ### `unbidden start`, `stop`, `status`
 
@@ -248,7 +272,7 @@ real on live sources only; deploy and rollback name the CLI command instead of r
 
 ```sh
 unbidden update                     # the latest published release
-unbidden update --version 0.9.0     # a fixed version: also how you roll back after a failed update
+unbidden update --version 0.10.0     # a fixed version: also how you roll back after a failed update
 unbidden uninstall                  # shows what would happen
 unbidden uninstall --yes            # uv tool uninstall unbidden-ai; data stays
 unbidden uninstall --purge --yes    # also deletes ~/.unbidden and this repository's .unbidden/ (listed first)

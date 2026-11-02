@@ -11,7 +11,7 @@ It runs on Meta models. **Muse Glimmer** runs locally through Ollama and is the 
 secrets, logs or production data. **Muse Spark** (Meta Model API) takes the heavy work when the content is
 allowed to leave. Private code reaches Spark only after the privacy bridge has renamed it.
 
-Built at the Meta Global AI Developer Hackathon (October 26 – November 4, 2026). Current version: **0.9.0,
+Built at the Meta Global AI Developer Hackathon (October 26 – November 4, 2026). Current version: **0.10.0,
 experimental candidate** (not 1.0; what that means is in [`docs/RELEASE.md`](docs/RELEASE.md)).
 
 ## What it has done on real repositories
@@ -43,10 +43,10 @@ curl -fsSL https://unbidden.cl/install.sh | sh
 **From local artifacts** (how the installer is tested, and how to install an unreleased build):
 
 ```sh
-make dist                                   # from a checkout: dist/unbidden_ai-0.9.0-py3-none-any.whl + SHA256SUMS
+make dist                                   # from a checkout: dist/unbidden_ai-0.10.0-py3-none-any.whl + SHA256SUMS
 (cd dist && python3 -m http.server 8777 --bind 127.0.0.1 &)
-UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.9.0
-unbidden --version                          # unbidden 0.9.0
+UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.10.0
+unbidden --version                          # unbidden 0.10.0
 ```
 
 What the machine provides (each reported by `unbidden doctor` as required or optional for the option you chose):
@@ -57,7 +57,7 @@ Then:
 
 ```sh
 cd your-repo
-unbidden              # first time: the setup assistant (no model is called); afterwards: the home screen
+unbidden              # the app: the setup assistant the first time, then the live feed; --plain for text
 unbidden doctor       # what works here, what is required for your option, what is optional
 unbidden start --ui   # the agent in the background, serving the dashboard from its own process
 unbidden status       # agent pid and log, dashboard URL, kill switch

@@ -1,0 +1,156 @@
+"""Every sentence the terminal app says, in one place (English first; a translation adds a table here).
+
+The voice, for every entry below and every line the app composes:
+- one sentence per line; present tense; declarative;
+- say what happened, then what it means, then the one command that changes it;
+- no "please", no exclamation marks, no emoji; the four verbs are headings and end with a period;
+- "you" for the person, "it" for Unbidden; never claim what was not checked ("not confirmed" beats "fine");
+- money as US$x.xxxx, like the CLI; a secret is named, never shown.
+"""
+
+from __future__ import annotations
+
+T: dict[str, str] = {
+    # the feed on open
+    "open.stand": "Where things stand.",
+    "open.empty": "Nothing found yet. Start the agent with /start, or run one cycle with `unbidden scan`.",
+    "open.highlight": "{id} · L{level} {name} · {status} · {title}",
+    "open.highlight.ask": "{id} · L{level} {name} · a proposal waits for you: /approve {id} · /why {id}",
+    "open.events": "The last {n} things it did.",
+    # the status bar
+    "bar.agent.running": "● agent {pid}",
+    "bar.agent.stale": "○ agent ended without stop",
+    "bar.jobs": "{running} running/{queued} queued",
+    "bar.local.ok": "ollama ✓",
+    "bar.spend": "US${available:.4f} available",
+    "bar.agent.stopped": "○ agent off",
+    "bar.kill": "KILL SWITCH",
+    "bar.local.down": "ollama ✗",
+    "bar.spend.unverified": "spend cap not verified",
+    "bar.age": "{seconds} s ago",
+    "bar.age.none": "no events",
+    # the prompt
+    # commands
+    "cmd.start.started": "The agent runs in the background as pid {pid}; its log is {log}.",
+    "cmd.start.already": "The agent already runs as pid {pid}.",
+    "cmd.start.failed": "The agent exited with {exit} before taking the workspace; the end of its log:",
+    "cmd.stop.stopped": "The agent stopped (pid {pid}) after {waited:.0f} s.",
+    "cmd.stop.forced": (
+        "The agent did not stop in {timeout:.0f} s and was killed; {jobs} job(s) resume on the next start."
+    ),
+    "cmd.stop.none": "No agent runs here.",
+    "cmd.kill.on": "Kill switch engaged: nothing runs and nothing is sent until /resume.",
+    "cmd.kill.already": "The kill switch is already engaged.",
+    "cmd.resume.off": "Kill switch released. The agent continues on its next cycle.",
+    "cmd.resume.already": "The kill switch was not engaged.",
+    "cmd.approve.ok": "Approved {id} for {hours:.0f} h; the pull request opens on the agent's next cycle.",
+    "cmd.approve.none": "No proposal is ready for {id}.",
+    "cmd.reject.ok": "Rejected {id}: {reason}.",
+    "cmd.reject.none": "No opportunity {id}.",
+    "cmd.why.none": "No opportunity {id}.",
+    "cmd.spend.title": "Spend on this machine.",
+    "cmd.spend.line": "US${spent:.4f} spent · US${available:.4f} available · cap {cap}",
+    "cmd.spend.purpose": "{purpose}: {calls} call(s), US${usd:.4f}",
+    "cmd.doctor.title": "What this machine provides.",
+    "cmd.doctor.line": "{mark} {name}: {detail}{tag}",
+    "cmd.ui.open": "Dashboard open ({where}): {url}",
+    "cmd.ui.reused": "Dashboard already open ({where}): {url}",
+    "cmd.ui.failed": "The dashboard did not come up; its log is {log}.",
+    "cmd.activity.title": "Activity.",
+    # chat
+    # the app
+    "open.setup.incomplete": "Setup is not finished; your answers are kept in {path}. /setup resumes it.",
+    "open.setup.done": "Set up. The mandate is at {path}; /start runs the agent in the background.",
+    "prompt.setup": "Answer here. Enter confirms; Ctrl+C keeps what you answered and stops.",
+    "prompt.placeholder.setup": "Enter takes the default in brackets",
+    "setup.wait": "Setup is working; it will ask again in a moment.",
+    "open.tail.stale": "The record could not be read ({reason}); it will say when it can again.",
+    "open.tail.recovered": "The record reads again.",
+    "bar.thinking": "thinking…",
+    "bar.quit": "press Ctrl+C again to quit",
+    "prompt.placeholder": "Ask about the project, or / for a command",
+    "cmd.unknown": "No command /{name}. /help lists them.",
+    "cmd.usage": "Usage: {usage}",
+    "cmd.help.title": "What you can do here.",
+    "cmd.help.chat": "Anything else you type is a question about this project, answered from its records.",
+    "cmd.help.keys": (
+        "Ctrl+C cancels a running answer, clears the prompt, or asks twice to quit. Quitting stops no agent. "
+        "Esc closes a panel. Ctrl+L clears the feed. PageUp and PageDown scroll it."
+    ),
+    "cmd.inbox.empty": "Nothing open.",
+    "cmd.inbox.title": "Open opportunities, most proven first.",
+    "cmd.log.on": "Showing the agent's log ({path}).",
+    "cmd.log.off": "The agent's log is hidden again.",
+    "cmd.verbose.on": "Showing every allowed egress and every model call.",
+    "cmd.verbose.off": "Showing the summary again.",
+    "cmd.setup.push": "Setup opens; the feed waits.",
+    "chat.person": "you",
+    "chat.route": "{intent} · {purpose} · {via}",
+    "chat.blocked": "blocked: {reason}",
+    "chat.hint": "{hint}",
+    "chat.cancelled": "Cancelled.",
+    "chat.error": "The answer failed: {error}",
+    "chat.state": "{state}",
+    "chat.tool": "{mark} {tool}: {summary}",
+    # the feed's narration of events
+    "ev.workspace": "Workspace mapped at {rev}: {resources} resources, {relations} relations, {blind} blind spots.",
+    "ev.world": "The world changed at {rev}: {diff}",
+    "ev.head": "Head moved {frm} → {to}.",
+    "ev.analyzer": "{tool} ran at {rev}: {findings} finding(s), {completeness}.",
+    "ev.analyzer.error": "{tool} failed at {rev}: {error}",
+    "ev.opp.opened": "Found: {title}",
+    "ev.opp.reopened": "Reopened: {reason}",
+    "ev.opp.resolved": "Resolved: {reason}",
+    "ev.decision": "{chosen} because {reason}",
+    "ev.experiment": "Measuring the {origin} candidate ({files} file(s)).",
+    "ev.verdict.improved": "Improved, L{level}{measure}.",
+    "ev.verdict.not": "Not improved, L{level}{measure}.",
+    "ev.verdict.revalidated": "Revalidated under {criteria}: {outcome}.",
+    "ev.verdict.revoked": "Verdict revoked: {reason}",
+    "ev.proposal.ready": "Proposal ready on {branch} ({commit}), L{level}.",
+    "ev.proposal.ask": "A proposal waits for you: /approve {id} · /why {id}",
+    "ev.proposal.published": "Pull request opened: {url}",
+    "ev.proposal.stale": "Proposal stale: {reason}",
+    "ev.approval.granted": "You approved {what}.",
+    "ev.approval.rejected": "You rejected it: {reason}",
+    "ev.egress.allowed": "{bytes} bytes to {destination} for {purpose}.",
+    "ev.egress.blocked": "Blocked {bytes} bytes to {destination} for {purpose}: {reasons}",
+    "ev.policy": "Denied by {rule}: {why}",
+    "ev.masked": "Credential-looking values masked before the model saw them ({purpose}).",
+    "ev.model": "{purpose} · {tier} · {model} · {tokens} tokens · US${usd:.4f}",
+    "ev.model.failed": "{purpose} · {tier} · {model} failed: {problem}",
+    "ev.model.fallback": "{purpose} fell back from {frm} to {to}: {cause}",
+    "ev.kill": "Kill switch {state}.",
+    "ev.mandate": "The mandate changed: {what}",
+    "ev.deployed": "Deployed {commit}: {result}",
+    "ev.deployed.rollback": "Rolled back to {commit}: {result}",
+    "ev.deployed.drill": "Rollback drill: {result}",
+    "ev.merged": "Merged pull request #{number} as {sha}.",
+    "ev.impact": "Impact judged {impact} against {baseline}.",
+    "ev.outcome": "Outcome after deploy {deploy}: {result}",
+    "ev.outcome.held": "Outcome held over {checks} check(s).",
+    "ev.outcome.invalidated": "Outcome invalidated: {why}",
+    "ev.capability.built": "Built a capability for {source}: {status}",
+    "ev.capability.approved": "You approved the capability for {source}.",
+    "ev.capability.needed": "It needs a capability: {what}",
+    "ev.capability.need": "Capability need {status}: {note}",
+    "ev.connection": "Connection {frm} → {to}: {why}",
+    "ev.action": "Action {operation} on {connection}: {status}",
+    "ev.hypothesis": "Hypothesis on {subject}: {statement}",
+    "ev.deployment": "A deploy was observed: {commit} ({status}).",
+    "ev.anomaly": "Anomaly in {where}: {statement}",
+    "ev.anomaly.resolved": "Anomaly in {where} ended.",
+    "ev.signal": "{title}: {summary}",
+    "ev.plain": "{type}",
+    # coalesced
+    "ev.models.many": "{n} model calls · {tokens} tokens · US${usd:.4f}",
+    "ev.analyzers.many": "{n} analyzers ran at {rev}: {findings} finding(s).",
+    "ev.signals.many": "{n} signals from {source}.",
+    "ev.egress.many": "{n} payloads to {destination}: {allowed} allowed, {blocked} blocked.",
+}
+
+LEVEL_NAMES = {1: "suspicion", 2: "reproduced", 3: "lab", 4: "validated", 5: "operational", 6: "persistent"}
+
+
+def t(key: str, **kwargs: object) -> str:
+    return T[key].format(**kwargs) if kwargs else T[key]

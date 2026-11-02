@@ -144,3 +144,39 @@ def test_executing_commands_refuse_while_another_process_owns_the_workspace(
     capsys.readouterr()
     assert main(["status", "--json"]) == 0
     assert json.loads(capsys.readouterr().out)["agent"]["running"] is False
+
+
+def test_the_app_opens_only_on_a_real_terminal(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from unbidden.cli import _wants_app, build_parser
+
+    args = build_parser().parse_args([])
+    assert not _wants_app(args)  # pytest's captured stdout is not a terminal
+    monkeypatch.setattr("sys.stdin.isatty", lambda: True)
+    monkeypatch.setattr("sys.stdout.isatty", lambda: True)
+    monkeypatch.setenv("TERM", "xterm-256color")
+    monkeypatch.delenv("UNBIDDEN_PLAIN", raising=False)
+    monkeypatch.setattr("shutil.get_terminal_size", lambda fallback=(80, 24): type("S", (), {"columns": 120})())
+    assert _wants_app(args)
+    assert not _wants_app(build_parser().parse_args(["--plain"]))
+    assert not _wants_app(build_parser().parse_args(["--json"]))
+    monkeypatch.setenv("UNBIDDEN_PLAIN", "1")
+    assert not _wants_app(args)
+    monkeypatch.delenv("UNBIDDEN_PLAIN")
+    monkeypatch.setenv("TERM", "dumb")
+    assert not _wants_app(args)
+    monkeypatch.setenv("TERM", "xterm")
+    monkeypatch.setattr("shutil.get_terminal_size", lambda fallback=(80, 24): type("S", (), {"columns": 50})())
+    assert not _wants_app(args)
+
+
+def test_app_without_a_terminal_says_so(repo: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    main(["init"])
+    assert main(["app"]) == 2
+    assert "interactive terminal" in capsys.readouterr().err
+
+
+def test_no_command_still_shows_the_text_home_under_pytest(repo: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    main(["init"])
+    _commit(repo)
+    assert main([]) == 0
+    assert "next:" in capsys.readouterr().out

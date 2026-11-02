@@ -1,6 +1,17 @@
-# Unbidden 0.9.0, experimental candidate: the product branch, not 1.0
+# Unbidden 0.10.0, experimental candidate: the terminal app on the product branch, not 1.0
 
-**Status: 0.9.0, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
+## 0.10.0 (2026-11-02): the terminal app
+
+`unbidden` on a terminal (at least 60 columns, `TERM` not `dumb`, no `--json`, `--plain` or `UNBIDDEN_PLAIN`) opens
+a full-screen app on Textual 8: the setup assistant inside it the first time, then the live feed of the agent's
+records grouped by what it is doing (discovering, investigating, experimenting, proving, deciding, asking,
+guarding), a prompt for questions and `/` commands, a status bar (agent, jobs, mode, model option, spend available,
+dashboard, age of the last event). The engine is unchanged: the app reads the records and calls the actions that
+already existed (start, stop, kill switch, approve, reject, chat). `docs/INSTALL.md`, "A first run". Verified by hand
+on macOS arm64 with the built wheel installed by `install.sh` into an empty HOME and driven in a pseudoterminal; CI
+unchanged (without a terminal, `unbidden` is the text home screen). Everything below describes 0.9.0 and still holds.
+
+**Status: 0.10.0, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
 met when the campaign paused at its gate (D-063); they are not changed here. The one that blocks 1.0: no useful cycle
 has been shown on an application not used in development. This candidate adds the product around the same engine:
 an installable wheel, a guided setup, one executor per workspace with a background agent, and the dashboard and chat

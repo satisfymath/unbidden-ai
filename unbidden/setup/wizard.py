@@ -220,6 +220,15 @@ def read_stdin_secrets(names: Sequence[str]) -> dict[str, str]:
 # --- the walk ----------------------------------------------------------------------------------------------------
 
 Probe = Callable[[Workspace], dict[str, Any]]
+Pull = Callable[[str, Callable[[str], None]], bool]  # download a local model, narrating through `say`
+
+
+def pull_model(tag: str, say: Callable[[str], None]) -> bool:
+    """`ollama pull` in the terminal the assistant runs in; the app passes its own that streams into its log."""
+    import subprocess
+
+    say(f"ollama pull {tag} ...")
+    return subprocess.run(["ollama", "pull", tag], check=False).returncode == 0
 
 
 @dataclass
@@ -233,6 +242,7 @@ class Context:
     opts: Options
     probe: Probe
     notes: list[str] = field(default_factory=list)
+    pull: Pull = pull_model
 
     @property
     def body(self) -> dict[str, Any]:
@@ -312,10 +322,7 @@ def step_models(ctx: Context) -> None:
             else ctx.io.confirm("pull_model", t("models.pull.ask", tag=rec.model.tag, gb=rec.model.loaded_gb), False)
         )
         if pull:
-            import subprocess
-
-            ctx.say(f"ollama pull {rec.model.tag} ...")
-            subprocess.run(["ollama", "pull", rec.model.tag], check=False)
+            ctx.pull(rec.model.tag, ctx.say)
         else:
             ctx.say(t("models.pull.skip"))
     private_default = ctx.answers.private_code_to_frontier or str(
@@ -637,7 +644,15 @@ def show_summary(ctx: Context, data: dict[str, Any]) -> None:
         ctx.say(f"  note: {note}")
 
 
-def run(ws: Workspace, opts: Options, out: Console, *, probe: Probe = probe_remote, io: IO | None = None) -> int:
+def run(
+    ws: Workspace,
+    opts: Options,
+    out: Console,
+    *,
+    probe: Probe = probe_remote,
+    io: IO | None = None,
+    pull: Pull = pull_model,
+) -> int:
     """Walk the sections (or one), show the summary and the diff, write once. Exit 0 written, 3 nothing written,
     2 cancelled or an answer missing, 4 the mode asked for is blocked and no other mode was named."""
     created = ws.init()
@@ -667,7 +682,7 @@ def run(ws: Workspace, opts: Options, out: Console, *, probe: Probe = probe_remo
             io = Scripted({k: v for k, v in scripted.items() if v is not None}, read_stdin_secrets(names))
         else:
             io = Interactive(out)
-    ctx = Context(ws, store, raw, answers, io, out, opts, probe)
+    ctx = Context(ws, store, raw, answers, io, out, opts, probe, pull=pull)
     if created:
         ctx.say(t("welcome"))
     elif answers.completed and not opts.section and not opts.redo_all:
