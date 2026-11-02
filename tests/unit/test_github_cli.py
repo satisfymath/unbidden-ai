@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import os
 import stat
 from pathlib import Path
 
@@ -19,7 +18,7 @@ def bin_(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """An empty PATH directory first in line; tests put a fake gh or a fake package manager in it."""
     bin_ = tmp_path / "bin"
     bin_.mkdir()
-    monkeypatch.setenv("PATH", f"{bin_}{os.pathsep}/usr/bin:/bin")
+    monkeypatch.setenv("PATH", str(bin_))  # nothing else: CI's runner has apt-get and gh of its own
     monkeypatch.delenv(github_access.OPT_OUT, raising=False)
     github_access.forget_gh_token()
     return bin_
