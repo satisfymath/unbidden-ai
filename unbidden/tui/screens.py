@@ -129,6 +129,28 @@ class SetupScreen(Screen[int]):
                 say(line.rstrip()[-120:])
         return proc.wait() == 0
 
+    def _terminal(self, argv: list[str]) -> int:
+        """A command that needs the person's terminal (gh install, gh auth login): the app steps aside, the command
+        runs in the real terminal, the app comes back. Called from the worker thread."""
+        return self.app.call_from_thread(self._suspend_and_run, argv)
+
+    def _suspend_and_run(self, argv: list[str]) -> int:
+        """While the command owns the terminal, Ctrl+C is the command's (gh stops; the app does not): the app ignores
+        SIGINT for that long and the child gets the default handler back."""
+        import signal
+        import subprocess
+
+        previous = signal.signal(signal.SIGINT, signal.SIG_IGN)
+        try:
+            with self.app.suspend():
+                return subprocess.run(
+                    argv, check=False, preexec_fn=lambda: signal.signal(signal.SIGINT, signal.SIG_DFL)
+                ).returncode
+        except KeyboardInterrupt:
+            return 130
+        finally:
+            signal.signal(signal.SIGINT, previous)
+
     @work(thread=True, group="setup", exclusive=True, exit_on_error=False)
     def _run_wizard(self) -> None:
         from unbidden.setup.wizard import Options, SetupError, run
@@ -144,7 +166,10 @@ class SetupScreen(Screen[int]):
         )
         opts = Options(section=self.section, redo_all=self.redo_all)
         try:
-            code = run(self.ws, opts, out, io=AppIO(self._ask_from_worker), pull=self._pull, cancel=self.cancel)
+            code = run(
+                self.ws, opts, out, io=AppIO(self._ask_from_worker), pull=self._pull, cancel=self.cancel,
+                terminal=self._terminal,
+            )  # fmt: skip
         except SetupError as exc:
             if str(exc) != INTERRUPTED:
                 self.app.call_from_thread(self._emit_line, f"setup: {exc}")

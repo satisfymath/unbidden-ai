@@ -8,6 +8,7 @@ import stat
 import subprocess
 from pathlib import Path
 
+import httpx
 import pytest
 
 from unbidden.guardian.credentials import broker, reset
@@ -83,3 +84,36 @@ def test_load_env_falls_back_to_gh_once_per_process(repo: Path, tmp_path: Path, 
     (bin_ / "gh").write_text("#!/bin/sh\nexit 1\n")  # gh changes its mind: the process keeps what it holds
     ws.load_env()
     assert broker().has("GITHUB_TOKEN")
+
+
+def _github(login: str | None, repo_status: int, push: bool) -> httpx.MockTransport:
+    def handle(request: httpx.Request) -> httpx.Response:
+        assert request.headers["authorization"] == "Bearer ghp_saved_0123456789"
+        if request.url.path == "/user":
+            return httpx.Response(200, json={"login": login}) if login else httpx.Response(401, json={})
+        assert request.url.path == "/repos/acme/shop"
+        return httpx.Response(repo_status, json={"permissions": {"push": push}} if repo_status == 200 else {})
+
+    return httpx.MockTransport(handle)
+
+
+def test_verify_says_who_the_token_is_and_whether_it_can_push(repo: Path) -> None:
+    assert github_access.verify("acme/shop") is None  # no token held
+    machine.write_env(machine.machine_env(), {"GITHUB_TOKEN": "ghp_saved_0123456789"})
+    github_access.github_access(Workspace(repo))
+    v = github_access.verify("acme/shop", transport=_github("satisfymath", 200, True))
+    assert v == github_access.Verified("satisfymath", True, "can push to acme/shop")
+    v = github_access.verify("acme/shop", transport=_github("satisfymath", 200, False))
+    assert v is not None and v.can_push is False and "cannot write to acme/shop" in v.detail
+    v = github_access.verify("acme/shop", transport=_github("satisfymath", 404, False))
+    assert v is not None and v.can_push is False and "not visible to satisfymath" in v.detail
+    v = github_access.verify("acme/shop", transport=_github(None, 200, True))
+    assert v is not None and v.login is None and v.can_push is None and "refused" in v.detail
+    v = github_access.verify(None, transport=_github("satisfymath", 200, True))
+    assert v is not None and v.login == "satisfymath" and v.can_push is None
+
+    def down(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("no network")
+
+    v = github_access.verify("acme/shop", transport=httpx.MockTransport(down))
+    assert v is not None and v.can_push is None and "could not be reached" in v.detail

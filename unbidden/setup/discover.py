@@ -12,7 +12,7 @@ from typing import Any
 
 from unbidden.brain.hardware import Machine, Recommendation
 from unbidden.guardian.credentials import broker
-from unbidden.setup.github_access import Access, github_access
+from unbidden.setup.github_access import Access, Verified, github_access
 from unbidden.workspace import Workspace, github_slug
 
 OLLAMA_DEFAULT = "http://localhost:11434"
@@ -33,6 +33,7 @@ class Found:
     key_env: str
     key_present: bool
     github: Access
+    github_check: Verified | None  # what GitHub said about the access found; None when none or not asked
     compose_path: str | None
     services: list[tuple[str, str | None]] = field(default_factory=list)  # (name, data kind or None)
     external: list[tuple[str, str, str]] = field(default_factory=list)  # (kind, location, evidence)
@@ -58,6 +59,10 @@ class Found:
 
         option, why = self.option()
         why = t(why)
+        check = self.github_check
+        github_check = None
+        if check is not None:
+            github_check = {"login": check.login, "can_push": check.can_push, "detail": check.detail}
         return {
             "repository": self.slug or self.name,
             "branch": self.branch,
@@ -68,12 +73,20 @@ class Found:
             "local_model": {"tag": self.recommendation.model.tag, "installed": self.local_model},
             "key": {"name": self.key_env, "present": self.key_present},
             "github": self.github.source,
+            "github_check": github_check,
             "compose": self.compose_path,
             "services": [{"name": n, "kind": k} for n, k in self.services],
             "external": [{"kind": k, "location": loc, "evidence": ev} for k, loc, ev in self.external],
             "option": option,
             "option_why": why,
         }
+
+
+def _verify(slug: str | None) -> Verified | None:
+    """GitHub's answer about the token held (two small reads). Tests fake it."""
+    from unbidden.setup.github_access import verify
+
+    return verify(slug)
 
 
 def _ollama_installed() -> bool:
@@ -119,6 +132,8 @@ def discover(ws: Workspace) -> Found:
     if config:
         key_env = next((p.key_env for p in config.providers.values() if p.key_env), key_env)
     github = github_access(ws)  # loads the env files into the broker as a side effect
+    slug = github_slug(repo)
+    github_check = _verify(slug) if github.found else None
     key_present = broker().has(key_env) or key_env in machine_env.read_env(machine_env.machine_env())
     compose_path: str | None = None
     services: list[tuple[str, str | None]] = []
@@ -142,7 +157,7 @@ def discover(ws: Workspace) -> Found:
             public = None
     return Found(
         name=repo.name,
-        slug=github_slug(repo),
+        slug=slug,
         branch=_branch(repo),
         head=head,
         scope=scope,
@@ -154,6 +169,7 @@ def discover(ws: Workspace) -> Found:
         key_env=key_env,
         key_present=key_present,
         github=github,
+        github_check=github_check,
         compose_path=compose_path,
         services=services,
         external=external,

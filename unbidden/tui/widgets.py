@@ -8,6 +8,7 @@ from typing import Any, ClassVar
 
 from rich.markdown import Markdown
 from rich.text import Text
+from textual import events
 from textual.binding import Binding, BindingType
 from textual.message import Message
 from textual.suggester import SuggestFromList
@@ -15,7 +16,7 @@ from textual.widgets import Input, RichLog, Static
 
 from unbidden import __version__
 from unbidden.tui import brand
-from unbidden.tui.commands import SPECS
+from unbidden.tui.commands import SPECS, completions
 from unbidden.tui.feed import Entry
 from unbidden.tui.state import Bar, format_bar
 from unbidden.tui.text import t
@@ -136,8 +137,8 @@ class StatusBar(Static):
 
 
 class Prompt(Input):
-    """The prompt: plain text is a question, a leading slash is a command; Up and Down walk the history; the
-    suggestion completes a command with the right arrow."""
+    """The prompt: plain text is a question, a leading slash is a command; Up and Down walk the history; Tab
+    completes a command (the suggestion, else the one command that matches) and never leaves the prompt."""
 
     DEFAULT_CSS = "Prompt { height: 3; border: tall $panel; } Prompt:focus { border: tall $accent; }"
     BINDINGS: ClassVar[list[BindingType]] = [
@@ -165,6 +166,31 @@ class Prompt(Input):
                 self.history.append(text)
             self._at = len(self.history)
             self.post_message(self.Line(text))
+
+    async def _on_key(self, event: events.Key) -> None:
+        if event.key == "tab":
+            event.prevent_default()
+            event.stop()
+            self.complete()
+            return
+        await super()._on_key(event)
+
+    def complete(self) -> None:
+        """Fill the command in: the suggestion shown, else the only /command that starts with what was typed;
+        several matches leave the text alone (the suggestion already shows the first)."""
+        text = self.value
+        if not text.startswith("/") or " " in text:
+            return
+        suggestion = self._suggestion
+        if suggestion and suggestion.lower().startswith(text.lower()):
+            self.value = suggestion + " "
+        else:
+            matches = completions(text)
+            if len(matches) == 1:
+                self.value = matches[0] + " "
+            elif text in matches:
+                self.value = text + " "
+        self.cursor_position = len(self.value)
 
     def action_history(self, step: int) -> None:
         if not self.history:

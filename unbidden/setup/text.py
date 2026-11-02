@@ -24,12 +24,25 @@ T: dict[str, str] = {
     "found.github.file": "a token saved for Unbidden",
     "found.github.env": "a token from the environment",
     "found.github.gh": "the gh CLI's sign-in (held while Unbidden runs, never copied)",
-    "found.github.browser": "signed in through the browser",
     "found.github.token": "a token you pasted",
     "found.github.none": "none: proposals stay local branches",
+    "found.github.ok": "  signed in as {login}; it can push to {slug}",
+    "found.github.nopush": (
+        "  signed in as {login}, but that account cannot write to {slug}: ask for access, or sign in with the "
+        "account that has it"
+    ),
+    "found.github.unverified": "  not confirmed with GitHub ({detail})",
     "found.language": "Language: {name} ({how}); /language or `unbidden setup language` changes it",
     "github.ask": "GitHub access for pull requests?",
-    "github.browser": "browser: sign in to GitHub in the browser (full repository access)",
+    "github.gh": "gh: sign in to GitHub with the gh CLI (installed first if missing); the browser opens with a code",
+    "gh.install.ask": "gh is not installed. Install it now in your terminal with `{command}`?",
+    "gh.install.none": "gh is not installed and no package manager was found here: {site}, then `unbidden setup`.",
+    "gh.install.skipped": "Not installed. Later: {site}, then `unbidden setup credentials`.",
+    "gh.install.failed": "gh did not install; {site} explains the ways. Proposals stay local branches for now.",
+    "gh.login": (
+        "Signing in with gh: it shows a code and opens the browser; Unbidden reads the session when it returns."
+    ),
+    "gh.failed": "gh did not sign in; proposals stay local branches. Later: `gh auth login`, then `unbidden setup`.",
     "github.token": "token: paste a token (fine-grained, this repository, contents and pull requests)",
     "github.skip": "skip: proposals stay local branches; `unbidden setup credentials` later",
     "priorities.title": "Priorities",

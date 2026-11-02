@@ -44,6 +44,7 @@ def offline(monkeypatch: pytest.MonkeyPatch) -> None:
     from unbidden.setup import discover as discover_
 
     monkeypatch.setattr(discover_, "_ollama_installed", lambda: False)
+    monkeypatch.setattr(discover_, "_verify", lambda slug: None)
     monkeypatch.setattr(cli, "meta_api_status", lambda key, get=None: (False, "the model listing refuses the key"))
     monkeypatch.setattr(
         hardware, "detect", lambda: hardware.Machine(total_gb=16.0, apple_silicon=True, chip="test", gpu_gb=0.0)
