@@ -72,9 +72,10 @@ footer { border-top: 1px solid var(--line); margin-top: 64px; padding-top: 24px;
   runs the team's own checks in an offline sandbox, decides what is worth improving, makes the change, and measures
   whether the system actually got better. Then it says so at the level of evidence it reached, and not one level higher.</p>
   <div class="cta">
-    <a class="btn primary" href="https://github.com/satisfymath/unbidden-ai">Source</a>
-    <a class="btn ghost" href="https://github.com/satisfymath/unbidden-ai/blob/feat/20-scale-eval/docs/EVIDENCE.md">Evidence</a>
-    <a class="btn ghost" href="https://github.com/satisfymath/unbidden-ai/blob/feat/20-scale-eval/docs/ARCHITECTURE.md">Architecture</a>
+    <a class="btn primary" href="#install">Install</a>
+    <a class="btn ghost" href="https://github.com/satisfymath/unbidden-ai">Source</a>
+    <a class="btn ghost" href="https://github.com/satisfymath/unbidden-ai/blob/main/docs/EVIDENCE.md">Evidence</a>
+    <a class="btn ghost" href="https://github.com/satisfymath/unbidden-ai/blob/main/docs/ARCHITECTURE.md">Architecture</a>
   </div>
 </header>
 
@@ -139,16 +140,22 @@ footer { border-top: 1px solid var(--line); margin-top: 64px; padding-top: 24px;
   On the frozen holdout it found no validated improvement in ten mature libraries, and it claimed none.</div>
 </section>
 
-<section>
-  <h2>Try it</h2>
-<pre>uv tool install git+https://github.com/satisfymath/unbidden-ai
-echo 'MODEL_API_KEY=...' &gt;&gt; ~/.unbidden/.env
+<section id="install">
+  <h2>Install</h2>
+  <p class="sub">One line puts <code>unbidden</code> in its own environment with its own Python 3.12, through
+  <a href="https://docs.astral.sh/uv/">uv</a>. The wheel is verified against the release's <code>SHA256SUMS</code> before
+  anything is installed; nothing runs with sudo. macOS on Apple Silicon and Linux x86-64.</p>
+<pre>curl -fsSL https://unbidden.cl/install.sh | sh
 cd your-repo
-unbidden init && unbidden doctor --fix
-unbidden watch --once     # observe, decide, probe, experiment, propose
-unbidden inbox            # what it found, most proven first
-unbidden why &lt;id&gt;         # every decision and outbound payload behind it
-unbidden spend            # what it cost, against the verified balance</pre>
+unbidden                  # first time: a guided setup, no YAML; afterwards, the status screen
+unbidden start --ui       # the agent in the background, serving its own dashboard
+unbidden status           # found, decided, checked, asked, proved, spent
+unbidden stop             # the process ends; nothing is frozen, nothing is lost</pre>
+  <p class="sub">The machine provides git; Docker for the sandbox; Ollama for the local model option; a Meta API key for
+  the remote one. <code>unbidden doctor</code> says which of them your chosen option requires. Versions, exit codes,
+  update and the uninstall that keeps your data:
+  <a href="https://github.com/satisfymath/unbidden-ai/blob/main/docs/INSTALL.md">docs/INSTALL.md</a>. Until the first
+  release is published, the installer stops with "no published release found".</p>
 </section>
 
 <footer>Apache-2.0 · Built during the Meta Global AI Developer Hackathon, Oct 26 – Nov 4, 2026 · Every number on this page

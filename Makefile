@@ -34,3 +34,12 @@ dist: web-build
 	unzip -l dist/*.whl | grep -q unbidden/web/static/index.html
 	unzip -l dist/*.whl | grep -q unbidden/distribution/install.sh
 	cat dist/SHA256SUMS
+
+# The landing at unbidden.cl: site/ plus the installer, published to Cloudflare Pages (project "unbidden").
+# Deploying needs CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID in the environment; they are never in the repository.
+.PHONY: site-build site-deploy
+site-build:
+	rm -rf dist/site && mkdir -p dist/site && cp site/* dist/site/ && cp install.sh dist/site/install.sh
+
+site-deploy: site-build
+	npx -y wrangler@4 pages deploy dist/site --project-name unbidden --branch main --commit-dirty=true

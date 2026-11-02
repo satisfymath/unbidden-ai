@@ -1,18 +1,20 @@
 # Release artifacts for Unbidden: the wheel with the built web workspace inside, SHA256SUMS and install.sh, then a
-# smoke test of install.sh on a real Linux x86_64 runner. Manual only: nothing is published by this workflow.
+# smoke test of install.sh on a real Linux x86_64 runner.
 #
-# Publishing on a `v*` tag is NOT enabled yet (docs/PRODUCT-ONBOARDING-PLAN.md, decision 8.1). When it is, the
-# commented block at the end shows the shape; until a release exists the one-line install in docs/INSTALL.md is
-# documented as "available once the first release is published".
+# A manual run builds and smoke-tests only. A `v*` tag does the same and then publishes the GitHub release that
+# `install.sh` downloads from (https://unbidden.cl/install.sh, docs/INSTALL.md): the tag must name the version in
+# pyproject.toml, or the publish step refuses.
 name: Release artifacts
 
 on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Build and smoke-test only; never publish (the only mode for now)"
+        description: "Build and smoke-test only; never publish (a manual run never publishes)"
         type: boolean
         default: true
+  push:
+    tags: ["v*"]
 
 permissions:
   contents: read
@@ -159,23 +161,44 @@ jobs:
           name: smoke-report-linux-x86_64
           path: smoke-report-full.txt
 
-# --- NOT ENABLED: publishing on a tag ----------------------------------------------------------------------------
-# When decision 8.1 lands, add `push: { tags: ["v*"] }` to `on:` and a job like this (permissions: contents: write):
-#
-#  publish:
-#    if: startsWith(github.ref, 'refs/tags/v')
-#    needs: [build, smoke-linux-x86_64]
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: write
-#    steps:
-#      - uses: actions/download-artifact@v4
-#        with: { name: release-files, path: release }
-#      - uses: softprops/action-gh-release@v2
-#        with:
-#          files: |
-#            release/dist/*.whl
-#            release/dist/*.tar.gz
-#            release/dist/SHA256SUMS
-#            release/install.sh
-#   # or: gh release create "$GITHUB_REF_NAME" release/dist/* release/install.sh --verify-tag --notes-file docs/RELEASE.md
+  publish:
+    name: Publish the GitHub release (tags only)
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, smoke-linux-x86_64]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.build.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-files
+          path: release
+      - name: The tag names the built version
+        run: |
+          test "v$VERSION" = "$GITHUB_REF_NAME" || { echo "tag $GITHUB_REF_NAME does not match the built version $VERSION"; exit 1; }
+          cmp release/install.sh unbidden/distribution/install.sh
+      - name: Release notes
+        run: |
+          {
+            echo "Unbidden $VERSION. Install with one line (macOS on Apple Silicon, Linux x86-64):"
+            echo
+            echo '```sh'
+            echo 'curl -fsSL https://unbidden.cl/install.sh | sh'
+            echo '```'
+            echo
+            echo "The installer verifies the wheel against SHA256SUMS before installing it as a uv tool on Python 3.12."
+            echo "What this version supports, its limits and the evidence: docs/RELEASE.md and docs/INSTALL.md at this tag."
+            echo
+            echo "sha256:"
+            echo '```'
+            cat release/dist/SHA256SUMS
+            echo '```'
+          } > notes.md
+      - name: Create the release
+        run: |
+          gh release create "$GITHUB_REF_NAME" release/dist/*.whl release/dist/*.tar.gz release/dist/SHA256SUMS release/install.sh \
+            --verify-tag --title "Unbidden $VERSION" --notes-file notes.md
