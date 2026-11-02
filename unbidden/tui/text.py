@@ -58,6 +58,35 @@ T: dict[str, str] = {
     "cmd.ui.failed": "The dashboard did not come up; its log is {log}.",
     "cmd.activity.title": "Activity.",
     # chat
+    # the app
+    "open.tail.stale": "The record could not be read ({reason}); it will say when it can again.",
+    "open.tail.recovered": "The record reads again.",
+    "bar.thinking": "thinking…",
+    "bar.quit": "press Ctrl+C again to quit",
+    "prompt.placeholder": "Ask about the project, or / for a command",
+    "cmd.unknown": "No command /{name}. /help lists them.",
+    "cmd.usage": "Usage: {usage}",
+    "cmd.help.title": "What you can do here.",
+    "cmd.help.chat": "Anything else you type is a question about this project, answered from its records.",
+    "cmd.help.keys": (
+        "Ctrl+C cancels a running answer, clears the prompt, or asks twice to quit. Quitting stops no agent. "
+        "Esc closes a panel. Ctrl+L clears the feed. PageUp and PageDown scroll it."
+    ),
+    "cmd.inbox.empty": "Nothing open.",
+    "cmd.inbox.title": "Open opportunities, most proven first.",
+    "cmd.log.on": "Showing the agent's log ({path}).",
+    "cmd.log.off": "The agent's log is hidden again.",
+    "cmd.verbose.on": "Showing every allowed egress and every model call.",
+    "cmd.verbose.off": "Showing the summary again.",
+    "cmd.setup.push": "Setup opens; the feed waits.",
+    "chat.person": "you",
+    "chat.route": "{intent} · {purpose} · {via}",
+    "chat.blocked": "blocked: {reason}",
+    "chat.hint": "{hint}",
+    "chat.cancelled": "Cancelled.",
+    "chat.error": "The answer failed: {error}",
+    "chat.state": "{state}",
+    "chat.tool": "{mark} {tool}: {summary}",
     # the feed's narration of events
     "ev.workspace": "Workspace mapped at {rev}: {resources} resources, {relations} relations, {blind} blind spots.",
     "ev.world": "The world changed at {rev}: {diff}",

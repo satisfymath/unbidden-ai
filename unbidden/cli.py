@@ -2101,6 +2101,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="unbidden", description="Intelligence that doesn't wait for instructions.")
     parser.add_argument("--version", action="version", version=f"unbidden {__version__}")
     parser.add_argument("--json", action="store_true", help="machine-readable output (with no command: the state)")
+    parser.add_argument("--plain", action="store_true", help="with no command: the text screen, never the app")
     sub = parser.add_subparsers(dest="command", required=False)
 
     def command(name: str, handler: Any, help_text: str, *, json_out: bool = True) -> argparse.ArgumentParser:
@@ -2257,6 +2258,8 @@ def build_parser() -> argparse.ArgumentParser:
     ui.add_argument("--stop", action="store_true", help="stop the dashboard served apart (never the agent)")
     ui.add_argument("--port", type=int, default=8765, help="preferred port (the next free one is taken if busy)")
     ui.add_argument("--planner", choices=["auto", "rule", "brain"], default="auto", help="how the chat plans")
+    app = command("app", cmd_app, "the full-screen app: the agent's work as it happens, a prompt", json_out=False)
+    app.add_argument("--planner", choices=["auto", "rule", "brain"], default="auto")
     chat = command("chat", cmd_chat, "the dashboard's chat from the terminal: inform, analyze; never act")
     chat.add_argument("message", nargs="*", help="one message (default: read messages from stdin or a prompt)")
     chat.add_argument("--planner", choices=["auto", "rule", "brain"], default="auto")
@@ -2278,6 +2281,39 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
 
 
+def _wants_app(args: argparse.Namespace) -> bool:
+    """The full-screen app opens only where it can draw: a terminal on both ends, a TERM that is not dumb, at
+    least 60 columns, and neither --json, --plain nor UNBIDDEN_PLAIN asked for text."""
+    import os
+    import shutil
+
+    if getattr(args, "json", False) or getattr(args, "plain", False) or os.environ.get("UNBIDDEN_PLAIN"):
+        return False
+    if not (sys.stdin.isatty() and sys.stdout.isatty()):
+        return False
+    if os.environ.get("TERM", "") in ("", "dumb"):
+        return False
+    return shutil.get_terminal_size((80, 24)).columns >= 60
+
+
+def _run_app(ws: Workspace, planner: str = "auto") -> int:
+    from unbidden.tui.app import run_app
+
+    return run_app(ws, planner=planner)  # type: ignore[arg-type]
+
+
+def cmd_app(args: argparse.Namespace) -> int:
+    """The full-screen app on this workspace: the feed of what the agent does, a status bar, a prompt for
+    questions and commands. Needs a terminal; `unbidden --plain` is the text screen."""
+    ws = Workspace.find()
+    if not _wants_app(args):
+        err.print(
+            "[red]unbidden app:[/] needs an interactive terminal of at least 60 columns (not --json, not --plain)"
+        )
+        return 2
+    return _run_app(ws, args.planner)
+
+
 def _no_command(args: argparse.Namespace) -> int:
     try:
         ws = Workspace.find()
@@ -2290,7 +2326,12 @@ def _no_command(args: argparse.Namespace) -> int:
         args.priorities = args.budget = args.dashboard = None
         args.model_key_stdin = args.github_token_stdin = args.pull_model = args.probe = False
         args.credential = args.connection = None
-        return cmd_setup(args)
+        code = cmd_setup(args)
+        if code != 0 or not _wants_app(args):
+            return code
+        return _run_app(ws)
+    if ws.initialized and _wants_app(args):
+        return _run_app(ws)
     return cmd_home(args)
 
 
