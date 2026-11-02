@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import threading
 import time
+from contextlib import suppress
 from pathlib import Path
 from typing import Any, ClassVar, Literal
 
@@ -256,7 +257,7 @@ class UnbiddenApp(App[int]):
             case "help":
                 self._help()
             case "quit":
-                self.exit(0)
+                self._quit()
             case "clear":
                 self.feed.clear_all()
             case "verbose":
@@ -396,26 +397,45 @@ class UnbiddenApp(App[int]):
                                     make_brain_for(self.planner, state_dir))  # fmt: skip
         return self.chat
 
-    @work(thread=True, group="chat", exclusive=True, exit_on_error=False)
     def _turn(self, text: str) -> None:
+        """A plain daemon thread, not a Textual worker: a model call cannot be interrupted, and quitting the app
+        must never wait for one. The turn is cancelled on quit; the thread dies with the process."""
+        threading.Thread(target=self._turn_work, args=(text,), name="unbidden-chat", daemon=True).start()
+
+    def _turn_work(self, text: str) -> None:
         from unbidden.web.contracts import ChatRequest
+
+        last: list[str] = []
 
         def emit(event: str, data: dict[str, Any]) -> None:
             if event == "state" and data.get("state") not in ("done", None):
                 line = str(data.get("state")) + (f": {data['detail']}" if data.get("detail") else "")
-                self.call_from_thread(self.feed.dim, t("chat.state", state=line))
+                if last and last[-1] == line:  # the same state again says nothing new
+                    return
+                last.append(line)
+                self._from_thread(self.feed.dim, t("chat.state", state=line))
             elif event == "tool_result":
                 mark = "ok" if data.get("ok") else "!!"
-                self.call_from_thread(self.feed.dim, t("chat.tool", mark=mark, tool=data.get("tool"),
-                                                       summary=data.get("summary")))  # fmt: skip
+                self._from_thread(self.feed.dim, t("chat.tool", mark=mark, tool=data.get("tool"),
+                                                   summary=data.get("summary")))  # fmt: skip
 
         try:
             service = self._chat_service()
             message = service.turn(self.source, ChatRequest(content=text, planner=self.planner), emit)
         except Exception as exc:
-            self.call_from_thread(self._answered, None, str(exc))
+            self._from_thread(self._answered, None, str(exc))
             return
-        self.call_from_thread(self._answered, message, None)
+        self._from_thread(self._answered, message, None)
+
+    def _from_thread(self, fn: Any, *args: Any) -> None:
+        with suppress(RuntimeError):  # the app may have quit while the turn ran
+            self.call_from_thread(fn, *args)
+
+    def _quit(self) -> None:
+        """Leave. A running answer is cancelled, the agent is never stopped."""
+        if self._turn_running and self.chat is not None:
+            self.chat.cancel(self.source.id)
+        self.exit(0)
 
     def _answered(self, message: Any, error: str | None) -> None:
         self._turn_running = False
@@ -452,7 +472,7 @@ class UnbiddenApp(App[int]):
             self.prompt.value = ""
             return
         if self._quit_armed_at and time.monotonic() - self._quit_armed_at <= QUIT_WINDOW_S:
-            self.exit(0)
+            self._quit()
             return
         self._quit_armed_at = time.monotonic()
         self.bar.bar.transient = t("bar.quit")
@@ -460,7 +480,7 @@ class UnbiddenApp(App[int]):
 
     def action_eof(self) -> None:
         if not self.prompt.value:
-            self.exit(0)
+            self._quit()
 
     def action_escape(self) -> None:
         if self._turn_running and self.chat is not None:
