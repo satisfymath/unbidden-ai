@@ -30,12 +30,30 @@ T: dict[str, str] = {
     "found.github.file": "un token guardado para Unbidden",
     "found.github.env": "un token del entorno",
     "found.github.gh": "la sesión del CLI gh (retenida mientras Unbidden corre, nunca copiada)",
-    "found.github.browser": "sesión iniciada en el navegador",
     "found.github.token": "un token que pegaste",
     "found.github.none": "ninguno: las propuestas quedan como ramas locales",
+    "found.github.ok": "  sesión de {login}; puede escribir en {slug}",
+    "found.github.nopush": (
+        "  sesión de {login}, pero esa cuenta no puede escribir en {slug}: pide acceso, o inicia sesión con la "
+        "cuenta que lo tiene"
+    ),
+    "found.github.unverified": "  sin confirmar con GitHub ({detail})",
     "found.language": "Idioma: {name} ({how}); /language o `unbidden setup language` lo cambia",
     "github.ask": "¿Acceso a GitHub para los pull requests?",
-    "github.browser": "browser: inicia sesión en GitHub desde el navegador (acceso completo al repositorio)",
+    "github.gh": (
+        "gh: inicia sesión en GitHub con el CLI gh (se instala primero si falta); el navegador abre con un código"
+    ),
+    "gh.install.ask": "gh no está instalado. ¿Instalarlo ahora en tu terminal con `{command}`?",
+    "gh.install.none": "gh no está instalado y no se encontró un gestor de paquetes: {site}, y luego `unbidden setup`.",
+    "gh.install.skipped": "No instalado. Más tarde: {site}, y luego `unbidden setup credentials`.",
+    "gh.install.failed": (
+        "gh no se instaló; {site} explica las formas. Las propuestas quedan como ramas locales por ahora."
+    ),
+    "gh.login": "Iniciando sesión con gh: muestra un código y abre el navegador; Unbidden lee la sesión al volver.",
+    "gh.failed": (
+        "gh no inició sesión; las propuestas quedan como ramas locales. Más tarde: `gh auth login`, y luego "
+        "`unbidden setup`."
+    ),
     "github.token": "token: pega un token (de grano fino, este repositorio, contenidos y pull requests)",
     "github.skip": "skip: las propuestas quedan como ramas locales; `unbidden setup credentials` más tarde",
     "priorities.title": "Prioridades",

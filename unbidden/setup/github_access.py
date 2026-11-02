@@ -10,6 +10,8 @@ import subprocess
 from dataclasses import dataclass
 from typing import Any, Literal
 
+import httpx
+
 from unbidden.guardian.credentials import broker
 from unbidden.setup import machine
 
@@ -71,3 +73,50 @@ def github_access(ws: Any, *, token_env: str = TOKEN_ENV) -> Access:
     if held.has(token_env):
         return Access("gh" if gh_token() else "env")
     return Access(None)
+
+
+@dataclass(frozen=True)
+class Verified:
+    """What GitHub says about the token held: who it is, and whether that account can push to the repository."""
+
+    login: str | None
+    can_push: bool | None  # None: the repository could not be read (not found for this account, or offline)
+    detail: str
+
+
+API = "https://api.github.com"
+
+
+def verify(
+    slug: str | None,
+    *,
+    token_env: str = TOKEN_ENV,
+    timeout_s: float = 8.0,
+    transport: httpx.BaseTransport | None = None,
+) -> Verified | None:
+    """Ask GitHub, with the token held, who it is and whether it may push to `slug`. None when no token is held;
+    a Verified with `can_push=None` when GitHub could not be asked (offline) or does not show the repository to
+    this account. Two small reads, never a write."""
+    held = broker()
+    if not held.has(token_env):
+        return None
+    token = held.get(token_env, "github")
+    headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
+    try:
+        with httpx.Client(base_url=os.environ.get("UNBIDDEN_GITHUB_API", API), timeout=timeout_s,
+                          headers=headers, transport=transport) as client:  # fmt: skip
+            me = client.get("/user")
+            login = str(me.json().get("login")) if me.status_code == 200 else None
+            if login is None:
+                return Verified(None, None, f"the token was refused ({me.status_code})")
+            if not slug:
+                return Verified(login, None, "no GitHub remote to check")
+            repo = client.get(f"/repos/{slug}")
+            if repo.status_code == 404:
+                return Verified(login, False, f"{slug} is not visible to {login}")
+            if repo.status_code != 200:
+                return Verified(login, None, f"{slug} could not be read ({repo.status_code})")
+            push = bool((repo.json().get("permissions") or {}).get("push"))
+            return Verified(login, push, f"can push to {slug}" if push else f"{login} cannot write to {slug}")
+    except httpx.HTTPError as exc:
+        return Verified(None, None, f"GitHub could not be reached ({type(exc).__name__})")

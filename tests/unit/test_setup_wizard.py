@@ -71,6 +71,7 @@ def offline(monkeypatch: pytest.MonkeyPatch) -> None:
     from unbidden.setup import discover as discover_
 
     monkeypatch.setattr(discover_, "_ollama_installed", lambda: False)
+    monkeypatch.setattr(discover_, "_verify", lambda slug: None)
     monkeypatch.setattr(
         cli, "meta_api_status", lambda key, get=None: (False, "the model listing refuses the key (401)")
     )
@@ -174,7 +175,7 @@ def test_autonomous_blocked_interactive_asks_for_the_other_mode_without_a_defaul
             return super().choice(key, prompt, choices, default)
 
     io_ = Asks({"models": "local", "mode": "autonomous", "mode_fallback": "supervised", "dashboard": "never",
-                "project": True, "priorities": "correctness", "budget": "1"}, {})  # fmt: skip
+                "github_access": "skip", "priorities": "correctness", "budget": "1"}, {})  # fmt: skip
     assert run(Workspace(repo), opts, out, io=io_) == 0
     assert ("mode_fallback", None) in io_.asked, "the other mode is asked explicitly, with no default"
     mandate = mandate_of(repo)
@@ -482,3 +483,62 @@ def test_the_language_section_saves_the_choice_and_the_found_block_says_it(repo:
     text = buf.getvalue()
     assert "Encontrado" in text and "opción de modelo: local" in text and "Mandato escrito" in text
     i18n.clear()
+
+
+def test_the_gh_choice_signs_in_through_the_terminal_and_the_session_is_the_source(
+    repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import os
+    import stat
+
+    from unbidden.setup import github_access
+
+    bin_ = tmp_path / "bin"
+    bin_.mkdir()
+    state = tmp_path / "signed-in"
+    gh = bin_ / "gh"
+    gh.write_text(
+        f'#!/bin/sh\nif [ -f "{state}" ]; then echo gho_fake_0123456789; exit 0; fi\necho "not logged in" >&2; exit 1\n'
+    )
+    gh.chmod(gh.stat().st_mode | stat.S_IEXEC)
+    monkeypatch.setenv("PATH", f"{bin_}{os.pathsep}{os.environ['PATH']}")
+    monkeypatch.delenv(github_access.OPT_OUT, raising=False)
+    github_access.forget_gh_token()
+    ran: list[list[str]] = []
+
+    def terminal(argv: list[str]) -> int:
+        ran.append(argv)
+        state.write_text("tok")
+        return 0
+
+    out, buf = console()
+    io_ = Asks({"github_access": "gh", "mode": "supervised", "apply": True}, {"MODEL_API_KEY": ""})
+    assert run(Workspace(repo), Options(), out, io=io_, terminal=terminal) == 0
+    assert ran == [["gh", "auth", "login", "--web", "--git-protocol", "https", "--hostname", "github.com"]]
+    text = buf.getvalue()
+    assert "GitHub access: the gh CLI's sign-in" in text and "gho_fake" not in text
+    assert broker().get("GITHUB_TOKEN", "github") == "gho_fake_0123456789"
+    assert not machine.machine_env().exists()  # nothing copied to a file
+    github_access.forget_gh_token()
+
+
+def test_an_account_that_cannot_write_to_the_repository_gets_the_menu_and_one_that_can_does_not(
+    repo: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from unbidden.setup import discover as discover_
+    from unbidden.setup.github_access import Verified
+
+    machine.write_env(machine.machine_env(), {"GITHUB_TOKEN": "ghp_saved_0123456789", "MODEL_API_KEY": FAKE_KEY})
+    monkeypatch.setattr(discover_, "_verify", lambda slug: Verified("someone", False, "someone cannot write"))
+    out, buf = console()
+    io_ = Asks({"github_access": "skip", "mode": "supervised", "apply": True})
+    assert run(Workspace(repo), Options(), out, io=io_) == 0
+    assert "github_access" in io_.asked
+    assert "signed in as someone, but that account cannot write to acme/shop" in buf.getvalue()
+
+    monkeypatch.setattr(discover_, "_verify", lambda slug: Verified("satisfymath", True, "can push to acme/shop"))
+    out, buf = console()
+    io_ = Asks({"mode": "supervised", "apply": True})
+    assert run(Workspace(repo), Options(section="found"), out, io=io_) == 0
+    assert "github_access" not in io_.asked
+    assert "signed in as satisfymath; it can push to acme/shop" in buf.getvalue()

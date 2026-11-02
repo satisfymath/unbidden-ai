@@ -31,6 +31,7 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     from unbidden.setup import discover as discover_
 
     monkeypatch.setattr(discover_, "_ollama_installed", lambda: False)
+    monkeypatch.setattr(discover_, "_verify", lambda slug: None)
     monkeypatch.setattr(
         hardware, "detect", lambda: hardware.Machine(total_gb=16.0, apple_silicon=True, chip="test", gpu_gb=0.0)
     )

@@ -65,6 +65,27 @@ async def test_commands_help_kill_resume_and_the_unknown_one(ws: Workspace) -> N
         assert "Usage: /why <id>" in _text(app.query_one(Feed))
 
 
+async def test_tab_completes_a_command_and_never_leaves_the_prompt(ws: Workspace) -> None:
+    from unbidden.tui.widgets import Prompt
+
+    app = UnbiddenApp(ws, planner="rule")
+    async with app.run_test(size=(100, 30)) as pilot:
+        await pilot.pause(0.3)
+        prompt = app.query_one(Prompt)
+        await pilot.press("tab")  # empty: nothing to complete, the focus stays
+        assert app.focused is prompt and prompt.value == ""
+        await pilot.press(*"/sta", "tab")
+        await pilot.pause(0.1)
+        assert prompt.value == "/start " and app.focused is prompt
+        prompt.value = "/s"
+        await pilot.press("tab")  # several commands start with /s: the text stays, the suggestion shows the first
+        assert prompt.value == "/s" or prompt.value.startswith("/s")
+        prompt.value = ""
+        await pilot.press(*"/kill from tab", "enter")
+        await pilot.pause(0.2)
+        assert (ws.dir / "KILL").exists()
+
+
 async def test_a_question_is_answered_by_rules_without_a_model(ws: Workspace) -> None:
     app = UnbiddenApp(ws, planner="rule")
     async with app.run_test(size=(100, 30)) as pilot:
@@ -103,6 +124,7 @@ def bare(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Workspace:
     from unbidden.setup import discover as discover_
 
     monkeypatch.setattr(discover_, "_ollama_installed", lambda: False)
+    monkeypatch.setattr(discover_, "_verify", lambda slug: None)
     monkeypatch.setattr(cli, "meta_api_status", lambda key, get=None: (False, "the model listing refuses the key"))
     monkeypatch.setattr(
         hardware, "detect", lambda: hardware.Machine(total_gb=16.0, apple_silicon=True, chip="test", gpu_gb=0.0)
@@ -136,8 +158,8 @@ async def test_a_first_run_opens_setup_and_ctrl_c_keeps_the_answers(bare: Worksp
         assert "repository acme/shop" in log and "GitHub access: none" in log
         menu = app.screen.query_one("#choices", OptionList)
         assert app.screen._pending[0].key == "github_access"  # type: ignore[index]
-        assert menu.display and menu.option_count == 2 and menu.highlighted == 1  # token, skip; skip is the default
-        await pilot.press("enter")
+        assert menu.display and menu.option_count == 3 and menu.highlighted == 0  # gh, token, skip; gh first
+        await pilot.press("down", "down", "enter")  # skip: no terminal in a test
         for _ in range(40):
             await pilot.pause(0.1)
             if app.screen._pending is not None and app.screen._pending[0].key == "MODEL_API_KEY":  # type: ignore[attr-defined]

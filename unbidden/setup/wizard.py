@@ -120,7 +120,7 @@ class Answers(BaseModel):
     dashboard: DashboardChoice | None = None
     completed: list[str] = []
     found: dict[str, Any] | None = None  # what the found block saw, as data
-    github_source: str | None = None  # file, env, gh, browser, token; None when none
+    github_source: str | None = None  # file, env, gh, token; None when none
     defaulted: list[str] = []  # sections never asked in this walk: their defaults were kept
 
 
@@ -232,6 +232,20 @@ def read_stdin_secrets(names: Sequence[str]) -> dict[str, str]:
 
 Probe = Callable[[Workspace], dict[str, Any]]
 Pull = Callable[[str, Callable[[str], None]], bool]  # download a local model, narrating through `say`
+Terminal = Callable[[list[str]], int]  # run a command in the person's terminal (gh install, gh auth login)
+
+
+def run_in_terminal(argv: list[str]) -> int:
+    """The text wizard owns the terminal: the command runs right here. The app suspends itself and passes its own."""
+    import subprocess
+
+    return subprocess.run(argv, check=False).returncode
+
+
+def gh_token_now() -> str:
+    from unbidden.setup.github_access import gh_token
+
+    return gh_token() or ""
 
 
 def pull_model(tag: str, say: Callable[[str], None]) -> bool:
@@ -254,6 +268,7 @@ class Context:
     probe: Probe
     notes: list[str] = field(default_factory=list)
     pull: Pull = pull_model
+    terminal: Terminal = run_in_terminal
     found: Found | None = None
     cancel: threading.Event = field(default_factory=threading.Event)  # set by Ctrl+C while a wait cannot ask
 
@@ -308,31 +323,39 @@ def step_found(ctx: Context) -> None:
 
 
 def _github_access(ctx: Context, found: Found) -> None:
-    """Where the GitHub token comes from; when nowhere, one menu: sign in through the browser, paste, or skip."""
-    from unbidden.setup import github_device
+    """Where the GitHub token comes from; when nowhere, one menu: sign in with gh (installed if missing), paste a
+    token, or skip."""
+    from unbidden.setup import github_cli
 
     source = found.github.source
+    check = found.github_check
     if source is not None:
         ctx.say(t("found.github", source=t(f"found.github.{source}")))
         ctx.answers.github_source = source
-        return
-    ctx.say(t("found.github", source=t("found.github.none")))
+        if check is None or check.can_push is None:
+            ctx.say(t("found.github.unverified", detail=check.detail if check else "not checked"))
+            return
+        if check.can_push:
+            ctx.say(t("found.github.ok", login=check.login, slug=found.slug))
+            return
+        ctx.say(t("found.github.nopush", login=check.login, slug=found.slug))  # the account and the repo differ
+    else:
+        ctx.say(t("found.github", source=t("found.github.none")))
     if ctx.opts.non_interactive:
         return  # --github-token-stdin runs through the credentials section
-    choices = (["browser"] if github_device.available() else []) + ["token", "skip"]
-    pick = ctx.io.choice("github_access", t("github.ask"), choices, "browser" if choices[0] == "browser" else "skip")
+    pick = ctx.io.choice("github_access", t("github.ask"), ("gh", "token", "skip"), "gh")
     ctx.say(f"  {t('github.' + pick)}")
     env_path = machine.machine_env()
-    if pick == "browser":
-        token = github_device.sign_in(say=ctx.say, cancel=ctx.cancel)
-        if token:
-            machine.write_env(env_path, {"GITHUB_TOKEN": token})
-            broker().hold("GITHUB_TOKEN", token)
+    if pick == "gh":
+
+        def confirm_install(command: list[str]) -> bool:
+            return ctx.io.confirm("gh_install", t("gh.install.ask", command=" ".join(command)), True)
+
+        if github_cli.sign_in(ctx.terminal, ctx.say, confirm_install=confirm_install):
+            broker().hold("GITHUB_TOKEN", gh_token_now())
             broker().grant("GITHUB_TOKEN", "github")
-            ctx.say(t("credentials.saved", name="GITHUB_TOKEN"))
-            ctx.answers.github_source = "browser"
-            if "GITHUB_TOKEN" not in ctx.answers.credentials_saved:
-                ctx.answers.credentials_saved.append("GITHUB_TOKEN")
+            ctx.say(t("found.github", source=t("found.github.gh")))
+            ctx.answers.github_source = "gh"
     elif pick == "token" and _credential(ctx, "GITHUB_TOKEN", env_path, stdin_flag=False):
         ctx.answers.github_source = "token"
         if "GITHUB_TOKEN" not in ctx.answers.credentials_saved:
@@ -798,6 +821,7 @@ def run(
     io: IO | None = None,
     pull: Pull = pull_model,
     cancel: threading.Event | None = None,
+    terminal: Terminal | None = None,
 ) -> int:
     """Walk the sections (or one), show the summary and the diff, write once. Exit 0 written, 3 nothing written,
     2 cancelled or an answer missing, 4 the mode asked for is blocked and no other mode was named."""
@@ -828,7 +852,10 @@ def run(
             io = Scripted({k: v for k, v in scripted.items() if v is not None}, read_stdin_secrets(names))
         else:
             io = Interactive(out)
-    ctx = Context(ws, store, raw, answers, io, out, opts, probe, pull=pull, cancel=cancel or threading.Event())
+    ctx = Context(
+        ws, store, raw, answers, io, out, opts, probe, pull=pull, cancel=cancel or threading.Event(),
+        terminal=terminal or run_in_terminal,  # looked up at call time: the test suite replaces it
+    )  # fmt: skip
     answers.completed = [OLD_NAMES.get(name, name) for name in answers.completed]
     if created:
         ctx.say(t("welcome"))

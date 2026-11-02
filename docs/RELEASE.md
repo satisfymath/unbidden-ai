@@ -1,4 +1,13 @@
-# Unbidden 0.12.0, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.12.1, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.12.1 (2026-11-02): GitHub through gh, no OAuth App
+
+The browser sign-in no longer needs an OAuth App of Unbidden's own: the setup's "gh" choice installs the `gh` CLI
+when it is missing (the machine's package manager, in the person's terminal, after asking) and runs
+`gh auth login --web`; the app steps aside for it and comes back. Unbidden reads that session as it already did
+(`gh auth token`, held in memory, never copied). The device-flow module is gone. The found block now also asks
+GitHub who the access found is and whether that account can push to the repository of the remote; an account
+that cannot gets the same menu as no access. Tab in the app completes a command instead of moving the focus.
 
 ## 0.12.0 (2026-11-02): Spanish
 
@@ -17,8 +26,7 @@ files declare at HEAD (listed, never granted on their own), the machine, Ollama 
 is saved; the model option follows from those facts. It asks the Meta API key only when none is found, how much
 Unbidden may do on its own, and whether to apply. Priorities, budget, dashboard, private code and manual
 connections keep their defaults, shown with the section that changes each (`unbidden setup budget`, `/setup
-connections`, pre-filled from compose). A sign-in through the browser (GitHub's device flow) is implemented and
-hidden until the OAuth App is registered. Scripted setup needs no `--models` or `--mode`. `docs/INSTALL.md`,
+connections`, pre-filled from compose). A sign-in through the browser came with 0.12.1, through `gh`. Scripted setup needs no `--models` or `--mode`. `docs/INSTALL.md`,
 "`unbidden setup`".
 
 ## 0.10.2 (2026-11-02): a chat question answered twice, and a start that refuses what cannot run
@@ -47,7 +55,7 @@ already existed (start, stop, kill switch, approve, reject, chat). `docs/INSTALL
 on macOS arm64 with the built wheel installed by `install.sh` into an empty HOME and driven in a pseudoterminal; CI
 unchanged (without a terminal, `unbidden` is the text home screen). Everything below describes 0.9.0 and still holds.
 
-**Status: 0.12.0, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
+**Status: 0.12.1, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
 met when the campaign paused at its gate (D-063); they are not changed here. The one that blocks 1.0: no useful cycle
 has been shown on an application not used in development. This candidate adds the product around the same engine:
 an installable wheel, a guided setup, one executor per workspace with a background agent, and the dashboard and chat

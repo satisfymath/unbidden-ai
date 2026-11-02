@@ -44,6 +44,17 @@ def english(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture(autouse=True)
+def no_terminal(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No test runs a command in the developer's terminal (gh install, gh auth login); a test passes its own."""
+    from unbidden.setup import wizard
+
+    def refuse(argv: list[str]) -> int:
+        raise RuntimeError(f"a test reached the terminal: {' '.join(argv)}")
+
+    monkeypatch.setattr(wizard, "run_in_terminal", refuse)
+
+
+@pytest.fixture(autouse=True)
 def no_gh_cli(monkeypatch: pytest.MonkeyPatch) -> None:
     """Unit tests never pick up the developer's real `gh` sign-in; a test of that path fakes `gh` itself."""
     from unbidden.setup import github_access
