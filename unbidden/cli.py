@@ -745,15 +745,9 @@ def cmd_decide(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_why(args: argparse.Namespace) -> int:
-    """Every decision, verdict and outbound payload behind one opportunity."""
-    ws = Workspace.find()
-    ws.require()
-    store = ws.store()
-    opp = store.get("opportunities", args.id, Opportunity)
-    if opp is None:
-        err.print(f"no opportunity {args.id}")
-        return 1
+def why_data(store: Any, opp: Opportunity) -> tuple[dict[str, Any], list[EgressAttempt]]:
+    """The record behind one opportunity: its decision, verdict and outcome, its events and the egress attempts
+    they name. Shared by `unbidden why` and the app's /why."""
     events = store.events(correlation_id=opp.id)
     egress_ids = [e.entity_id for e in events if e.type in (EventType.EGRESS_ALLOWED, EventType.EGRESS_BLOCKED)]
     attempts = [a for a in (store.get("egress", i, EgressAttempt) for i in egress_ids if i) if a is not None]
@@ -765,33 +759,54 @@ def cmd_why(args: argparse.Namespace) -> int:
         "egress": [a.model_dump(mode="json") for a in attempts],
         "events": [e.model_dump(mode="json") for e in events],
     }
-    if _emit(args, data):
-        return 0
-    console.print(f"[bold]{opp.title}[/] · L{int(opp.evidence_level)} · {opp.status.value}")
+    return data, attempts
+
+
+def why_lines(opp: Opportunity, data: dict[str, Any], attempts: list[EgressAttempt]) -> list[str]:
+    """The text form of `why_data`, as rich markup lines."""
+    lines = [f"[bold]{opp.title}[/] · L{int(opp.evidence_level)} · {opp.status.value}"]
     if data["decision"]:
-        console.print(f"decision: {data['decision']['chosen']} because {data['decision']['reason']}")
+        lines.append(f"decision: {data['decision']['chosen']} because {data['decision']['reason']}")
     verdict = data["verdict"]
     if verdict:
-        console.print(f"verdict: {'improved' if verdict['improved'] else 'not improved'} · tests {verdict['tests']}")
+        lines.append(f"verdict: {'improved' if verdict['improved'] else 'not improved'} · tests {verdict['tests']}")
         for reason in verdict["reasons"] + verdict["caveats"]:
-            console.print(f"  - {reason}")
+            lines.append(f"  - {reason}")
     outcome = data["outcome"]
     if outcome:
         result = outcome.get("result", "recorded before results were classified")
-        console.print(f"outcome after deploy {outcome['deploy']}: {result}")
+        lines.append(f"outcome after deploy {outcome['deploy']}: {result}")
         for reason in outcome.get("why", []):
-            console.print(f"  - {reason}")
+            lines.append(f"  - {reason}")
         for confounder in outcome.get("confounders", []):
             detail = confounder["detail"] if isinstance(confounder, dict) else confounder
-            console.print(f"  confounder: {detail}")
+            lines.append(f"  confounder: {detail}")
     for attempt in attempts:
         state = "[green]sent[/]" if attempt.status == "allowed_sent" else f"[red]{attempt.status}[/]"
-        console.print(
+        lines.append(
             f"egress to {attempt.destination} ({attempt.purpose}): {state}, {attempt.verdict.payload_bytes} bytes"
         )
         for reason in attempt.verdict.reasons:
-            console.print(f"  blocked: {reason}")
-        if args.payload:
+            lines.append(f"  blocked: {reason}")
+    return lines
+
+
+def cmd_why(args: argparse.Namespace) -> int:
+    """Every decision, verdict and outbound payload behind one opportunity."""
+    ws = Workspace.find()
+    ws.require()
+    store = ws.store()
+    opp = store.get("opportunities", args.id, Opportunity)
+    if opp is None:
+        err.print(f"no opportunity {args.id}")
+        return 1
+    data, attempts = why_data(store, opp)
+    if _emit(args, data):
+        return 0
+    for line in why_lines(opp, data, attempts):
+        console.print(line)
+    if args.payload:
+        for attempt in attempts:
             console.print(attempt.payload, markup=False, highlight=False)
     return 0
 
@@ -1183,8 +1198,12 @@ def cmd_egress(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_doctor(args: argparse.Namespace) -> int:
-    """Everything unbidden needs here, checked: machine and local model, Ollama, Docker, Meta API, GitHub, mandate."""
+def doctor_checks(
+    ws: Workspace, *, fix: bool = False, say: Any = None
+) -> tuple[list[tuple[str, bool, str]], set[str], str]:
+    """Everything unbidden needs here, checked: machine and local model, Ollama, Docker, Meta API, GitHub, mandate.
+    Returns the checks (name, ok, detail), the names the mandate's option requires, and the sentence that explains
+    which are required. Shared by `unbidden doctor` and the app's /doctor; `say` receives progress lines."""
     import shutil
     import subprocess
 
@@ -1192,7 +1211,6 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     from unbidden.runtime import installed_models
 
     checks: list[tuple[str, bool, str]] = []
-    ws = Workspace.find()
     ws.load_env()
     machine = detect()
     config = ws.config() if ws.initialized else None
@@ -1250,8 +1268,9 @@ def cmd_doctor(args: argparse.Namespace) -> int:
             checks.append((name, ok, note))
     except WorkspaceError:
         pass
-    if args.fix and not rec.installed and rec.fits:
-        console.print(f"pulling {rec.model.tag} ...")
+    if fix and not rec.installed and rec.fits:
+        if say is not None:
+            say(f"pulling {rec.model.tag} ...")
         pulled = subprocess.run(["ollama", "pull", rec.model.tag], check=False).returncode == 0
         checks.append(("fix", pulled, f"{'pulled' if pulled else 'could not pull'} {rec.model.tag}"))
     # Required or optional follows the option the mandate chose: `api` needs no Ollama, `local` needs no key.
@@ -1259,18 +1278,25 @@ def cmd_doctor(args: argparse.Namespace) -> int:
 
     needs = doctor_requirements(mandate_for_doctor)
     required = {name for name, need in needs.items() if need == "required"}
+    return checks, required, explain(needs, mandate_for_doctor)
+
+
+def cmd_doctor(args: argparse.Namespace) -> int:
+    """Everything unbidden needs here, checked: machine and local model, Ollama, Docker, Meta API, GitHub, mandate."""
+    ws = Workspace.find()
+    checks, required, explained = doctor_checks(ws, fix=args.fix, say=console.print)
     failed_required = [name for name, ok, _ in checks if not ok and name in required]
     if _emit(
         args,
         {
             "checks": [{"check": n, "ok": ok, "required": n in required, "detail": d} for n, ok, d in checks],
-            "requirements": explain(needs, mandate_for_doctor),
+            "requirements": explained,
             "ok": not failed_required,
             "failed_required": failed_required,
         },
     ):
         return 0 if not failed_required else 1
-    console.print(f"[dim]{explain(needs, mandate_for_doctor)}[/]")
+    console.print(f"[dim]{explained}[/]")
     for name, ok, detail in checks:
         if ok:
             mark = "[green]ok[/]"
@@ -1829,22 +1855,14 @@ def cmd_resume(_: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_ui(args: argparse.Namespace) -> int:
-    """Open or reuse the project's dashboard. The dashboard is a reader of the workspace's state plus the chat and the
-    decisions panel: opening it runs no job and calls no model; closing the tab or stopping it stops no agent."""
+def open_dashboard(ws: Workspace, *, port: int = 8765, planner: str = "auto", open_: bool = False) -> dict[str, Any]:
+    """Open or reuse the project's dashboard: `{"started": False, "log", "log_tail"}` when it did not come up,
+    otherwise the public announcement plus `url`, `reused` and `log`. Shared by `unbidden ui` and the app's /ui."""
     import subprocess
 
     from unbidden.web import announce as ann
 
-    ws = Workspace.find()
-    ws.require()
     path = ann.ui_path(ws.dir)
-    if args.stop:
-        result = ann.stop(path)
-        if _emit(args, result):
-            return 0 if result["stopped"] else 1
-        console.print(f"dashboard stopped (pid {result['pid']})" if result["stopped"] else result["reason"])
-        return 0 if result["stopped"] else 1
     info = ann.alive(path)
     reused = info is not None
     log = ws.dir / "logs" / "ui.log"
@@ -1855,7 +1873,7 @@ def cmd_ui(args: argparse.Namespace) -> int:
         if log.exists() and log.stat().st_size > 20_000_000:
             log.replace(log.with_suffix(".log.1"))
         cmd = [sys.executable, "-m", "unbidden.web", "--workspace", str(ws.repo), "--announce", str(path),
-               "--port", str(args.port), "--planner", args.planner]  # fmt: skip
+               "--port", str(port), "--planner", planner]  # fmt: skip
         with log.open("ab") as out:
             subprocess.Popen(
                 cmd, cwd=ws.repo, stdin=subprocess.DEVNULL, stdout=out, stderr=subprocess.STDOUT,
@@ -1869,21 +1887,41 @@ def cmd_ui(args: argparse.Namespace) -> int:
                 info = None
         if info is None:
             tail = log.read_text(errors="replace").splitlines()[-15:] if log.exists() else []
-            if _emit(args, {"started": False, "log": str(log), "log_tail": tail}):
-                return 1
-            err.print(f"[red]the dashboard did not come up[/]; log: {log}")
-            for line in tail:
-                err.print(f"  {line}")
-            return 1
-    if args.open:
+            return {"started": False, "log": str(log), "log_tail": tail}
+    if open_:
         import webbrowser
 
         webbrowser.open(info["url"])
-    data = {**ann.public(info), "url": info["url"], "reused": reused, "log": str(log)}
+    return {**ann.public(info), "url": info["url"], "reused": reused, "log": str(log), "started": True}
+
+
+def cmd_ui(args: argparse.Namespace) -> int:
+    """Open or reuse the project's dashboard. The dashboard is a reader of the workspace's state plus the chat and the
+    decisions panel: opening it runs no job and calls no model; closing the tab or stopping it stops no agent."""
+    from unbidden.web import announce as ann
+
+    ws = Workspace.find()
+    ws.require()
+    path = ann.ui_path(ws.dir)
+    if args.stop:
+        result = ann.stop(path)
+        if _emit(args, result):
+            return 0 if result["stopped"] else 1
+        console.print(f"dashboard stopped (pid {result['pid']})" if result["stopped"] else result["reason"])
+        return 0 if result["stopped"] else 1
+    info = open_dashboard(ws, port=args.port, planner=args.planner, open_=args.open)
+    if not info["started"]:
+        if _emit(args, info):
+            return 1
+        err.print(f"[red]the dashboard did not come up[/]; log: {info['log']}")
+        for line in info["log_tail"]:
+            err.print(f"  {line}")
+        return 1
+    data = {k: v for k, v in info.items() if k != "started"}
     if _emit(args, data):
         return 0
     where = "served by the agent" if info.get("in_daemon") else f"pid {info['pid']}"
-    console.print(f"dashboard {'already open' if reused else 'open'} ({where}): {info['url']}")
+    console.print(f"dashboard {'already open' if info['reused'] else 'open'} ({where}): {info['url']}")
     console.print("closing the tab stops nothing; `unbidden ui --stop` stops the dashboard only; the agent: "
                   "`unbidden start` / `unbidden stop`")  # fmt: skip
     return 0
@@ -1984,24 +2022,12 @@ def cmd_setup(args: argparse.Namespace) -> int:
         return 2
 
 
-def cmd_home(args: argparse.Namespace) -> int:
-    """What `unbidden` shows with no command: the project's state, blocks and the next action."""
+def home_data(ws: Workspace) -> tuple[dict[str, Any], Any, dict[str, int], dict[str, Any], bool, Any]:
+    """The project's state for the home screen and the app's open: the data `--json` prints, the ledger status,
+    the opportunity counts, the agent's status, the kill switch and the last scan."""
     from unbidden.brain.spend import SpendLedger
     from unbidden.daemon import service
-    from unbidden.setup.text import t
 
-    try:
-        ws = Workspace.find()
-    except WorkspaceError:
-        if _emit(args, {"workspace": None, "next": "cd into a git repository"}):
-            return 0
-        console.print(t("home.nogit"))
-        return 2
-    if not ws.initialized:
-        if _emit(args, {"repo": str(ws.repo), "initialized": False, "next": "unbidden setup"}):
-            return 0
-        console.print(t("home.unset"))
-        return 0
     store = ws.store()
     mandate = ws.mandate()
     opps = store.list("opportunities", Opportunity)
@@ -2010,6 +2036,7 @@ def cmd_home(args: argparse.Namespace) -> int:
         counts[o.status.value] = counts.get(o.status.value, 0) + 1
     ledger = SpendLedger().status()
     last_scan = store.get_value("last_scan")
+    store.close()
     killed = ws.killswitch().engaged
     agent = service.status(ws)
     if killed:
@@ -2035,6 +2062,26 @@ def cmd_home(args: argparse.Namespace) -> int:
         "spend": {"spent_usd": round(ledger.spent_usd, 4), "available_usd": round(ledger.available_usd, 4)},
         "next": nxt,
     }
+    return data, ledger, counts, agent, killed, last_scan
+
+
+def cmd_home(args: argparse.Namespace) -> int:
+    """What `unbidden` shows with no command: the project's state, blocks and the next action."""
+    from unbidden.setup.text import t
+
+    try:
+        ws = Workspace.find()
+    except WorkspaceError:
+        if _emit(args, {"workspace": None, "next": "cd into a git repository"}):
+            return 0
+        console.print(t("home.nogit"))
+        return 2
+    if not ws.initialized:
+        if _emit(args, {"repo": str(ws.repo), "initialized": False, "next": "unbidden setup"}):
+            return 0
+        console.print(t("home.unset"))
+        return 0
+    data, ledger, counts, agent, killed, last_scan = home_data(ws)
     if _emit(args, data):
         return 0
     title = t("home.title", repo=ws.repo.name, head=data["head"][:12], mode=data["mode"], profile=data["profile"])
@@ -2045,9 +2092,8 @@ def cmd_home(args: argparse.Namespace) -> int:
     console.print(t("home.opps", counts=counts or "none yet"))
     console.print(t("home.scan", when=last_scan) if last_scan else t("home.scan.none"))
     console.print(t("home.spend", spent=ledger.spent_usd, available=ledger.available_usd))
-    console.print(f"[bold]{t('home.next', action=nxt)}[/]")
+    console.print(f"[bold]{t('home.next', action=data['next'])}[/]")
     console.print(f"[dim]{t('home.commands')}[/]")
-    store.close()
     return 0
 
 
