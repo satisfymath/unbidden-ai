@@ -1,4 +1,10 @@
-# Unbidden 0.10.0, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.10.1, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.10.1 (2026-11-02): the mark and the menus
+
+The banner's ring is drawn in braille cells, round and thin, open at the upper right with the dot outside the gap,
+as the logo is; the wordmark letterspaced. On the setup screen a choice (local / mixed / api, the mode, a connection
+kind) or a confirmation is a menu: arrows or a click, Enter; the default highlighted. Nothing else changes.
 
 ## 0.10.0 (2026-11-02): the terminal app
 
@@ -11,7 +17,7 @@ already existed (start, stop, kill switch, approve, reject, chat). `docs/INSTALL
 on macOS arm64 with the built wheel installed by `install.sh` into an empty HOME and driven in a pseudoterminal; CI
 unchanged (without a terminal, `unbidden` is the text home screen). Everything below describes 0.9.0 and still holds.
 
-**Status: 0.10.0, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
+**Status: 0.10.1, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
 met when the campaign paused at its gate (D-063); they are not changed here. The one that blocks 1.0: no useful cycle
 has been shown on an application not used in development. This candidate adds the product around the same engine:
 an installable wheel, a guided setup, one executor per workspace with a background agent, and the dashboard and chat
