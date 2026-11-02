@@ -20,7 +20,7 @@ from unbidden.contracts.events import EventType
 from unbidden.tui import actions
 from unbidden.tui.commands import Command, help_lines, parse
 from unbidden.tui.feed import Coalescer, Entry, seed
-from unbidden.tui.screens import PanelScreen
+from unbidden.tui.screens import PanelScreen, SetupScreen
 from unbidden.tui.state import read_cheap, read_dashboard, read_mandate, read_route, read_spend
 from unbidden.tui.text import t
 from unbidden.tui.widgets import ACCENT, Feed, Header, Prompt, StatusBar
@@ -101,6 +101,29 @@ class UnbiddenApp(App[int]):
         return self.query_one(Prompt)
 
     def on_mount(self) -> None:
+        self.prompt.focus()
+        if not self.ws.initialized:
+            self.push_screen(SetupScreen(self.ws), callback=self._first_setup_done)
+            return
+        self._open()
+
+    def _first_setup_done(self, code: int | None) -> None:
+        if not self.ws.initialized:  # the wizard did not even create the workspace
+            self.exit(code or 2)
+            return
+        self._open()
+        self._setup_outcome(code)
+
+    def _setup_outcome(self, code: int | None) -> None:
+        path = self.ws.mandate_path if code == 0 else self.ws.dir / "setup.json"
+        try:
+            shown = path.relative_to(self.ws.repo)
+        except ValueError:
+            shown = path
+        self._say(t("open.setup.done" if code == 0 else "open.setup.incomplete", path=shown), accent=code != 0)
+
+    def _open(self) -> None:
+        """The workspace is initialized: read it, seed the feed, start the tail and the ticks."""
         from unbidden.brain.spend import SpendLedger
         from unbidden.web.sources import live
 
@@ -182,6 +205,8 @@ class UnbiddenApp(App[int]):
     # --- the status bar -----------------------------------------------------------------------------------------
 
     def _tick(self) -> None:
+        if self.source is None:
+            return
         self._ticks += 1
         bar = self.bar.bar
         read_cheap(self.ws, self.source.store, bar)
@@ -315,8 +340,18 @@ class UnbiddenApp(App[int]):
         self._say(t("cmd.help.chat"))
         self._say(t("cmd.help.keys"))
 
-    def _setup(self, section: str | None) -> None:  # delivered in the next commit: setup inside the app
-        self._say("Run `unbidden setup` in another terminal; the feed keeps going here.")
+    def _setup(self, section: str | None) -> None:
+        redo_all = section == "--all"
+        screen = SetupScreen(self.ws, section=None if redo_all else section, redo_all=redo_all)
+        self.push_screen(screen, callback=self._setup_done)
+
+    def _setup_done(self, code: int | None) -> None:
+        self._setup_outcome(code)
+        read_mandate(self.ws, self.bar.bar)
+        header = self.query_one(Header)
+        header.mode, header.profile = self.bar.bar.mode, self.bar.bar.profile
+        header.refresh_line()
+        self.prompt.focus()
 
     # --- the agent's log ----------------------------------------------------------------------------------------
 
@@ -405,6 +440,9 @@ class UnbiddenApp(App[int]):
     # --- keys ---------------------------------------------------------------------------------------------------
 
     def action_interrupt(self) -> None:
+        if isinstance(self.screen, SetupScreen):  # the app's binding has priority; setup owns Ctrl+C while it is open
+            self.screen.action_interrupt()
+            return
         if self._turn_running and self.chat is not None:
             self.chat.cancel(self.source.id)
             return
@@ -446,8 +484,8 @@ class UnbiddenApp(App[int]):
 
 
 def run_app(ws: Workspace, *, planner: Planner = "auto") -> int:
-    """Open the app on an initialized workspace; the exit code is what the app returns (0 on /quit)."""
-    ws.require()
+    """Open the app on a workspace; one not set up yet opens the assistant first. The exit code is what the app
+    returns (0 on /quit)."""
     app = UnbiddenApp(ws, planner=planner)
     code = app.run()
     return int(code) if code is not None else 0

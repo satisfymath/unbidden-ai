@@ -59,6 +59,11 @@ T: dict[str, str] = {
     "cmd.activity.title": "Activity.",
     # chat
     # the app
+    "open.setup.incomplete": "Setup is not finished; your answers are kept in {path}. /setup resumes it.",
+    "open.setup.done": "Set up. The mandate is at {path}; /start runs the agent in the background.",
+    "prompt.setup": "Answer here. Enter confirms; Ctrl+C keeps what you answered and stops.",
+    "prompt.placeholder.setup": "Enter takes the default in brackets",
+    "setup.wait": "Setup is working; it will ask again in a moment.",
     "open.tail.stale": "The record could not be read ({reason}); it will say when it can again.",
     "open.tail.recovered": "The record reads again.",
     "bar.thinking": "thinking…",

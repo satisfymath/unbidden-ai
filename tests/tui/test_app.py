@@ -90,3 +90,60 @@ async def test_ctrl_c_arms_then_quits_and_leaves_no_kill_file(ws: Workspace) -> 
         await pilot.pause(0.2)
     assert app.return_value == 0
     assert not (ws.dir / "KILL").exists()
+
+
+@pytest.fixture
+def bare(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Workspace:
+    """A git repository with no .unbidden yet."""
+    import unbidden.cli as cli
+    import unbidden.runtime as runtime
+    from unbidden.brain import hardware
+
+    monkeypatch.setattr(runtime, "installed_models", lambda url: set())
+    monkeypatch.setattr(cli, "meta_api_status", lambda key, get=None: (False, "the model listing refuses the key"))
+    monkeypatch.setattr(
+        hardware, "detect", lambda: hardware.Machine(total_gb=16.0, apple_silicon=True, chip="test", gpu_gb=0.0)
+    )
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    (tmp_path / "home").mkdir()
+    repo = tmp_path / "shop"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    subprocess.run(["git", "-C", str(repo), "remote", "add", "origin", "git@github.com:acme/shop.git"], check=True)
+    subprocess.run(["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q",
+                    "--allow-empty", "-m", "init"], check=True)  # fmt: skip
+    monkeypatch.chdir(repo)
+    return Workspace.find()
+
+
+async def test_a_first_run_opens_setup_and_ctrl_c_keeps_the_answers(bare: Workspace) -> None:
+    from textual.widgets import Input, RichLog
+
+    from unbidden.tui.screens import SetupScreen
+
+    app = UnbiddenApp(bare, planner="rule")
+    async with app.run_test(size=(100, 30)) as pilot:
+        for _ in range(40):
+            await pilot.pause(0.1)
+            if isinstance(app.screen, SetupScreen) and app.screen._pending is not None:
+                break
+        assert isinstance(app.screen, SetupScreen)
+        log = "\n".join("".join(s.text for s in line) for line in app.screen.query_one("#log", RichLog).lines)
+        assert "Unbidden is not set up in this repository yet" in log and "Project" in log
+        await pilot.press("enter")  # confirm the project (default yes)
+        for _ in range(40):
+            await pilot.pause(0.1)
+            if app.screen._pending is not None and app.screen._pending[0].key == "priorities":  # type: ignore[attr-defined]
+                break
+        await pilot.press("ctrl+c")
+        for _ in range(40):
+            await pilot.pause(0.1)
+            if not isinstance(app.screen, SetupScreen):
+                break
+        assert not isinstance(app.screen, SetupScreen)
+        assert (bare.dir / "setup.json").exists()
+        await pilot.pause(0.3)
+        text = " ".join(_text(app.query_one(Feed)).split())  # the feed wraps long lines
+        assert "Setup is not finished; your answers are kept in .unbidden/setup.json. /setup resumes it." in text
+        assert "UNBiDDEN" in app.query_one(Header).line
+        assert not app.query_one(Input).password

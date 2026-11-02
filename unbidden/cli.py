@@ -2319,6 +2319,8 @@ def _no_command(args: argparse.Namespace) -> int:
         ws = Workspace.find()
     except WorkspaceError:
         return cmd_home(args)
+    if not ws.initialized and _wants_app(args):  # the assistant inside the app, then the feed
+        return _run_app(ws)
     if not ws.initialized and not getattr(args, "json", False):  # --json reports, never asks
         args.non_interactive = args.yes = args.all = args.show = False
         args.section = args.models = args.private_code = args.mode = args.mode_fallback = None
@@ -2326,10 +2328,7 @@ def _no_command(args: argparse.Namespace) -> int:
         args.priorities = args.budget = args.dashboard = None
         args.model_key_stdin = args.github_token_stdin = args.pull_model = args.probe = False
         args.credential = args.connection = None
-        code = cmd_setup(args)
-        if code != 0 or not _wants_app(args):
-            return code
-        return _run_app(ws)
+        return cmd_setup(args)
     if ws.initialized and _wants_app(args):
         return _run_app(ws)
     return cmd_home(args)
