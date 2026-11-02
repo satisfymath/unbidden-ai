@@ -10,6 +10,7 @@ import difflib
 import json
 import os
 import sys
+import threading
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -35,12 +36,19 @@ from unbidden.guardian.mandate_edit import (
     write_mandate,
 )
 from unbidden.setup import machine
+from unbidden.setup.discover import Found, discover
 from unbidden.setup.effective import effective_permissions, render
 from unbidden.setup.text import t
 from unbidden.store import Store
-from unbidden.workspace import Workspace, head_sha
+from unbidden.workspace import Workspace
 
-SECTIONS = ("project", "priorities", "models", "credentials", "autonomy", "connections", "budget", "dashboard")
+# The walk asks three things at most: the model key when none is found, how much Unbidden may do on its own, and
+# whether to apply. Everything else is found or has a default shown in the summary; the advanced sections run only
+# by name (`unbidden setup budget`, `/setup connections`) or with --all.
+SECTIONS = ("found", "models", "autonomy")
+ADVANCED = ("priorities", "credentials", "connections", "budget", "dashboard", "private_code")
+ALL = SECTIONS + ADVANCED
+OLD_NAMES = {"project": "found"}  # a setup.json written by 0.10
 ModelOption = Literal["local", "mixed", "api"]
 Mode = Literal["supervised", "autopilot", "autonomous"]
 DashboardChoice = Literal["now", "later", "never"]
@@ -111,6 +119,9 @@ class Answers(BaseModel):
     budget_usd: float | None = None
     dashboard: DashboardChoice | None = None
     completed: list[str] = []
+    found: dict[str, Any] | None = None  # what the found block saw, as data
+    github_source: str | None = None  # file, env, gh, browser, token; None when none
+    defaulted: list[str] = []  # sections never asked in this walk: their defaults were kept
 
 
 def answers_path(ws: Workspace) -> Path:
@@ -243,10 +254,17 @@ class Context:
     probe: Probe
     notes: list[str] = field(default_factory=list)
     pull: Pull = pull_model
+    found: Found | None = None
+    cancel: threading.Event = field(default_factory=threading.Event)  # set by Ctrl+C while a wait cannot ask
 
     @property
     def body(self) -> dict[str, Any]:
         return self.raw["mandate"]
+
+    def facts(self) -> Found:
+        if self.found is None:
+            self.found = discover(self.ws)
+        return self.found
 
     def say(self, text: str) -> None:
         self.out.print(text)
@@ -255,20 +273,67 @@ class Context:
         self.out.print(f"\n[bold]{t(key)}[/]")
 
 
-def step_project(ctx: Context) -> None:
-    ctx.title("project.title")
-    ws = ctx.ws
-    branch = _branch(ws.repo)
-    ctx.say(t("project.repo", repo=ws.repo, branch=branch, head=head_sha(ws.repo)[:12]))
-    try:
-        from unbidden.observe.scope import diagnose
+def step_found(ctx: Context) -> None:
+    """Facts, no question: the repository and its remote, GitHub access, the scope, the connections the compose
+    files declare, the machine and its models, the option those facts amount to."""
+    ctx.title("found.title")
+    found = ctx.facts()
+    where = found.slug or found.name
+    if found.head is None:
+        ctx.say(t("found.repo.nocommit", repo=where, branch=found.branch))
+    else:
+        ctx.say(t("found.repo", repo=where, branch=found.branch, head=found.head[:12]))
+    if found.slug is None:
+        ctx.say(t("found.noremote"))
+    for name, ok, note in found.scope:
+        ctx.say(f"  {name:14} {t('found.scope.ok') if ok else t('found.scope.no')}: {note}")
+    if found.compose_path:
+        items = [f"{kind} {name} ({t('found.compose')})" for name, kind in found.services if kind]
+        items += [f"{kind} {location} ({t('found.notgranted')})" for kind, location, _ in found.external]
+        listed = ", ".join(items) or t("found.connections.none")
+        ctx.say(t("found.connections", path=found.compose_path, items=listed))
+    else:
+        ctx.say(t("found.connections.nocompose"))
+    ctx.say(t("models.hardware", described=found.machine.describe))
+    rec = found.recommendation
+    installed = "" if rec.installed else t("models.not_installed")
+    ctx.say(t("models.local_model", tag=rec.model.tag, reason=rec.reason, installed=installed))
+    state = t("found.key.present") if found.key_present else t("found.key.absent")
+    ctx.say(t("found.key", name=found.key_env, state=state))
+    _github_access(ctx, found)
+    ctx.answers.found = found.as_dict()
 
-        for name, ok, note in diagnose(ws.repo):
-            ctx.say(f"  {name:14} {t('project.scope.ok') if ok else t('project.scope.no')}: {note}")
-    except Exception as exc:  # the diagnosis is information; its failure is not a block
-        ctx.say(f"  scope: not diagnosed ({type(exc).__name__})")
-    if not ctx.opts.non_interactive and not ctx.io.confirm("project", t("project.confirm"), True):
-        raise SetupError("setup cancelled")
+
+def _github_access(ctx: Context, found: Found) -> None:
+    """Where the GitHub token comes from; when nowhere, one menu: sign in through the browser, paste, or skip."""
+    from unbidden.setup import github_device
+
+    source = found.github.source
+    if source is not None:
+        ctx.say(t("found.github", source=t(f"found.github.{source}")))
+        ctx.answers.github_source = source
+        return
+    ctx.say(t("found.github", source=t("found.github.none")))
+    if ctx.opts.non_interactive:
+        return  # --github-token-stdin runs through the credentials section
+    choices = (["browser"] if github_device.available() else []) + ["token", "skip"]
+    pick = ctx.io.choice("github_access", t("github.ask"), choices, "browser" if choices[0] == "browser" else "skip")
+    ctx.say(f"  {t('github.' + pick)}")
+    env_path = machine.machine_env()
+    if pick == "browser":
+        token = github_device.sign_in(say=ctx.say, cancel=ctx.cancel)
+        if token:
+            machine.write_env(env_path, {"GITHUB_TOKEN": token})
+            broker().hold("GITHUB_TOKEN", token)
+            broker().grant("GITHUB_TOKEN", "github")
+            ctx.say(t("credentials.saved", name="GITHUB_TOKEN"))
+            ctx.answers.github_source = "browser"
+            if "GITHUB_TOKEN" not in ctx.answers.credentials_saved:
+                ctx.answers.credentials_saved.append("GITHUB_TOKEN")
+    elif pick == "token" and _credential(ctx, "GITHUB_TOKEN", env_path, stdin_flag=False):
+        ctx.answers.github_source = "token"
+        if "GITHUB_TOKEN" not in ctx.answers.credentials_saved:
+            ctx.answers.credentials_saved.append("GITHUB_TOKEN")
 
 
 def step_priorities(ctx: Context) -> None:
@@ -284,55 +349,78 @@ def step_priorities(ctx: Context) -> None:
 
 
 def step_models(ctx: Context) -> None:
-    from unbidden.brain.hardware import detect, recommend
-    from unbidden.runtime import installed_models
-
+    """The option follows from what the machine has; the only question is the key, when none is found."""
     ctx.title("models.title")
-    ctx.say(t("models.explain"))
-    for option in ("local", "mixed", "api"):
-        ctx.say(f"  {t('models.' + option)}")
-    machine_ = detect()
-    config = ctx.ws.config() if ctx.ws.initialized else None
-    ollama_url = config.providers["ollama"].base_url if config and "ollama" in config.providers else None
-    installed = installed_models(ollama_url) if ollama_url else set()
-    rec = recommend(machine_, installed)
-    ctx.say(t("models.hardware", described=machine_.describe))
-    ctx.say(
-        t(
-            "models.local_model",
-            tag=rec.model.tag,
-            reason=rec.reason,
-            installed="" if rec.installed else t("models.not_installed"),
-        )
-    )
-    key_present = broker().has("MODEL_API_KEY") or "MODEL_API_KEY" in machine.read_env(machine.machine_env())
-    if key_present and installed:
-        ctx.say(t("models.recommend", option="mixed", why="a key and a local model are both available"))
-    elif key_present:
-        ctx.say(t("models.recommend", option="api", why="a key is available and no local model is installed"))
-    elif installed:
-        ctx.say(t("models.recommend", option="local", why="a local model is installed and no key is saved"))
-    default = ctx.answers.models
-    option = ctx.io.choice("models", t("models.ask"), ("local", "mixed", "api"), default)
+    found = ctx.facts()
+    env_path = machine.machine_env()
+    key_present = found.key_present
+    asks_key = not ctx.opts.non_interactive and not key_present and ctx.opts.models != "local"
+    if ctx.opts.model_key_stdin or asks_key:
+        if ctx.opts.non_interactive:
+            value = ctx.io.secret(found.key_env, "")
+        else:
+            ctx.say(t("models.key.why"))
+            value = ctx.io.secret(found.key_env, t("models.key.ask", name=found.key_env))
+        if value:
+            machine.write_env(env_path, {found.key_env: value})
+            broker().hold(found.key_env, value)
+            broker().grant(found.key_env, "model.remote")
+            ctx.say(t("credentials.saved", name=found.key_env))
+            key_present = True
+            if found.key_env not in ctx.answers.credentials_saved:
+                ctx.answers.credentials_saved.append(found.key_env)
+            from unbidden.cli import meta_api_status
+
+            ok, detail = meta_api_status(True)
+            ctx.say(t("credentials.listing", detail=detail))
+            if not ok and "refuses" in detail:
+                ctx.say(t("credentials.listing.note"))
+        else:
+            ctx.say(t("models.key.skipped"))
+    found.key_present = key_present
+    if ctx.opts.models is not None:
+        option, why = ctx.opts.models, t("models.why.flag")
+    else:
+        option, why = found.option()
+    ctx.say(t("models.chosen", option=option, why=why))
+    if option == "local" and not found.local_model and not found.ollama_present:
+        ctx.say(t("models.none"))
+        ctx.notes.append(t("models.none"))
     ctx.answers.models = option  # type: ignore[assignment]
-    if option != "api" and not rec.installed and rec.fits:
+    rec = found.recommendation
+    if option != "api" and not rec.installed and rec.fits and found.ollama_present:
         pull = (
             ctx.opts.pull_model
             if ctx.opts.non_interactive
-            else ctx.io.confirm("pull_model", t("models.pull.ask", tag=rec.model.tag, gb=rec.model.loaded_gb), False)
+            else ctx.io.confirm("pull_model", t("models.pull.ask", tag=rec.model.tag, gb=rec.model.loaded_gb), True)
         )
         if pull:
             ctx.pull(rec.model.tag, ctx.say)
         else:
             ctx.say(t("models.pull.skip"))
-    private_default = ctx.answers.private_code_to_frontier or str(
-        ctx.body.get("models", {}).get("private_code_to_frontier", "deny")
+    private = (
+        ctx.opts.private_code
+        or ctx.answers.private_code_to_frontier
+        or str(ctx.body.get("models", {}).get("private_code_to_frontier", "deny"))
     )
-    private = "deny"
-    if option != "local":
-        private = ctx.io.choice("private_code", t("models.private_code.ask"), ("deny", "allow"), private_default)
+    if option == "local":
+        private = "deny"
     ctx.answers.private_code_to_frontier = private  # type: ignore[assignment]
     apply_model_option(ctx.raw, option)
+    apply_models(ctx.raw, private_code_to_frontier=private)
+    if ctx.opts.probe and key_present:
+        _offer_probe(ctx)
+
+
+def step_private_code(ctx: Context) -> None:
+    ctx.title("private_code.title")
+    current = ctx.answers.private_code_to_frontier or str(
+        ctx.body.get("models", {}).get("private_code_to_frontier", "deny")
+    )
+    private = ctx.opts.private_code or ctx.io.choice(
+        "private_code", t("models.private_code.ask"), ("deny", "allow"), current
+    )
+    ctx.answers.private_code_to_frontier = private  # type: ignore[assignment]
     apply_models(ctx.raw, private_code_to_frontier=private)
 
 
@@ -341,7 +429,7 @@ def step_credentials(ctx: Context) -> None:
     env_path = machine.machine_env()
     ctx.say(t("credentials.where", path=env_path))
     saved: list[str] = []
-    needs_key = ctx.answers.models in ("mixed", "api")
+    needs_key = (ctx.answers.models or _option_of(ctx.body.get("models") or {})) in ("mixed", "api")
     if needs_key:
         if _credential(ctx, "MODEL_API_KEY", env_path, stdin_flag=ctx.opts.model_key_stdin):
             saved.append("MODEL_API_KEY")
@@ -456,7 +544,7 @@ def step_autonomy(ctx: Context) -> None:
     ctx.say(t("autonomy.explain"))
     for mode in ("supervised", "autopilot", "autonomous"):
         ctx.say(f"  {t('autonomy.' + mode)}")
-    default = ctx.answers.mode or current_mode(ctx.body.get("autonomy") or {})
+    default = ctx.opts.mode or ctx.answers.mode or current_mode(ctx.body.get("autonomy") or {})
     if default not in MODES:
         default = "supervised"
     mode = ctx.io.choice("mode", t("autonomy.ask"), ("supervised", "autopilot", "autonomous"), default)
@@ -480,10 +568,7 @@ def step_autonomy(ctx: Context) -> None:
     ctx.answers.mode = mode  # type: ignore[assignment]
     apply_mode(ctx.raw, mode)
     current = str((ctx.body.get("autonomy") or {}).get("act_on_connections", "deny"))
-    writes = ctx.io.choice(
-        "act_on_connections", t("autonomy.connections.ask"), ("deny", "require_approval", "allow"),
-        ctx.answers.act_on_connections or current,
-    )  # fmt: skip
+    writes = ctx.opts.act_on_connections or ctx.answers.act_on_connections or current  # asked only by a grant
     ctx.answers.act_on_connections = writes  # type: ignore[assignment]
     apply_autonomy(ctx.raw, act_on_connections=writes)
     ctx.say(t("autonomy.effective"))
@@ -501,15 +586,25 @@ def step_connections(ctx: Context) -> None:
                 fields["permissions"] = fields["permissions"].split("+")  # type: ignore[assignment]
             specs.append(Connection.model_validate(fields))
     else:
+        found = ctx.facts()
+        known = {f"{kind} {location}": (kind, location) for kind, location, _ in found.external}
         while True:
-            kind = ctx.io.choice("connection_kind", t("connections.ask"), ("none", "postgres", "http_api"), "none")
-            if kind == "none":
+            choices = ["none", *known, "postgres", "http_api"]
+            pick = ctx.io.choice("connection_kind", t("connections.ask"), choices, "none")
+            if pick == "none":
                 break
+            kind, location = known.get(pick, (pick, None))
+            if location is not None:
+                ctx.say(t("connections.prefilled", kind=kind, location=location))
+            host = (location or "").split("://")[-1].split(":")[0]
+            default_env = "development" if host in ("127.0.0.1", "localhost") else "staging"
+            default_id = (location or "").rsplit("/", 1)[-1].replace(":", "-") or None
             spec = Connection(
-                id=ctx.io.text("connection_id", t("connections.id"), None),
+                id=ctx.io.text("connection_id", t("connections.id"), default_id) or default_id or kind,
                 kind=kind,
-                location=ctx.io.text("connection_location", t("connections.location"), None),
-                environment=ctx.io.text("connection_environment", t("connections.environment"), "staging") or "staging",
+                location=location or ctx.io.text("connection_location", t("connections.location"), None),
+                environment=ctx.io.text("connection_environment", t("connections.environment"), default_env)
+                or default_env,
             )
             if kind == "postgres":
                 spec.username = ctx.io.text("connection_username", t("connections.username"), None) or None
@@ -537,6 +632,14 @@ def step_connections(ctx: Context) -> None:
             by_id[spec.id] = spec.model_dump(exclude_none=True)
         ctx.body["connections"] = list(by_id.values())
         ctx.answers.connections = specs
+        if any(p.startswith("write") for spec in specs for p in spec.permissions):
+            current = str((ctx.body.get("autonomy") or {}).get("act_on_connections", "deny"))
+            writes = ctx.io.choice(
+                "act_on_connections", t("autonomy.connections.ask"), ("deny", "require_approval", "allow"),
+                ctx.opts.act_on_connections or current,
+            )  # fmt: skip
+            ctx.answers.act_on_connections = writes  # type: ignore[assignment]
+            apply_autonomy(ctx.raw, act_on_connections=writes)
     validate(ctx.raw)
 
 
@@ -590,14 +693,15 @@ def step_dashboard(ctx: Context) -> None:
 
 
 STEPS: dict[str, Callable[[Context], None]] = {
-    "project": step_project,
-    "priorities": step_priorities,
+    "found": step_found,
     "models": step_models,
-    "credentials": step_credentials,
     "autonomy": step_autonomy,
+    "priorities": step_priorities,
+    "credentials": step_credentials,
     "connections": step_connections,
     "budget": step_budget,
     "dashboard": step_dashboard,
+    "private_code": step_private_code,
 }
 
 
@@ -624,6 +728,10 @@ def summary(ctx: Context, mandate: Mandate) -> dict[str, Any]:
         "effective": effective_permissions(mandate),
         "notes": list(ctx.notes),
         "probe": ctx.answers.probe,
+        "priorities": list(ctx.body.get("priorities") or []),
+        "github": ctx.answers.github_source,
+        "found": ctx.answers.found,
+        "defaulted": list(ctx.answers.defaulted),
     }
 
 
@@ -642,12 +750,29 @@ def show_summary(ctx: Context, data: dict[str, Any]) -> None:
     ctx.say(t("summary.mode", mode=data["mode"], connections=data["act_on_connections"]))
     ctx.say(t("summary.budget", budget=float(data["budget_usd"] or 0)))
     ctx.say(t("summary.credentials", names=", ".join(data["credential_names_present"]) or "none"))
+    github = t(f"found.github.{data['github']}") if data.get("github") else t("found.github.none")
+    ctx.say(t("summary.github", source=github))
+    ctx.say(t("summary.priorities", names=", ".join(data["priorities"]) or "none"))
     ctx.say(t("summary.dashboard", choice=data["dashboard"]))
+    if data.get("defaulted"):
+        ctx.say(t("summary.defaults", names=", ".join(data["defaulted"])))
     ctx.say(t("autonomy.effective"))
     for line in render(data["effective"]):
         ctx.say(line)
     for note in data["notes"]:
         ctx.say(f"  note: {note}")
+
+
+def _flagged(opts: Options, section: str) -> bool:
+    """An advanced section joins a scripted or default walk when its flags were given."""
+    return {
+        "priorities": opts.priorities is not None,
+        "credentials": opts.github_token_stdin,
+        "connections": bool(opts.connections or opts.credentials_stdin),
+        "budget": opts.budget is not None,
+        "dashboard": opts.dashboard is not None,
+        "private_code": opts.private_code is not None,
+    }[section]
 
 
 def run(
@@ -658,6 +783,7 @@ def run(
     probe: Probe = probe_remote,
     io: IO | None = None,
     pull: Pull = pull_model,
+    cancel: threading.Event | None = None,
 ) -> int:
     """Walk the sections (or one), show the summary and the diff, write once. Exit 0 written, 3 nothing written,
     2 cancelled or an answer missing, 4 the mode asked for is blocked and no other mode was named."""
@@ -688,19 +814,24 @@ def run(
             io = Scripted({k: v for k, v in scripted.items() if v is not None}, read_stdin_secrets(names))
         else:
             io = Interactive(out)
-    ctx = Context(ws, store, raw, answers, io, out, opts, probe, pull=pull)
+    ctx = Context(ws, store, raw, answers, io, out, opts, probe, pull=pull, cancel=cancel or threading.Event())
+    answers.completed = [OLD_NAMES.get(name, name) for name in answers.completed]
     if created:
         ctx.say(t("welcome"))
-    elif answers.completed and not opts.section and not opts.redo_all:
+    elif answers.completed and not opts.section and not opts.redo_all and not opts.non_interactive:
         ctx.say(t("resume", done=", ".join(answers.completed)))
-    if opts.non_interactive:
-        opts.redo_all = True  # the flags are the whole specification; resuming is for the interactive walk
-    sections = [opts.section] if opts.section else list(SECTIONS)
+    if opts.section:
+        sections = [opts.section]
+    elif opts.redo_all:
+        sections = list(ALL)
+    else:  # the flags are the whole specification of a scripted walk; the interactive one resumes
+        sections = list(SECTIONS) + [name for name in ADVANCED if _flagged(opts, name)]
     if opts.section and opts.section not in STEPS:
-        raise SetupError(f"unknown section {opts.section!r}; one of {', '.join(SECTIONS)}")
+        raise SetupError(f"unknown section {opts.section!r}; one of {', '.join(ALL)}")
+    answers.defaulted = [name for name in ADVANCED if name not in sections and name not in answers.completed]
     try:
         for name in sections:
-            if not opts.section and not opts.redo_all and name in answers.completed:
+            if not opts.section and not opts.redo_all and not opts.non_interactive and name in answers.completed:
                 continue
             STEPS[name](ctx)
             if name not in answers.completed:
@@ -766,12 +897,3 @@ def run(
     if data["dashboard"] == "now":
         ctx.say(f"  {t('next.ui')}")
     return 0
-
-
-def _branch(repo: Path) -> str:
-    import subprocess
-
-    out = subprocess.run(
-        ["git", "-C", str(repo), "branch", "--show-current"], capture_output=True, text=True, check=False
-    )
-    return out.stdout.strip() or "(detached)"

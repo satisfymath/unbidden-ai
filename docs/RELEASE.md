@@ -1,4 +1,16 @@
-# Unbidden 0.10.2, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.11.0, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.11.0 (2026-11-02): setup asks three things
+
+The assistant finds the repository and its GitHub remote, where GitHub access comes from (a saved token, the
+environment, or the `gh` CLI's sign-in, held in memory and never copied), the scope, the connections the compose
+files declare at HEAD (listed, never granted on their own), the machine, Ollama and its models, and whether a key
+is saved; the model option follows from those facts. It asks the Meta API key only when none is found, how much
+Unbidden may do on its own, and whether to apply. Priorities, budget, dashboard, private code and manual
+connections keep their defaults, shown with the section that changes each (`unbidden setup budget`, `/setup
+connections`, pre-filled from compose). A sign-in through the browser (GitHub's device flow) is implemented and
+hidden until the OAuth App is registered. Scripted setup needs no `--models` or `--mode`. `docs/INSTALL.md`,
+"`unbidden setup`".
 
 ## 0.10.2 (2026-11-02): a chat question answered twice, and a start that refuses what cannot run
 
@@ -26,7 +38,7 @@ already existed (start, stop, kill switch, approve, reject, chat). `docs/INSTALL
 on macOS arm64 with the built wheel installed by `install.sh` into an empty HOME and driven in a pseudoterminal; CI
 unchanged (without a terminal, `unbidden` is the text home screen). Everything below describes 0.9.0 and still holds.
 
-**Status: 0.10.2, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
+**Status: 0.11.0, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
 met when the campaign paused at its gate (D-063); they are not changed here. The one that blocks 1.0: no useful cycle
 has been shown on an application not used in development. This candidate adds the product around the same engine:
 an installable wheel, a guided setup, one executor per workspace with a background agent, and the dashboard and chat

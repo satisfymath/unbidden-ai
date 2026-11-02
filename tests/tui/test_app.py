@@ -100,6 +100,9 @@ def bare(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Workspace:
     from unbidden.brain import hardware
 
     monkeypatch.setattr(runtime, "installed_models", lambda url: set())
+    from unbidden.setup import discover as discover_
+
+    monkeypatch.setattr(discover_, "_ollama_installed", lambda: False)
     monkeypatch.setattr(cli, "meta_api_status", lambda key, get=None: (False, "the model listing refuses the key"))
     monkeypatch.setattr(
         hardware, "detect", lambda: hardware.Machine(total_gb=16.0, apple_silicon=True, chip="test", gpu_gb=0.0)
@@ -117,35 +120,35 @@ def bare(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Workspace:
 
 
 async def test_a_first_run_opens_setup_and_ctrl_c_keeps_the_answers(bare: Workspace) -> None:
-    from textual.widgets import Input, RichLog
+    from textual.widgets import Input, OptionList, RichLog
 
     from unbidden.tui.screens import SetupScreen
 
     app = UnbiddenApp(bare, planner="rule")
     async with app.run_test(size=(100, 30)) as pilot:
-        for _ in range(40):
+        for _ in range(60):
             await pilot.pause(0.1)
             if isinstance(app.screen, SetupScreen) and app.screen._pending is not None:
                 break
         assert isinstance(app.screen, SetupScreen)
         log = "\n".join("".join(s.text for s in line) for line in app.screen.query_one("#log", RichLog).lines)
-        assert "Unbidden is not set up in this repository yet" in log and "Project" in log
-        from textual.widgets import OptionList
-
+        assert "Unbidden is not set up in this repository yet" in log and "Found" in log
+        assert "repository acme/shop" in log and "GitHub access: none" in log
         menu = app.screen.query_one("#choices", OptionList)
-        assert menu.display and menu.option_count == 2 and menu.highlighted == 0  # Yes is the default
-        await pilot.press("enter")  # confirm the project
+        assert app.screen._pending[0].key == "github_access"  # type: ignore[index]
+        assert menu.display and menu.option_count == 2 and menu.highlighted == 1  # token, skip; skip is the default
+        await pilot.press("enter")
         for _ in range(40):
             await pilot.pause(0.1)
-            if app.screen._pending is not None and app.screen._pending[0].key == "priorities":  # type: ignore[attr-defined]
+            if app.screen._pending is not None and app.screen._pending[0].key == "MODEL_API_KEY":  # type: ignore[attr-defined]
                 break
-        assert not menu.display and app.screen.query_one("#answer", Input).display  # a text answer
-        await pilot.press("enter")  # the default priorities
+        assert not menu.display and app.screen.query_one("#answer", Input).password  # a secret, hidden
+        await pilot.press("enter")  # no key: the local option
         for _ in range(40):
             await pilot.pause(0.1)
-            if app.screen._pending is not None and app.screen._pending[0].key == "models":  # type: ignore[attr-defined]
+            if app.screen._pending is not None and app.screen._pending[0].key == "mode":  # type: ignore[attr-defined]
                 break
-        assert menu.display and menu.option_count == 3  # local, mixed, api as a menu
+        assert menu.display and menu.option_count == 3 and menu.highlighted == 0  # supervised is the default
         await pilot.press("ctrl+c")
         for _ in range(40):
             await pilot.pause(0.1)
