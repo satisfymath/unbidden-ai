@@ -57,7 +57,7 @@ Then:
 
 ```sh
 cd your-repo
-unbidden              # first time: the setup assistant (no model is called); afterwards: the home screen
+unbidden              # the app: the setup assistant the first time, then the live feed; --plain for text
 unbidden doctor       # what works here, what is required for your option, what is optional
 unbidden start --ui   # the agent in the background, serving the dashboard from its own process
 unbidden status       # agent pid and log, dashboard URL, kill switch

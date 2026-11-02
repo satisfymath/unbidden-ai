@@ -98,7 +98,7 @@ the image is built. That is why Docker is the one dependency of every function t
 
 ```sh
 cd your-repo
-unbidden                     # first time: the setup assistant; afterwards: the home screen
+unbidden                     # the app: the setup assistant the first time, then the live feed (--plain for text)
 unbidden doctor              # what works here, and what is required or optional for the option you chose
 unbidden start --ui          # the agent in the background, serving the dashboard from its own process
 unbidden status              # agent pid, log, whether the last run ended badly; dashboard URL; kill switch
@@ -108,10 +108,34 @@ unbidden stop                # ends the agent cleanly (and the dashboard it serv
 unbidden start               # resumes: interrupted jobs return to the queue first
 ```
 
-### `unbidden` and `unbidden setup`
+### A first run: the app
 
-The first `unbidden` inside a repository without `.unbidden/` opens the assistant (`unbidden setup`; every sentence
-it says is in `unbidden/setup/text.py`). It calls no model. Sections, in order: project (repository, branch, head,
+`unbidden` with no arguments, on a terminal of at least 60 columns, opens the app: full screen, the feed of what
+the agent discovers, investigates, tries and proves in the middle, a prompt at the bottom, a status bar under it
+(agent, jobs, mode, model option, spend available, dashboard URL, age of the last event). In a repository without
+`.unbidden/` the app opens the setup assistant first, with the same questions as `unbidden setup` below; when it
+finishes the feed opens. Every sentence the app says is in `unbidden/tui/text.py`.
+
+At the prompt, plain text is a question for the agent (the same routes and spend rules as `unbidden chat`; with the
+`local` option, or `--planner rule`, it costs US$0) and `/` starts a command. `/help` lists them: `/start [--ui]`,
+`/stop`, `/status` (the activity table), `/inbox [--all]`, `/why <id>`, `/approve <id> [--hours N]`,
+`/reject <id> <reason>`, `/kill [reason]`, `/resume`, `/spend`, `/doctor`, `/ui [--open]`, `/activity`, `/log`,
+`/setup [section|--all]`, `/verbose`, `/clear`, `/quit`. Tab completes a command; up and down walk the history.
+
+Keys: Ctrl+C cancels a running answer, else clears the prompt, else asks for a second press to quit. Quitting the
+app stops no agent: `/stop` does. Esc cancels an answer or closes a panel. Ctrl+D on an empty prompt quits.
+Ctrl+L clears the feed. PageUp and PageDown scroll it. During setup, Ctrl+C keeps the answers given so far in
+`.unbidden/setup.json`; `/setup` resumes.
+
+The text interface is unchanged for scripts and for people who prefer it: `unbidden --plain` prints the home
+screen, `unbidden --json` the same as data, `UNBIDDEN_PLAIN=1` in the environment makes `unbidden` always text, and
+without a terminal (a pipe, CI, `TERM=dumb`, fewer than 60 columns) `unbidden` never opens the app. `unbidden app`
+opens it explicitly (exit 2 without a terminal).
+
+### `unbidden setup`
+
+The first `unbidden` inside a repository without `.unbidden/` opens the assistant (`unbidden setup` in text, inside
+the app on a terminal; every sentence it says is in `unbidden/setup/text.py`). It calls no model. Sections, in order: project (repository, branch, head,
 whether the stack is inside what this version supports), priorities, models (the three options below), credentials,
 autonomy and scope, connections (optional), budget, dashboard. It shows the diff of `.unbidden/mandate.yaml` before
 writing, records `MANDATE_CHANGED`, and can be interrupted: answered sections are kept in `.unbidden/setup.json`,
@@ -128,9 +152,9 @@ unbidden setup --non-interactive --models local|mixed|api --mode supervised|auto
 
 `--yes` applies (the diff is shown either way); `--model-key-stdin` reads the key from the first stdin line and
 `--github-token-stdin` the token from the next, so neither appears in argv, the shell history or the output.
-Afterwards `unbidden` alone is the home screen: repository, head, mode, profile, whether the agent runs (pid, since
-when, log) or ended without `stop`, the kill switch, opportunities, last scan, spend on this machine, and the next
-command.
+Afterwards `unbidden --plain` (or `unbidden` without a terminal) is the home screen in text: repository, head, mode,
+profile, whether the agent runs (pid, since when, log) or ended without `stop`, the kill switch, opportunities, last
+scan, spend on this machine, and the next command. The app shows the same in its header, bar and opening block.
 
 ### `unbidden start`, `stop`, `status`
 

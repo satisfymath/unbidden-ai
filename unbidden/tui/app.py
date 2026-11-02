@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 from typing import Any, ClassVar, Literal
 
+from rich.markup import escape
 from rich.table import Table
 from textual import work
 from textual.app import App, ComposeResult
@@ -328,7 +329,7 @@ class UnbiddenApp(App[int]):
         try:
             entries = fn()
         except Exception as exc:
-            entries = [Entry(verb="Noting", text=f"{name}: {exc}", kind="note", accent=True)]
+            entries = [Entry(verb="Noting", text=escape(f"{name}: {exc}"), kind="note", accent=True)]
         self.call_from_thread(self.feed.add_many, entries)
         self.call_from_thread(self._tick)
 
@@ -336,7 +337,8 @@ class UnbiddenApp(App[int]):
         self.feed.add(Entry(verb="Noting", text=t("cmd.help.title"), kind="heading"))
         width = max(len(usage) for usage, _ in help_lines())
         for usage, help_ in help_lines():
-            self.feed.add(Entry(verb="Noting", text=f"[bold]{usage.ljust(width)}[/]  {help_}", kind="note"))
+            line = f"[bold]{escape(usage.ljust(width))}[/]  {escape(help_)}"  # a usage holds [brackets]
+            self.feed.add(Entry(verb="Noting", text=line, kind="note"))
         self._say(t("cmd.help.chat"))
         self._say(t("cmd.help.keys"))
 

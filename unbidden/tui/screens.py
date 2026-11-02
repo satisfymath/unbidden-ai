@@ -127,7 +127,14 @@ class SetupScreen(Screen[int]):
         from unbidden.setup.wizard import Options, SetupError, run
 
         sink = LineSink(lambda line: self.app.call_from_thread(self._emit_line, line))
-        out = Console(file=sink, force_terminal=True, color_system="standard", width=100, soft_wrap=True)  # type: ignore[arg-type]
+        out = Console(
+            file=sink,  # type: ignore[arg-type]
+            force_terminal=True,
+            color_system="standard",
+            width=100,
+            soft_wrap=True,
+            highlight=False,  # the wizard's own styles only; no path or number highlighting
+        )
         opts = Options(section=self.section, redo_all=self.redo_all)
         try:
             code = run(self.ws, opts, out, io=AppIO(self._ask_from_worker), pull=self._pull)
@@ -180,7 +187,12 @@ class SetupScreen(Screen[int]):
         self.query_one("#answer", Input).value = ""
         self.query_one("#question", Static).update("")
         if ask.kind != "secret":
-            shown = value if value else (str(ask.default) if ask.default not in (None, False) else "")
+            if value:
+                shown = value
+            elif ask.kind == "confirm":
+                shown = "y" if ask.default else "n"
+            else:
+                shown = str(ask.default) if ask.default is not None else ""
             self.log_widget.write(Text(f"> {shown}", style="bold"))
         if not future.cancelled():
             future.set_result(value)
