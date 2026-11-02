@@ -15,7 +15,8 @@ from textual.binding import Binding, BindingType
 from textual.containers import Vertical, VerticalScroll
 from textual.message import Message
 from textual.screen import ModalScreen, Screen
-from textual.widgets import Input, RichLog, Static
+from textual.widgets import Input, OptionList, RichLog, Static
+from textual.widgets.option_list import Option
 
 from unbidden import __version__
 from unbidden.tui import brand
@@ -63,6 +64,8 @@ class SetupScreen(Screen[int]):
     SetupScreen #question { height: auto; padding: 0 0 0 0; }
     SetupScreen Input { height: 3; border: tall $panel; }
     SetupScreen Input:focus { border: tall $accent; }
+    SetupScreen #choices { height: auto; max-height: 8; border: tall $panel; display: none; }
+    SetupScreen #choices:focus { border: tall $accent; }
     SetupScreen #hint { height: 1; color: $secondary; }
     """
     BINDINGS: ClassVar[list[BindingType]] = [Binding("ctrl+c", "interrupt", show=False, priority=True)]
@@ -78,6 +81,7 @@ class SetupScreen(Screen[int]):
         self.section = section
         self.redo_all = redo_all
         self._pending: tuple[Ask, Future[Any]] | None = None
+        self._values: list[Any] = []  # what each menu option answers with, by position
         self.code: int | None = None
 
     def compose(self) -> ComposeResult:
@@ -85,6 +89,7 @@ class SetupScreen(Screen[int]):
         yield RichLog(wrap=True, markup=False, highlight=False, min_width=20, id="log")
         with Vertical(id="ask"):
             yield Static("", id="question")
+            yield OptionList(id="choices")
             yield Input(id="answer")
             yield Static(t("prompt.setup"), id="hint")
 
@@ -157,25 +162,55 @@ class SetupScreen(Screen[int]):
     # --- the questions --------------------------------------------------------------------------------------------
 
     def _show_ask(self, ask: Ask) -> Future[Any]:
+        """A choice or a confirmation is a menu (arrows or a click, Enter); text and secrets take the input."""
         future: Future[Any] = Future()
         self._pending = (ask, future)
         question = self.query_one("#question", Static)
         answer = self.query_one("#answer", Input)
-        label = Text(ask.prompt or ask.key, style="bold")
-        if ask.kind == "choice":
-            label.append(f"  ({' / '.join(ask.choices)})", style="dim")
-        if ask.kind == "confirm":
-            label.append("  (y/n)", style="dim")
-        if ask.default not in (None, "", False):
-            label.append(f"  [{ask.default if not isinstance(ask.default, bool) else 'y'}]", style="dim")
-        elif ask.kind == "confirm":
-            label.append("  [n]", style="dim")
-        question.update(label)
-        answer.password = ask.kind == "secret"
-        answer.value = ""
-        answer.placeholder = "" if ask.kind == "secret" else t("prompt.placeholder.setup")
-        answer.focus()
+        choices = self.query_one("#choices", OptionList)
+        hint = self.query_one("#hint", Static)
+        question.update(Text(ask.prompt or ask.key, style="bold"))
+        if ask.kind in ("choice", "confirm"):
+            if ask.kind == "confirm":
+                labels, self._values = [t("setup.yes"), t("setup.no")], [True, False]
+                default = 0 if ask.default else 1
+            else:
+                labels, self._values = list(ask.choices), list(ask.choices)
+                default = self._values.index(ask.default) if ask.default in self._values else 0
+            choices.clear_options()
+            for i, label in enumerate(labels):
+                prompt = Text(label)
+                if i == default and (ask.kind == "confirm" or ask.default is not None):
+                    prompt.append(f"  {t('setup.default')}", style="dim")
+                choices.add_option(Option(prompt, id=str(i)))
+            choices.highlighted = default
+            answer.display = False
+            choices.display = True
+            hint.update(t("prompt.setup.menu"))
+            choices.focus()
+        else:
+            answer.password = ask.kind == "secret"
+            answer.value = ""
+            answer.placeholder = "" if ask.kind == "secret" else t("prompt.placeholder.setup")
+            choices.display = False
+            answer.display = True
+            hint.update(t("prompt.setup"))
+            answer.focus()
         return future
+
+    def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
+        event.stop()
+        if self._pending is None or event.option_id is None:
+            return
+        ask, future = self._pending
+        self._pending = None
+        value = self._values[int(event.option_id)]
+        self.query_one("#choices", OptionList).display = False
+        self.query_one("#question", Static).update("")
+        shown = ("y" if value else "n") if ask.kind == "confirm" else str(value)
+        self.log_widget.write(Text(f"> {shown}", style="bold"))
+        if not future.cancelled():
+            future.set_result(value)
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         event.stop()
