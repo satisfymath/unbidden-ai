@@ -39,6 +39,7 @@ CI_TTL_S: dict[str | None, float] = {"green": 3600.0, "red": 3600.0, None: 600.0
 PRIORITY = {
     "observe.live": 5,
     "ops.deploy": 8,
+    "ops.drill": 9,
     "research.investigate": 15,
     "research.probe": 65,
     "github.poll": 10,
@@ -97,6 +98,7 @@ class Cycle:
             "github.poll": self.github_poll,
             "observe.live": self.observe_live,
             "ops.deploy": self.ops_deploy,
+            "ops.drill": self.ops_drill,
             "research.investigate": self.research_investigate,
             "research.probe": self.research_probe,
             "research.consistency": self.research_consistency,
@@ -852,6 +854,25 @@ class Cycle:
         if run.status in ("waiting_capability", "waiting_extension"):
             self._queue_needs()
 
+    async def ops_drill(self, j: Job) -> None:
+        """The rollback drill a person asked for from a question: previous commit, health, back again."""
+        from unbidden.operate.deploy import drill, health_url
+
+        repo = self.runtime.workspace.repo
+        url = health_url(self.store)
+        if url is None:
+            self.say("drill not run: no live health endpoint is known on the map", correlation_id=j.id)
+            return
+        previous = subprocess.run(
+            ["git", "-C", str(repo), "rev-parse", "HEAD~1"], capture_output=True, text=True, check=False
+        ).stdout.strip()
+        if not previous:
+            self.say("drill not run: the checkout has no previous commit", correlation_id=j.id)
+            return
+        record = await asyncio.to_thread(drill, repo, self.store, self.runtime.workspace.mandate(), previous, url)
+        self.say(f"rollback drill {'passed' if record['passed'] else 'failed'}: back {record['back']}, forth "
+                 f"{record['forth']}", correlation_id=j.id)  # fmt: skip
+
     async def ops_deploy(self, j: Job) -> None:
         """Deploy what was merged: fast-forward the deployment checkout to the remote base, then the team's steps."""
         from unbidden.operate.deploy import OperationRefused, deploy, merged_evidence
@@ -965,6 +986,7 @@ TIMEOUT_S: dict[str, float] = {
     "observe.scan": 3600,
     "proposal.prepare": 1800,
     "ops.deploy": 2400,
+    "ops.drill": 2400,
     "research.investigate": 900,
     "research.probe": 3600,
     "forge.build": 1800,
@@ -979,6 +1001,22 @@ MAX_CONSISTENCY_QUEUED = 3  # consistency investigations waiting at once: each m
 
 def timeout_for(job_type: str) -> float:
     return TIMEOUT_S.get(job_type, DEFAULT_TIMEOUT_S)
+
+
+# Jobs the agent schedules for itself every few minutes whatever happens: a queue holding only these is idle.
+HOUSEKEEPING = ("world.refresh", "connect.survey", "observe.head", "observe.live", "github.poll", "director.sweep")
+
+
+def idle(store: Any) -> bool:
+    """Nothing left to do but housekeeping (campaign 12, P3-13: the queue never empties, because the map and the
+    connections are refreshed every five minutes, so "empty queue" never said the agent had finished): no job
+    running and none due but housekeeping."""
+    from unbidden.contracts.jobs import JobStatus
+
+    if store.jobs(status=JobStatus.RUNNING):
+        return False
+    due = [j for j in store.jobs(status=JobStatus.QUEUED) if j.run_at <= utc_now()]
+    return all(j.type in HOUSEKEEPING for j in due)
 
 
 def retry_after(attempts: int) -> timedelta:

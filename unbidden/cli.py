@@ -15,7 +15,7 @@ from rich.console import Console
 from rich.table import Table
 
 from unbidden import __version__
-from unbidden.contracts.events import Event, EventType
+from unbidden.contracts.events import EventType
 from unbidden.contracts.experiment import Proposal, ProposalStatus
 from unbidden.contracts.guardian import EgressAttempt
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
@@ -639,19 +639,13 @@ def cmd_drill(args: argparse.Namespace) -> int:
 def _drill(args: argparse.Namespace, ws: Workspace) -> int:
     import subprocess
 
-    from unbidden.contracts.world import WorldModel
-    from unbidden.operate.deploy import drill
+    from unbidden.operate.deploy import drill, health_url
 
     store = ws.store()
-    world = store.get("world", "world", WorldModel)
-    health = next(
-        (e for e in (world.of_kind("endpoint") if world else []) if e.name.startswith("GET ") and "health" in e.name),
-        None,
-    )
-    if health is None:
+    url = health_url(store)
+    if url is None:
         err.print("no live health endpoint is known; run `unbidden map` while the system runs")
         return 2
-    url = f"http://127.0.0.1:{health.attributes['port']}{health.name.split(' ', 1)[1]}"
     previous = (
         args.previous
         or subprocess.run(
@@ -922,35 +916,15 @@ def _forge(args: argparse.Namespace, ws: Workspace) -> int:
         console.print(f"disabled {args.target}: nothing reads through it any more")
         return 0
     if args.action == "approve":
-        from unbidden.forge.api_client import COLLECTION as INTEGRATIONS
-        from unbidden.forge.api_client import ApiIntegration
-        from unbidden.forge.stats import StatsAdapter
-        from unbidden.forge.stats_build import COLLECTION as STATS
+        from unbidden.forge.needs import NotApprovable, approve_capability
 
-        found: LogAdapter | StatsAdapter | ApiIntegration | None = store.get("capabilities", args.target, LogAdapter)
-        collection = "capabilities"
-        if found is None:
-            found, collection = store.get(STATS, args.target, StatsAdapter), STATS
-        if found is None:
-            found, collection = store.get(INTEGRATIONS, args.target, ApiIntegration), INTEGRATIONS
-        adapter = found
-        if adapter is None or adapter.status != "validated":
-            err.print("only a validated capability can be approved")
+        try:
+            needs = approve_capability(store, args.target or "", f"person:{getpass.getuser()}")
+        except NotApprovable as exc:
+            err.print(str(exc))
             return 1
-        adapter.status, adapter.approved_by = "approved", f"person:{getpass.getuser()}"
-        store.put(collection, adapter)
-        store.append_event(
-            Event(
-                type=EventType.CAPABILITY_APPROVED,
-                actor=adapter.approved_by,
-                entity_id=adapter.id,
-                payload={"source": adapter.source, "version": adapter.version},
-            )
-        )
-        console.print(f"approved {adapter.id} ({adapter.source} v{adapter.version})")
-        from unbidden.forge.needs import approved
-
-        for need in approved(store, adapter.id):
+        console.print(f"approved {args.target}")
+        for need in needs:
             console.print(f"  need {need.kind} for {need.source}: {need.status.value}")
         return 0
     if args.action == "build":
@@ -1669,6 +1643,9 @@ def cmd_errors(args: argparse.Namespace) -> int:
 
 def cmd_status(args: argparse.Namespace) -> int:
     from unbidden.daemon import service
+    from unbidden.daemon.cycle import idle
+    from unbidden.director.asks import open_asks
+    from unbidden.director.blocks import open_blocks
 
     ws = Workspace.find()
     ws.require()
@@ -1690,6 +1667,9 @@ def cmd_status(args: argparse.Namespace) -> int:
         "dashboard": announce.public(ui) if ui else None,
         "last_scan": store.get_value("last_scan"),
         "opportunities": counts,
+        "asks": [a.as_summary() for a in open_asks(store)],
+        "blocks": [{"id": b.id, "kind": b.kind, "needs": b.needs, "waiting": b.waiting} for b in open_blocks(store)],
+        "idle": idle(store),
     }
     if _emit(args, data):
         return 0

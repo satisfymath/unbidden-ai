@@ -181,6 +181,15 @@ def _databases(ctx: Context, record: Recon, world: Any) -> None:
             why = next((b.why for b in world.blind_spots if b.what.startswith(f"tables of {name}")), "")
             ctx.say(t("recon.db.unread", service=name, why=why or "no tables were read"))
         port = _published_port(service.ports if service else (), 5432)
+        if record.databases[name] == "unread" and port is not None:
+            # A grant already in the mandate (`setup --connection … --credential …`, scripted) for this published
+            # port counts once it connects: scripted setups never reached "granted" (campaign 13, WS1).
+            given = next((c for c in ctx.body.get("connections", []) if c.get("kind") == "postgres"
+                          and str(c.get("location", "")).split("/")[0].endswith(f":{port}")), None)  # fmt: skip
+            if given is not None and ctx.checker(given)[0] == "connected":
+                record.databases[name] = "granted"
+                ctx.say(t("recon.db.grant.ok", id=given.get("id"), detail="already granted"))
+                continue
         if port is None or ctx.opts.non_interactive:
             continue
         if not ctx.io.confirm("db_grant", t("recon.db.grant.ask", service=name, port=port), read == 0):

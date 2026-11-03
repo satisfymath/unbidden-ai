@@ -251,3 +251,22 @@ def test_the_in_container_postgres_read_is_a_connection() -> None:
 
     found = {c.id: c for c, _ in _from_world(_world())}
     assert "postgres:container:db" in found and found["postgres:container:db"].state.value == "connected"
+
+
+def test_a_grant_already_in_the_mandate_counts_in_a_scripted_recon(repo: Path) -> None:
+    """Campaign 13, WS1: a scripted setup (`--connection … --credential …`, the campaign harness) left the database
+    `unread`, so an autonomous start was refused although the grant connected."""
+    out, _ = _console()
+    io_ = Asks({"github_access": "skip", "db_grant": True, "db_username": "unbidden_ro", "adopt_deploy": False,
+                "mode": "supervised", "apply": True},
+               {"MODEL_API_KEY": "", "DB_RO_PASSWORD": "s3cret-pw-0123"})  # fmt: skip
+    ok = lambda grant: ("connected", "has_table_privilege SELECT")  # noqa: E731
+    assert run(Workspace(repo), Options(), out, io=io_, containers=lambda r: [{"Name": "x"}],
+               mapper=lambda ws: _world(), checker=ok) == 0  # fmt: skip
+
+    unread = WorldModel(rev="HEAD")  # the map read no table this time
+    out, _ = _console()
+    opts = Options(non_interactive=True, yes=True, section="recon")
+    assert run(Workspace(repo), opts, out, io=Scripted({}, {}), containers=lambda r: [{"Name": "x"}],
+               mapper=lambda ws: unread, checker=ok) == 0  # fmt: skip
+    assert recon.status(Workspace(repo).store())["databases"] == {"db": "granted"}  # type: ignore[index]

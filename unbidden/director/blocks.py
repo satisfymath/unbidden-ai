@@ -55,6 +55,24 @@ class Block(Contract):
     resolved_at: datetime | None = None
 
 
+# What happens to the job a block stopped, by kind (campaign 13, WS1): a person's need parks it until the answer;
+# a service that did not answer is retried with backoff up to `UNAVAILABLE_ATTEMPTS`; what nobody can grant here
+# (`compatibility`, `not_viable`) is declared at once, not retried at the same commit.
+UNAVAILABLE_ATTEMPTS = 6
+UNKNOWN = "nothing known a person can grant"
+DECLARED = ("compatibility", "not_viable")
+
+
+def attempts_for(block: Block, default: int) -> int:
+    """How many attempts in all a job gets once `block` stopped it. An error nothing recognised (the fallback
+    `compatibility`) keeps the usual retries: it may be passing."""
+    if block.kind == "unavailable":
+        return max(default, UNAVAILABLE_ATTEMPTS)
+    if block.kind in DECLARED and not block.needs.startswith(UNKNOWN):
+        return 0
+    return default
+
+
 def classify(operation: str, error: str, continues: str) -> Block:
     """A failure, read for what would unblock it."""
     text = error[-2000:]
@@ -76,6 +94,16 @@ def classify(operation: str, error: str, continues: str) -> Block:
     if re.search(r"needs a person's approval|approve-writes|awaiting approval", text):
         return _block(operation, "pending_person", text, "a person's approval (`unbidden approve-writes` or "
                       "`unbidden forge approve`), time-limited", continues)  # fmt: skip
+    cap = re.search(r"remote spend this month is US\$[\d.]+, at the US\$([\d.]+) cap", text)
+    if cap is not None:
+        # The mandate's monthly cap, raised by a person or by the month turning (campaign 12, spoolman).
+        return spend_block(operation, text, float(cap.group(1)), continues)
+    if re.search(r"spend is split into envelopes|envelope '[\w.-]+' has|SpendRefused|machine's cap|verified balance",
+                 text):  # fmt: skip
+        return _block(operation, "pending_person", text, "spend authorized on this machine: `unbidden spend` (a "
+                      "person's record of credits; never changed by the agent)", continues)  # fmt: skip
+    if re.search(r"KillSwitchEngaged|kill switch (?:is )?engaged", text):
+        return _block(operation, "pending_person", text, "the kill switch released: `unbidden resume`", continues)
     if re.search(r"ProviderUnauthorized|the key was refused|invalid_api_key", text):
         return _block(operation, "pending_person", text, "a Meta API key the service accepts: `unbidden key set` "
                       "replaces the refused one", continues)  # fmt: skip
@@ -91,8 +119,7 @@ def classify(operation: str, error: str, continues: str) -> Block:
         return _block(operation, "unavailable", text, "the service to answer; retried later", continues)
     if re.search(r"no test|not collected|nothing to measure", text):
         return _block(operation, "not_viable", text, "nothing: the work cannot produce evidence here", continues)
-    return _block(operation, "compatibility", text, "nothing known a person can grant; the evidence says what failed",
-                  continues)  # fmt: skip
+    return _block(operation, "compatibility", text, f"{UNKNOWN}; the evidence says what failed", continues)
 
 
 def _block(operation: str, kind: Kind, evidence: str, needs: str, continues: str) -> Block:
