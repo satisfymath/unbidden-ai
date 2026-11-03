@@ -12,6 +12,7 @@ import argparse
 import json
 import math
 from collections import defaultdict
+from datetime import UTC
 from pathlib import Path
 from typing import Any
 
@@ -118,10 +119,10 @@ def level_b_table(records: list[dict[str, Any]]) -> list[str]:
         f = r["facts"]
         c1 = f.get("cycle1", {}).get("counts", {})
         c2 = f.get("cycle2", {}).get("counts", {})
-        pulls = _agent_pulls(f.get("fork_after_c2", {}))
+        pulls = _agent_pulls(f.get("fork_after_c2", {}), r.get("started_at"))
         merged = sum(1 for p in pulls if p.get("merged_at"))
         ci = ",".join(_ci_of(p) for p in pulls) or "-"
-        prs_c1 = len(_agent_pulls(f.get("fork_after_c1", {})))
+        prs_c1 = len(_agent_pulls(f.get("fork_after_c1", {}), r.get("started_at")))
         dup = "none" if len(pulls) == prs_c1 or len({p.get("head") for p in pulls}) == len(pulls) else "CHECK"
         deploys = (c2.get("events") or {}).get("operations.deployed", 0)
         ui = f.get("ui1", {})
@@ -138,12 +139,25 @@ def level_b_table(records: list[dict[str, Any]]) -> list[str]:
 AGENT = "satisfymath"  # the token's user: pull requests by anyone else (a bot) are not the agent's
 
 
-def _agent_pulls(state: dict[str, Any]) -> list[dict[str, Any]]:
+def _agent_pulls(state: dict[str, Any], since: str | None = None) -> list[dict[str, Any]]:
+    """The agent's pull requests on the copy; with `since` (the run's start, ISO), only those created in the run:
+    the copy keeps closed and merged pull requests of earlier runs (a merged one cannot be closed by the restore)."""
     return [
         p
         for p in (state.get("pulls") or [])
-        if str(p.get("head", "")).startswith("unbidden/") and p.get("user", AGENT) == AGENT
+        if str(p.get("head", "")).startswith("unbidden/")
+        and p.get("user", AGENT) == AGENT
+        and (since is None or _utc(p.get("created_at")) >= _utc(since))
     ]
+
+
+def _utc(stamp: str | None) -> str:
+    """ISO stamps compared as UTC text (records write the local offset, GitHub writes Z)."""
+    from datetime import datetime
+
+    if not stamp:
+        return ""
+    return datetime.fromisoformat(stamp.replace("Z", "+00:00")).astimezone(UTC).isoformat()
 
 
 def _ci_of(pr: dict[str, Any]) -> str:
@@ -187,8 +201,8 @@ def level_b_dimensions(records: list[dict[str, Any]], corpus: dict[str, dict[str
             for r in rs
             if ((r["facts"].get("cycle2") or {}).get("counts") or {}).get("docs", {}).get("experiments", 0) > 0
         )
-        pulls = [p for r in rs for p in _agent_pulls(r["facts"].get("fork_after_c2") or {})]
-        runs_with_pr = sum(1 for r in rs if _agent_pulls(r["facts"].get("fork_after_c2") or {}))
+        pulls = [p for r in rs for p in _agent_pulls(r["facts"].get("fork_after_c2") or {}, r.get("started_at"))]
+        runs_with_pr = sum(1 for r in rs if _agent_pulls(r["facts"].get("fork_after_c2") or {}, r.get("started_at")))
         ci = defaultdict(int)
         for p in pulls:
             ci[_ci_of(p)] += 1
@@ -214,10 +228,10 @@ def level_b_dimensions(records: list[dict[str, Any]], corpus: dict[str, dict[str
         dup = sum(
             1
             for r in rs
-            if len(_agent_pulls(r["facts"].get("fork_after_c2") or {}))
-            != len(_agent_pulls(r["facts"].get("fork_after_c1") or {}))
-            and len({p["head"] for p in _agent_pulls(r["facts"].get("fork_after_c2") or {})})
-            != len(_agent_pulls(r["facts"].get("fork_after_c2") or {}))
+            if len(_agent_pulls(r["facts"].get("fork_after_c2") or {}, r.get("started_at")))
+            != len(_agent_pulls(r["facts"].get("fork_after_c1") or {}, r.get("started_at")))
+            and len({p["head"] for p in _agent_pulls(r["facts"].get("fork_after_c2") or {}, r.get("started_at"))})
+            != len(_agent_pulls(r["facts"].get("fork_after_c2") or {}, r.get("started_at")))
         )
         interventions = sum(1 for r in rs if r["facts"].get("intervention"))
         prep_min = round(sum(h.get("minutes", 0) for r in rs for h in r.get("human", [])), 1)

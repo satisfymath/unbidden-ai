@@ -1,0 +1,334 @@
+{
+ "repo": "harlequin",
+ "phase": "eval",
+ "run": "A",
+ "candidate": "8686674327b6ce2fba44b4c2640977fecd0da2e2",
+ "wheel_sha256": "a915417588329e4383cd5f07ba96499dc228976863792f8d51e46dfa634a3917",
+ "started_at": "2026-11-01T22:44:49-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "supervised",
+    "--budget",
+    "0",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 4.1,
+   "timed_out": false,
+   "stdout": "{\n  \"models\": \"api\",\n  \"profile\": \"frontier\",\n  \"private_code_to_frontier\": \"deny\",\n  \"mode\": \"supervised\",\n  \"act_on_connections\": \"deny\",\n  \"budget_usd\": 0.0,\n  \"credentials_saved\": [\n    \"MODEL_API_KEY\"\n  ],\n  \"credential_names_present\": [\n    \"GITHUB_TOKEN\",\n    \"MODEL_API_KEY\"\n  ],\n  \"dashboard\": \"later\",\n  \"effective\": [\n    {\n      \"what\": \"observe the repository, its CI and running services\",\n      \"capability\": \"repo.read\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.observe\"\n    },\n    {\n      \"what\": \"run experiments in the offline sandbox\",\n      \"capability\": \"sandbox.run\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.run_experiments\"\n    },\n    {\n      \"what\": \"install dependencies while building\",\n      \"capability\": \"sandbox.provision\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.provision_dependencies\"\n    },\n    {\n      \"what\": \"send synthetic or public content to remote models\",\n      \"capability\": \"model.remote.synthetic\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.delegate_synthetic\"\n    },\n    {\n      \"what\": \"use capabilities it built for itself\",\n      \"capability\": \"capability.use\",\n      \"decision\": \"require_approval\",\n      \"rule\": \"autonomy.use_new_capabilities\"\n    },\n    {\n      \"what\": \"open pull requests\",\n      \"capability\": \"github.open_pull_request\",\n      \"decision\": \"require_approval\",\n      \"rule\": \"autonomy.open_pull_requests\"\n    },\n    {\n      \"what\": \"merge pull requests\",\n      \"capability\": \"github.merge_pull_request\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": null,\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c12/repos/c12-harlequin/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c12/repos/c12-harlequin/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 0.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -17,4 +17,5 @@\",\n    \"     rollback: deny\",\n    \"     use_new_capabilities: require_approval\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,7 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c12/repos/c12-harlequin/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": " for proven work; people merge\n  autonomous: also merges L4 work, deploys with the team's steps and rolls back\nEffective permissions\n  observe the repository, its CI and running services  allowed\n  run experiments in the offline sandbox               allowed\n  install dependencies while building                  allowed\n  send synthetic or public content to remote models    allowed\n  use capabilities it built for itself                 asks first\n  open pull requests                                   asks first\n  merge pull requests                                  denied\n  deploy with the team's steps                         denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nConnections (optional)\n\nBudget\nMachine ledger: verified balance US$97.29 (stage 6 spend cap authorized by David\non 2026-10-28: up to US$10 of free credits from this point (dev 3, evaluation 5,\ndemo and contingency 2; the earlier US$3 reserve is included, not added). \nDashboard as reported by David 2026-10-28: Current balance US$0, free credits in\nuse US$144.98, a Visa card on file, content sent while on free credits may be \nused to improve products. A cap, not a measured balance; no recharge or card \ncharge authorized (entered by david) | stage 9: US$30 additional Meta API spend \nauthorized by David on 2026-10-29, replacing the US$10 cap; cumulative cap \nUS$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval 12, demo 6 (D-052).\nDashboard as reported by David: free credits in use US$137.96, balance US$0, a \ncard on file. No recharge or card charge authorized (entered by david) | stage \n10: the remaining US$20.30 of the US$37.29 cap split before any call (D-058), by\nDavid's stage 10 instruction of 2026-10-30 (entered by david) | stage 10 after \nthe frozen evaluation: US$5 of the unspent s10-eval moved to s10-dev for \ncorrections and regressions, by David's instruction of 2026-10-31; envelopes \ntotal US$20.30 and the cumulative cap US$37.2945 unchanged; spent at the \ntransfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, s10-close 0) (entered by \ndavid) | product phase (A-E): s11-product US$4.00 authorized by David on \n2026-11-01, reassigned from s10-close (3.80, unspent, closed) and US$0.20 of \ns10-dev; envelopes total US$20.30 and the cumulative cap US$37.2945 unchanged; \nspent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval 1.0010, s10-close 0) \n(entered by david) | product phase correction: David's authorization of \n2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken from s10-dev had \nno recorded authorization and goes back (s10-dev 13.00, s11-product 3.80); \nenvelopes total US$20.30 and the cumulative cap US$37.2945 unchanged; \ns11-product spent 0 at the correction; spent at the correction US$27.7199 \n(entered by david) | campaign 12 (installed-product validation): US$60 \nadditional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david)); permitted US$97.29 · \nspent US$29.0701 · available US$68.2244\nenvelopes: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, \ns12-eval 30.00, s12-dev 17.00, s12-confirm 5.00\nProvider credits and authorized spend are different things: the cap a person \nentered with `unbidden spend --verified-balance` is what this machine may spend;\nit is never raised or reset here.\n\nDashboard\nOpening the dashboard, restoring its layout and showing records calls no model; \nchatting or asking for analysis can.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 3.9,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"3 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key set, API reachable\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"GITHUB_TOKEN set\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs require_approval\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.10 (pyproject.toml, uv.lock)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"static.yml > plugin (the whole job)\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "scan",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "scan",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 3.5,
+   "timed_out": false,
+   "stdout": "{\n  \"rev\": \"ad3ecef4ff12bc4c89b15fb9c6a628c424afb6e2\",\n  \"languages\": [\n    \"python\"\n  ],\n  \"blind_spots\": [],\n  \"problems\": [\n    \"dependency image for python failed to build:\\nerror: Failed to download and build `pytest-textual-snapshot @ git+https://github.com/tconbeer/pytest-textual-snapshot.git@a2c6763b45283f76757a123342900accefcf04e8`\\n  cause: Git operation failed\\n  cause: Git executable not found. Ensure that Git is installed and available.\\n\\nhint: `pytest-textual-snapshot` was included because `harlequin:test` (v2.17.0) depends on `pytest-textual-snapshot`\\nResolved 177 packages in 0.79ms\\n   Updating https://github.com/tconbeer/pytest-textual-snapshot.git (a2c6763b45283f76757a123342900accefcf04e8)\\nERROR: process \\\"/bin/sh -c (uv sync --frozen --no-install-project --group test --project /deps || (touch /deps/UNBIDDEN_LOCK_STALE && uv sync --no-install-project --group test --project /deps)) && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: harlequin\\\\\\\\nVersion: 2.17.0\\\\\\\\n' > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_harlequin.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\\n0.162   cause: Git executable not found. Ensure that Git is installed and available.\\n0.200 error: Failed to download and build `pytest-textual-snapshot @ git+https://github.com/tconbeer/pytest-textual-snapshot.git@a2c6763b45283f76757a123342900accefcf04e8`\\n0.200   cause: Git operation failed\\n0.200   cause: Git executable not found. Ensure that Git is installed and available.\\n--------------------\\nERROR: failed to build: failed to solve: process \\\"/bin/sh -c (uv sync --frozen --no-install-project --group test --project /deps || (touch /deps/UNBIDDEN_LOCK_STALE && uv sync --no-install-project --group test --project /deps)) && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: harlequin\\\\\\\\nVersion: 2.17.0\\\\\\\\n' > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_harlequin.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\"\n  ],\n  \"reports\": [],\n  \"opened\": 0,\n  \"resolved\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "inbox",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "inbox",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.1,
+   "timed_out": false,
+   "stdout": "[]\n",
+   "stderr": ""
+  },
+  {
+   "name": "status0",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.1,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c12/repos/c12-harlequin\",\n  \"head\": \"ad3ecef4ff12bc4c89b15fb9c6a628c424afb6e2\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c12/repos/c12-harlequin/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"ad3ecef4ff12bc4c89b15fb9c6a628c424afb6e2\",\n    \"tools\": [],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [],\n    \"problems\": [\n      \"dependency image for python failed to build:\\nerror: Failed to download and build `pytest-textual-snapshot @ git+https://github.com/tconbeer/pytest-textual-snapshot.git@a2c6763b45283f76757a123342900accefcf04e8`\\n  cause: Git operation failed\\n  cause: Git executable not found. Ensure that Git is installed and available.\\n\\nhint: `pytest-textual-snapshot` was included because `harlequin:test` (v2.17.0) depends on `pytest-textual-snapshot`\\nResolved 177 packages in 0.79ms\\n   Updating https://github.com/tconbeer/pytest-textual-snapshot.git (a2c6763b45283f76757a123342900accefcf04e8)\\nERROR: process \\\"/bin/sh -c (uv sync --frozen --no-install-project --group test --project /deps || (touch /deps/UNBIDDEN_LOCK_STALE && uv sync --no-install-project --group test --project /deps)) && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: harlequin\\\\\\\\nVersion: 2.17.0\\\\\\\\n' > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_harlequin.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\\n0.162   cause: Git executable not found. Ensure that Git is installed and available.\\n0.200 error: Failed to download and build `pytest-textual-snapshot @ git+https://github.com/tconbeer/pytest-textual-snapshot.git@a2c6763b45283f76757a123342900accefcf04e8`\\n0.200   cause: Git operation failed\\n0.200   cause: Git executable not found. Ensure that Git is installed and available.\\n--------------------\\nERROR: failed to build: failed to solve: process \\\"/bin/sh -c (uv sync --frozen --no-install-project --group test --project /deps || (touch /deps/UNBIDDEN_LOCK_STALE && uv sync --no-install-project --group test --project /deps)) && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: harlequin\\\\\\\\nVersion: 2.17.0\\\\\\\\n' > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_harlequin.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\"\n    ],\n    \"reports\": []\n  },\n  \"opportunities\": {}\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "start",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "start",
+    "--interval",
+    "3600",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 57573,\n  \"log\": \"/Users/david/unbidden-lab/c12/repos/c12-harlequin/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.1,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c12/repos/c12-harlequin\",\n  \"head\": \"ad3ecef4ff12bc4c89b15fb9c6a628c424afb6e2\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": true,\n    \"pid\": 57573,\n    \"started_at\": \"2026-11-02T01:45:03.997700+00:00\",\n    \"command\": \"watch\",\n    \"log\": \"/Users/david/unbidden-lab/c12/repos/c12-harlequin/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 1,\n    \"jobs_queued\": 1\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"ad3ecef4ff12bc4c89b15fb9c6a628c424afb6e2\",\n    \"tools\": [],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [],\n    \"problems\": [\n      \"dependency image for python failed to build:\\nerror: Failed to download and build `pytest-textual-snapshot @ git+https://github.com/tconbeer/pytest-textual-snapshot.git@a2c6763b45283f76757a123342900accefcf04e8`\\n  cause: Git operation failed\\n  cause: Git executable not found. Ensure that Git is installed and available.\\n\\nhint: `pytest-textual-snapshot` was included because `harlequin:test` (v2.17.0) depends on `pytest-textual-snapshot`\\nResolved 177 packages in 0.61ms\\n   Updating https://github.com/tconbeer/pytest-textual-snapshot.git (a2c6763b45283f76757a123342900accefcf04e8)\\nERROR: process \\\"/bin/sh -c (uv sync --frozen --no-install-project --group test --project /deps || (touch /deps/UNBIDDEN_LOCK_STALE && uv sync --no-install-project --group test --project /deps)) && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: harlequin\\\\\\\\nVersion: 2.17.0\\\\\\\\n' > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_harlequin.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\\n0.135   cause: Git executable not found. Ensure that Git is installed and available.\\n0.170 error: Failed to download and build `pytest-textual-snapshot @ git+https://github.com/tconbeer/pytest-textual-snapshot.git@a2c6763b45283f76757a123342900accefcf04e8`\\n0.170   cause: Git operation failed\\n0.170   cause: Git executable not found. Ensure that Git is installed and available.\\n--------------------\\nERROR: failed to build: failed to solve: process \\\"/bin/sh -c (uv sync --frozen --no-install-project --group test --project /deps || (touch /deps/UNBIDDEN_LOCK_STALE && uv sync --no-install-project --group test --project /deps)) && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: harlequin\\\\\\\\nVersion: 2.17.0\\\\\\\\n' > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_harlequin.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\"\n    ],\n    \"reports\": []\n  },\n  \"opportunities\": {}\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "start-again",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "start",
+    "--interval",
+    "3600",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.1,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": false,\n  \"already\": {\n    \"pid\": 57573,\n    \"host\": \"MacBook-Pro-de-David.local\",\n    \"started_at\": \"2026-11-02T01:45:03.997700+00:00\",\n    \"command\": \"watch\",\n    \"version\": \"0.9.0\",\n    \"argv_hint\": \"cli.py watch --interval 3600.0\"\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 1.4,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 57573,\n  \"waited_s\": 1.3,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-after",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.1,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c12/repos/c12-harlequin\",\n  \"head\": \"ad3ecef4ff12bc4c89b15fb9c6a628c424afb6e2\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c12/repos/c12-harlequin/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 2\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"ad3ecef4ff12bc4c89b15fb9c6a628c424afb6e2\",\n    \"tools\": [],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [],\n    \"problems\": [\n      \"dependency image for python failed to build:\\nerror: Failed to download and build `pytest-textual-snapshot @ git+https://github.com/tconbeer/pytest-textual-snapshot.git@a2c6763b45283f76757a123342900accefcf04e8`\\n  cause: Git operation failed\\n  cause: Git executable not found. Ensure that Git is installed and available.\\n\\nhint: `pytest-textual-snapshot` was included because `harlequin:test` (v2.17.0) depends on `pytest-textual-snapshot`\\nResolved 177 packages in 0.61ms\\n   Updating https://github.com/tconbeer/pytest-textual-snapshot.git (a2c6763b45283f76757a123342900accefcf04e8)\\nERROR: process \\\"/bin/sh -c (uv sync --frozen --no-install-project --group test --project /deps || (touch /deps/UNBIDDEN_LOCK_STALE && uv sync --no-install-project --group test --project /deps)) && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: harlequin\\\\\\\\nVersion: 2.17.0\\\\\\\\n' > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_harlequin.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\\n0.135   cause: Git executable not found. Ensure that Git is installed and available.\\n0.170 error: Failed to download and build `pytest-textual-snapshot @ git+https://github.com/tconbeer/pytest-textual-snapshot.git@a2c6763b45283f76757a123342900accefcf04e8`\\n0.170   cause: Git operation failed\\n0.170   cause: Git executable not found. Ensure that Git is installed and available.\\n--------------------\\nERROR: failed to build: failed to solve: process \\\"/bin/sh -c (uv sync --frozen --no-install-project --group test --project /deps || (touch /deps/UNBIDDEN_LOCK_STALE && uv sync --no-install-project --group test --project /deps)) && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: harlequin\\\\\\\\nVersion: 2.17.0\\\\\\\\n' > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_harlequin.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\"\n    ],\n    \"reports\": []\n  },\n  \"opportunities\": {}\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "ui",
+    "--json",
+    "--port",
+    "8800"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "{\n  \"url\": \"http://127.0.0.1:8800/?s=<token>\",\n  \"host\": \"127.0.0.1\",\n  \"port\": 8800,\n  \"pid\": 60745,\n  \"started_at\": \"2026-11-01T22:45:26-0300\",\n  \"in_daemon\": false,\n  \"reused\": false,\n  \"log\": \"/Users/david/unbidden-lab/c12/repos/c12-harlequin/.unbidden/logs/ui.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "ui",
+    "--stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 60745\n}\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/tconbeer/harlequin",
+   "commit": "ad3ecef4ff12bc4c89b15fb9c6a628c424afb6e2",
+   "family": "cli",
+   "class": "independent",
+   "build": "hatch",
+   "license": "MIT"
+  },
+  "ledger_before": {
+   "envelope": "s12-eval",
+   "envelope_spent_usd": 0.0,
+   "available_usd": 68.2244,
+   "permitted_usd": 97.2945
+  },
+  "clone": {
+   "path": "/Users/david/unbidden-lab/c12/repos/c12-harlequin",
+   "head": "ad3ecef4ff12bc4c89b15fb9c6a628c424afb6e2",
+   "seconds": 2.2,
+   "fetch_code": 0
+  },
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required",
+   "scope": {
+    "scope: stack": [
+     true,
+     "Python 3.10 (pyproject.toml, uv.lock)"
+    ],
+    "scope: tests": [
+     true,
+     "static.yml > plugin (the whole job)"
+    ],
+    "scope: database": [
+     false,
+     "no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)"
+    ]
+   }
+  },
+  "scan": {
+   "ok": true,
+   "timed_out": false,
+   "seconds": 3.5,
+   "languages": [
+    "python"
+   ],
+   "reports": [],
+   "opened": 0,
+   "problems": [
+    "dependency image for python failed to build:\nerror: Failed to download and build `pytest-textual-snapshot @ git+https://github.com/tconbeer/pytest-textual-snapshot.git@a2c6763b45283f76757a123342900accefcf04e8`\n  cause: Git operation failed\n  cause: Git executable not found. Ensure that Git is installed and available.\n\nhint: `pytest-textual-snapshot` was included because `harlequin:test` (v2.17.0) depends on `pytest-textual-snapshot`\nResolved 177 packages in 0.79ms\n   Updating https://github.com/tconbeer/pytest-textual-snapshot.git (a2c6763b45283f76757a123342900accefcf04e8)\nERROR: process \"/bin/sh -c (uv sync --frozen --no-install-project --group test --project /deps || (touch /deps/UNBIDDEN_LOCK_STALE && uv sync --no-install-project --group test --project /deps)) && SP=$(/deps/.venv/bin/python -c \\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\") && mkdir -p \\\"$SP/harlequin-2.17.0.dist-info\\\" && printf 'Metadata-Version: 2.1\\\\nName: harlequin\\\\nVersion: 2.17.0\\\\n' > \\\"$SP/harlequin-2.17.0.dist-info\\\"/METADATA && echo unbidden > \\\"$SP/harlequin-2.17.0.dist-info\\\"/INSTALLER && printf '/work/src\\\\n/work\\\\n' > \\\"$SP/_unbidden_harlequin.pth\\\"  && (/deps/.venv/bin/python -c \\\"import pytest\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\"import hypothesis\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\" did not complete successfully: exit code: 1\n0.162   cause: Git executable not found. Ensure that Git is installed and available.\n0.200 error: Failed to download and build `pytest-textual-snapshot @ git+https://github.com/tconbeer/pytest-textual-snapshot.git@a2c6763b45283f76757a123342900accefcf04e8`\n0.200   cause: Git operation failed\n0.200   cause: Git executable not found. Ensure that Git is installed and available.\n--------------------\nERROR: failed to build: failed to solve: process \"/bin/sh -c (uv sync --frozen --no-install-project --group test --project /deps || (touch /deps/UNBIDDEN_LOCK_STALE && uv sync --no-install-project --group test --project /deps)) && SP=$(/deps/.venv/bin/python -c \\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\") && mkdir -p \\\"$SP/harlequin-2.17.0.dist-info\\\" && printf 'Metadata-Version: 2.1\\\\nName: harlequin\\\\nVersion: 2.17.0\\\\n' > \\\"$SP/harlequin-2.17.0.dist-info\\\"/METADATA && echo unbidden > \\\"$SP/harlequin-2.17.0.dist-info\\\"/INSTALLER && printf '/work/src\\\\n/work\\\\n' > \\\"$SP/_unbidden_harlequin.pth\\\"  && (/deps/.venv/bin/python -c \\\"import pytest\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\"import hypothesis\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\" did not complete successfully: exit code: 1"
+   ],
+   "blind_spots": []
+  },
+  "inbox": {
+   "total": 0,
+   "by_source": {}
+  },
+  "checks": {
+   "status": "blocked",
+   "collected": null,
+   "why": "ProvisionError: omplete successfully: exit code: 1\n0.150   cause: Git executable not found. Ensure that Git is installed and available.\n0.187 error: Failed to download and build `pytest-textual-snapshot @ git+https://github.com/tconbeer/pytest-textual-snapshot.git@a2c6763b45283f76757a123342900accefcf04e8`\n0.187   cause: Git operation failed\n0.187   cause: Git executable not found. Ensure that Git is installed and available.\n--------------------\nERROR: failed to build: failed to solve: process \"/bin/sh -c (uv sync --frozen --no-install-project --group test --project /deps || (touch /deps/UNBIDDEN_LOCK_STALE && uv sync --no-install-project --group test --project /deps)) && SP=$(/deps/.venv/bin/python -c \\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\") && mkdir -p \\\"$SP/harlequin-2.17.0.dist-info\\\" && printf 'Metadata-Version: 2.1\\\\nName: harlequin\\\\nVersion: 2.17.0\\\\n' > \\\"$SP/harlequin-2.17.0.dist-info\\\"/METADATA && echo unbidden > \\\"$SP/harlequin-2.17.0.dist-info\\\"/INSTALLER && printf '/work/src\\\\n/work\\\\n' > \\\"$SP/_unbidden_harlequin.pth\\\"  && (/deps/.venv/bin/python -c \\\"import pytest\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\"import hypothesis\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\" did not complete successfully: exit code: 1",
+   "scope": null,
+   "partial": null,
+   "command": null,
+   "rev": "ad3ecef4ff12bc4c89b15fb9c6a628c424afb6e2",
+   "could_not_run": null,
+   "failed": null,
+   "image_notes": null,
+   "python": "3.10",
+   "waited_s": 20.0,
+   "image_age": null
+  },
+  "lifecycle": {
+   "started": true,
+   "running_after_checks": true,
+   "second_start_refused": true,
+   "stopped": true,
+   "jobs_left_running": 0,
+   "stale_after": false,
+   "kill_file": false,
+   "status0_ok": true
+  },
+  "ui": {
+   "opened": true,
+   "session_ok": true,
+   "source_mode": "live",
+   "freshness": "current",
+   "counts": {
+    "opportunities": 0,
+    "experiments": 0,
+    "proposals": 0,
+    "events": 8,
+    "model_runs": 0,
+    "connections": 1,
+    "deployments": 0,
+    "needs": 0,
+    "blocks": 1,
+    "spend_calls": 0,
+    "world": 1
+   },
+   "agent": {
+    "running": false,
+    "detail": "agent not running: `unbidden start`"
+   },
+   "route": "frontier",
+   "key_present": true,
+   "opportunities_total": 0,
+   "events": 8,
+   "built_index": true,
+   "secret_in_summary": false,
+   "stopped": true
+  },
+  "ledger_after": {
+   "envelope": "s12-eval",
+   "envelope_spent_usd": 0.0,
+   "available_usd": 68.2244,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c12-eval-A-harlequin",
+   "calls": 0,
+   "usd": 0.0,
+   "tokens_in": 0,
+   "tokens_out": 0
+  },
+  "spent_usd": 0.0,
+  "refused_by_cap": 0,
+  "events": {
+   "analyzer.ran": 2,
+   "connection.changed": 1,
+   "decision.made": 1,
+   "mandate.changed": 1,
+   "repo.head_moved": 1,
+   "world.changed": 2
+  },
+  "archive": "/Users/david/unbidden-lab/c12/archive/harlequin-A-eval.tgz"
+ },
+ "human": [
+  {
+   "step": "clone at the pin",
+   "minutes": 0.0,
+   "why": "harness"
+  }
+ ],
+ "blocks": []
+}

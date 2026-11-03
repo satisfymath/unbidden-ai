@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:8860/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "1 ruff ICN001 finding in examples/\tdescartada\t1\tdecline",
+    "1 ruff ICN001 finding in performance/\tdescartada\t1\tdecline",
+    "1 mypy error in src/marshmallow/fields.py\tdescartada\t1\tdecline",
+    "2 mypy errors in tests/test_fields.py\tdescartada\t1\tdecline",
+    "",
+    "4 fila(s)",
+    "actual",
+    "workspace",
+    "02 nov, 01:21"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "2 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "marshmallow",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 18 eventos · en vivo",
+    "todos los tipos",
+    "analyzer.ran",
+    "decision.made",
+    "egress.allowed",
+    "mandate.changed",
+    "model.called",
+    "opportunity.opened",
+    "repo.head_moved",
+    "world.changed",
+    "Mapa actualizado",
+    "01:20",
+    "{\"n_added\":0,\"n_carried\":0,\"n_changed\":0,\"n_obsoleted\":0,\"n_revived\":0}",
+    "Llamada al modelo",
+    "01:18",
+    "research.robustness · code · muse-spark-1.3 · 1612→3973 tokens",
+    "Salida permitida",
+    "01:18",
+    "research.robustness → api.meta.ai (7114 B)",
+    "Decisión tomada",
+    "01:18",
+    "decline — the team's CI runs mypy the same way and passes on this commit: Unbidden's environment",
+    "Decisión tomada",
+    "01:18",
+    "decline — the team's CI runs mypy the same way and passes on this commit: Unbidden's environment",
+    "Decisión tomada",
+    "01:18",
+    "decline — the team's CI does not run ruff: its style is not the team's standard",
+    "Decisión tomada",
+    "01:18",
+    "decline — the team's CI does not run ruff: its style is not the team's standard",
+    "Decisión tomada"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "marshmallow",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 4 oportunidades, ordenadas por evidencia",
+    "L1 sospecha",
+    "1 ruff ICN001 finding in examples/",
+    "ruff · lint · decline · 02 nov, 01:18",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "1 ruff ICN001 finding in performance/",
+    "ruff · lint · decline · 02 nov, 01:18",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "1 mypy error in src/marshmallow/fields.py",
+    "mypy · types · decline · 02 nov, 01:18",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "2 mypy errors in tests/test_fields.py",
+    "mypy · types · decline · 02 nov, 01:18",
+    "descartada",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "2 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

@@ -1,0 +1,105 @@
+{
+ "url": "http://127.0.0.1:8860/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "sin datos",
+    "Sin filas",
+    "Opportunities: what was found, its level and the Director's decision: zero rows in this record",
+    "Oportunidades",
+    "sin datos",
+    "Sin filas",
+    "Opportunities: what was found, its level and the Director's decision: zero rows in this record",
+    "UNBIDDEN",
+    "/",
+    "oauthlib",
+    "Espacio"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "2 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "oauthlib",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 8 eventos · en vivo",
+    "todos los tipos",
+    "analyzer.ran",
+    "decision.made",
+    "mandate.changed",
+    "repo.head_moved",
+    "world.changed",
+    "Mapa actualizado",
+    "17:20",
+    "{\"n_added\":0,\"n_carried\":0,\"n_changed\":0,\"n_obsoleted\":0,\"n_revived\":0}",
+    "Mapa actualizado",
+    "17:16",
+    "{\"n_added\":0,\"n_carried\":0,\"n_changed\":0,\"n_obsoleted\":0,\"n_revived\":0}",
+    "Decisión tomada",
+    "17:15",
+    "investigate — probe oauthlib (80 public functions sampled)",
+    "Mapa actualizado",
+    "17:15",
+    "{\"n_added\":0,\"n_carried\":0,\"n_changed\":0,\"n_obsoleted\":0,\"n_revived\":0}",
+    "Analizador ejecutado",
+    "17:15",
+    "problems: [\"dependency image for python failed to build:\\nerror: Error parsing included file in `/tmp/unbidden-extra-0.t",
+    "Mapa actualizado",
+    "17:14",
+    "{\"added\":[\"ci_job:lint_python.yml#lint_python\"],\"changed\":[\"repo:oauthlib\"],\"n_a",
+    "HEAD movido",
+    "17:14",
+    "from: null · to: 179287a5f9067aac7b1c0d71c4c5e083ccbf58f2",
+    "mandate.changed",
+    "17:14",
+    "setup: {\"act_on_connections\":\"deny\",\"budget_usd\":2,\"credentials\":[\"MODEL_API_KEY\",\"GITHUB_TOKEN\"],\"mode\":\"autopilot\",\"mo",
+    "Resumen del registro"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "oauthlib",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 0 oportunidades, ordenadas por evidencia",
+    "Sin oportunidades",
+    "Nada descubierto en este registro todavía.",
+    "Detalle",
+    "2 widgets · Guardado",
+    "100%"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "2 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

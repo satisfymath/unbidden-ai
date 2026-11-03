@@ -274,3 +274,12 @@ Frozen for phase 4, nothing below changes until phase 6:
 - **Order**: `run_eval.sh all`: Level A over the 39 (US$0), then Level B run 1 over the 12, then run 2; one thing at a
   time on this host; a failed repository stays in its record and the next starts; no code or harness edit during the
   evaluation (a harness defect that invalidates records is a stop condition, section 9).
+
+## Phase 4 and 5 status (2026-11-03)
+
+Phase 4 ran frozen from 2026-11-01T23:48Z to 2026-11-03T03:25Z (`run_eval.sh all`): Level A 39/39, Level B 22/24
+runs (spoolman B1/B2 crashed at lab bring-up, harness; they run apart after commit `77cf1ca`). Spend US$0.85 of the
+`s12-eval` envelope. Phase 5 is `REPORT.md` (nine dimensions per class, failure matrix, prioritized defects,
+release recommendation) with the aggregate tables in `eval/REPORT-aggregate.md` and the independent verifier's
+records in `eval/verify/`. Phase 6 (general fixes with regression tests, `s12-dev`) starts on David's reading of the
+report; phase 7 (`s12-confirm`) re-runs what phase 6 touched.

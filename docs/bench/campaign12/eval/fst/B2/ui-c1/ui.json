@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:8860/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "1 ruff I001 finding in hooks/\tdescartada\t1\tdecline",
+    "3 ruff DTZ011 findings in scripts/\tdescartada\t1\tdecline",
+    "1 ruff FURB167 finding in scripts/\tdescartada\t1\tdecline",
+    "item.owner_id is a foreign key without an index, checked when 2 endpoint(s) dele…\tdescartada\t1\tdecline",
+    "GET /api/v1/items/ reports count: unverified against the stored data\tabierta\t1\twait",
+    "GET /api/v1/users/ reports count: unverified against the stored data\tabierta\t1\twait",
+    "",
+    "6 fila(s)",
+    "actual"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "4 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "fst",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 138 eventos · en vivo",
+    "todos los tipos",
+    "capability.need_changed",
+    "capability.needed",
+    "decision.made",
+    "egress.allowed",
+    "egress.blocked",
+    "model.called",
+    "world.changed",
+    "Mapa actualizado",
+    "13:56",
+    "{\"carried\":[\"api:http_api:http://127.0.0.1:18200\",\"database:postgres:127.0.0.1:5",
+    "capability.need_changed",
+    "13:55",
+    "note: the source returned no lines to build from · source: compose:backend · status: abandoned",
+    "capability.need_changed",
+    "13:55",
+    "note: attempt 2 · source: compose:backend · status: building",
+    "Decisión tomada",
+    "13:55",
+    "decline — 2 experiments found no proven fix",
+    "Llamada al modelo",
+    "13:40",
+    "lab.workload · code · muse-spark-1.3 · 1913→4056 tokens",
+    "Salida permitida",
+    "13:39",
+    "lab.workload → api.meta.ai (8667 B)",
+    "Llamada al modelo",
+    "13:39",
+    "lab.perf_candidate · code · muse-spark-1.3 · 1706→2093 tokens",
+    "Salida permitida",
+    "13:39"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "fst",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 6 oportunidades, ordenadas por evidencia",
+    "L1 sospecha",
+    "item.owner_id is a foreign key without an index, checked when 2 endpoint(s) delete a user row",
+    "world · performance · decline · 02 nov, 13:20",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "GET /api/v1/items/ reports count: unverified against the stored data",
+    "world · bugs · wait · 02 nov, 13:20",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "GET /api/v1/users/ reports count: unverified against the stored data",
+    "world · bugs · wait · 02 nov, 13:20",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "1 ruff I001 finding in hooks/",
+    "ruff · lint · decline · 02 nov, 13:21",
+    "descartada",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "4 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

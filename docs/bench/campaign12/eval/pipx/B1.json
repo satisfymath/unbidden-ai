@@ -1,0 +1,1013 @@
+{
+ "repo": "pipx",
+ "phase": "eval",
+ "run": "B1",
+ "candidate": "8686674327b6ce2fba44b4c2640977fecd0da2e2",
+ "wheel_sha256": "a915417588329e4383cd5f07ba96499dc228976863792f8d51e46dfa634a3917",
+ "started_at": "2026-11-02T11:02:30-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "autopilot",
+    "--budget",
+    "2",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--github-token-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 3.7,
+   "timed_out": false,
+   "stdout": "{\n  \"models\": \"api\",\n  \"profile\": \"frontier\",\n  \"private_code_to_frontier\": \"deny\",\n  \"mode\": \"autopilot\",\n  \"act_on_connections\": \"deny\",\n  \"budget_usd\": 2.0,\n  \"credentials_saved\": [\n    \"MODEL_API_KEY\",\n    \"GITHUB_TOKEN\"\n  ],\n  \"credential_names_present\": [\n    \"GITHUB_TOKEN\",\n    \"MODEL_API_KEY\"\n  ],\n  \"dashboard\": \"later\",\n  \"effective\": [\n    {\n      \"what\": \"observe the repository, its CI and running services\",\n      \"capability\": \"repo.read\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.observe\"\n    },\n    {\n      \"what\": \"run experiments in the offline sandbox\",\n      \"capability\": \"sandbox.run\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.run_experiments\"\n    },\n    {\n      \"what\": \"install dependencies while building\",\n      \"capability\": \"sandbox.provision\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.provision_dependencies\"\n    },\n    {\n      \"what\": \"send synthetic or public content to remote models\",\n      \"capability\": \"model.remote.synthetic\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.delegate_synthetic\"\n    },\n    {\n      \"what\": \"use capabilities it built for itself\",\n      \"capability\": \"capability.use\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.use_new_capabilities\"\n    },\n    {\n      \"what\": \"open pull requests\",\n      \"capability\": \"github.open_pull_request\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.open_pull_requests\"\n    },\n    {\n      \"what\": \"merge pull requests\",\n      \"capability\": \"github.merge_pull_request\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": null,\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c12/pipx/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c12/pipx/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 2.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -12,9 +12,10 @@\",\n    \"     provision_dependencies: allow\",\n    \"     delegate_synthetic: allow\",\n    \"-    open_pull_requests: require_approval\",\n    \"+    open_pull_requests: allow\",\n    \"     merge_pull_requests: deny\",\n    \"     deploy: deny\",\n    \"     rollback: deny\",\n    \"-    use_new_capabilities: require_approval\",\n    \"+    use_new_capabilities: allow\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,7 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c12/pipx/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "ts own for proven work; people merge\n  autonomous: also merges L4 work, deploys with the team's steps and rolls back\nEffective permissions\n  observe the repository, its CI and running services  allowed\n  run experiments in the offline sandbox               allowed\n  install dependencies while building                  allowed\n  send synthetic or public content to remote models    allowed\n  use capabilities it built for itself                 allowed\n  open pull requests                                   allowed\n  merge pull requests                                  denied\n  deploy with the team's steps                         denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nConnections (optional)\n\nBudget\nMachine ledger: verified balance US$97.29 (stage 6 spend cap authorized by David\non 2026-10-28: up to US$10 of free credits from this point (dev 3, evaluation 5,\ndemo and contingency 2; the earlier US$3 reserve is included, not added). \nDashboard as reported by David 2026-10-28: Current balance US$0, free credits in\nuse US$144.98, a Visa card on file, content sent while on free credits may be \nused to improve products. A cap, not a measured balance; no recharge or card \ncharge authorized (entered by david) | stage 9: US$30 additional Meta API spend \nauthorized by David on 2026-10-29, replacing the US$10 cap; cumulative cap \nUS$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval 12, demo 6 (D-052).\nDashboard as reported by David: free credits in use US$137.96, balance US$0, a \ncard on file. No recharge or card charge authorized (entered by david) | stage \n10: the remaining US$20.30 of the US$37.29 cap split before any call (D-058), by\nDavid's stage 10 instruction of 2026-10-30 (entered by david) | stage 10 after \nthe frozen evaluation: US$5 of the unspent s10-eval moved to s10-dev for \ncorrections and regressions, by David's instruction of 2026-10-31; envelopes \ntotal US$20.30 and the cumulative cap US$37.2945 unchanged; spent at the \ntransfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, s10-close 0) (entered by \ndavid) | product phase (A-E): s11-product US$4.00 authorized by David on \n2026-11-01, reassigned from s10-close (3.80, unspent, closed) and US$0.20 of \ns10-dev; envelopes total US$20.30 and the cumulative cap US$37.2945 unchanged; \nspent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval 1.0010, s10-close 0) \n(entered by david) | product phase correction: David's authorization of \n2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken from s10-dev had \nno recorded authorization and goes back (s10-dev 13.00, s11-product 3.80); \nenvelopes total US$20.30 and the cumulative cap US$37.2945 unchanged; \ns11-product spent 0 at the correction; spent at the correction US$27.7199 \n(entered by david) | campaign 12 (installed-product validation): US$60 \nadditional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david)); permitted US$97.29 · \nspent US$29.4810 · available US$67.8135\nenvelopes: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, \ns12-eval 30.00, s12-dev 17.00, s12-confirm 5.00\nProvider credits and authorized spend are different things: the cap a person \nentered with `unbidden spend --verified-balance` is what this machine may spend;\nit is never raised or reset here.\n\nDashboard\nOpening the dashboard, restoring its layout and showing records calls no model; \nchatting or asking for analysis can.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 1,
+   "seconds": 2.0,
+   "timed_out": false,
+   "stdout": "",
+   "stderr": "Traceback (most recent call last):\n  File \"/Users/david/unbidden-lab/c12/home/bin/unbidden\", line 10, in <module>\n    sys.exit(main())\n             ^^^^^^\n  File \"/Users/david/unbidden-lab/c12/home/tools/unbidden-ai/lib/python3.12/site-packages/unbidden/cli.py\", line 2229, in main\n    return int(args.handler(args))\n               ^^^^^^^^^^^^^^^^^^\n  File \"/Users/david/unbidden-lab/c12/home/tools/unbidden-ai/lib/python3.12/site-packages/unbidden/cli.py\", line 1249, in cmd_doctor\n    for name, ok, note in diagnose(Workspace.find().repo):\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/david/unbidden-lab/c12/home/tools/unbidden-ai/lib/python3.12/site-packages/unbidden/observe/scope.py\", line 25, in diagnose\n    stack = detect_stack(repo, head)\n            ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/david/unbidden-lab/c12/home/tools/unbidden-ai/lib/python3.12/site-packages/unbidden/observe/stack.py\", line 574, in detect_stack\n    parts = {a.name: a.detect(repo, rev, files, blind) for a in adapters()}\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/david/unbidden-lab/c12/home/tools/unbidden-ai/lib/python3.12/site-packages/unbidden/languages/python.py\", line 29, in detect\n    return _detect_python(repo, rev, files, blind)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/david/unbidden-lab/c12/home/tools/unbidden-ai/lib/python3.12/site-packages/unbidden/observe/stack.py\", line 341, in _detect_python\n    found = _detect_python_parts(repo, rev, files, blind, choice.version)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/david/unbidden-lab/c12/home/tools/unbidden-ai/lib/python3.12/site-packages/unbidden/observe/stack.py\", line 368, in _detect_python_parts\n    texts = [json.dumps(project)] + [\n             ^^^^^^^^^^^^^^^^^^^\n  File \"/Users/david/unbidden-lab/c12/home/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/json/__init__.py\", line 231, in dumps\n    return _default_encoder.encode(obj)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/david/unbidden-lab/c12/home/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/json/encoder.py\", line 200, in encode\n    chunks = self.iterencode(o, _one_shot=True)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/david/unbidden-lab/c12/home/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/json/encoder.py\", line 258, in iterencode\n    return _iterencode(o, 0)\n           ^^^^^^^^^^^^^^^^^\n  File \"/Users/david/unbidden-lab/c12/home/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/json/encoder.py\", line 180, in default\n    raise TypeError(f'Object of type {o.__class__.__name__} '\nTypeError: Object of type datetime is not JSON serializable\n"
+  },
+  {
+   "name": "c1-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "8860",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 79641,\n  \"log\": \"/Users/david/unbidden-lab/c12/pipx/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-browser",
+   "argv": [
+    "node",
+    "/Users/david/unbidden-ai-campaign/frontend/scripts/c12_ui_check.mjs",
+    "http://127.0.0.1:8860/?s=<token>",
+    "/Users/david/unbidden-ai-campaign/docs/bench/campaign12/eval/pipx/B1/ui-c1"
+   ],
+   "code": 0,
+   "seconds": 18.8,
+   "timed_out": false,
+   "stdout": "{\"ok\":true,\"steps\":5,\"console_errors\":2}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-status",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué ha hecho el agente hasta ahora y cuántas oportunidades hay?"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_c09924f5911e4191\",\n  \"role\": \"assistant\",\n  \"content\": \"Registro de pipx (live, head 1bc2428f9fa5): 0 oportunidades, 0 experimentos, 0 propuestas, 2 eventos, 0 llamadas a modelos, 3 bloqueos.\\nJobs: done 128, failed 103, queued 7\\nBloqueo compatibility en «observe.scan»: TypeError: Object of type datetime is not JSON serializable\\nBloqueo compatibility en «world.refresh»: TypeError: Object of type datetime is not JSON serializable\\nBloqueo compatibility en «director.sweep»: TypeError: Object of type datetime is not JSON serializable\\nAgente: agent running, pid 79641.\\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.\",\n  \"created_at\": \"2026-11-02T15:33:23.387784Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"rule\",\n  \"model\": null,\n  \"route\": {\n    \"intent\": \"inform\",\n    \"purpose\": null,\n    \"tier\": null,\n    \"model\": null,\n    \"reason\": \"the mandate denies local inference; reading records needs no model: answered by rules\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-analyze",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué hallazgo priorizarías y por qué? Di qué falta en el registro."
+   ],
+   "code": 0,
+   "seconds": 6.1,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_03c4ceb94c494146\",\n  \"role\": \"assistant\",\n  \"content\": \"Ninguno: `opportunities: 0`, `discovered.total: 0` en head `1bc2428f9fa5`.\\n\\nFalta en el registro: no contiene ids, títulos, niveles, estados ni medianas de hallazgos para priorizar; `proposals: {}`, `learned: {}`, `invalidated: []`.\",\n  \"created_at\": \"2026-11-02T15:33:29.455822Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"brain\",\n  \"model\": \"muse-spark-1.3\",\n  \"route\": {\n    \"intent\": \"analyze\",\n    \"purpose\": \"chat.analyze\",\n    \"tier\": \"code\",\n    \"model\": \"muse-spark-1.3\",\n    \"reason\": \"profile frontier; public_code may leave; label public_code\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 79641,\n  \"waited_s\": 0.4,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "8860",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 1195,\n  \"log\": \"/Users/david/unbidden-lab/c12/pipx/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 1195,\n  \"waited_s\": 0.4,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-final",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.1,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c12/pipx\",\n  \"head\": \"1bc2428f9fa5b7e968f0b452f49dea03bd3de4b1\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c12/pipx/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 7\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": null,\n  \"opportunities\": {}\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "egress",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "egress",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.6,
+   "timed_out": false,
+   "stdout": "model\": \"muse-spark-1.3\",\n    \"verdict\": {\n      \"allowed\": true,\n      \"kind\": \"synthetic_task\",\n      \"destination\": \"api.meta.ai\",\n      \"reasons\": [],\n      \"matched\": [],\n      \"payload_sha256\": \"c656d22a6a2f50b949c38e69b5998e8a45474caf586d2f753d43bca15bd0676a\",\n      \"payload_bytes\": 3205\n    },\n    \"payload\": \"{\\\"messages\\\": [{\\\"content\\\": \\\"You are the analyst of Unbidden's dashboard. You receive a digest of Unbidden's own records\\\\n(counts, levels, statuses, titles, ids, medians) and a question. Answer in the language the question is written in,\\\\nbriefly, from the digest alone: cite the ids and numbers you rely on, say what the digest does not contain instead\\\\nof guessing, and never invent a metric, a finding or an improvement. You cannot act: do not promise to approve,\\\\ndeploy, merge, run or stop anything; name the command or button when the person should decide something.\\\", \\\"role\\\": \\\"system\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ade una tabla con las oportunidades\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ado una tabla con las oportunidades.\\\\na\\u00f1adido \\u00abOportunidades\\u00bb (sin datos: Opportunities: what was found, its level and the Director's decision: zero rows in this record)\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 ha hecho el agente hasta ahora y cu\\u00e1ntas oportunidades hay?\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"Registro de pipx (live, head 1bc2428f9fa5): 0 oportunidades, 0 experimentos, 0 propuestas, 2 eventos, 0 llamadas a modelos, 3 bloqueos.\\\\nJobs: done 128, failed 103, queued 7\\\\nBloqueo compatibility en \\u00abobserve.scan\\u00bb: TypeError: Object of type datetime is not JSON serializable\\\\nBloqueo compatibility en \\u00abworld.refresh\\u00bb: TypeError: Object of type datetime is not JSON serializable\\\\nBloqueo compatibility en \\u00abdirector.sweep\\u00bb: TypeError: Object of type datetime is not JSON serializable\\\\nAgente: agent running, pid 79641.\\\\nPara un porqu\\u00e9 o una recomendaci\\u00f3n pide un an\\u00e1lisis; para ver algo, una tabla o un gr\\u00e1fico.\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"Records digest:\\\\nworkspace pipx (live record); head 1bc2428f9fa5; observed 2026-11-02T15:33:24.043310+00:00; freshness current\\\\ncounts: {\\\\\\\"opportunities\\\\\\\":0,\\\\\\\"experiments\\\\\\\":0,\\\\\\\"proposals\\\\\\\":0,\\\\\\\"events\\\\\\\":2,\\\\\\\"model_runs\\\\\\\":0,\\\\\\\"connections\\\\\\\":0,\\\\\\\"deployments\\\\\\\":0,\\\\\\\"needs\\\\\\\":0,\\\\\\\"blocks\\\\\\\":3,\\\\\\\"spend_calls\\\\\\\":0,\\\\\\\"world\\\\\\\":1}\\\\njobs: {\\\\\\\"done\\\\\\\":128,\\\\\\\"failed\\\\\\\":103,\\\\\\\"queued\\\\\\\":7}\\\\ndiscovered: {\\\\\\\"total\\\\\\\":0,\\\\\\\"by_status\\\\\\\":{}}\\\\ninvalidated: []\\\\nproposals: {}\\\\nblocks: [{\\\\\\\"operation\\\\\\\":\\\\\\\"world.refresh\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"compatibility\\\\\\\",\\\\\\\"needs\\\\\\\":\\\\\\\"nothing known a person can grant; the evidence says what failed\\\\\\\",\\\\\\\"continues\\\\\\\":\\\\\\\"world.refresh runs again\\\\\\\",\\\\\\\"evidence\\\\\\\":\\\\\\\"TypeError: Object of type datetime is not JSON serializable\\\\\\\"},{\\\\\\\"operation\\\\\\\":\\\\\\\"observe.scan\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"compatibility\\\\\\\",\\\\\\\"needs\\\\\\\":\\\\\\\"nothing known a person can grant; the evidence says what failed\\\\\\\",\\\\\\\"continues\\\\\\\":\\\\\\\"observe.scan runs again\\\\\\\",\\\\\\\"evidence\\\\\\\":\\\\\\\"TypeError: Object of type datetime is not JSON serializable\\\\\\\"},{\\\\\\\"operation\\\\\\\":\\\\\\\"director.sweep\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"compatibility\\\\\\\",\\\\\\\"needs\\\\\\\":\\\\\\\"nothing known a person can grant; the evidence says what failed\\\\\\\",\\\\\\\"continues\\\\\\\":\\\\\\\"director.sweep runs again\\\\\\\",\\\\\\\"evidence\\\\\\\":\\\\\\\"TypeError: Object of type datetime is not JSON serializable\\\\\\\"}]\\\\nlearned: {}\\\\nconnections: []\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 hallazgo priorizar\\u00edas y por qu\\u00e9? Di qu\\u00e9 falta en el registro.\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}], \\\"response_schema\\\": null, \\\"tools\\\": []}\",\n    \"created_at\": \"2026-11-02T15:33:24.060365Z\",\n    \"origin\": \"dashboard apart\"\n  }\n]\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/pypa/pipx",
+   "commit": "2ccbdf4c879c04f0dda457b47cb6a051146231bb",
+   "family": "cli",
+   "class": "independent",
+   "build": "hatch",
+   "lab": null,
+   "copy_base_sha": "1bc2428f9fa5b7e968f0b452f49dea03bd3de4b1"
+  },
+  "ledger_before": {
+   "envelope": "s12-eval",
+   "envelope_spent_usd": 0.4109,
+   "available_usd": 67.8135,
+   "permitted_usd": 97.2945
+  },
+  "fork": {
+   "slug": "satisfymath/c12-pipx",
+   "base": "main",
+   "upstream": "pypa/pipx",
+   "kind": "copy",
+   "created": false,
+   "prep": {
+    "applied": false,
+    "why": "nothing to change (already prepared, or nothing listed)"
+   },
+   "pin": "2ccbdf4c879c04f0dda457b47cb6a051146231bb",
+   "restore": {
+    "expected": "1bc2428f9fa5b7e968f0b452f49dea03bd3de4b1",
+    "head_before": "1bc2428f9fa5b7e968f0b452f49dea03bd3de4b1",
+    "pin_in_history": true,
+    "closed": [],
+    "deleted": [],
+    "base_sha": "1bc2428f9fa5b7e968f0b452f49dea03bd3de4b1"
+   },
+   "base_sha": "1bc2428f9fa5b7e968f0b452f49dea03bd3de4b1",
+   "pin_in_history": true,
+   "dependabot_prs_closed": [],
+   "workflows_registered": [
+    "codeql.yaml",
+    "create_tests_package_lists.yml",
+    "dependabot-updates",
+    "exhaustive_package_test.yml",
+    "news.yaml",
+    "tests.yml",
+    "zizmor.yml"
+   ],
+   "disabled_in_settings": [
+    "dependabot-updates"
+   ],
+   "kept": "tests, zizmor, codeql, news (changelog fragment check: the project's own rule)"
+  },
+  "fork_before": {
+   "pulls": [
+    {
+     "created_at": "2026-11-01T23:45:32Z",
+     "head": "dependabot/dependencies-a85bd23f6c",
+     "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+     "merge_commit_sha": "5b4a1958f4ec8d1fcf6fb73ffc16bb8431e3bfde",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "Bump the \"dependencies\" group with 2 updates across multiple ecosystems",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:05:15Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125023898838",
+       "name": "🚦 Required checks pass",
+       "started_at": "2026-11-02T00:05:12Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:52:59Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/runs/125020916193",
+       "name": "zizmor",
+       "started_at": "2026-11-01T23:52:56Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:50:10Z",
+       "conclusion": "neutral",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/runs/125020256771",
+       "name": "CodeQL",
+       "started_at": "2026-11-01T23:50:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:51:23Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019310280",
+       "name": "🧪 Test zipapp on Windows",
+       "started_at": "2026-11-01T23:51:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:47Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660386/job/125019179386",
+       "name": "🛡️ Analyze actions",
+       "started_at": "2026-11-01T23:54:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:50:18Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660386/job/125019179133",
+       "name": "🛡️ Analyze python",
+       "started_at": "2026-11-01T23:49:21Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:03:14Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178699",
+       "name": "🧪 test 3.11 - ubuntu-26.04",
+       "started_at": "2026-11-01T23:57:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:10Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178599",
+       "name": "🧪 test 3.15 - xcode-27",
+       "started_at": "2026-11-01T23:49:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:55:15Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178587",
+       "name": "🔎 Type check",
+       "started_at": "2026-11-01T23:54:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:09Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178572",
+       "name": "🧪 test 3.15t - ubuntu-26.04",
+       "started_at": "2026-11-01T23:58:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:16Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178545",
+       "name": "🔍 Check package distributions",
+       "started_at": "2026-11-01T23:59:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:39Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178537",
+       "name": "🧪 test 3.15 - ubuntu-26.04",
+       "started_at": "2026-11-01T23:51:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:58:17Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178534",
+       "name": "🧪 test 3.12 - ubuntu-26.04",
+       "started_at": "2026-11-01T23:53:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:01:27Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178525",
+       "name": "🧪 test 3.14 - ubuntu-26.04",
+       "started_at": "2026-11-01T23:55:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:24Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178514",
+       "name": "📖 Build man page",
+       "started_at": "2026-11-01T23:54:12Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:31Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178483",
+       "name": "🧪 test 3.13 - ubuntu-26.04",
+       "started_at": "2026-11-01T23:47:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:02:37Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178478",
+       "name": "🧪 test 3.15 - windows-2025",
+       "started_at": "2026-11-01T23:50:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:04Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660432/job/125019178303",
+       "name": "🛡️ Run zizmor",
+       "started_at": "2026-11-01T23:52:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:46:11Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178241",
+       "name": "🏗️ Build zipapp",
+       "started_at": "2026-11-01T23:45:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:46:14Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660413/job/125019178201",
+       "name": "📝 News fragment",
+       "started_at": "2026-11-01T23:45:56Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [],
+   "base_head": "1bc2428f9fa5b7e968f0b452f49dea03bd3de4b1"
+  },
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": null,
+   "failed_required": null,
+   "requirements": null
+  },
+  "mode": {
+   "asked": "autopilot",
+   "why": "a library has no deploy: autonomous is not available"
+  },
+  "mode_got": "autopilot",
+  "cycle1": {
+   "started": true,
+   "waited_s": 5407.0,
+   "bound_hit": true,
+   "status_at_end": {
+    "running": true,
+    "pid": 79641,
+    "started_at": "2026-11-02T14:02:56.555108+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c12/pipx/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 7
+   },
+   "counts": {
+    "events": {
+     "mandate.changed": 1,
+     "repo.head_moved": 1
+    },
+    "docs": {
+     "blocks": 3,
+     "world": 1
+    },
+    "jobs": {
+     "done": 128,
+     "failed": 103,
+     "queued": 7
+    },
+    "proposals": []
+   }
+  },
+  "ui1": {
+   "opened": true,
+   "in_daemon": true,
+   "summary": {
+    "mode": "live",
+    "freshness": "current",
+    "counts": {
+     "opportunities": 0,
+     "experiments": 0,
+     "proposals": 0,
+     "events": 2,
+     "model_runs": 0,
+     "connections": 0,
+     "deployments": 0,
+     "needs": 0,
+     "blocks": 3,
+     "spend_calls": 0,
+     "world": 1
+    },
+    "agent": {
+     "running": true,
+     "pid": 79641,
+     "started_at": "2026-11-02T14:02:56.555108+00:00",
+     "command": "watch",
+     "detail": "agent running, pid 79641"
+    },
+    "key_present": true
+   },
+   "opportunities_total": 0,
+   "widgets": [
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:pipx"
+    }
+   ],
+   "browser": {
+    "ok": true,
+    "steps": 5,
+    "console_errors": 2
+   },
+   "chat_status": {
+    "planner": "rule",
+    "route": {
+     "intent": "inform",
+     "purpose": null,
+     "tier": null,
+     "model": null,
+     "reason": "the mandate denies local inference; reading records needs no model: answered by rules",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Registro de pipx (live, head 1bc2428f9fa5): 0 oportunidades, 0 experimentos, 0 propuestas, 2 eventos, 0 llamadas a modelos, 3 bloqueos.\nJobs: done 128, failed 103, queued 7\nBloqueo compatibility en «observe.scan»: TypeError: Object of type datetime is not JSON serializable\nBloqueo compatibility en «world.refresh»: TypeError: Object of type datetime is not JSON serializable\nBloqueo compatibility en"
+   },
+   "chat_analyze": {
+    "planner": "brain",
+    "route": {
+     "intent": "analyze",
+     "purpose": "chat.analyze",
+     "tier": "code",
+     "model": "muse-spark-1.3",
+     "reason": "profile frontier; public_code may leave; label public_code",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Ninguno: `opportunities: 0`, `discovered.total: 0` en head `1bc2428f9fa5`.\n\nFalta en el registro: no contiene ids, títulos, niveles, estados ni medianas de hallazgos para priorizar; `proposals: {}`, `learned: {}`, `invalidated: []`."
+   }
+  },
+  "fork_after_c1": {
+   "pulls": [
+    {
+     "created_at": "2026-11-01T23:45:32Z",
+     "head": "dependabot/dependencies-a85bd23f6c",
+     "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+     "merge_commit_sha": "5b4a1958f4ec8d1fcf6fb73ffc16bb8431e3bfde",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "Bump the \"dependencies\" group with 2 updates across multiple ecosystems",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:05:15Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125023898838",
+       "name": "🚦 Required checks pass",
+       "started_at": "2026-11-02T00:05:12Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:52:59Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/runs/125020916193",
+       "name": "zizmor",
+       "started_at": "2026-11-01T23:52:56Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:50:10Z",
+       "conclusion": "neutral",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/runs/125020256771",
+       "name": "CodeQL",
+       "started_at": "2026-11-01T23:50:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:51:23Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019310280",
+       "name": "🧪 Test zipapp on Windows",
+       "started_at": "2026-11-01T23:51:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:47Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660386/job/125019179386",
+       "name": "🛡️ Analyze actions",
+       "started_at": "2026-11-01T23:54:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:50:18Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660386/job/125019179133",
+       "name": "🛡️ Analyze python",
+       "started_at": "2026-11-01T23:49:21Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:03:14Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178699",
+       "name": "🧪 test 3.11 - ubuntu-26.04",
+       "started_at": "2026-11-01T23:57:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:10Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178599",
+       "name": "🧪 test 3.15 - xcode-27",
+       "started_at": "2026-11-01T23:49:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:55:15Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178587",
+       "name": "🔎 Type check",
+       "started_at": "2026-11-01T23:54:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:09Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178572",
+       "name": "🧪 test 3.15t - ubuntu-26.04",
+       "started_at": "2026-11-01T23:58:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:16Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178545",
+       "name": "🔍 Check package distributions",
+       "started_at": "2026-11-01T23:59:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:39Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178537",
+       "name": "🧪 test 3.15 - ubuntu-26.04",
+       "started_at": "2026-11-01T23:51:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:58:17Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178534",
+       "name": "🧪 test 3.12 - ubuntu-26.04",
+       "started_at": "2026-11-01T23:53:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:01:27Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178525",
+       "name": "🧪 test 3.14 - ubuntu-26.04",
+       "started_at": "2026-11-01T23:55:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:24Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178514",
+       "name": "📖 Build man page",
+       "started_at": "2026-11-01T23:54:12Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:31Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178483",
+       "name": "🧪 test 3.13 - ubuntu-26.04",
+       "started_at": "2026-11-01T23:47:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:02:37Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178478",
+       "name": "🧪 test 3.15 - windows-2025",
+       "started_at": "2026-11-01T23:50:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:04Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660432/job/125019178303",
+       "name": "🛡️ Run zizmor",
+       "started_at": "2026-11-01T23:52:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:46:11Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178241",
+       "name": "🏗️ Build zipapp",
+       "started_at": "2026-11-01T23:45:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:46:14Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660413/job/125019178201",
+       "name": "📝 News fragment",
+       "started_at": "2026-11-01T23:45:56Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [],
+   "base_head": "1bc2428f9fa5b7e968f0b452f49dea03bd3de4b1"
+  },
+  "cycle2": {
+   "started": true,
+   "waited_s": 2704.7,
+   "bound_hit": true,
+   "status_at_end": {
+    "running": true,
+    "pid": 1195,
+    "started_at": "2026-11-02T15:33:33.481342+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c12/pipx/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 7
+   },
+   "counts": {
+    "events": {
+     "mandate.changed": 1,
+     "repo.head_moved": 1
+    },
+    "docs": {
+     "blocks": 3,
+     "world": 1
+    },
+    "jobs": {
+     "done": 191,
+     "failed": 157,
+     "queued": 7
+    },
+    "proposals": []
+   }
+  },
+  "fork_after_c2": {
+   "pulls": [
+    {
+     "created_at": "2026-11-01T23:45:32Z",
+     "head": "dependabot/dependencies-a85bd23f6c",
+     "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+     "merge_commit_sha": "5b4a1958f4ec8d1fcf6fb73ffc16bb8431e3bfde",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "Bump the \"dependencies\" group with 2 updates across multiple ecosystems",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:05:15Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125023898838",
+       "name": "🚦 Required checks pass",
+       "started_at": "2026-11-02T00:05:12Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:52:59Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/runs/125020916193",
+       "name": "zizmor",
+       "started_at": "2026-11-01T23:52:56Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:50:10Z",
+       "conclusion": "neutral",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/runs/125020256771",
+       "name": "CodeQL",
+       "started_at": "2026-11-01T23:50:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:51:23Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019310280",
+       "name": "🧪 Test zipapp on Windows",
+       "started_at": "2026-11-01T23:51:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:47Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660386/job/125019179386",
+       "name": "🛡️ Analyze actions",
+       "started_at": "2026-11-01T23:54:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:50:18Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660386/job/125019179133",
+       "name": "🛡️ Analyze python",
+       "started_at": "2026-11-01T23:49:21Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:03:14Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178699",
+       "name": "🧪 test 3.11 - ubuntu-26.04",
+       "started_at": "2026-11-01T23:57:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:10Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178599",
+       "name": "🧪 test 3.15 - xcode-27",
+       "started_at": "2026-11-01T23:49:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:55:15Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178587",
+       "name": "🔎 Type check",
+       "started_at": "2026-11-01T23:54:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:09Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178572",
+       "name": "🧪 test 3.15t - ubuntu-26.04",
+       "started_at": "2026-11-01T23:58:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:16Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178545",
+       "name": "🔍 Check package distributions",
+       "started_at": "2026-11-01T23:59:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:39Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178537",
+       "name": "🧪 test 3.15 - ubuntu-26.04",
+       "started_at": "2026-11-01T23:51:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:58:17Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178534",
+       "name": "🧪 test 3.12 - ubuntu-26.04",
+       "started_at": "2026-11-01T23:53:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:01:27Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178525",
+       "name": "🧪 test 3.14 - ubuntu-26.04",
+       "started_at": "2026-11-01T23:55:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:24Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178514",
+       "name": "📖 Build man page",
+       "started_at": "2026-11-01T23:54:12Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:31Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178483",
+       "name": "🧪 test 3.13 - ubuntu-26.04",
+       "started_at": "2026-11-01T23:47:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:02:37Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178478",
+       "name": "🧪 test 3.15 - windows-2025",
+       "started_at": "2026-11-01T23:50:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:04Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660432/job/125019178303",
+       "name": "🛡️ Run zizmor",
+       "started_at": "2026-11-01T23:52:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:46:11Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660385/job/125019178241",
+       "name": "🏗️ Build zipapp",
+       "started_at": "2026-11-01T23:45:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:46:14Z",
+       "conclusion": "success",
+       "head_sha": "abebc810a45aa8c94399d8f4be959dfe0dcb5e5f",
+       "html_url": "https://github.com/satisfymath/c12-pipx/actions/runs/41363660413/job/125019178201",
+       "name": "📝 News fragment",
+       "started_at": "2026-11-01T23:45:56Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [],
+   "base_head": "1bc2428f9fa5b7e968f0b452f49dea03bd3de4b1"
+  },
+  "status_final": {
+   "running": false,
+   "pid": null,
+   "started_at": null,
+   "command": null,
+   "log": "/Users/david/unbidden-lab/c12/pipx/.unbidden/logs/agent.log",
+   "stale": false,
+   "jobs_running": 0,
+   "jobs_queued": 7
+  },
+  "egress": {
+   "api.meta.ai:chat.analyze:allowed_sent": 1
+  },
+  "ledger_after": {
+   "envelope": "s12-eval",
+   "envelope_spent_usd": 0.4147,
+   "available_usd": 67.8097,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c12-eval-B1-pipx",
+   "calls": 1,
+   "usd": 0.0038,
+   "tokens_in": 684,
+   "tokens_out": 684
+  },
+  "spent_usd": 0.0038,
+  "archive": "/Users/david/unbidden-lab/c12/archive/pipx-B1-eval.tgz"
+ },
+ "human": [
+  {
+   "step": "mandate: fork, registries, operations, connections",
+   "minutes": 2,
+   "why": "a person's declaration"
+  }
+ ],
+ "blocks": []
+}

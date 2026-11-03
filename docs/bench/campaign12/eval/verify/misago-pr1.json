@@ -1,0 +1,33 @@
+{
+ "slug": "satisfymath/c12-misago",
+ "number": 1,
+ "title": "fix: 1 ruff-baseline F811 finding in misago/admin/",
+ "base": "6aec4188b453400450e66c36789bad3dd038199f",
+ "head": "712b83305619928f36348c524683910ffedead37",
+ "claims": [
+  {
+   "file": "misago/admin/forms.py",
+   "line": "6",
+   "rule": "F811"
+  }
+ ],
+ "changed_files": [
+  "misago/admin/forms.py"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [
+  {
+   "file": "misago/admin/forms.py",
+   "line": "6",
+   "rule": "F811",
+   "at_base": [
+    "misago/admin/forms.py:6:5: F811 Redefinition of unused `CharField` from line 4: `CharField` redefined here"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  }
+ ],
+ "change_matches_problem": true,
+ "verdict": "verified"
+}

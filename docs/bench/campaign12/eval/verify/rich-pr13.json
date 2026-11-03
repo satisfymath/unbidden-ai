@@ -1,0 +1,66 @@
+{
+ "slug": "satisfymath/c12-rich",
+ "number": 13,
+ "title": "fix: 3 ruff-baseline F811 findings in tests/",
+ "base": "0ceac9a3992865c610ea819e01c526d99ddb0ff1",
+ "head": "dc05026bea514f03d5184a74dce0ea8b491c1d14",
+ "claims": [
+  {
+   "file": "tests/test_console.py",
+   "line": "604",
+   "rule": "F811"
+  },
+  {
+   "file": "tests/test_console.py",
+   "line": "968",
+   "rule": "F811"
+  },
+  {
+   "file": "tests/test_win32_console.py",
+   "line": "140",
+   "rule": "F811"
+  }
+ ],
+ "changed_files": [
+  "tests/test_console.py",
+  "tests/test_win32_console.py"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [
+  {
+   "file": "tests/test_console.py",
+   "line": "604",
+   "rule": "F811",
+   "at_base": [
+    "tests/test_console.py:604:5: F811 Redefinition of unused `test_soft_wrap` from line 48: `test_soft_wrap` redefined here",
+    "tests/test_console.py:968:5: F811 Redefinition of unused `test_force_color` from line 953: `test_force_color` redefined here"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/test_console.py",
+   "line": "968",
+   "rule": "F811",
+   "at_base": [
+    "tests/test_console.py:604:5: F811 Redefinition of unused `test_soft_wrap` from line 48: `test_soft_wrap` redefined here",
+    "tests/test_console.py:968:5: F811 Redefinition of unused `test_force_color` from line 953: `test_force_color` redefined here"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/test_win32_console.py",
+   "line": "140",
+   "rule": "F811",
+   "at_base": [
+    "tests/test_win32_console.py:140:9: F811 Redefinition of unused `test_write_styled_reverse` from line 123: `test_write_styled_reverse` redefined here"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  }
+ ],
+ "change_matches_problem": true,
+ "verdict": "verified"
+}

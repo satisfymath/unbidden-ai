@@ -1,0 +1,105 @@
+{
+ "url": "http://127.0.0.1:8860/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "sin datos",
+    "Sin filas",
+    "Opportunities: what was found, its level and the Director's decision: zero rows in this record",
+    "UNBIDDEN",
+    "/",
+    "brightbean-studio",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "1 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "brightbean-studio",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 20 eventos · en vivo",
+    "todos los tipos",
+    "action.executed",
+    "analyzer.ran",
+    "decision.made",
+    "egress.allowed",
+    "guardian.values_masked",
+    "mandate.changed",
+    "model.called",
+    "repo.head_moved",
+    "world.changed",
+    "Mapa actualizado",
+    "03:48",
+    "{\"n_added\":0,\"n_carried\":0,\"n_changed\":0,\"n_obsoleted\":0,\"n_revived\":0}",
+    "Llamada al modelo",
+    "03:47",
+    "research.robustness · code · muse-spark-1.3 · 3925→1674 tokens",
+    "Salida permitida",
+    "03:46",
+    "research.robustness → api.meta.ai (17023 B)",
+    "guardian.values_masked",
+    "03:46",
+    "messages: 1 · purpose: research.robustness",
+    "Decisión tomada",
+    "03:45",
+    "investigate — probe apps (80 public functions sampled)",
+    "Mapa actualizado",
+    "03:44",
+    "{\"n_added\":0,\"n_carried\":0,\"n_changed\":0,\"n_obsoleted\":0,\"n_revived\":0}",
+    "Analizador ejecutado",
+    "03:44",
+    "completeness: complete · error: null · findings: 0"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "brightbean-studio",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 0 oportunidades, ordenadas por evidencia",
+    "Sin oportunidades",
+    "Nada descubierto en este registro todavía.",
+    "Detalle",
+    "1 widgets · Guardado",
+    "100%"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "1 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

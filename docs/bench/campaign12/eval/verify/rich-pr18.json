@@ -1,0 +1,49 @@
+{
+ "slug": "satisfymath/c12-rich",
+ "number": 18,
+ "title": "fix: 2 ruff-baseline F821 findings in rich/",
+ "base": "0ceac9a3992865c610ea819e01c526d99ddb0ff1",
+ "head": "65fa7f92a0c86b1301e7f8ed203e2e1360928319",
+ "claims": [
+  {
+   "file": "rich/console.py",
+   "line": "511",
+   "rule": "F821"
+  },
+  {
+   "file": "rich/traceback.py",
+   "line": "211",
+   "rule": "F821"
+  }
+ ],
+ "changed_files": [
+  "rich/console.py",
+  "rich/traceback.py"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [
+  {
+   "file": "rich/console.py",
+   "line": "511",
+   "rule": "F821",
+   "at_base": [
+    "rich/console.py:511:15: F821 Undefined name `get_ipython`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "rich/traceback.py",
+   "line": "211",
+   "rule": "F821",
+   "at_base": [
+    "rich/traceback.py:211:14: F821 Undefined name `get_ipython`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  }
+ ],
+ "change_matches_problem": true,
+ "verdict": "verified"
+}

@@ -1,0 +1,429 @@
+{
+ "repo": "harlequin",
+ "phase": "eval",
+ "run": "B1",
+ "candidate": "8686674327b6ce2fba44b4c2640977fecd0da2e2",
+ "wheel_sha256": "a915417588329e4383cd5f07ba96499dc228976863792f8d51e46dfa634a3917",
+ "started_at": "2026-11-02T08:46:00-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "autopilot",
+    "--budget",
+    "2",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--github-token-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 5.9,
+   "timed_out": false,
+   "stdout": "{\n  \"models\": \"api\",\n  \"profile\": \"frontier\",\n  \"private_code_to_frontier\": \"deny\",\n  \"mode\": \"autopilot\",\n  \"act_on_connections\": \"deny\",\n  \"budget_usd\": 2.0,\n  \"credentials_saved\": [\n    \"MODEL_API_KEY\",\n    \"GITHUB_TOKEN\"\n  ],\n  \"credential_names_present\": [\n    \"GITHUB_TOKEN\",\n    \"MODEL_API_KEY\"\n  ],\n  \"dashboard\": \"later\",\n  \"effective\": [\n    {\n      \"what\": \"observe the repository, its CI and running services\",\n      \"capability\": \"repo.read\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.observe\"\n    },\n    {\n      \"what\": \"run experiments in the offline sandbox\",\n      \"capability\": \"sandbox.run\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.run_experiments\"\n    },\n    {\n      \"what\": \"install dependencies while building\",\n      \"capability\": \"sandbox.provision\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.provision_dependencies\"\n    },\n    {\n      \"what\": \"send synthetic or public content to remote models\",\n      \"capability\": \"model.remote.synthetic\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.delegate_synthetic\"\n    },\n    {\n      \"what\": \"use capabilities it built for itself\",\n      \"capability\": \"capability.use\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.use_new_capabilities\"\n    },\n    {\n      \"what\": \"open pull requests\",\n      \"capability\": \"github.open_pull_request\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.open_pull_requests\"\n    },\n    {\n      \"what\": \"merge pull requests\",\n      \"capability\": \"github.merge_pull_request\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": null,\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c12/harlequin/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c12/harlequin/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 2.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -12,9 +12,10 @@\",\n    \"     provision_dependencies: allow\",\n    \"     delegate_synthetic: allow\",\n    \"-    open_pull_requests: require_approval\",\n    \"+    open_pull_requests: allow\",\n    \"     merge_pull_requests: deny\",\n    \"     deploy: deny\",\n    \"     rollback: deny\",\n    \"-    use_new_capabilities: require_approval\",\n    \"+    use_new_capabilities: allow\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,7 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c12/harlequin/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "ts own for proven work; people merge\n  autonomous: also merges L4 work, deploys with the team's steps and rolls back\nEffective permissions\n  observe the repository, its CI and running services  allowed\n  run experiments in the offline sandbox               allowed\n  install dependencies while building                  allowed\n  send synthetic or public content to remote models    allowed\n  use capabilities it built for itself                 allowed\n  open pull requests                                   allowed\n  merge pull requests                                  denied\n  deploy with the team's steps                         denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nConnections (optional)\n\nBudget\nMachine ledger: verified balance US$97.29 (stage 6 spend cap authorized by David\non 2026-10-28: up to US$10 of free credits from this point (dev 3, evaluation 5,\ndemo and contingency 2; the earlier US$3 reserve is included, not added). \nDashboard as reported by David 2026-10-28: Current balance US$0, free credits in\nuse US$144.98, a Visa card on file, content sent while on free credits may be \nused to improve products. A cap, not a measured balance; no recharge or card \ncharge authorized (entered by david) | stage 9: US$30 additional Meta API spend \nauthorized by David on 2026-10-29, replacing the US$10 cap; cumulative cap \nUS$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval 12, demo 6 (D-052).\nDashboard as reported by David: free credits in use US$137.96, balance US$0, a \ncard on file. No recharge or card charge authorized (entered by david) | stage \n10: the remaining US$20.30 of the US$37.29 cap split before any call (D-058), by\nDavid's stage 10 instruction of 2026-10-30 (entered by david) | stage 10 after \nthe frozen evaluation: US$5 of the unspent s10-eval moved to s10-dev for \ncorrections and regressions, by David's instruction of 2026-10-31; envelopes \ntotal US$20.30 and the cumulative cap US$37.2945 unchanged; spent at the \ntransfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, s10-close 0) (entered by \ndavid) | product phase (A-E): s11-product US$4.00 authorized by David on \n2026-11-01, reassigned from s10-close (3.80, unspent, closed) and US$0.20 of \ns10-dev; envelopes total US$20.30 and the cumulative cap US$37.2945 unchanged; \nspent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval 1.0010, s10-close 0) \n(entered by david) | product phase correction: David's authorization of \n2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken from s10-dev had \nno recorded authorization and goes back (s10-dev 13.00, s11-product 3.80); \nenvelopes total US$20.30 and the cumulative cap US$37.2945 unchanged; \ns11-product spent 0 at the correction; spent at the correction US$27.7199 \n(entered by david) | campaign 12 (installed-product validation): US$60 \nadditional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david)); permitted US$97.29 · \nspent US$29.4778 · available US$67.8167\nenvelopes: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, \ns12-eval 30.00, s12-dev 17.00, s12-confirm 5.00\nProvider credits and authorized spend are different things: the cap a person \nentered with `unbidden spend --verified-balance` is what this machine may spend;\nit is never raised or reset here.\n\nDashboard\nOpening the dashboard, restoring its layout and showing records calls no model; \nchatting or asking for analysis can.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 4.1,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"3 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key set, API reachable\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"GITHUB_TOKEN set\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs allow\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.10 (pyproject.toml, uv.lock)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"static.yml > plugin (the whole job)\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "8860",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 76938,\n  \"log\": \"/Users/david/unbidden-lab/c12/harlequin/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-browser",
+   "argv": [
+    "node",
+    "/Users/david/unbidden-ai-campaign/frontend/scripts/c12_ui_check.mjs",
+    "http://127.0.0.1:8860/?s=<token>",
+    "/Users/david/unbidden-ai-campaign/docs/bench/campaign12/eval/harlequin/B1/ui-c1"
+   ],
+   "code": 0,
+   "seconds": 18.8,
+   "timed_out": false,
+   "stdout": "{\"ok\":true,\"steps\":5,\"console_errors\":2}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-status",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué ha hecho el agente hasta ahora y cuántas oportunidades hay?"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_9808011609db47e2\",\n  \"role\": \"assistant\",\n  \"content\": \"Registro de harlequin (live, head 15610f239de8): 0 oportunidades, 0 experimentos, 0 propuestas, 24 eventos, 0 llamadas a modelos, 1 bloqueos.\\nJobs: done 230, queued 2, running 1\\nBloqueo pending_person en «observe.checks»: .0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_h\\nAgente: agent running, pid 76938.\\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.\",\n  \"created_at\": \"2026-11-02T13:17:15.813725Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"rule\",\n  \"model\": null,\n  \"route\": {\n    \"intent\": \"inform\",\n    \"purpose\": null,\n    \"tier\": null,\n    \"model\": null,\n    \"reason\": \"the mandate denies local inference; reading records needs no model: answered by rules\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-analyze",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué hallazgo priorizarías y por qué? Di qué falta en el registro."
+   ],
+   "code": 0,
+   "seconds": 5.3,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_0eec9ec676ac4f8b\",\n  \"role\": \"assistant\",\n  \"content\": \"Ninguno: `head 15610f239de8` trae `opportunities:0` y `discovered.total:0`.\\n\\nFalta en el registro: no contiene títulos, niveles, estados ni medianas de hallazgos, ni propuestas, ni detalle del `blocks:1` — `blocks:[]` viene vacío.\",\n  \"created_at\": \"2026-11-02T13:17:21.077500Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"brain\",\n  \"model\": \"muse-spark-1.3\",\n  \"route\": {\n    \"intent\": \"analyze\",\n    \"purpose\": \"chat.analyze\",\n    \"tier\": \"code\",\n    \"model\": \"muse-spark-1.3\",\n    \"reason\": \"profile frontier; public_code may leave; label public_code\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 76938,\n  \"waited_s\": 0.2,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "8860",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 31936,\n  \"log\": \"/Users/david/unbidden-lab/c12/harlequin/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 31936,\n  \"waited_s\": 0.4,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-final",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.1,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c12/harlequin\",\n  \"head\": \"15610f239de82de3beb431d1dcf60fe933ad3fe1\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c12/harlequin/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 2\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"15610f239de82de3beb431d1dcf60fe933ad3fe1\",\n    \"tools\": [],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [],\n    \"problems\": [\n      \"dependency image for python failed to build:\\nerror: Failed to download and build `pytest-textual-snapshot @ git+https://github.com/tconbeer/pytest-textual-snapshot.git@a2c6763b45283f76757a123342900accefcf04e8`\\n  cause: Git operation failed\\n  cause: Git executable not found. Ensure that Git is installed and available.\\n\\nhint: `pytest-textual-snapshot` was included because `harlequin:test` (v2.17.0) depends on `pytest-textual-snapshot`\\nResolved 177 packages in 0.98ms\\n   Updating https://github.com/tconbeer/pytest-textual-snapshot.git (a2c6763b45283f76757a123342900accefcf04e8)\\nERROR: process \\\"/bin/sh -c (uv sync --frozen --no-install-project --group test --project /deps || (touch /deps/UNBIDDEN_LOCK_STALE && uv sync --no-install-project --group test --project /deps)) && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: harlequin\\\\\\\\nVersion: 2.17.0\\\\\\\\n' > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_harlequin.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\\n0.165   cause: Git executable not found. Ensure that Git is installed and available.\\n0.206 error: Failed to download and build `pytest-textual-snapshot @ git+https://github.com/tconbeer/pytest-textual-snapshot.git@a2c6763b45283f76757a123342900accefcf04e8`\\n0.206   cause: Git operation failed\\n0.206   cause: Git executable not found. Ensure that Git is installed and available.\\n--------------------\\nERROR: failed to build: failed to solve: process \\\"/bin/sh -c (uv sync --frozen --no-install-project --group test --project /deps || (touch /deps/UNBIDDEN_LOCK_STALE && uv sync --no-install-project --group test --project /deps)) && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: harlequin\\\\\\\\nVersion: 2.17.0\\\\\\\\n' > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_harlequin.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\"\n    ],\n    \"reports\": []\n  },\n  \"opportunities\": {}\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "egress",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "egress",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "[\n  {\n    \"id\": \"egr_ce489a4733844c90\",\n    \"status\": \"allowed_sent\",\n    \"purpose\": \"chat.analyze\",\n    \"destination\": \"api.meta.ai\",\n    \"provider\": \"meta\",\n    \"model\": \"muse-spark-1.3\",\n    \"verdict\": {\n      \"allowed\": true,\n      \"kind\": \"synthetic_task\",\n      \"destination\": \"api.meta.ai\",\n      \"reasons\": [],\n      \"matched\": [],\n      \"payload_sha256\": \"6459fccb8f72615fd346931d72b565ef4e9394e0bef7b2c01024870e5d6afc4a\",\n      \"payload_bytes\": 2324\n    },\n    \"payload\": \"{\\\"messages\\\": [{\\\"content\\\": \\\"You are the analyst of Unbidden's dashboard. You receive a digest of Unbidden's own records\\\\n(counts, levels, statuses, titles, ids, medians) and a question. Answer in the language the question is written in,\\\\nbriefly, from the digest alone: cite the ids and numbers you rely on, say what the digest does not contain instead\\\\nof guessing, and never invent a metric, a finding or an improvement. You cannot act: do not promise to approve,\\\\ndeploy, merge, run or stop anything; name the command or button when the person should decide something.\\\", \\\"role\\\": \\\"system\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ade una tabla con las oportunidades\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ado una tabla con las oportunidades.\\\\na\\u00f1adido \\u00abOportunidades\\u00bb (sin datos: Opportunities: what was found, its level and the Director's decision: zero rows in this record)\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 ha hecho el agente hasta ahora y cu\\u00e1ntas oportunidades hay?\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"Registro de harlequin (live, head 15610f239de8): 0 oportunidades, 0 experimentos, 0 propuestas, 24 eventos, 0 llamadas a modelos, 1 bloqueos.\\\\nJobs: done 230, queued 2, running 1\\\\nBloqueo pending_person en \\u00abobserve.checks\\u00bb: .0.dist-info\\\\\\\\\\\\\\\"/METADATA && echo unbidden > \\\\\\\\\\\\\\\"$SP/harlequin-2.17.0.dist-info\\\\\\\\\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\\\\\\\\\n/work\\\\\\\\\\\\\\\\n' > \\\\\\\\\\\\\\\"$SP/_unbidden_h\\\\nAgente: agent running, pid 76938.\\\\nPara un porqu\\u00e9 o una recomendaci\\u00f3n pide un an\\u00e1lisis; para ver algo, una tabla o un gr\\u00e1fico.\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"Records digest:\\\\nworkspace harlequin (live record); head 15610f239de8; observed 2026-11-02T13:17:16.501301+00:00; freshness current\\\\ncounts: {\\\\\\\"opportunities\\\\\\\":0,\\\\\\\"experiments\\\\\\\":0,\\\\\\\"proposals\\\\\\\":0,\\\\\\\"events\\\\\\\":24,\\\\\\\"model_runs\\\\\\\":0,\\\\\\\"connections\\\\\\\":0,\\\\\\\"deployments\\\\\\\":0,\\\\\\\"needs\\\\\\\":0,\\\\\\\"blocks\\\\\\\":1,\\\\\\\"spend_calls\\\\\\\":0,\\\\\\\"world\\\\\\\":1}\\\\njobs: {\\\\\\\"done\\\\\\\":230,\\\\\\\"queued\\\\\\\":2,\\\\\\\"running\\\\\\\":1}\\\\ndiscovered: {\\\\\\\"total\\\\\\\":0,\\\\\\\"by_status\\\\\\\":{}}\\\\ninvalidated: []\\\\nproposals: {}\\\\nblocks: []\\\\nlearned: {}\\\\nconnections: []\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 hallazgo priorizar\\u00edas y por qu\\u00e9? Di qu\\u00e9 falta en el registro.\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}], \\\"response_schema\\\": null, \\\"tools\\\": []}\",\n    \"created_at\": \"2026-11-02T13:17:16.507938Z\",\n    \"origin\": \"dashboard apart\"\n  }\n]\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/tconbeer/harlequin",
+   "commit": "ad3ecef4ff12bc4c89b15fb9c6a628c424afb6e2",
+   "family": "cli",
+   "class": "independent",
+   "build": "hatch",
+   "lab": null,
+   "copy_base_sha": "15610f239de82de3beb431d1dcf60fe933ad3fe1"
+  },
+  "ledger_before": {
+   "envelope": "s12-eval",
+   "envelope_spent_usd": 0.4077,
+   "available_usd": 67.8167,
+   "permitted_usd": 97.2945
+  },
+  "fork": {
+   "slug": "satisfymath/c12-harlequin",
+   "base": "main",
+   "upstream": "tconbeer/harlequin",
+   "kind": "copy",
+   "created": false,
+   "prep": {
+    "applied": false,
+    "why": "nothing to change (already prepared, or nothing listed)"
+   },
+   "pin": "ad3ecef4ff12bc4c89b15fb9c6a628c424afb6e2",
+   "restore": {
+    "expected": "15610f239de82de3beb431d1dcf60fe933ad3fe1",
+    "head_before": "15610f239de82de3beb431d1dcf60fe933ad3fe1",
+    "pin_in_history": true,
+    "closed": [],
+    "deleted": [],
+    "base_sha": "15610f239de82de3beb431d1dcf60fe933ad3fe1"
+   },
+   "base_sha": "15610f239de82de3beb431d1dcf60fe933ad3fe1",
+   "pin_in_history": true,
+   "dependabot_prs_closed": [],
+   "workflows_registered": [
+    "static.yml",
+    "test-build.yml",
+    "test.yml"
+   ],
+   "disabled_in_settings": [],
+   "kept": "test, static, test-build"
+  },
+  "fork_before": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "15610f239de82de3beb431d1dcf60fe933ad3fe1"
+  },
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required"
+  },
+  "mode": {
+   "asked": "autopilot",
+   "why": "a library has no deploy: autonomous is not available"
+  },
+  "mode_got": "autopilot",
+  "cycle1": {
+   "started": true,
+   "waited_s": 5406.8,
+   "bound_hit": true,
+   "status_at_end": {
+    "running": true,
+    "pid": 76938,
+    "started_at": "2026-11-02T11:46:49.182415+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c12/harlequin/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 2
+   },
+   "counts": {
+    "events": {
+     "analyzer.ran": 1,
+     "decision.made": 1,
+     "mandate.changed": 1,
+     "repo.head_moved": 1,
+     "world.changed": 20
+    },
+    "docs": {
+     "blocks": 1,
+     "world": 1
+    },
+    "jobs": {
+     "done": 229,
+     "queued": 2
+    },
+    "proposals": []
+   }
+  },
+  "ui1": {
+   "opened": true,
+   "in_daemon": true,
+   "summary": {
+    "mode": "live",
+    "freshness": "current",
+    "counts": {
+     "opportunities": 0,
+     "experiments": 0,
+     "proposals": 0,
+     "events": 24,
+     "model_runs": 0,
+     "connections": 0,
+     "deployments": 0,
+     "needs": 0,
+     "blocks": 1,
+     "spend_calls": 0,
+     "world": 1
+    },
+    "agent": {
+     "running": true,
+     "pid": 76938,
+     "started_at": "2026-11-02T11:46:49.182415+00:00",
+     "command": "watch",
+     "detail": "agent running, pid 76938"
+    },
+    "key_present": true
+   },
+   "opportunities_total": 0,
+   "widgets": [
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:harlequin"
+    }
+   ],
+   "browser": {
+    "ok": true,
+    "steps": 5,
+    "console_errors": 2
+   },
+   "chat_status": {
+    "planner": "rule",
+    "route": {
+     "intent": "inform",
+     "purpose": null,
+     "tier": null,
+     "model": null,
+     "reason": "the mandate denies local inference; reading records needs no model: answered by rules",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Registro de harlequin (live, head 15610f239de8): 0 oportunidades, 0 experimentos, 0 propuestas, 24 eventos, 0 llamadas a modelos, 1 bloqueos.\nJobs: done 230, queued 2, running 1\nBloqueo pending_person en «observe.checks»: .0.dist-info\\\"/METADATA && echo unbidden > \\\"$SP/harlequin-2.17.0.dist-info\\\"/INSTALLER && printf '/work/src\\\\n/work\\\\n' > \\\"$SP/_unbidden_h\nAgente: agent running, pid 76938.\nPar"
+   },
+   "chat_analyze": {
+    "planner": "brain",
+    "route": {
+     "intent": "analyze",
+     "purpose": "chat.analyze",
+     "tier": "code",
+     "model": "muse-spark-1.3",
+     "reason": "profile frontier; public_code may leave; label public_code",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Ninguno: `head 15610f239de8` trae `opportunities:0` y `discovered.total:0`.\n\nFalta en el registro: no contiene títulos, niveles, estados ni medianas de hallazgos, ni propuestas, ni detalle del `blocks:1` — `blocks:[]` viene vacío."
+   }
+  },
+  "fork_after_c1": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "15610f239de82de3beb431d1dcf60fe933ad3fe1"
+  },
+  "cycle2": {
+   "started": true,
+   "waited_s": 2703.1,
+   "bound_hit": true,
+   "status_at_end": {
+    "running": true,
+    "pid": 31936,
+    "started_at": "2026-11-02T13:17:23.853900+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c12/harlequin/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 2
+   },
+   "counts": {
+    "events": {
+     "analyzer.ran": 1,
+     "decision.made": 1,
+     "mandate.changed": 1,
+     "repo.head_moved": 1,
+     "world.changed": 29
+    },
+    "docs": {
+     "blocks": 1,
+     "world": 1
+    },
+    "jobs": {
+     "done": 342,
+     "queued": 2
+    },
+    "proposals": []
+   }
+  },
+  "fork_after_c2": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "15610f239de82de3beb431d1dcf60fe933ad3fe1"
+  },
+  "status_final": {
+   "running": false,
+   "pid": null,
+   "started_at": null,
+   "command": null,
+   "log": "/Users/david/unbidden-lab/c12/harlequin/.unbidden/logs/agent.log",
+   "stale": false,
+   "jobs_running": 0,
+   "jobs_queued": 2
+  },
+  "egress": {
+   "api.meta.ai:chat.analyze:allowed_sent": 1
+  },
+  "ledger_after": {
+   "envelope": "s12-eval",
+   "envelope_spent_usd": 0.4109,
+   "available_usd": 67.8135,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c12-eval-B1-harlequin",
+   "calls": 1,
+   "usd": 0.0032,
+   "tokens_in": 531,
+   "tokens_out": 608
+  },
+  "spent_usd": 0.0032,
+  "archive": "/Users/david/unbidden-lab/c12/archive/harlequin-B1-eval.tgz"
+ },
+ "human": [
+  {
+   "step": "mandate: fork, registries, operations, connections",
+   "minutes": 2,
+   "why": "a person's declaration"
+  }
+ ],
+ "blocks": []
+}

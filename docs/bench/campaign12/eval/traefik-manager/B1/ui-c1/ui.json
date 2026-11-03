@@ -1,0 +1,105 @@
+{
+ "url": "http://127.0.0.1:8860/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "sin datos",
+    "Sin filas",
+    "Opportunities: what was found, its level and the Director's decision: zero rows in this record",
+    "UNBIDDEN",
+    "/",
+    "traefik-manager",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "1 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "traefik-manager",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 14 eventos · en vivo",
+    "todos los tipos",
+    "action.executed",
+    "analyzer.ran",
+    "decision.made",
+    "egress.allowed",
+    "mandate.changed",
+    "model.called",
+    "repo.head_moved",
+    "world.changed",
+    "Llamada al modelo",
+    "03:57",
+    "research.robustness · code · muse-spark-1.3 · 1843→2079 tokens",
+    "Salida permitida",
+    "03:57",
+    "research.robustness → api.meta.ai (8026 B)",
+    "Decisión tomada",
+    "03:56",
+    "investigate — probe core (80 public functions sampled)",
+    "Mapa actualizado",
+    "03:56",
+    "{\"n_added\":0,\"n_carried\":0,\"n_changed\":0,\"n_obsoleted\":0,\"n_revived\":0}",
+    "Analizador ejecutado",
+    "03:56",
+    "completeness: complete · error: null · findings: 0",
+    "Mapa actualizado",
+    "03:56",
+    "{\"added\":[\"service:traefik-manager\",\"ci_job:tests.yml#pytest\"],\"changed\":[\"repo:",
+    "action.executed",
+    "03:56",
+    "connection: null · operation: docker compose up -d --force-recreate traefik-manager · reason: found in docs/static-enabl",
+    "action.executed"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "traefik-manager",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 0 oportunidades, ordenadas por evidencia",
+    "Sin oportunidades",
+    "Nada descubierto en este registro todavía.",
+    "Detalle",
+    "1 widgets · Guardado",
+    "100%"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "1 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

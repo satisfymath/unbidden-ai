@@ -1,0 +1,2722 @@
+{
+ "repo": "fst",
+ "phase": "eval",
+ "run": "B2",
+ "candidate": "8686674327b6ce2fba44b4c2640977fecd0da2e2",
+ "wheel_sha256": "a915417588329e4383cd5f07ba96499dc228976863792f8d51e46dfa634a3917",
+ "started_at": "2026-11-02T13:18:42-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "autopilot",
+    "--budget",
+    "2",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--github-token-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 4.5,
+   "timed_out": false,
+   "stdout": "{\n  \"models\": \"api\",\n  \"profile\": \"frontier\",\n  \"private_code_to_frontier\": \"deny\",\n  \"mode\": \"autopilot\",\n  \"act_on_connections\": \"deny\",\n  \"budget_usd\": 2.0,\n  \"credentials_saved\": [\n    \"MODEL_API_KEY\",\n    \"GITHUB_TOKEN\"\n  ],\n  \"credential_names_present\": [\n    \"GITHUB_TOKEN\",\n    \"MODEL_API_KEY\"\n  ],\n  \"dashboard\": \"later\",\n  \"effective\": [\n    {\n      \"what\": \"observe the repository, its CI and running services\",\n      \"capability\": \"repo.read\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.observe\"\n    },\n    {\n      \"what\": \"run experiments in the offline sandbox\",\n      \"capability\": \"sandbox.run\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.run_experiments\"\n    },\n    {\n      \"what\": \"install dependencies while building\",\n      \"capability\": \"sandbox.provision\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.provision_dependencies\"\n    },\n    {\n      \"what\": \"send synthetic or public content to remote models\",\n      \"capability\": \"model.remote.synthetic\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.delegate_synthetic\"\n    },\n    {\n      \"what\": \"use capabilities it built for itself\",\n      \"capability\": \"capability.use\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.use_new_capabilities\"\n    },\n    {\n      \"what\": \"open pull requests\",\n      \"capability\": \"github.open_pull_request\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.open_pull_requests\"\n    },\n    {\n      \"what\": \"merge pull requests\",\n      \"capability\": \"github.merge_pull_request\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": null,\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c12/fst/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c12/fst/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 2.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -12,9 +12,10 @@\",\n    \"     provision_dependencies: allow\",\n    \"     delegate_synthetic: allow\",\n    \"-    open_pull_requests: require_approval\",\n    \"+    open_pull_requests: allow\",\n    \"     merge_pull_requests: deny\",\n    \"     deploy: deny\",\n    \"     rollback: deny\",\n    \"-    use_new_capabilities: require_approval\",\n    \"+    use_new_capabilities: allow\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,7 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c12/fst/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "ts own for proven work; people merge\n  autonomous: also merges L4 work, deploys with the team's steps and rolls back\nEffective permissions\n  observe the repository, its CI and running services  allowed\n  run experiments in the offline sandbox               allowed\n  install dependencies while building                  allowed\n  send synthetic or public content to remote models    allowed\n  use capabilities it built for itself                 allowed\n  open pull requests                                   allowed\n  merge pull requests                                  denied\n  deploy with the team's steps                         denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nConnections (optional)\n\nBudget\nMachine ledger: verified balance US$97.29 (stage 6 spend cap authorized by David\non 2026-10-28: up to US$10 of free credits from this point (dev 3, evaluation 5,\ndemo and contingency 2; the earlier US$3 reserve is included, not added). \nDashboard as reported by David 2026-10-28: Current balance US$0, free credits in\nuse US$144.98, a Visa card on file, content sent while on free credits may be \nused to improve products. A cap, not a measured balance; no recharge or card \ncharge authorized (entered by david) | stage 9: US$30 additional Meta API spend \nauthorized by David on 2026-10-29, replacing the US$10 cap; cumulative cap \nUS$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval 12, demo 6 (D-052).\nDashboard as reported by David: free credits in use US$137.96, balance US$0, a \ncard on file. No recharge or card charge authorized (entered by david) | stage \n10: the remaining US$20.30 of the US$37.29 cap split before any call (D-058), by\nDavid's stage 10 instruction of 2026-10-30 (entered by david) | stage 10 after \nthe frozen evaluation: US$5 of the unspent s10-eval moved to s10-dev for \ncorrections and regressions, by David's instruction of 2026-10-31; envelopes \ntotal US$20.30 and the cumulative cap US$37.2945 unchanged; spent at the \ntransfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, s10-close 0) (entered by \ndavid) | product phase (A-E): s11-product US$4.00 authorized by David on \n2026-11-01, reassigned from s10-close (3.80, unspent, closed) and US$0.20 of \ns10-dev; envelopes total US$20.30 and the cumulative cap US$37.2945 unchanged; \nspent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval 1.0010, s10-close 0) \n(entered by david) | product phase correction: David's authorization of \n2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken from s10-dev had \nno recorded authorization and goes back (s10-dev 13.00, s11-product 3.80); \nenvelopes total US$20.30 and the cumulative cap US$37.2945 unchanged; \ns11-product spent 0 at the correction; spent at the correction US$27.7199 \n(entered by david) | campaign 12 (installed-product validation): US$60 \nadditional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david)); permitted US$97.29 · \nspent US$29.4848 · available US$67.8097\nenvelopes: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, \ns12-eval 30.00, s12-dev 17.00, s12-confirm 5.00\nProvider credits and authorized spend are different things: the cap a person \nentered with `unbidden spend --verified-balance` is what this machine may spend;\nit is never raised or reset here.\n\nDashboard\nOpening the dashboard, restoring its layout and showing records calls no model; \nchatting or asking for analysis can.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 2.7,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"3 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key set, API reachable\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"GITHUB_TOKEN set\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs allow\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.14 (pyproject.toml, uv.lock; workspace members backend)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"test-backend.yml > test-backend (the whole job); 2 step(s) after the tests left out (they run no tests)\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"services in compose: db\"\n    },\n    {\n      \"check\": \"scope: node\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"analyzed for findings only; no full cycle in v1.0\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "map",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "map",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 80.9,
+   "timed_out": false,
+   "stdout": "  \"locator\": \"backend/app/api/routes/login.py:77\",\n          \"sha256\": null,\n          \"note\": \"read by the local model\",\n          \"captured_at\": \"2026-11-02T16:20:35.478599Z\"\n        }\n      ],\n      \"source\": \"local-model-relations@1\",\n      \"observed_at\": \"2026-11-02T16:20:35.478691Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"4a375a5ee6ffceae314cc78ed4ee543229e323fd\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"endpoint:POST /api/v1/reset-password/\",\n      \"dst\": \"table:user\",\n      \"predicate\": \"writes\"\n    },\n    {\n      \"status\": \"inferred\",\n      \"confidence\": 0.6,\n      \"evidence\": [\n        {\n          \"kind\": \"file\",\n          \"locator\": \"backend/app/api/routes/users.py:146\",\n          \"sha256\": null,\n          \"note\": \"read by the local model\",\n          \"captured_at\": \"2026-11-02T16:20:38.639233Z\"\n        }\n      ],\n      \"source\": \"local-model-relations@1\",\n      \"observed_at\": \"2026-11-02T16:20:38.639249Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"4a375a5ee6ffceae314cc78ed4ee543229e323fd\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"endpoint:POST /api/v1/users/signup\",\n      \"dst\": \"table:user\",\n      \"predicate\": \"reads\"\n    },\n    {\n      \"status\": \"inferred\",\n      \"confidence\": 0.6,\n      \"evidence\": [\n        {\n          \"kind\": \"file\",\n          \"locator\": \"backend/app/api/routes/users.py:146\",\n          \"sha256\": null,\n          \"note\": \"read by the local model\",\n          \"captured_at\": \"2026-11-02T16:20:38.639233Z\"\n        }\n      ],\n      \"source\": \"local-model-relations@1\",\n      \"observed_at\": \"2026-11-02T16:20:38.639297Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"4a375a5ee6ffceae314cc78ed4ee543229e323fd\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"endpoint:POST /api/v1/users/signup\",\n      \"dst\": \"table:user\",\n      \"predicate\": \"writes\"\n    },\n    {\n      \"status\": \"inferred\",\n      \"confidence\": 0.6,\n      \"evidence\": [\n        {\n          \"kind\": \"file\",\n          \"locator\": \"backend/app/api/routes/private.py:23\",\n          \"sha256\": null,\n          \"note\": \"read by the local model\",\n          \"captured_at\": \"2026-11-02T16:20:48.940511Z\"\n        }\n      ],\n      \"source\": \"local-model-relations@1\",\n      \"observed_at\": \"2026-11-02T16:20:48.940542Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"4a375a5ee6ffceae314cc78ed4ee543229e323fd\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"endpoint:POST /private/users/\",\n      \"dst\": \"table:user\",\n      \"predicate\": \"writes\"\n    },\n    {\n      \"status\": \"inferred\",\n      \"confidence\": 0.6,\n      \"evidence\": [\n        {\n          \"kind\": \"file\",\n          \"locator\": \"backend/app/api/routes/items.py:75\",\n          \"sha256\": null,\n          \"note\": \"read by the local model\",\n          \"captured_at\": \"2026-11-02T16:20:52.895139Z\"\n        }\n      ],\n      \"source\": \"local-model-relations@1\",\n      \"observed_at\": \"2026-11-02T16:20:52.895164Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"4a375a5ee6ffceae314cc78ed4ee543229e323fd\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"endpoint:PUT /api/v1/items/{id}\",\n      \"dst\": \"table:item\",\n      \"predicate\": \"reads\"\n    },\n    {\n      \"status\": \"inferred\",\n      \"confidence\": 0.6,\n      \"evidence\": [\n        {\n          \"kind\": \"file\",\n          \"locator\": \"backend/app/api/routes/items.py:75\",\n          \"sha256\": null,\n          \"note\": \"read by the local model\",\n          \"captured_at\": \"2026-11-02T16:20:52.895139Z\"\n        }\n      ],\n      \"source\": \"local-model-relations@1\",\n      \"observed_at\": \"2026-11-02T16:20:52.895248Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"4a375a5ee6ffceae314cc78ed4ee543229e323fd\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"endpoint:PUT /api/v1/items/{id}\",\n      \"dst\": \"table:item\",\n      \"predicate\": \"writes\"\n    }\n  ],\n  \"blind_spots\": [],\n  \"updated_at\": \"2026-11-02T16:19:32.542589Z\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "drill",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "drill",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 7.5,
+   "timed_out": false,
+   "stdout": "{\n  \"at\": \"2026-11-02T16:21:00.696527+00:00\",\n  \"from\": \"4a375a5ee6ffceae314cc78ed4ee543229e323fd\",\n  \"to\": \"f4bcfaba7c85be3c6332cc74a20819f586dcdbc6\",\n  \"back\": true,\n  \"forth\": true,\n  \"passed\": true\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "mode-autonomous",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "mode",
+    "autonomous",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.1,
+   "timed_out": false,
+   "stdout": "mode: autonomous (was autopilot)\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "8860",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 18510,\n  \"log\": \"/Users/david/unbidden-lab/c12/fst/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-browser",
+   "argv": [
+    "node",
+    "/Users/david/unbidden-ai-campaign/frontend/scripts/c12_ui_check.mjs",
+    "http://127.0.0.1:8860/?s=<token>",
+    "/Users/david/unbidden-ai-campaign/docs/bench/campaign12/eval/fst/B2/ui-c1"
+   ],
+   "code": 0,
+   "seconds": 18.8,
+   "timed_out": false,
+   "stdout": "{\"ok\":true,\"steps\":5,\"console_errors\":2}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-status",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué ha hecho el agente hasta ahora y cuántas oportunidades hay?"
+   ],
+   "code": 0,
+   "seconds": 0.7,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_a5cb55c19e3b4a98\",\n  \"role\": \"assistant\",\n  \"content\": \"Registro de fst (live, head 4a375a5ee6ff): 6 oportunidades, 0 experimentos, 0 propuestas, 138 eventos, 41 llamadas a modelos, 0 bloqueos.\\nJobs: done 26\\nAgente: agent running, pid 18510.\\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.\",\n  \"created_at\": \"2026-11-02T16:58:45.234604Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"rule\",\n  \"model\": null,\n  \"route\": {\n    \"intent\": \"inform\",\n    \"purpose\": null,\n    \"tier\": null,\n    \"model\": null,\n    \"reason\": \"the mandate denies local inference; reading records needs no model: answered by rules\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-analyze",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué hallazgo priorizarías y por qué? Di qué falta en el registro."
+   ],
+   "code": 0,
+   "seconds": 5.0,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_a4e91f130c3e40df\",\n  \"role\": \"assistant\",\n  \"content\": \"No priorizaría ninguno de los visibles: los 4 en el registro están `declined` nivel 1:\\n\\n- `opp_2564207175944c0b` — 1 ruff I001 en hooks/\\n- `opp_2e22707af0de4862` — 3 ruff DTZ011 en scripts/\\n- `opp_84dee8670f7946f7` — 1 ruff FURB167 en scripts/\\n- `opp_5572e296e83e4225` — item.owner_id FK sin índice\\n\\nFalta en el registro: hay 6 oportunidades totales, 4 `declined` y 2 `open`, pero el digest no incluye id ni título de esas 2 `open`. Sin eso no puedo priorizar.\",\n  \"created_at\": \"2026-11-02T16:58:50.203229Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"brain\",\n  \"model\": \"muse-spark-1.3\",\n  \"route\": {\n    \"intent\": \"analyze\",\n    \"purpose\": \"chat.analyze\",\n    \"tier\": \"code\",\n    \"model\": \"muse-spark-1.3\",\n    \"reason\": \"profile frontier; public_code may leave; label public_code\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.7,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 18510,\n  \"waited_s\": 0.6,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "8860",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 27354,\n  \"log\": \"/Users/david/unbidden-lab/c12/fst/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.4,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 27354,\n  \"waited_s\": 0.2,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-final",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.1,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c12/fst\",\n  \"head\": \"4a375a5ee6ffceae314cc78ed4ee543229e323fd\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c12/fst/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"4a375a5ee6ffceae314cc78ed4ee543229e323fd\",\n    \"tools\": [\n      \"tsc:frontend\",\n      \"biome:frontend\",\n      \"biome:packages/react-email\",\n      \"ruff\",\n      \"mypy\"\n    ],\n    \"languages\": [\n      \"node\",\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"python 3.14: from the project's Dockerfile\",\n      \"the project's Dockerfile: 3.14\",\n      \".python-version: 3.14\",\n      \"image unbidden-deps-python:bcc1d056c66bf06a on linux/arm64\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"tsc:frontend\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"biome:frontend\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"biome:packages/react-email\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"ruff\",\n        \"completeness\": \"complete\",\n        \"findings\": 5,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"mypy\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"declined\": 4,\n    \"open\": 2\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "egress",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "egress",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "de una tabla con las oportunidades\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ado una tabla con las oportunidades.\\\\na\\u00f1adido \\u00abOportunidades\\u00bb\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 ha hecho el agente hasta ahora y cu\\u00e1ntas oportunidades hay?\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"Registro de fst (live, head 4a375a5ee6ff): 6 oportunidades, 0 experimentos, 0 propuestas, 138 eventos, 41 llamadas a modelos, 0 bloqueos.\\\\nJobs: done 26\\\\nAgente: agent running, pid 18510.\\\\nPara un porqu\\u00e9 o una recomendaci\\u00f3n pide un an\\u00e1lisis; para ver algo, una tabla o un gr\\u00e1fico.\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"Records digest:\\\\nworkspace fst (live record); head 4a375a5ee6ff; observed 2026-11-02T16:58:45.899760+00:00; freshness current\\\\ncounts: {\\\\\\\"opportunities\\\\\\\":6,\\\\\\\"experiments\\\\\\\":0,\\\\\\\"proposals\\\\\\\":0,\\\\\\\"events\\\\\\\":138,\\\\\\\"model_runs\\\\\\\":41,\\\\\\\"connections\\\\\\\":3,\\\\\\\"deployments\\\\\\\":1,\\\\\\\"needs\\\\\\\":1,\\\\\\\"blocks\\\\\\\":0,\\\\\\\"spend_calls\\\\\\\":226,\\\\\\\"world\\\\\\\":1}\\\\njobs: {\\\\\\\"done\\\\\\\":26}\\\\ndiscovered: {\\\\\\\"total\\\\\\\":6,\\\\\\\"by_status\\\\\\\":{\\\\\\\"declined\\\\\\\":4,\\\\\\\"open\\\\\\\":2}}\\\\ninvalidated: []\\\\nproposals: {}\\\\nblocks: []\\\\nlearned: {\\\\\\\"world \\u00b7 performance \\u00b7 -\\\\\\\":{\\\\\\\"successes\\\\\\\":0,\\\\\\\"failures\\\\\\\":2,\\\\\\\"p\\\\\\\":0.3,\\\\\\\"prior\\\\\\\":0.6}}\\\\nconnections: [{\\\\\\\"id\\\\\\\":\\\\\\\"compose:compose\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"compose\\\\\\\",\\\\\\\"environment\\\\\\\":\\\\\\\"local\\\\\\\",\\\\\\\"state\\\\\\\":\\\\\\\"connected\\\\\\\",\\\\\\\"read\\\\\\\":[\\\\\\\"ps\\\\\\\",\\\\\\\"inspect\\\\\\\",\\\\\\\"logs\\\\\\\"],\\\\\\\"write\\\\\\\":[],\\\\\\\"requested\\\\\\\":[],\\\\\\\"effective\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"blocked\\\\\\\":null,\\\\\\\"next_step\\\\\\\":null,\\\\\\\"found_by\\\\\\\":[\\\\\\\"the map's compose connector\\\\\\\"],\\\\\\\"checked_at\\\\\\\":null},{\\\\\\\"id\\\\\\\":\\\\\\\"postgres:<ip>:55500/app\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"postgres\\\\\\\",\\\\\\\"environment\\\\\\\":\\\\\\\"staging\\\\\\\",\\\\\\\"state\\\\\\\":\\\\\\\"connected\\\\\\\",\\\\\\\"read\\\\\\\":[\\\\\\\"catalog\\\\\\\",\\\\\\\"select public.alembic_version\\\\\\\",\\\\\\\"select public.item\\\\\\\",\\\\\\\"select public.user\\\\\\\"],\\\\\\\"write\\\\\\\":[],\\\\\\\"requested\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"effective\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"blocked\\\\\\\":null,\\\\\\\"next_step\\\\\\\":null,\\\\\\\"found_by\\\\\\\":[\\\\\\\"mandate grant\\\\\\\"],\\\\\\\"checked_at\\\\\\\":\\\\\\\"2026-11-02T16:56:28.510852+00:00\\\\\\\"},{\\\\\\\"id\\\\\\\":\\\\\\\"http_api:http://<ip>:18200\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"http_api\\\\\\\",\\\\\\\"environment\\\\\\\":\\\\\\\"staging\\\\\\\",\\\\\\\"state\\\\\\\":\\\\\\\"needs_capability\\\\\\\",\\\\\\\"read\\\\\\\":[],\\\\\\\"write\\\\\\\":[],\\\\\\\"requested\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"effective\\\\\\\":[],\\\\\\\"blocked\\\\\\\":\\\\\\\"c12-fst: 22 operations documented, authenticated by oauth2; no integration yet\\\\\\\",\\\\\\\"next_step\\\\\\\":\\\\\\\"Forge builds an integration from its documentation when a task needs it\\\\\\\",\\\\\\\"found_by\\\\\\\":[\\\\\\\"mandate grant\\\\\\\"],\\\\\\\"checked_at\\\\\\\":\\\\\\\"2026-11-02T16:56:28.515526+00:00\\\\\\\"}]\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_2564207175944c0b\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"1 ruff I001 finding in hooks/\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"declined\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_2e22707af0de4862\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"3 ruff DTZ011 findings in scripts/\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"declined\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_84dee8670f7946f7\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"1 ruff FURB167 finding in scripts/\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"declined\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_5572e296e83e4225\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"item.owner_id is a foreign key without an index, checked when 2 endpoint(s) delete a user row\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"declined\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 hallazgo priorizar\\u00edas y por qu\\u00e9? Di qu\\u00e9 falta en el registro.\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}], \\\"response_schema\\\": null, \\\"tools\\\": []}\",\n    \"created_at\": \"2026-11-02T16:58:45.906526Z\",\n    \"origin\": \"dashboard apart\"\n  }\n]\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/fastapi/full-stack-fastapi-template",
+   "commit": "f4bcfaba7c85be3c6332cc74a20819f586dcdbc6",
+   "family": "api-postgres",
+   "class": "dev",
+   "build": "uv",
+   "lab": "fst",
+   "copy_base_sha": "4a375a5ee6ffceae314cc78ed4ee543229e323fd"
+  },
+  "ledger_before": {
+   "envelope": "s12-eval",
+   "envelope_spent_usd": 0.4147,
+   "available_usd": 67.8097,
+   "permitted_usd": 97.2945
+  },
+  "fork": {
+   "slug": "satisfymath/c12-fst",
+   "base": "master",
+   "upstream": "fastapi/full-stack-fastapi-template",
+   "kind": "copy",
+   "created": false,
+   "prep": {
+    "applied": false,
+    "why": "nothing to change (already prepared, or nothing listed)"
+   },
+   "pin": "f4bcfaba7c85be3c6332cc74a20819f586dcdbc6",
+   "restore": {
+    "expected": "4a375a5ee6ffceae314cc78ed4ee543229e323fd",
+    "head_before": "d3b98e1a5fc4bcdb733f487b2750b65e6f6df0ce",
+    "pin_in_history": true,
+    "closed": [],
+    "deleted": [
+     "unbidden/item-owner-id-is-a-foreign-key-without-a-9a49f2"
+    ],
+    "base_sha": "4a375a5ee6ffceae314cc78ed4ee543229e323fd"
+   },
+   "base_sha": "4a375a5ee6ffceae314cc78ed4ee543229e323fd",
+   "pin_in_history": true,
+   "dependabot_prs_closed": [],
+   "workflows_registered": [
+    "create-draft-release.yml",
+    "dependabot-updates",
+    "detect-conflicts.yml",
+    "playwright.yml",
+    "pre-commit.yml",
+    "test-backend.yml",
+    "test-docker-compose.yml",
+    "zizmor.yml"
+   ],
+   "disabled_in_settings": [
+    "dependabot-updates"
+   ],
+   "kept": "test-backend, test-docker-compose, playwright, pre-commit, zizmor, detect-conflicts, guard-dependencies"
+  },
+  "fork_before": {
+   "pulls": [
+    {
+     "created_at": "2026-11-02T03:49:43Z",
+     "head": "unbidden/item-owner-id-is-a-foreign-key-without-a-9a49f2",
+     "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+     "merge_commit_sha": "d3b98e1a5fc4bcdb733f487b2750b65e6f6df0ce",
+     "merged_at": "2026-11-02T03:55:59Z",
+     "number": 5,
+     "state": "closed",
+     "title": "perf: index item.owner_id · DELETE /api/v1/users/me: session medians 14.51 -> 5.31 ms (+63% faster), permutation p = 0.0",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T03:52:31Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084949223",
+       "name": "alls-green-playwright",
+       "started_at": "2026-11-02T03:52:26Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:52:40Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084949221",
+       "name": "merge-playwright-reports",
+       "started_at": "2026-11-02T03:52:26Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:50:32Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164618/job/125084451690",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-02T03:50:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:52:06Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084319779",
+       "name": "test-playwright (4, 4)",
+       "started_at": "2026-11-02T03:49:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:52:23Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084319722",
+       "name": "test-playwright (3, 4)",
+       "started_at": "2026-11-02T03:49:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:52:11Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084319696",
+       "name": "test-playwright (1, 4)",
+       "started_at": "2026-11-02T03:49:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:52:20Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084319664",
+       "name": "test-playwright (2, 4)",
+       "started_at": "2026-11-02T03:49:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:50:29Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164861/job/125084281970",
+       "name": "test-backend",
+       "started_at": "2026-11-02T03:49:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:49:56Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084279844",
+       "name": "changes",
+       "started_at": "2026-11-02T03:49:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:50:27Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164618/job/125084279837",
+       "name": "pre-commit",
+       "started_at": "2026-11-02T03:49:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:51:32Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164610/job/125084279765",
+       "name": "test-docker-compose",
+       "started_at": "2026-11-02T03:49:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:50:02Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164575/job/125084279735",
+       "name": "Run zizmor",
+       "started_at": "2026-11-02T03:49:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:49:51Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385160401/job/125084267751",
+       "name": "main",
+       "started_at": "2026-11-02T03:49:47Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:09:21Z",
+     "head": "unbidden/item-owner-id-is-a-foreign-key-without-a-4041d5",
+     "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+     "merge_commit_sha": "a76a7c9d4dd214ad00bea047f5c350dce26e1072",
+     "merged_at": "2026-11-01T23:15:14Z",
+     "number": 4,
+     "state": "closed",
+     "title": "perf: index item.owner_id · DELETE /api/v1/users/me: session medians 14.47 -> 5.17 ms (+64% faster), permutation p = 0.0",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-01T23:12:03Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010867971",
+       "name": "merge-playwright-reports",
+       "started_at": "2026-11-01T23:11:53Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:11:56Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010867961",
+       "name": "alls-green-playwright",
+       "started_at": "2026-11-01T23:11:53Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:10:24Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696389/job/125010455690",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-01T23:10:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:11:46Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010263848",
+       "name": "test-playwright (1, 4)",
+       "started_at": "2026-11-01T23:09:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:11:51Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010263818",
+       "name": "test-playwright (2, 4)",
+       "started_at": "2026-11-01T23:09:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:11:49Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010263816",
+       "name": "test-playwright (4, 4)",
+       "started_at": "2026-11-01T23:09:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:11:41Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010263756",
+       "name": "test-playwright (3, 4)",
+       "started_at": "2026-11-01T23:09:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:10:58Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696408/job/125010227317",
+       "name": "test-docker-compose",
+       "started_at": "2026-11-01T23:09:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:10:17Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696389/job/125010227194",
+       "name": "pre-commit",
+       "started_at": "2026-11-01T23:09:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:10:10Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696391/job/125010227089",
+       "name": "test-backend",
+       "started_at": "2026-11-01T23:09:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:09:34Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010226978",
+       "name": "changes",
+       "started_at": "2026-11-01T23:09:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:09:37Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696374/job/125010226960",
+       "name": "Run zizmor",
+       "started_at": "2026-11-01T23:09:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:09:28Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360692704/job/125010216791",
+       "name": "main",
+       "started_at": "2026-11-01T23:09:25Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T22:43:23Z",
+     "head": "dependabot/bun/npm-packages-e764d689ca",
+     "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+     "merge_commit_sha": "3c852c951c15eff824a0876a8e822666e341fe34",
+     "merged_at": null,
+     "number": 3,
+     "state": "closed",
+     "title": "⬆ Bump the npm-packages group with 31 updates",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-01T22:44:13Z",
+       "conclusion": "skipped",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358614914/job/125003970366",
+       "name": "create-draft-release",
+       "started_at": "2026-11-01T22:44:14Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:17Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554780/job/125003949905",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-01T22:44:11Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:09Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003920379",
+       "name": "alls-green-playwright",
+       "started_at": "2026-11-01T22:44:04Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:15Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003920358",
+       "name": "merge-playwright-reports",
+       "started_at": "2026-11-01T22:44:04Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:58Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003824904",
+       "name": "test-playwright (4, 4)",
+       "started_at": "2026-11-01T22:43:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:59Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003824802",
+       "name": "test-playwright (3, 4)",
+       "started_at": "2026-11-01T22:43:40Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:01Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003824788",
+       "name": "test-playwright (1, 4)",
+       "started_at": "2026-11-01T22:43:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:01Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003824754",
+       "name": "test-playwright (2, 4)",
+       "started_at": "2026-11-01T22:43:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:04Z",
+       "conclusion": "success",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554928/job/125003788756",
+       "name": "test-docker-compose",
+       "started_at": "2026-11-01T22:43:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:39Z",
+       "conclusion": "success",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554931/job/125003788697",
+       "name": "Run zizmor",
+       "started_at": "2026-11-01T22:43:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:09Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554780/job/125003788341",
+       "name": "pre-commit",
+       "started_at": "2026-11-01T22:43:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:15Z",
+       "conclusion": "success",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554815/job/125003788331",
+       "name": "test-backend",
+       "started_at": "2026-11-01T22:43:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:38Z",
+       "conclusion": "success",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003788219",
+       "name": "changes",
+       "started_at": "2026-11-01T22:43:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:30Z",
+       "conclusion": "success",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358548409/job/125003769624",
+       "name": "main",
+       "started_at": "2026-11-01T22:43:26Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T22:42:40Z",
+     "head": "dependabot/github_actions/github-actions-afe26153c1",
+     "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+     "merge_commit_sha": null,
+     "merged_at": null,
+     "number": 2,
+     "state": "closed",
+     "title": "⬆ Bump the github-actions group with 6 updates",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-01T22:45:33Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125004222276",
+       "name": "merge-playwright-reports",
+       "started_at": "2026-11-01T22:45:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:21Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125004222232",
+       "name": "alls-green-playwright",
+       "started_at": "2026-11-01T22:45:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:36Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497428/job/125003797941",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-01T22:43:34Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:12Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125003656000",
+       "name": "test-playwright (2, 4)",
+       "started_at": "2026-11-01T22:42:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:16Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125003655963",
+       "name": "test-playwright (4, 4)",
+       "started_at": "2026-11-01T22:42:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:15Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125003655935",
+       "name": "test-playwright (1, 4)",
+       "started_at": "2026-11-01T22:42:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:14Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125003655930",
+       "name": "test-playwright (3, 4)",
+       "started_at": "2026-11-01T22:42:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:42:56Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125003615171",
+       "name": "changes",
+       "started_at": "2026-11-01T22:42:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:31Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497428/job/125003615084",
+       "name": "pre-commit",
+       "started_at": "2026-11-01T22:42:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:42:57Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497463/job/125003615074",
+       "name": "Run zizmor",
+       "started_at": "2026-11-01T22:42:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:26Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497437/job/125003615064",
+       "name": "test-backend",
+       "started_at": "2026-11-01T22:42:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:31Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497407/job/125003615011",
+       "name": "test-docker-compose",
+       "started_at": "2026-11-01T22:42:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:42:48Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358492070/job/125003598661",
+       "name": "main",
+       "started_at": "2026-11-01T22:42:44Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T22:40:59Z",
+     "head": "dependabot/docker/frontend/docker-c397406b1e",
+     "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+     "merge_commit_sha": "cebe1e71c37b49b154cde4dcb434e0beece97756",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "⬆ Bump playwright from v1.63.0-noble to v1.64.1-noble in /frontend in the docker group across 1 directory",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-01T22:44:12Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003888937",
+       "name": "merge-playwright-reports",
+       "started_at": "2026-11-01T22:43:56Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:59Z",
+       "conclusion": "failure",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003888891",
+       "name": "alls-green-playwright",
+       "started_at": "2026-11-01T22:43:56Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:42:41Z",
+       "conclusion": "skipped",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358492199/job/125003600419",
+       "name": "create-draft-release",
+       "started_at": "2026-11-01T22:42:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:57Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363626/job/125003396336",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-01T22:41:54Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:08Z",
+       "conclusion": "failure",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003254767",
+       "name": "test-playwright (3, 4)",
+       "started_at": "2026-11-01T22:41:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:23Z",
+       "conclusion": "failure",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003254760",
+       "name": "test-playwright (2, 4)",
+       "started_at": "2026-11-01T22:41:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:18Z",
+       "conclusion": "failure",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003254756",
+       "name": "test-playwright (4, 4)",
+       "started_at": "2026-11-01T22:41:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:53Z",
+       "conclusion": "failure",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003254701",
+       "name": "test-playwright (1, 4)",
+       "started_at": "2026-11-01T22:41:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:06Z",
+       "conclusion": "skipped",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363639/job/125003209912",
+       "name": "issue-manager",
+       "started_at": "2026-11-01T22:41:06Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:06Z",
+       "conclusion": "skipped",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363684/job/125003209821",
+       "name": "issue-manager",
+       "started_at": "2026-11-01T22:41:06Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:42:38Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363739/job/125003208416",
+       "name": "test-docker-compose",
+       "started_at": "2026-11-01T22:41:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:18Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363666/job/125003208122",
+       "name": "Run zizmor",
+       "started_at": "2026-11-01T22:41:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:52Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363626/job/125003207913",
+       "name": "pre-commit",
+       "started_at": "2026-11-01T22:41:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:47Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363640/job/125003207871",
+       "name": "test-backend",
+       "started_at": "2026-11-01T22:41:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:17Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003207659",
+       "name": "changes",
+       "started_at": "2026-11-01T22:41:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:05Z",
+       "conclusion": "skipped",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358362088/job/125003207082",
+       "name": "Add to project",
+       "started_at": "2026-11-01T22:41:05Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:07Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358355794/job/125003186224",
+       "name": "main",
+       "started_at": "2026-11-01T22:41:03Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [],
+   "base_head": "4a375a5ee6ffceae314cc78ed4ee543229e323fd"
+  },
+  "lab": {
+   "app": "fst",
+   "project": "c12-fst",
+   "port": 18200,
+   "db_port": 55500,
+   "health": "http://127.0.0.1:18200/api/v1/utils/health-check/",
+   "up_s": 11.6,
+   "data": {
+    "users": 2001,
+    "items": 200000
+   },
+   "deploy_steps": [
+    [
+     "docker",
+     "compose",
+     "-f",
+     "docker-compose.c12.yml",
+     "-p",
+     "c12-fst",
+     "up",
+     "-d",
+     "--build"
+    ]
+   ],
+   "check_steps": [
+    [
+     "python",
+     "-c",
+     "import compileall,sys; sys.exit(0 if compileall.compile_dir('.', quiet=1) else 1)"
+    ]
+   ],
+   "check_image": "python:3.12-slim",
+   "connections": [
+    {
+     "id": "fst-db",
+     "kind": "postgres",
+     "location": "127.0.0.1:55500/app",
+     "environment": "staging",
+     "username": "fst_reader",
+     "credential_ref": "FST_READER_PW",
+     "permissions": [
+      "read"
+     ],
+     "content_may_leave": true
+    },
+    {
+     "id": "fst-api",
+     "kind": "http_api",
+     "location": "http://127.0.0.1:18200",
+     "docs": "http://127.0.0.1:18200/api/v1/openapi.json",
+     "environment": "staging",
+     "permissions": [
+      "read"
+     ],
+     "content_may_leave": true
+    }
+   ],
+   "writes": false,
+   "prep": []
+  },
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required"
+  },
+  "mode": {
+   "asked": "autonomous",
+   "got": "autonomous",
+   "drill_code": 0
+  },
+  "mode_got": "autonomous",
+  "cycle1": {
+   "started": true,
+   "waited_s": 2244.5,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 18510,
+    "started_at": "2026-11-02T16:21:01.063984+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c12/fst/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "counts": {
+    "events": {
+     "action.executed": 7,
+     "analyzer.ran": 5,
+     "capability.need_changed": 4,
+     "capability.needed": 1,
+     "connection.changed": 3,
+     "decision.made": 11,
+     "deployment.observed": 1,
+     "egress.allowed": 41,
+     "egress.blocked": 10,
+     "mandate.changed": 2,
+     "model.called": 41,
+     "operations.deployed": 1,
+     "opportunity.opened": 6,
+     "repo.head_moved": 1,
+     "workspace.initialized": 1,
+     "world.changed": 3
+    },
+    "docs": {
+     "actions": 7,
+     "connections": 3,
+     "decisions": 10,
+     "deployments": 1,
+     "egress": 51,
+     "experiment_specs": 2,
+     "model_runs": 41,
+     "needs": 1,
+     "opportunities": 6,
+     "world": 1
+    },
+    "jobs": {
+     "done": 24
+    },
+    "proposals": []
+   }
+  },
+  "ui1": {
+   "opened": true,
+   "in_daemon": true,
+   "summary": {
+    "mode": "live",
+    "freshness": "current",
+    "counts": {
+     "opportunities": 6,
+     "experiments": 0,
+     "proposals": 0,
+     "events": 138,
+     "model_runs": 41,
+     "connections": 3,
+     "deployments": 1,
+     "needs": 1,
+     "blocks": 0,
+     "spend_calls": 226,
+     "world": 1
+    },
+    "agent": {
+     "running": true,
+     "pid": 18510,
+     "started_at": "2026-11-02T16:21:01.063984+00:00",
+     "command": "watch",
+     "detail": "agent running, pid 18510"
+    },
+    "key_present": true
+   },
+   "opportunities_total": 6,
+   "widgets": [
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:fst"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:fst"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:fst"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:fst"
+    }
+   ],
+   "browser": {
+    "ok": true,
+    "steps": 5,
+    "console_errors": 2
+   },
+   "chat_status": {
+    "planner": "rule",
+    "route": {
+     "intent": "inform",
+     "purpose": null,
+     "tier": null,
+     "model": null,
+     "reason": "the mandate denies local inference; reading records needs no model: answered by rules",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Registro de fst (live, head 4a375a5ee6ff): 6 oportunidades, 0 experimentos, 0 propuestas, 138 eventos, 41 llamadas a modelos, 0 bloqueos.\nJobs: done 26\nAgente: agent running, pid 18510.\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico."
+   },
+   "chat_analyze": {
+    "planner": "brain",
+    "route": {
+     "intent": "analyze",
+     "purpose": "chat.analyze",
+     "tier": "code",
+     "model": "muse-spark-1.3",
+     "reason": "profile frontier; public_code may leave; label public_code",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "No priorizaría ninguno de los visibles: los 4 en el registro están `declined` nivel 1:\n\n- `opp_2564207175944c0b` — 1 ruff I001 en hooks/\n- `opp_2e22707af0de4862` — 3 ruff DTZ011 en scripts/\n- `opp_84dee8670f7946f7` — 1 ruff FURB167 en scripts/\n- `opp_5572e296e83e4225` — item.owner_id FK sin índice\n\nFalta en el registro: hay 6 oportunidades totales, 4 `declined` y 2 `open`, pero el digest no incluy"
+   }
+  },
+  "fork_after_c1": {
+   "pulls": [
+    {
+     "created_at": "2026-11-02T03:49:43Z",
+     "head": "unbidden/item-owner-id-is-a-foreign-key-without-a-9a49f2",
+     "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+     "merge_commit_sha": "d3b98e1a5fc4bcdb733f487b2750b65e6f6df0ce",
+     "merged_at": "2026-11-02T03:55:59Z",
+     "number": 5,
+     "state": "closed",
+     "title": "perf: index item.owner_id · DELETE /api/v1/users/me: session medians 14.51 -> 5.31 ms (+63% faster), permutation p = 0.0",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T03:52:31Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084949223",
+       "name": "alls-green-playwright",
+       "started_at": "2026-11-02T03:52:26Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:52:40Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084949221",
+       "name": "merge-playwright-reports",
+       "started_at": "2026-11-02T03:52:26Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:50:32Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164618/job/125084451690",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-02T03:50:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:52:06Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084319779",
+       "name": "test-playwright (4, 4)",
+       "started_at": "2026-11-02T03:49:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:52:23Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084319722",
+       "name": "test-playwright (3, 4)",
+       "started_at": "2026-11-02T03:49:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:52:11Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084319696",
+       "name": "test-playwright (1, 4)",
+       "started_at": "2026-11-02T03:49:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:52:20Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084319664",
+       "name": "test-playwright (2, 4)",
+       "started_at": "2026-11-02T03:49:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:50:29Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164861/job/125084281970",
+       "name": "test-backend",
+       "started_at": "2026-11-02T03:49:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:49:56Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084279844",
+       "name": "changes",
+       "started_at": "2026-11-02T03:49:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:50:27Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164618/job/125084279837",
+       "name": "pre-commit",
+       "started_at": "2026-11-02T03:49:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:51:32Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164610/job/125084279765",
+       "name": "test-docker-compose",
+       "started_at": "2026-11-02T03:49:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:50:02Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164575/job/125084279735",
+       "name": "Run zizmor",
+       "started_at": "2026-11-02T03:49:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:49:51Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385160401/job/125084267751",
+       "name": "main",
+       "started_at": "2026-11-02T03:49:47Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:09:21Z",
+     "head": "unbidden/item-owner-id-is-a-foreign-key-without-a-4041d5",
+     "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+     "merge_commit_sha": "a76a7c9d4dd214ad00bea047f5c350dce26e1072",
+     "merged_at": "2026-11-01T23:15:14Z",
+     "number": 4,
+     "state": "closed",
+     "title": "perf: index item.owner_id · DELETE /api/v1/users/me: session medians 14.47 -> 5.17 ms (+64% faster), permutation p = 0.0",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-01T23:12:03Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010867971",
+       "name": "merge-playwright-reports",
+       "started_at": "2026-11-01T23:11:53Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:11:56Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010867961",
+       "name": "alls-green-playwright",
+       "started_at": "2026-11-01T23:11:53Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:10:24Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696389/job/125010455690",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-01T23:10:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:11:46Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010263848",
+       "name": "test-playwright (1, 4)",
+       "started_at": "2026-11-01T23:09:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:11:51Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010263818",
+       "name": "test-playwright (2, 4)",
+       "started_at": "2026-11-01T23:09:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:11:49Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010263816",
+       "name": "test-playwright (4, 4)",
+       "started_at": "2026-11-01T23:09:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:11:41Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010263756",
+       "name": "test-playwright (3, 4)",
+       "started_at": "2026-11-01T23:09:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:10:58Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696408/job/125010227317",
+       "name": "test-docker-compose",
+       "started_at": "2026-11-01T23:09:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:10:17Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696389/job/125010227194",
+       "name": "pre-commit",
+       "started_at": "2026-11-01T23:09:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:10:10Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696391/job/125010227089",
+       "name": "test-backend",
+       "started_at": "2026-11-01T23:09:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:09:34Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010226978",
+       "name": "changes",
+       "started_at": "2026-11-01T23:09:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:09:37Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696374/job/125010226960",
+       "name": "Run zizmor",
+       "started_at": "2026-11-01T23:09:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:09:28Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360692704/job/125010216791",
+       "name": "main",
+       "started_at": "2026-11-01T23:09:25Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T22:43:23Z",
+     "head": "dependabot/bun/npm-packages-e764d689ca",
+     "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+     "merge_commit_sha": "3c852c951c15eff824a0876a8e822666e341fe34",
+     "merged_at": null,
+     "number": 3,
+     "state": "closed",
+     "title": "⬆ Bump the npm-packages group with 31 updates",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-01T22:44:13Z",
+       "conclusion": "skipped",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358614914/job/125003970366",
+       "name": "create-draft-release",
+       "started_at": "2026-11-01T22:44:14Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:17Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554780/job/125003949905",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-01T22:44:11Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:09Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003920379",
+       "name": "alls-green-playwright",
+       "started_at": "2026-11-01T22:44:04Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:15Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003920358",
+       "name": "merge-playwright-reports",
+       "started_at": "2026-11-01T22:44:04Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:58Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003824904",
+       "name": "test-playwright (4, 4)",
+       "started_at": "2026-11-01T22:43:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:59Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003824802",
+       "name": "test-playwright (3, 4)",
+       "started_at": "2026-11-01T22:43:40Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:01Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003824788",
+       "name": "test-playwright (1, 4)",
+       "started_at": "2026-11-01T22:43:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:01Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003824754",
+       "name": "test-playwright (2, 4)",
+       "started_at": "2026-11-01T22:43:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:04Z",
+       "conclusion": "success",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554928/job/125003788756",
+       "name": "test-docker-compose",
+       "started_at": "2026-11-01T22:43:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:39Z",
+       "conclusion": "success",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554931/job/125003788697",
+       "name": "Run zizmor",
+       "started_at": "2026-11-01T22:43:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:09Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554780/job/125003788341",
+       "name": "pre-commit",
+       "started_at": "2026-11-01T22:43:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:15Z",
+       "conclusion": "success",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554815/job/125003788331",
+       "name": "test-backend",
+       "started_at": "2026-11-01T22:43:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:38Z",
+       "conclusion": "success",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003788219",
+       "name": "changes",
+       "started_at": "2026-11-01T22:43:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:30Z",
+       "conclusion": "success",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358548409/job/125003769624",
+       "name": "main",
+       "started_at": "2026-11-01T22:43:26Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T22:42:40Z",
+     "head": "dependabot/github_actions/github-actions-afe26153c1",
+     "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+     "merge_commit_sha": null,
+     "merged_at": null,
+     "number": 2,
+     "state": "closed",
+     "title": "⬆ Bump the github-actions group with 6 updates",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-01T22:45:33Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125004222276",
+       "name": "merge-playwright-reports",
+       "started_at": "2026-11-01T22:45:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:21Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125004222232",
+       "name": "alls-green-playwright",
+       "started_at": "2026-11-01T22:45:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:36Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497428/job/125003797941",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-01T22:43:34Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:12Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125003656000",
+       "name": "test-playwright (2, 4)",
+       "started_at": "2026-11-01T22:42:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:16Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125003655963",
+       "name": "test-playwright (4, 4)",
+       "started_at": "2026-11-01T22:42:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:15Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125003655935",
+       "name": "test-playwright (1, 4)",
+       "started_at": "2026-11-01T22:42:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:14Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125003655930",
+       "name": "test-playwright (3, 4)",
+       "started_at": "2026-11-01T22:42:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:42:56Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125003615171",
+       "name": "changes",
+       "started_at": "2026-11-01T22:42:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:31Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497428/job/125003615084",
+       "name": "pre-commit",
+       "started_at": "2026-11-01T22:42:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:42:57Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497463/job/125003615074",
+       "name": "Run zizmor",
+       "started_at": "2026-11-01T22:42:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:26Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497437/job/125003615064",
+       "name": "test-backend",
+       "started_at": "2026-11-01T22:42:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:31Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497407/job/125003615011",
+       "name": "test-docker-compose",
+       "started_at": "2026-11-01T22:42:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:42:48Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358492070/job/125003598661",
+       "name": "main",
+       "started_at": "2026-11-01T22:42:44Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T22:40:59Z",
+     "head": "dependabot/docker/frontend/docker-c397406b1e",
+     "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+     "merge_commit_sha": "cebe1e71c37b49b154cde4dcb434e0beece97756",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "⬆ Bump playwright from v1.63.0-noble to v1.64.1-noble in /frontend in the docker group across 1 directory",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-01T22:44:12Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003888937",
+       "name": "merge-playwright-reports",
+       "started_at": "2026-11-01T22:43:56Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:59Z",
+       "conclusion": "failure",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003888891",
+       "name": "alls-green-playwright",
+       "started_at": "2026-11-01T22:43:56Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:42:41Z",
+       "conclusion": "skipped",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358492199/job/125003600419",
+       "name": "create-draft-release",
+       "started_at": "2026-11-01T22:42:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:57Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363626/job/125003396336",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-01T22:41:54Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:08Z",
+       "conclusion": "failure",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003254767",
+       "name": "test-playwright (3, 4)",
+       "started_at": "2026-11-01T22:41:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:23Z",
+       "conclusion": "failure",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003254760",
+       "name": "test-playwright (2, 4)",
+       "started_at": "2026-11-01T22:41:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:18Z",
+       "conclusion": "failure",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003254756",
+       "name": "test-playwright (4, 4)",
+       "started_at": "2026-11-01T22:41:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:53Z",
+       "conclusion": "failure",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003254701",
+       "name": "test-playwright (1, 4)",
+       "started_at": "2026-11-01T22:41:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:06Z",
+       "conclusion": "skipped",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363639/job/125003209912",
+       "name": "issue-manager",
+       "started_at": "2026-11-01T22:41:06Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:06Z",
+       "conclusion": "skipped",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363684/job/125003209821",
+       "name": "issue-manager",
+       "started_at": "2026-11-01T22:41:06Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:42:38Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363739/job/125003208416",
+       "name": "test-docker-compose",
+       "started_at": "2026-11-01T22:41:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:18Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363666/job/125003208122",
+       "name": "Run zizmor",
+       "started_at": "2026-11-01T22:41:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:52Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363626/job/125003207913",
+       "name": "pre-commit",
+       "started_at": "2026-11-01T22:41:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:47Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363640/job/125003207871",
+       "name": "test-backend",
+       "started_at": "2026-11-01T22:41:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:17Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003207659",
+       "name": "changes",
+       "started_at": "2026-11-01T22:41:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:05Z",
+       "conclusion": "skipped",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358362088/job/125003207082",
+       "name": "Add to project",
+       "started_at": "2026-11-01T22:41:05Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:07Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358355794/job/125003186224",
+       "name": "main",
+       "started_at": "2026-11-01T22:41:03Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [],
+   "base_head": "4a375a5ee6ffceae314cc78ed4ee543229e323fd"
+  },
+  "lab_after_c1": {
+   "health_status": 200,
+   "containers": [
+    "backend Up 39 minutes sha256:207301cecda5aa0056aa22a7e7678b977432fca1cc3129afe7cc925c13170dab",
+    "db Up 39 minutes (healthy) postgres:18"
+   ],
+   "checkout_head": "4a375a5ee6ffceae314cc78ed4ee543229e323fd"
+  },
+  "cycle2": {
+   "started": true,
+   "waited_s": 188.2,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 27354,
+    "started_at": "2026-11-02T16:58:57.567340+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c12/fst/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "counts": {
+    "events": {
+     "action.executed": 7,
+     "analyzer.ran": 5,
+     "capability.need_changed": 4,
+     "capability.needed": 1,
+     "connection.changed": 3,
+     "decision.made": 11,
+     "deployment.observed": 1,
+     "egress.allowed": 41,
+     "egress.blocked": 10,
+     "mandate.changed": 2,
+     "model.called": 41,
+     "operations.deployed": 1,
+     "opportunity.opened": 6,
+     "repo.head_moved": 1,
+     "workspace.initialized": 1,
+     "world.changed": 4
+    },
+    "docs": {
+     "actions": 7,
+     "connections": 3,
+     "decisions": 10,
+     "deployments": 1,
+     "egress": 51,
+     "experiment_specs": 2,
+     "model_runs": 41,
+     "needs": 1,
+     "opportunities": 6,
+     "world": 1
+    },
+    "jobs": {
+     "done": 33
+    },
+    "proposals": []
+   }
+  },
+  "fork_after_c2": {
+   "pulls": [
+    {
+     "created_at": "2026-11-02T03:49:43Z",
+     "head": "unbidden/item-owner-id-is-a-foreign-key-without-a-9a49f2",
+     "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+     "merge_commit_sha": "d3b98e1a5fc4bcdb733f487b2750b65e6f6df0ce",
+     "merged_at": "2026-11-02T03:55:59Z",
+     "number": 5,
+     "state": "closed",
+     "title": "perf: index item.owner_id · DELETE /api/v1/users/me: session medians 14.51 -> 5.31 ms (+63% faster), permutation p = 0.0",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T03:52:31Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084949223",
+       "name": "alls-green-playwright",
+       "started_at": "2026-11-02T03:52:26Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:52:40Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084949221",
+       "name": "merge-playwright-reports",
+       "started_at": "2026-11-02T03:52:26Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:50:32Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164618/job/125084451690",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-02T03:50:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:52:06Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084319779",
+       "name": "test-playwright (4, 4)",
+       "started_at": "2026-11-02T03:49:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:52:23Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084319722",
+       "name": "test-playwright (3, 4)",
+       "started_at": "2026-11-02T03:49:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:52:11Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084319696",
+       "name": "test-playwright (1, 4)",
+       "started_at": "2026-11-02T03:49:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:52:20Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084319664",
+       "name": "test-playwright (2, 4)",
+       "started_at": "2026-11-02T03:49:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:50:29Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164861/job/125084281970",
+       "name": "test-backend",
+       "started_at": "2026-11-02T03:49:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:49:56Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164617/job/125084279844",
+       "name": "changes",
+       "started_at": "2026-11-02T03:49:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:50:27Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164618/job/125084279837",
+       "name": "pre-commit",
+       "started_at": "2026-11-02T03:49:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:51:32Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164610/job/125084279765",
+       "name": "test-docker-compose",
+       "started_at": "2026-11-02T03:49:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:50:02Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385164575/job/125084279735",
+       "name": "Run zizmor",
+       "started_at": "2026-11-02T03:49:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T03:49:51Z",
+       "conclusion": "success",
+       "head_sha": "b0190037ce56f0320867807f0c0083dd1c96bfa0",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41385160401/job/125084267751",
+       "name": "main",
+       "started_at": "2026-11-02T03:49:47Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:09:21Z",
+     "head": "unbidden/item-owner-id-is-a-foreign-key-without-a-4041d5",
+     "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+     "merge_commit_sha": "a76a7c9d4dd214ad00bea047f5c350dce26e1072",
+     "merged_at": "2026-11-01T23:15:14Z",
+     "number": 4,
+     "state": "closed",
+     "title": "perf: index item.owner_id · DELETE /api/v1/users/me: session medians 14.47 -> 5.17 ms (+64% faster), permutation p = 0.0",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-01T23:12:03Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010867971",
+       "name": "merge-playwright-reports",
+       "started_at": "2026-11-01T23:11:53Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:11:56Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010867961",
+       "name": "alls-green-playwright",
+       "started_at": "2026-11-01T23:11:53Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:10:24Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696389/job/125010455690",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-01T23:10:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:11:46Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010263848",
+       "name": "test-playwright (1, 4)",
+       "started_at": "2026-11-01T23:09:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:11:51Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010263818",
+       "name": "test-playwright (2, 4)",
+       "started_at": "2026-11-01T23:09:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:11:49Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010263816",
+       "name": "test-playwright (4, 4)",
+       "started_at": "2026-11-01T23:09:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:11:41Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010263756",
+       "name": "test-playwright (3, 4)",
+       "started_at": "2026-11-01T23:09:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:10:58Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696408/job/125010227317",
+       "name": "test-docker-compose",
+       "started_at": "2026-11-01T23:09:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:10:17Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696389/job/125010227194",
+       "name": "pre-commit",
+       "started_at": "2026-11-01T23:09:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:10:10Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696391/job/125010227089",
+       "name": "test-backend",
+       "started_at": "2026-11-01T23:09:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:09:34Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696364/job/125010226978",
+       "name": "changes",
+       "started_at": "2026-11-01T23:09:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:09:37Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360696374/job/125010226960",
+       "name": "Run zizmor",
+       "started_at": "2026-11-01T23:09:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:09:28Z",
+       "conclusion": "success",
+       "head_sha": "6a892d9ae1c91452fb8e097bceade037972c2949",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41360692704/job/125010216791",
+       "name": "main",
+       "started_at": "2026-11-01T23:09:25Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T22:43:23Z",
+     "head": "dependabot/bun/npm-packages-e764d689ca",
+     "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+     "merge_commit_sha": "3c852c951c15eff824a0876a8e822666e341fe34",
+     "merged_at": null,
+     "number": 3,
+     "state": "closed",
+     "title": "⬆ Bump the npm-packages group with 31 updates",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-01T22:44:13Z",
+       "conclusion": "skipped",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358614914/job/125003970366",
+       "name": "create-draft-release",
+       "started_at": "2026-11-01T22:44:14Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:17Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554780/job/125003949905",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-01T22:44:11Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:09Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003920379",
+       "name": "alls-green-playwright",
+       "started_at": "2026-11-01T22:44:04Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:15Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003920358",
+       "name": "merge-playwright-reports",
+       "started_at": "2026-11-01T22:44:04Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:58Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003824904",
+       "name": "test-playwright (4, 4)",
+       "started_at": "2026-11-01T22:43:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:59Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003824802",
+       "name": "test-playwright (3, 4)",
+       "started_at": "2026-11-01T22:43:40Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:01Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003824788",
+       "name": "test-playwright (1, 4)",
+       "started_at": "2026-11-01T22:43:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:01Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003824754",
+       "name": "test-playwright (2, 4)",
+       "started_at": "2026-11-01T22:43:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:04Z",
+       "conclusion": "success",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554928/job/125003788756",
+       "name": "test-docker-compose",
+       "started_at": "2026-11-01T22:43:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:39Z",
+       "conclusion": "success",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554931/job/125003788697",
+       "name": "Run zizmor",
+       "started_at": "2026-11-01T22:43:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:09Z",
+       "conclusion": "failure",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554780/job/125003788341",
+       "name": "pre-commit",
+       "started_at": "2026-11-01T22:43:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:15Z",
+       "conclusion": "success",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554815/job/125003788331",
+       "name": "test-backend",
+       "started_at": "2026-11-01T22:43:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:38Z",
+       "conclusion": "success",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358554805/job/125003788219",
+       "name": "changes",
+       "started_at": "2026-11-01T22:43:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:30Z",
+       "conclusion": "success",
+       "head_sha": "2d05825be2f8137949f27241b705305bf131b334",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358548409/job/125003769624",
+       "name": "main",
+       "started_at": "2026-11-01T22:43:26Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T22:42:40Z",
+     "head": "dependabot/github_actions/github-actions-afe26153c1",
+     "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+     "merge_commit_sha": null,
+     "merged_at": null,
+     "number": 2,
+     "state": "closed",
+     "title": "⬆ Bump the github-actions group with 6 updates",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-01T22:45:33Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125004222276",
+       "name": "merge-playwright-reports",
+       "started_at": "2026-11-01T22:45:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:21Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125004222232",
+       "name": "alls-green-playwright",
+       "started_at": "2026-11-01T22:45:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:36Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497428/job/125003797941",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-01T22:43:34Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:12Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125003656000",
+       "name": "test-playwright (2, 4)",
+       "started_at": "2026-11-01T22:42:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:16Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125003655963",
+       "name": "test-playwright (4, 4)",
+       "started_at": "2026-11-01T22:42:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:15Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125003655935",
+       "name": "test-playwright (1, 4)",
+       "started_at": "2026-11-01T22:42:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:45:14Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125003655930",
+       "name": "test-playwright (3, 4)",
+       "started_at": "2026-11-01T22:42:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:42:56Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497439/job/125003615171",
+       "name": "changes",
+       "started_at": "2026-11-01T22:42:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:31Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497428/job/125003615084",
+       "name": "pre-commit",
+       "started_at": "2026-11-01T22:42:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:42:57Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497463/job/125003615074",
+       "name": "Run zizmor",
+       "started_at": "2026-11-01T22:42:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:26Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497437/job/125003615064",
+       "name": "test-backend",
+       "started_at": "2026-11-01T22:42:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:44:31Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358497407/job/125003615011",
+       "name": "test-docker-compose",
+       "started_at": "2026-11-01T22:42:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:42:48Z",
+       "conclusion": "success",
+       "head_sha": "11c9147832d28c452a0dc78d1039fcc8f42dc98d",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358492070/job/125003598661",
+       "name": "main",
+       "started_at": "2026-11-01T22:42:44Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T22:40:59Z",
+     "head": "dependabot/docker/frontend/docker-c397406b1e",
+     "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+     "merge_commit_sha": "cebe1e71c37b49b154cde4dcb434e0beece97756",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "⬆ Bump playwright from v1.63.0-noble to v1.64.1-noble in /frontend in the docker group across 1 directory",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-01T22:44:12Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003888937",
+       "name": "merge-playwright-reports",
+       "started_at": "2026-11-01T22:43:56Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:59Z",
+       "conclusion": "failure",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003888891",
+       "name": "alls-green-playwright",
+       "started_at": "2026-11-01T22:43:56Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:42:41Z",
+       "conclusion": "skipped",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358492199/job/125003600419",
+       "name": "create-draft-release",
+       "started_at": "2026-11-01T22:42:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:57Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363626/job/125003396336",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-01T22:41:54Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:08Z",
+       "conclusion": "failure",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003254767",
+       "name": "test-playwright (3, 4)",
+       "started_at": "2026-11-01T22:41:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:23Z",
+       "conclusion": "failure",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003254760",
+       "name": "test-playwright (2, 4)",
+       "started_at": "2026-11-01T22:41:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:18Z",
+       "conclusion": "failure",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003254756",
+       "name": "test-playwright (4, 4)",
+       "started_at": "2026-11-01T22:41:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:43:53Z",
+       "conclusion": "failure",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003254701",
+       "name": "test-playwright (1, 4)",
+       "started_at": "2026-11-01T22:41:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:06Z",
+       "conclusion": "skipped",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363639/job/125003209912",
+       "name": "issue-manager",
+       "started_at": "2026-11-01T22:41:06Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:06Z",
+       "conclusion": "skipped",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363684/job/125003209821",
+       "name": "issue-manager",
+       "started_at": "2026-11-01T22:41:06Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:42:38Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363739/job/125003208416",
+       "name": "test-docker-compose",
+       "started_at": "2026-11-01T22:41:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:18Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363666/job/125003208122",
+       "name": "Run zizmor",
+       "started_at": "2026-11-01T22:41:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:52Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363626/job/125003207913",
+       "name": "pre-commit",
+       "started_at": "2026-11-01T22:41:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:47Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363640/job/125003207871",
+       "name": "test-backend",
+       "started_at": "2026-11-01T22:41:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:17Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358363589/job/125003207659",
+       "name": "changes",
+       "started_at": "2026-11-01T22:41:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:05Z",
+       "conclusion": "skipped",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358362088/job/125003207082",
+       "name": "Add to project",
+       "started_at": "2026-11-01T22:41:05Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T22:41:07Z",
+       "conclusion": "success",
+       "head_sha": "06945f6ccdbd8c68f1385847b2d2bcff371b29d3",
+       "html_url": "https://github.com/satisfymath/c12-fst/actions/runs/41358355794/job/125003186224",
+       "name": "main",
+       "started_at": "2026-11-01T22:41:03Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [],
+   "base_head": "4a375a5ee6ffceae314cc78ed4ee543229e323fd"
+  },
+  "lab_after_c2": {
+   "health_status": 200,
+   "containers": [
+    "backend Up 42 minutes sha256:207301cecda5aa0056aa22a7e7678b977432fca1cc3129afe7cc925c13170dab",
+    "db Up 42 minutes (healthy) postgres:18"
+   ],
+   "checkout_head": "4a375a5ee6ffceae314cc78ed4ee543229e323fd"
+  },
+  "status_final": {
+   "running": false,
+   "pid": null,
+   "started_at": null,
+   "command": null,
+   "log": "/Users/david/unbidden-lab/c12/fst/.unbidden/logs/agent.log",
+   "stale": false,
+   "jobs_running": 0,
+   "jobs_queued": 0
+  },
+  "egress": {
+   "api.meta.ai:chat.analyze:allowed_sent": 4,
+   "api.meta.ai:world.endpoint_tables:allowed_sent": 36,
+   "api.meta.ai:world.endpoint_tables:blocked": 10,
+   "api.meta.ai:research.robustness:allowed_sent": 1,
+   "api.meta.ai:lab.perf_candidate:allowed_sent": 2,
+   "api.meta.ai:lab.workload:allowed_sent": 2
+  },
+  "ledger_after": {
+   "envelope": "s12-eval",
+   "envelope_spent_usd": 0.6012,
+   "available_usd": 67.6232,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c12-eval-B2-fst",
+   "calls": 52,
+   "usd": 0.1865,
+   "tokens_in": 21199,
+   "tokens_out": 37642
+  },
+  "spent_usd": 0.1865,
+  "archive": "/Users/david/unbidden-lab/c12/archive/fst-B2-eval.tgz"
+ },
+ "human": [
+  {
+   "step": "restore satisfymath/c12-fst:master to 4a375a5ee6ff (pin + campaign commit); 0 PR(s) closed, 1 branch(es) deleted",
+   "minutes": 1,
+   "why": "every run starts from the same base"
+  },
+  {
+   "step": "lab fst up and seeded",
+   "minutes": 0.2,
+   "why": "the application's own services, synthetic data, a read-only role"
+  },
+  {
+   "step": "mandate: fork, registries, operations, connections",
+   "minutes": 2,
+   "why": "a person's declaration"
+  },
+  {
+   "step": "connection credentials into the project's .env",
+   "minutes": 1,
+   "why": "read-only role"
+  },
+  {
+   "step": "rollback drill (the product's command; the lab's steps)",
+   "minutes": 0.1,
+   "why": "autonomous requires a passed drill"
+  }
+ ],
+ "blocks": []
+}

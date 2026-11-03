@@ -175,3 +175,30 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
   itself cost **US$0.209** (`s12-pilot` 1.0062 → 1.215). Tags now carry the phase (`c12-<phase>-B<n>-<repo>`); the
   record is left as written and this line corrects its reading · harness defect (attribution) · fixed before the
   freeze.
+- 2026-11-02 · eval · **Level A finished 39/39** (23:48Z → 03:33Z, US$0): setup 39/39, doctor 38/39, scan 38/39,
+  UI walk 39/39, lifecycle (start, second start refused, stop, no jobs left, no KILL) 39/39. Checks by class: dev
+  passed 8 / failed 2 / blocked 1 / infra 1; independent passed 2 / failed 5 / blocked 5 / infra 6 / none 1;
+  frontier passed 1 / blocked 3 / out_of_scope 4 (declared gaps: Go, TypeScript, Python not at the root).
+  Longest Level A: recruitops-agent 19.3 min (4713 tests, 309 opportunities). Analysis in phase 5.
+- 2026-11-02 · eval · **pipx: `doctor --json` and `scan --json` crash** with `TypeError: Object of type datetime is
+  not JSON serializable` (`observe/stack.py:368 _detect_python_parts`: `json.dumps(project)` on the parsed
+  pyproject; pipx's `[tool.nab]` holds TOML datetimes `uploaded-prior-to = 2026-10-26T18:24:46Z`). The agent's
+  first cycle then produced no `baseline_checks` in 1 h (`waited_s` 3602.8). Product defect, general (any TOML
+  datetime in pyproject) · phase 6 with a regression test · pipx stays in the record as written; its Level B runs
+  will show the same defect.
+- 2026-11-02 · eval · **spoolman B1 did not run: harness crash** in `labs.up` (`labs.py:257` chmods
+  `~/unbidden-lab/c12/spoolman/docker-compose.yml`, which does not exist: the lab directory for spoolman was never
+  materialised before the freeze; the pilot ran spoolman at Level A only). No record written, `run_eval.sh` went on
+  to the next repo (exit 1 logged). Harness defect, not product · decision for phase 5: fix the lab bring-up,
+  document it, and run spoolman B1/B2 after the frozen sequence ends, apart from the main tranche.
+- 2026-11-02 · eval · **Level B run 1 finished** (03:33Z → 16:18Z, 11 records; spoolman missing, harness crash
+  above). Spend US$0.4146 (fst 0.1654 / 50 calls, rich 0.1061 / 11, the rest ≤ 0.032). Modes as the product
+  resolved them: fst `autonomous` (the only repo with deploy steps and a drilled lab), every other repo `autopilot`
+  (autonomous blocked without deploy steps; the harness named autopilot as the fallback) — so merges can only be
+  observed on fst; elsewhere the dimension is "PR published, CI observed, left to a person". Agent PRs on copies:
+  fst #5 merged by the product after 13 green checks on its head (deploy in lab `c12-fst`, health 200); rich #11
+  (19/19 green), #12, #13 (17 red) open; misago #1 open (1 green). No PR on marshmallow, brightbean-studio,
+  traefik-manager, graphtage, oauthlib, rdflib, harlequin; pipx produced nothing (datetime defect in every job).
+  Bounds: five repos hit both cycle bounds (90 + 45 min: misago, oauthlib, rdflib, harlequin, pipx) because the
+  loop keeps scheduling `world.refresh`/map jobs every 5 min, so the harness's idle rule (empty queue through two
+  ticks) never fires · measurement cost, not a product defect; the per-repo wall time is dominated by it.

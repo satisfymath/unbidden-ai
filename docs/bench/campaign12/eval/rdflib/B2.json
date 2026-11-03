@@ -1,0 +1,3435 @@
+{
+ "repo": "rdflib",
+ "phase": "eval",
+ "run": "B2",
+ "candidate": "8686674327b6ce2fba44b4c2640977fecd0da2e2",
+ "wheel_sha256": "a915417588329e4383cd5f07ba96499dc228976863792f8d51e46dfa634a3917",
+ "started_at": "2026-11-02T17:28:13-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "autopilot",
+    "--budget",
+    "2",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--github-token-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 15.4,
+   "timed_out": false,
+   "stdout": "{\n  \"models\": \"api\",\n  \"profile\": \"frontier\",\n  \"private_code_to_frontier\": \"deny\",\n  \"mode\": \"autopilot\",\n  \"act_on_connections\": \"deny\",\n  \"budget_usd\": 2.0,\n  \"credentials_saved\": [\n    \"MODEL_API_KEY\",\n    \"GITHUB_TOKEN\"\n  ],\n  \"credential_names_present\": [\n    \"GITHUB_TOKEN\",\n    \"MODEL_API_KEY\"\n  ],\n  \"dashboard\": \"later\",\n  \"effective\": [\n    {\n      \"what\": \"observe the repository, its CI and running services\",\n      \"capability\": \"repo.read\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.observe\"\n    },\n    {\n      \"what\": \"run experiments in the offline sandbox\",\n      \"capability\": \"sandbox.run\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.run_experiments\"\n    },\n    {\n      \"what\": \"install dependencies while building\",\n      \"capability\": \"sandbox.provision\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.provision_dependencies\"\n    },\n    {\n      \"what\": \"send synthetic or public content to remote models\",\n      \"capability\": \"model.remote.synthetic\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.delegate_synthetic\"\n    },\n    {\n      \"what\": \"use capabilities it built for itself\",\n      \"capability\": \"capability.use\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.use_new_capabilities\"\n    },\n    {\n      \"what\": \"open pull requests\",\n      \"capability\": \"github.open_pull_request\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.open_pull_requests\"\n    },\n    {\n      \"what\": \"merge pull requests\",\n      \"capability\": \"github.merge_pull_request\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": null,\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c12/rdflib/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c12/rdflib/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 2.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -12,9 +12,10 @@\",\n    \"     provision_dependencies: allow\",\n    \"     delegate_synthetic: allow\",\n    \"-    open_pull_requests: require_approval\",\n    \"+    open_pull_requests: allow\",\n    \"     merge_pull_requests: deny\",\n    \"     deploy: deny\",\n    \"     rollback: deny\",\n    \"-    use_new_capabilities: require_approval\",\n    \"+    use_new_capabilities: allow\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,7 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c12/rdflib/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "ts own for proven work; people merge\n  autonomous: also merges L4 work, deploys with the team's steps and rolls back\nEffective permissions\n  observe the repository, its CI and running services  allowed\n  run experiments in the offline sandbox               allowed\n  install dependencies while building                  allowed\n  send synthetic or public content to remote models    allowed\n  use capabilities it built for itself                 allowed\n  open pull requests                                   allowed\n  merge pull requests                                  denied\n  deploy with the team's steps                         denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nConnections (optional)\n\nBudget\nMachine ledger: verified balance US$97.29 (stage 6 spend cap authorized by David\non 2026-10-28: up to US$10 of free credits from this point (dev 3, evaluation 5,\ndemo and contingency 2; the earlier US$3 reserve is included, not added). \nDashboard as reported by David 2026-10-28: Current balance US$0, free credits in\nuse US$144.98, a Visa card on file, content sent while on free credits may be \nused to improve products. A cap, not a measured balance; no recharge or card \ncharge authorized (entered by david) | stage 9: US$30 additional Meta API spend \nauthorized by David on 2026-10-29, replacing the US$10 cap; cumulative cap \nUS$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval 12, demo 6 (D-052).\nDashboard as reported by David: free credits in use US$137.96, balance US$0, a \ncard on file. No recharge or card charge authorized (entered by david) | stage \n10: the remaining US$20.30 of the US$37.29 cap split before any call (D-058), by\nDavid's stage 10 instruction of 2026-10-30 (entered by david) | stage 10 after \nthe frozen evaluation: US$5 of the unspent s10-eval moved to s10-dev for \ncorrections and regressions, by David's instruction of 2026-10-31; envelopes \ntotal US$20.30 and the cumulative cap US$37.2945 unchanged; spent at the \ntransfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, s10-close 0) (entered by \ndavid) | product phase (A-E): s11-product US$4.00 authorized by David on \n2026-11-01, reassigned from s10-close (3.80, unspent, closed) and US$0.20 of \ns10-dev; envelopes total US$20.30 and the cumulative cap US$37.2945 unchanged; \nspent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval 1.0010, s10-close 0) \n(entered by david) | product phase correction: David's authorization of \n2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken from s10-dev had \nno recorded authorization and goes back (s10-dev 13.00, s11-product 3.80); \nenvelopes total US$20.30 and the cumulative cap US$37.2945 unchanged; \ns11-product spent 0 at the correction; spent at the correction US$27.7199 \n(entered by david) | campaign 12 (installed-product validation): US$60 \nadditional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david)); permitted US$97.29 · \nspent US$29.8639 · available US$67.4306\nenvelopes: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, \ns12-eval 30.00, s12-dev 17.00, s12-confirm 5.00\nProvider credits and authorized spend are different things: the cap a person \nentered with `unbidden spend --verified-balance` is what this machine may spend;\nit is never raised or reset here.\n\nDashboard\nOpening the dashboard, restoring its layout and showing records calls no model; \nchatting or asking for analysis can.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 16.3,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"4 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key set, API reachable\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"GITHUB_TOKEN set\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs allow\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.11 (pyproject.toml, uv.lock)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"validate.yaml > extra-tasks (matrix entry 1 of 2 (the job))\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "8860",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 1342,\n  \"log\": \"/Users/david/unbidden-lab/c12/rdflib/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-browser",
+   "argv": [
+    "node",
+    "/Users/david/unbidden-ai-campaign/frontend/scripts/c12_ui_check.mjs",
+    "http://127.0.0.1:8860/?s=<token>",
+    "/Users/david/unbidden-ai-campaign/docs/bench/campaign12/eval/rdflib/B2/ui-c1"
+   ],
+   "code": 0,
+   "seconds": 18.8,
+   "timed_out": false,
+   "stdout": "{\"ok\":true,\"steps\":5,\"console_errors\":2}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-status",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué ha hecho el agente hasta ahora y cuántas oportunidades hay?"
+   ],
+   "code": 0,
+   "seconds": 0.7,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_b997795bffed4e95\",\n  \"role\": \"assistant\",\n  \"content\": \"Registro de rdflib (live, head 3304e4fb0363): 0 oportunidades, 0 experimentos, 0 propuestas, 29 eventos, 2 llamadas a modelos, 0 bloqueos.\\nJobs: done 191\\nAgente: agent running, pid 1342.\\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.\",\n  \"created_at\": \"2026-11-02T21:59:36.269084Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"rule\",\n  \"model\": null,\n  \"route\": {\n    \"intent\": \"inform\",\n    \"purpose\": null,\n    \"tier\": null,\n    \"model\": null,\n    \"reason\": \"the mandate denies local inference; reading records needs no model: answered by rules\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-analyze",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué hallazgo priorizarías y por qué? Di qué falta en el registro."
+   ],
+   "code": 0,
+   "seconds": 5.0,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_fc238c2770824c69\",\n  \"role\": \"assistant\",\n  \"content\": \"Ninguno: `opportunities:0`, `discovered.total:0`, `proposals:{}` en head `3304e4fb0363` observado `2026-11-02T21:59:36.933390+00:00`.\\n\\nFalta en el registro: títulos, niveles, estados, ids de hallazgo y medianas para priorizar; solo hay `jobs.done:191`, `events:29`, `model_runs:2`.\",\n  \"created_at\": \"2026-11-02T21:59:41.247566Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"brain\",\n  \"model\": \"muse-spark-1.3\",\n  \"route\": {\n    \"intent\": \"analyze\",\n    \"purpose\": \"chat.analyze\",\n    \"tier\": \"code\",\n    \"model\": \"muse-spark-1.3\",\n    \"reason\": \"profile frontier; public_code may leave; label public_code\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 1342,\n  \"waited_s\": 0.2,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "8860",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 96058,\n  \"log\": \"/Users/david/unbidden-lab/c12/rdflib/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 96058,\n  \"waited_s\": 0.4,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-final",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.1,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c12/rdflib\",\n  \"head\": \"3304e4fb0363d923169b8aa9bd700bd9cfbc2e92\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c12/rdflib/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"3304e4fb0363d923169b8aa9bd700bd9cfbc2e92\",\n    \"tools\": [\n      \"ruff\",\n      \"mypy\"\n    ],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"python 3.11: from the CI's python-version (the oldest in its matrix)\",\n      \"pyproject requires-python: >=3.11\",\n      \"the CI's python-version: 3.11, 3.12, 3.13, 3.14\",\n      \"image unbidden-deps-python:4d7048c2520bd4f9 on linux/arm64\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"mypy\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {}\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "egress",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "egress",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.4,
+   "timed_out": false,
+   "stdout": "eUnicodeEscape(s)\\\\n\\\\n\\\\n@settings(max_examples=300, deadline=None)\\\\n@given(s=st.text())\\\\ndef test_sanitize_filename_never_crashes(s):\\\\n    sanitize_filename(s)\\\\n\\\\n\\\\n@settings(max_examples=300, deadline=None)\\\\n@given(s=st.text())\\\\ndef test_extract_filename_from_content_disposition_never_crashes(s):\\\\n    extract_filename_from_content_disposition(s)\\\\n\\\\n\\\\n@settings(max_examples=300, deadline=None)\\\\n@given(s=st.text(), p=st.integers(min_value=-1000000, max_value=1000000))\\\\ndef test_splitFragP_never_crashes(s, p):\\\\n    splitFragP(s, p)\\\\n\\\\n\\\\n@settings(max_examples=300, deadline=None)\\\\n@given(a=st.text(), b=st.text())\\\\ndef test_join_never_crashes(a, b):\\\\n    join(a, b)\\\\n\\\\n\\\\n@settings(max_examples=300, deadline=None)\\\\n@given(s=st.text())\\\\ndef test_unquote_never_crashes(s):\\\\n    unquote(s)\\\\n\\\\n\\\\n@settings(max_examples=300, deadline=None)\\\\n@given(s=st.text())\\\\ndef test_uriquote_never_crashes(s):\\\\n    uriquote(s)\\\\n\\\\n```\\\\n\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"repo\\\"}], \\\"response_schema\\\": null, \\\"tools\\\": []}\",\n    \"created_at\": \"2026-11-02T20:31:31.983079Z\",\n    \"origin\": \"engine\"\n  },\n  {\n    \"id\": \"egr_a9d72ef125754e6d\",\n    \"status\": \"allowed_sent\",\n    \"purpose\": \"chat.analyze\",\n    \"destination\": \"api.meta.ai\",\n    \"provider\": \"meta\",\n    \"model\": \"muse-spark-1.3\",\n    \"verdict\": {\n      \"allowed\": true,\n      \"kind\": \"synthetic_task\",\n      \"destination\": \"api.meta.ai\",\n      \"reasons\": [],\n      \"matched\": [],\n      \"payload_sha256\": \"8cdbb7d805fd22936ea8c0f5a404198e1f4de28450a6b415dc619cf751ba387c\",\n      \"payload_bytes\": 2069\n    },\n    \"payload\": \"{\\\"messages\\\": [{\\\"content\\\": \\\"You are the analyst of Unbidden's dashboard. You receive a digest of Unbidden's own records\\\\n(counts, levels, statuses, titles, ids, medians) and a question. Answer in the language the question is written in,\\\\nbriefly, from the digest alone: cite the ids and numbers you rely on, say what the digest does not contain instead\\\\nof guessing, and never invent a metric, a finding or an improvement. You cannot act: do not promise to approve,\\\\ndeploy, merge, run or stop anything; name the command or button when the person should decide something.\\\", \\\"role\\\": \\\"system\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ade una tabla con las oportunidades\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ado una tabla con las oportunidades.\\\\na\\u00f1adido \\u00abOportunidades\\u00bb (sin datos: Opportunities: what was found, its level and the Director's decision: zero rows in this record)\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 ha hecho el agente hasta ahora y cu\\u00e1ntas oportunidades hay?\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"Registro de rdflib (live, head 3304e4fb0363): 0 oportunidades, 0 experimentos, 0 propuestas, 29 eventos, 2 llamadas a modelos, 0 bloqueos.\\\\nJobs: done 191\\\\nAgente: agent running, pid 1342.\\\\nPara un porqu\\u00e9 o una recomendaci\\u00f3n pide un an\\u00e1lisis; para ver algo, una tabla o un gr\\u00e1fico.\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"Records digest:\\\\nworkspace rdflib (live record); head 3304e4fb0363; observed 2026-11-02T21:59:36.933390+00:00; freshness current\\\\ncounts: {\\\\\\\"opportunities\\\\\\\":0,\\\\\\\"experiments\\\\\\\":0,\\\\\\\"proposals\\\\\\\":0,\\\\\\\"events\\\\\\\":29,\\\\\\\"model_runs\\\\\\\":2,\\\\\\\"connections\\\\\\\":0,\\\\\\\"deployments\\\\\\\":0,\\\\\\\"needs\\\\\\\":0,\\\\\\\"blocks\\\\\\\":0,\\\\\\\"spend_calls\\\\\\\":5,\\\\\\\"world\\\\\\\":1}\\\\njobs: {\\\\\\\"done\\\\\\\":191}\\\\ndiscovered: {\\\\\\\"total\\\\\\\":0,\\\\\\\"by_status\\\\\\\":{}}\\\\ninvalidated: []\\\\nproposals: {}\\\\nblocks: []\\\\nlearned: {}\\\\nconnections: []\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 hallazgo priorizar\\u00edas y por qu\\u00e9? Di qu\\u00e9 falta en el registro.\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}], \\\"response_schema\\\": null, \\\"tools\\\": []}\",\n    \"created_at\": \"2026-11-02T21:59:36.940262Z\",\n    \"origin\": \"dashboard apart\"\n  }\n]\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/RDFLib/rdflib",
+   "commit": "f87db10f58264d619e5b55f1567bfdca4bb02afc",
+   "family": "library",
+   "class": "independent",
+   "build": "uv",
+   "lab": null,
+   "copy_base_sha": "3304e4fb0363d923169b8aa9bd700bd9cfbc2e92"
+  },
+  "ledger_before": {
+   "envelope": "s12-eval",
+   "envelope_spent_usd": 0.7938,
+   "available_usd": 67.4306,
+   "permitted_usd": 97.2945
+  },
+  "fork": {
+   "slug": "satisfymath/c12-rdflib",
+   "base": "main",
+   "upstream": "RDFLib/rdflib",
+   "kind": "copy",
+   "created": false,
+   "prep": {
+    "applied": false,
+    "why": "nothing to change (already prepared, or nothing listed)"
+   },
+   "pin": "f87db10f58264d619e5b55f1567bfdca4bb02afc",
+   "restore": {
+    "expected": "3304e4fb0363d923169b8aa9bd700bd9cfbc2e92",
+    "head_before": "3304e4fb0363d923169b8aa9bd700bd9cfbc2e92",
+    "pin_in_history": true,
+    "closed": [],
+    "deleted": [],
+    "base_sha": "3304e4fb0363d923169b8aa9bd700bd9cfbc2e92"
+   },
+   "base_sha": "3304e4fb0363d923169b8aa9bd700bd9cfbc2e92",
+   "pin_in_history": true,
+   "dependabot_prs_closed": [],
+   "workflows_registered": [
+    "dependabot-updates",
+    "docker-images.yaml",
+    "test-report.yml",
+    "validate.yaml"
+   ],
+   "disabled_in_settings": [
+    "dependabot-updates"
+   ],
+   "kept": "validate (tests, extra-tasks, coverage), test-report"
+  },
+  "fork_before": {
+   "pulls": [
+    {
+     "created_at": "2026-11-01T23:45:31Z",
+     "head": "dependabot/uv/ruff-0.17.3",
+     "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+     "merge_commit_sha": "bece922b11b486f6f530deea9bbb588f6743f8bc",
+     "merged_at": null,
+     "number": 6,
+     "state": "closed",
+     "title": "build(deps-dev): bump ruff from 0.17.2 to 0.17.3",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:37:26Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125032480630",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:37:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:45Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173284",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:56:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:01:18Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173282",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:55:24Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:36:35Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173275",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-02T00:30:06Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:30:03Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173197",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-02T00:23:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:01Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173183",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:51:25Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:36:58Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173167",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-02T00:29:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:31Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173157",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:46:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:32Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173151",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:57:11Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:16Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173138",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:52:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:47Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173133",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:46:17Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:55:21Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173130",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:46:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:26Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173077",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:47:17Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:17Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173056",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:46:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:55:06Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173052",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:46:10Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:32:06Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173048",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-02T00:23:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:46:37Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019172974",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:46:17Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:45:15Z",
+     "head": "dependabot/uv/zensical-0.0.73",
+     "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+     "merge_commit_sha": "12b05286c270ccb650bbd4c997e7b530e38d8810",
+     "merged_at": null,
+     "number": 5,
+     "state": "closed",
+     "title": "build(deps-dev): bump zensical from 0.0.72 to 0.0.73",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:23:57Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125028823223",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:23:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:42Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108530",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:57:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:03:46Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108528",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:56:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:07Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108516",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:51:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:23:30Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108510",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-02T00:14:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:06:40Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108499",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:58:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:20:06Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108433",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-02T00:11:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:03Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108432",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:57:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:33Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108429",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:56:10Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:14:26Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108420",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-02T00:06:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:48Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108396",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:50:34Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:50:43Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108386",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:45:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:46Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108368",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:49:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:51:26Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108340",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:45:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:06:44Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108236",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-02T00:00:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:32Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108186",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:45:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:45:44Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019107917",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:45:30Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:45:03Z",
+     "head": "dependabot/uv/pytest-9.2.0",
+     "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+     "merge_commit_sha": "948c1007a249df5753d675afb97e468fc196debc",
+     "merged_at": null,
+     "number": 4,
+     "state": "closed",
+     "title": "build(deps-dev): bump pytest from 9.1.1 to 9.2.0",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:43:21Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125034076254",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:42:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:16Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054831",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:56:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:42:55Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054783",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-02T00:36:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:41Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054750",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:58:17Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:37:53Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054735",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-02T00:29:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:30:36Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054728",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-02T00:23:26Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:31Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054726",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:51:04Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:06:06Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054725",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:57:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:15Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054694",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:57:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:29:14Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054690",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-02T00:20:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:40Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054648",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:50:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:49:56Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054630",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:46:13Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:03:52Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054614",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:54:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:58:52Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054604",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:51:21Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:57Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054573",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:46:13Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:53Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054551",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:57:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:46:11Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054386",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:45:55Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:44:50Z",
+     "head": "dependabot/uv/mypy-2.4.1",
+     "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+     "merge_commit_sha": "96d6501b20699f9f83ac75051b7f4955ecaf7279",
+     "merged_at": null,
+     "number": 3,
+     "state": "closed",
+     "title": "build(deps-dev): bump mypy from 2.4.0 to 2.4.1",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:39:41Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125033107421",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:39:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:29:06Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002369",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-02T00:21:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:56Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002356",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:55:17Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:56Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002326",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:54:17Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:00:52Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002323",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:54:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:25Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002306",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:53:34Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:54Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002305",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:53:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:00:24Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002301",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:53:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:23:00Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002291",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-02T00:12:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:29Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002287",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:51:38Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:24Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002264",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:53:11Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:39:16Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002254",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-02T00:32:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:00Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002248",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:51:54Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:51:18Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002223",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:45:14Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:14Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002222",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:51:11Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:41Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002206",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-01T23:53:07Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:45:52Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002077",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:45:38Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:44:39Z",
+     "head": "dependabot/docker/docker/unstable/library/python-3.16.0a1-slim",
+     "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+     "merge_commit_sha": "2ff9d6cb9bf232a8a05dd1175bbd82d6c23cf445",
+     "merged_at": null,
+     "number": 2,
+     "state": "closed",
+     "title": "build(deps): bump library/python from 3.15.1-slim to 3.16.0a1-slim in /docker/unstable",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:21:23Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125028144901",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:21:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:12Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959798",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:55:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:29Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959746",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:54:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:00Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959707",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:54:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:20:58Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959698",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-02T00:12:43Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:50Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959627",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:50:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:00:37Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959624",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:53:54Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:52:43Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959618",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:45:05Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:00:26Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959604",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:54:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:11:55Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959603",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-02T00:05:12Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:10Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959578",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:48:37Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:57Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959534",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-01T23:49:54Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:51:02Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959521",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:44:51Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:20Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959518",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-01T23:52:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:56Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959517",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:52:45Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959290",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:45:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:45:50Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959140",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:45:33Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:44:23Z",
+     "head": "dependabot/docker/docker/latest/library/python-3.16.0a1-slim",
+     "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+     "merge_commit_sha": "f76bf9470c62e0eea2a5f88d0e01d83a9a00183d",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "build(deps): bump library/python from 3.15.1-slim to 3.16.0a1-slim in /docker/latest",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:38:46Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125032849536",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:38:21Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:15:35Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897594",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-02T00:06:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:08Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897545",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:53:34Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:38:18Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897543",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-02T00:30:40Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:51Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897513",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:51:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:28Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897511",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:55:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:06Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897466",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:56:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:58:46Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897465",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:48:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:51Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897464",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:47:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:41Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897456",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:53:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:09Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897453",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-01T23:59:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:41Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897436",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-01T23:59:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:44Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897421",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:44:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:50:32Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897416",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:44:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:30Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897413",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:48:13Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:48:55Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897350",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:44:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:44:56Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897099",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:44:39Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [],
+   "base_head": "3304e4fb0363d923169b8aa9bd700bd9cfbc2e92"
+  },
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required"
+  },
+  "mode": {
+   "asked": "autopilot",
+   "why": "a library has no deploy: autonomous is not available"
+  },
+  "mode_got": "autopilot",
+  "cycle1": {
+   "started": true,
+   "waited_s": 5406.6,
+   "bound_hit": true,
+   "status_at_end": {
+    "running": true,
+    "pid": 1342,
+    "started_at": "2026-11-02T20:29:09.995960+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c12/rdflib/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 1,
+    "jobs_queued": 0
+   },
+   "counts": {
+    "events": {
+     "analyzer.ran": 2,
+     "decision.made": 1,
+     "egress.allowed": 2,
+     "mandate.changed": 1,
+     "model.called": 2,
+     "repo.head_moved": 1,
+     "world.changed": 20
+    },
+    "docs": {
+     "egress": 2,
+     "model_runs": 2,
+     "world": 1
+    },
+    "jobs": {
+     "done": 190,
+     "running": 1
+    },
+    "proposals": []
+   }
+  },
+  "ui1": {
+   "opened": true,
+   "in_daemon": true,
+   "summary": {
+    "mode": "live",
+    "freshness": "current",
+    "counts": {
+     "opportunities": 0,
+     "experiments": 0,
+     "proposals": 0,
+     "events": 29,
+     "model_runs": 2,
+     "connections": 0,
+     "deployments": 0,
+     "needs": 0,
+     "blocks": 0,
+     "spend_calls": 5,
+     "world": 1
+    },
+    "agent": {
+     "running": true,
+     "pid": 1342,
+     "started_at": "2026-11-02T20:29:09.995960+00:00",
+     "command": "watch",
+     "detail": "agent running, pid 1342"
+    },
+    "key_present": true
+   },
+   "opportunities_total": 0,
+   "widgets": [
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:rdflib"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:rdflib"
+    }
+   ],
+   "browser": {
+    "ok": true,
+    "steps": 5,
+    "console_errors": 2
+   },
+   "chat_status": {
+    "planner": "rule",
+    "route": {
+     "intent": "inform",
+     "purpose": null,
+     "tier": null,
+     "model": null,
+     "reason": "the mandate denies local inference; reading records needs no model: answered by rules",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Registro de rdflib (live, head 3304e4fb0363): 0 oportunidades, 0 experimentos, 0 propuestas, 29 eventos, 2 llamadas a modelos, 0 bloqueos.\nJobs: done 191\nAgente: agent running, pid 1342.\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico."
+   },
+   "chat_analyze": {
+    "planner": "brain",
+    "route": {
+     "intent": "analyze",
+     "purpose": "chat.analyze",
+     "tier": "code",
+     "model": "muse-spark-1.3",
+     "reason": "profile frontier; public_code may leave; label public_code",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Ninguno: `opportunities:0`, `discovered.total:0`, `proposals:{}` en head `3304e4fb0363` observado `2026-11-02T21:59:36.933390+00:00`.\n\nFalta en el registro: títulos, niveles, estados, ids de hallazgo y medianas para priorizar; solo hay `jobs.done:191`, `events:29`, `model_runs:2`."
+   }
+  },
+  "fork_after_c1": {
+   "pulls": [
+    {
+     "created_at": "2026-11-01T23:45:31Z",
+     "head": "dependabot/uv/ruff-0.17.3",
+     "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+     "merge_commit_sha": "bece922b11b486f6f530deea9bbb588f6743f8bc",
+     "merged_at": null,
+     "number": 6,
+     "state": "closed",
+     "title": "build(deps-dev): bump ruff from 0.17.2 to 0.17.3",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:37:26Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125032480630",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:37:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:45Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173284",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:56:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:01:18Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173282",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:55:24Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:36:35Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173275",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-02T00:30:06Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:30:03Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173197",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-02T00:23:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:01Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173183",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:51:25Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:36:58Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173167",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-02T00:29:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:31Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173157",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:46:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:32Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173151",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:57:11Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:16Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173138",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:52:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:47Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173133",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:46:17Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:55:21Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173130",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:46:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:26Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173077",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:47:17Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:17Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173056",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:46:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:55:06Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173052",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:46:10Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:32:06Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173048",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-02T00:23:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:46:37Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019172974",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:46:17Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:45:15Z",
+     "head": "dependabot/uv/zensical-0.0.73",
+     "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+     "merge_commit_sha": "12b05286c270ccb650bbd4c997e7b530e38d8810",
+     "merged_at": null,
+     "number": 5,
+     "state": "closed",
+     "title": "build(deps-dev): bump zensical from 0.0.72 to 0.0.73",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:23:57Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125028823223",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:23:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:42Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108530",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:57:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:03:46Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108528",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:56:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:07Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108516",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:51:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:23:30Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108510",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-02T00:14:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:06:40Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108499",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:58:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:20:06Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108433",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-02T00:11:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:03Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108432",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:57:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:33Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108429",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:56:10Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:14:26Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108420",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-02T00:06:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:48Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108396",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:50:34Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:50:43Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108386",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:45:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:46Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108368",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:49:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:51:26Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108340",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:45:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:06:44Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108236",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-02T00:00:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:32Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108186",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:45:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:45:44Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019107917",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:45:30Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:45:03Z",
+     "head": "dependabot/uv/pytest-9.2.0",
+     "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+     "merge_commit_sha": "948c1007a249df5753d675afb97e468fc196debc",
+     "merged_at": null,
+     "number": 4,
+     "state": "closed",
+     "title": "build(deps-dev): bump pytest from 9.1.1 to 9.2.0",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:43:21Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125034076254",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:42:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:16Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054831",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:56:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:42:55Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054783",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-02T00:36:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:41Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054750",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:58:17Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:37:53Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054735",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-02T00:29:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:30:36Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054728",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-02T00:23:26Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:31Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054726",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:51:04Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:06:06Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054725",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:57:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:15Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054694",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:57:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:29:14Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054690",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-02T00:20:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:40Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054648",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:50:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:49:56Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054630",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:46:13Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:03:52Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054614",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:54:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:58:52Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054604",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:51:21Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:57Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054573",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:46:13Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:53Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054551",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:57:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:46:11Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054386",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:45:55Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:44:50Z",
+     "head": "dependabot/uv/mypy-2.4.1",
+     "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+     "merge_commit_sha": "96d6501b20699f9f83ac75051b7f4955ecaf7279",
+     "merged_at": null,
+     "number": 3,
+     "state": "closed",
+     "title": "build(deps-dev): bump mypy from 2.4.0 to 2.4.1",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:39:41Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125033107421",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:39:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:29:06Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002369",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-02T00:21:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:56Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002356",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:55:17Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:56Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002326",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:54:17Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:00:52Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002323",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:54:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:25Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002306",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:53:34Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:54Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002305",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:53:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:00:24Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002301",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:53:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:23:00Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002291",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-02T00:12:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:29Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002287",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:51:38Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:24Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002264",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:53:11Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:39:16Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002254",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-02T00:32:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:00Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002248",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:51:54Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:51:18Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002223",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:45:14Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:14Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002222",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:51:11Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:41Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002206",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-01T23:53:07Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:45:52Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002077",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:45:38Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:44:39Z",
+     "head": "dependabot/docker/docker/unstable/library/python-3.16.0a1-slim",
+     "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+     "merge_commit_sha": "2ff9d6cb9bf232a8a05dd1175bbd82d6c23cf445",
+     "merged_at": null,
+     "number": 2,
+     "state": "closed",
+     "title": "build(deps): bump library/python from 3.15.1-slim to 3.16.0a1-slim in /docker/unstable",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:21:23Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125028144901",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:21:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:12Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959798",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:55:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:29Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959746",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:54:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:00Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959707",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:54:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:20:58Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959698",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-02T00:12:43Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:50Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959627",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:50:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:00:37Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959624",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:53:54Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:52:43Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959618",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:45:05Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:00:26Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959604",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:54:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:11:55Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959603",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-02T00:05:12Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:10Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959578",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:48:37Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:57Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959534",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-01T23:49:54Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:51:02Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959521",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:44:51Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:20Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959518",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-01T23:52:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:56Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959517",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:52:45Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959290",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:45:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:45:50Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959140",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:45:33Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:44:23Z",
+     "head": "dependabot/docker/docker/latest/library/python-3.16.0a1-slim",
+     "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+     "merge_commit_sha": "f76bf9470c62e0eea2a5f88d0e01d83a9a00183d",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "build(deps): bump library/python from 3.15.1-slim to 3.16.0a1-slim in /docker/latest",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:38:46Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125032849536",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:38:21Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:15:35Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897594",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-02T00:06:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:08Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897545",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:53:34Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:38:18Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897543",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-02T00:30:40Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:51Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897513",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:51:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:28Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897511",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:55:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:06Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897466",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:56:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:58:46Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897465",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:48:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:51Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897464",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:47:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:41Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897456",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:53:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:09Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897453",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-01T23:59:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:41Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897436",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-01T23:59:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:44Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897421",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:44:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:50:32Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897416",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:44:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:30Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897413",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:48:13Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:48:55Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897350",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:44:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:44:56Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897099",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:44:39Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [],
+   "base_head": "3304e4fb0363d923169b8aa9bd700bd9cfbc2e92"
+  },
+  "cycle2": {
+   "started": true,
+   "waited_s": 2702.5,
+   "bound_hit": true,
+   "status_at_end": {
+    "running": true,
+    "pid": 96058,
+    "started_at": "2026-11-02T21:59:48.957467+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c12/rdflib/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "counts": {
+    "events": {
+     "analyzer.ran": 2,
+     "decision.made": 1,
+     "egress.allowed": 2,
+     "mandate.changed": 1,
+     "model.called": 2,
+     "repo.head_moved": 1,
+     "world.changed": 29
+    },
+    "docs": {
+     "egress": 2,
+     "model_runs": 2,
+     "world": 1
+    },
+    "jobs": {
+     "done": 288
+    },
+    "proposals": []
+   }
+  },
+  "fork_after_c2": {
+   "pulls": [
+    {
+     "created_at": "2026-11-01T23:45:31Z",
+     "head": "dependabot/uv/ruff-0.17.3",
+     "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+     "merge_commit_sha": "bece922b11b486f6f530deea9bbb588f6743f8bc",
+     "merged_at": null,
+     "number": 6,
+     "state": "closed",
+     "title": "build(deps-dev): bump ruff from 0.17.2 to 0.17.3",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:37:26Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125032480630",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:37:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:45Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173284",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:56:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:01:18Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173282",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:55:24Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:36:35Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173275",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-02T00:30:06Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:30:03Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173197",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-02T00:23:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:01Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173183",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:51:25Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:36:58Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173167",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-02T00:29:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:31Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173157",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:46:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:32Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173151",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:57:11Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:16Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173138",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:52:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:47Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173133",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:46:17Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:55:21Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173130",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:46:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:26Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173077",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:47:17Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:17Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173056",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:46:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:55:06Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173052",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:46:10Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:32:06Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019173048",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-02T00:23:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:46:37Z",
+       "conclusion": "success",
+       "head_sha": "f5e8c4cd9a3055aa5465d3246f3a1b9a2e2fe062",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363658486/job/125019172974",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:46:17Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:45:15Z",
+     "head": "dependabot/uv/zensical-0.0.73",
+     "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+     "merge_commit_sha": "12b05286c270ccb650bbd4c997e7b530e38d8810",
+     "merged_at": null,
+     "number": 5,
+     "state": "closed",
+     "title": "build(deps-dev): bump zensical from 0.0.72 to 0.0.73",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:23:57Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125028823223",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:23:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:42Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108530",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:57:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:03:46Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108528",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:56:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:07Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108516",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:51:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:23:30Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108510",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-02T00:14:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:06:40Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108499",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:58:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:20:06Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108433",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-02T00:11:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:03Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108432",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:57:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:33Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108429",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:56:10Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:14:26Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108420",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-02T00:06:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:48Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108396",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:50:34Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:50:43Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108386",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:45:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:46Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108368",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:49:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:51:26Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108340",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:45:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:06:44Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108236",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-02T00:00:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:32Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019108186",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:45:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:45:44Z",
+       "conclusion": "success",
+       "head_sha": "2076f854921d628f9f04046dbab966a24aba4ccd",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363636847/job/125019107917",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:45:30Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:45:03Z",
+     "head": "dependabot/uv/pytest-9.2.0",
+     "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+     "merge_commit_sha": "948c1007a249df5753d675afb97e468fc196debc",
+     "merged_at": null,
+     "number": 4,
+     "state": "closed",
+     "title": "build(deps-dev): bump pytest from 9.1.1 to 9.2.0",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:43:21Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125034076254",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:42:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:16Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054831",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:56:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:42:55Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054783",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-02T00:36:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:41Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054750",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:58:17Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:37:53Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054735",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-02T00:29:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:30:36Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054728",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-02T00:23:26Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:31Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054726",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:51:04Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:06:06Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054725",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:57:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:15Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054694",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:57:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:29:14Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054690",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-02T00:20:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:40Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054648",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:50:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:49:56Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054630",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:46:13Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:03:52Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054614",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:54:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:58:52Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054604",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:51:21Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:57Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054573",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:46:13Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:53Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054551",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:57:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:46:11Z",
+       "conclusion": "success",
+       "head_sha": "ad1791cec7d110e325942d9bb5078b1e4a50b331",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363617616/job/125019054386",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:45:55Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:44:50Z",
+     "head": "dependabot/uv/mypy-2.4.1",
+     "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+     "merge_commit_sha": "96d6501b20699f9f83ac75051b7f4955ecaf7279",
+     "merged_at": null,
+     "number": 3,
+     "state": "closed",
+     "title": "build(deps-dev): bump mypy from 2.4.0 to 2.4.1",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:39:41Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125033107421",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:39:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:29:06Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002369",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-02T00:21:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:56Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002356",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:55:17Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:56Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002326",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:54:17Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:00:52Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002323",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:54:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:25Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002306",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:53:34Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:54Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002305",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:53:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:00:24Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002301",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:53:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:23:00Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002291",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-02T00:12:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:29Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002287",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:51:38Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:24Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002264",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:53:11Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:39:16Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002254",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-02T00:32:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:00Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002248",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:51:54Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:51:18Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002223",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:45:14Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:14Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002222",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:51:11Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:41Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002206",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-01T23:53:07Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:45:52Z",
+       "conclusion": "success",
+       "head_sha": "30a1ea5b64aec0451ca3e984e57d140c02c88668",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363598030/job/125019002077",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:45:38Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:44:39Z",
+     "head": "dependabot/docker/docker/unstable/library/python-3.16.0a1-slim",
+     "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+     "merge_commit_sha": "2ff9d6cb9bf232a8a05dd1175bbd82d6c23cf445",
+     "merged_at": null,
+     "number": 2,
+     "state": "closed",
+     "title": "build(deps): bump library/python from 3.15.1-slim to 3.16.0a1-slim in /docker/unstable",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:21:23Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125028144901",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:21:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:12Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959798",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:55:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:29Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959746",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:54:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:00Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959707",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:54:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:20:58Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959698",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-02T00:12:43Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:50Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959627",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:50:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:00:37Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959624",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:53:54Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:52:43Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959618",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:45:05Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:00:26Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959604",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:54:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:11:55Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959603",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-02T00:05:12Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:10Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959578",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:48:37Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:57Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959534",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-01T23:49:54Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:51:02Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959521",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:44:51Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:20Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959518",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-01T23:52:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:56Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959517",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:52:45Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959290",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:45:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:45:50Z",
+       "conclusion": "success",
+       "head_sha": "0d4ab3d3a4463fc377735794e60a4fcdacd0bb7d",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363584202/job/125018959140",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:45:33Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-01T23:44:23Z",
+     "head": "dependabot/docker/docker/latest/library/python-3.16.0a1-slim",
+     "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+     "merge_commit_sha": "f76bf9470c62e0eea2a5f88d0e01d83a9a00183d",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "build(deps): bump library/python from 3.15.1-slim to 3.16.0a1-slim in /docker/latest",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-02T00:38:46Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125032849536",
+       "name": "coverage",
+       "started_at": "2026-11-02T00:38:21Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:15:35Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897594",
+       "name": "validate (3.13, macos-latest)",
+       "started_at": "2026-11-02T00:06:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:08Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897545",
+       "name": "validate (3.11, ubuntu-latest, -extensive-min, true, sudo apt-get install -y libxml2-dev libxslt-...",
+       "started_at": "2026-11-01T23:53:34Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:38:18Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897543",
+       "name": "validate (3.11, macos-latest)",
+       "started_at": "2026-11-02T00:30:40Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:56:51Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897513",
+       "name": "validate (3.11, windows-latest)",
+       "started_at": "2026-11-01T23:51:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:28Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897511",
+       "name": "validate (3.14, ubuntu-latest)",
+       "started_at": "2026-11-01T23:55:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:06Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897466",
+       "name": "validate (3.11, ubuntu-latest, -extensive, true)",
+       "started_at": "2026-11-01T23:56:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:58:46Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897465",
+       "name": "validate (3.13, ubuntu-latest)",
+       "started_at": "2026-11-01T23:48:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:53:51Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897464",
+       "name": "validate (3.12, windows-latest)",
+       "started_at": "2026-11-01T23:47:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:59:41Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897456",
+       "name": "validate (3.13, windows-latest)",
+       "started_at": "2026-11-01T23:53:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:05:09Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897453",
+       "name": "validate (3.12, macos-latest)",
+       "started_at": "2026-11-01T23:59:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-02T00:04:41Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897436",
+       "name": "validate (3.14, macos-latest)",
+       "started_at": "2026-11-01T23:59:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:54:44Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897421",
+       "name": "validate (3.12, ubuntu-latest)",
+       "started_at": "2026-11-01T23:44:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:50:32Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897416",
+       "name": "validate (3.11, ubuntu-latest)",
+       "started_at": "2026-11-01T23:44:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:57:30Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897413",
+       "name": "validate (3.11, ubuntu-latest, -lxml, ruff format --check --diff ./rdflib, -lxml)",
+       "started_at": "2026-11-01T23:48:13Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:48:55Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897350",
+       "name": "validate (3.14, windows-latest)",
+       "started_at": "2026-11-01T23:44:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-01T23:44:56Z",
+       "conclusion": "success",
+       "head_sha": "f3590ab7416427795aea47e8c9a7040c69c7447a",
+       "html_url": "https://github.com/satisfymath/c12-rdflib/actions/runs/41363564566/job/125018897099",
+       "name": "extra-tasks (gha:lint, 3.11)",
+       "started_at": "2026-11-01T23:44:39Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [],
+   "base_head": "3304e4fb0363d923169b8aa9bd700bd9cfbc2e92"
+  },
+  "status_final": {
+   "running": false,
+   "pid": null,
+   "started_at": null,
+   "command": null,
+   "log": "/Users/david/unbidden-lab/c12/rdflib/.unbidden/logs/agent.log",
+   "stale": false,
+   "jobs_running": 0,
+   "jobs_queued": 0
+  },
+  "egress": {
+   "api.meta.ai:chat.analyze:allowed_sent": 2,
+   "api.meta.ai:research.robustness:allowed_sent": 2
+  },
+  "ledger_after": {
+   "envelope": "s12-eval",
+   "envelope_spent_usd": 0.8213,
+   "available_usd": 67.4031,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c12-eval-B2-rdflib",
+   "calls": 3,
+   "usd": 0.0275,
+   "tokens_in": 4784,
+   "tokens_out": 5052
+  },
+  "spent_usd": 0.0275,
+  "archive": "/Users/david/unbidden-lab/c12/archive/rdflib-B2-eval.tgz"
+ },
+ "human": [
+  {
+   "step": "mandate: fork, registries, operations, connections",
+   "minutes": 2,
+   "why": "a person's declaration"
+  }
+ ],
+ "blocks": []
+}
