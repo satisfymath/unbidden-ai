@@ -15,8 +15,12 @@ from unbidden.contracts.common import EvidenceLevel, utc_now
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.experiment import Proposal, ProposalStatus
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
-from unbidden.lab.perfstats import SESSION_CRITERIA
+from unbidden.lab.perfstats import PROMOTION_CRITERIA, SESSION_CRITERIA
 from unbidden.store import Store
+
+# Session criteria judged good enough not to need revalidation: perf-v3 and its successor perf-v4 (a fresh v4
+# verdict was reported as "pending revalidation", campaign 13 WS2).
+CURRENT = (SESSION_CRITERIA["version"], PROMOTION_CRITERIA["version"])
 
 
 def revoke(store: Store, opp_id: str, why: str, *, criteria: str, evidence: str, by: str) -> Opportunity:
@@ -48,9 +52,9 @@ def pending(opp: Opportunity) -> str | None:
     criteria = verdict.get("criteria") or {}
     if opp.evidence_level < EvidenceLevel.LAB_IMPROVEMENT or "min_median_improvement" not in criteria:
         return None
-    if criteria.get("version") == SESSION_CRITERIA["version"]:
+    if criteria.get("version") in CURRENT:
         return None
-    if any(r.get("criteria") == SESSION_CRITERIA["version"] and r.get("outcome") == "improved"
+    if any(r.get("criteria") in CURRENT and r.get("outcome") == "improved"
            for r in opp.details.get("revalidations", [])):  # fmt: skip
         return None
     return f"judged by criteria older than {SESSION_CRITERIA['version']}: pending revalidation"

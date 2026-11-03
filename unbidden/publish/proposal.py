@@ -39,13 +39,31 @@ def _tests_line(experiment: Experiment) -> str:
     )
 
 
+def _what_next(merges: bool) -> str:
+    """What happens to this pull request, said as the mandate decides it (campaign 12: the body said "a person
+    decides" on pull requests the product then merged itself)."""
+    if merges:
+        return ("Unbidden merges it once the team's CI is green on this exact commit, then deploys with the team's "
+                "steps and watches the effect; a person can close it before that.")  # fmt: skip
+    return "Nothing is merged or deployed by Unbidden; a person decides."
+
+
+def _claim(verdict: Verdict) -> list[str]:
+    """The typed measurements the verdict rests on, one line each, before the details."""
+    if not verdict.measurements:
+        return []
+    return ["### Claim", *(f"- {m.summary()}" for m in verdict.measurements), ""]
+
+
 PERF_LEVELS = {
     3: "L3 · lab improvement: measured faster in an offline sandbox; the test suite was not run",
     4: "L4 · functional validation: measured faster in an offline sandbox, and the test suite shows no regression",
 }
 
 
-def build_perf_body(opp: Opportunity, experiment: Experiment, verdict: Verdict, origin: str) -> str:
+def build_perf_body(
+    opp: Opportunity, experiment: Experiment, verdict: Verdict, origin: str, merges: bool = False
+) -> str:
     """A performance proposal leads with what was measured, how, and what it does not prove yet."""
     d = opp.details
     criteria = verdict.criteria
@@ -59,12 +77,15 @@ def build_perf_body(opp: Opportunity, experiment: Experiment, verdict: Verdict, 
         f"- How: the database schema was read live (read-only) and compared with the endpoints that read "
         f"`{d.get('table')}`; no one pointed at this table.",
         "",
+        *_claim(verdict),
         "### What was measured",
         *(f"- {reason}" for reason in verdict.reasons),
-        f"- {len(experiment.samples_before_ms)} requests per side after a warm-up, each side in its own sandbox "
-        f"with a fresh database, migrations applied by this repository's own CI setup steps.",
-        f"- Criteria fixed before measuring: {criteria.get('test')}, alpha {criteria.get('alpha')}, median "
-        f"improvement of at least {float(criteria.get('min_median_improvement', 0)):.0%}, {criteria.get('ci')}.",
+        f"- {len(experiment.sessions) or 'several'} sessions alternating base and candidate, "
+        f"{len(experiment.samples_before_ms)} measured requests on the base side after a warm-up; each session in "
+        "its own sandbox with a fresh database.",
+        f"- Criteria `{criteria.get('version', '?')}`, fixed before measuring: "
+        + "; ".join(str(criteria[k]) for k in ("functional", "control", "confirmation") if criteria.get(k))
+        + f"; at least {float(criteria.get('min_median_improvement', 0)):.0%} faster.",
         f"- {_tests_line(experiment)}",
         f"- Candidate written by: {AUTHORS.get(origin, origin)}. The workload (synthetic data and the request) "
         f"was written by a model under the same routing and is kept with the experiment (sha256 "
@@ -73,13 +94,14 @@ def build_perf_body(opp: Opportunity, experiment: Experiment, verdict: Verdict, 
         "### Caveats",
         *(f"- {c}" for c in (verdict.caveats or ["none recorded"])),
         "",
-        f"<sub>Proposed by Unbidden. Opportunity `{opp.id}`, experiment `{experiment.id}`. "
-        "Nothing was merged or deployed; a person decides.</sub>",
+        f"<sub>Proposed by Unbidden. Opportunity `{opp.id}`, experiment `{experiment.id}`. {_what_next(merges)}</sub>",
     ]
     return "\n".join(lines) + "\n"
 
 
-def build_robust_body(opp: Opportunity, experiment: Experiment, verdict: Verdict, origin: str) -> str:
+def build_robust_body(
+    opp: Opportunity, experiment: Experiment, verdict: Verdict, origin: str, merges: bool = False
+) -> str:
     """A crash found by a property-based test: the crash, the smallest input, and the test that now guards it."""
     d = opp.details
     lines = [
@@ -94,6 +116,7 @@ def build_robust_body(opp: Opportunity, experiment: Experiment, verdict: Verdict
         "- How: property-based tests over the package's public functions, written by a model and run offline; nobody "
         "pointed at this function.",
         "",
+        *_claim(verdict),
         "### What was measured",
         *(f"- {reason}" for reason in verdict.reasons),
         f"- {_tests_line(experiment)}",
@@ -105,8 +128,7 @@ def build_robust_body(opp: Opportunity, experiment: Experiment, verdict: Verdict
         "### Caveats",
         *(f"- {c}" for c in (verdict.caveats or ["none recorded"])),
         "",
-        f"<sub>Proposed by Unbidden. Opportunity `{opp.id}`, experiment `{experiment.id}`. "
-        "Nothing was merged; a person decides.</sub>",
+        f"<sub>Proposed by Unbidden. Opportunity `{opp.id}`, experiment `{experiment.id}`. {_what_next(merges)}</sub>",
     ]
     return "\n".join(lines) + "\n"
 
@@ -119,11 +141,11 @@ def proposal_title(opp: Opportunity, verdict: Verdict) -> str:
     return f"fix: {opp.title}"[:120]
 
 
-def build_body(opp: Opportunity, experiment: Experiment, verdict: Verdict, origin: str) -> str:
+def build_body(opp: Opportunity, experiment: Experiment, verdict: Verdict, origin: str, merges: bool = False) -> str:
     if experiment.samples_before_ms:
-        return build_perf_body(opp, experiment, verdict, origin)
+        return build_perf_body(opp, experiment, verdict, origin, merges)
     if opp.source == "robustness":
-        return build_robust_body(opp, experiment, verdict, origin)
+        return build_robust_body(opp, experiment, verdict, origin, merges)
     findings = opp.details.get("findings", [])[:20]
     lines = [
         f"**{opp.title}**",
@@ -134,6 +156,7 @@ def build_body(opp: Opportunity, experiment: Experiment, verdict: Verdict, origi
         *(f"- `{f['path']}{':' + str(f['line']) if f.get('line') else ''}` {f['rule']}: {f['message']}"
           for f in findings),
         "",
+        *_claim(verdict),
         "### What was measured",
         f"- Base commit `{experiment.base_sha}`; every check the repository uses ran on both sides, offline.",
         f"- Targeted findings before: {len(opp.details.get('fingerprints', []))}; after: 0.",
@@ -144,13 +167,14 @@ def build_body(opp: Opportunity, experiment: Experiment, verdict: Verdict, origi
         "### Caveats",
         *(f"- {c}" for c in (verdict.caveats or ["none recorded"])),
         "",
-        f"<sub>Proposed by Unbidden. Opportunity `{opp.id}`, experiment `{experiment.id}`. "
-        "Nothing was merged or deployed; a person decides.</sub>",
+        f"<sub>Proposed by Unbidden. Opportunity `{opp.id}`, experiment `{experiment.id}`. {_what_next(merges)}</sub>",
     ]  # fmt: skip
     return "\n".join(lines) + "\n"
 
 
-def prepare(repo: Path, store: Store, opp: Opportunity, experiment: Experiment, verdict: Verdict) -> Proposal:
+def prepare(
+    repo: Path, store: Store, opp: Opportunity, experiment: Experiment, verdict: Verdict, *, merges: bool = False
+) -> Proposal:
     if not verdict.improved:
         raise ValueError("only an improved verdict can become a proposal")
     candidate = opp.details["candidate"]
@@ -158,7 +182,7 @@ def prepare(repo: Path, store: Store, opp: Opportunity, experiment: Experiment, 
     origin: str = candidate["origin"]
     title = proposal_title(opp, verdict)
     branch = branch_name(opp.title, opp.id)
-    body = build_body(opp, experiment, verdict, origin)
+    body = build_body(opp, experiment, verdict, origin, merges)
     commit = commit_files(repo, experiment.base_sha, files, f"{title}\n\n{body}", branch)
     proposal = Proposal(
         opportunity_id=opp.id,

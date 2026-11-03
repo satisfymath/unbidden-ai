@@ -21,6 +21,7 @@ from unbidden.contracts.common import EvidenceLevel, EvidenceRef, utc_now
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.experiment import Experiment, TestOutcome, Verdict
 from unbidden.contracts.llm import LLMRequest, Message, Tier
+from unbidden.contracts.metric import Measurement
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
 from unbidden.lab.evaluator import classify_tests, level_for
 from unbidden.lab.fixlab import Candidate, added_suppressions, unified_patch
@@ -209,6 +210,7 @@ class RobustLab:
                     f"the regression test {test_file} is included; Hypothesis seed 0",
                     *(notes if tests is not TestOutcome.REGRESSION else []),
                 ],
+                measurements=[defect_measurement(improved)],
             )
             self.store.put("experiments", experiment)
             self.store.append_event(
@@ -235,3 +237,12 @@ class RobustLab:
                 self.store.put("opportunities", opp)
             return result
         return result
+
+
+def defect_measurement(improved: bool) -> Measurement:
+    """The reproducing test: failing at the base (that is how the defect was found and kept), passing with the fix."""
+    from unbidden.contracts.metric import DEFECT_REPRODUCED
+
+    head = 0.0 if improved else 1.0
+    return Measurement(metric=DEFECT_REPRODUCED, base=1.0, head=head, effect=1.0 - head, n_base=1, n_head=1,
+                       met=improved)  # fmt: skip

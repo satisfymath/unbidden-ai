@@ -25,6 +25,7 @@ from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.experiment import Experiment, TestSummary, Verdict
 from unbidden.contracts.finding import AnalyzerReport, Finding
 from unbidden.contracts.llm import LLMRequest, Message, Tier
+from unbidden.contracts.metric import Measurement
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
 from unbidden.guardian.policy import PolicyEngine
 from unbidden.lab.context import SpliceError, payload_bytes, splice
@@ -457,6 +458,7 @@ class FixLab:
             tests=judgement.tests,
             reasons=reasons or ["all targeted findings are gone, none appeared, no test regressed"],
             caveats=caveats,
+            measurements=[findings_measurement(experiment, improved, opp.source)],
         )
         self.store.put("experiments", experiment)
         artifacts = self.store.path.parent / "artifacts" if self.store.path else None
@@ -521,3 +523,13 @@ class FixLab:
             opp.details = {**opp.details, "lab_notes": result.notes}
         opp.updated_at = utc_now()
         self.store.put("opportunities", opp)
+
+
+def findings_measurement(experiment: Experiment, improved: bool, tool: str) -> Measurement:
+    """Findings of the project's own tool at the base and with the candidate, as a typed measurement."""
+    from unbidden.contracts.metric import FINDINGS, relative
+
+    metric = FINDINGS.model_copy(update={"source": f"the project's own {tool} in the sandbox"})
+    base, head = float(len(experiment.findings_before)), float(len(experiment.findings_after))
+    return Measurement(metric=metric, base=base, head=head, effect=relative(base, head, "lower"),
+                       n_base=1, n_head=1, met=improved)  # fmt: skip

@@ -7,6 +7,7 @@ from typing import Any
 from pydantic import Field
 
 from unbidden.contracts.common import Contract, Cost, EvidenceLevel, Sha, new_id, utc_now
+from unbidden.contracts.metric import Measurement
 
 
 class TestOutcome(StrEnum):
@@ -105,6 +106,8 @@ class Experiment(Contract):
     control: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
     confirmation: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
     cost: Cost = Field(default_factory=Cost)
+    # What the change was measured by, typed (campaign 13, WS2): every lab fills it; empty on older records.
+    measurements: list[Measurement] = Field(default_factory=list[Measurement])
     started_at: datetime = Field(default_factory=utc_now)
 
 
@@ -121,6 +124,7 @@ class Verdict(Contract):
     # Criteria v4: the operation, data and engine the conclusion holds for (an L4 says no more than this).
     scope: str | None = None
     spec_id: str | None = None
+    measurements: list[Measurement] = Field(default_factory=list[Measurement])
 
 
 class ProposalStatus(StrEnum):

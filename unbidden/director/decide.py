@@ -39,11 +39,22 @@ CATEGORY_VALUE = {
     "lint": 0.5,
     "format": 0.2,
     "tests": 1.0,
+    "reliability": 1.4,
+    "dependencies": 1.2,
 }
+# A mandate's priority, by the words it uses, boosts these categories (campaign 13, WS2: "performance" and
+# "consistency" were accepted by setup and changed nothing; campaign 12 wrote "performance of reads as data grows").
 PRIORITY_BOOST = {
     "correctness": {"bugs", "types", "tests"},
-    "maintainability": {"lint", "format"},
-    "security": {"security"},
+    "consistency": {"bugs"},
+    "robustness": {"bugs"},
+    "maintainability": {"lint", "format", "types"},
+    "quality": {"lint", "format", "types", "tests"},
+    "security": {"security", "dependencies"},
+    "dependencies": {"dependencies", "security"},
+    "performance": {"performance"},
+    "latency": {"performance"},
+    "reliability": {"reliability", "bugs"},
 }
 EXPERIMENT_COST_USD = 0.02  # local compute of one experiment, measured order of magnitude
 RISK_WEIGHT = 0.5
@@ -92,7 +103,8 @@ def category_value(category: str, mandate: Mandate) -> float:
     base = mandate.evaluation.value_hours.get(category, CATEGORY_VALUE.get(category))
     if base is None:
         return 0.0
-    boosted = any(category in PRIORITY_BOOST.get(p, set()) for p in mandate.priorities)
+    boosted = any(category in boosts for p in mandate.priorities for word, boosts in PRIORITY_BOOST.items()
+                  if word in p.lower())  # fmt: skip
     return base * (1.5 if boosted else 1.0)
 
 
