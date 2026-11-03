@@ -1,6 +1,6 @@
 # Installing Unbidden
 
-This is the one install guide. Unbidden 0.12.9 (experimental candidate; not 1.0) ships as one Python wheel with the
+This is the one install guide. Unbidden 0.13.0 (experimental candidate; not 1.0) ships as one Python wheel with the
 web workspace already built inside. The installer puts it in its own environment with its own Python 3.12 through
 [uv](https://docs.astral.sh/uv/); nothing else on the machine changes. The end user needs no Node and no Python of
 their own.
@@ -26,7 +26,7 @@ runs `uv tool install --python 3.12 --reinstall` on the wheel; tells you if the 
 It never uses `sudo` and never prints a secret.
 
 On a terminal it shows one line per step with a mark when the step is done (`uv 0.9.x`, `Downloading unbidden
-0.12.9`, `sha256 verified`, `Installing unbidden 0.12.9`), then the installed path and the two commands that matter.
+0.13.0`, `sha256 verified`, `Installing unbidden 0.13.0`), then the installed path and the two commands that matter.
 What uv and curl print is kept in a log and shown only when a step fails. `--verbose` (or
 `UNBIDDEN_INSTALL_VERBOSE=1`) shows every line; so does a run without a terminal (CI, a pipe).
 
@@ -36,10 +36,10 @@ Build the files from a checkout (`make dist`: builds the web workspace with Node
 `SHA256SUMS`), serve the directory, point the installer at it. `http://` is accepted only for loopback addresses.
 
 ```sh
-make dist                                   # dist/unbidden_ai-0.12.9-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
+make dist                                   # dist/unbidden_ai-0.13.0-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
 (cd dist && python3 -m http.server 8777 --bind 127.0.0.1 &)
-UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.12.9
-unbidden --version                          # unbidden 0.12.9
+UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.13.0
+unbidden --version                          # unbidden 0.13.0
 ```
 
 Only the person building the wheel needs Node; the wheel carries the built assets, so the installed tool serves the
@@ -373,7 +373,7 @@ real on live sources only; deploy and rollback name the CLI command instead of r
 
 ```sh
 unbidden update                     # the latest published release
-unbidden update --version 0.12.9     # a fixed version: also how you roll back after a failed update
+unbidden update --version 0.13.0     # a fixed version: also how you roll back after a failed update
 unbidden uninstall                  # shows what would happen
 unbidden uninstall --yes            # uv tool uninstall unbidden-ai; data stays
 unbidden uninstall --purge --yes    # also deletes ~/.unbidden and this repository's .unbidden/ (listed first)
