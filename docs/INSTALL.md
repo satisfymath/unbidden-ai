@@ -1,6 +1,6 @@
 # Installing Unbidden
 
-This is the one install guide. Unbidden 0.12.6 (experimental candidate; not 1.0) ships as one Python wheel with the
+This is the one install guide. Unbidden 0.12.7 (experimental candidate; not 1.0) ships as one Python wheel with the
 web workspace already built inside. The installer puts it in its own environment with its own Python 3.12 through
 [uv](https://docs.astral.sh/uv/); nothing else on the machine changes. The end user needs no Node and no Python of
 their own.
@@ -26,7 +26,7 @@ runs `uv tool install --python 3.12 --reinstall` on the wheel; tells you if the 
 It never uses `sudo` and never prints a secret.
 
 On a terminal it shows one line per step with a mark when the step is done (`uv 0.9.x`, `Downloading unbidden
-0.12.6`, `sha256 verified`, `Installing unbidden 0.12.6`), then the installed path and the two commands that matter.
+0.12.7`, `sha256 verified`, `Installing unbidden 0.12.7`), then the installed path and the two commands that matter.
 What uv and curl print is kept in a log and shown only when a step fails. `--verbose` (or
 `UNBIDDEN_INSTALL_VERBOSE=1`) shows every line; so does a run without a terminal (CI, a pipe).
 
@@ -36,10 +36,10 @@ Build the files from a checkout (`make dist`: builds the web workspace with Node
 `SHA256SUMS`), serve the directory, point the installer at it. `http://` is accepted only for loopback addresses.
 
 ```sh
-make dist                                   # dist/unbidden_ai-0.12.6-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
+make dist                                   # dist/unbidden_ai-0.12.7-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
 (cd dist && python3 -m http.server 8777 --bind 127.0.0.1 &)
-UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.12.6
-unbidden --version                          # unbidden 0.12.6
+UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.12.7
+unbidden --version                          # unbidden 0.12.7
 ```
 
 Only the person building the wheel needs Node; the wheel carries the built assets, so the installed tool serves the
@@ -283,7 +283,11 @@ browser tab stops nothing.
 `chat "..."` is the dashboard's chat from the terminal, over the same records and the same route; without a message
 it reads stdin or prompts. It informs and analyzes, never acts: approve, reject, deploy, roll back, merge, freeze and
 resume are refused and pointed at the CLI command or the dashboard's actions panel, which go through the project's
-effective permissions.
+effective permissions. A greeting is answered without a model. A question no rule knows ("what did you do today?",
+"why is bill.payer_id slow?", "what is unbidden?") goes to a model with read-only tools over the agent's records, the
+map, the repository at HEAD and the embedded docs (`chat/agent.py`), routed like heavy work: Meta's API under `api`,
+the local model under `local`; what the tools return is labelled (records, repository, docs) and the router's gate
+decides what may leave; a refusal is the answer, with the hint that would allow it.
 
 ## The three model options
 
@@ -335,6 +339,7 @@ behind it.
 | `unbidden doctor`, `unbidden start` | none, except the same one short call for a saved key that was never proven |
 | `unbidden ui`: opening, restoring the layout, showing records, widgets created by the rules | none |
 | `chat`, informing (counts, status, tables, charts, explain a block, change a chart, compare two runs, undo) | none remote: the deterministic rules answer; when the option allows local inference the local model may plan the same tool calls (`chat.inform` is light and local-only) |
+| `chat`, a free question no rule knows (what did you do, what is unbidden, what is this file) | one routed call per tool round (at most five) with read-only tools, like heavy work: Meta's API in `api`, the local model in `local`; refused with the router's reason otherwise. A greeting costs nothing |
 | `chat`, analyzing (why, recommend, risk, summary) | one call without tools over a bounded digest of the records, routed like heavy work: Meta's API in `api`, and in `mixed` when the digest may leave; the local model in `local`; refused with the router's reason otherwise |
 | the agent's cycle (`start`, `watch`, `scan`, `try`, `probe`) | calls for its own work (research, labs, planning), within the mandate's `maximum_monthly_spend_usd` and the machine ledger |
 
@@ -368,7 +373,7 @@ real on live sources only; deploy and rollback name the CLI command instead of r
 
 ```sh
 unbidden update                     # the latest published release
-unbidden update --version 0.12.6     # a fixed version: also how you roll back after a failed update
+unbidden update --version 0.12.7     # a fixed version: also how you roll back after a failed update
 unbidden uninstall                  # shows what would happen
 unbidden uninstall --yes            # uv tool uninstall unbidden-ai; data stays
 unbidden uninstall --purge --yes    # also deletes ~/.unbidden and this repository's .unbidden/ (listed first)

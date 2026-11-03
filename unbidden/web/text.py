@@ -72,6 +72,23 @@ T: dict[str, str] = {
     "status.agent": "Agent: {detail}.",
     "status.hint": "For a why or a recommendation ask for an analysis; to see something, a table or a chart.",
     "brain.cancelled": "Cancelled before the planning completed.",
+    "brain.noanswer": "(no answer)",
+    "brain.rounds": "I applied the tools above.",
+    "chat.greeting": (
+        "Hi. I am Unbidden, the agent working on {workspace}. Ask me what I found, what I am doing now, why "
+        "something is slow, or what a command does; approving, merging and deploying go through /ask, /approve or "
+        "the dashboard's buttons, not through here."
+    ),
+    "agent.refused": "I cannot answer that with a model here: {why}.",
+    "agent.noanswer": "The model did not answer ({why}); what the tools read is below.",
+    "agent.rounds": "I read what I could; the tool budget is spent. Ask again for the rest.",
+    "rule.spend": "Charting the remote spend grouped by {by}.",
+    "rule.spend.title": "Spend by {by}",
+    "widget.updated": "updated {changes} of «{title}»",
+    "widget.view": "view",
+    "analyze.nomodel": "I cannot analyze this with a model ({why}). {hint}.",
+    "rules.failed": "Could not ({tool}): {why}.{need}",
+    "rules.need": " To have it: {need}.",
     "brain.failed": " (the route through the model failed; try again or use the rules planner)",
     "brain.rules": "{reply} (The local model gave no valid answer: {why}. Answered by rules.)",
     "cancel.none": "no turn in progress",

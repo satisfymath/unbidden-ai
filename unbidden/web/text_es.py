@@ -74,6 +74,23 @@ T: dict[str, str] = {
     "status.agent": "Agente: {detail}.",
     "status.hint": "Para un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.",
     "brain.cancelled": "Cancelado antes de completar la planificación.",
+    "brain.noanswer": "(sin respuesta)",
+    "brain.rounds": "He aplicado las herramientas anteriores.",
+    "chat.greeting": (
+        "Hola. Soy Unbidden, el agente que trabaja en {workspace}. Pregúntame qué encontré, qué estoy haciendo ahora, "
+        "por qué algo es lento, o qué hace un comando; aprobar, mergear y desplegar van por /ask, /approve o los "
+        "botones del panel, no por aquí."
+    ),
+    "agent.refused": "No puedo responder eso con un modelo aquí: {why}.",
+    "agent.noanswer": "El modelo no respondió ({why}); lo que leyeron las herramientas va abajo.",
+    "agent.rounds": "Leí lo que pude; el presupuesto de herramientas se agotó. Pregunta de nuevo por el resto.",
+    "rule.spend": "Grafico el gasto remoto agrupado por {by}.",
+    "rule.spend.title": "Gasto por {by}",
+    "widget.updated": "actualizado {changes} de «{title}»",
+    "widget.view": "vista",
+    "analyze.nomodel": "No puedo analizar esto con un modelo ({why}). {hint}.",
+    "rules.failed": "No se pudo ({tool}): {why}.{need}",
+    "rules.need": " Para tenerlo: {need}.",
     "brain.failed": " (la ruta por el modelo falló; prueba de nuevo o usa el planificador por reglas)",
     "brain.rules": "{reply} (El modelo local no produjo una respuesta válida: {why}. Respondí por reglas.)",
     "cancel.none": "no hay ningún turno en curso",

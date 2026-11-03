@@ -51,6 +51,7 @@ TASKS: dict[str, TaskSpec] = {
     # records (source `record`), routed like heavy work: frontier first when the digest may leave, local otherwise.
     "chat.inform": TaskSpec("light", escalate=False, local_only=True),
     "chat.analyze": TaskSpec("heavy"),
+    "chat.agent": TaskSpec("heavy"),  # a free question with read-only tools: routed like an analysis
 }
 
 
@@ -78,4 +79,5 @@ TYPICAL_SOURCES: dict[str, tuple[Source, ...]] = {
     "bridge.solve": ("synthetic",),
     "chat.inform": ("runtime",),
     "chat.analyze": ("record",),
+    "chat.agent": ("record", "repo", "prompt"),
 }

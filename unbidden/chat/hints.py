@@ -9,11 +9,11 @@ HINTS: tuple[tuple[str, str], ...] = (
     (r"kill switch", "`unbidden resume` releases the kill switch"),
     (
         r"denies local inference",
-        "`unbidden models local-first` allows the local model, or add the remote key with `unbidden setup credentials`",
+        "`unbidden models local-first` allows the local model, or add the remote key with `unbidden key set`",
     ),
     (
         r"no remote model is configured|no MODEL_API_KEY|has no key",
-        "add the key with `unbidden setup credentials` (option api or mixed)",
+        "add the key with `unbidden key set` (option api or mixed)",
     ),
     (r"profile local", "`unbidden models local-first` lets heavy work go to Meta's API"),
     (
