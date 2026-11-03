@@ -17,7 +17,7 @@ from pathlib import Path
 
 from unbidden.brain.codeblocks import CodeBlockError, parse_files
 from unbidden.brain.prompts import load_prompt
-from unbidden.brain.providers import ProviderError
+from unbidden.brain.providers import ProviderError, ProviderUnauthorized
 from unbidden.brain.router import Brain, BrainError
 from unbidden.bridge.service import PrivacyBridge
 from unbidden.contracts.common import EvidenceLevel, EvidenceRef, utc_now
@@ -326,6 +326,8 @@ class FixLab:
                 self.progress(f"asking {who} for a candidate")
                 try:
                     candidate = await self._model_candidate(opp, rev, findings, feedback)
+                except ProviderUnauthorized:
+                    raise  # the key, not the candidate: a person replaces it
                 except (BrainError, ProviderError) as exc:
                     result.notes.append(f"model: {exc}")
                     break

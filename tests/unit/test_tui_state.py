@@ -38,3 +38,29 @@ def test_the_kill_switch_and_the_transient_come_first_and_last() -> None:
     bar.transient = "thinking…"
     line = format_bar(bar, 200)
     assert line.index("KILL SWITCH") < line.index("agent") and line.endswith("thinking…[/]")
+
+
+def test_a_refused_key_shows_in_the_bar_before_everything_but_the_kill_switch() -> None:
+    bar = _bar()
+    bar.key_rejected = True
+    line = format_bar(bar, 200)
+    assert "MODEL KEY REFUSED · /key" in line and line.index("KEY REFUSED") < line.index("agent")
+    bar.kill = True
+    line = format_bar(bar, 200)
+    assert line.index("KILL SWITCH") < line.index("KEY REFUSED")
+
+
+def test_the_last_remote_model_call_decides_whether_the_key_is_refused() -> None:
+    from unbidden.contracts.events import Event, EventType
+    from unbidden.tui.state import key_rejected
+
+    def called(problem: str | None, tier: str = "frontier") -> Event:
+        return Event(type=EventType.MODEL_CALLED, actor="brain",
+                     payload={"tier": tier, "ok": problem is None, "problem": problem})  # fmt: skip
+
+    assert key_rejected([]) is None
+    assert key_rejected([Event(type=EventType.HEAD_MOVED, actor="t", payload={})]) is None
+    assert key_rejected([called("key rejected")]) is True
+    assert key_rejected([called("key rejected"), called(None)]) is False
+    assert key_rejected([called(None), called("provider error: 500")]) is False
+    assert key_rejected([called("key rejected"), called(None, tier="local")]) is True, "a local call says nothing"

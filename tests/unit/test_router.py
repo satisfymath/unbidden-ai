@@ -335,3 +335,23 @@ def test_decide_applies_the_mandate_so_the_route_shown_is_the_route_run(store: S
     )
     decision, _ = brain.decide(ask)
     assert (decision.tier, decision.fallback, decision.fallback_refused) == (Tier.CODE, None, Tier.LOCAL)
+
+
+async def test_a_refused_key_is_recorded_as_such_and_never_billed(store: Store, mandate: Mandate) -> None:
+    """A 401 is the key, not the model: `MODEL_CALLED` says "key rejected", the ledger row costs nothing, and the
+    exception reaches the caller so a person can replace the key (seen 2026-11-03: a wrong key cost US$0.04)."""
+    from unbidden.brain.providers import ProviderUnauthorized
+
+    def refuse(request_: LLMRequest) -> LLMResponse:
+        raise ProviderUnauthorized('meta 401: the key was refused ({"error":{"code":"invalid_api_key"}})')
+
+    mandate.models.local_fallback = "deny"
+    brain, _, remote = make_brain(store, mandate)
+    remote.script("bridge.solve", refuse, repeat=True)
+    with pytest.raises(ProviderUnauthorized):
+        await brain.complete(request(Tier.FRONTIER, text="hello"))
+    assert len(remote.requests) == 1, "never retried"
+    called = [e for e in store.events() if e.type is EventType.MODEL_CALLED][-1]
+    assert called.payload["ok"] is False and called.payload["problem"] == "key rejected"
+    rows = brain.spend.rows()
+    assert rows and rows[-1]["status"] == "failed" and float(rows[-1]["charged"]) == 0.0

@@ -12,7 +12,7 @@ from typing import Any
 
 import httpx
 
-from unbidden.brain.providers import ProviderError, ProviderRejected, ProviderThrottled
+from unbidden.brain.providers import ProviderError, ProviderRejected, ProviderThrottled, ProviderUnauthorized
 from unbidden.brain.providers.clients import ClientPerLoop
 from unbidden.contracts.llm import LLMRequest, LLMResponse, Message, ToolCall, Usage
 from unbidden.guardian.credentials import broker
@@ -140,6 +140,10 @@ class OpenAICompatProvider:
             raise ProviderThrottled(f"{self.name} throttled the call (429)")
         if response.status_code == 400:
             raise ProviderRejected(f"{self.name} 400: {response.text[:500]}")
+        if response.status_code in (401, 403):
+            raise ProviderUnauthorized(
+                f"{self.name} {response.status_code}: the key was refused ({response.text[:300]})"
+            )
         if response.status_code >= 400:
             raise ProviderError(f"{self.name} {response.status_code}: {response.text[:500]}")
         data = response.json()

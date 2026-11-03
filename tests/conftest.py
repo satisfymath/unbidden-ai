@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -52,6 +53,20 @@ def no_terminal(monkeypatch: pytest.MonkeyPatch) -> None:
         raise RuntimeError(f"a test reached the terminal: {' '.join(argv)}")
 
     monkeypatch.setattr(wizard, "run_in_terminal", refuse)
+
+
+@pytest.fixture(autouse=True)
+def no_model_probe(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No test proves a key against Meta's API or installs Ollama on the developer's machine: the key probe answers
+    as an accepted key, the Ollama installer is absent. A test of those paths passes or patches its own."""
+    from unbidden.setup import ollama_install, wizard
+
+    def accepted(ws: Any, **kwargs: Any) -> dict[str, Any]:
+        return {"ok": True, "model": "muse-spark-1.3", "usd": 0.0001, "answer": "OK"}
+
+    monkeypatch.setattr(wizard, "probe_remote", accepted)
+    monkeypatch.setattr(ollama_install, "install_command", lambda: None)
+    monkeypatch.setattr(ollama_install, "start_server", lambda url, wait_s=0.0: False)
 
 
 @pytest.fixture(autouse=True)

@@ -2,17 +2,19 @@
 # Unbidden installer: one wheel, verified, installed as a uv tool with its own Python 3.12.
 #
 #   curl -LsSf <release>/install.sh | sh                 (once a release exists; see docs/INSTALL.md)
-#   sh install.sh --version 0.12.2                        (a fixed version, also a rollback)
-#   UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.12.2   (local artifacts)
+#   sh install.sh --version 0.12.3                        (a fixed version, also a rollback)
+#   UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.12.3   (local artifacts)
 #   sh install.sh --uninstall                            (keeps ~/.unbidden and every .unbidden/)
 #
 # Options     --version X.Y.Z   the release to install (env UNBIDDEN_VERSION); default: the latest GitHub release
 #             --yes             no questions: install uv if missing, print PATH lines instead of editing rc files
 #             --uninstall       uv tool uninstall unbidden-ai; data stays
+#             --verbose         every line uv and curl print (the default without a terminal, and in CI)
 #             --help
 # Environment UNBIDDEN_INSTALL_BASE  where <base>/unbidden_ai-X.Y.Z-py3-none-any.whl and <base>/SHA256SUMS live
 #                                    (default: the GitHub release of that version). http:// only to loopback.
 #             UNBIDDEN_REPO          owner/name on GitHub (default satisfymath/unbidden-ai)
+#             UNBIDDEN_INSTALL_VERBOSE=1  same as --verbose
 #             UV_TOOL_DIR, UV_TOOL_BIN_DIR, UV_INSTALL_DIR  honored as uv does; useful to isolate a test install
 #
 # Supported: macOS on Apple Silicon (Darwin/arm64) and Linux x86_64 with glibc >= 2.28. Nothing runs with sudo.
@@ -26,6 +28,7 @@ VERSION="${UNBIDDEN_VERSION:-}"
 BASE="${UNBIDDEN_INSTALL_BASE:-}"
 YES=0
 UNINSTALL=0
+VERBOSE="${UNBIDDEN_INSTALL_VERBOSE:-0}"
 
 say() { printf '%s\n' "$*" >&2; }
 die() { say "unbidden install: $1"; exit "${2:-1}"; }
@@ -69,12 +72,50 @@ while [ $# -gt 0 ]; do
     --version=*) VERSION="${1#--version=}"; shift ;;
     --yes|-y) YES=1; shift ;;
     --uninstall) UNINSTALL=1; shift ;;
+    --verbose|-v) VERBOSE=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) die "unknown option: $1 (try --help)" 2 ;;
   esac
 done
 
 if [ -t 0 ] && [ -t 1 ]; then TTY=1; else TTY=0; fi
+# On a terminal the install is a short list of steps, each with a mark when done; what uv and curl print stays in a
+# log that is shown only when a step fails. Without a terminal (CI, a pipe) or with --verbose, every line shows.
+if [ "$TTY" = 1 ] && [ "$VERBOSE" = 0 ] && [ -t 2 ]; then QUIET=1; else QUIET=0; fi
+
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/unbidden-install.XXXXXX")"
+trap 'rm -rf "$TMP"' EXIT INT TERM
+
+done_mark() { printf '  \342\234\223 %s\n' "$*" >&2; }  # ✓ label
+
+# step LABEL COMMAND...: run COMMAND with a spinner under LABEL; its output is kept and shown only on failure.
+step() {
+  label="$1"; shift
+  if [ "$QUIET" = 0 ]; then
+    say "$label"
+    "$@" >&2
+    return $?
+  fi
+  : > "$TMP/step.log"
+  "$@" >"$TMP/step.log" 2>&1 &
+  pid=$!
+  i=0
+  while kill -0 "$pid" 2>/dev/null; do
+    case $((i % 4)) in 0) f='|' ;; 1) f='/' ;; 2) f='-' ;; *) f='\\' ;; esac
+    printf '\r  %s %s' "$f" "$label" >&2
+    i=$((i + 1))
+    sleep 0.1
+  done
+  wait "$pid"
+  rc=$?
+  printf '\r' >&2
+  if [ "$rc" != 0 ]; then
+    printf '  \342\234\227 %s\n' "$label" >&2  # ✗ label
+    sed 's/^/    /' "$TMP/step.log" >&2
+    return "$rc"
+  fi
+  done_mark "$label"
+}
 
 # A yes/no question; the default is yes. Non-interactive runs take the default without asking.
 ask() {
@@ -116,14 +157,17 @@ if [ -z "$UV" ]; then
   if [ "$UNINSTALL" = 1 ]; then die "uv is not installed, so there is no uv tool to uninstall"; fi
   say "uv (https://docs.astral.sh/uv/) is not installed. It brings Python 3.12 and keeps unbidden in its own environment."
   if ask "Install uv with its official installer (https://astral.sh/uv/install.sh) into ${UV_INSTALL_DIR:-$HOME/.local/bin}?"; then
-    curl -LsSf --proto '=https' --tlsv1.2 https://astral.sh/uv/install.sh | env UV_NO_MODIFY_PATH=1 sh >&2
+    step "Installing uv (brings Python 3.12)" sh -c \
+      "curl -LsSf --proto '=https' --tlsv1.2 https://astral.sh/uv/install.sh | env UV_NO_MODIFY_PATH=1 sh -s -- -q" \
+      || die "uv did not install" 4
     UV="$(find_uv || true)"
     [ -n "$UV" ] || die "uv was installed but not found; add it to PATH and run this again"
   else
     die "install uv first, then run this again" 4
   fi
 fi
-say "uv: $UV ($("$UV" --version 2>/dev/null || echo unknown))"
+if [ "$QUIET" = 1 ]; then done_mark "uv $("$UV" --version 2>/dev/null | sed 's/^uv //' || echo unknown)"; else
+  say "uv: $UV ($("$UV" --version 2>/dev/null || echo unknown))"; fi
 
 BIN_DIR="$("$UV" tool dir --bin)"
 DATA_HOME="${UNBIDDEN_HOME:-$HOME/.unbidden}"
@@ -185,17 +229,17 @@ WHEEL="unbidden_ai-$VERSION-py3-none-any.whl"
 
 # --- download and verify ---------------------------------------------------------------------------------------
 
-TMP="$(mktemp -d "${TMPDIR:-/tmp}/unbidden-install.XXXXXX")"
-trap 'rm -rf "$TMP"' EXIT INT TERM
-
 fetch() {
   # $1 url, $2 destination
   curl -fsSL --proto '=https,http' --tlsv1.2 --retry 2 -o "$2" "$1" || die "could not download $1" 6
 }
 
-say "Downloading $WHEEL from $BASE"
-fetch "$BASE/$WHEEL" "$TMP/$WHEEL"
-fetch "$BASE/SHA256SUMS" "$TMP/SHA256SUMS"
+download() {
+  fetch "$BASE/$WHEEL" "$TMP/$WHEEL"
+  fetch "$BASE/SHA256SUMS" "$TMP/SHA256SUMS"
+}
+
+step "Downloading unbidden $VERSION" download || die "could not download $WHEEL from $BASE" 6
 
 expected="$(awk -v w="$WHEEL" '{ f = $2; sub(/^\*/, "", f); if (f == w) { print tolower($1); exit } }' "$TMP/SHA256SUMS")"
 [ -n "$expected" ] || die "SHA256SUMS at $BASE does not list $WHEEL; refusing to install an unverified file" 7
@@ -206,12 +250,19 @@ if [ "$expected" != "$actual" ]; then
   got      $actual
   Nothing was installed. The download is corrupt or was tampered with; try again or report it." 8
 fi
-say "sha256 verified: $actual"
+if [ "$QUIET" = 1 ]; then done_mark "sha256 verified"; else say "sha256 verified: $actual"; fi
 
 # --- install ---------------------------------------------------------------------------------------------------
 
-say "Installing $NAME $VERSION with Python 3.12 (uv downloads an interpreter if none is managed, ~30 MB, once)"
-"$UV" tool install --python 3.12 --reinstall "$TMP/$WHEEL" >&2
+install_tool() {
+  if [ "$QUIET" = 1 ]; then
+    "$UV" tool install --quiet --no-progress --python 3.12 --reinstall "$TMP/$WHEEL"
+  else
+    "$UV" tool install --python 3.12 --reinstall "$TMP/$WHEEL"
+  fi
+}
+
+step "Installing unbidden $VERSION (its own Python 3.12; ~30 MB once)" install_tool || die "uv could not install $WHEEL" 1
 
 INSTALLED="$("$BIN_DIR/unbidden" --version 2>/dev/null | sed 's/^unbidden //' || true)"
 [ "$INSTALLED" = "$VERSION" ] || die "installed, but $BIN_DIR/unbidden reports '$INSTALLED' instead of $VERSION" 9
@@ -237,7 +288,9 @@ fi
 
 say ""
 say "$(msg installed "$VERSION" "$BIN_DIR/unbidden")"
-TOOL_PY="$("$UV" tool dir)/$NAME/bin/python"
-say "  platform: $PLATFORM; python: $("$TOOL_PY" --version 2>/dev/null || echo 'in the tool environment')"
+if [ "$QUIET" = 0 ]; then
+  TOOL_PY="$("$UV" tool dir)/$NAME/bin/python"
+  say "  platform: $PLATFORM; python: $("$TOOL_PY" --version 2>/dev/null || echo 'in the tool environment')"
+fi
 say "$(msg next)"
 say "$(msg update)"

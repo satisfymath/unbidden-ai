@@ -1,6 +1,6 @@
 # Installing Unbidden
 
-This is the one install guide. Unbidden 0.12.2 (experimental candidate; not 1.0) ships as one Python wheel with the
+This is the one install guide. Unbidden 0.12.3 (experimental candidate; not 1.0) ships as one Python wheel with the
 web workspace already built inside. The installer puts it in its own environment with its own Python 3.12 through
 [uv](https://docs.astral.sh/uv/); nothing else on the machine changes. The end user needs no Node and no Python of
 their own.
@@ -25,16 +25,21 @@ What it does, in order: detects the platform; finds `uv` or asks to install it w
 runs `uv tool install --python 3.12 --reinstall` on the wheel; tells you if the tool directory is not on your PATH.
 It never uses `sudo` and never prints a secret.
 
+On a terminal it shows one line per step with a mark when the step is done (`uv 0.9.x`, `Downloading unbidden
+0.12.3`, `sha256 verified`, `Installing unbidden 0.12.3`), then the installed path and the two commands that matter.
+What uv and curl print is kept in a log and shown only when a step fails. `--verbose` (or
+`UNBIDDEN_INSTALL_VERBOSE=1`) shows every line; so does a run without a terminal (CI, a pipe).
+
 ## Installing from local artifacts (today)
 
 Build the files from a checkout (`make dist`: builds the web workspace with Node 24, then `uv build` and
 `SHA256SUMS`), serve the directory, point the installer at it. `http://` is accepted only for loopback addresses.
 
 ```sh
-make dist                                   # dist/unbidden_ai-0.12.2-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
+make dist                                   # dist/unbidden_ai-0.12.3-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
 (cd dist && python3 -m http.server 8777 --bind 127.0.0.1 &)
-UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.12.2
-unbidden --version                          # unbidden 0.12.2
+UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.12.3
+unbidden --version                          # unbidden 0.12.3
 ```
 
 Only the person building the wheel needs Node; the wheel carries the built assets, so the installed tool serves the
@@ -71,7 +76,7 @@ model option the mandate chose (`unbidden/setup/requirements.py`), and exits 1 o
 | `git` | the repository Unbidden lives in | always |
 | Docker, with the **buildx** plugin and the **compose** plugin | the sandbox (the project's checks, experiments, probes) builds images with `docker build --progress=plain`, which needs BuildKit/buildx; the world map runs `docker compose ps` | the mandate allows observing or experimenting (every option by default). `doctor` checks the daemon (`docker info`) and both plugins (`docker buildx version`, `docker compose version`), required whenever Docker is |
 | [Ollama](https://ollama.com) with a model that fits the machine | local inference | options `local` and `mixed`; not used in `api` |
-| a Meta API key (`MODEL_API_KEY`) | remote inference | option `api` (required) and `mixed` (optional: heavy work goes local without it) |
+| a Meta API key (`MODEL_API_KEY`) | remote inference | option `api` (required) and `mixed` (optional: heavy work goes local without it). Proven when pasted: one short inference call (8 tokens, less than a cent, in the ledger); a key the service refuses is said at once and never counted as a model (`unbidden key`) |
 | a GitHub token (`GITHUB_TOKEN`) | opening pull requests | only when the mode opens them; without it proposals stay local branches |
 
 Credentials are saved by `unbidden setup` in `~/.unbidden/.env` (mode 600), referenced by name; never written to the
@@ -160,8 +165,15 @@ things at most:
    CLI (installed first with the machine's package manager if missing, in your terminal and with your password;
    then `gh auth login --web` shows a code and opens the browser; Unbidden reads that session and stores nothing
    itself), paste a token, or skip (proposals stay local branches).
-2. **Model access**: only when no key is found, "paste your Meta API key (Enter to skip: the local model only)";
-   then, when the option needs a local model that is not pulled, "download it now?".
+2. **Model access**: only when no key is found, "paste your Meta API key (Enter to skip: the local model only)". A
+   pasted value that cannot be a key (a shell command, spaces, too short) is refused in place and asked again. The
+   key is then proven with one short call to Meta's API (8 tokens, less than a cent, recorded in the ledger): "Key
+   accepted: muse-spark answered", or "Meta refused this key" followed by a menu: paste another, use a local model,
+   or continue without one (the agent refuses to start). A key saved earlier is proven the same way, once per key
+   (`~/.unbidden/keys.json` keeps a fingerprint and the verdict, never the key). When the option needs a local model
+   that is not there, the assistant does the work instead of naming it: installs Ollama (the official installer in
+   your terminal on Linux, Homebrew on macOS, after asking), starts its server, downloads the model that fits
+   ("download it now?") and proves it with one short generation.
 3. **Permissions**: how much Unbidden may do on its own: supervised (default), autopilot, autonomous (blocked
    until the deploy ledger exists; the follow-up question has no default).
 
@@ -179,7 +191,7 @@ on a first run), the rest keep their defaults; the JSON lists `found` and `defau
 unbidden setup --non-interactive [--models local|mixed|api] [--mode supervised|autopilot|autonomous] \
   [--mode-fallback supervised|autopilot] [--budget <USD>] [--dashboard now|later|never] \
   [--model-key-stdin] [--github-token-stdin] [--private-code deny|allow] [--priorities a,b] \
-  [--pull-model] [--probe] --yes [--json]
+  [--pull-model] --yes [--json]
 ```
 
 `--yes` applies (the diff is shown either way); `--model-key-stdin` reads the key from the first stdin line and
@@ -188,12 +200,25 @@ Afterwards `unbidden --plain` (or `unbidden` without a terminal) is the home scr
 profile, whether the agent runs (pid, since when, log) or ended without `stop`, the kill switch, opportunities, last
 scan, spend on this machine, and the next command. The app shows the same in its header, bar and opening block.
 
+### `unbidden key`
+
+```sh
+unbidden key            # the key on this machine: none, proven (when, by which model), refused, or not proven yet
+unbidden key set        # paste a new one, hidden; proven with one short call before it counts; exit 0 when accepted
+unbidden key remove     # forget it (removed from ~/.unbidden/.env)
+```
+
+In the app, `/key` opens the same hidden input in the panel at the bottom. The agent's status bar shows `MODEL KEY
+REFUSED · /key` as soon as a remote call is refused for its key, and the agent parks the work that needs a model until
+a person replaces it (`needs a person: a Meta API key the service accepts`).
+
 ### `unbidden start`, `stop`, `status`
 
-`start` first checks, without any network call, that the option's model exists on this machine: Ollama reachable
-with the recommended model pulled (options local and mixed), or the API key held (option api). If not, nothing
-starts: exit 4 with the one command that fixes it (`unbidden doctor --fix`, `unbidden setup models`), because
-every cycle would fail; `--force` starts anyway. Docker absent, or no GitHub token while the mandate lets proposals
+`start` first checks that the option's model exists on this machine: Ollama reachable with the recommended model
+pulled (options local and mixed), or the API key held and proven (option api: a key the service refused refuses the
+start; a key that cannot be proven now, no network, only warns). If not, nothing starts: exit 4 with the one command
+that fixes it (`unbidden doctor --fix`, `unbidden key set`), because every cycle would fail; `--force` starts
+anyway. Docker absent, or no GitHub token while the mandate lets proposals
 become pull requests, only warn. Then `start` runs `unbidden watch` in its own session, detached from the terminal,
 with its output in `.unbidden/logs/agent.log`; closing the terminal does not stop it. With `--ui [--port 8765]` the same process also
 serves the dashboard (`unbidden/web/embed.py`: one store, one egress record, one monthly cap check); `--interval S`
@@ -272,8 +297,9 @@ behind it.
 | Action | Remote model calls |
 |---|---|
 | the installer, `unbidden --version`, `update`, `uninstall` | none |
-| `unbidden setup` | none. `--probe` (or the assistant's question) runs one paid inference call to confirm the key, after showing its worst cost at list price; the configuration is saved either way |
-| `unbidden` (home), `status`, `doctor`, `route`, `spend`, `egress` | none |
+| `unbidden setup`, `unbidden key set` | one short inference call (8 tokens) when a key is pasted, and once for a key saved earlier that was never proven; a refused key (401) costs nothing |
+| `unbidden` (home), `status`, `route`, `spend`, `egress`, `key` | none |
+| `unbidden doctor`, `unbidden start` | none, except the same one short call for a saved key that was never proven |
 | `unbidden ui`: opening, restoring the layout, showing records, widgets created by the rules | none |
 | `chat`, informing (counts, status, tables, charts, explain a block, change a chart, compare two runs, undo) | none remote: the deterministic rules answer; when the option allows local inference the local model may plan the same tool calls (`chat.inform` is light and local-only) |
 | `chat`, analyzing (why, recommend, risk, summary) | one call without tools over a bounded digest of the records, routed like heavy work: Meta's API in `api`, and in `mixed` when the digest may leave; the local model in `local`; refused with the router's reason otherwise |
@@ -309,7 +335,7 @@ real on live sources only; deploy and rollback name the CLI command instead of r
 
 ```sh
 unbidden update                     # the latest published release
-unbidden update --version 0.12.2     # a fixed version: also how you roll back after a failed update
+unbidden update --version 0.12.3     # a fixed version: also how you roll back after a failed update
 unbidden uninstall                  # shows what would happen
 unbidden uninstall --yes            # uv tool uninstall unbidden-ai; data stays
 unbidden uninstall --purge --yes    # also deletes ~/.unbidden and this repository's .unbidden/ (listed first)

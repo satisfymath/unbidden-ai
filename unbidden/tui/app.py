@@ -23,7 +23,7 @@ from unbidden.tui import actions
 from unbidden.tui.commands import Command, help_lines, parse
 from unbidden.tui.feed import Coalescer, Entry, seed
 from unbidden.tui.screens import PanelScreen, SetupScreen
-from unbidden.tui.state import read_cheap, read_dashboard, read_mandate, read_route, read_spend
+from unbidden.tui.state import key_rejected, read_cheap, read_dashboard, read_mandate, read_route, read_spend
 from unbidden.tui.text import t
 from unbidden.tui.widgets import ACCENT, Feed, Header, Prompt, StatusBar
 from unbidden.workspace import Workspace
@@ -162,7 +162,9 @@ class UnbiddenApp(App[int]):
             highlights = self.source.highlights()
             entries = seed(self.source.store, highlights, asks_for_proposals=self.asks)
             self._last_seq = int(self.source.store.last_seq() or 0)
+            recent = self.source.store.events(after=max(0, self._last_seq - 240), limit=240)
         self.feed.add_many(entries)
+        self.bar.bar.key_rejected = bool(key_rejected(recent))
 
     @work(thread=True, exclusive=True, group="tail", exit_on_error=False)
     def _tail(self) -> None:
@@ -181,7 +183,7 @@ class UnbiddenApp(App[int]):
                         mandate_changed |= e.type == EventType.MANDATE_CHANGED
                     entries.extend(folder.flush())
                     self._last_seq = int(events[-1].seq or self._last_seq)
-                    self.call_from_thread(self._arrived, entries, mandate_changed)
+                    self.call_from_thread(self._arrived, entries, mandate_changed, key_rejected(events))
                 if stale:
                     stale = False
                     self.call_from_thread(
@@ -194,8 +196,10 @@ class UnbiddenApp(App[int]):
                     self.call_from_thread(self.feed.add, note)
             self._stopping.wait(POLL_S)
 
-    def _arrived(self, entries: list[Entry], mandate_changed: bool) -> None:
+    def _arrived(self, entries: list[Entry], mandate_changed: bool, key: bool | None = None) -> None:
         self.feed.add_many(entries)
+        if key is not None:
+            self.bar.bar.key_rejected = key
         if mandate_changed:
             read_mandate(self.ws, self.bar.bar)
             header = self.query_one(Header)
@@ -323,6 +327,9 @@ class UnbiddenApp(App[int]):
             case "setup":
                 self._say(t("cmd.setup.push"))
                 self._setup(cmd.args[0] if cmd.args else None)
+            case "key":
+                self._say(t("cmd.key.push"))
+                self._setup("key")
             case "language":
                 self._language(cmd.words[0] if cmd.words else None)
             case _:
@@ -367,9 +374,13 @@ class UnbiddenApp(App[int]):
     def _setup(self, section: str | None) -> None:
         redo_all = section == "--all"
         screen = SetupScreen(self.ws, section=None if redo_all else section, redo_all=redo_all)
-        self.push_screen(screen, callback=self._setup_done)
+        self.push_screen(screen, callback=lambda code: self._setup_done(code, section))
 
-    def _setup_done(self, code: int | None) -> None:
+    def _setup_done(self, code: int | None, section: str | None = None) -> None:
+        if section == "key":
+            self._say(t("cmd.key.done" if code == 0 else "cmd.key.incomplete"), accent=code != 0)
+            self.prompt.focus()
+            return
         self._setup_outcome(code)
         read_mandate(self.ws, self.bar.bar)
         header = self.query_one(Header)

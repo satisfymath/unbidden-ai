@@ -15,7 +15,7 @@ from pathlib import Path
 
 from unbidden.brain.codeblocks import CodeBlockError, parse_files
 from unbidden.brain.prompts import load_prompt
-from unbidden.brain.providers import ProviderError
+from unbidden.brain.providers import ProviderError, ProviderUnauthorized
 from unbidden.brain.router import Brain, BrainError
 from unbidden.contracts.common import EvidenceLevel, EvidenceRef, utc_now
 from unbidden.contracts.events import Event, EventType
@@ -133,6 +133,8 @@ class RobustLab:
             )
             files = {p: c for p, c in parse_files(response.content).items() if p == path}
             return Candidate(self.brain.author("lab.robust_fix"), files, unified_patch(base, files)) if files else None
+        except ProviderUnauthorized:
+            raise  # the key, not the answer: a person replaces it; never a failed attempt
         except (BrainError, ProviderError, CodeBlockError):
             return None
         finally:

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -183,3 +184,51 @@ async def test_a_first_run_opens_setup_and_ctrl_c_keeps_the_answers(bare: Worksp
         assert "Setup is not finished; your answers are kept in .unbidden/setup.json. /setup resumes it." in text
         assert "UNBiDDEN" in app.query_one(Header).line
         assert not app.query_one(Input).password
+
+
+async def test_slash_key_opens_the_hidden_input_and_refuses_a_pasted_command(ws: Workspace, monkeypatch: Any) -> None:
+    from textual.widgets import Input, RichLog
+
+    from unbidden.setup import wizard
+    from unbidden.tui.screens import SetupScreen
+
+    probes: list[str] = []
+
+    def probe(w: Any, **kwargs: Any) -> dict[str, Any]:
+        probes.append("called")
+        return {"ok": True, "model": "muse-spark-1.3", "usd": 0.0001}
+
+    monkeypatch.setattr(wizard, "probe_remote", probe)
+    home = ws.repo.parent / "home"
+    home.mkdir(exist_ok=True)
+    monkeypatch.setenv("HOME", str(home))  # the key lands in a throwaway ~/.unbidden, never the developer's
+    app = UnbiddenApp(ws, planner="rule")
+    async with app.run_test(size=(100, 30)) as pilot:
+        await pilot.pause(0.3)
+        await pilot.press(*"/key", "enter")
+        for _ in range(60):
+            await pilot.pause(0.1)
+            if isinstance(app.screen, SetupScreen) and app.screen._pending is not None:
+                break
+        assert isinstance(app.screen, SetupScreen)
+        assert app.screen._pending[0].key == "MODEL_API_KEY"  # type: ignore[index]
+        answer = app.screen.query_one("#answer", Input)
+        assert answer.password and answer.display
+        await pilot.press(*"cd ~/ihatemoney-demo", "enter")
+        for _ in range(40):
+            await pilot.pause(0.1)
+            if app.screen._pending is not None:
+                break
+        log = "\n".join("".join(s.text for s in line) for line in app.screen.query_one("#log", RichLog).lines)
+        assert "That looks like a command, not a key" in log and "ihatemoney" not in log
+        assert probes == [], "nothing is proven until a value that can be a key is pasted"
+        await pilot.press(*"LLM|1234567890|abcdefghijklmnopqrstuvwxyz", "enter")
+        for _ in range(60):
+            await pilot.pause(0.1)
+            if not isinstance(app.screen, SetupScreen):
+                break
+        assert probes == ["called"]
+        assert not isinstance(app.screen, SetupScreen)
+        from unbidden.setup import machine
+
+        assert machine.read_env(machine.machine_env())["MODEL_API_KEY"].startswith("LLM|")

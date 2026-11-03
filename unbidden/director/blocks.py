@@ -76,7 +76,10 @@ def classify(operation: str, error: str, continues: str) -> Block:
     if re.search(r"needs a person's approval|approve-writes|awaiting approval", text):
         return _block(operation, "pending_person", text, "a person's approval (`unbidden approve-writes` or "
                       "`unbidden forge approve`), time-limited", continues)  # fmt: skip
-    if re.search(r"refused the credential|401|403|invalid_api_key|not held by the broker", text):
+    if re.search(r"ProviderUnauthorized|the key was refused|invalid_api_key", text):
+        return _block(operation, "pending_person", text, "a Meta API key the service accepts: `unbidden key set` "
+                      "replaces the refused one", continues)  # fmt: skip
+    if re.search(r"refused the credential|401|403|not held by the broker", text):
         return _block(operation, "pending_person", text, "a credential that the service accepts, referenced in the "
                       "mandate's grant", continues)  # fmt: skip
     if re.search(r"still fail to build|Failed to build|no supported version|does not know a Debian package", text):

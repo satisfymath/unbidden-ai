@@ -199,7 +199,7 @@ def test_credentials_are_saved_by_name_and_never_shown(repo: Path) -> None:
     assert broker().has("MODEL_API_KEY")
     text = buf.getvalue()
     assert FAKE_KEY not in text and "MODEL_API_KEY saved" in text
-    assert "refuses the key" in text and "does not mean inference fails" in text
+    assert "Key accepted: muse-spark-1.3 answered" in text
     assert FAKE_KEY not in (repo / ".unbidden" / "mandate.yaml").read_text()
     for event in Workspace(repo).store().events():
         assert FAKE_KEY not in json.dumps(event.payload)
@@ -207,25 +207,111 @@ def test_credentials_are_saved_by_name_and_never_shown(repo: Path) -> None:
     assert changed.payload["setup"]["credentials"] == ["MODEL_API_KEY"]
 
 
-def test_probe_is_opt_in_and_refusing_it_still_saves(repo: Path) -> None:
+def test_a_pasted_key_is_proven_once_and_a_refused_one_is_said(repo: Path) -> None:
     out, buf = console()
-    calls: list[str] = []
+    calls: list[int] = []
 
-    def probe(ws: Workspace) -> dict[str, Any]:
-        calls.append(str(ws.repo))
+    def probe(ws: Workspace, **kwargs: Any) -> dict[str, Any]:
+        calls.append(int(kwargs.get("max_tokens", 0)))
         return {"ok": True, "model": "muse-spark-1.3", "usd": 0.0001}
 
     opts = Options(non_interactive=True, yes=True, models="api", mode="supervised", budget=1.0, dashboard="later",
                    model_key_stdin=True)  # fmt: skip
     io_ = scripted(models="api", mode="supervised", dashboard="later", secrets={"MODEL_API_KEY": FAKE_KEY})
     assert run(Workspace(repo), opts, out, io=io_, probe=probe) == 0
-    assert calls == [] and "Inference works" not in buf.getvalue()
+    assert calls == [8], "one short call, when the key is pasted"
+    assert "Proving the key" in buf.getvalue() and "Key accepted: muse-spark-1.3 answered (US$0.0001)" in buf.getvalue()
     assert mandate_of(repo).models.profile == "frontier"
 
-    out, buf = console()
-    opts.probe = True
+    out, buf = console()  # the same key again: remembered, never paid for twice
     assert run(Workspace(repo), opts, out, io=io_, probe=probe) == 0
-    assert calls == [str(repo)] and "Inference works" in buf.getvalue()
+    assert calls == [8] and "Key accepted" in buf.getvalue() and "Proving the key" not in buf.getvalue()
+
+    def refused(ws: Workspace, **kwargs: Any) -> dict[str, Any]:
+        return {"ok": False, "why": "ProviderUnauthorized: meta 401: the key was refused (invalid_api_key)"}
+
+    out, buf = console()
+    io_ = scripted(models="api", mode="supervised", dashboard="later",
+                   secrets={"MODEL_API_KEY": "another-key-9876543210"})  # fmt: skip
+    assert run(Workspace(repo), opts, out, io=io_, probe=refused) == 0
+    text = buf.getvalue()
+    assert "Meta refused this key (ProviderUnauthorized: meta 401" in text and "another-key" not in text
+    assert "model option: api (chosen by --models)" in text
+
+
+def test_a_value_that_cannot_be_a_key_is_asked_again_and_a_refused_key_gets_the_menu(repo: Path) -> None:
+    out, buf = console()
+    pasted = iter(["cd ~/ihatemoney-demo", "has a space inside", "short", "rejected-key-0123456789", FAKE_KEY])
+
+    class Pastes(Asks):
+        def secret(self, key: str, prompt: str) -> str:
+            self.asked.append(key)
+            return next(pasted)
+
+    verdicts = iter([
+        {"ok": False, "why": "ProviderUnauthorized: meta 401: the key was refused"},
+        {"ok": True, "model": "muse-spark-1.3", "usd": 0.0001},
+    ])  # fmt: skip
+    io_ = Pastes({"github_access": "skip", "key_next": "key", "mode": "supervised", "apply": True})
+    assert run(Workspace(repo), Options(), out, io=io_, probe=lambda ws, **kw: next(verdicts)) == 0
+    text = buf.getvalue()
+    assert text.count("That looks like a command, not a key") == 1
+    assert "A key has no spaces" in text and "A key is longer than that" in text
+    assert "Meta refused this key" in text and "key: paste another key" in text and "Key accepted" in text
+    assert io_.asked.count("MODEL_API_KEY") == 5 and io_.asked.count("key_next") == 1
+    assert machine.read_env(machine.machine_env())["MODEL_API_KEY"] == FAKE_KEY
+    assert mandate_of(repo).models.profile == "frontier"
+
+
+def test_choosing_none_after_a_refused_key_leaves_no_model_and_says_start_refuses(repo: Path) -> None:
+    out, buf = console()
+    io_ = Asks({"github_access": "skip", "key_next": "none", "mode": "supervised", "apply": True},
+               {"MODEL_API_KEY": "rejected-key-0123456789"})  # fmt: skip
+    refused = lambda ws, **kw: {"ok": False, "why": "ProviderUnauthorized: meta 401"}  # noqa: E731
+    assert run(Workspace(repo), Options(), out, io=io_, probe=refused) == 0
+    text = buf.getvalue()
+    assert "No working model." in text and "model option: local (no key and no local model yet)" in text
+    assert mandate_of(repo).models.profile == "local"
+
+
+def test_the_local_plan_installs_ollama_pulls_the_model_and_proves_it(repo: Path, monkeypatch: Any) -> None:
+    from unbidden.setup import ollama_install
+    from unbidden.setup.keycheck import KeyVerdict
+
+    ran: list[str] = []
+    monkeypatch.setattr(ollama_install, "install_command", lambda: ["sh", "-c", "fake-ollama-installer"])
+    monkeypatch.setattr(ollama_install, "installed", lambda: bool(ran))
+    monkeypatch.setattr(ollama_install, "start_server", lambda url, wait_s=0.0: bool(ran))
+    pulled: list[str] = []
+
+    def pull(tag: str, say: Any) -> bool:
+        pulled.append(tag)
+        return True
+
+    def terminal(argv: list[str]) -> int:
+        ran.append(" ".join(argv))
+        return 0
+
+    out, buf = console()
+    io_ = Asks({"github_access": "skip", "install_ollama": True, "pull_model": True, "mode": "supervised",
+                "apply": True}, {"MODEL_API_KEY": ""})  # fmt: skip
+    code = run(Workspace(repo), Options(), out, io=io_, pull=pull, terminal=terminal,
+               probe_local=lambda url, tag: KeyVerdict(True, False, tag, 0.0, None))  # fmt: skip
+    assert code == 0, buf.getvalue()
+    text = buf.getvalue()
+    assert ran == ["sh -c fake-ollama-installer"] and pulled == ["llama3.1:8b"]
+    assert "The local model answers: llama3.1:8b" in text and "is small" in text
+    assert "No model yet" not in text
+    assert mandate_of(repo).models.profile == "local"
+
+
+def test_without_an_installer_the_local_plan_names_the_site_and_the_mandate_stays_local(repo: Path) -> None:
+    out, buf = console()
+    io_ = Asks({"github_access": "skip", "mode": "supervised", "apply": True}, {"MODEL_API_KEY": ""})
+    assert run(Workspace(repo), Options(), out, io=io_) == 0
+    text = buf.getvalue()
+    assert "no installer to run: https://ollama.com/download" in text and "No model yet" in text
+    assert "install_ollama" not in io_.asked
 
 
 def test_dry_run_writes_nothing_and_resume_keeps_answers(repo: Path) -> None:
@@ -271,7 +357,8 @@ def test_scripted_setup_without_choices_takes_the_facts_and_the_defaults(repo: P
     data = json.loads(capsys.readouterr().out)
     assert data["applied"] and data["models"] == "local" and data["mode"] == "supervised"
     assert data["found"]["option"] == "local" and data["found"]["github"] is None
-    assert data["defaulted"] == ["priorities", "credentials", "connections", "dashboard", "private_code", "language"]
+    assert data["defaulted"] == ["priorities", "credentials", "key", "connections", "dashboard", "private_code",
+                                 "language"]  # fmt: skip
     assert any("No model yet" in note for note in data["notes"])
     assert "no commit" not in buf.getvalue()
     mandate = mandate_of(repo)
@@ -369,8 +456,8 @@ def test_with_a_key_saved_and_no_gh_the_walk_asks_github_the_mode_and_apply(repo
     assert "Found" in text and "repository acme/shop" in text and "model key MODEL_API_KEY: saved" in text
     assert "model option: api (a key is here and no local model is installed)" in text
     assert (
-        "not asked, defaults kept: priorities, credentials, connections, budget, dashboard, private_code, language"
-        in text
+        "not asked, defaults kept: priorities, credentials, key, connections, budget, dashboard, private_code, "
+        "language" in text
     )
     mandate = mandate_of(repo)
     assert mandate.models.profile == "frontier" and mandate.business_constraints.maximum_monthly_spend_usd == 10

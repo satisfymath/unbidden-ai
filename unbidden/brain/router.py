@@ -16,7 +16,13 @@ from typing import Any, NoReturn
 from jsonschema import Draft202012Validator
 
 from unbidden.brain.codeblocks import CodeBlockError, parse_files
-from unbidden.brain.providers import LLMProvider, ProviderError, ProviderRejected, ProviderThrottled
+from unbidden.brain.providers import (
+    LLMProvider,
+    ProviderError,
+    ProviderRejected,
+    ProviderThrottled,
+    ProviderUnauthorized,
+)
 from unbidden.brain.route_policy import NEVER_REMOTE, RouteDecision, apply_mandate, decide_route
 from unbidden.brain.spend import SpendLedger, SpendRefused, worst_cost
 from unbidden.brain.tasks import task_for
@@ -33,6 +39,7 @@ from unbidden.guardian.scanner import SensitiveTermIndex, redact_text, scan_many
 from unbidden.store import Store
 
 ACTOR = "brain"
+KEY_REJECTED = "key rejected"  # the `problem` of a model run the service refused for its key (401/403): never billed
 
 
 class BrainError(RuntimeError):
@@ -265,9 +272,8 @@ class Brain:
             try:
                 response = await provider.chat(sized, model=route.model, think=think)
             except Exception as exc:
-                self._record(
-                    sized, route, provider, attempt, None, f"provider error: {exc}", egress_id, sent=False, why=why
-                )
+                problem = KEY_REJECTED if isinstance(exc, ProviderUnauthorized) else f"provider error: {exc}"
+                self._record(sized, route, provider, attempt, None, problem, egress_id, sent=False, why=why)
                 self._settle(spend_id, route, None, exc)
                 raise
             problem_or_none = check_output(request, response)

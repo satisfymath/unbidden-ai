@@ -16,7 +16,7 @@ from pathlib import Path
 
 from unbidden.brain.codeblocks import CodeBlockError, parse_files
 from unbidden.brain.prompts import load_prompt
-from unbidden.brain.providers import ProviderError
+from unbidden.brain.providers import ProviderError, ProviderUnauthorized
 from unbidden.brain.router import Brain, BrainError
 from unbidden.contracts.common import EvidenceLevel, EvidenceRef
 from unbidden.contracts.events import Event, EventType
@@ -223,6 +223,8 @@ class RobustnessProbe:
                     ],
                 )
             )
+        except ProviderUnauthorized:
+            raise  # the key was refused: a block for a person, not a probe without tests
         except (BrainError, ProviderError) as exc:  # said, not mistaken for an answer without tests (stage 9 walk)
             self.refused = f"no model answered: {type(exc).__name__}: {str(exc)[:240]}"
             return None
@@ -256,6 +258,8 @@ class RobustnessProbe:
                     ],
                 )
             )
+        except ProviderUnauthorized:
+            raise
         except (BrainError, ProviderError):
             return None
         return parse_files(response.content).get(PROBE_FILE)

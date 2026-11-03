@@ -24,7 +24,7 @@ from typing import Any
 
 from unbidden.brain.codeblocks import CodeBlockError, parse_files
 from unbidden.brain.prompts import load_prompt
-from unbidden.brain.providers import ProviderError
+from unbidden.brain.providers import ProviderError, ProviderUnauthorized
 from unbidden.brain.router import Brain, BrainError
 from unbidden.contracts.common import EvidenceRef, utc_now
 from unbidden.contracts.events import Event, EventType
@@ -818,6 +818,8 @@ class PerfLab:
                 )
             )
             return parse_files(response.content)
+        except ProviderUnauthorized:
+            raise  # the key, not the answer: a person replaces it
         except (BrainError, ProviderError, CodeBlockError) as exc:
             notes.append(f"{purpose}: no answer ({type(exc).__name__}: {str(exc)[:200]})")
             return None
@@ -1487,6 +1489,8 @@ class PerfLab:
                 purpose="lab.perf_request", tier=Tier.LOCAL, messages=messages, response_schema=schema,
                 max_tokens=800, prompt_sha256=prompt.sha256, correlation_id=opp.id,
             ))  # fmt: skip
+        except ProviderUnauthorized:
+            raise
         except (BrainError, ProviderError) as exc:
             result.notes.append(f"lab.perf_request: no answer ({type(exc).__name__}: {str(exc)[:200]})")
             return None

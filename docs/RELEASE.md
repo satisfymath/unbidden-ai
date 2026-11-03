@@ -1,4 +1,42 @@
-# Unbidden 0.12.2, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.12.3, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.12.3 (2026-11-03): a key is proven before anything runs on it; the installer speaks in steps
+
+Seen on the first end-user walk on Linux (`curl -fsSL https://unbidden.cl/install.sh | sh`, 0.12.2, Fedora, a public
+copy of ihatemoney): the person pasted a shell command where the setup asked for the Meta API key. The setup saved it,
+the free model listing answered 401 and the text said inference might still work; nothing proved the key. The agent
+then ran for an hour and a half with every remote call refused (`invalid_api_key`): the labs swallowed the error as
+"no usable answer" and counted an attempt against the opportunity, the probe said "no model answered" in the log, the
+app's bar said only "spend cap not verified", and the ledger charged US$0.04 for calls Meta had refused. Each is fixed
+here, with its test:
+
+- **A key is proven when it is pasted.** A value that cannot be a key (a command, spaces, under 16 characters) is
+  refused in place and asked again. Then one short inference call (8 tokens, under a cent, in the ledger) says
+  "Key accepted: muse-spark answered" or "Meta refused this key", and a refused key gets a menu: paste another, use
+  a local model, or continue without one (the agent refuses to start). A key saved earlier is proven the same way,
+  once per key: `~/.unbidden/keys.json` keeps its fingerprint and the verdict, never the key (`setup/keycheck.py`).
+  `--probe` is gone: proving is not optional.
+- **A 401 is "key rejected", never billed, never retried.** `ProviderUnauthorized` (401/403) is a `ProviderRejected`:
+  the ledger row settles at US$0, `MODEL_CALLED` carries `problem: key rejected`, the labs and the research code
+  re-raise it instead of treating it as a failed answer, so the loop records a `pending_person` block ("a Meta API
+  key the service accepts: `unbidden key set`") and spends no attempt of the opportunity.
+- **Nothing starts on a refused key.** `start` and `/start` prove a saved key once (a refused one refuses the start
+  with `unbidden key set`; one that cannot be proven now only warns). `doctor`'s `meta api` line says what the key
+  does, not what the listing says. The app's bar shows `MODEL KEY REFUSED · /key` from the first refused call.
+- **`unbidden key`, `unbidden key set`, `unbidden key remove`, and `/key` in the app:** the key's state, a new one
+  pasted hidden and proven on the spot, or gone. `setup credentials` and `setup models` use the same step.
+- **A local model, made to work.** When the option needs a local model that is not there, the setup installs Ollama
+  (the official installer in the person's terminal on Linux, Homebrew on macOS, after asking), starts its server,
+  pulls the model that fits and proves it with one short generation; `doctor --fix` does the same. A small model is
+  said to be small: it serves what never leaves the machine.
+- **The installer speaks in steps.** On a terminal: `✓ uv 0.9.x`, `✓ Downloading unbidden 0.12.3`, `✓ sha256
+  verified`, `✓ Installing unbidden 0.12.3`, then the installed path and the two commands that matter. What uv and
+  curl print goes to a log shown only when a step fails; `--verbose`, `UNBIDDEN_INSTALL_VERBOSE=1`, and any run
+  without a terminal (CI) print every line as before.
+
+Verified here: the unit and app suites (`make check`); the installer from local artifacts into an empty HOME, on a
+terminal and through a pipe; `unbidden key set` with a wrong key against the real API (refused at once, US$0 in the
+ledger, `start` refused); the demo repository's walk is the person's, after the release.
 
 ## 0.12.2 (2026-11-02): the route shown is the route run; the egress gate reads code as the prompt guard does
 
@@ -76,7 +114,7 @@ already existed (start, stop, kill switch, approve, reject, chat). `docs/INSTALL
 on macOS arm64 with the built wheel installed by `install.sh` into an empty HOME and driven in a pseudoterminal; CI
 unchanged (without a terminal, `unbidden` is the text home screen). Everything below describes 0.9.0 and still holds.
 
-**Status: 0.12.2, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
+**Status: 0.12.3, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
 met when the campaign paused at its gate (D-063); they are not changed here. The one that blocks 1.0: no useful cycle
 has been shown on an application not used in development. This candidate adds the product around the same engine:
 an installable wheel, a guided setup, one executor per workspace with a background agent, and the dashboard and chat
