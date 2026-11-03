@@ -162,6 +162,36 @@ MESSAGES_KEPT = 20
 MISSING_TOOL = re.compile(r"(?:FileNotFoundError|OSError): \[Errno 2\] No such file or directory: '(?P<tool>[\w.+-]+)'")
 
 
+_MISSING_COMMAND = re.compile(
+    r"(?:^|\n)[^\n]*?(?:line \d+: )?(?P<a>[\w.+-]+): command not found|command not found: (?P<b>[\w.+-]+)"
+)
+# Where a missing program would come from: Debian's archive (the mandate's package registries), or an installer the
+# CI runs that no registry stands for.
+PROVIDES = {
+    "make": "Debian's `make`", "git": "Debian's `git`", "msgfmt": "Debian's `gettext`", "gettext": "Debian's `gettext`",
+    "gcc": "Debian's `build-essential`", "cc": "Debian's `build-essential`", "g++": "Debian's `build-essential`",
+    "pkg-config": "Debian's `pkg-config`", "cmake": "Debian's `cmake`",
+    "task": "go-task, which its CI installs with an action (go-task/setup-task), not from a package registry",
+    "just": "just, which its CI installs with an action, not from a package registry",
+}  # fmt: skip
+
+
+def environment_lacks(result: SandboxResult) -> str | None:
+    """A test command that stopped at a program the image lacks (`task: command not found`, rdflib; `make`,
+    graphtage; `msgfmt`, humanize: campaign 12), named with what would provide it; None when the run says otherwise."""
+    found = _MISSING_COMMAND.search(result.stderr + "\n" + result.stdout)
+    if found is None:
+        return None
+    tool = (found.group("a") or found.group("b")).rsplit("/", 1)[-1]
+    source = PROVIDES.get(tool)
+    how = (
+        f"{source}; it is installed when the mandate's package registries allow deb.debian.org"
+        if source and source.startswith("Debian")
+        else source or "not a package the sandbox knows how to install"
+    )
+    return f"the sandbox image lacks `{tool}`, which the test command needs ({how})"
+
+
 def missing_tool(message: str) -> str | None:
     """The executable a failure's message says the environment lacks, or None when the failure says something else."""
     found = MISSING_TOOL.search(message)
@@ -258,6 +288,10 @@ def _round(
     report = _junit(junit)
     if plan.pytest and result.exit_code == 5:
         return Round([], NOT_COLLECTED, 0)  # pytest: no tests collected
+    if report is None and not result.ok and (lacks := environment_lacks(result)) is not None:
+        # The command needs a program the image does not have: the environment's, said with what would provide it,
+        # and not run again (the program would still be missing).
+        return Round(None, INFRA_FAILED, None, f"{lacks}; {_ended(result)}", retry=False)
     if report is None and plan.pytest and not result.ok:
         # Nothing reached pytest's report: setup failed or the run crashed. Retried once, then counted.
         return Round(None, INFRA_FAILED, None, _ended(result))

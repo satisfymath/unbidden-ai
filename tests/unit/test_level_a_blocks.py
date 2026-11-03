@@ -380,8 +380,9 @@ def test_requirement_files_the_job_installs_are_installed_after_the_sync_without
     assert stack.python is not None and stack.python.extra_requirements == ("requirements.txt",)
     assert stack.python.sync_flags == ("--all-groups", "--extra cli")  # `-e .[cli]`: the project's extra, synced
     docker = python_dockerfile(stack.python)
-    assert "/deps/requirements.txt > /tmp/unbidden-extra-0.txt" in docker
-    assert "uv pip install --python /deps/.venv/bin/python -r /tmp/unbidden-extra-0.txt" in docker
+    # The filtered copy sits beside the file so its own `-r` includes resolve (campaign 12: tracklater, oauthlib).
+    assert "/deps/requirements.txt > /deps/.unbidden-extra-0.txt" in docker
+    assert "uv pip install --python /deps/.venv/bin/python -r /deps/.unbidden-extra-0.txt" in docker
 
 
 def test_a_host_without_a_port_goes_to_the_service_the_variable_names() -> None:

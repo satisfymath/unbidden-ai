@@ -130,3 +130,37 @@ async def test_a_proposal_that_needs_approval_opens_one_ask_and_a_note(
     assert len(asks) == 1 and asks[0].kind == "approval" and asks[0].subject == "opp_a"
     notes = [e for e in store.events() if e.type is EventType.NOTE]
     assert notes and "waiting for a person" in notes[0].payload["text"]
+
+
+async def test_a_measurement_stopped_by_the_monthly_cap_is_listed_as_a_persons_block(
+    store: Store, mandate: Mandate, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Campaign 12, spoolman run 2: the cap was hit inside the lab and the record's blocks stayed empty."""
+    from unbidden.director.blocks import open_blocks
+    from unbidden.lab import perf
+
+    cycle = make_cycle(store, mandate)
+    head = store.get_value("head")
+    opp = Opportunity(
+        source="world", category="performance", title="spool.filament_id", summary="s", dedup_key="perf1",
+        evidence=[EvidenceRef(kind="file", locator="a")], details={"rev": head, "table": "spool"},
+    )  # fmt: skip
+    store.put("opportunities", opp, key=opp.dedup_key)
+    monkeypatch.setattr(cycle, "_env", lambda rev: (None, {}))
+    runtime: Any = cycle.runtime
+    runtime.brain = None  # the stub below never calls it
+
+    class Stopped:
+        def __init__(self, *a: Any, **k: Any) -> None: ...
+
+        async def run(self, opp: Opportunity) -> perf.PerfResult:
+            return perf.PerfResult(blocked="cannot measure: the mandate's monthly spend cap stops model calls "
+                                   "(remote spend this month is US$2.00, at the US$2.00 cap)")  # fmt: skip
+
+    monkeypatch.setattr(perf, "PerfLab", Stopped)
+    await cycle.lab_experiment(Job(type="lab.experiment", idempotency_key="e", payload={"id": opp.id}))
+    blocks = open_blocks(store)
+    assert len(blocks) == 1 and blocks[0].kind == "pending_person" and "maximum_monthly_spend_usd" in blocks[0].needs
+    assert blocks[0].continues.startswith(f"the measurement of {opp.id}")
+    kept = store.get("opportunities", opp.id, Opportunity)
+    assert kept is not None and "monthly spend cap" in kept.details["blocked"]["why"] and "attempts" not in kept.details

@@ -454,6 +454,7 @@ _SETUP_LINE = re.compile(
 
 
 _APT_INSTALL = re.compile(r"^\s*(?:sudo\s+)?apt(?:-get)?\s+install\s+(?P<args>.*)$")
+_APT_SEGMENT = re.compile(r"&&|\|\||;")  # `sudo apt-get update && sudo apt-get install -y gettext`: one line
 _DEB_NAME = re.compile(r"^[a-z0-9][a-z0-9.+-]*$")
 
 
@@ -462,8 +463,9 @@ def apt_packages(command: str) -> tuple[str, ...]:
     named plainly; the dependency image installs them when the mandate allows Debian's archive."""
     found = []
     for line in command.splitlines():
-        if (m := _APT_INSTALL.match(line)) is not None:
-            found += [w for w in m.group("args").split() if _DEB_NAME.match(w) and not w.startswith("-")]
+        for segment in _APT_SEGMENT.split(line):
+            if (m := _APT_INSTALL.match(segment)) is not None:
+                found += [w for w in m.group("args").split() if _DEB_NAME.match(w) and not w.startswith("-")]
     return tuple(dict.fromkeys(found))
 
 
@@ -1747,6 +1749,19 @@ def _config_scope(read: Callable[[str], str | None], inv: Invocation, tool: str)
     # "!path" (Prefect, stage 10: `ignore` holds src/integrations/, where three more L4 fixes landed).
     exempt = [f"!{e}" for e in listed("exclude") + listed("ignore")] if tool == "pyright" and included else []
     return included + exempt
+
+
+def team_formatter(commands: str | None) -> tuple[str, ...] | None:
+    """The formatter the team's CI checks with (`black --check`, `ruff format --check`), as the command that formats:
+    a candidate is put through it before it is measured or published (rich, campaign 12: three pull requests red
+    on `black --check` in every CI cell). None when the CI checks no Python formatting."""
+    if not commands:
+        return None
+    if tool_invocations(commands, "black"):
+        return ("black",)
+    if any(inv.subcommand == "format" for inv in tool_invocations(commands, "ruff")):
+        return ("ruff", "format")
+    return None
 
 
 def runs_tool(commands: str | None, tool: str) -> bool:

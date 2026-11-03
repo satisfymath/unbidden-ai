@@ -33,7 +33,7 @@ from unbidden.lab.context import select as select_context
 from unbidden.lab.evaluator import CRITERIA, evaluate_fix
 from unbidden.lab.testsuite import TestPlan, run_suite, test_plan
 from unbidden.languages import adapter, adapter_for_path
-from unbidden.observe.ci import ci_commands, ci_python_versions, runs_tool
+from unbidden.observe.ci import ci_commands, ci_python_versions, runs_tool, team_formatter
 from unbidden.observe.stack import Stack
 from unbidden.provenance import provenance
 from unbidden.sandbox.provision import DependencyImage, ProvisionError, link_dependencies, provision, sandbox_spec
@@ -246,6 +246,38 @@ class FixLab:
 
     # The experiment ------------------------------------------------------------------------------------
 
+    def _in_team_format(
+        self, rev: str, candidate: Candidate, image: DependencyImage, formatter: tuple[str, ...], cwd: str,
+        notes: list[str],
+    ) -> Candidate:  # fmt: skip
+        """The candidate's Python files as the team's formatter leaves them, run in the sandbox from the project's
+        own environment. A formatter the environment lacks is noted and the candidate kept as it is."""
+        files = sorted(p for p in candidate.files if p.endswith(".py"))
+        if not files:
+            return candidate
+        work = self._work(rev, image, candidate.files)
+        base = snapshot(self.repo, rev)
+        try:
+            inside = [p.removeprefix(f"{cwd}/") if cwd not in (".", "") else p for p in files]
+            result = self.runner.run(sandbox_spec(image, [*formatter, *inside], cwd=cwd), work)
+            if result.exit_code == 127 or "not found" in result.stderr[-300:].lower():
+                notes.append(f"{formatter[0]}: not in the project's environment; the candidate was not formatted")
+                return candidate
+            if not result.ok:
+                notes.append(f"{formatter[0]} did not format the candidate: {result.stderr.strip()[-200:]}")
+                return candidate
+            formatted = {p: (work / p).read_text() for p in candidate.files if (work / p).exists()}
+            if formatted == candidate.files:
+                return candidate
+            changed = [p for p in files if formatted.get(p) != candidate.files[p]]
+            notes.append(f"candidate formatted with the team's {' '.join(formatter)}: {', '.join(changed)}")
+            kept = {p: text for p, text in formatted.items()
+                    if not (base / p).exists() or (base / p).read_text() != text}  # fmt: skip
+            return Candidate(candidate.origin, kept or formatted, unified_patch(base, kept or formatted))
+        finally:
+            discard(work)
+            discard(base)
+
     async def run(self, opp: Opportunity) -> LabResult:
         tool = tool_named(self.stack, opp.source)
         image = self.images[tool.language]
@@ -258,6 +290,7 @@ class FixLab:
         commands = ci_commands(self.repo, rev)
         if commands:
             siblings = [t for t in siblings if t.name == tool.name or runs_tool(commands, t.name.split(":")[0])]
+        formatter = team_formatter(commands) if tool.language == "python" else None
         targeted: list[str] = list(opp.details["fingerprints"])
         findings = [Finding.model_validate(f) for f in opp.details["findings"]]
         paths: list[str] = list(opp.details["paths"])
@@ -346,6 +379,8 @@ class FixLab:
                 feedback = "you added a suppression comment instead of fixing the cause"
                 candidate = None
                 continue
+            if formatter is not None:
+                candidate = self._in_team_format(rev, candidate, image, formatter, tool.cwd, result.notes)
             judged = await self._measure(opp, rev, candidate, image, siblings, before, targeted, suite, baseline_tests)
             result.experiment, result.verdict, result.candidate = judged
             if judged[1].improved:

@@ -233,3 +233,34 @@ def test_what_the_feed_makes_of_asks_jobs_and_notes() -> None:
         out.extend(folder.push(e))
     out.extend(folder.flush())
     assert len(out) == 1 and out[0].shade == "bad" and "3 model calls refused for the key" in out[0].text
+
+
+def test_raising_the_cap_from_the_ask_edits_the_mandates_cap_and_releases_the_held_work(
+    store: Store, tmp_path: Path, mandate: Mandate
+) -> None:
+    """Campaign 13, WS0: the answer used to amend the machine ledger, while the router checks the mandate's monthly
+    cap, so the call stayed refused and the spend block stayed open."""
+    import yaml
+
+    from unbidden.contracts.jobs import Job
+    from unbidden.director.blocks import open_blocks, spend_block
+
+    ws_dir = tmp_path / ".unbidden"
+    ws_dir.mkdir()
+    mandate_path = ws_dir / "mandate.yaml"
+    raw = {"mandate": mandate.model_dump(mode="json")}
+    raw["mandate"]["business_constraints"]["maximum_monthly_spend_usd"] = 2.0
+    mandate_path.write_text(yaml.safe_dump(raw, sort_keys=False))
+    ws = SimpleNamespace(mandate_path=mandate_path)
+    held = Job(type="lab.experiment", idempotency_key="lab:2", payload={"id": "opp_2"})
+    store.enqueue(held)
+    record(store, spend_block("measure opp_2", "at the US$2.00 cap", 2.0, "the measurement of opp_2"), held.id)
+    ask = asks.open_ask(store, asks.for_spend(2.0, 2.0))
+    assert ask.cli == "unbidden setup budget --budget <USD>"
+    with pytest.raises(asks.AskError):
+        asks.answer(ws, store, ask.id, "raise", value="1.5", by="dave")  # lower than now: refused
+    done = asks.answer(ws, store, ask.id, "raise", value="US$5", by="dave")
+    assert "US$5.00 (was US$2.00)" in (done.outcome or "")
+    written = yaml.safe_load(mandate_path.read_text())["mandate"]["business_constraints"]
+    assert written["maximum_monthly_spend_usd"] == 5.0
+    assert open_blocks(store) == []

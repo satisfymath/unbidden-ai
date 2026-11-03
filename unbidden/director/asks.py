@@ -188,7 +188,7 @@ def for_spend(spent: float, cap: float) -> Ask:
         ],
         default="later",
         dedup_key="spend:cap",
-        cli="unbidden spend --amend-cap <USD>",
+        cli="unbidden setup budget --budget <USD>",
     )
 
 
@@ -309,27 +309,24 @@ def _apply(ws: Any, store: Store, ask: Ask, option: str, value: str | None, who:
     if ask.kind == "capability":
         raise AskError("approving a capability is `unbidden forge approve <capability>` in this version")
     if ask.kind == "spend":
-        import json
-        from datetime import UTC, datetime
-
-        from unbidden.brain.spend import SpendLedger
+        # The cap the router checks is the mandate's (`business_constraints.maximum_monthly_spend_usd`); the machine
+        # ledger is a person's own record of credits and is never edited from a question (`unbidden spend`).
+        from unbidden.guardian.mandate_edit import read_raw, write_mandate
 
         try:
-            amount = float((value or "").replace("$", "").strip())
+            amount = float((value or "").replace("$", "").replace("US", "").strip())
         except ValueError as exc:
             raise AskError("the new cap must be a number of US$") from exc
-        ledger = SpendLedger()
-        budget = ledger.budget()
-        if not budget.verified:
-            raise AskError("there is no verified budget to amend: `unbidden spend --verified-balance` first")
-        budget = budget.model_copy(
-            update={"remaining_usd": amount, "source": f"{budget.source} | ask {ask.id} ({who})"}
-        )
-        ledger.set_budget(budget)
-        with (ledger.dir / "budget-history.jsonl").open("a") as history:
-            history.write(json.dumps({"amended_by": who, "at": datetime.now(UTC).isoformat(),
-                                      "budget": budget.model_dump(mode="json")}) + "\n")  # fmt: skip
-        return f"monthly cap now US${amount:.2f}"
+        raw = read_raw(ws.mandate_path)
+        constraints = raw["mandate"].setdefault("business_constraints", {})
+        before = float(constraints.get("maximum_monthly_spend_usd") or 0)
+        if amount <= before:
+            raise AskError(f"the new cap must be above the current US${before:.2f}")
+        constraints["maximum_monthly_spend_usd"] = amount
+        write_mandate(ws.mandate_path, raw, store, {"ask": {"id": ask.id, "monthly_cap_usd": [before, amount]}},
+                      actor=who)  # fmt: skip
+        _release_blocks(store, ask)
+        return f"monthly cap now US${amount:.2f} (was US${before:.2f})"
     raise AskError(f"no effect for {ask.kind}/{option}")
 
 
@@ -341,7 +338,11 @@ def _release_blocks(store: Store, ask: Ask) -> None:
     from unbidden.director.blocks import Block, open_blocks
 
     for block in open_blocks(store):
-        same = block.id == ask.subject or (ask.kind == "credential" and "unbidden key set" in block.needs)
+        same = (
+            block.id == ask.subject
+            or (ask.kind == "credential" and "unbidden key set" in block.needs)
+            or (ask.kind == "spend" and "maximum_monthly_spend_usd" in block.needs)
+        )
         if not same:
             continue
         block.resolved, block.resolved_at = True, utc_now()

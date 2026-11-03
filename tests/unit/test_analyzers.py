@@ -120,7 +120,10 @@ def test_a_build_that_names_a_missing_header_retries_with_its_debian_package(
         version="3.12", lockfile="uv.lock", manifest="pyproject.toml", ruff=True, pyright=False, pytest=True
     )
     assert prov.provision(tmp_path, "HEAD", stack, policy=ALLOW_ALL) == "image"  # pyright: ignore[reportArgumentType]
-    assert attempts == [(False, ()), (True, ()), (True, ("libldap2-dev",)), (True, ("libldap2-dev", "libsasl2-dev"))]
+    # Debian allowed: the runner's baseline (git, make) is on every attempt (campaign 12, phase 6); the headers grow.
+    base = ("git", "make")
+    assert attempts == [(False, base), (True, base), (True, (*base, "libldap2-dev")),
+                        (True, (*base, "libldap2-dev", "libsasl2-dev"))]  # fmt: skip
     assert "build-essential a &&" in prov.python_dockerfile(stack, system_build_tools=True, headers=("a",))
 
 
