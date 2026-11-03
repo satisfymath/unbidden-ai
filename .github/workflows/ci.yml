@@ -113,7 +113,10 @@ jobs:
           "$U" start --interval 3600 --json > refused.json || code=$?
           test "$code" = 4  # option api without MODEL_API_KEY: every cycle would fail, so nothing starts
           python3 -c "import json; d=json.load(open('refused.json')); assert not d['started'] and [c['check'] for c in d['refused']] == ['meta api'], d; print('refused:', d['refused'])"
-          export MODEL_API_KEY=ci-dummy  # presence is what the guard checks; nothing here calls the API
+          export MODEL_API_KEY=ci-dummy
+          # The guard proves a key once with one short call to the API; this dummy is declared proven for the smoke
+          # test instead (the same memory `unbidden key set` writes), so nothing here calls the API.
+          "$UV_TOOL_DIR/unbidden-ai/bin/python" -c "from unbidden.setup import keycheck; keycheck.remember('MODEL_API_KEY', 'ci-dummy', keycheck.KeyVerdict(True, False, 'ci-dummy', 0.0, None))"
           "$U" start --interval 3600 --json | tee start.json
           python3 -c "import json; d=json.load(open('start.json')); assert d['started'], d"
           "$U" status --json | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['agent']['running'], d; print('agent pid', d['agent']['pid'])"
