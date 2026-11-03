@@ -536,13 +536,16 @@ def discover_runtime(repo: Path, world: WorldModel, rev: str = "HEAD", files: li
                     attrs["web_page"] = f"http://127.0.0.1:{port}/"
                 for found in text_metrics(port):
                     world.resources[f"container:{name}"].attributes.setdefault("text_endpoints", []).append(found)
-            world.blind_spots.append(
-                BlindSpot(
-                    what=f"endpoints of {service}",
-                    why=f"ports {', '.join(map(str, published))} are published but describe no OpenAPI; "
-                    "its interface (HTTP, gRPC, GraphQL...) is unknown",
+            if any(r.kind == "endpoint" and r.attributes.get("framework") == "flask" for r in world.resources.values()):
+                pass  # a Flask application: its routes were read from the code (`world/flask_routes.py`)
+            else:
+                world.blind_spots.append(
+                    BlindSpot(
+                        what=f"endpoints of {service}",
+                        why=f"ports {', '.join(map(str, published))} are published but describe no OpenAPI; "
+                        "its interface (HTTP, gRPC, GraphQL...) is unknown",
+                    )
                 )
-            )
 
         data = compose.services.get(service) if compose else None
         if data is not None and data.data_kind == "postgres":
