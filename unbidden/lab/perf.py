@@ -25,7 +25,7 @@ from typing import Any
 from unbidden.brain.codeblocks import CodeBlockError, parse_files
 from unbidden.brain.prompts import load_prompt
 from unbidden.brain.providers import ProviderError, ProviderUnauthorized
-from unbidden.brain.router import Brain, BrainError
+from unbidden.brain.router import Brain, BrainError, KillSwitchEngaged, PolicyDenied, SpendLimitReached
 from unbidden.contracts.common import EvidenceRef, utc_now
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.experiment import Experiment, ExperimentSpec, TestOutcome, Verdict
@@ -62,9 +62,42 @@ WARMUP = 3
 SEED_ROWS = 200_000
 SEED_OWNERS = 2_000
 # Measurements wait for a quiet host: the controls (docs/bench/stage10-controls) passed 7 of 7 only below this load.
-HOST_LOAD_MAX = 1.5
+HOST_LOAD_MAX = 1.5  # the floor, for a small host
+HOST_LOAD_PER_CPU = 0.25  # a wider host is quiet with a quarter of its CPUs busy (campaign 12: 18 CPUs idle at 2.5-3)
 HOST_WAIT_S = 900.0
 HOST_POLL_S = 30.0
+
+
+def host_load_max(cpus: int | None = None) -> float:
+    """The 1-minute load under which the host is quiet enough to measure: the floor, or a quarter of the CPUs when
+    that is more. Fst, campaign 12 run 2: the absolute floor on an 18-CPU host deferred every session for 900 s and
+    the deferral was then read as the candidate's failure. The A/A control on every experiment remains the guard
+    against a noisy host: it makes the result inconclusive, never an improvement."""
+    return max(HOST_LOAD_MAX, HOST_LOAD_PER_CPU * (cpus or os.cpu_count() or 1))
+
+
+def experiment_not_executed(error: str) -> tuple[str, str | None]:
+    """How a measurement that did not run is recorded: a deferral (the host's, repeated once at this commit, never
+    counted against the opportunity) keeps its own wording as the block; anything else is the candidate's."""
+    if error.startswith("deferred:"):
+        return error[:400], error[:400]
+    return f"the candidate broke the workload: {error[-300:]}", None
+
+
+def spend_blocked(exc: BaseException) -> tuple[str, str] | None:
+    """A model call the mandate stopped, as the readiness state and reason to block on: the cap, the kill switch or
+    the policy, never something a repaired prompt fixes (spoolman, campaign 12 run 2: SpendLimitReached was retried
+    five times in one second and recorded as \"no workload was valid\")."""
+    if isinstance(exc, SpendLimitReached):
+        return ("spend", f"the mandate's monthly spend cap stops model calls ({exc}); nothing is retried until the cap "
+                         "changes or the month ends")  # fmt: skip
+    if isinstance(exc, KillSwitchEngaged):
+        return ("spend", f"the kill switch is engaged ({exc}); nothing runs until `unbidden resume`")
+    if isinstance(exc, PolicyDenied):
+        return ("policy", f"the mandate denies the model call ({exc})")
+    return None
+
+
 Progress = Callable[[str], None]
 
 DRIVER_TEST = "test_unbidden_workload"
@@ -750,6 +783,7 @@ def downgrade():
 
 class PerfLab:
     host_load: Callable[[], float] = staticmethod(lambda: os.getloadavg()[0])  # replaced in tests
+    host_cpus: Callable[[], int] = staticmethod(lambda: os.cpu_count() or 1)  # replaced in tests
 
     def __init__(
         self,
@@ -821,6 +855,10 @@ class PerfLab:
         except ProviderUnauthorized:
             raise  # the key, not the answer: a person replaces it
         except (BrainError, ProviderError, CodeBlockError) as exc:
+            if (stopped := spend_blocked(exc)) is not None:
+                self.prep_block = stopped
+                notes.append(f"{purpose}: {stopped[1]}")
+                return None
             notes.append(f"{purpose}: no answer ({type(exc).__name__}: {str(exc)[:200]})")
             return None
 
@@ -1056,12 +1094,14 @@ class PerfLab:
         out: list[dict[str, Any]] = []
         for position, arm in enumerate([first, second] * per_arm):
             load, waited = self._quiet_host()
-            if load > HOST_LOAD_MAX:
+            limit = host_load_max(self.host_cpus())
+            if load > limit:
                 # A busy host makes the A/A control inconclusive and every effect noisy (stage 10's controls, run 3).
                 # The measurement is deferred up to HOST_WAIT_S and then not made: a recorded block, never a
                 # result shaped by noise; nothing else on the host is stopped for it.
-                return None, (f"deferred: the host is busy (1-minute load {load:.2f} > {HOST_LOAD_MAX}) after "
-                              f"waiting {waited:.0f} s before {arm} session {position + 1}")  # fmt: skip
+                return None, (f"deferred: the host is busy (1-minute load {load:.2f} > {limit:.2f} for "
+                              f"{self.host_cpus()} CPUs) after waiting {waited:.0f} s before {arm} session "
+                              f"{position + 1}")  # fmt: skip
             record, error = measure(candidate if arm == "candidate" else {})
             if record is None:
                 return None, f"{arm} session {position + 1}: {error}"
@@ -1069,10 +1109,11 @@ class PerfLab:
         return out, ""
 
     def _quiet_host(self) -> tuple[float, float]:
-        """The host's 1-minute load once it is below HOST_LOAD_MAX, or after HOST_WAIT_S; and how long was waited."""
+        """The host's 1-minute load once it is below `host_load_max`, or after HOST_WAIT_S; and how long was waited."""
         started = time.monotonic()
+        limit = host_load_max(self.host_cpus())
         load = self.host_load()
-        while load > HOST_LOAD_MAX and time.monotonic() - started < HOST_WAIT_S:
+        while load > limit and time.monotonic() - started < HOST_WAIT_S:
             self.progress(f"host busy (load {load:.2f}): measurement deferred")
             time.sleep(HOST_POLL_S)
             load = self.host_load()
@@ -1289,6 +1330,8 @@ class PerfLab:
                 "lab.perf_candidate", content, opp, cand_prompt.sha256, 4000, result.notes
             )
             if not candidate_files:
+                if self.prep_block is not None:
+                    break
                 continue
             new = self._added(rev, candidate_files, before_findings)
             if not new:
@@ -1391,6 +1434,8 @@ class PerfLab:
             )
             workload = {k: v for k, v in (workload or {}).items() if k == f"{LAB_DIR}/workload.py"}
             if not workload:
+                if self.prep_block is not None:
+                    break
                 feedback = "Your previous answer had no `# file: .unbidden-lab/workload.py` block."
                 continue
             text = workload[f"{LAB_DIR}/workload.py"]
@@ -1492,6 +1537,10 @@ class PerfLab:
         except ProviderUnauthorized:
             raise
         except (BrainError, ProviderError) as exc:
+            if (stopped := spend_blocked(exc)) is not None:
+                self.prep_block = stopped
+                result.notes.append(f"lab.perf_request: {stopped[1]}")
+                return None
             result.notes.append(f"lab.perf_request: no answer ({type(exc).__name__}: {str(exc)[:200]})")
             return None
         sql = str(value.get("values_sql", "")).strip().rstrip(";")
@@ -1550,6 +1599,8 @@ class PerfLab:
             request = await self._choose_request(opp, relation, parent, handlers, feedback, result,
                                                  self._show(rev, models_file[0]) if models_file else "")  # fmt: skip
             if request is None:
+                if self.prep_block is not None:
+                    return None
                 feedback = "Your previous answer was refused: " + (result.notes[-1] if result.notes else "")
                 continue
             self.progress("validating the request at the base, against the application as the project runs it")
@@ -1669,6 +1720,8 @@ class PerfLab:
 
         # Candidate, held to the repository's own checks: a speed-up may not bring new findings with it.
         candidate = await self._candidate(opp, rev, table, column, head, models_file, has_model, handlers, result)
+        if candidate is None and self.prep_block is not None:
+            return blocked(*self.prep_block)  # the cap, the kill switch or the policy stopped the model, not the lab
         if candidate is None:
             # Nothing was measured: no change could be written that keeps the project's checks clean. A block with its
             # notes, not an experiment that found no fix (stage 10, Spoolman: counted twice as failures, then declined).
@@ -1731,8 +1784,10 @@ class PerfLab:
         self.progress(f"measuring {SESSIONS_PER_ARM} sessions per side, alternating")
         sessions, error = self._sessions(measure, candidate.files, opp.id)
         if sessions is None:
-            ready("experiment_executed", False, f"the candidate broke the workload: {error[-300:]}")
-            result.notes.append(f"the candidate broke the workload: {error[-300:]}")
+            note, deferred = experiment_not_executed(error)
+            ready("experiment_executed", False, note)
+            result.notes.append(note)
+            result.blocked = deferred  # the host's deferral is a block the cycle repeats once, not a verdict
             opp.updated_at = utc_now()
             self.store.put("opportunities", opp)
             return result

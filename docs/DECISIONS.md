@@ -1373,3 +1373,20 @@ model runs for the agent and a dashboard served apart, so `egress` lists every c
 recorded from the installed tool. The RELEASE's CI and integration sections filled from a real run. Then PLAN step 6.
 
 **Effect on earlier claims.** None withdrawn; nothing here promotes or revalidates a result.
+
+## D-065 · 2026-11-03 · Campaign 13: the road to 1.0, with the criteria redefined from campaign 12
+
+**Decided (David, 2026-11-03).** Campaign 12 (installed product, 39 repositories, real Meta models, `feat/64-campaign`,
+report `docs/bench/campaign12/REPORT.md` there) showed the installed product dependable (39/39 twice, zero
+interventions, no out-of-mandate action) and the value funnel thin on repositories it did not grow up with: checks
+reproduced on 3 of 19 independent repositories with the default mandate, one improvement class measured end to end
+(latency), blocks that were read as verdicts, questions a person could answer that were never asked. The criteria of
+`docs/CAMPAIGN-v1.md` §9-12 are replaced by `docs/ROAD-TO-1.0.md` §3: nine dimensions per class of repository, five
+classes of improvement each with a typed metric and an independent re-check, zero tolerance for false promotion,
+out-of-mandate action and leaked secrets, every full chain repeated from clean, a walk and a demo. The work happens
+on `main` (0.12.8): campaign 12's fixes are ported, not merged. A final pass over the same 39 repositories runs in
+autonomous mode with every permission and API wherever a lab can exist; the harness answers the agent's questions by
+a fixed table recorded per answer (`docs/bench/campaign13/PROTOCOL.md` §7). Budget: what it takes within the ledger
+cap, in four envelopes (`s13-dev` 15, `s13-pass` 15, `s13-final` 20, `s13-confirm` 5); the cap is not amended. Docs
+in English. The version stays "experimental candidate" until every line is met; the 1.0 tag is David's decision.
+

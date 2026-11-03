@@ -1,4 +1,27 @@
-# Unbidden 0.12.8, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.12.9, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.12.9 (2026-11-03): campaign 12's fixes on main; the spend question raises the cap that is checked; the road to 1.0
+
+Campaign 12 (installed product on 39 repositories, real Meta models, branch `feat/64-campaign`) fixed general
+defects on a frozen branch; they are ported here with their tests:
+- a `pyproject.toml` with TOML dates no longer crashes `doctor`, `scan` and every job (`observe/stack.py`);
+- `-r`/`-c` includes in requirements files are copied into the dependency build, and the filtered copy of a CI
+  requirements file sits beside it so its includes resolve (`sandbox/provision.py`);
+- with Debian's archive allowed the image carries `git` and `make`; an `apt-get install` after `&&` is read; a test
+  command that stops at `X: command not found` names the program and where it would come from;
+- the quiet-host rule scales with the CPUs; a busy host, a spend cap, the kill switch or a policy refusal is a block,
+  never "the candidate broke the workload"; the monthly cap reached is a person's block, released when it rises;
+- a candidate goes through the team's formatter (black or `ruff format`) before it is measured;
+- the endpoint-to-table map is read in batches and cached by handler (81 calls to 8 on spoolman);
+- tests that fail only because the image lacks an executable are kept apart from the project's failures; local
+  proposals and open pull requests are counted apart.
+
+Fixed on main: answering "raise" to the spend question amended the machine ledger while the router checks the
+mandate's monthly cap, so the calls stayed refused; it now raises `business_constraints.maximum_monthly_spend_usd`
+(higher than before, recorded as `MANDATE_CHANGED`) and releases the held work (`director/asks.py`).
+
+The road to 1.0: `docs/ROAD-TO-1.0.md` (criteria redefined from campaign 12, five classes of improvement),
+`docs/bench/campaign13/` (protocol, measures), D-065.
 
 ## 0.12.8 (2026-11-03): a sandbox Postgres starts when the project's password lives in an untracked .env
 

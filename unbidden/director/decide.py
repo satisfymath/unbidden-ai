@@ -15,7 +15,7 @@ from typing import Any
 from unbidden.contracts.common import EvidenceLevel
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.experiment import VALIDATING
-from unbidden.contracts.guardian import Mandate
+from unbidden.contracts.guardian import Autonomy, Mandate
 from unbidden.contracts.opportunity import ActionKind, CandidateAction, Decision, Opportunity, OpportunityStatus
 from unbidden.languages import adapter_for_path
 from unbidden.observe.ci import (
@@ -55,8 +55,12 @@ LOW_VALUE = {"lint", "format"}
 
 @dataclass(frozen=True)
 class Context:
-    open_pull_requests: int
+    open_pull_requests: int  # pull requests actually open on GitHub (proposals in PR_OPENED)
     attempts: int  # experiments already run on this opportunity without an improvement
+    # Proposals that exist locally but are not pull requests: READY ones waiting for a person or for the publisher,
+    # plus those this sweep decided to propose. Counted apart from open pull requests; they reach the GitHub cap
+    # only when the mandate lets Unbidden open pull requests on its own (otherwise a person decides each one).
+    pending_proposals: int = 0
     checked_dirs: tuple[str, ...] = ()  # where the team's CI works; empty means the whole repository
     ci_commands: str | None = ""  # what the team's workflows run, lowercased; None when no workflow could be read
     ci_status: str | None = None  # "green" / "red": the team's own checks on this commit, when GitHub could be read
@@ -219,8 +223,13 @@ def decide(opp: Opportunity, mandate: Mandate, ctx: Context) -> Decision:
         return _choose(opp, candidates, ActionKind.DECLINE)
     if proven and level >= minimum:
         cap = mandate.egress.github.max_open_pull_requests
-        if ctx.open_pull_requests >= cap:
-            add(ActionKind.WAIT, 0.5, 0.0, 0.0, f"{ctx.open_pull_requests} pull requests already open (cap {cap})")
+        opens_alone = mandate.autonomy.open_pull_requests is Autonomy.ALLOW
+        counted = ctx.open_pull_requests + (ctx.pending_proposals if opens_alone else 0)
+        if counted >= cap:
+            why = f"{ctx.open_pull_requests} pull request(s) open"
+            if opens_alone and ctx.pending_proposals:
+                why += f" and {ctx.pending_proposals} proposal(s) waiting to be published"
+            add(ActionKind.WAIT, 0.5, 0.0, 0.0, f"{why} (cap {cap})")
             return _choose(opp, candidates, ActionKind.WAIT)
         add(ActionKind.PROPOSE_CHANGE, 0.8, 0.0, 0.1, f"evidence L{int(level)} meets the mandate's L{int(minimum)}")
     elif proven:

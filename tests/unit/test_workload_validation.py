@@ -252,6 +252,7 @@ def test_a_busy_host_defers_the_measurement_and_then_blocks_it_never_a_noisy_res
 
     lab = perf.PerfLab.__new__(perf.PerfLab)
     lab.progress = lambda *_: None  # type: ignore[method-assign]
+    lab.host_cpus = lambda: 4  # type: ignore[method-assign]  # the floor applies: 1.5
     loads = iter([3.0, 2.5, 0.8, 0.7, 0.6, 0.5])
     lab.host_load = lambda: next(loads)  # type: ignore[method-assign]
     monkeypatch.setattr(perf.time, "sleep", lambda s: None)

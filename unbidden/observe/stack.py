@@ -347,11 +347,17 @@ def _detect_python(repo: Path, rev: str, files: set[str], blind: list[str]) -> P
     return replace(found, version_notes=choice.notes(), lock_date=when)
 
 
+def _toml_text(data: dict[str, Any]) -> str:
+    """A pyproject's content as one searchable text. TOML carries dates and times that JSON does not (pipx's
+    `[tool.nab]`, campaign 12: every `doctor` and `scan` crashed on `json.dumps`); they become their ISO text."""
+    return json.dumps(data, default=str)
+
+
 def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str], version: str) -> PythonStack | None:
     if "pyproject.toml" in files and "poetry.lock" in files:
         project = tomllib.loads(_read(repo, rev, "pyproject.toml"))
         if "poetry" in project.get("tool", {}):
-            text = json.dumps(project)
+            text = _toml_text(project)
             return PythonStack(
                 version=version,
                 lockfile="poetry.lock",
@@ -365,8 +371,8 @@ def _detect_python_parts(repo: Path, rev: str, files: set[str], blind: list[str]
     if "pyproject.toml" in files and _declares_project(tomllib.loads(_read(repo, rev, "pyproject.toml")), files):
         project = tomllib.loads(_read(repo, rev, "pyproject.toml"))
         members = _workspace_members(repo, rev, project, files)
-        texts = [json.dumps(project)] + [
-            json.dumps(tomllib.loads(_read(repo, rev, f"{m}/pyproject.toml"))) for m in members
+        texts = [_toml_text(project)] + [
+            _toml_text(tomllib.loads(_read(repo, rev, f"{m}/pyproject.toml"))) for m in members
         ]
         text = " ".join(texts)
         lock = "uv.lock" if "uv.lock" in files else None

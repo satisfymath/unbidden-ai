@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import posixpath
 import re
 import shutil
 import subprocess
@@ -256,9 +257,12 @@ def python_dockerfile(stack: PythonStack, *, system_build_tools: bool = False, h
         # in requirements.txt, `-e .[cli]` first): each after the sync, without the lines that name the project
         # itself (it is linked from the snapshot at run time, not built here).
         for i, extra in enumerate(stack.extra_requirements):
+            # The filtered copy sits beside the original: a `-r requirements.txt` inside it is resolved against the
+            # file's own directory (tracklater, oauthlib, campaign 12: written under /tmp, the include looked there).
+            filtered = posixpath.normpath(f"/deps/{posixpath.dirname(extra)}/.unbidden-extra-{i}.txt")
             install += (
-                f" && (grep -vE '^\\s*(-e\\b|\\.(\\[|$)|\\./)' /deps/{extra} > /tmp/unbidden-extra-{i}.txt || true)"
-                f" && uv pip install --python /deps/.venv/bin/python -r /tmp/unbidden-extra-{i}.txt"
+                f" && (grep -vE '^\\s*(-e\\b|\\.(\\[|$)|\\./)' /deps/{extra} > {filtered} || true)"
+                f" && uv pip install --python /deps/.venv/bin/python -r {filtered}"
             )
     uv = (
         f"uv{stack.uv_version if stack.uv_version[0] in '=<>!~' else '==' + stack.uv_version}"
@@ -363,6 +367,10 @@ def _manifests(repo: Path, rev: str, stack: NodeStack | PythonStack) -> list[str
     if stack.manifest in ("setup.py", "poetry.lock"):
         return []
     wanted = [stack.manifest] + ([stack.lockfile] if stack.lockfile else []) + list(stack.extra_requirements)
+    # A requirements file's own includes (`-r requirements-site.txt`, `-c constraints.txt`), to any depth: the
+    # install reads them beside the file (dinkydash, campaign 12: one of three files copied, the image never built).
+    for name in list(wanted):
+        wanted += requirement_includes(repo, rev, name, files)
     wanted += [f"{m}/pyproject.toml" for m in stack.members]
     # Build backends read the documents a manifest declares (hatchling refuses a missing `readme`) even when only the
     # metadata is built. Documents, never code.
@@ -371,6 +379,33 @@ def _manifests(repo: Path, rev: str, stack: NodeStack | PythonStack) -> list[str
     for directory in ["", *(f"{m}/" for m in stack.members), *(f"{d}/" for _, d in stack.path_sources)]:
         wanted += [f for f in files if f.startswith(directory) and METADATA_DOC.match(f.removeprefix(directory))]
     return sorted(set(wanted))
+
+
+_REQ_INCLUDE = re.compile(r"^\s*(?:-r|--requirement|-c|--constraint)(?:\s+|=)(?P<path>[^\s#]+)")
+
+
+def requirement_includes(repo: Path, rev: str, path: str, files: set[str]) -> list[str]:
+    """The requirements files `path` includes with `-r`/`-c`, transitively, each resolved against the including
+    file's directory as pip and uv do; only files the repository tracks at `rev`, each once, in reading order."""
+    if not path.endswith((".txt", ".in", ".pip")):
+        return []
+    found: list[str] = []
+    queue = [path]
+    while queue:
+        current = queue.pop(0)
+        shown = subprocess.run(["git", "-C", str(repo), "show", f"{rev}:{current}"], capture_output=True, text=True,
+                               check=False)  # fmt: skip
+        if shown.returncode != 0:
+            continue
+        for line in shown.stdout.splitlines():
+            m = _REQ_INCLUDE.match(line)
+            if not m:
+                continue
+            target = posixpath.normpath(posixpath.join(posixpath.dirname(current), m.group("path")))
+            if target in files and target != path and target not in found:
+                found.append(target)
+                queue.append(target)
+    return found
 
 
 METADATA_DOC = re.compile(r"^(README|LICEN[CS]E|COPYING|NOTICE|AUTHORS|CHANGELOG|CHANGES)[\w.-]*$", re.IGNORECASE)
@@ -458,6 +493,21 @@ HEADER_PACKAGES = {
 MAX_SYSTEM_RETRIES = 4
 
 
+# What every CI runner has and a slim image does not: tests call `git` (codex-lb, campaign 12: 30 tests), a VCS
+# dependency needs it at install (harlequin), test commands run `make` (graphtage). Small, and installed only when
+# the mandate allows Debian's archive, like any other system package.
+RUNNER_BASELINE = ("git", "make")
+
+
+def system_packages_wanted(stack: Any, *, allowed: bool) -> tuple[str, ...]:
+    """The Debian packages the dependency image installs: the runner's baseline and those the project's CI test
+    job installs itself (humanize: gettext), when the mandate allows Debian's archive; refused, nothing, and the
+    step that needs them fails and says so."""
+    if not allowed or not isinstance(stack, PythonStack):
+        return ()
+    return tuple(dict.fromkeys((*RUNNER_BASELINE, *getattr(stack, "system_packages", ()))))
+
+
 def system_tools_allowed(policy: PolicyEngine) -> bool:
     """Whether the mandate allows system packages (a compiler, C headers) from Debian's archive."""
     from unbidden.contracts.guardian import ActionRequest
@@ -506,9 +556,7 @@ def provision(
             "node dependencies were not installed: the lockfile depends on .pnpmfile.cjs, repository code that pnpm "
             "runs during install with network access; Unbidden does not run repository code outside the sandbox"
         )
-    # The Debian packages the project's CI test job installs itself (humanize: gettext), when the mandate allows
-    # Debian's archive; refused, the job's step that needs them fails and says so.
-    wanted = tuple(getattr(stack, "system_packages", ())) if system_build_tools else ()
+    wanted = system_packages_wanted(stack, allowed=system_build_tools)
     try:
         return _provision(repo, rev, stack, docker=docker, system_build_tools=False, headers=wanted)
     except ProvisionError as exc:

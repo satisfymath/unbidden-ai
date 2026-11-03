@@ -49,7 +49,8 @@ def test_credential_looking_values_are_masked_and_the_prompt_passes_the_scan() -
 def test_a_refused_request_is_recorded_not_swallowed() -> None:
     notes: list[str] = []
     assert ask(Brain(fail=True), notes) is None
-    assert any(n.startswith("lab.workload: no answer (PolicyDenied: refused") for n in notes)
+    # A policy refusal is a block, not a bad answer to repair (campaign 12, phase 6): said as such, once.
+    assert any(n.startswith("lab.workload: the mandate denies the model call (refused") for n in notes)
 
 
 def test_the_labs_own_output_travels_apart_and_personal_values_are_masked() -> None:
