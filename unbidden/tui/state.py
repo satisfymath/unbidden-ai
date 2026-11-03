@@ -26,6 +26,7 @@ class Bar:
     local_reachable: bool | None = None  # None: not probed yet
     spend_available: float | None = None
     spend_verified: bool = False
+    key_rejected: bool = False  # the last remote model call was refused for its key (MODEL_CALLED, "key rejected")
     dashboard_url: str | None = None
     last_seq: int = 0
     last_event_at: datetime | None = None
@@ -98,12 +99,28 @@ def read_dashboard(ws: Any, bar: Bar) -> Bar:
     return bar
 
 
+def key_rejected(events: Any) -> bool | None:
+    """What the last remote model call in `events` says about the key: True when it was refused for the key, False
+    when a remote call answered, None when none of these events is a remote model call."""
+    from unbidden.contracts.events import EventType
+
+    verdict: bool | None = None
+    for event in events:
+        if event.type is not EventType.MODEL_CALLED or event.payload.get("tier") == "local":
+            continue
+        verdict = event.payload.get("problem") == "key rejected"
+    return verdict
+
+
 def format_bar(bar: Bar, width: int, *, accent: str | None = None) -> str:
     """One line of rich markup; fields drop from the right when the width is short."""
     parts: list[str] = [f"[bold]{MARK} {bar.workspace or 'unbidden'}[/]"]
     if bar.kill:
         style = f"bold {accent}" if accent else "bold reverse"
         parts.append(f"[{style}]{t('bar.kill')}[/]")
+    if bar.key_rejected:
+        style = f"bold {accent}" if accent else "bold reverse"
+        parts.append(f"[{style}]{t('bar.key.rejected')}[/]")
     if bar.agent_running:
         parts.append(t("bar.agent.running", pid=bar.agent_pid))
     elif bar.agent_stale:

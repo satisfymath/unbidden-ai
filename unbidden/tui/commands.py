@@ -54,6 +54,7 @@ SPECS: dict[str, Spec] = {
     "doctor": Spec("doctor"),
     "ui": Spec("ui", 0, 1),
     "setup": Spec("setup", 0, 1),
+    "key": Spec("key"),
     "language": Spec("language", 0, 1),
     "log": Spec("log"),
     "verbose": Spec("verbose"),

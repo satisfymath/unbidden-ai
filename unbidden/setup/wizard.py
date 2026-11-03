@@ -12,7 +12,7 @@ import os
 import sys
 import threading
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Literal, Protocol
 
@@ -38,6 +38,7 @@ from unbidden.guardian.mandate_edit import (
 from unbidden.setup import machine
 from unbidden.setup.discover import Found, discover
 from unbidden.setup.effective import effective_permissions, render
+from unbidden.setup.keycheck import KeyVerdict, current_key, looks_like_key, recall, verify_key, verify_local
 from unbidden.setup.text import t
 from unbidden.store import Store
 from unbidden.workspace import Workspace
@@ -46,7 +47,7 @@ from unbidden.workspace import Workspace
 # whether to apply. Everything else is found or has a default shown in the summary; the advanced sections run only
 # by name (`unbidden setup budget`, `/setup connections`) or with --all.
 SECTIONS = ("found", "models", "autonomy")
-ADVANCED = ("priorities", "credentials", "connections", "budget", "dashboard", "private_code", "language")
+ADVANCED = ("priorities", "credentials", "key", "connections", "budget", "dashboard", "private_code", "language")
 ALL = SECTIONS + ADVANCED
 OLD_NAMES = {"project": "found"}  # a setup.json written by 0.10
 ModelOption = Literal["local", "mixed", "api"]
@@ -230,9 +231,10 @@ def read_stdin_secrets(names: Sequence[str]) -> dict[str, str]:
 
 # --- the walk ----------------------------------------------------------------------------------------------------
 
-Probe = Callable[[Workspace], dict[str, Any]]
+Probe = Callable[..., dict[str, Any]]  # probe(ws, *, max_tokens) -> {"ok", "model", "usd"} or {"ok": False, "why"}
 Pull = Callable[[str, Callable[[str], None]], bool]  # download a local model, narrating through `say`
 Terminal = Callable[[list[str]], int]  # run a command in the person's terminal (gh install, gh auth login)
+ProbeLocal = Callable[[str, str], KeyVerdict]  # one short generation against Ollama (url, model tag)
 
 
 def run_in_terminal(argv: list[str]) -> int:
@@ -269,6 +271,7 @@ class Context:
     notes: list[str] = field(default_factory=list)
     pull: Pull = pull_model
     terminal: Terminal = run_in_terminal
+    probe_local: ProbeLocal = verify_local
     found: Found | None = None
     cancel: threading.Event = field(default_factory=threading.Event)  # set by Ctrl+C while a wait cannot ask
 
@@ -375,55 +378,34 @@ def step_priorities(ctx: Context) -> None:
 
 
 def step_models(ctx: Context) -> None:
-    """The option follows from what the machine has; the only question is the key, when none is found."""
+    """The option follows from what the machine has; the only question is the key, when none is found. A key is
+    proven with one short call before anything else is decided: a refused key is said, never counted as present."""
     ctx.title("models.title")
     found = ctx.facts()
     env_path = machine.machine_env()
     key_present = found.key_present
     asks_key = not ctx.opts.non_interactive and not key_present and ctx.opts.models != "local"
     if ctx.opts.model_key_stdin or asks_key:
-        if ctx.opts.non_interactive:
-            value = ctx.io.secret(found.key_env, "")
-        else:
+        if not ctx.opts.non_interactive:
             ctx.say(t("models.key.why"))
-            value = ctx.io.secret(found.key_env, t("models.key.ask", name=found.key_env))
-        if value:
-            machine.write_env(env_path, {found.key_env: value})
-            broker().hold(found.key_env, value)
-            broker().grant(found.key_env, "model.remote")
-            ctx.say(t("credentials.saved", name=found.key_env))
-            key_present = True
-            if found.key_env not in ctx.answers.credentials_saved:
-                ctx.answers.credentials_saved.append(found.key_env)
-            from unbidden.cli import meta_api_status
-
-            ok, detail = meta_api_status(True)
-            ctx.say(t("credentials.listing", detail=detail))
-            if not ok and "refuses" in detail:
-                ctx.say(t("credentials.listing.note"))
-        else:
-            ctx.say(t("models.key.skipped"))
+        key_present = _take_key(ctx, found.key_env, env_path, skippable=True)
+    elif key_present and ctx.opts.models != "local":
+        # Saved earlier (another repository, an earlier version): proven once per key, never paid for twice.
+        verdict = _prove_key(ctx, found.key_env)
+        if verdict.rejected and not ctx.opts.non_interactive:
+            key_present = _key_next(ctx, found.key_env, env_path)
     found.key_present = key_present
     if ctx.opts.models is not None:
         option, why = ctx.opts.models, "models.why.flag"
     else:
         option, why = found.option()
     ctx.say(t("models.chosen", option=option, why=t(why)))
-    if option == "local" and not found.local_model and not found.ollama_present:
+    ctx.answers.models = option  # type: ignore[assignment]
+    if option != "api" and not found.local_model:
+        _local_plan(ctx, found)
+    if option == "local" and not found.local_model:
         ctx.say(t("models.none"))
         ctx.notes.append(t("models.none"))
-    ctx.answers.models = option  # type: ignore[assignment]
-    rec = found.recommendation
-    if option != "api" and not rec.installed and rec.fits and found.ollama_present:
-        pull = (
-            ctx.opts.pull_model
-            if ctx.opts.non_interactive
-            else ctx.io.confirm("pull_model", t("models.pull.ask", tag=rec.model.tag, gb=rec.model.loaded_gb), True)
-        )
-        if pull:
-            ctx.pull(rec.model.tag, ctx.say)
-        else:
-            ctx.say(t("models.pull.skip"))
     private = (
         ctx.opts.private_code
         or ctx.answers.private_code_to_frontier
@@ -434,8 +416,150 @@ def step_models(ctx: Context) -> None:
     ctx.answers.private_code_to_frontier = private  # type: ignore[assignment]
     apply_model_option(ctx.raw, option)
     apply_models(ctx.raw, private_code_to_frontier=private)
-    if ctx.opts.probe and key_present:
-        _offer_probe(ctx)
+
+
+SHAPE_ROUNDS = 3  # a pasted value that cannot be a key is asked again this many times
+KEY_ROUNDS = 3  # a key the service refuses may be replaced this many times in one walk
+
+
+def _ask_key(ctx: Context, name: str, *, skippable: bool) -> str:
+    """The key, hidden; a value that cannot be a key (a command, spaces, too short) is said and asked again."""
+    prompt = t("models.key.ask" if skippable else "key.ask", name=name)
+    for _ in range(SHAPE_ROUNDS + 1):
+        value = ctx.io.secret(name, "" if ctx.opts.non_interactive else prompt).strip()
+        if not value:
+            return ""
+        why = looks_like_key(value)
+        if why is None:
+            return value
+        ctx.say(t(f"models.key.shape.{why}"))
+        if ctx.opts.non_interactive:
+            return ""
+    return ""
+
+
+def _save_key(ctx: Context, name: str, env_path: Path, value: str) -> None:
+    machine.write_env(env_path, {name: value})
+    broker().hold(name, value)
+    broker().grant(name, "model.remote")
+    ctx.say(t("credentials.saved", name=name))
+    if name not in ctx.answers.credentials_saved:
+        ctx.answers.credentials_saved.append(name)
+
+
+def _prove_key(ctx: Context, name: str, *, force: bool = False) -> KeyVerdict:
+    """One short inference call (less than a cent, in the ledger), unless this very key was proven before."""
+    known = None if force else recall(name, current_key(name) or "")
+    if known is None or not (known.ok or known.rejected):
+        ctx.say(t("models.key.proving"))
+    verdict = verify_key(ctx.ws, name=name, probe=ctx.probe, force=force)
+    ctx.answers.probe = verdict.as_dict()
+    if verdict.ok:
+        ctx.say(t("models.key.verified", model=verdict.model or "the model", usd=verdict.usd))
+    elif verdict.rejected:
+        ctx.say(t("models.key.rejected", why=(verdict.why or "")[:160]))
+    else:
+        ctx.say(t("models.key.unproven", why=(verdict.why or "")[:160]))
+    return verdict
+
+
+def _take_key(ctx: Context, name: str, env_path: Path, *, skippable: bool) -> bool:
+    """Ask, save and prove a key; when the service refuses it, offer another, the local model, or nothing.
+    True when a key that was not refused is saved."""
+    for round_ in range(KEY_ROUNDS):
+        value = _ask_key(ctx, name, skippable=skippable or round_ > 0)
+        if not value:
+            ctx.say(t("models.key.skipped"))
+            return False
+        _save_key(ctx, name, env_path, value)
+        verdict = _prove_key(ctx, name)
+        if not verdict.rejected:
+            return True  # proven, or not provable now (network): the key is not what failed
+        if ctx.opts.non_interactive:
+            return False
+        pick = _key_menu(ctx)
+        if pick == "local":
+            return False
+        if pick == "none":
+            ctx.say(t("models.key.none"))
+            return False
+    ctx.say(t("models.key.gaveup", n=KEY_ROUNDS))
+    return False
+
+
+def _key_menu(ctx: Context) -> str:
+    for option in ("key", "local", "none"):
+        ctx.say(f"  {t('models.key.next.' + option)}")
+    return ctx.io.choice("key_next", t("models.key.next"), ("key", "local", "none"), "key")
+
+
+def _key_next(ctx: Context, name: str, env_path: Path) -> bool:
+    """A key found saved but refused: the same three ways out as a freshly pasted one."""
+    pick = _key_menu(ctx)
+    if pick == "key":
+        return _take_key(ctx, name, env_path, skippable=False)
+    if pick == "none":
+        ctx.say(t("models.key.none"))
+    return False
+
+
+def _local_plan(ctx: Context, found: Found) -> None:
+    """A local model, made to work rather than named: Ollama installed when missing (the person's terminal, after
+    asking), the model that fits pulled, one short generation to prove it answers."""
+    from unbidden.setup import ollama_install
+
+    rec = found.recommendation
+    if not rec.fits:
+        ctx.say(t("models.local.nofit", reason=rec.reason))
+        return
+    if not found.ollama_present:
+        if ctx.opts.non_interactive:
+            ctx.say(t("models.ollama.manual", site=ollama_install.SITE))
+            return
+        command = ollama_install.install_command()
+        if command is None:
+            ctx.say(t("models.ollama.manual", site=ollama_install.SITE))
+            return
+        if not ctx.io.confirm("install_ollama", t("models.ollama.ask", command=" ".join(command)), True):
+            ctx.say(t("models.ollama.skipped", site=ollama_install.SITE))
+            return
+        if not ollama_install.install(ctx.terminal):
+            ctx.say(t("models.ollama.failed", site=ollama_install.SITE))
+            return
+        found.ollama_present = True
+    if not ollama_install.start_server(found.ollama_url):
+        ctx.say(t("models.ollama.down", url=found.ollama_url))
+        return
+    if not rec.installed:
+        pull = (
+            ctx.opts.pull_model
+            if ctx.opts.non_interactive
+            else ctx.io.confirm("pull_model", t("models.pull.ask", tag=rec.model.tag, gb=rec.model.loaded_gb), True)
+        )
+        if not pull:
+            ctx.say(t("models.pull.skip"))
+            return
+        if not ctx.pull(rec.model.tag, ctx.say):
+            ctx.say(t("models.local.failed", why="the download did not finish"))
+            return
+        found.installed.add(rec.model.tag)
+        found.recommendation = replace(rec, installed=True)
+    verdict = ctx.probe_local(found.ollama_url, rec.model.tag)
+    if verdict.ok:
+        ctx.say(t("models.local.verified", tag=rec.model.tag))
+        if rec.model.family == "llama":
+            ctx.say(t("models.local.small", tag=rec.model.tag))
+    else:
+        ctx.say(t("models.local.failed", why=(verdict.why or "")[:160]))
+
+
+def step_key(ctx: Context) -> None:
+    """`unbidden key set` and the app's /key: replace the model key, proven before anything else."""
+    ctx.title("key.title")
+    found = ctx.facts()
+    env_path = machine.machine_env()
+    ctx.say(t("credentials.where", path=env_path))
+    found.key_present = _take_key(ctx, found.key_env, env_path, skippable=False)
 
 
 def step_language(ctx: Context) -> None:
@@ -466,19 +590,19 @@ def step_credentials(ctx: Context) -> None:
     saved: list[str] = []
     needs_key = (ctx.answers.models or _option_of(ctx.body.get("models") or {})) in ("mixed", "api")
     if needs_key:
-        if _credential(ctx, "MODEL_API_KEY", env_path, stdin_flag=ctx.opts.model_key_stdin):
-            saved.append("MODEL_API_KEY")
-        if broker().has("MODEL_API_KEY"):
-            broker().grant("MODEL_API_KEY", "model.remote")
-            from unbidden.cli import meta_api_status
-
-            ok, detail = meta_api_status(True)
-            ctx.say(t("credentials.listing", detail=detail))
-            if not ok and "refuses" in detail:
-                ctx.say(t("credentials.listing.note"))
-            _offer_probe(ctx)
+        name = ctx.facts().key_env
+        present = name in machine.read_env(env_path) or broker().has(name)
+        if ctx.opts.non_interactive:
+            keep = present and not ctx.opts.model_key_stdin
+        else:
+            keep = present and ctx.io.confirm(f"keep_{name}", t("credentials.have", name=name), True)
+        if keep:
+            broker().grant(name, "model.remote")
+            _prove_key(ctx, name)
+        elif _take_key(ctx, name, env_path, skippable=True):
+            saved.append(name)
         elif ctx.answers.models == "api":
-            ctx.say(t("credentials.skipped", name="MODEL_API_KEY"))
+            ctx.say(t("credentials.skipped", name=name))
     wants_github = ctx.opts.github_token_stdin or (
         not ctx.opts.non_interactive
         and ctx.io.confirm("github", t("credentials.github.ask"), broker().has("GITHUB_TOKEN"))
@@ -507,33 +631,9 @@ def _credential(ctx: Context, name: str, env_path: Path, *, stdin_flag: bool) ->
     return True
 
 
-def _offer_probe(ctx: Context) -> None:
-    from unbidden.brain.spend import worst_cost
-    from unbidden.contracts.llm import Tier
-
-    config = ctx.ws.config()
-    route = config.routing.get(Tier.CODE)
-    price = config.prices.models.get(route.model) if route else None
-    cost = worst_cost(400, 16, price.input_per_mtok, price.output_per_mtok) if price else 0.01
-    wanted = (
-        ctx.opts.probe
-        if ctx.opts.non_interactive
-        else ctx.io.confirm("probe", t("credentials.probe.ask", cost=cost), False)
-    )
-    if not wanted:
-        ctx.say(t("credentials.probe.skip"))
-        return
-    result = ctx.probe(ctx.ws)
-    ctx.answers.probe = result
-    if result.get("ok"):
-        ctx.say(t("credentials.probe.ok", model=result.get("model"), usd=result.get("usd", 0.0)))
-    else:
-        ctx.say(t("credentials.probe.fail", why=result.get("why")))
-
-
-def probe_remote(ws: Workspace) -> dict[str, Any]:
+def probe_remote(ws: Workspace, *, max_tokens: int = 16) -> dict[str, Any]:
     """One short call through the Brain where heavy work would go: the same policy, egress gate and ledger as any
-    other call. Never run unless a person asked for it."""
+    other call. Run once per key, when it is pasted or first met, so no agent starts on a key that is refused."""
     from unbidden.brain.router import Brain, BrainError
     from unbidden.contracts.llm import LLMRequest, Message, Tier
     from unbidden.runtime import _grant_model_keys, build_providers
@@ -550,7 +650,7 @@ def probe_remote(ws: Workspace) -> dict[str, Any]:
             Message(role="system", content="You are a connectivity check.", source="prompt"),
             Message(role="user", content="Reply with the single word OK.", source="prompt"),
         ],
-        max_tokens=16,
+        max_tokens=max_tokens,
     )
 
     async def once() -> Any:
@@ -733,6 +833,7 @@ STEPS: dict[str, Callable[[Context], None]] = {
     "autonomy": step_autonomy,
     "priorities": step_priorities,
     "credentials": step_credentials,
+    "key": step_key,
     "connections": step_connections,
     "budget": step_budget,
     "dashboard": step_dashboard,
@@ -804,6 +905,7 @@ def _flagged(opts: Options, section: str) -> bool:
     return {
         "priorities": opts.priorities is not None,
         "credentials": opts.github_token_stdin,
+        "key": False,
         "connections": bool(opts.connections or opts.credentials_stdin),
         "budget": opts.budget is not None,
         "dashboard": opts.dashboard is not None,
@@ -817,11 +919,12 @@ def run(
     opts: Options,
     out: Console,
     *,
-    probe: Probe = probe_remote,
+    probe: Probe | None = None,
     io: IO | None = None,
     pull: Pull = pull_model,
     cancel: threading.Event | None = None,
     terminal: Terminal | None = None,
+    probe_local: ProbeLocal | None = None,
 ) -> int:
     """Walk the sections (or one), show the summary and the diff, write once. Exit 0 written, 3 nothing written,
     2 cancelled or an answer missing, 4 the mode asked for is blocked and no other mode was named."""
@@ -830,6 +933,8 @@ def run(
     raw = read_raw(ws.mandate_path)
     before_text = ws.mandate_path.read_text()
     answers = load_answers(ws)
+    probe = probe or probe_remote  # looked up at call time: the test suite replaces the module's
+    probe_local = probe_local or verify_local
     if opts.show:
         data = summary(Context(ws, store, raw, answers, io or Interactive(out), out, opts, probe), validate(raw))
         if opts.json:
@@ -855,6 +960,7 @@ def run(
     ctx = Context(
         ws, store, raw, answers, io, out, opts, probe, pull=pull, cancel=cancel or threading.Event(),
         terminal=terminal or run_in_terminal,  # looked up at call time: the test suite replaces it
+        probe_local=probe_local,
     )  # fmt: skip
     answers.completed = [OLD_NAMES.get(name, name) for name in answers.completed]
     if created:
@@ -894,6 +1000,8 @@ def run(
         out.print(f"[yellow]{exc}[/]")
         out.print(t("summary.cancelled", path=answers_path(ws)))
         return 2
+    if opts.section == "key":
+        return 0  # the key lives on the machine, not in the mandate: nothing to summarize or apply
     mandate = validate(raw)
     data = summary(ctx, mandate)
     after_text = yaml.safe_dump(raw, sort_keys=False)

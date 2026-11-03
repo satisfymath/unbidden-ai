@@ -65,7 +65,55 @@ T: dict[str, str] = {
         "funciona el modelo local."
     ),
     "models.key.ask": "{name} (oculta; Enter para omitir y usar solo el modelo local)",
-    "models.key.skipped": "Sin clave. Más tarde: `unbidden setup models`.",
+    "models.key.skipped": "Sin clave. Más tarde: `unbidden key set`.",
+    "models.key.shape.command": "Eso parece un comando, no una clave. Pega la clave misma (no tiene espacios).",
+    "models.key.shape.spaces": "Una clave no tiene espacios. Pega la clave misma.",
+    "models.key.shape.short": "Una clave es más larga que eso. Pega la clave misma.",
+    "models.key.proving": (
+        "Probando la clave con una llamada corta a la API de Meta (menos de un centavo, en el libro)."
+    ),
+    "models.key.verified": "Clave aceptada: {model} respondió (US${usd:.4f}).",
+    "models.key.rejected": "Meta rechazó esta clave ({why}). Nada funciona con ella.",
+    "models.key.unproven": (
+        "La clave no se pudo probar ahora ({why}); queda guardada y `unbidden key` la prueba después."
+    ),
+    "models.key.next": "¿Y ahora?",
+    "models.key.next.key": "key: pegar otra clave",
+    "models.key.next.local": "local: usar un modelo en esta máquina (Ollama)",
+    "models.key.next.none": "none: seguir sin modelo (el agente no arrancará)",
+    "models.key.none": (
+        "Sin modelo que funcione. `unbidden key set` o `unbidden setup models` después; `start` se niega "
+        "hasta entonces."
+    ),
+    "models.key.gaveup": "Ninguna clave aceptada en {n} intentos. Más tarde: `unbidden key set`.",
+    "models.ollama.ask": (
+        "Ollama no está instalado. ¿Instalarlo ahora en tu terminal con `{command}`? (puede pedir tu contraseña)"
+    ),
+    "models.ollama.manual": (
+        "Ollama no está instalado y esta máquina no tiene un instalador que correr: {site}, luego `unbidden "
+        "setup models`."
+    ),
+    "models.ollama.skipped": "No instalado. Más tarde: {site}, luego `unbidden setup models`.",
+    "models.ollama.failed": "Ollama no se instaló; {site} explica las formas.",
+    "models.ollama.down": (
+        "Ollama está instalado pero no responde en {url}: corre `ollama serve`, luego `unbidden setup models`."
+    ),
+    "models.local.verified": "El modelo local responde: {tag}.",
+    "models.local.failed": "El modelo local no respondió ({why}). `unbidden doctor --fix` lo intenta de nuevo.",
+    "models.local.small": (
+        "{tag} es pequeño: sirve para lo que nunca sale de la máquina (renombrar, revisar). El trabajo pesado "
+        "necesita una clave de la API de Meta."
+    ),
+    "models.local.nofit": (
+        "Ningún modelo local cabe en esta máquina ({reason}); el camino es una clave de la API de Meta."
+    ),
+    "key.title": "Clave del modelo",
+    "key.ask": "{name} (oculta)",
+    "key.none": "no hay {name} guardada en esta máquina; `unbidden key set` guarda y prueba una",
+    "key.proven": "{name} guardada y probada {at}: {model} respondió",
+    "key.rejected": "{name} guardada pero Meta la rechazó {at}; `unbidden key set` la reemplaza",
+    "key.unproven": "{name} guardada, aún sin probar ({why})",
+    "key.removed": "{name} quitada de {path}.",
     "models.chosen": "opción de modelo: {option} ({why}); `unbidden setup models` la cambia",
     "models.why.flag": "elegida por --models",
     "models.why.mixed": "hay una clave y un modelo local",
@@ -93,19 +141,8 @@ T: dict[str, str] = {
     "credentials.ask": "{name} (oculta; deja vacío para omitir)",
     "credentials.saved": "{name} guardada.",
     "credentials.skipped": (
-        "{name} sin definir: las llamadas remotas se rechazan hasta que la añadas (`unbidden setup credentials`)."
+        "{name} sin definir: las llamadas remotas se rechazan hasta que la añadas (`unbidden key set`)."
     ),
-    "credentials.listing": "API de Meta: {detail}",
-    "credentials.listing.note": (
-        "Que el listado de modelos sea rechazado no significa que la inferencia falle (visto el 2026-10-29: /models "
-        "respondió 401 mientras las llamadas funcionaban). La prueba pagada opcional de abajo las distingue."
-    ),
-    "credentials.probe.ask": (
-        "¿Hacer una llamada de inferencia pagada para confirmar la clave? Como mucho US${cost:.4f} a precio de lista."
-    ),
-    "credentials.probe.ok": "La inferencia funciona: {model} respondió; coste US${usd:.4f} anotado en el libro.",
-    "credentials.probe.fail": "La inferencia no funcionó: {why}",
-    "credentials.probe.skip": "Omitida. La configuración se guarda igual.",
     "credentials.github.ask": "¿Debe Unbidden poder publicar pull requests? (necesita GITHUB_TOKEN)",
     "autonomy.title": "Autonomía y alcance",
     "autonomy.explain": (

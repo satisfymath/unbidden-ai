@@ -89,11 +89,11 @@ class StartVerdict:
 
 
 def start_checks(ws: Any, *, docker_timeout_s: float = 5.0) -> StartVerdict:
-    """What `start` looks at before running the agent, with local evidence only (no listing of a remote API, no
-    GitHub, no repository diagnosis): the agent must not run on a configuration under which every cycle fails.
-    Refuses: the option's model is missing (Ollama unreachable or the recommended model not pulled; no API key for
-    the frontier profile). Warns and starts: Docker or its plugins absent (experiments and the map stay blocked
-    until it runs), no GitHub token while the mandate lets proposals become pull requests."""
+    """What `start` looks at before running the agent (no GitHub, no repository diagnosis): the agent must not run
+    on a configuration under which every cycle fails. Refuses: the option's model is missing (Ollama unreachable or
+    the recommended model not pulled; no API key for the frontier profile, or one the service refused: each key is
+    proven once with a short call). Warns and starts: Docker or its plugins absent (experiments and the map stay
+    blocked until it runs), no GitHub token while the mandate lets proposals become pull requests."""
     import shutil
     import subprocess
 
@@ -124,10 +124,22 @@ def start_checks(ws: Any, *, docker_timeout_s: float = 5.0) -> StartVerdict:
                 verdict.refused.append(
                     StartCheck("local model", False, f"{rec.model.tag} not installed", "unbidden doctor --fix", True)
                 )
-    if needs["meta api"] == "required":
-        key_env = next((p.key_env for p in config.providers.values() if p.key_env), "MODEL_API_KEY")
-        if not broker().has(key_env):
-            verdict.refused.append(StartCheck("meta api", False, f"no {key_env}", "unbidden setup models", True))
+    key_env = next((p.key_env for p in config.providers.values() if p.key_env), "MODEL_API_KEY")
+    if needs["meta api"] == "required" and not broker().has(key_env):
+        verdict.refused.append(StartCheck("meta api", False, f"no {key_env}", "unbidden key set", True))
+    elif broker().has(key_env) and option_of(mandate.models) in ("api", "mixed"):
+        # A key the service refuses fails every remote call: proven once per key (one short call, in the ledger);
+        # a key that cannot be proven now (no network) is not what would fail, so it only warns.
+        from unbidden.setup.keycheck import verify_key
+
+        key = verify_key(ws, name=key_env)
+        if key.rejected:
+            check = StartCheck("meta api", False, f"{key_env} refused by the service", "unbidden key set", True)
+            (verdict.refused if needs["meta api"] == "required" else verdict.warnings).append(check)
+        elif not key.ok:
+            verdict.warnings.append(
+                StartCheck("meta api", False, f"{key_env} not proven ({(key.why or '')[:80]})", "unbidden key", False)
+            )
     if needs["docker"] == "required":
         up = False
         if shutil.which("docker"):

@@ -17,6 +17,11 @@ class ProviderRejected(ProviderError):
     """HTTP 400: the request shape was refused (often a schema the provider's grammar cannot express)."""
 
 
+class ProviderUnauthorized(ProviderRejected):
+    """HTTP 401 or 403: the service refused the key. Nothing was generated or billed, no retry can help, and no
+    fallback hides it: the person has to replace the key (`unbidden key set`)."""
+
+
 @runtime_checkable
 class LLMProvider(Protocol):
     name: str

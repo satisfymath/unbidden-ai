@@ -1259,8 +1259,7 @@ def doctor_checks(
     checks.append(("docker", bool(docker), "running" if docker else "not running: the sandbox needs Docker"))
     for name, ok, detail in docker_plugins(bool(docker)):
         checks.append((name, ok, detail))
-    key = broker().has("MODEL_API_KEY")
-    checks.append(("meta api", *meta_api_status(key)))
+    checks.append(("meta api", *meta_api_check(ws)))
     checks.append(
         (
             "github",
@@ -1289,17 +1288,44 @@ def doctor_checks(
             checks.append((name, ok, note))
     except WorkspaceError:
         pass
-    if fix and not rec.installed and rec.fits:
-        if say is not None:
-            say(f"pulling {rec.model.tag} ...")
-        pulled = subprocess.run(["ollama", "pull", rec.model.tag], check=False).returncode == 0
-        checks.append(("fix", pulled, f"{'pulled' if pulled else 'could not pull'} {rec.model.tag}"))
+    if fix and not (rec.installed and rec.fits):
+        checks.append(("fix", *doctor_fix(rec, ollama_url, say)))
     # Required or optional follows the option the mandate chose: `api` needs no Ollama, `local` needs no key.
     from unbidden.setup.requirements import doctor_requirements, explain
 
     needs = doctor_requirements(mandate_for_doctor)
     required = {name for name, need in needs.items() if need == "required"}
     return checks, required, explain(needs, mandate_for_doctor)
+
+
+def doctor_fix(rec: Any, ollama_url: str, say: Any) -> tuple[bool, str]:
+    """`doctor --fix`: Ollama installed when missing (the official installer, in this terminal), its server started,
+    the model that fits pulled, one short generation to prove it answers."""
+    import subprocess
+
+    from unbidden.setup import ollama_install
+    from unbidden.setup.keycheck import verify_local
+
+    tell = say or (lambda line: None)
+    if not rec.fits:
+        return False, f"no local model fits this machine ({rec.reason}); a Meta API key is the way"
+    if not ollama_install.installed():
+        command = ollama_install.install_command()
+        if command is None:
+            return False, f"Ollama is not installed and no installer can run here: {ollama_install.SITE}"
+        tell(f"installing Ollama: {' '.join(command)}")
+        if not ollama_install.install(lambda argv: subprocess.run(argv, check=False).returncode):
+            return False, f"Ollama did not install; {ollama_install.SITE} explains the ways"
+    if not ollama_install.start_server(ollama_url):
+        return False, f"Ollama does not answer at {ollama_url}: run `ollama serve`"
+    if not rec.installed:
+        tell(f"pulling {rec.model.tag} ...")
+        if subprocess.run(["ollama", "pull", rec.model.tag], check=False).returncode != 0:
+            return False, f"could not pull {rec.model.tag}"
+    proven = verify_local(ollama_url, rec.model.tag)
+    if not proven.ok:
+        return False, f"{rec.model.tag} pulled but did not answer ({(proven.why or '')[:120]})"
+    return True, f"{rec.model.tag} answers"
 
 
 def cmd_doctor(args: argparse.Namespace) -> int:
@@ -1673,10 +1699,74 @@ def meta_api_status(key: bool, get: Any = None) -> tuple[bool, str]:
     if status == 200:
         return True, "key set, API reachable"
     if status in (401, 403):
-        # Observed 2026-10-29: the model listing answered 401 while chat completions with the same key worked. Say
-        # what was seen; do not tell a person to replace a key that may still serve calls.
-        return False, f"the model listing refuses the key ({status}); calls may still work (see `unbidden spend`)"
+        # Observed 2026-10-29: the model listing answered 401 while chat completions with the same key worked, so
+        # the listing alone proves nothing; `meta_api_check` proves the key with one short inference call.
+        return False, f"the model listing refuses the key ({status})"
     return False, f"key set, the API answered {status}"
+
+
+def meta_api_check(ws: Workspace) -> tuple[bool, str]:
+    """Whether the saved key serves inference: proven once per key with one short call (`setup/keycheck.py`). When
+    it cannot be proven now, the free model listing says whether the API is reachable at all."""
+    from unbidden.setup.keycheck import verify_key
+
+    if not broker().has("MODEL_API_KEY"):
+        return False, "no MODEL_API_KEY: frontier models are off (`unbidden key set`)"
+    key = verify_key(ws)
+    if key.ok:
+        return True, f"key proven: {key.model} answered"
+    if key.rejected:
+        return False, "the service refused the key (401): `unbidden key set` replaces it"
+    _, listing = meta_api_status(True)
+    return False, f"key not proven ({(key.why or '')[:80]}); {listing}"
+
+
+def cmd_key(args: argparse.Namespace) -> int:
+    """The model key on this machine: its state (`key`), a new one proven on the spot (`key set`), or gone
+    (`key remove`). The value is never shown."""
+    from unbidden.setup import machine as machine_env
+    from unbidden.setup.keycheck import current_key, forget, recall
+    from unbidden.setup.text import t
+
+    ws = Workspace.find()
+    ws.load_env()
+    name = "MODEL_API_KEY"
+    path = machine_env.machine_env()
+    if args.action == "set":
+        from unbidden.setup.wizard import Options, run
+
+        return run(ws, Options(section="key", yes=True), console)
+    if args.action == "remove":
+        machine_env.write_env(path, {}, remove=[name])
+        forget(name)
+        if _emit(args, {"name": name, "present": False}):
+            return 0
+        console.print(t("key.removed", name=name, path=path))
+        return 0
+    value = current_key(name)
+    known = recall(name, value) if value else None
+    if not value:
+        state = "none"
+    elif known is None:
+        state = "unproven"
+    else:
+        state = "proven" if known.ok else "rejected" if known.rejected else "unproven"
+    at = ""
+    if known is not None:
+        from unbidden.setup.keycheck import _load
+
+        at = str((_load().get(name) or {}).get("at", ""))[:10]
+    if _emit(args, {"name": name, "present": bool(value), "state": state, "model": known.model if known else None,
+                    "at": at or None, "why": known.why if known else None}):  # fmt: skip
+        return 0 if state == "proven" else 1
+    line = {
+        "none": t("key.none", name=name),
+        "proven": t("key.proven", name=name, at=at, model=known.model if known else ""),
+        "rejected": t("key.rejected", name=name, at=at),
+        "unproven": t("key.unproven", name=name, why=(known.why if known and known.why else "never proven")),
+    }[state]
+    console.print(line, highlight=False)
+    return 0 if state == "proven" else 1
 
 
 def cmd_spend(args: argparse.Namespace) -> int:
@@ -2181,7 +2271,7 @@ def build_parser() -> argparse.ArgumentParser:
                        help="id=..,kind=postgres|http_api,location=..[,environment=..,credential_ref=..,username=..,"
                             "docs=..,permissions=read+write:x]")  # fmt: skip
     setup.add_argument("--pull-model", action="store_true", help="download the recommended local model if missing")
-    setup.add_argument("--probe", action="store_true", help="run the one paid inference test (shows its max cost)")
+    setup.add_argument("--probe", action="store_true", help="kept for older scripts: a pasted key is always proven")
     command("scan", cmd_scan, "run the repository's own checks in the sandbox and record opportunities")
     map_ = command("map", cmd_map, "discover the system and show what is known, how, and what cannot be seen")
     map_.add_argument("--cached", action="store_true", help="show the last map without discovering again")
@@ -2242,6 +2332,8 @@ def build_parser() -> argparse.ArgumentParser:
     deploys.add_argument("--commit", help="which deploys ran this commit (or a descendant of it)")
     doctor = command("doctor", cmd_doctor, "check the machine, local model, Docker, Meta API, GitHub and mandate")
     doctor.add_argument("--fix", action="store_true", help="pull the recommended local model if it is missing")
+    key = command("key", cmd_key, "the Meta API key on this machine: its state, set a new one (proven), or remove it")
+    key.add_argument("action", nargs="?", choices=["set", "remove"], help="set: paste and prove; remove: forget it")
     models = command("models", cmd_models, "show or set the model profile: local, local-first or frontier")
     models.add_argument("profile", nargs="?", choices=["local", "local-first", "frontier"])
     models.add_argument("--private-code", choices=["allow", "deny"], help="private code to frontier models")

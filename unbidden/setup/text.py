@@ -53,7 +53,47 @@ T: dict[str, str] = {
         "only renamed by the privacy bridge). Without one, only the local model works."
     ),
     "models.key.ask": "{name} (hidden; Enter to skip and use the local model only)",
-    "models.key.skipped": "No key. Later: `unbidden setup models`.",
+    "models.key.skipped": "No key. Later: `unbidden key set`.",
+    "models.key.shape.command": "That looks like a command, not a key. Paste the key itself (it has no spaces).",
+    "models.key.shape.spaces": "A key has no spaces. Paste the key itself.",
+    "models.key.shape.short": "A key is longer than that. Paste the key itself.",
+    "models.key.proving": "Proving the key with one short call to Meta's API (less than a cent, in the ledger).",
+    "models.key.verified": "Key accepted: {model} answered (US${usd:.4f}).",
+    "models.key.rejected": "Meta refused this key ({why}). Nothing works with it.",
+    "models.key.unproven": "The key could not be proven now ({why}); it is saved, and `unbidden key` proves it later.",
+    "models.key.next": "What now?",
+    "models.key.next.key": "key: paste another key",
+    "models.key.next.local": "local: use a model on this machine instead (Ollama)",
+    "models.key.next.none": "none: continue without a model (the agent will not start)",
+    "models.key.none": (
+        "No working model. `unbidden key set` or `unbidden setup models` later; `start` refuses until then."
+    ),
+    "models.key.gaveup": "No key accepted after {n} tries. Later: `unbidden key set`.",
+    "models.ollama.ask": (
+        "Ollama is not installed. Install it now in your terminal with `{command}`? (it may ask your password)"
+    ),
+    "models.ollama.manual": (
+        "Ollama is not installed and this machine has no installer to run: {site}, then `unbidden setup models`."
+    ),
+    "models.ollama.skipped": "Not installed. Later: {site}, then `unbidden setup models`.",
+    "models.ollama.failed": "Ollama did not install; {site} explains the ways.",
+    "models.ollama.down": (
+        "Ollama is installed but does not answer at {url}: run `ollama serve`, then `unbidden setup models`."
+    ),
+    "models.local.verified": "The local model answers: {tag}.",
+    "models.local.failed": "The local model did not answer ({why}). `unbidden doctor --fix` tries again.",
+    "models.local.small": (
+        "{tag} is small: it serves what never leaves the machine (renaming, reviewing). Heavy work needs a "
+        "Meta API key."
+    ),
+    "models.local.nofit": "No local model fits this machine ({reason}); a Meta API key is the way.",
+    "key.title": "Model key",
+    "key.ask": "{name} (hidden)",
+    "key.none": "no {name} saved on this machine; `unbidden key set` saves and proves one",
+    "key.proven": "{name} saved and proven {at}: {model} answered",
+    "key.rejected": "{name} saved but Meta refused it {at}; `unbidden key set` replaces it",
+    "key.unproven": "{name} saved, not proven yet ({why})",
+    "key.removed": "{name} removed from {path}.",
     "models.chosen": "model option: {option} ({why}); `unbidden setup models` changes it",
     "models.why.flag": "chosen by --models",
     "models.why.mixed": "a key and a local model are both here",
@@ -76,16 +116,7 @@ T: dict[str, str] = {
     "credentials.have": "{name} is already saved. Keep it?",
     "credentials.ask": "{name} (hidden; leave empty to skip)",
     "credentials.saved": "{name} saved.",
-    "credentials.skipped": "{name} not set: remote calls are refused until you add it (`unbidden setup credentials`).",
-    "credentials.listing": "Meta API: {detail}",
-    "credentials.listing.note": (
-        "A refused model listing does not mean inference fails (seen 2026-10-29: /models answered 401 while calls "
-        "worked). The optional paid test below tells them apart."
-    ),
-    "credentials.probe.ask": "Run one paid inference call to confirm the key? At most US${cost:.4f} at list price.",
-    "credentials.probe.ok": "Inference works: {model} answered; cost US${usd:.4f} recorded in the ledger.",
-    "credentials.probe.fail": "Inference did not work: {why}",
-    "credentials.probe.skip": "Skipped. The configuration is saved either way.",
+    "credentials.skipped": "{name} not set: remote calls are refused until you add it (`unbidden key set`).",
     "credentials.github.ask": "Should Unbidden be able to publish pull requests? (needs GITHUB_TOKEN)",
     "autonomy.title": "Autonomy and scope",
     "autonomy.explain": (
