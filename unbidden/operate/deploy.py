@@ -164,3 +164,17 @@ def drill(repo: Path, store: Store, mandate: Mandate, previous: str, health_url:
     store.set_value("rollback_drill", record)
     store.append_event(Event(type=EventType.DEPLOYED, actor="operator", payload={"drill": record}))
     return record
+
+
+def health_url(store: Store) -> str | None:
+    """The live health endpoint the map knows (`GET …health…` with a published port), as a URL; None without one."""
+    from unbidden.contracts.world import WorldModel
+
+    world = store.get("world", "world", WorldModel)
+    health = next(
+        (e for e in (world.of_kind("endpoint") if world else []) if e.name.startswith("GET ") and "health" in e.name),
+        None,
+    )
+    if health is None or not health.attributes.get("port"):
+        return None
+    return f"http://127.0.0.1:{health.attributes['port']}{health.name.split(' ', 1)[1]}"

@@ -113,6 +113,48 @@ def for_block(block: Any) -> Ask | None:
             dedup_key=f"registry:{','.join(sorted(hosts))}",
             cli=f"edit .unbidden/mandate.yaml: egress.package_registries += {hosts}",
         )
+    cap = re.match(r"raise business_constraints\.maximum_monthly_spend_usd above US\$([\d.]+)", needs)
+    if cap is not None:
+        ask = for_spend(None, float(cap.group(1)))
+        ask.subject = block.id
+        return ask
+    if "`unbidden spend`" in needs:
+        return Ask(
+            kind="ledger",
+            title="The spend this machine may make is used up. Authorize more?",
+            why=f"{block.operation} stopped: {needs}. The machine's record of credits is a person's; the agent never "
+            "changes it.",
+            options=[AskOption(key="later", label="later: `unbidden spend` from a terminal, then the work runs")],
+            default="later",
+            subject=block.id,
+            dedup_key="ledger:machine",
+            cli="unbidden spend --amend-cap <USD> --source <where>  ·  --envelopes NAME=USD,...",
+        )
+    if "unbidden resume" in needs:
+        return Ask(
+            kind="resume",
+            title="The kill switch stops everything. Release it?",
+            why=f"{block.operation} stopped: {needs}. Nothing runs, no model is called, until it is released.",
+            options=[
+                AskOption(key="resume", label="resume: the agent works again"),
+                AskOption(key="later", label="later: everything stays stopped"),
+            ],
+            default="later",
+            subject=block.id,
+            dedup_key="resume:killswitch",
+            cli="unbidden resume",
+        )
+    if "referenced in the mandate's grant" in needs:
+        return Ask(
+            kind="connection",
+            title="A connection's credential was refused. Replace it?",
+            why=f"{block.operation} stopped: {needs}. The value is kept in the project's .env and read by name.",
+            options=[AskOption(key="later", label="later: `unbidden setup connections` from a terminal")],
+            default="later",
+            subject=block.id,
+            dedup_key=f"connection:{block.id}",
+            cli="unbidden setup connections --connection id=..,kind=..,credential_ref=NAME --credential NAME",
+        )
     if re.search(r"approve-writes|forge approve|approval", needs):
         return Ask(
             kind="access",
@@ -176,12 +218,29 @@ def for_capability(need: Any) -> Ask:
     )
 
 
-def for_spend(spent: float, cap: float) -> Ask:
+def for_drill(steps: str) -> Ask:
+    return Ask(
+        kind="drill",
+        title="Prove the rollback now?",
+        why=f"Deploys run with `{steps}`. Autonomy relies on a rollback that was seen to work: the drill deploys the "
+        "previous commit, checks health, and deploys back.",
+        options=[
+            AskOption(key="run", label="run: the agent runs the drill on its next cycle"),
+            AskOption(key="later", label="later: `unbidden drill` from a terminal"),
+        ],
+        default="run",
+        dedup_key="drill:rollback",
+        cli="unbidden drill",
+    )
+
+
+def for_spend(spent: float | None, cap: float) -> Ask:
+    so_far = f"US${spent:.2f} was spent this month" if spent is not None else "This month's spend reached it"
     return Ask(
         kind="spend",
         title=f"The monthly cap (US${cap:.2f}) is reached. Raise it?",
-        why=f"US${spent:.2f} was spent this month; remote calls are refused until the cap is raised or the month "
-        "turns. Credits and the cap are different things: the cap is what this machine may spend.",
+        why=f"{so_far}; remote calls are refused until the cap is raised or the month turns. Credits and the cap are "
+        "different things: the cap is what this project may spend.",
         options=[
             AskOption(key="raise", label="raise: a new monthly cap in US$", input="text"),
             AskOption(key="later", label="later: local work continues"),
@@ -305,9 +364,32 @@ def _apply(ws: Any, store: Store, ask: Ask, option: str, value: str | None, who:
             steps.append(argv)
         operations["deploy_steps"] = steps
         write_mandate(ws.mandate_path, raw, store, {"ask": {"id": ask.id, "deploy_steps": argv}})
-        return f"deploy step declared: {command}; `unbidden drill` proves the rollback"
+        open_ask(store, for_drill(command))
+        return f"deploy step declared: {command}; the drill that proves the rollback is asked next"
     if ask.kind == "capability":
-        raise AskError("approving a capability is `unbidden forge approve <capability>` in this version")
+        from unbidden.contracts.capability import CapabilityNeed
+        from unbidden.forge.needs import COLLECTION as NEEDS
+        from unbidden.forge.needs import NotApprovable, approve_capability
+
+        need = store.get(NEEDS, ask.subject or "", CapabilityNeed)
+        if need is None or not need.capability_id:
+            raise AskError("the capability this question was about is gone")
+        try:
+            needs = approve_capability(store, need.capability_id, f"person:{who}")
+        except NotApprovable as exc:
+            raise AskError(str(exc)) from exc
+        return f"approved {need.capability_id}; {len(needs)} need(s) in use, what waited runs"
+    if ask.kind == "resume":
+        from unbidden.guardian.killswitch import KillSwitch
+
+        KillSwitch(ws.dir).release()
+        _release_blocks(store, ask)
+        return "kill switch released: the agent works again"
+    if ask.kind == "drill":
+        from unbidden.daemon.cycle import job
+
+        store.enqueue(job("ops.drill", f"drill:{ask.id}", {"ask": ask.id, "by": who}))
+        return "the drill runs on the agent's next cycle"
     if ask.kind == "spend":
         # The cap the router checks is the mandate's (`business_constraints.maximum_monthly_spend_usd`); the machine
         # ledger is a person's own record of credits and is never edited from a question (`unbidden spend`).
@@ -379,7 +461,20 @@ def reconcile(store: Store) -> list[Ask]:
             hold = store.get("holds", ask.subject, Hold)
             if hold is None or hold.released_at is not None:
                 why = "the hold was released"
-        elif ask.kind in ("credential", "registry", "access") and ask.subject:
+        elif ask.kind == "capability" and ask.subject:
+            from unbidden.contracts.capability import CapabilityNeed, NeedStatus
+            from unbidden.forge.needs import COLLECTION as NEEDS
+
+            need = store.get(NEEDS, ask.subject, CapabilityNeed)
+            if need is None or need.status is not NeedStatus.AWAITING_APPROVAL:
+                why = f"the need is {need.status.value if need else 'gone'}"
+        elif ask.kind == "drill":
+            drill = store.get_value("rollback_drill") or {}
+            if drill.get("passed"):
+                why = "the drill passed"
+        elif (
+            ask.kind in ("credential", "registry", "access", "resume", "ledger", "connection", "spend") and ask.subject
+        ):
             block = store.get(BLOCKS, ask.subject, Block)
             if block is not None and block.resolved:
                 why = "the block was resolved"
