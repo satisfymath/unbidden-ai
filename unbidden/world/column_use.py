@@ -89,8 +89,18 @@ def _words(path: str) -> set[str]:
     return {w.removesuffix("s") for w in re.split(r"[/_.\-]+", below) if len(w) > 2} - {"py"}
 
 
+_MODEL_BASE = re.compile(r"(?:^|[\s,(])(?:db\.)?Model(?:\s*,|\s*\)|$)")
+
+
+def default_table_name(cls: str) -> str:
+    """The table a model gets without `__tablename__`: Flask-SQLAlchemy writes the class name in snake case
+    (`ShoppingList` -> `shopping_list`, `Bill` -> `bill`)."""
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", cls).lower()
+
+
 def mapped_classes(sources: dict[str, str], table: str) -> list[str]:
-    """Classes mapped to `table`: SQLAlchemy's `__tablename__`, or a SQLModel `table=True` class of that name."""
+    """Classes mapped to `table`: SQLAlchemy's `__tablename__`, a SQLModel `table=True` class of that name, or a
+    Flask-SQLAlchemy `db.Model` subclass whose default table name it is."""
     found: list[str] = []
     for text in sources.values():
         lines = text.splitlines()
@@ -100,8 +110,13 @@ def mapped_classes(sources: dict[str, str], table: str) -> list[str]:
                 if name := re.match(r"class\s+(\w+)", owner):
                     found.append(name.group(1))
         for match in re.finditer(r"^class\s+(\w+)\s*\(([^)]*)\)", text, re.MULTILINE):
-            if match.group(1).lower() == table.lower() and "table=True" in match.group(2):
-                found.append(match.group(1))
+            cls, bases = match.group(1), match.group(2)
+            if cls.lower() == table.lower() and "table=True" in bases:
+                found.append(cls)
+            elif _MODEL_BASE.search(bases) and default_table_name(cls) == table.lower():
+                body = text[match.end() : match.end() + 2000].split("\nclass ", 1)[0]
+                if "__tablename__" not in body:
+                    found.append(cls)
     return sorted(set(found))
 
 
@@ -144,6 +159,8 @@ def _target(handler_file: str, definers: list[str], receiver: str = "") -> str |
         definers = [d for d in definers if d != handler_file]
     elif handler_file in definers:
         return handler_file
+    if len(definers) == 1:  # one definition in the repository: the call reaches it, whatever the names say
+        return definers[0]
     called_on = _words(receiver) if receiver else set()
 
     def rank(path: str) -> tuple[int, int, int]:
@@ -194,6 +211,12 @@ def column_users(repo: Path, rev: str, world: WorldModel, table: str, column: st
         if not file or not line:
             continue
         code = handler_source(repo, rev, str(file), int(str(line)))
+        own = re.search(r"^\s*(?:async\s+)?def\s+(?P<name>\w+)\s*\(", code, re.M)
+        if own is not None:  # the handler itself filters by the column (a Flask view querying inline)
+            use = next((u for u in by_function.get(own.group("name"), []) if u.file == file), None)
+            if use is not None:
+                found.append((endpoint.name, use))
+                continue
         for name, named in sorted(by_function.items()):
             call = next(
                 (

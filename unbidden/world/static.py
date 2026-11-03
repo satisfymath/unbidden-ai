@@ -12,6 +12,8 @@ from unbidden.contracts.world import BlindSpot, Relation, Resource, WorldModel
 from unbidden.observe.ci import ci_test_plan
 from unbidden.observe.compose import Compose, Service, load_compose
 from unbidden.observe.stack import Stack
+from unbidden.world.column_use import _MODEL_BASE, default_table_name
+from unbidden.world.flask_routes import flask_endpoints
 
 OBSERVED, INFERRED = EpistemicStatus.OBSERVED, EpistemicStatus.INFERRED
 
@@ -22,6 +24,7 @@ _HOST_KEY = re.compile(r"(?:^|_)(?:HOST|HOSTNAME|SERVER)$", re.IGNORECASE)
 _ROUTER = re.compile(r"^(?P<obj>\w+)\s*=\s*\w*Router\((?P<args>[^)]*)\)", re.MULTILINE)
 _PREFIX = re.compile(r"prefix\s*=\s*[\"'](?P<prefix>[^\"']+)[\"']")
 _INCLUDE = re.compile(r"(?P<obj>\w+)\.include_router\(\s*(?P<target>[\w.]+)")
+_FLASK = re.compile(r"\bBlueprint\(|\bFlask\(|\.add_resource\(")
 _FROM_IMPORT = re.compile(r"^from\s+(?P<mod>\.*[\w.]*)\s+import\s+(?:\((?P<group>[^)]*)\)|(?P<line>[^\n]+))", re.M)
 
 
@@ -180,15 +183,33 @@ def discover_static(
     py_files = [f for f in files if f.endswith(".py") and "/tests/" not in f and not f.startswith("tests/")]
     sources = {path: _show(repo, rev, path) for path in py_files}
     mounts = _mounts(sources)
+    # Flask declares no OpenAPI document: its routes are read from the code (blueprints, `url_prefix`,
+    # Flask-RESTful resources), each with the handler it reaches. Files that declare Flask routes are not read as
+    # FastAPI routers below (`@bp.get(...)` would otherwise be seen twice, once without its blueprint's prefix).
+    flask_files = {path for path, text in sources.items() if _FLASK.search(text)}
+    for endpoint in flask_endpoints(sources):  # resource classes may live in files that import no Flask
+        route = f"{endpoint.method} {endpoint.path}"
+        world.add(
+            Resource(
+                id=f"endpoint:{route}",
+                kind="endpoint",
+                name=route,
+                attributes={"file": endpoint.file, "line": endpoint.line, "prefix_known": True, "framework": "flask"},
+                status=INFERRED,
+                confidence=0.8,
+                evidence=[_ref("file", f"{endpoint.file}:{endpoint.line}")],
+            )
+        )
     for path, text in sources.items():
-        if "table=True" in text or "__tablename__" in text:
+        if "table=True" in text or "__tablename__" in text or _MODEL_BASE.search(text):
             for match in _TABLE_CLASS.finditer(text):
                 cls, bases = match.group(1), match.group(2)
                 body = text[match.end() : match.end() + 2000]
                 explicit = _TABLENAME.search(body.split("\nclass ", 1)[0])
-                if "table=True" not in bases and explicit is None:
+                model = _MODEL_BASE.search(bases) is not None  # Flask-SQLAlchemy: the class name in snake case
+                if "table=True" not in bases and explicit is None and not model:
                     continue
-                table = explicit.group(1) if explicit else cls.lower()
+                table = explicit.group(1) if explicit else default_table_name(cls) if model else cls.lower()
                 world.add(
                     Resource(
                         id=f"table:{table}",
@@ -200,7 +221,7 @@ def discover_static(
                         evidence=[_ref("file", f"{path}:{text[: match.start()].count(chr(10)) + 1}", f"class {cls}")],
                     )
                 )
-        if _ROUTE.search(text):
+        if path not in flask_files and _ROUTE.search(text):
             own = _own_prefixes(text)
             for match in _ROUTE.finditer(text):
                 line = text[: match.start()].count("\n") + 1
@@ -220,7 +241,7 @@ def discover_static(
                             evidence=[_ref("file", f"{path}:{line}")],
                         )
                     )
-    if any(r.kind == "endpoint" for r in world.resources.values()):
+    if any(r.kind == "endpoint" and not r.attributes.get("prefix_known") for r in world.resources.values()):
         world.blind_spots.append(
             BlindSpot(
                 what="full endpoint paths",

@@ -1,4 +1,28 @@
-# Unbidden 0.12.3, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.12.4, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.12.4 (2026-11-03): Flask applications have endpoints
+
+On the demo copy of ihatemoney (Flask with blueprints and Flask-RESTful, no OpenAPI document) the map had tables
+and no endpoints, so `unindexed_foreign_keys` and `full_table_scans` dropped every finding (an opportunity names the
+endpoints that pay for it; with none, there is nothing to measure) and the only opportunity was a ruff finding.
+Endpoints were read from FastAPI routers and from a live OpenAPI document only.
+
+- `world/flask_routes.py`: a Flask application's routes, read from the code: `Blueprint(..., url_prefix=)` and the
+  prefix given to `register_blueprint`, `@bp.route(path, methods=[...])` and `@bp.get/post/...`, Flask-RESTful's
+  `Api(bp, prefix=)` and `add_resource(Cls, "/path", ...)` as one endpoint per HTTP method the resource class
+  defines. `<int:x>` reads as `{x}`, so a live document, when there is one, reconciles the same way. Each endpoint
+  carries its handler's file and line (`static.py` adds them as inferred, `prefix_known`, `framework: flask`; a
+  file that declares Flask routes is not read as a FastAPI router too).
+- `world/column_use.py`: a Flask-SQLAlchemy model without `__tablename__` maps to its class name in snake case
+  (`Bill` -> `bill`, `ShoppingList` -> `shopping_list`), in the static table resources too; a handler that filters
+  by the column in its own body counts, and a call reaches the repository's only definition of that function
+  whatever the file names say (`web.py` calling `models.py`'s `get_bills_unordered`).
+- The "describe no OpenAPI" and "full endpoint paths" blind spots are not raised for endpoints read from Flask.
+
+Seen on the demo copy, from a checkout: 83 resources instead of 20; 64 endpoints; two opportunities on the first
+map: `person.project_id is a foreign key without an index, filtered on by 7 endpoint(s)` and `bill.payer_id ...
+filtered on by 1 endpoint(s)` (`GET /{project_id}/`, via `list_bills` and `get_bills_unordered`). Measuring them
+in the lab against a Flask server is the next walk.
 
 ## 0.12.3 (2026-11-03): a key is proven before anything runs on it; the installer speaks in steps
 
@@ -114,7 +138,7 @@ already existed (start, stop, kill switch, approve, reject, chat). `docs/INSTALL
 on macOS arm64 with the built wheel installed by `install.sh` into an empty HOME and driven in a pseudoterminal; CI
 unchanged (without a terminal, `unbidden` is the text home screen). Everything below describes 0.9.0 and still holds.
 
-**Status: 0.12.3, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
+**Status: 0.12.4, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
 met when the campaign paused at its gate (D-063); they are not changed here. The one that blocks 1.0: no useful cycle
 has been shown on an application not used in development. This candidate adds the product around the same engine:
 an installable wheel, a guided setup, one executor per workspace with a background agent, and the dashboard and chat
