@@ -440,7 +440,7 @@ class ToolRuntime:
                 **found.view.model_dump(),
                 **{k: v for k, v in args.view.items() if v is not None or k in ("x", "y", "series")},
             }
-            found.view, changes = View.model_validate(merged), [*changes, "vista"]
+            found.view, changes = View.model_validate(merged), [*changes, wt("widget.view")]
         if args.dataRef or args.view:
             found.view, prov, note = self._validate_view(found.dataRef, found.view)
             found.provenance = prov
@@ -466,7 +466,7 @@ class ToolRuntime:
         return ToolResult(
             ok=True,
             tool="update_widget",
-            summary=f"actualizado {', '.join(changes)} de «{found.title}»",
+            summary=wt("widget.updated", changes=", ".join(changes), title=found.title),
             widget_id=found.id,
         )
 
@@ -712,13 +712,13 @@ class RulePlanner:
                 else "run"
             )
             return (
-                f"Grafico el gasto remoto agrupado por {by}.",
+                wt("rule.spend", by=by),
                 [
                     (
                         "create_widget",
                         {
                             "type": "chart",
-                            "title": f"Gasto por {by}",
+                            "title": wt("rule.spend.title", by=by),
                             "dataRef": {
                                 "dataset": "spend.calls",
                                 "transform": {
@@ -916,7 +916,7 @@ class BrainPlanner:
                 )
             )
             if not response.tool_calls:
-                return response.content.strip() or "(sin respuesta)", calls, results
+                return response.content.strip() or wt("brain.noanswer"), calls, results
             messages.append(
                 Message(
                     role="assistant", content=response.content or "", source="prompt", tool_calls=response.tool_calls
@@ -934,7 +934,7 @@ class BrainPlanner:
                         role="tool", content=result.model_dump_json()[:4000], source="runtime", tool_call_id=call.id
                     )
                 )
-        return "He aplicado las herramientas anteriores.", calls, results
+        return wt("brain.rounds"), calls, results
 
 
 # The service --------------------------------------------------------------------------------------------------
@@ -1041,6 +1041,12 @@ class ChatService:
         """Reading records and editing the canvas: tools over raw records, which never leave. The local model may
         plan the tool calls; without one (or when the mandate denies local inference) the rules do, and a request
         that needs no model (show, table, chart) is answered without one either way."""
+        from unbidden.chat.agent import is_greeting
+        from unbidden.chat.intent import _norm
+
+        if is_greeting(_norm(request.content)):
+            route.reason = "a greeting: answered without a model"
+            return wt("chat.greeting", workspace=source.name), [], [], "rule", None
         denies_local = source.mandate is not None and source.mandate.models.local_inference == "deny"
         if brain is None:
             route.reason = (
@@ -1050,6 +1056,10 @@ class ChatService:
             route.reason = "the mandate denies local inference; reading records needs no model: answered by rules"
         if brain is None or denies_local:
             reply, calls, results = self._by_rules(source, request, rt, user, cancelled, emit)
+            if brain is not None and reply == wt("rule.unknown"):
+                # No rule knows the question and the local model may not run: a remote model with read-only tools
+                # answers it, under the router's gate (option api). What the rules could not do is not shown twice.
+                return self._agent(source, request, user, brain, cancelled, emit, route)
             return reply, calls, results, "rule", None
         import asyncio
 
@@ -1074,6 +1084,62 @@ class ChatService:
         run = getattr(brain, "served_by", {}).get("chat.inform")
         model = run.model if run else None
         route.model, route.reason = model, (run.route_reason if run else None)
+        return reply, calls, results, "brain", model
+
+    def _agent(
+        self,
+        source: Source,
+        request: ChatRequest,
+        user: ChatMessage,
+        brain: Any,
+        cancelled: threading.Event,
+        emit: Emit,
+        route: ChatRoute,
+    ) -> tuple[str, list[ChatToolCall], list[ToolResult], Literal["rule", "brain"], str | None]:
+        """A free question answered by a model with read-only tools (chat/agent.py), routed like heavy work: the
+        gate's refusal is the answer, with the hint that would allow it."""
+        import asyncio
+
+        from unbidden.brain.providers import ProviderError
+        from unbidden.brain.router import BrainError
+        from unbidden.chat.agent import PURPOSE, AgentPlanner, AgentTools
+
+        route.purpose = PURPOSE
+        try:
+            probe = LLMRequest(purpose=PURPOSE, tier=Tier.CODE,
+                               messages=[Message(role="user", content=request.content, source="prompt")])  # fmt: skip
+            decision = brain.decide(probe)
+            route.tier, route.reason = decision.tier.value, decision.reason
+        except Exception:
+            route.tier = "code"
+        history = self.presentation.messages(source.id)
+        try:
+            reply, calls, results = asyncio.run(
+                _closing(
+                    brain,
+                    AgentPlanner(brain).run(
+                        request.content,
+                        AgentTools(source),
+                        history,
+                        emit,
+                        cancelled,
+                        f"web:{user.id}",
+                        cancelled_text=wt("brain.cancelled"),
+                        rounds_text=wt("agent.rounds"),
+                        empty_text=wt("brain.noanswer"),
+                    ),
+                )
+            )
+        except (BrainError, ProviderError) as exc:
+            why = str(exc)[:200]
+            route.blocked, route.hint = why, hint_for(why)
+            reply = wt("agent.refused", why=why) + (wt("analyze.hint", hint=route.hint) if route.hint else "")
+            return reply, [], [], "rule", None
+        run = getattr(brain, "served_by", {}).get(PURPOSE)
+        model = run.model if run else None
+        route.model = model
+        if run is not None:
+            route.reason = run.route_reason or route.reason
         return reply, calls, results, "brain", model
 
     def _analyze(
@@ -1108,7 +1174,7 @@ class ChatService:
                 else "no model is reachable for this source"
             )
             route.hint = "`unbidden doctor` says which model this option needs"
-            reply = f"No puedo analizar esto con un modelo ({route.blocked}). {route.hint}."
+            reply = wt("analyze.nomodel", why=route.blocked, hint=route.hint)
             return _join(reply, reading), calls, results, "rule", None
         import asyncio
 
@@ -1158,7 +1224,7 @@ class ChatService:
         route.model = model
         if run is not None:
             route.tier, route.reason = run.tier.value, run.route_reason or route.reason
-        reply = response.content.strip() or "(sin respuesta)"
+        reply = response.content.strip() or wt("brain.noanswer")
         return _join(reply, reading), calls, results, "brain", model
 
     def _selected_entities(self, rt: ToolRuntime) -> list[dict[str, Any]]:
@@ -1239,6 +1305,6 @@ def _narrate(reply: str, results: list[ToolResult]) -> str:
         else:
             err = r.error
             why = f"{err.detail}" if err else r.summary
-            need = f" Para tenerlo: {err.need}." if err and err.need else ""
-            parts.append(f"No se pudo ({r.tool}): {why}.{need}")
+            need = wt("rules.need", need=err.need) if err and err.need else ""
+            parts.append(wt("rules.failed", tool=r.tool, why=why, need=need))
     return "\n".join(p for p in parts if p)

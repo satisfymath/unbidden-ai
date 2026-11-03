@@ -1,4 +1,32 @@
-# Unbidden 0.12.6, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.12.7, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.12.7 (2026-11-03): the chat answers as a colleague, with read-only tools
+
+Seen on the end-user walk: "hola" in the app got "No he entendido la petición. Puedo: graficar la latencia…". Under
+option `api` the chat never called a model for a free question: `_inform` went to the rule planner before any model
+call, `chat.inform` is `local_only` (the mandate denies local inference under `api`), and the canvas tools label their
+output `runtime`, which never leaves. "¿para qué sirve todo esto?" was refused as a kill (the preposition `para`
+matched the stop verb).
+
+- **A greeting is answered without a model**: "Hola. Soy Unbidden, el agente que trabaja en …; pregúntame qué
+  encontré, qué estoy haciendo…" (`chat.greeting`).
+- **A free question no rule knows goes to a model with read-only tools** (`chat/agent.py`, purpose `chat.agent`,
+  routed like heavy work: Meta's API under `api` and under `mixed` when the content may leave, the local model under
+  `local`). Tools: `records_query` (status, opportunities with their stage, open questions, notes, proposals, spend,
+  connections), `world_query` (the map: summary, services, tables, endpoints, blind spots), `read_file`, `grep`,
+  `git_log` (the repository at HEAD, under `repo.read`), `docs` (what Unbidden is, the cycle, the commands, the
+  modes, the evidence levels, the keys, the spend: `chat/docs.py`, in the package). Each result carries its source
+  label (`record`, `repo`, `prompt`; never `runtime`), so the router's gate decides what may leave; a refusal is the
+  answer, with the hint that would allow it. Four tool rounds, then it must answer. A question a rule knows (a
+  table, a chart, the status line) still goes by rules; an analysis still goes by the digest.
+- **`para` is a preposition**: only `para el/al agente` stops the agent.
+- The chat's remaining hard-coded Spanish ("(sin respuesta)", "He aplicado las herramientas anteriores", the spend
+  chart's title, the rules' failure line, the no-model analysis) moved to `web/text.py` and `text_es.py`.
+
+Verified: `make check`; `tests/web/test_chat_agent.py` (a greeting without a model call; a free question under
+`api` to the remote model with the six tools, two tool rounds and the labels `record` and `prompt` on what went
+back; without a key the refusal with the router's reason and a hint; a rule-known question still by rules; the tools
+over the demo record and a repository; the intent fix); and `unbidden chat` on the demo copy from this checkout.
 
 ## 0.12.6 (2026-11-03): reconnaissance before the agent runs
 
@@ -204,7 +232,7 @@ already existed (start, stop, kill switch, approve, reject, chat). `docs/INSTALL
 on macOS arm64 with the built wheel installed by `install.sh` into an empty HOME and driven in a pseudoterminal; CI
 unchanged (without a terminal, `unbidden` is the text home screen). Everything below describes 0.9.0 and still holds.
 
-**Status: 0.12.6, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
+**Status: 0.12.7, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
 met when the campaign paused at its gate (D-063); they are not changed here. The one that blocks 1.0: no useful cycle
 has been shown on an application not used in development. This candidate adds the product around the same engine:
 an installable wheel, a guided setup, one executor per workspace with a background agent, and the dashboard and chat

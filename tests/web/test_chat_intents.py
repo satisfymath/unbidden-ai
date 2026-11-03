@@ -161,7 +161,7 @@ def test_solo_api_without_a_key_refuses_the_analysis_with_the_routers_reason_nev
         reply = _turn(c, "¿Deberíamos priorizar el hallazgo L4?", planner="brain")
         assert reply["planner"] == "rule" and reply["route"]["intent"] == "analyze"
         assert reply["route"]["blocked"] and "denies local inference" in reply["route"]["blocked"]
-        assert "setup credentials" in reply["route"]["hint"]
+        assert "unbidden key set" in reply["route"]["hint"]
         assert reply["content"].startswith("No puedo analizar esto con un modelo")
         assert local.requests == [] and remote.requests == []
     finally:

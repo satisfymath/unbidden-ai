@@ -28,7 +28,9 @@ ACTIONS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("deploy", re.compile(r"\b(despliega|desplegar|deploy|deploya|deployar|redeploy)\b")),
     ("merge", re.compile(r"\b(merge|mergea|mergear|fusiona|fusionar)\b")),
     ("kill", re.compile(r"\b(kill switch|mata el agente|mata al agente|kill the agent|freeze)\b")),
-    ("kill", re.compile(r"\b(deten|detener|para|parar|pausa|pausar|stop|congela)\b[^.]{0,30}\b" + _AGENT + r"\b")),
+    ("kill", re.compile(r"\b(deten|detener|parar|pausa|pausar|stop|congela)\b[^.]{0,30}\b" + _AGENT + r"\b")),
+    # `para` is a preposition far more often than the imperative of `parar`: only `para el/al agente` is a stop.
+    ("kill", re.compile(r"\bpara (el|al) " + _AGENT + r"\b")),
     ("resume", re.compile(r"\b(reanuda|reanudar|resume|descongela|unfreeze)\b[^.]{0,30}\b" + _AGENT + r"\b")),
     ("experiment", re.compile(r"\b" + _LAUNCH + r"\b[^.]{0,40}\b" + _RUN + r"\b")),
     ("experiment", re.compile(r"\b(prueba|probar|try|test)\b[^.]{0,20}\b(la oportunidad|the opportunity|opp_\w+)")),
