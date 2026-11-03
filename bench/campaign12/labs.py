@@ -124,10 +124,23 @@ def compose_name(repo: Path) -> str:
     """The campaign compose file is named like a project's own when the repository declares none (Spoolman ships only
     a Dockerfile): the product reads standard names, and a lab that hides its services behind another name would
     make the map's "not declared" blind spot the harness's doing, not the application's."""
-    own = [
-        n for n in ("compose.yml", "compose.yaml", "docker-compose.yml", "docker-compose.yaml") if (repo / n).exists()
-    ]
-    return COMPOSE_FILE if own else "docker-compose.yml"
+    tracked = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(repo),
+            "ls-files",
+            "--",
+            *("compose.yml", "compose.yaml", "docker-compose.yml", "docker-compose.yaml"),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    ).stdout.split()
+    # only the project's own (tracked) files count: the campaign's file, once written under the standard name, must
+    # not flip the answer (seen 2026-11-02: spoolman's lab wrote `docker-compose.c12.yml` and then chmod'ed the
+    # standard name, which did not exist)
+    return COMPOSE_FILE if tracked else "docker-compose.yml"
 
 
 def _secrets(lab: Path, app: str, names: list[str]) -> dict[str, str]:
@@ -226,7 +239,7 @@ def up(app: str, lab: Path) -> dict[str, Any]:
     vlabels = ownership.compose_labels(lab_id, indent="      ")
     if app == "fst":
         held = _secrets(lab, app, ["FST_PG", "FST_SECRET", "FST_ADMIN", "FST_READER_PW"])
-        (repo / COMPOSE_FILE).write_text(
+        (repo / compose_name(repo)).write_text(
             FST_COMPOSE.format(
                 pg=held["FST_PG"],
                 secret=held["FST_SECRET"],
@@ -246,7 +259,7 @@ def up(app: str, lab: Path) -> dict[str, Any]:
         credential = "FST_READER_PW"
     else:
         held = _secrets(lab, app, ["SPOOLMAN_PG", "SPOOLMAN_READER_PW"])
-        (repo / COMPOSE_FILE).write_text(
+        (repo / compose_name(repo)).write_text(
             SPOOLMAN_COMPOSE.format(pg=held["SPOOLMAN_PG"], port=port, db_port=db_port, labels=labels, vlabels=vlabels)
         )
         health = f"http://127.0.0.1:{port}/api/v1/health"
