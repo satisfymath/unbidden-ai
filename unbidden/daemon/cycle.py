@@ -154,7 +154,7 @@ class Cycle:
             found = await asyncio.to_thread(checks_record, self.runtime.workspace.repo, rev,
                                             self.runtime.workspace.mandate(), timeout_s=CHECKS_TIMEOUT_S)  # fmt: skip
             plan = found.get("plan") or {}
-            record |= {k: found.get(k) for k in ("status", "collected", "failed", "why") if k in found}
+            record |= {k: found.get(k) for k in ("status", "collected", "failed", "why", "could_not_run") if k in found}
             record |= {"command": plan.get("command"), "scope": plan.get("scope"), "partial": plan.get("partial"),
                        "notes": list(plan.get("notes") or [])[:10], "stack": found.get("stack"),
                        "image": found.get("image")}  # fmt: skip
@@ -166,8 +166,10 @@ class Cycle:
             raise
         self.store.set_value("baseline_checks", record)
         self._wake(f"checks:{rev[:12]}")  # experiments that waited for the checks may start now
+        cnr = record.get("could_not_run") or {}
+        apart = f", {cnr['tests']} could not run: the image lacks {', '.join(cnr['lacks'])}" if cnr.get("tests") else ""
         self.log(f"the project's own checks at {rev[:12]}: {record.get('status')} "
-                 f"({record.get('collected')} collected, {len(record.get('failed') or [])} failed)")  # fmt: skip
+                 f"({record.get('collected')} collected, {len(record.get('failed') or [])} failed{apart})")  # fmt: skip
 
     async def world_refresh(self, _: Job) -> None:
         """The running system, mapped again without waiting for a commit: data grows, a migration is applied, a
@@ -291,6 +293,7 @@ class Cycle:
         self._queue_needs()
         mandate = self.runtime.workspace.mandate()
         open_prs = len(self.store.list("proposals", Proposal, status=ProposalStatus.PR_OPENED.value))
+        pending = len(self.store.list("proposals", Proposal, status=ProposalStatus.READY.value))
         checked = self._checked_dirs()
         head = self.store.get_value("head")
         commands = ci_commands(self.runtime.workspace.repo, head) if head else ""
@@ -321,6 +324,7 @@ class Cycle:
                 mandate,
                 Context(
                     open_pull_requests=open_prs,
+                    pending_proposals=pending,
                     attempts=attempts,
                     checked_dirs=checked,
                     ci_commands=commands,
@@ -333,7 +337,8 @@ class Cycle:
                 ),
             )
             if decision.chosen is ActionKind.PROPOSE_CHANGE:
-                open_prs += 1  # the next opportunity sees the pull request this one will open
+                pending += 1  # the next opportunity sees the proposal this one will add (a pull request only if
+                # the mandate lets Unbidden open them on its own; the Director counts it then)
             decided.append((opp, decision, attempts))
         # One budget for the whole sweep: experiments go to the highest expected net value first, not the oldest.
         decided.sort(key=lambda d: -_chosen_utility(d[1]) if d[1].chosen is ActionKind.RUN_EXPERIMENT else 0.0)

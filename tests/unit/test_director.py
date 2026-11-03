@@ -417,3 +417,24 @@ def test_a_pre_commit_hooks_files_pattern_is_the_tools_scope(mandate: Mandate) -
     assert decide(found("src/pkg/server/models.py"), mandate, ctx).chosen is not ActionKind.DECLINE
     every = "repos:\n  - repo: r\n    hooks:\n      - id: mypy\n"
     assert tool_scope({".pre-commit-config.yaml": every}.get, [], "pre-commit run\n" + every, "mypy") is None
+
+
+def test_local_proposals_and_open_pull_requests_are_counted_apart() -> None:
+    """Three proposals waiting for a person are not three open pull requests: under supervision the GitHub cap counts
+    only what is open on GitHub; when the mandate lets Unbidden open pull requests on its own, the proposals it will
+    publish count too, and the reason says which is which."""
+    from unbidden.contracts.guardian import Autonomy
+
+    proven = opp(level=4, improved=True, status=OpportunityStatus.EXPERIMENTING)
+    supervised = Mandate(workspace="w")  # open_pull_requests: require_approval by default
+    decision = decide(proven, supervised, Context(open_pull_requests=0, pending_proposals=3, attempts=0))
+    assert decision.chosen is ActionKind.PROPOSE_CHANGE, decision.reason
+    decision = decide(proven, supervised, Context(open_pull_requests=3, pending_proposals=0, attempts=0))
+    assert decision.chosen is ActionKind.WAIT and "3 pull request(s) open (cap 3)" in decision.reason
+    autopilot = Mandate(workspace="w")
+    autopilot.autonomy.open_pull_requests = Autonomy.ALLOW
+    decision = decide(proven, autopilot, Context(open_pull_requests=1, pending_proposals=2, attempts=0))
+    assert decision.chosen is ActionKind.WAIT
+    assert "1 pull request(s) open and 2 proposal(s) waiting to be published (cap 3)" in decision.reason
+    decision = decide(proven, autopilot, Context(open_pull_requests=1, pending_proposals=1, attempts=0))
+    assert decision.chosen is ActionKind.PROPOSE_CHANGE
