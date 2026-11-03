@@ -340,7 +340,7 @@ def test_interrupted_setup_keeps_the_answers_so_far(repo: Path) -> None:
     opts = Options(non_interactive=True, yes=True, models="mixed", budget=2.0, dashboard="later")
     assert run(ws, opts, out, io=Quits({"models": "mixed", "dashboard": "later"}, {})) == 2
     answers = load_answers(ws)
-    assert answers.models == "mixed" and answers.completed == ["found", "models"]
+    assert answers.models == "mixed" and answers.completed == ["found", "models", "recon"]
     assert "models" not in yaml.safe_load(ws.mandate_path.read_text())["mandate"]
 
     # the interactive walk resumes at autonomy; the scripted one takes the flags as the whole specification
@@ -507,7 +507,8 @@ def test_the_found_block_lists_compose_connections_and_grants_none(repo: Path) -
     subprocess.run(["git", "-C", str(repo), "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "c"],
                    check=True)  # fmt: skip
     out, buf = console()
-    io_ = Asks({"github_access": "skip", "mode": "supervised", "apply": True}, {"MODEL_API_KEY": ""})
+    io_ = Asks({"github_access": "skip", "start_stack": False, "api_access": "skip", "mode": "supervised",
+                "apply": True}, {"MODEL_API_KEY": ""})  # fmt: skip
     assert run(Workspace(repo), Options(), out, io=io_) == 0
     text = buf.getvalue()
     assert "connections, as committed at HEAD in compose.yaml: postgres db (compose service, read on its own), "

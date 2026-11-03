@@ -67,6 +67,12 @@ def no_model_probe(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(wizard, "probe_remote", accepted)
     monkeypatch.setattr(ollama_install, "install_command", lambda: None)
     monkeypatch.setattr(ollama_install, "start_server", lambda url, wait_s=0.0: False)
+    from unbidden.setup import recon
+
+    monkeypatch.setattr(recon, "containers", lambda repo: [])  # no docker: the stack is down unless a test says
+    monkeypatch.setattr(recon, "mapper", lambda ws: None)
+    monkeypatch.setattr(recon, "checker", lambda grant: ("degraded", "no database in a unit test"))
+    monkeypatch.setattr(recon, "driller", lambda ws, mandate, previous, url: {"passed": False})
 
 
 @pytest.fixture(autouse=True)

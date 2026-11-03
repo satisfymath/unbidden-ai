@@ -1339,6 +1339,11 @@ def doctor_checks(
         checks.append(
             ("repository", True, "public (confirmed)" if ws.repo_public(ws.store()) else "private or unconfirmed")
         )
+        from unbidden.setup.recon import status as recon_status
+        from unbidden.setup.recon import summary_line
+
+        recon = recon_status(ws.store())
+        checks.append(("recon", bool(recon and recon.get("complete")), summary_line(recon)))
     else:
         checks.append(("workspace", False, "not initialized: `unbidden init`"))
     try:
@@ -1943,6 +1948,7 @@ def cmd_connections(args: argparse.Namespace) -> int:
 
     ws = Workspace.find()
     ws.require()
+    ws.load_env()  # the credentials a check needs (the gh session among them), as the agent's runtime loads them
     store = ws.store()
     world = store.get("world", "world", WorldModel)
     found = survey(ws.repo, store, ws.mandate(), world, connectors(), check=args.check)

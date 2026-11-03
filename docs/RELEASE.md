@@ -1,4 +1,33 @@
-# Unbidden 0.12.5, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.12.6, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.12.6 (2026-11-03): reconnaissance before the agent runs
+
+Seen on the end-user walks: the agent started with the stack down and found nothing of the database until a person
+brought the stack up by hand; GitHub stayed `needs_authorization` in the connections table though the setup had
+verified the account; the deploy procedure the repository documents was logged as "proposed only" and never
+declared; the drill was never offered. The person's words: "unbidden debería ser capaz de tener un muy buen
+reconocimiento inicial y dejar todo perfectamente conectado antes de continuar".
+
+- **A `recon` section in the default walk** (`setup/recon.py`), between model access and permissions. In order:
+  the stack (when it is down, "start it now with `docker compose up -d --wait`?", in the person's terminal); the map
+  of the running system (no model call), with its blind spots said; each Postgres service, read inside its container
+  (nothing leaves it) and, when it publishes a port, a read-only role over the network if the person gives one, the
+  grant written only after it connects; GitHub, the access the found block verified written as the `github`
+  connection grant (the table says `connected`); external APIs the compose files name, a key or skipped; the deploy
+  procedure found in the repository, adopted into `operations.deploy_steps` with a yes; the rollback drill, offered
+  when the steps, a live health endpoint and two commits exist. What was found and decided is kept in the store
+  (`recon`, with `complete`); `unbidden setup recon` runs it again.
+- **`start` warns when the reconnaissance never ran or is incomplete, and refuses an autonomous start on an
+  incomplete one**; `doctor` has a `recon` line.
+- **The in-container Postgres read shows as a connection** (`postgres:container:<service>`, connected): the
+  registry looked for the reader's stamp on the service resource, which the map never stamps; it is on the tables
+  and their `defines` relations.
+
+Verified: `make check`; `tests/unit/test_recon.py` (a running stack mapped, the database read, GitHub granted, the
+procedure adopted, the drill run; a down stack started with a yes; a network grant checked before it is written and a
+failed one not; a scripted run that records what it could not do and `start` saying so); and on the demo copy, from
+this checkout, a scripted recon with the stack running: the map, `db` read inside its container, GitHub written as a
+connection and `unbidden connections` saying `connected` for both.
 
 ## 0.12.5 (2026-11-03): the agent asks with options, says what it is doing, and marks what matters
 
@@ -175,7 +204,7 @@ already existed (start, stop, kill switch, approve, reject, chat). `docs/INSTALL
 on macOS arm64 with the built wheel installed by `install.sh` into an empty HOME and driven in a pseudoterminal; CI
 unchanged (without a terminal, `unbidden` is the text home screen). Everything below describes 0.9.0 and still holds.
 
-**Status: 0.12.5, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
+**Status: 0.12.6, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
 met when the campaign paused at its gate (D-063); they are not changed here. The one that blocks 1.0: no useful cycle
 has been shown on an application not used in development. This candidate adds the product around the same engine:
 an installable wheel, a guided setup, one executor per workspace with a background agent, and the dashboard and chat

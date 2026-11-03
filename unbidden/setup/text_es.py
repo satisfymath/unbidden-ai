@@ -144,6 +144,71 @@ T: dict[str, str] = {
         "{name} sin definir: las llamadas remotas se rechazan hasta que la añadas (`unbidden key set`)."
     ),
     "credentials.github.ask": "¿Debe Unbidden poder publicar pull requests? (necesita GITHUB_TOKEN)",
+    "recon.title": "Reconocimiento",
+    "recon.explain": (
+        "Antes de que el agente corra, cada recurso queda conectado, omitido a propósito o bloqueado con razón: el "
+        "stack, la base de datos, GitHub, las APIs externas, el procedimiento de deploy."
+    ),
+    "recon.stack.none": "Sin archivo compose: nada que levantar; el mapa lee solo el repositorio.",
+    "recon.stack.running": "El stack corre: {n} contenedor(es) de {project}.",
+    "recon.stack.down": "El stack está abajo; el mapa del sistema corriendo espera a `docker compose up`.",
+    "recon.stack.ask": "El stack está abajo. ¿Levantarlo ahora en tu terminal con `{command}`?",
+    "recon.stack.starting": "Levantando el stack; la terminal muestra las líneas de compose.",
+    "recon.stack.started": "El stack está arriba.",
+    "recon.stack.failed": "El stack no levantó; `docker compose up` en tu terminal dice por qué.",
+    "recon.stack.skipped": "No levantado. El agente mapea solo el repositorio hasta que corra.",
+    "recon.map.mapping": "Mapeando el sistema corriendo (contenedores, bases, endpoints; sin llamar a un modelo).",
+    "recon.map.done": "Mapeado: {resources} recursos, {blind} punto(s) ciego(s).",
+    "recon.db.container": "{service}: {count} tabla(s) leídas dentro de su contenedor; nada sale de él.",
+    "recon.db.nostack": "{service}: no leída; el stack está abajo.",
+    "recon.db.unread": "{service}: no leída ({why}).",
+    "recon.db.grant.ask": (
+        "{service} publica el puerto {port}. ¿Conceder a Unbidden un rol de solo lectura también por red (para los "
+        "laboratorios y las consultas del panel)?"
+    ),
+    "recon.db.grant.username": "nombre del rol de solo lectura",
+    "recon.db.grant.password": "contraseña de {username} (oculta; guardada en .unbidden/.env)",
+    "recon.db.grant.skipped": "Sin concesión por red; queda la lectura dentro del contenedor.",
+    "recon.db.grant.ok": "Concesión {id} conectada: {detail}",
+    "recon.db.grant.failed": "La concesión no conectó ({state}: {detail}); nada se escribió en el mandato.",
+    "recon.github.none": "GitHub: sin acceso; las propuestas quedan como ramas locales (`unbidden setup credentials`).",
+    "recon.github.unverified": "GitHub: acceso encontrado pero no confirmado ({detail}); sin concesión escrita.",
+    "recon.github.nopush": (
+        "GitHub: {login} no puede escribir en {slug}; los pull requests fallarán hasta que entre una cuenta que pueda."
+    ),
+    "recon.github.ok": "GitHub: {login} puede hacer push a {slug}; escrito como la conexión `github`.",
+    "recon.api.found": "API externa {location} ({evidence}).",
+    "recon.api.ask": "¿Acceso a ella?",
+    "recon.api.key": "clave para {location} (oculta; guardada en .unbidden/.env)",
+    "recon.api.saved": "Guardada como {ref}; la conexión queda concedida para lecturas.",
+    "recon.deploy.declared": "Pasos de deploy declarados: {steps}",
+    "recon.deploy.none": (
+        "No se encontró un procedimiento de deploy en el repositorio; decláralo en operations.deploy_steps "
+        "cuando exista."
+    ),
+    "recon.deploy.found": "Procedimiento de deploy encontrado, no adoptado (corrida sin terminal): {command}",
+    "recon.deploy.ask": "¿Desplegar con `{command}` (encontrado en el repositorio)? Pasa a operations.deploy_steps.",
+    "recon.deploy.adopted": "Adoptado: {command}",
+    "recon.deploy.skipped": "No adoptado; los deploys siguen siendo de una persona.",
+    "recon.drill.nohealth": (
+        "Simulacro de vuelta atrás: aún no es posible, no hay un endpoint de salud vivo en el mapa."
+    ),
+    "recon.drill.nocommit": "Simulacro de vuelta atrás: aún no es posible, menos de dos commits.",
+    "recon.drill.ask": (
+        "¿Correr el simulacro de vuelta atrás ahora? Despliega {previous} con tus pasos, revisa la salud y "
+        "vuelve a desplegar (minutos)."
+    ),
+    "recon.drill.skipped": "Simulacro omitido; `unbidden drill` lo corre después (el modo autónomo lo necesita).",
+    "recon.drill.running": "Simulacro corriendo; vigilando {url}.",
+    "recon.drill.passed": "Simulacro de vuelta atrás superado (atrás {back}, adelante {forth}).",
+    "recon.drill.failed": (
+        "Simulacro de vuelta atrás fallido (atrás {back}, adelante {forth}); el modo autónomo sigue apagado."
+    ),
+    "recon.done.complete": "Reconocimiento completo.",
+    "recon.done.incomplete": "Reconocimiento incompleto: {why}. `unbidden setup recon` lo corre de nuevo.",
+    "recon.status.never": "nunca corrió: `unbidden setup recon`",
+    "recon.status.complete": "completo ({at}); stack {stack}",
+    "recon.status.incomplete": "incompleto: stack {stack}; {why}",
     "autonomy.title": "Autonomía y alcance",
     "autonomy.explain": (
         "Un modo fija qué llega a GitHub y a producción. Los demás permisos se conceden por separado y nunca se "

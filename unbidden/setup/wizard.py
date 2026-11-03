@@ -35,7 +35,7 @@ from unbidden.guardian.mandate_edit import (
     validate,
     write_mandate,
 )
-from unbidden.setup import machine
+from unbidden.setup import machine, recon
 from unbidden.setup.discover import Found, discover
 from unbidden.setup.effective import effective_permissions, render
 from unbidden.setup.keycheck import KeyVerdict, current_key, looks_like_key, recall, verify_key, verify_local
@@ -43,10 +43,11 @@ from unbidden.setup.text import t
 from unbidden.store import Store
 from unbidden.workspace import Workspace
 
-# The walk asks three things at most: the model key when none is found, how much Unbidden may do on its own, and
+# The walk asks four things at most: the model key when none is found, the reconnaissance (the stack, the database,
+# GitHub, the deploy procedure), how much Unbidden may do on its own, and
 # whether to apply. Everything else is found or has a default shown in the summary; the advanced sections run only
 # by name (`unbidden setup budget`, `/setup connections`) or with --all.
-SECTIONS = ("found", "models", "autonomy")
+SECTIONS = ("found", "models", "recon", "autonomy")
 ADVANCED = ("priorities", "credentials", "key", "connections", "budget", "dashboard", "private_code", "language")
 ALL = SECTIONS + ADVANCED
 OLD_NAMES = {"project": "found"}  # a setup.json written by 0.10
@@ -119,6 +120,7 @@ class Answers(BaseModel):
     connections: list[Connection] = []
     budget_usd: float | None = None
     dashboard: DashboardChoice | None = None
+    recon: dict[str, Any] | None = None  # what the reconnaissance found and decided (setup/recon.py)
     completed: list[str] = []
     found: dict[str, Any] | None = None  # what the found block saw, as data
     github_source: str | None = None  # file, env, gh, token; None when none
@@ -272,6 +274,10 @@ class Context:
     pull: Pull = pull_model
     terminal: Terminal = run_in_terminal
     probe_local: ProbeLocal = verify_local
+    containers: Callable[[Path], list[dict[str, Any]]] = recon.containers  # the running containers of the project
+    mapper: Callable[[Any], Any] = recon.mapper  # the map of the running system (no model)
+    checker: Callable[[dict[str, Any]], tuple[str, str]] = recon.checker  # a postgres grant checked now
+    driller: Callable[[Any, Any, str, str], dict[str, Any]] = recon.driller  # the rollback drill
     found: Found | None = None
     cancel: threading.Event = field(default_factory=threading.Event)  # set by Ctrl+C while a wait cannot ask
 
@@ -830,6 +836,7 @@ def step_dashboard(ctx: Context) -> None:
 STEPS: dict[str, Callable[[Context], None]] = {
     "found": step_found,
     "models": step_models,
+    "recon": recon.step_recon,
     "autonomy": step_autonomy,
     "priorities": step_priorities,
     "credentials": step_credentials,
@@ -925,6 +932,10 @@ def run(
     cancel: threading.Event | None = None,
     terminal: Terminal | None = None,
     probe_local: ProbeLocal | None = None,
+    containers: Callable[[Path], list[dict[str, Any]]] | None = None,
+    mapper: Callable[[Any], Any] | None = None,
+    checker: Callable[[dict[str, Any]], tuple[str, str]] | None = None,
+    driller: Callable[[Any, Any, str, str], dict[str, Any]] | None = None,
 ) -> int:
     """Walk the sections (or one), show the summary and the diff, write once. Exit 0 written, 3 nothing written,
     2 cancelled or an answer missing, 4 the mode asked for is blocked and no other mode was named."""
@@ -960,7 +971,8 @@ def run(
     ctx = Context(
         ws, store, raw, answers, io, out, opts, probe, pull=pull, cancel=cancel or threading.Event(),
         terminal=terminal or run_in_terminal,  # looked up at call time: the test suite replaces it
-        probe_local=probe_local,
+        probe_local=probe_local, containers=containers or recon.containers, mapper=mapper or recon.mapper,
+        checker=checker or recon.checker, driller=driller or recon.driller,
     )  # fmt: skip
     answers.completed = [OLD_NAMES.get(name, name) for name in answers.completed]
     if created:

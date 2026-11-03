@@ -109,7 +109,7 @@ def test_a_cancelled_future_keeps_the_answers_and_returns_2(repo: Path) -> None:
     code = run(Workspace(repo), Options(), out, io=AppIO(answers))
     assert code == 2
     kept = load_answers(Workspace(repo))
-    assert kept.completed == ["found", "models"] and kept.models == "local"
+    assert kept.completed == ["found", "models", "recon"] and kept.models == "local"
     assert "setup.json" in buf.getvalue() or (repo / ".unbidden" / "setup.json").exists()
 
 

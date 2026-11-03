@@ -115,8 +115,13 @@ def _from_world(world: WorldModel | None) -> list[tuple[Connection, str]]:
             )
         )
     for database in world.of_kind("database"):
-        tables = [r for r in world.current_relations() if r.src == database.id and r.predicate == "defines"]
-        if database.source and database.source.startswith("postgres-readonly") and tables:
+        # The in-container reader stamps the tables and their `defines` relations, not the service resource.
+        tables = [
+            r
+            for r in world.current_relations()
+            if r.src == database.id and r.predicate == "defines" and (r.source or "").startswith("postgres-readonly")
+        ]
+        if tables:
             found.append(
                 (
                     Connection(
