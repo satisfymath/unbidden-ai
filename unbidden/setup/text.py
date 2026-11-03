@@ -118,6 +118,65 @@ T: dict[str, str] = {
     "credentials.saved": "{name} saved.",
     "credentials.skipped": "{name} not set: remote calls are refused until you add it (`unbidden key set`).",
     "credentials.github.ask": "Should Unbidden be able to publish pull requests? (needs GITHUB_TOKEN)",
+    "recon.title": "Reconnaissance",
+    "recon.explain": (
+        "Before the agent runs, each resource is connected, skipped on purpose, or blocked with a reason: the "
+        "stack, the database, GitHub, external APIs, the deploy procedure."
+    ),
+    "recon.stack.none": "No compose file: nothing to start; the map reads the repository only.",
+    "recon.stack.running": "The stack runs: {n} container(s) of {project}.",
+    "recon.stack.down": "The stack is down; a map of the running system waits for `docker compose up`.",
+    "recon.stack.ask": "The stack is down. Start it now in your terminal with `{command}`?",
+    "recon.stack.starting": "Starting the stack; the terminal shows compose's own lines.",
+    "recon.stack.started": "The stack is up.",
+    "recon.stack.failed": "The stack did not come up; `docker compose up` in your terminal says why.",
+    "recon.stack.skipped": "Not started. The agent maps the repository only until it runs.",
+    "recon.map.mapping": "Mapping the running system (containers, databases, endpoints; no model call).",
+    "recon.map.done": "Mapped: {resources} resources, {blind} blind spot(s).",
+    "recon.db.container": "{service}: {count} table(s) read inside its container; nothing leaves it.",
+    "recon.db.nostack": "{service}: not read; the stack is down.",
+    "recon.db.unread": "{service}: not read ({why}).",
+    "recon.db.grant.ask": (
+        "{service} publishes port {port}. Grant Unbidden a read-only role over the network too (for the labs and "
+        "the dashboard's queries)?"
+    ),
+    "recon.db.grant.username": "read-only role name",
+    "recon.db.grant.password": "password of {username} (hidden; kept in .unbidden/.env)",
+    "recon.db.grant.skipped": "No network grant; the in-container read stays.",
+    "recon.db.grant.ok": "Grant {id} connected: {detail}",
+    "recon.db.grant.failed": "The grant did not connect ({state}: {detail}); nothing was written to the mandate.",
+    "recon.github.none": "GitHub: no access; proposals stay local branches (`unbidden setup credentials`).",
+    "recon.github.unverified": "GitHub: access found but not confirmed ({detail}); no grant written.",
+    "recon.github.nopush": (
+        "GitHub: {login} cannot write to {slug}; pull requests will fail until an account that can signs in."
+    ),
+    "recon.github.ok": "GitHub: {login} can push to {slug}; written as the `github` connection.",
+    "recon.api.found": "External API {location} ({evidence}).",
+    "recon.api.ask": "Access to it?",
+    "recon.api.key": "key for {location} (hidden; kept in .unbidden/.env)",
+    "recon.api.saved": "Saved as {ref}; the connection is granted for reads.",
+    "recon.deploy.declared": "Deploy steps declared: {steps}",
+    "recon.deploy.none": (
+        "No deploy procedure found in the repository; declare one in operations.deploy_steps when there is one."
+    ),
+    "recon.deploy.found": "Deploy procedure found, not adopted (scripted run): {command}",
+    "recon.deploy.ask": "Deploy with `{command}` (found in the repository)? It becomes operations.deploy_steps.",
+    "recon.deploy.adopted": "Adopted: {command}",
+    "recon.deploy.skipped": "Not adopted; deploys stay a person's.",
+    "recon.drill.nohealth": "Rollback drill: not possible yet, no live health endpoint on the map.",
+    "recon.drill.nocommit": "Rollback drill: not possible yet, fewer than two commits.",
+    "recon.drill.ask": (
+        "Run the rollback drill now? It deploys {previous} with your steps, checks health, and deploys back (minutes)."
+    ),
+    "recon.drill.skipped": "Drill skipped; `unbidden drill` runs it later (autonomous mode needs it).",
+    "recon.drill.running": "Drill running; watching {url}.",
+    "recon.drill.passed": "Rollback drill passed (back {back}, forth {forth}).",
+    "recon.drill.failed": "Rollback drill failed (back {back}, forth {forth}); autonomous mode stays off.",
+    "recon.done.complete": "Reconnaissance complete.",
+    "recon.done.incomplete": "Reconnaissance incomplete: {why}. `unbidden setup recon` runs it again.",
+    "recon.status.never": "never ran: `unbidden setup recon`",
+    "recon.status.complete": "complete ({at}); stack {stack}",
+    "recon.status.incomplete": "incomplete: stack {stack}; {why}",
     "autonomy.title": "Autonomy and scope",
     "autonomy.explain": (
         "A mode sets what reaches GitHub and production. The other permissions are granted on their own and never "

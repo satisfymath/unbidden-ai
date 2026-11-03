@@ -161,6 +161,23 @@ def start_checks(ws: Any, *, docker_timeout_s: float = 5.0) -> StartVerdict:
             for name, ok, detail in docker_plugins(True):
                 if not ok:
                     verdict.warnings.append(StartCheck(name, False, detail, "unbidden doctor", False))
+    from unbidden.setup.recon import incomplete_why, status
+
+    recon = status(ws.store())
+    if recon is None:
+        verdict.warnings.append(
+            StartCheck(
+                "recon",
+                False,
+                "never ran: the stack, the database and GitHub are not confirmed",
+                "unbidden setup recon",
+                False,
+            )
+        )
+    elif not recon.get("complete"):
+        autonomous = mandate.autonomy.deploy is Autonomy.ALLOW or mandate.autonomy.merge_pull_requests is Autonomy.ALLOW
+        check = StartCheck("recon", False, f"incomplete: {incomplete_why(recon)}", "unbidden setup recon", autonomous)
+        (verdict.refused if autonomous else verdict.warnings).append(check)
     github = mandate.autonomy.open_pull_requests is not Autonomy.DENY
     if github and not broker().has(mandate.egress.github.token_env):
         verdict.warnings.append(

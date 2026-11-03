@@ -1,6 +1,6 @@
 # Installing Unbidden
 
-This is the one install guide. Unbidden 0.12.5 (experimental candidate; not 1.0) ships as one Python wheel with the
+This is the one install guide. Unbidden 0.12.6 (experimental candidate; not 1.0) ships as one Python wheel with the
 web workspace already built inside. The installer puts it in its own environment with its own Python 3.12 through
 [uv](https://docs.astral.sh/uv/); nothing else on the machine changes. The end user needs no Node and no Python of
 their own.
@@ -26,7 +26,7 @@ runs `uv tool install --python 3.12 --reinstall` on the wheel; tells you if the 
 It never uses `sudo` and never prints a secret.
 
 On a terminal it shows one line per step with a mark when the step is done (`uv 0.9.x`, `Downloading unbidden
-0.12.5`, `sha256 verified`, `Installing unbidden 0.12.5`), then the installed path and the two commands that matter.
+0.12.6`, `sha256 verified`, `Installing unbidden 0.12.6`), then the installed path and the two commands that matter.
 What uv and curl print is kept in a log and shown only when a step fails. `--verbose` (or
 `UNBIDDEN_INSTALL_VERBOSE=1`) shows every line; so does a run without a terminal (CI, a pipe).
 
@@ -36,10 +36,10 @@ Build the files from a checkout (`make dist`: builds the web workspace with Node
 `SHA256SUMS`), serve the directory, point the installer at it. `http://` is accepted only for loopback addresses.
 
 ```sh
-make dist                                   # dist/unbidden_ai-0.12.5-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
+make dist                                   # dist/unbidden_ai-0.12.6-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
 (cd dist && python3 -m http.server 8777 --bind 127.0.0.1 &)
-UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.12.5
-unbidden --version                          # unbidden 0.12.5
+UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.12.6
+unbidden --version                          # unbidden 0.12.6
 ```
 
 Only the person building the wheel needs Node; the wheel carries the built assets, so the installed tool serves the
@@ -154,7 +154,7 @@ a name in `unbidden/i18n.py`.
 ### `unbidden setup`
 
 The first `unbidden` inside a repository without `.unbidden/` opens the assistant (`unbidden setup` in text, inside
-the app on a terminal; every sentence it says is in `unbidden/setup/text.py`). It calls no model and asks three
+the app on a terminal; every sentence it says is in `unbidden/setup/text.py`). It calls no model and asks four
 things at most:
 
 1. **Found** (no question): the repository and its GitHub remote; where GitHub access comes from (a token saved for
@@ -176,7 +176,17 @@ things at most:
    that is not there, the assistant does the work instead of naming it: installs Ollama (the official installer in
    your terminal on Linux, Homebrew on macOS, after asking), starts its server, downloads the model that fits
    ("download it now?") and proves it with one short generation.
-3. **Permissions**: how much Unbidden may do on its own: supervised (default), autopilot, autonomous (blocked
+3. **Reconnaissance**: every resource connected, skipped on purpose, or blocked with a reason, before the agent
+   runs. When the stack is down, "start it now with `docker compose up -d --wait`?" (your terminal); then the map
+   of the running system, with its blind spots; each Postgres service read inside its container (nothing leaves
+   it) and, when it publishes a port, "grant a read-only role over the network too?" (a role name and its
+   password, kept in `.unbidden/.env`; the grant is written only after it connects); GitHub, the access verified
+   in the found block, written as the `github` connection; external APIs the compose files name (a key, or skip);
+   the deploy procedure found in the repository ("deploy with `docker compose up -d --build --wait`?"), adopted
+   into `operations.deploy_steps`; and the rollback drill, offered when the steps, a live health endpoint and two
+   commits exist. `unbidden setup recon` runs it again; `start` warns when it never ran or is incomplete and
+   refuses an autonomous start on an incomplete one; `doctor` has a `recon` line.
+4. **Permissions**: how much Unbidden may do on its own: supervised (default), autopilot, autonomous (blocked
    until the deploy ledger exists; the follow-up question has no default).
 
 Then the summary, the diff of `.unbidden/mandate.yaml`, and "Apply?". Priorities, budget (US$10 a month),
@@ -358,7 +368,7 @@ real on live sources only; deploy and rollback name the CLI command instead of r
 
 ```sh
 unbidden update                     # the latest published release
-unbidden update --version 0.12.5     # a fixed version: also how you roll back after a failed update
+unbidden update --version 0.12.6     # a fixed version: also how you roll back after a failed update
 unbidden uninstall                  # shows what would happen
 unbidden uninstall --yes            # uv tool uninstall unbidden-ai; data stays
 unbidden uninstall --purge --yes    # also deletes ~/.unbidden and this repository's .unbidden/ (listed first)
