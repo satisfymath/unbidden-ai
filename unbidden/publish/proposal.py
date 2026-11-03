@@ -138,6 +138,9 @@ def proposal_title(opp: Opportunity, verdict: Verdict) -> str:
         # "GET /x: median 13.0 ms → 4.1 ms (69% faster), ..." becomes the headline.
         headline = verdict.reasons[0].split(", one-sided")[0]
         return f"perf: index {opp.details.get('table')}.{opp.details.get('column')} · {headline}"[:120]
+    if opp.source == "pypi-advisories" and verdict.reasons:
+        # "dnspython 2.8.0 → 2.9.0: advisories GHSA-… gone" is the headline.
+        return f"security: bump {verdict.reasons[0].split(': advisories')[0]}"[:120]
     return f"fix: {opp.title}"[:120]
 
 

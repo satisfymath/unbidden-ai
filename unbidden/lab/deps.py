@@ -123,10 +123,14 @@ class DepsLab:
         first = (opp.details.get("findings") or [{}])[0]
         extra = first.get("extra") or {}
         package, current, fix = extra.get("package"), extra.get("version"), extra.get("lowest_fix")
-        targeted = {f["extra"]["advisory"] for f in opp.details.get("findings", []) if f.get("extra")}
+        every = {f["extra"]["advisory"] for f in opp.details.get("findings", []) if f.get("extra")}
+        # The advisories a published version fixes; those with no fix anywhere stay, said in the verdict.
+        targeted = {f["extra"]["advisory"] for f in opp.details.get("findings", [])
+                    if f.get("extra") and f["extra"].get("fixable", True)} or every  # fmt: skip
+        unfixed = every - targeted
         manifest = str(first.get("path") or "")
         if not package or not fix:
-            result.blocked = f"no published version of {package} fixes every advisory ({', '.join(sorted(targeted))})"
+            result.blocked = f"no published version of {package} fixes its advisories ({', '.join(sorted(every))})"
             return self._done(opp, result)
         self.progress(f"bumping {package} {current} → {fix} in {manifest}")
         try:
@@ -169,7 +173,7 @@ class DepsLab:
             subprocess.run(["git", "-C", str(self.repo), "branch", "-D", branch], capture_output=True, check=False)
         tests, notes = classify_tests(sides[0], sides[1]) if len(sides) == 2 else (TestOutcome.INCONCLUSIVE, [])
         gone = targeted - remaining
-        new = remaining - before_all - targeted
+        new = remaining - before_all - every
         clean = after is not None and report.can_resolve and gone == targeted and not new
         improved = clean and tests is not TestOutcome.REGRESSION
         level = level_for(improved, tests, suite_ran=len(sides) == 2)
@@ -180,6 +184,8 @@ class DepsLab:
             findings_before=sorted(targeted), findings_after=sorted(remaining),
         )  # fmt: skip
         reasons = [f"{package} {current} → {fix}: advisories {', '.join(sorted(gone)) or 'none'} gone"]
+        if unfixed:
+            reasons.append(f"no published fix yet, still open: {', '.join(sorted(unfixed))}")
         if new:
             reasons.append(f"new advisories with the bump: {', '.join(sorted(str(n) for n in new))}")
         if not report.can_resolve:

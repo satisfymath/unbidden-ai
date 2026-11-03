@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import re
+import urllib.error
 import urllib.request
 from collections.abc import Callable
 from pathlib import Path
@@ -46,11 +47,14 @@ def installed(runner: SandboxRunner, repo: Path, rev: str, image: DependencyImag
 
 
 def pypi_vulnerabilities(name: str, version: str) -> list[dict[str, Any]] | None:
-    """PyPI's advisories for one release; None when PyPI did not answer."""
+    """PyPI's advisories for one release; [] for a package PyPI does not publish (the project's own package, a
+    local path dependency: 404, nothing to look up); None when PyPI did not answer."""
     url = f"https://{HOST}/pypi/{name}/{version}/json"
     try:
         with urllib.request.urlopen(url, timeout=10) as response:  # a fixed https host
             data = json.loads(response.read())
+    except urllib.error.HTTPError as exc:
+        return [] if exc.code == 404 else None
     except Exception:  # a failed lookup is incomplete, never safe
         return None
     return [v for v in data.get("vulnerabilities") or [] if not v.get("withdrawn")]
@@ -61,16 +65,20 @@ def _version_key(version: str) -> tuple[int | str, ...]:
 
 
 def lowest_fix(advisories: list[dict[str, Any]], current: str) -> str | None:
-    """The lowest version that fixes every advisory (each advisory's smallest fix above `current`); None when one
-    has no fix."""
-    needed: list[str] = []
-    for advisory in advisories:
-        fixes = sorted((f for f in advisory.get("fixed_in") or [] if _version_key(f) > _version_key(current)),
-                       key=_version_key)  # fmt: skip
-        if not fixes:
-            return None
-        needed.append(fixes[0])
+    """The lowest version that fixes every advisory that has a published fix (each one's smallest fix above
+    `current`); None when none has one. Advisories without a fix stay, and are said apart (`fixable`)."""
+    needed = [fix for advisory in advisories if (fix := _first_fix(advisory, current)) is not None]
     return max(needed, key=_version_key) if needed else None
+
+
+def fixable(advisory: dict[str, Any], current: str) -> bool:
+    return _first_fix(advisory, current) is not None
+
+
+def _first_fix(advisory: dict[str, Any], current: str) -> str | None:
+    fixes = sorted((f for f in advisory.get("fixed_in") or [] if _version_key(f) > _version_key(current)),
+                   key=_version_key)  # fmt: skip
+    return fixes[0] if fixes else None
 
 
 def advisory_report(
@@ -107,6 +115,7 @@ def advisory_report(
                         "aliases": aliases,
                         "fixed_in": advisory.get("fixed_in") or [],
                         "lowest_fix": fix,
+                        "fixable": fixable(advisory, version),
                         "link": advisory.get("link"),
                     },
                 )

@@ -35,6 +35,7 @@ def fetch(name: str, version: str) -> list[dict[str, Any]] | None:
 def test_advisories_are_one_finding_each_grouped_per_package_with_the_lowest_fix(store: Store) -> None:
     assert lowest_fix([ADVISORY], "2.31.0") == "2.32.0"
     assert lowest_fix([{"id": "x", "fixed_in": []}], "1.0") is None
+    assert lowest_fix([ADVISORY, {"id": "y", "fixed_in": []}], "2.31.0") == "2.32.0"  # the unfixed one stays apart
     report = advisory_report([("requests", "2.31.0"), ("idna", "3.7")], "requirements.txt", fetch)
     assert report.can_resolve and len(report.findings) == 1
     finding = report.findings[0]
@@ -113,3 +114,16 @@ async def test_no_published_fix_is_a_declared_block(store: Store, tmp_path: Path
     result = await DepsLab(repo, store, detect_stack(repo, rev), image, PolicyEngine(mandate), runner=Runner(),  # type: ignore[arg-type]
                            fetch=nofix).run(opp)  # fmt: skip
     assert result.verdict is None and result.blocked and "no published version of requests fixes" in result.blocked
+
+
+def test_a_security_opportunity_and_its_pull_request_say_what_they_are(store: Store) -> None:
+    from unbidden.contracts.common import EvidenceLevel
+    from unbidden.contracts.experiment import TestOutcome, Verdict
+    from unbidden.publish.proposal import proposal_title
+
+    (opp,) = record_report(store, advisory_report([("requests", "2.31.0")], "requirements.txt", fetch), "a" * 40).opened
+    assert opp.title == "requests 2.31.0: 1 known vulnerability, fixed in 2.32.0"
+    verdict = Verdict(experiment_id="e", improved=True, evidence_level=EvidenceLevel.FUNCTIONAL_VALIDATION,
+                      criteria={}, tests=TestOutcome.PASSED,
+                      reasons=["requests 2.31.0 → 2.32.0: advisories GHSA-xxxx gone"])  # fmt: skip
+    assert proposal_title(opp, verdict) == "security: bump requests 2.31.0 → 2.32.0"
