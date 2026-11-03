@@ -34,7 +34,14 @@ from unbidden.lab.context import select as select_context
 from unbidden.lab.evaluator import CRITERIA, evaluate_fix
 from unbidden.lab.testsuite import TestPlan, run_suite, test_plan
 from unbidden.languages import adapter, adapter_for_path
-from unbidden.observe.ci import ci_commands, ci_python_versions, runs_tool, team_formatter
+from unbidden.observe.ci import (
+    ci_commands,
+    ci_python_versions,
+    runs_tool,
+    team_formatter,
+    team_type_check,
+    type_errors,
+)
 from unbidden.observe.stack import Stack
 from unbidden.provenance import provenance
 from unbidden.sandbox.provision import DependencyImage, ProvisionError, link_dependencies, provision, sandbox_spec
@@ -247,6 +254,38 @@ class FixLab:
 
     # The experiment ------------------------------------------------------------------------------------
 
+    def _type_regression(
+        self, rev: str, candidate: Candidate, image: DependencyImage, argv: tuple[str, ...], notes: list[str]
+    ) -> int:
+        """New errors the team's own type check reports with the candidate, against the base (counted once per
+        commit). 0 when none, or when the check cannot run here (noted, never a rejection)."""
+        key = f"typecheck:{rev}:{' '.join(argv)}"
+        base = self.store.get_value(key)
+        if base is None:
+            work = self._work(rev, image)
+            try:
+                ran = self.runner.run(sandbox_spec(image, list(argv)), work)
+            finally:
+                discard(work)
+            if ran.exit_code == 127 or "No module named" in ran.stderr[-300:]:
+                notes.append(f"{argv[0]}: not in the project's environment; the team's type check was not run")
+                self.store.set_value(key, -1)
+                return 0
+            base = type_errors(ran.stdout + ran.stderr)
+            self.store.set_value(key, base)
+        if base < 0:
+            return 0
+        work = self._work(rev, image, candidate.files)
+        try:
+            ran = self.runner.run(sandbox_spec(image, list(argv)), work)
+        finally:
+            discard(work)
+        head = type_errors(ran.stdout + ran.stderr)
+        if head > base:
+            return head - base
+        notes.append(f"the team's {' '.join(argv)}: {head} error(s) with the candidate, {base} at the base")
+        return 0
+
     def _in_team_format(
         self, rev: str, candidate: Candidate, image: DependencyImage, formatter: tuple[str, ...], cwd: str,
         notes: list[str],
@@ -292,6 +331,7 @@ class FixLab:
         if commands:
             siblings = [t for t in siblings if t.name == tool.name or runs_tool(commands, t.name.split(":")[0])]
         formatter = team_formatter(commands) if tool.language == "python" else None
+        typecheck = team_type_check(commands) if tool.language == "python" else None
         targeted: list[str] = list(opp.details["fingerprints"])
         findings = [Finding.model_validate(f) for f in opp.details["findings"]]
         paths: list[str] = list(opp.details["paths"])
@@ -382,6 +422,13 @@ class FixLab:
                 continue
             if formatter is not None:
                 candidate = self._in_team_format(rev, candidate, image, formatter, tool.cwd, result.notes)
+            if typecheck is not None:
+                added = self._type_regression(rev, candidate, image, typecheck, result.notes)
+                if added:
+                    feedback = f"the team's {typecheck[0]} reports {added} new error(s) with your change"
+                    result.notes.append(f"{candidate.origin} candidate rejected: {feedback}")
+                    candidate = None
+                    continue
             judged = await self._measure(opp, rev, candidate, image, siblings, before, targeted, suite, baseline_tests)
             result.experiment, result.verdict, result.candidate = judged
             if judged[1].improved:
