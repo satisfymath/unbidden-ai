@@ -268,7 +268,7 @@ async def test_a_question_opens_on_its_own_and_arrows_answer_it(ws: Workspace, m
         store.close()
         for _ in range(60):
             await pilot.pause(0.1)
-            if isinstance(app.screen, AskScreen):
+            if isinstance(app.screen, AskScreen) and app.screen.query_one("#options", OptionList).option_count:
                 break
         assert isinstance(app.screen, AskScreen), "the question opened on its own"
         menu = app.screen.query_one("#options", OptionList)
