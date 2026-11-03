@@ -403,8 +403,8 @@ def run_suite(
                 n += 1
                 result = _round(runner, work, image, plan, n, timeout_s)
                 note = "coverage flags left out: pytest-cov is not installed here"
-                why = "; ".join(filter(None, [result.why, note]))
-                result = Round(result.failed, result.status, result.collected, why, result.messages,
+                told = "; ".join(filter(None, [result.why, note]))
+                result = Round(result.failed, result.status, result.collected, told, result.messages,
                                retry=result.retry, could_not_run=result.could_not_run)  # fmt: skip
             if result.meaningful:
                 if first_why:
