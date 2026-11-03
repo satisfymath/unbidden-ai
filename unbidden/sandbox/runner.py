@@ -47,6 +47,13 @@ class SandboxSpec:
     # Fixed shell steps unbidden itself writes (never a model): e.g. materialize a workspace package's
     # node_modules links inside /work before the tool runs.
     setup: tuple[str, ...] = ()
+    # Where the snapshot is mounted inside the container: /work, or the absolute path the team's CI job prepared its
+    # workspace at (its virtualenvs record that path; sandbox/ci_env.py).
+    mount: str = "/work"
+    volumes: tuple[str, ...] = ()  # read-only named volumes, "name:/path" (the CI tool cache)
+    # An image prepared by the team's CI job (a GitHub runner image): it runs as the runner does, root on a writable
+    # root filesystem; still no network beyond `network`, no capabilities, no new privileges.
+    runner_like: bool = False
 
 
 @dataclass(frozen=True)
@@ -69,8 +76,16 @@ def _cap(data: bytes) -> tuple[str, bool]:
 
 
 def docker_argv(spec: SandboxSpec, work: Path, name: str) -> list[str]:
-    if spec.network != "none" and not spec.network.startswith(INTERNAL_PREFIX):
+    if (
+        spec.network != "none"
+        and not spec.network.startswith(INTERNAL_PREFIX)
+        and not (spec.runner_like and spec.network == "bridge")
+    ):
+        # The default bridge (the internet) only for an environment the team's CI job prepared, which the mandate
+        # allowed to use the network (egress.ci_environment), on a rerun after a step needed it.
         raise SandboxError(f"sandbox network must be none or an unbidden internal network, not {spec.network!r}")
+    if spec.runner_like:
+        return _runner_like_argv(spec, work, name)
     argv = [
         "docker", "run", "--rm", "--name", name,
         "--network", spec.network,
@@ -97,6 +112,32 @@ def docker_argv(spec: SandboxSpec, work: Path, name: str) -> list[str]:
     command = list(spec.argv)
     if spec.setup:
         command = ["sh", "-c", " && ".join(spec.setup) + ' && exec "$@"', "sh", *command]
+    return [*argv, spec.image, *command]
+
+
+def _runner_like_argv(spec: SandboxSpec, work: Path, name: str) -> list[str]:
+    """A command in an image the team's CI job prepared: the snapshot at the job's workspace path, the tool cache
+    read-only, the runner's user; the same network rule, limits and dropped capabilities as every sandbox."""
+    argv = [
+        "docker", "run", "--rm", "--name", name,
+        "--network", spec.network,
+        "--entrypoint", "",
+        "--cap-drop", "ALL",
+        "--security-opt", "no-new-privileges",
+        "--cpus", str(spec.cpus),
+        "--memory", spec.memory, "--memory-swap", spec.memory,
+        "--pids-limit", str(spec.pids),
+        "-v", f"{work}:{spec.mount}:rw",
+        "-w", spec.workdir,
+        "-e", "CI=1",
+    ]  # fmt: skip
+    for volume in spec.volumes:
+        argv += ["-v", f"{volume}:ro"]
+    for key, value in sorted({**spec.public_env, **spec.env}.items()):
+        argv += ["-e", f"{key}={value}"]
+    command = list(spec.argv)
+    if spec.setup:
+        command = ["bash", "-c", " && ".join(spec.setup) + ' && exec "$@"', "bash", *command]
     return [*argv, spec.image, *command]
 
 
@@ -151,7 +192,7 @@ def with_git(work: Path, rev: str, exclude: list[str] | None = None) -> None:
     if (work / ".git").exists():
         return
     git = ["git", "-C", str(work), "-c", "user.name=unbidden", "-c", "user.email=unbidden@localhost",
-           "-c", "commit.gpgsign=false"]  # fmt: skip
+           "-c", "commit.gpgsign=false", "-c", "maintenance.auto=false", "-c", "gc.auto=0"]  # fmt: skip
     subprocess.run(["git", "init", "-q", str(work)], check=True, capture_output=True)
     if exclude:
         (work / ".git" / "info").mkdir(parents=True, exist_ok=True)
@@ -160,8 +201,11 @@ def with_git(work: Path, rev: str, exclude: list[str] | None = None) -> None:
     subprocess.run([*git, "commit", "-q", "--no-verify", "-m", f"snapshot of {rev}"], check=False,
                    capture_output=True)  # fmt: skip
     for path in (work / ".git").rglob("*"):
-        if not path.is_symlink():
-            path.chmod(0o777 if path.is_dir() else 0o666)
+        try:
+            if not path.is_symlink():
+                path.chmod(0o777 if path.is_dir() else 0o666)
+        except FileNotFoundError:  # a lock git removed meanwhile (oauthlib, campaign 13: maintenance.lock)
+            continue
 
 
 def snapshot(repo: Path, rev: str, dest: Path | None = None) -> Path:

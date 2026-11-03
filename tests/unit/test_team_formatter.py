@@ -128,3 +128,12 @@ def test_a_candidate_that_adds_type_errors_is_counted_and_the_base_is_read_once(
                                 ("mypy", "-p", "a"), notes) == 0  # fmt: skip
     assert runner.calls == 3  # the base was counted once for this commit
     assert notes[-1] == "the team's mypy -p a: 0 error(s) with the candidate, 0 at the base"
+
+
+def test_a_redefinition_kept_under_an_alias_is_not_a_fix() -> None:
+    from unbidden.lab.fixlab import shallow_redefinition_fix
+
+    patch = "+++ b/tests/test_x.py\n+_test_render_old = test_render\n def test_render():\n"
+    assert shallow_redefinition_fix(patch, {"F811"}) == "_test_render_old = test_render"
+    assert shallow_redefinition_fix(patch, {"F401"}) is None  # only for redefinitions
+    assert shallow_redefinition_fix("+def test_render_twice():\n", {"F811"}) is None  # a real rename

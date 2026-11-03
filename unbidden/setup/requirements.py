@@ -21,6 +21,7 @@ def doctor_requirements(mandate: Mandate | None) -> dict[str, Need]:
         "docker": "optional",
         "docker buildx": "optional",
         "docker compose": "optional",
+        "act": "optional",  # the team's CI job prepares the environment (sandbox/ci_env.py)
         "meta api": "optional",
         "github": "optional",
         "mandate": "optional",

@@ -138,7 +138,21 @@ NETWORK_ERRORS = (
     "Name or service not known",
     "getaddrinfo failed",
     "Could not resolve host",
+    "because the network was disabled",  # uv offline (UV_OFFLINE) missing a package in its cache
+    "dns error",
+    "NameResolutionError",
 )
+
+
+# Offline, pip and uv only read their caches: a package an isolated build or a tox rebuild needs and the job never
+# cached is not found (oauthlib, campaign 13: `setuptools>=77.0.3` for tox's sdist build).
+OFFLINE_MISSES = ("No matching distribution found", "Could not find a version that satisfies",
+                  "because the network was disabled")  # fmt: skip
+
+
+def offline_miss(output: str) -> bool:
+    """In an environment the team's CI job prepared: a run that stopped for something the network would have given."""
+    return needs_network(output) or any(marker in output for marker in OFFLINE_MISSES)
 
 
 def needs_network(output: str) -> bool:
@@ -259,6 +273,7 @@ def _round(
     n: int,
     timeout_s: float,
     workers: int | None = None,
+    network: str | None = None,
 ) -> Round:
     """One round: failing test names, whether the suite ran and collected tests, and how many.
 
@@ -284,7 +299,7 @@ def _round(
             list(plan.argv),
             public_env=env,
             timeout_s=timeout_s,
-            network=sidecars.network if sidecars else "none",
+            network=network or (sidecars.network if sidecars else "none"),
         )
         result = runner.run(spec, work)
     if plan.report == "go-test-json":
@@ -384,6 +399,16 @@ def run_suite(
     could_not_run: dict[str, str] = {}
     from unbidden.sandbox.runner import with_git
 
+    command = getattr(image, "test_command", None)
+    if command:
+        # An environment the team's CI job prepared: its own test steps run, verbatim, in it (offline). tox keeps
+        # its environments clean, so it is told to pass pytest's report option through.
+        from dataclasses import replace
+
+        env = {**dict(plan.env), "TOX_OVERRIDE": "testenv.pass_env+=PYTEST_ADDOPTS"}
+        plan = replace(plan, argv=("bash", "-c", f"set -e\n{command}"), pytest=True, env=env,
+                       source=f"the team's CI job, verbatim: {command[:200]}")  # fmt: skip
+
     with_git(work, "the measured revision", exclude=list(getattr(image, "links", None) or {}))
     n = 0
     for _ in range(rounds):
@@ -406,6 +431,15 @@ def run_suite(
                 told = "; ".join(filter(None, [result.why, note]))
                 result = Round(result.failed, result.status, result.collected, told, result.messages,
                                retry=result.retry, could_not_run=result.could_not_run)  # fmt: skip
+            if not result.meaningful and getattr(image, "runner_like", False) and offline_miss(result.why or ""):
+                # The team's CI job prepared this environment and the mandate let it use the network: a step that
+                # still needs it (a rebuild resolving its backend) runs again with the network, said in the record.
+                n += 1
+                again = _round(runner, work, image, plan, n, timeout_s, network="bridge")
+                note = "rerun with the network: the offline run needed it"
+                result = Round(again.failed, again.status, again.collected,
+                               "; ".join(filter(None, [again.why, note])), again.messages, retry=again.retry,
+                               could_not_run=again.could_not_run)  # fmt: skip
             if result.meaningful:
                 if first_why:
                     result = Round(result.failed, result.status, result.collected,
