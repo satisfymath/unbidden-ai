@@ -522,7 +522,15 @@ class Cycle:
             # Measured just in time: findings of an older commit are re-observed before any lab run.
             return
         stack, images = await asyncio.to_thread(self._env, opp.details["rev"])
-        if opp.source == "robustness":
+        if opp.source == "pypi-advisories":
+            from unbidden.guardian.policy import PolicyEngine
+            from unbidden.lab.deps import DepsLab
+
+            result = await DepsLab(
+                self.runtime.workspace.repo, self.store, stack, images["python"],
+                PolicyEngine(self.runtime.workspace.mandate()), progress=self.log,
+            ).run(opp)  # fmt: skip
+        elif opp.source == "robustness":
             from unbidden.lab.robust import RobustLab
 
             result = await RobustLab(
