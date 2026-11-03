@@ -27,6 +27,10 @@ class Bar:
     spend_available: float | None = None
     spend_verified: bool = False
     key_rejected: bool = False  # the last remote model call was refused for its key (MODEL_CALLED, "key rejected")
+    asks_open: int = 0  # questions waiting for the person (director/asks.py)
+    phase: str = ""  # what the agent is doing now, from the last JOB_STARTED without its JOB_FINISHED
+    phase_stage: str = ""  # the stage that work moves toward ("measured")
+    phase_next: str = ""  # what was queued by the last finished job
     dashboard_url: str | None = None
     last_seq: int = 0
     last_event_at: datetime | None = None
@@ -55,8 +59,31 @@ def read_cheap(ws: Any, store: Any, bar: Bar) -> Bar:
         bar.stale = False
     except Exception:
         bar.stale = True
+    try:
+        from unbidden.director.asks import open_asks
+
+        bar.asks_open = len(open_asks(store))
+    except Exception:
+        pass
     bar.read_at = utc_now()
     return bar
+
+
+def track_progress(events: Any, bar: Bar) -> None:
+    """The bar's phase from the job events in `events`, in order: a start sets it, its end clears it and keeps what
+    was queued next."""
+    from unbidden.contracts.events import EventType
+
+    for event in events:
+        p = event.payload or {}
+        if event.type is EventType.JOB_STARTED:
+            bar.phase, bar.phase_stage = str(p.get("doing") or p.get("type") or ""), str(p.get("stage") or "")
+            bar.phase_next = ""
+        elif event.type is EventType.JOB_FINISHED:
+            if str(p.get("doing") or p.get("type") or "") == bar.phase or not bar.phase:
+                bar.phase, bar.phase_stage = "", ""
+            nexts = [str(x) for x in (p.get("next") or [])]
+            bar.phase_next = ", ".join(nexts) if nexts else bar.phase_next
 
 
 def read_mandate(ws: Any, bar: Bar) -> Bar:
@@ -127,6 +154,13 @@ def format_bar(bar: Bar, width: int, *, accent: str | None = None) -> str:
         parts.append(t("bar.agent.stale"))
     else:
         parts.append(f"[dim]{t('bar.agent.stopped')}[/]")
+    if bar.asks_open:
+        style = f"bold {accent}" if accent else "bold reverse"
+        parts.append(f"[{style}]{t('bar.asks', n=bar.asks_open)}[/]")
+    if bar.phase:
+        parts.append(t("bar.phase", doing=bar.phase, stage=bar.phase_stage))
+    elif bar.phase_next and bar.agent_running:
+        parts.append(f"[dim]{t('bar.phase.next', next=bar.phase_next)}[/]")
     if bar.jobs_running or bar.jobs_queued:
         parts.append(t("bar.jobs", running=bar.jobs_running, queued=bar.jobs_queued))
     if bar.mode:

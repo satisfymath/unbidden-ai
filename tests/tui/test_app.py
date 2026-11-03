@@ -232,3 +232,87 @@ async def test_slash_key_opens_the_hidden_input_and_refuses_a_pasted_command(ws:
         from unbidden.setup import machine
 
         assert machine.read_env(machine.machine_env())["MODEL_API_KEY"].startswith("LLM|")
+
+
+async def test_a_question_opens_on_its_own_and_arrows_answer_it(ws: Workspace, monkeypatch: Any) -> None:
+    """An ASK_OPENED event arrives while nothing else is open: the panel shows the options with the default
+    highlighted; Enter applies it (here: approving a proposal), the feed says the outcome, the bar count drops."""
+    from textual.widgets import OptionList
+
+    from unbidden.contracts.common import EvidenceLevel, EvidenceRef
+    from unbidden.contracts.experiment import Proposal
+    from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
+    from unbidden.director import asks
+    from unbidden.guardian.approvals import find_valid
+    from unbidden.publish.github import CAPABILITY
+    from unbidden.tui.screens import AskScreen
+
+    home = ws.repo.parent / "home"
+    home.mkdir(exist_ok=True)
+    monkeypatch.setenv("HOME", str(home))
+    app = UnbiddenApp(ws, planner="rule")
+    async with app.run_test(size=(100, 30)) as pilot:
+        await pilot.pause(0.5)
+        store = ws.store()
+        sha = "b" * 40
+        opp = Opportunity(id="opp_q", source="t", category="perf", title="Index bill.payer_id", summary="s",
+                          dedup_key="opp_q", evidence=[EvidenceRef(kind="file", locator="x")],
+                          evidence_level=EvidenceLevel.FUNCTIONAL_VALIDATION,
+                          status=OpportunityStatus.PROPOSED)  # fmt: skip
+        store.put("opportunities", opp, key="opp_q")
+        proposal = Proposal(opportunity_id="opp_q", experiment_id="e", branch="unbidden/idx", base_sha=sha,
+                            commit_sha=sha, title="Index bill.payer_id", body_md="b",
+                            evidence_level=EvidenceLevel.FUNCTIONAL_VALIDATION)  # fmt: skip
+        store.put("proposals", proposal, key="opp_q")
+        ask = asks.open_ask(store, asks.for_approval(proposal, proposal.title))
+        store.close()
+        for _ in range(60):
+            await pilot.pause(0.1)
+            if isinstance(app.screen, AskScreen):
+                break
+        assert isinstance(app.screen, AskScreen), "the question opened on its own"
+        menu = app.screen.query_one("#options", OptionList)
+        assert menu.option_count == 3 and menu.highlighted == 0  # approve is the default
+        await pilot.press("enter")
+        for _ in range(40):
+            await pilot.pause(0.1)
+            if not isinstance(app.screen, AskScreen):
+                break
+        await pilot.pause(0.3)
+        text = " ".join(_text(app.query_one(Feed)).split())
+        assert "Open the pull request for opp_q?" in text and "approved for 24 h" in text
+        store = ws.store()
+        assert find_valid(store, CAPABILITY, proposal.id) is not None
+        assert asks.open_asks(store) == []
+        store.close()
+        assert "question(s)" not in app.query_one(StatusBar).line
+        assert "Question: Open the pull request for opp_q? · /ask " + ask.id in text
+
+
+async def test_slash_ask_with_nothing_open_says_so_and_escape_defers(ws: Workspace, monkeypatch: Any) -> None:
+    from unbidden.director import asks
+    from unbidden.operate.holds import place
+    from unbidden.tui.screens import AskScreen
+
+    app = UnbiddenApp(ws, planner="rule")
+    async with app.run_test(size=(100, 30)) as pilot:
+        await pilot.pause(0.3)
+        await pilot.press(*"/ask", "enter")
+        await pilot.pause(0.3)
+        assert "No question waits for you." in _text(app.query_one(Feed))
+        store = ws.store()
+        hold = place(store, "deploy 3 judged degraded")
+        ask = asks.open_ask(store, asks.for_hold(hold))
+        store.close()
+        for _ in range(60):
+            await pilot.pause(0.1)
+            if isinstance(app.screen, AskScreen):
+                break
+        assert isinstance(app.screen, AskScreen)
+        await pilot.press("escape")
+        await pilot.pause(0.3)
+        assert not isinstance(app.screen, AskScreen)
+        text = " ".join(_text(app.query_one(Feed)).split())
+        assert f"Left for later; /ask {ask.id} brings it back." in text
+        await pilot.pause(1.2)
+        assert "1 question(s) · /ask" in app.query_one(StatusBar).line

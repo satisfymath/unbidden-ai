@@ -12,6 +12,7 @@ written to.
 from __future__ import annotations
 
 import threading
+from pathlib import Path
 from typing import Any
 
 from unbidden.contracts.guardian import ActionRequest, Mandate
@@ -107,6 +108,8 @@ class Actions:
         cli = CLI.get(op, "unbidden --help").format(subject=request.subject or "<id>")
         if op in ("approve", "reject", "approve_writes") and source.mode == "live" and source.state_dir is not None:
             return self._decide(source, request, cli)
+        if op == "answer" and source.mode == "live" and source.state_dir is not None:
+            return self._answer(source, request)
         if source.mode != "live":
             detail = f"this {source.mode} record is read-only: nothing is decided or run from it"
         else:
@@ -115,6 +118,32 @@ class Actions:
                 "kill switch: run it from the CLI"
             )
         return ActionResponse(ok=False, operation=op, effect="not_supported_here", cli=cli, detail=detail)
+
+    def _answer(self, source: Source, request: ActionRequestWeb) -> ActionResponse:
+        """One of the agent's questions answered from a card: the same effect as `unbidden ask <id> <option>`."""
+        import getpass
+
+        from unbidden.director.asks import AskError, answer
+        from unbidden.store import Store
+        from unbidden.workspace import Workspace
+
+        cli = f"unbidden ask {request.subject or '<id>'} {request.option or '<option>'}"
+        if not request.subject or not request.option:
+            return ActionResponse(
+                ok=False, operation="answer", effect="refused", cli=cli, detail="which question, which option?"
+            )
+        assert source.state_dir is not None and source.repo is not None
+        ws = Workspace(Path(source.repo))
+        ws.load_env()
+        store = Store(source.state_dir / "state.db")
+        try:
+            done = answer(ws, store, request.subject, request.option, value=request.value, by=getpass.getuser())
+        except AskError as exc:
+            return ActionResponse(ok=False, operation="answer", effect="refused", cli=cli, detail=str(exc))
+        finally:
+            store.close()
+        return ActionResponse(ok=True, operation="answer", effect="done", cli=cli, detail=done.outcome or "answered",
+                              verdict=done.as_summary())  # fmt: skip
 
     def _decide(self, source: Source, request: ActionRequestWeb, cli: str) -> ActionResponse:
         """A person's decision written to the workspace's state by the shared module; the agent (running or started

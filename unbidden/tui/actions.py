@@ -156,3 +156,23 @@ def activity(source: Any) -> list[Entry]:
     from unbidden.director.activity import render_text
 
     return [_note(t("cmd.activity.title"))] + [_note(line) for line in render_text(source.activity())]
+
+
+def asks(store: Any) -> list[Any]:
+    """The open questions, oldest first (director/asks.py)."""
+    from unbidden.director.asks import open_asks
+
+    return open_asks(store)
+
+
+def answer_ask(ws: Any, ask_id: str, option: str, value: str | None = None, *, by: str | None = None) -> list[Entry]:
+    from unbidden.director.asks import AskError, answer
+
+    store = ws.store()
+    try:
+        done = answer(ws, store, ask_id, option, value=value, by=by or getpass.getuser())
+    except AskError as exc:
+        return [_note(t("cmd.ask.error", id=ask_id, error=str(exc)), accent=True)]
+    finally:
+        store.close()
+    return [_note(t("cmd.ask.answered", answer=option, outcome=done.outcome or ""), verb="Asking")]

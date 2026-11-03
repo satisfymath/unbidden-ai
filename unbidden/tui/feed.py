@@ -13,8 +13,12 @@ from unbidden.tui.text import LEVEL_NAMES, t
 
 Verb = Literal["Discovering", "Investigating", "Experimenting", "Proving", "Deciding", "Asking", "Guarding", "Noting"]
 Kind = Literal["event", "note", "person", "assistant", "stale", "heading"]
+Tone = Literal["plain", "ask", "good", "warn", "bad"]
 
 TEXT_LIMIT = 160
+# Job types whose start and end the feed narrates; the routine ones (head, map, poll, sweep) show only when verbose.
+TOLD_JOBS = frozenset({"lab.experiment", "research.probe", "research.investigate", "observe.checks", "observe.scan",
+                       "proposal.prepare", "github.publish", "ops.deploy", "forge.build", "goal.pursue"})  # fmt: skip
 
 
 @dataclass(frozen=True)
@@ -27,6 +31,11 @@ class Entry:
     detail: str | None = None  # a second, dimmer line
     kind: Kind = "event"
     accent: bool = False  # the one colour: a question for the person, the kill switch
+    tone: Tone = "plain"  # good: a pull request, a merge, a deploy; bad: blocked, refused, failed; warn: parked
+
+    @property
+    def shade(self) -> Tone:
+        return self.tone if self.tone != "plain" else ("ask" if self.accent else "plain")
 
 
 VERB_OF: dict[EventType, Verb] = {
@@ -70,6 +79,12 @@ VERB_OF: dict[EventType, Verb] = {
     EventType.EGRESS_BLOCKED: "Guarding",
     EventType.POLICY_DENIED: "Guarding",
     EventType.VALUES_MASKED: "Guarding",
+    EventType.ASK_OPENED: "Asking",
+    EventType.ASK_ANSWERED: "Asking",
+    EventType.JOB_STARTED: "Noting",
+    EventType.JOB_FINISHED: "Noting",
+    EventType.NOTE: "Noting",
+    EventType.BRANCH_PUSHED: "Proving",
 }
 
 QUIET: frozenset[EventType] = frozenset({EventType.EGRESS_ALLOWED})  # shown only when verbose
@@ -109,9 +124,54 @@ def narrate(event: Event, *, asks_for_proposals: bool = False, verbose: bool = F
     verb = VERB_OF.get(et, "Noting")
     ref = event.correlation_id or (event.entity_id if event.entity_id and event.entity_id.startswith("opp_") else None)
     accent = False
+    tone: Tone = "plain"
     detail: str | None = None
     text: str
     match et:
+        case EventType.ASK_OPENED:
+            accent, tone = True, "ask"
+            text = t("ev.ask.opened", title=_s(p, "title"), id=event.entity_id or "?")
+            if p.get("cli"):
+                detail = t("ev.ask.cli", cli=_s(p, "cli"))
+        case EventType.ASK_ANSWERED:
+            text = t("ev.ask.answered", answer=_s(p, "answer"), outcome=_s(p, "outcome", ""))
+        case EventType.JOB_STARTED:
+            kind = _s(p, "type")
+            if kind not in TOLD_JOBS and not verbose:
+                return None
+            usual = p.get("usual_s")
+            text = t("ev.job.started", doing=_s(p, "doing", kind), stage=_s(p, "stage"))
+            text += " " + (t("ev.job.usual", seconds=int(float(usual))) if usual else t("ev.job.first"))
+        case EventType.JOB_FINISHED:
+            kind, outcome = _s(p, "type"), _s(p, "outcome", "ok")
+            if outcome == "ok" and kind not in TOLD_JOBS and not verbose:
+                return None
+            nexts = ", ".join(str(x) for x in (p.get("next") or []))
+            if outcome == "ok":
+                text = t("ev.job.done", doing=_s(p, "doing", kind), seconds=int(float(p.get("seconds") or 0)))
+                tone = "good" if kind in ("github.publish", "ops.deploy") else "plain"
+            elif outcome == "parked":
+                tone = "warn"
+                text = t("ev.job.parked", doing=_s(p, "doing", kind))
+            elif outcome == "stopped":
+                text = t("ev.job.stopped", doing=_s(p, "doing", kind))
+            else:
+                tone = "bad"
+                text = t("ev.job.failed", doing=_s(p, "doing", kind))
+            if nexts:
+                detail = t("ev.job.next", next=nexts)
+        case EventType.NOTE:
+            text = _s(p, "text")
+            lowered = text.lower()
+            if "ci green" in lowered or "improved" in lowered or lowered.startswith("merged"):
+                tone = "good"
+            elif "ci red" in lowered or "not merged" in lowered or "not published" in lowered:
+                tone = "bad"
+            elif "wait" in lowered or "no proven fix" in lowered or "not measured" in lowered:
+                tone = "warn"
+        case EventType.BRANCH_PUSHED:
+            tone = "good"
+            text = t("ev.pushed", branch=_s(p, "branch"), commit=_short(p.get("commit")))
         case EventType.WORKSPACE_INITIALIZED:
             text = t("ev.workspace", rev=_short(p.get("rev")), resources=_s(p, "resources", "0"),
                      relations=_s(p, "relations", "0"), blind=_s(p, "blind_spots", "0"))  # fmt: skip
@@ -168,7 +228,10 @@ def narrate(event: Event, *, asks_for_proposals: bool = False, verbose: bool = F
                 text = t("ev.proposal.ready", branch=_s(p, "branch"), commit=_short(p.get("commit")),
                          level=_s(p, "level"))  # fmt: skip
         case EventType.PROPOSAL_PUBLISHED:
+            tone = "good"
             text = t("ev.proposal.published", url=_s(p, "url"))
+            if p.get("number"):
+                text = t("ev.proposal.published.n", number=_s(p, "number"), url=_s(p, "url"))
         case EventType.PROPOSAL_STALE:
             text = t("ev.proposal.stale", reason=_s(p, "reason"))
         case EventType.APPROVAL_GRANTED:
@@ -193,6 +256,7 @@ def narrate(event: Event, *, asks_for_proposals: bool = False, verbose: bool = F
         case EventType.MODEL_CALLED:
             tokens = int(p.get("tokens_in") or 0) + int(p.get("tokens_out") or 0)
             if p.get("ok") is False:
+                tone = "bad"
                 text = t("ev.model.failed", purpose=_s(p, "purpose"), tier=_s(p, "tier"), model=_s(p, "model"),
                          problem=_s(p, "problem"))  # fmt: skip
             else:
@@ -216,8 +280,10 @@ def narrate(event: Event, *, asks_for_proposals: bool = False, verbose: bool = F
             else:
                 result = ("ok" if p.get("ok") else "failed") + (f": {p['reason']}" if p.get("reason") else "")
                 key = "ev.deployed.rollback" if p.get("rollback") else "ev.deployed"
+                tone = "good" if p.get("ok") and not p.get("rollback") else "bad"
                 text = t(key, commit=_short(p.get("commit")), result=result)
         case EventType.MERGED:
+            tone = "good"
             text = t("ev.merged", number=_s(p, "number"), sha=_short(p.get("sha")))
         case EventType.IMPACT_JUDGED:
             text = t("ev.impact", impact=_s(p, "impact"), baseline=_s(p, "baseline"))
@@ -254,8 +320,10 @@ def narrate(event: Event, *, asks_for_proposals: bool = False, verbose: bool = F
             text = t("ev.signal", title=_s(p, "title", _s(p, "kind")), summary=_s(p, "summary", ""))
         case _:
             text = t("ev.plain", type=str(et))
+    if et in (EventType.EGRESS_BLOCKED, EventType.POLICY_DENIED) or (et is EventType.ANALYZER_RAN and p.get("error")):
+        tone = "bad"
     return Entry(verb=verb, text=_clip(text), ts=event.ts, seq=event.seq, ref=ref,
-                 detail=_clip(detail) if detail else None, accent=accent)  # fmt: skip
+                 detail=_clip(detail) if detail else None, accent=accent, tone=tone)  # fmt: skip
 
 
 # --- folding runs of alike events -----------------------------------------------------------------------------------
@@ -316,11 +384,19 @@ class Coalescer:
         last = run[-1]
         p = last.payload or {}
         kind = last.type
+        tone: Tone = "plain"
         if kind == EventType.MODEL_CALLED:
-            tokens = sum(int((e.payload or {}).get("tokens_in") or 0) + int((e.payload or {}).get("tokens_out") or 0)
-                         for e in run)  # fmt: skip
-            usd = sum(float((e.payload or {}).get("usd") or 0.0) for e in run)
-            text = t("ev.models.many", n=len(run), tokens=tokens, usd=usd)
+            rejected = [e for e in run if (e.payload or {}).get("problem") == "key rejected"]
+            if len(rejected) == len(run):
+                tone = "bad"
+                text = t("ev.models.rejected", n=len(run))
+            else:
+                tokens = sum(
+                    int((e.payload or {}).get("tokens_in") or 0) + int((e.payload or {}).get("tokens_out") or 0)
+                    for e in run
+                )
+                usd = sum(float((e.payload or {}).get("usd") or 0.0) for e in run)
+                text = t("ev.models.many", n=len(run), tokens=tokens, usd=usd)
         elif kind == EventType.ANALYZER_RAN:
             findings = sum(int((e.payload or {}).get("findings") or 0) for e in run)
             text = t("ev.analyzers.many", n=len(run), rev=_short(p.get("rev")), findings=findings)
@@ -336,7 +412,7 @@ class Coalescer:
             entry = narrate(last, asks_for_proposals=self.asks, verbose=self.verbose)
             return [entry] if entry else []
         ref = last.correlation_id
-        return [Entry(verb=VERB_OF[kind], text=_clip(text), ts=last.ts, seq=last.seq, ref=ref)]
+        return [Entry(verb=VERB_OF[kind], text=_clip(text), ts=last.ts, seq=last.seq, ref=ref, tone=tone)]
 
 
 # --- what the feed shows on open -------------------------------------------------------------------------------------

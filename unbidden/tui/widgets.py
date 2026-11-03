@@ -91,7 +91,17 @@ class Feed(RichLog):
         else:
             line.append("  ")
         body = Text.from_markup(entry.text) if entry.kind == "note" else Text(entry.text)
-        if entry.accent:
+        shade = entry.shade
+        if shade == "good":
+            line.append("✓ ", style="bold")
+            body.stylize("bold")
+        elif shade == "bad":
+            line.append("✗ ", style="bold")
+            body.stylize("bold")
+        elif shade == "warn":
+            line.append("! ", style=ACCENT)
+            body.stylize(ACCENT)
+        elif shade == "ask":
             body.stylize(ACCENT)
         elif entry.kind == "stale":
             body.stylize("dim")

@@ -435,7 +435,10 @@ class LiveWatcher:
             self.store.set_value(f"outage_deploy:{current}", utc_now().isoformat())
             self.store.set_value(f"verdict_of:{current}", impact.value)
         reason = f"deploy {current} ({history[current][:12]}) judged {impact.value}"
-        place(self.store, reason)
+        hold = place(self.store, reason)
+        from unbidden.director.asks import for_hold, open_ask
+
+        open_ask(self.store, for_hold(hold))
         target = self._last_healthy(history, current)
         if target is not None:
             # Explain it, read-only, before anyone touches it again.

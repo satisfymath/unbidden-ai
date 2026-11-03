@@ -213,6 +213,15 @@ class Publisher:
                 push_branch(
                     self.repo, client.slug, proposal.branch, proposal.commit_sha, policy.token_env, policy.base_branch
                 )
+                self.store.append_event(
+                    Event(
+                        type=EventType.BRANCH_PUSHED,
+                        actor=ACTOR,
+                        entity_id=proposal.id,
+                        correlation_id=proposal.opportunity_id,
+                        payload={"branch": proposal.branch, "commit": proposal.commit_sha, "slug": client.slug},
+                    )
+                )
                 before_effect(self.store, f"pull request for {proposal.branch}")
                 pr = client.create_pr(
                     title=proposal.title, body=proposal.body_md, head=proposal.branch, base=policy.base_branch

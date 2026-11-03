@@ -387,6 +387,9 @@ class Brain:
         spent = self.month_remote_spend()
         cap = self.mandate.business_constraints.maximum_monthly_spend_usd
         if spent >= cap:
+            from unbidden.director.asks import for_spend, open_ask
+
+            open_ask(self.store, for_spend(spent, cap))
             raise SpendLimitReached(f"remote spend this month is US${spent:.2f}, at the US${cap:.2f} cap")
         payload = _payload(request)
         price = self.config.prices.models.get(route.model)

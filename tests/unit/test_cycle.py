@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -100,3 +100,33 @@ async def test_a_measurement_deferred_by_a_busy_host_is_repeated_once_then_stays
     await cycle.director_sweep(sweep)
     assert len([j for j in store.jobs() if j.type == "lab.experiment"]) == 2  # no third try at this commit
     assert int(opp.details.get("attempts", 0)) == 0  # never counted as a failed attempt
+
+
+async def test_a_proposal_that_needs_approval_opens_one_ask_and_a_note(
+    store: Store, mandate: Mandate, tmp_path: Path
+) -> None:
+    """github_publish under `require_approval`: the NeedsApproval becomes a question with options, once, plus a NOTE
+    event the app shows; publishing is never attempted."""
+    from unbidden.contracts.common import EvidenceLevel
+    from unbidden.contracts.events import EventType
+    from unbidden.contracts.experiment import Proposal
+    from unbidden.director.asks import open_asks
+
+    sha = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+    opp = Opportunity(id="opp_a", source="t", category="perf", title="t", summary="s", dedup_key="opp_a",
+                      evidence=[EvidenceRef(kind="file", locator="a")],
+                      evidence_level=EvidenceLevel.FUNCTIONAL_VALIDATION)  # fmt: skip
+    store.put("opportunities", opp, key="opp_a")
+    proposal = Proposal(opportunity_id="opp_a", experiment_id="exp_a", branch="unbidden/t", base_sha=sha,
+                        commit_sha=sha, title="t", body_md="b",
+                        evidence_level=EvidenceLevel.FUNCTIONAL_VALIDATION)  # fmt: skip
+    store.put("proposals", proposal, key="opp_a")
+    cycle = make_cycle(store, mandate)
+    cast(Any, cycle.runtime).workspace.dir = tmp_path  # where a patch artifact would be; none here
+    job_ = Job(type="github.publish", idempotency_key="pub:1", payload={"id": proposal.id})
+    await cycle.github_publish(job_)
+    await cycle.github_publish(job_)
+    asks = open_asks(store)
+    assert len(asks) == 1 and asks[0].kind == "approval" and asks[0].subject == "opp_a"
+    notes = [e for e in store.events() if e.type is EventType.NOTE]
+    assert notes and "waiting for a person" in notes[0].payload["text"]

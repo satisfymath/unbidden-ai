@@ -10,14 +10,41 @@ from datetime import timedelta
 from typing import Any
 
 from unbidden.contracts.common import utc_now
+from unbidden.contracts.events import Event, EventType
+from unbidden.contracts.jobs import Job, JobStatus
 from unbidden.contracts.llm import Tier
 from unbidden.daemon.cycle import Cycle, Log, job, retry_after, timeout_for
+from unbidden.director.asks import reconcile
 from unbidden.director.blocks import PARKED, release
+from unbidden.director.pipeline import job_stage
 from unbidden.guardian.killswitch import CURRENT, JobScope, TrackingExecutor, kill_containers
 from unbidden.runtime import Runtime
 
 HEALTH_EVERY_S = 60.0
 MAP_EVERY_S = 300.0  # the running system's map, refreshed between commits (no model call)
+DURATIONS_KEY = "durations"  # kv: job type -> the last seconds it took, for "this usually takes ~N s"
+DURATIONS_KEPT = 10
+
+
+def _job_event(store: Any, type_: EventType, claimed: Job, payload: dict[str, Any]) -> None:
+    subject = next((str(v) for k, v in (claimed.payload or {}).items() if k in ("id", "goal", "opp")), None)
+    store.append_event(Event(type=type_, actor="daemon", entity_id=claimed.id, correlation_id=claimed.correlation_id,
+                             payload={"type": claimed.type, "subject": subject, **payload}))  # fmt: skip
+
+
+def usual_seconds(store: Any, job_type: str) -> float | None:
+    """The median of the last runs of this job type, or None the first time: nothing is invented."""
+    kept = (store.get_value(DURATIONS_KEY) or {}).get(job_type) or []
+    if not kept:
+        return None
+    ordered = sorted(float(x) for x in kept)
+    return ordered[len(ordered) // 2]
+
+
+def remember_seconds(store: Any, job_type: str, seconds: float) -> None:
+    durations = dict(store.get_value(DURATIONS_KEY) or {})
+    durations[job_type] = [*list(durations.get(job_type) or [])[-(DURATIONS_KEPT - 1) :], seconds]
+    store.set_value(DURATIONS_KEY, durations)
 
 
 def _model_key(runtime: Runtime) -> str | None:
@@ -202,6 +229,8 @@ async def _work(
         # What a person granted since the last cycle: the work it held runs now, not after its backoff.
         for met in release(store, runtime.workspace.mandate()) if runtime is not None else []:
             log(f"unblocked: {met.needs}; {len(met.jobs)} job(s) run again")
+        for gone in reconcile(store):
+            log(f"question withdrawn: {gone.title} ({gone.withdrawn_why})")
         while True:
             if stop_asked():
                 break  # no new job once a stop was asked; the queue waits for the next start
@@ -216,9 +245,22 @@ async def _work(
                 store.finish(claimed, error=f"no handler for {claimed.type}")
                 continue
             scope = JobScope(claimed.id)
+            started, queued_before = time.monotonic(), {j.id for j in store.jobs(status=JobStatus.QUEUED)}
+            _job_event(
+                store,
+                EventType.JOB_STARTED,
+                claimed,
+                {
+                    "stage": job_stage(claimed.type)[1],
+                    "doing": job_stage(claimed.type)[0],
+                    "usual_s": usual_seconds(store, claimed.type),
+                },
+            )
+            outcome = "ok"
             try:
                 await run_job(handler, claimed, scope, killswitch, timeout_for(claimed.type), stopping)
             except Stopped as stop:
+                outcome = "stopped"
                 log(f"{claimed.type}: {stop}")
                 # Retried only once every thread it started has ended: never two copies of a job at once.
                 retry = retry_after(claimed.attempts) if stop.drained else None
@@ -228,6 +270,7 @@ async def _work(
                     claimed.attempts, retry = claimed.attempts - 1, timedelta(0)
                 store.finish(claimed, error=str(stop), retry_in=retry)
             except Exception as exc:
+                outcome = "failed"
                 log(f"{claimed.type} failed: {exc}")
                 from unbidden.director.blocks import classify, record
 
@@ -236,13 +279,30 @@ async def _work(
                                                f"{claimed.type} runs again"), claimed.id)  # fmt: skip
                 retry = retry_after(claimed.attempts)
                 if block.kind == "pending_person":
+                    outcome = "parked"
                     log(f"needs a person: {block.needs} (then: {block.continues})")
                     # Parked until a person answers: waiting is not the job's own failure, so no attempt is spent.
                     claimed.attempts, retry = claimed.attempts - 1, PARKED
+                    from unbidden.director.asks import for_block, open_ask
+
+                    ask = for_block(block)
+                    if ask is not None:
+                        ask.correlation_id = claimed.correlation_id
+                        open_ask(store, ask)
                 store.finish(claimed, error=f"{type(exc).__name__}: {exc}\n{traceback.format_exc(limit=3)}",
                              retry_in=retry)  # fmt: skip
             else:
                 store.finish(claimed)
+            seconds = round(time.monotonic() - started, 1)
+            queued_after = [j for j in store.jobs(status=JobStatus.QUEUED) if j.id not in queued_before]
+            if outcome == "ok":
+                remember_seconds(store, claimed.type, seconds)
+            _job_event(
+                store,
+                EventType.JOB_FINISHED,
+                claimed,
+                {"outcome": outcome, "seconds": seconds, "next": sorted({j.type for j in queued_after})},
+            )
         if once or stop_asked():
             return
         if stopping is None:

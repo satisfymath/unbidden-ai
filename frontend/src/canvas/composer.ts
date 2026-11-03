@@ -10,6 +10,7 @@ type Activity = {
   proposals?: Record<string, string[]>;
   connections?: unknown[];
   blocks?: { operation: string; kind: string; needs: string }[];
+  asks?: { id: string; title: string }[];
   needs_a_person?: unknown[];
   capabilities?: { awaiting_approval?: { need: string }[] };
   spent?: { calls: number; usd: number };
@@ -125,7 +126,7 @@ export function compose(summary: Summary): { widgets: WidgetSpec[]; edges: Edge[
   if (caps.has("checks") || a.project_checks) {
     widgets.push(widget({ id: "c_checks", type: "tests", title: "Checks del proyecto", size: { w: 420, h: 220 }, dataRef: { dataset: "checks", params: {}, transform: { filter: [], limit: 10 } }, view: { kind: "metrics", options: {} } }));
   }
-  if (caps.has("needs") || (a.blocks?.length ?? 0) > 0 || (a.capabilities?.awaiting_approval?.length ?? 0) > 0) {
+  if (caps.has("needs") || (a.asks?.length ?? 0) > 0 || (a.blocks?.length ?? 0) > 0 || (a.capabilities?.awaiting_approval?.length ?? 0) > 0) {
     widgets.push(widget({ id: "c_needs", type: "need", title: "Necesita una persona", size: { w: 440, h: 280 } }));
   }
   if ((counts.spend_calls ?? 0) > 0) {
