@@ -1,4 +1,15 @@
-# Unbidden 0.12.7, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.12.8, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.12.8 (2026-11-03): a sandbox Postgres starts when the project's password lives in an untracked .env
+
+Seen on the demo copy with a model (0.12.7, option `api`): every measurement of an unindexed foreign key waited 90 s
+and failed with "data service db was not ready", and the agent chose a new request with the model each time
+(US$0.36 in 20 minutes for nothing). The compose file declares `POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?...}`; the
+value lives in the project's untracked `.env`, so in the sandbox it resolves empty, and the postgres image refuses
+to start without a password. A sandbox database is throwaway, offline and on an internal network: when its password
+resolves empty it now starts with `POSTGRES_HOST_AUTH_METHOD=trust`, and the application connects with the empty
+password it was given (`sandbox/sidecars.py`, `tests/unit/test_sidecars_env.py`). Verified on the demo copy: the
+database comes up; the next blocker (the application started as its image starts it) is in the walk notes.
 
 ## 0.12.7 (2026-11-03): the chat answers as a colleague, with read-only tools
 
@@ -232,7 +243,7 @@ already existed (start, stop, kill switch, approve, reject, chat). `docs/INSTALL
 on macOS arm64 with the built wheel installed by `install.sh` into an empty HOME and driven in a pseudoterminal; CI
 unchanged (without a terminal, `unbidden` is the text home screen). Everything below describes 0.9.0 and still holds.
 
-**Status: 0.12.7, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
+**Status: 0.12.8, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
 met when the campaign paused at its gate (D-063); they are not changed here. The one that blocks 1.0: no useful cycle
 has been shown on an application not used in development. This candidate adds the product around the same engine:
 an installable wheel, a guided setup, one executor per workspace with a background agent, and the dashboard and chat
