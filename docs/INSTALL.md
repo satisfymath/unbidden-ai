@@ -1,6 +1,6 @@
 # Installing Unbidden
 
-This is the one install guide. Unbidden 0.12.4 (experimental candidate; not 1.0) ships as one Python wheel with the
+This is the one install guide. Unbidden 0.12.5 (experimental candidate; not 1.0) ships as one Python wheel with the
 web workspace already built inside. The installer puts it in its own environment with its own Python 3.12 through
 [uv](https://docs.astral.sh/uv/); nothing else on the machine changes. The end user needs no Node and no Python of
 their own.
@@ -26,7 +26,7 @@ runs `uv tool install --python 3.12 --reinstall` on the wheel; tells you if the 
 It never uses `sudo` and never prints a secret.
 
 On a terminal it shows one line per step with a mark when the step is done (`uv 0.9.x`, `Downloading unbidden
-0.12.4`, `sha256 verified`, `Installing unbidden 0.12.4`), then the installed path and the two commands that matter.
+0.12.5`, `sha256 verified`, `Installing unbidden 0.12.5`), then the installed path and the two commands that matter.
 What uv and curl print is kept in a log and shown only when a step fails. `--verbose` (or
 `UNBIDDEN_INSTALL_VERBOSE=1`) shows every line; so does a run without a terminal (CI, a pipe).
 
@@ -36,10 +36,10 @@ Build the files from a checkout (`make dist`: builds the web workspace with Node
 `SHA256SUMS`), serve the directory, point the installer at it. `http://` is accepted only for loopback addresses.
 
 ```sh
-make dist                                   # dist/unbidden_ai-0.12.4-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
+make dist                                   # dist/unbidden_ai-0.12.5-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
 (cd dist && python3 -m http.server 8777 --bind 127.0.0.1 &)
-UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.12.4
-unbidden --version                          # unbidden 0.12.4
+UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.12.5
+unbidden --version                          # unbidden 0.12.5
 ```
 
 Only the person building the wheel needs Node; the wheel carries the built assets, so the installed tool serves the
@@ -117,7 +117,8 @@ unbidden start               # resumes: interrupted jobs return to the queue fir
 
 `unbidden` with no arguments, on a terminal of at least 60 columns, opens the app: full screen, the feed of what
 the agent discovers, investigates, tries and proves in the middle, a prompt at the bottom, a status bar under it
-(agent, jobs, mode, model option, spend available, dashboard URL, age of the last event). In a repository without
+(agent, what it is doing now and the stage it works toward, questions waiting, jobs, mode, model option, spend
+available, dashboard URL, age of the last event). In a repository without
 `.unbidden/` the app opens the setup assistant first (three questions at most; `unbidden setup` below); when it
 finishes the feed opens. Every sentence the app says is in `unbidden/tui/text.py`.
 
@@ -125,7 +126,8 @@ At the prompt, plain text is a question for the agent (the same routes and spend
 `local` option, or `--planner rule`, it costs US$0) and `/` starts a command. `/help` lists them: `/start [--ui]`,
 `/stop`, `/status` (the activity table), `/inbox [--all]`, `/why <id>`, `/approve <id> [--hours N]`,
 `/reject <id> <reason>`, `/kill [reason]`, `/resume`, `/spend`, `/doctor`, `/ui [--open]`, `/activity`, `/log`,
-`/setup [section|--all]`, `/verbose`, `/clear`, `/quit`. Tab completes a command; up and down walk the history.
+`/setup [section|--all]`, `/key`, `/ask [id]`, `/verbose`, `/clear`, `/quit`. Tab completes a command; up and down walk
+the history.
 
 Keys: Ctrl+C cancels a running answer, else clears the prompt, else asks for a second press to quit. Quitting the
 app stops no agent: `/stop` does. Esc cancels an answer or closes a panel. Ctrl+D on an empty prompt quits.
@@ -199,6 +201,27 @@ unbidden setup --non-interactive [--models local|mixed|api] [--mode supervised|a
 Afterwards `unbidden --plain` (or `unbidden` without a terminal) is the home screen in text: repository, head, mode,
 profile, whether the agent runs (pid, since when, log) or ended without `stop`, the kill switch, opportunities, last
 scan, spend on this machine, and the next command. The app shows the same in its header, bar and opening block.
+
+### When it asks: `unbidden ask` and `/ask`
+
+Where the agent stops for a person it opens a question with options, one per subject: the pull request of a proven
+change (approve, reject with a reason, later), a key the service refused (paste another; proven before it counts), a
+registry the sandbox needs (allow it in the mandate), a hold after a bad deploy (keep, or release with a reason), a
+deploy procedure found in the repository (adopt it into `operations.deploy_steps`), the monthly cap reached (a new
+cap). In the app the question opens by itself when nothing else is open: arrows or a click, Enter answers, Esc leaves
+it for later; `/ask [id]` brings one back and the bar counts `N question(s) · /ask`. The dashboard's "Necesita una
+persona" card shows the same questions with a button per option. From a terminal:
+
+```sh
+unbidden ask                              # the open questions, their options and the command each stands for
+unbidden ask ask_… approve                # answer one; --value "…" for an option that takes a reason or an amount
+printf '%s\n' "$KEY" | unbidden ask ask_… set --value-stdin    # a key, never in argv
+```
+
+Answering applies the same effect the CLI command would (`unbidden approve`, `unbidden hold release`, the mandate
+editor), records `ASK_ANSWERED` with you as the actor, and a question settled another way (approved from the CLI, the
+hold released) is withdrawn on its own. `unbidden inbox` lists the open questions first and shows each opportunity's
+stage on the road every change travels: `found → decided → measured → proven → proposed → merged → deployed`.
 
 ### `unbidden key`
 
@@ -335,7 +358,7 @@ real on live sources only; deploy and rollback name the CLI command instead of r
 
 ```sh
 unbidden update                     # the latest published release
-unbidden update --version 0.12.4     # a fixed version: also how you roll back after a failed update
+unbidden update --version 0.12.5     # a fixed version: also how you roll back after a failed update
 unbidden uninstall                  # shows what would happen
 unbidden uninstall --yes            # uv tool uninstall unbidden-ai; data stays
 unbidden uninstall --purge --yes    # also deletes ~/.unbidden and this repository's .unbidden/ (listed first)

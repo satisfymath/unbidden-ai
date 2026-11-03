@@ -50,6 +50,12 @@ class EventType(StrEnum):
     ANOMALY_DETECTED = "anomaly.detected"
     ANOMALY_RESOLVED = "anomaly.resolved"
     LOG_SIGNAL = "log.signal"
+    ASK_OPENED = "ask.opened"  # a question for the person, with options (contracts/ask.py)
+    ASK_ANSWERED = "ask.answered"
+    JOB_STARTED = "job.started"  # what the agent is doing now, and at which stage of the pipeline
+    JOB_FINISHED = "job.finished"  # how it ended, how long it took, what it queued next
+    NOTE = "agent.note"  # a sentence the agent would otherwise only write to its log
+    BRANCH_PUSHED = "proposal.pushed"  # the branch is on GitHub; the pull request follows
 
 
 class Event(Contract):

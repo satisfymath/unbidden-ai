@@ -1,4 +1,41 @@
-# Unbidden 0.12.4, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.12.5, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.12.5 (2026-11-03): the agent asks with options, says what it is doing, and marks what matters
+
+Seen on the end-user walks (0.12.2 and 0.12.3, Linux): the app never offered a choice. A proposal waiting for
+approval, a key the service refused, a hold after a bad deploy, a deploy procedure found in the repository, a
+registry the sandbox needed: each lived in a collection (`blocks`, `holds`, `proposals`, `actions`) and in
+`agent.log`, surfaced only by `/activity` or the dashboard, answered only by typing the right command. Nothing said
+what the agent was doing, how long it usually takes or what comes next. "Pull request opened" was a line like any
+other.
+
+- **Questions with options** (`contracts/ask.py`, `director/asks.py`). Where the agent stops for a person it opens
+  one `Ask` per subject: *approval* (the pull request: approve, reject with a reason, later), *credential* (a
+  refused key: paste another, proven before it counts), *registry* (allow the host in `egress.package_registries`),
+  *hold* (keep, or release with a reason), *deploy_steps* (adopt the procedure found into the mandate), *spend* (a
+  new cap), *access* and *capability* (the command, until their effects move here). Answering applies the same module
+  the CLI command uses, writes `ASK_ANSWERED` with the person as actor, and the ask is withdrawn on its own when the
+  matter was settled another way (`reconcile`, every tick).
+- **In the app** the question opens by itself when nothing else is open: arrows or a click, Enter answers, Esc leaves
+  it for later; an option that takes a value (a key, a reason, an amount) asks for it next. `/ask [id]` brings one
+  back; the bar counts `N question(s) · /ask`; the feed says `Question: … · /ask <id>` with the command for a
+  terminal. In the dashboard the "Necesita una persona" card shows each question with a button per option
+  (`POST /actions {operation: "answer"}`). `unbidden ask` lists and answers from a terminal; `unbidden inbox` and
+  `unbidden activity` show them first.
+- **Progress** (`director/pipeline.py`). Every job writes `JOB_STARTED` (what it does, the stage it works toward,
+  the usual seconds from the last ten runs, or "first time") and `JOB_FINISHED` (ok, failed, parked, stopped; the
+  seconds; what it queued next). The bar says `now: measuring a candidate in the sandbox → measured` and, between
+  jobs, `next: proposal.prepare`. The feed narrates the jobs that matter (lab, probe, checks, prepare, publish,
+  deploy) and keeps the routine ones for `/verbose`. `unbidden inbox` has a `stage` column: `3/7 measured`,
+  `5/7 proposed`. The sentences the cycle wrote only to its log ("experiments wait", "no proven fix", "waiting for
+  a person", "CI green on pull request #n", "merged") are `NOTE` events now, in the feed and the dashboard.
+- **Tones**. A feed line is plain, a question (accent), good (`✓` bold: branch pushed, pull request opened, CI green,
+  merged, deployed, improved), warn (`!` accent: parked, waiting, not measured) or bad (`✗` bold: refused, blocked,
+  failed, rollback, CI red). The publisher writes `BRANCH_PUSHED` before the pull request; `PROPOSAL_PUBLISHED` says
+  the number; model calls refused for the key fold into one bad line.
+
+Verified: `make check`; the app's pilot tests (a question opens on its own and Enter approves; Esc defers and the bar
+counts it); the cycle test (one ask per proposal, a NOTE); and the walk on the demo copy described in the pull request.
 
 ## 0.12.4 (2026-11-03): Flask applications have endpoints
 
@@ -138,7 +175,7 @@ already existed (start, stop, kill switch, approve, reject, chat). `docs/INSTALL
 on macOS arm64 with the built wheel installed by `install.sh` into an empty HOME and driven in a pseudoterminal; CI
 unchanged (without a terminal, `unbidden` is the text home screen). Everything below describes 0.9.0 and still holds.
 
-**Status: 0.12.4, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
+**Status: 0.12.5, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
 met when the campaign paused at its gate (D-063); they are not changed here. The one that blocks 1.0: no useful cycle
 has been shown on an application not used in development. This candidate adds the product around the same engine:
 an installable wheel, a guided setup, one executor per workspace with a background agent, and the dashboard and chat

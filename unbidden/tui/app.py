@@ -22,8 +22,16 @@ from unbidden.contracts.events import EventType
 from unbidden.tui import actions
 from unbidden.tui.commands import Command, help_lines, parse
 from unbidden.tui.feed import Coalescer, Entry, seed
-from unbidden.tui.screens import PanelScreen, SetupScreen
-from unbidden.tui.state import key_rejected, read_cheap, read_dashboard, read_mandate, read_route, read_spend
+from unbidden.tui.screens import AskScreen, PanelScreen, SetupScreen
+from unbidden.tui.state import (
+    key_rejected,
+    read_cheap,
+    read_dashboard,
+    read_mandate,
+    read_route,
+    read_spend,
+    track_progress,
+)
 from unbidden.tui.text import t
 from unbidden.tui.widgets import ACCENT, Feed, Header, Prompt, StatusBar
 from unbidden.workspace import Workspace
@@ -163,8 +171,12 @@ class UnbiddenApp(App[int]):
             entries = seed(self.source.store, highlights, asks_for_proposals=self.asks)
             self._last_seq = int(self.source.store.last_seq() or 0)
             recent = self.source.store.events(after=max(0, self._last_seq - 240), limit=240)
+            waiting = actions.asks(self.source.store)
         self.feed.add_many(entries)
         self.bar.bar.key_rejected = bool(key_rejected(recent))
+        track_progress(recent, self.bar.bar)
+        if waiting:
+            self._say(t("open.asks", n=len(waiting), id=waiting[0].id), accent=True)
 
     @work(thread=True, exclusive=True, group="tail", exit_on_error=False)
     def _tail(self) -> None:
@@ -183,7 +195,8 @@ class UnbiddenApp(App[int]):
                         mandate_changed |= e.type == EventType.MANDATE_CHANGED
                     entries.extend(folder.flush())
                     self._last_seq = int(events[-1].seq or self._last_seq)
-                    self.call_from_thread(self._arrived, entries, mandate_changed, key_rejected(events))
+                    asked = any(e.type == EventType.ASK_OPENED for e in events)
+                    self.call_from_thread(self._arrived, entries, mandate_changed, key_rejected(events), events, asked)
                 if stale:
                     stale = False
                     self.call_from_thread(
@@ -196,10 +209,19 @@ class UnbiddenApp(App[int]):
                     self.call_from_thread(self.feed.add, note)
             self._stopping.wait(POLL_S)
 
-    def _arrived(self, entries: list[Entry], mandate_changed: bool, key: bool | None = None) -> None:
+    def _arrived(
+        self,
+        entries: list[Entry],
+        mandate_changed: bool,
+        key: bool | None = None,
+        events: list[Any] | None = None,
+        asked: bool = False,
+    ) -> None:
         self.feed.add_many(entries)
         if key is not None:
             self.bar.bar.key_rejected = key
+        if events:
+            track_progress(events, self.bar.bar)
         if mandate_changed:
             read_mandate(self.ws, self.bar.bar)
             header = self.query_one(Header)
@@ -207,6 +229,30 @@ class UnbiddenApp(App[int]):
             header.refresh_line()
         if self.show_log:
             self._tail_log()
+        if asked and not self._turn_running and len(self.screen_stack) == 1:
+            self._open_ask(None)  # a question just arrived and nothing else is open: it comes first
+
+    # --- questions -----------------------------------------------------------------------------------------------
+
+    def _open_ask(self, ask_id: str | None) -> None:
+        with self.source.lock:
+            open_ = actions.asks(self.source.store)
+        ask = next((a for a in open_ if a.id == ask_id), None) if ask_id else (open_[0] if open_ else None)
+        if ask is None:
+            self._say(t("cmd.ask.none") if not ask_id else t("cmd.ask.unknown", id=ask_id))
+            return
+        self.push_screen(AskScreen(ask), callback=lambda result: self._ask_done(ask, result))
+
+    def _ask_done(self, ask: Any, result: tuple[str, str | None] | None) -> None:
+        if result is None:
+            self._say(t("cmd.ask.deferred", id=ask.id))
+        else:
+            option, value = result
+            self.feed.add(Entry(verb="Asking", text=f"{ask.title} → {option}", kind="person"))
+            self.feed.add_many(actions.answer_ask(self.ws, ask.id, option, value))
+            read_cheap(self.ws, self.source.store, self.bar.bar)
+            self.bar.refresh_line()
+        self.prompt.focus()
 
     # --- the status bar -----------------------------------------------------------------------------------------
 
@@ -330,6 +376,8 @@ class UnbiddenApp(App[int]):
             case "key":
                 self._say(t("cmd.key.push"))
                 self._setup("key")
+            case "ask":
+                self._open_ask(cmd.words[0] if cmd.words else None)
             case "language":
                 self._language(cmd.words[0] if cmd.words else None)
             case _:

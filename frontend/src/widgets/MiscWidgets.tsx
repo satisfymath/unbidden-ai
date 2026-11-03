@@ -8,6 +8,12 @@ import { Empty, KeyValue, Loading, StatusChip, fmtNum, fmtTime } from "./common"
 
 const EVENT_LABEL: Record<string, [string, string]> = {
   "opportunity.opened": ["info", "Oportunidad abierta"],
+  "ask.opened": ["warn", "Pregunta para ti"],
+  "ask.answered": ["ok", "Pregunta respondida"],
+  "proposal.pushed": ["ok", "Rama subida"],
+  "job.started": ["info", "Trabajo iniciado"],
+  "job.finished": ["info", "Trabajo terminado"],
+  "agent.note": ["info", "Nota del agente"],
   "decision.made": ["info", "Decisión tomada"],
   "experiment.started": ["accent", "Experimento iniciado"],
   "verdict.recorded": ["ok", "Veredicto registrado"],
@@ -293,6 +299,76 @@ export function MetricsWidget({ widget }: { widget: WidgetSpec }) {
   );
 }
 
+const stamp = () => Date.now(); // an idempotency key per click, made outside the render path
+
+type AskSummary = {
+  id: string;
+  kind: string;
+  title: string;
+  why: string;
+  options: { key: string; label: string; input: "none" | "secret" | "text" }[];
+  default: string | null;
+  cli: string | null;
+};
+
+// A question from the agent with its options as buttons; an option that takes a value asks for it first. Answering
+// goes through the same module the app and `unbidden ask` use; the summary refreshes after.
+function AskCard({ ask }: { ask: AskSummary }) {
+  const api = useStore((s) => s.api);
+  const ws = useStore((s) => s.ws);
+  const toast = useStore((s) => s.toast);
+  const refreshSummary = useStore((s) => s.refreshSummary);
+  const [pending, setPending] = useState<string | null>(null);
+  const [value, setValue] = useState("");
+  const [busy, setBusy] = useState(false);
+  const send = async (option: string, v: string | null) => {
+    if (!api || !ws) return;
+    setBusy(true);
+    try {
+      const r = await api.action(ws, { operation: "answer", subject: ask.id, option, value: v, idempotency_key: `answer-${ask.id}-${option}-${stamp()}` });
+      toast(r.detail, r.effect === "done" ? "ok" : "bad");
+      setPending(null);
+      setValue("");
+      await refreshSummary();
+    } catch (e) {
+      toast(String(e), "bad");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const choose = (o: AskSummary["options"][number]) => {
+    if (o.input === "none") void send(o.key, null);
+    else setPending(o.key);
+  };
+  const needs = ask.options.find((o) => o.key === pending);
+  return (
+    <div className="need-item">
+      <div className="row">
+        <ShieldAlert size={14} color="var(--amber)" />
+        <b className="small grow">{ask.title}</b>
+        <span className="chip warn">{ask.kind}</span>
+      </div>
+      <div className="tiny ink2" style={{ lineHeight: 1.4 }}>{ask.why}</div>
+      {needs ? (
+        <div className="row" style={{ marginTop: 4, gap: 6 }}>
+          <input className="input sm grow" type={needs.input === "secret" ? "password" : "text"} value={value} placeholder={needs.label} onChange={(e) => setValue(e.target.value)} />
+          <button className="btn sm primary" disabled={busy || !value} onClick={() => void send(needs.key, value)}>Enviar</button>
+          <button className="btn sm" disabled={busy} onClick={() => setPending(null)}>Cancelar</button>
+        </div>
+      ) : (
+        <div className="row" style={{ marginTop: 4, gap: 6, flexWrap: "wrap" }}>
+          {ask.options.map((o) => (
+            <button key={o.key} className={`btn sm${o.key === ask.default ? " primary" : ""}`} disabled={busy} title={o.label} onClick={() => choose(o)}>
+              {o.label.split(":")[0]}
+            </button>
+          ))}
+        </div>
+      )}
+      {ask.cli ? <code className="tiny" style={{ color: "var(--ink-2)" }}>{ask.cli}</code> : null}
+    </div>
+  );
+}
+
 export function NeedWidget({ widget }: { widget: WidgetSpec }) {
   const summary = useStore((s) => s.summary);
   const api = useStore((s) => s.api);
@@ -307,8 +383,9 @@ export function NeedWidget({ widget }: { widget: WidgetSpec }) {
   const people = a.needs_a_person ?? [];
   const blocks = a.blocks ?? [];
   const awaiting = a.capabilities?.awaiting_approval ?? [];
+  const asks = (a as { asks?: AskSummary[] }).asks ?? [];
   const entityBlock = widget.entity?.kind === "block" ? widget.entity.id : null;
-  if (!people.length && !blocks.length && !awaiting.length && !entityBlock) return <Empty title="Nada pendiente de una persona" detail="No hay bloqueos, accesos ni aprobaciones esperando." />;
+  if (!asks.length && !people.length && !blocks.length && !awaiting.length && !entityBlock) return <Empty title="Nada pendiente de una persona" detail="No hay preguntas, bloqueos, accesos ni aprobaciones esperando." />;
   const evaluate = async (capability: string) => {
     if (!api || !ws) return;
     try {
@@ -321,6 +398,9 @@ export function NeedWidget({ widget }: { widget: WidgetSpec }) {
   };
   return (
     <div className="col scroll nowheel nodrag" style={{ height: "100%", padding: "2px 10px 8px", gap: 6 }}>
+      {asks.map((ask) => (
+        <AskCard key={ask.id} ask={ask} />
+      ))}
       {awaiting.map((n) => (
         <div key={n.need} className="need-item">
           <div className="row">

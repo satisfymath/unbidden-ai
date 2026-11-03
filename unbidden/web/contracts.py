@@ -284,9 +284,13 @@ class ChatRequest(WebContract):
 
 class ActionRequestWeb(WebContract):
     schema_version: int = Field(default=SCHEMA, alias="schema")
-    operation: Literal["kill", "resume", "evaluate", "approve", "reject", "deploy", "rollback", "approve_writes"]
+    operation: Literal[
+        "kill", "resume", "evaluate", "approve", "reject", "deploy", "rollback", "approve_writes", "answer"
+    ]
     subject: str | None = Field(default=None, max_length=200)
     reason: str | None = Field(default=None, max_length=400)
+    option: str | None = Field(default=None, max_length=40)  # answer: the option chosen
+    value: str | None = Field(default=None, max_length=400)  # answer: the value the option takes
     capability: str | None = Field(default=None, max_length=80)
     expected_revision: str | None = Field(default=None, max_length=64)
     expires_at: datetime | None = None

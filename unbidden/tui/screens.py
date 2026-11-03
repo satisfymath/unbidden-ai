@@ -53,6 +53,75 @@ class PanelScreen(ModalScreen[None]):
         self.dismiss(None)
 
 
+class AskScreen(ModalScreen[tuple[str, str | None] | None]):
+    """A question from the agent with its options: arrows or a click, Enter answers; an option that takes a value
+    (a key, a reason, an amount) shows an input next; Esc leaves it for later. Dismisses with (option, value) or
+    None."""
+
+    DEFAULT_CSS = """
+    AskScreen { align: center middle; }
+    AskScreen > Vertical { width: 90%; max-width: 100; height: auto; border: round $panel; padding: 1 2;
+                           background: $surface; }
+    AskScreen .title { text-style: bold; }
+    AskScreen .why { color: $secondary; margin-bottom: 1; }
+    AskScreen OptionList { height: auto; max-height: 8; border: tall $panel; }
+    AskScreen OptionList:focus { border: tall $accent; }
+    AskScreen Input { height: 3; border: tall $panel; display: none; }
+    AskScreen Input:focus { border: tall $accent; }
+    AskScreen .hint { height: 1; color: $secondary; }
+    """
+    BINDINGS: ClassVar[list[BindingType]] = [Binding("escape", "later", show=False)]
+
+    def __init__(self, ask: Any) -> None:
+        super().__init__()
+        self.ask = ask
+        self._chosen: str | None = None
+
+    def compose(self) -> ComposeResult:
+        with Vertical():
+            yield Static(Text(self.ask.title, style="bold"), classes="title")
+            yield Static(self.ask.why, classes="why")
+            yield OptionList(id="options")
+            yield Input(id="value")
+            yield Static(t("ask.hint"), classes="hint", id="hint")
+
+    def on_mount(self) -> None:
+        options = self.query_one("#options", OptionList)
+        keys = [o.key for o in self.ask.options]
+        for i, option in enumerate(self.ask.options):
+            prompt = Text(option.label)
+            if option.key == self.ask.default:
+                prompt.append(f"  {t('setup.default')}", style="dim")
+            options.add_option(Option(prompt, id=str(i)))
+        options.highlighted = keys.index(self.ask.default) if self.ask.default in keys else 0
+        options.focus()
+
+    def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
+        event.stop()
+        if event.option_id is None:
+            return
+        option = self.ask.options[int(event.option_id)]
+        if option.input == "none":
+            self.dismiss((option.key, None))
+            return
+        self._chosen = option.key
+        value = self.query_one("#value", Input)
+        value.password = option.input == "secret"
+        value.placeholder = "" if option.input == "secret" else t("ask.value.placeholder")
+        value.display = True
+        self.query_one("#hint", Static).update(t("ask.hint.value"))
+        value.focus()
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        event.stop()
+        if self._chosen is None:
+            return
+        self.dismiss((self._chosen, event.value))
+
+    def action_later(self) -> None:
+        self.dismiss(None)
+
+
 class SetupScreen(Screen[int]):
     """The guided configuration inside the app: the wizard runs unchanged in a worker thread and asks through the
     panel at the bottom; its narration lands in the log above. Ctrl+C keeps the answers given so far."""

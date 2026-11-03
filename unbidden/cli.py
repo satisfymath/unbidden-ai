@@ -156,14 +156,74 @@ def cmd_inbox(args: argparse.Namespace) -> int:
     opps.sort(key=lambda o: (-o.evidence_level, -o.priority_score, o.created_at))
     if _emit(args, [o.model_dump(mode="json", exclude={"details"}) for o in opps]):
         return 0
+    from unbidden.director.asks import open_asks
+    from unbidden.director.pipeline import describe
+
+    asks = open_asks(store)
+    if asks:
+        console.print(f"[bold]{len(asks)} question(s) wait for you[/] (unbidden ask):")
+        for a in asks:
+            console.print(f"  {a.id}  {a.title}  [dim]({', '.join(o.key for o in a.options)})[/]", highlight=False)
+        console.print("")
     table = Table(box=None, header_style="bold")
-    for column in ("id", "evidence", "status", "title"):
+    for column in ("id", "evidence", "stage", "status", "title"):
         table.add_column(column)
     for o in opps:
-        table.add_row(o.id, f"L{int(o.evidence_level)} {LEVEL_NAMES[int(o.evidence_level)]}", o.status.value, o.title)
+        level = f"L{int(o.evidence_level)} {LEVEL_NAMES[int(o.evidence_level)]}"
+        table.add_row(o.id, level, describe(store, o)["text"], o.status.value, o.title)
     console.print(table if opps else "Nothing open.")
     store.close()
     return 0
+
+
+def cmd_ask(args: argparse.Namespace) -> int:
+    """The agent's open questions, or one answered: `unbidden ask <id> <option> [--value ...]`. The same effect the
+    app's panel and the dashboard apply (director/asks.py)."""
+    import getpass
+
+    from unbidden.director.asks import AskError, answer, open_asks
+
+    ws = Workspace.find()
+    ws.require()
+    ws.load_env()
+    store = ws.store()
+    try:
+        if not args.id:
+            asks = open_asks(store)
+            if _emit(args, [a.as_summary() for a in asks]):
+                return 0
+            if not asks:
+                console.print("No question waits for you.")
+                return 0
+            for a in asks:
+                console.print(f"[bold]{a.id}[/]  {a.title}", highlight=False)
+                console.print(f"  {a.why}", highlight=False)
+                for o in a.options:
+                    mark = " (default)" if o.key == a.default else ""
+                    console.print(f"    {o.key:10} {o.label}{mark}", highlight=False)
+                if a.cli:
+                    console.print(f"  [dim]from a terminal: {a.cli}[/]", highlight=False)
+            console.print("\nanswer: unbidden ask <id> <option> [--value ...]")
+            return 0
+        if not args.option:
+            err.print("say which option: unbidden ask <id> <option>")
+            return 2
+        value = args.value
+        if value is None and args.value_stdin:
+            value = sys.stdin.readline().rstrip("\n")
+        try:
+            done = answer(ws, store, args.id, args.option, value=value, by=getpass.getuser())
+        except AskError as exc:
+            if _emit(args, {"ok": False, "error": str(exc)}):
+                return 1
+            err.print(f"[red]not applied[/]: {exc}")
+            return 1
+        if _emit(args, {"ok": True, **done.as_summary()}):
+            return 0
+        console.print(f"answered {done.answer}: {done.outcome}", highlight=False)
+        return 0
+    finally:
+        store.close()
 
 
 def cmd_show(args: argparse.Namespace) -> int:
@@ -2332,6 +2392,11 @@ def build_parser() -> argparse.ArgumentParser:
     deploys.add_argument("--commit", help="which deploys ran this commit (or a descendant of it)")
     doctor = command("doctor", cmd_doctor, "check the machine, local model, Docker, Meta API, GitHub and mandate")
     doctor.add_argument("--fix", action="store_true", help="pull the recommended local model if it is missing")
+    ask = command("ask", cmd_ask, "the agent's questions for you; answer one with its option")
+    ask.add_argument("id", nargs="?", help="the question (unbidden ask lists them)")
+    ask.add_argument("option", nargs="?", help="the option chosen")
+    ask.add_argument("--value", help="the value an option takes (a reason, an amount)")
+    ask.add_argument("--value-stdin", action="store_true", help="read the value from the first stdin line (a key)")
     key = command("key", cmd_key, "the Meta API key on this machine: its state, set a new one (proven), or remove it")
     key.add_argument("action", nargs="?", choices=["set", "remove"], help="set: paste and prove; remove: forget it")
     models = command("models", cmd_models, "show or set the model profile: local, local-first or frontier")

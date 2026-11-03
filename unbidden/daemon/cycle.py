@@ -79,6 +79,13 @@ class Cycle:
     def store(self):
         return self.runtime.store
 
+    def say(self, text: str, *, correlation_id: str | None = None) -> None:
+        """A sentence for the person: the log line, and a NOTE event the app and the dashboard show."""
+        self.log(text)
+        self.store.append_event(
+            Event(type=EventType.NOTE, actor="agent", correlation_id=correlation_id, payload={"text": text[:400]})
+        )
+
     def handlers(self) -> dict[str, Handler]:
         return {
             "observe.head": self.observe_head,
@@ -235,7 +242,7 @@ class Cycle:
         if outcome is None:
             why = getattr(probe, "refused", None) or "no usable tests were written"
             self.store.set_value("last_probe", {**record, "why": why})
-            self.log(f"robustness probe of {package}: {why}")
+            self.say(f"robustness probe of {package}: {why}")
             return
         tests, output = outcome
         (artifacts / f"robustness-{rev[:12]}.py").write_text(tests)
@@ -340,7 +347,7 @@ class Cycle:
             if decision.chosen is ActionKind.RUN_EXPERIMENT and not ready:
                 if self.store.get_value("readiness_block") != {"rev": head, "why": not_ready}:
                     self.store.set_value("readiness_block", {"rev": head, "why": not_ready})
-                    self.log(f"experiments wait: {not_ready}")
+                    self.say(f"experiments wait: {not_ready}")
             elif decision.chosen is ActionKind.RUN_EXPERIMENT and queued < EXPERIMENTS_PER_SWEEP:
                 # One experiment per attempt at each commit (a lab blocked at one commit runs again at the next) and
                 # per reopening: a reopened opportunity's attempts start again under a new key.
@@ -549,16 +556,16 @@ class Cycle:
                 # under a new key), then stays deferred; the attempt is not counted against the opportunity.
                 opp.details = {**opp.details, "deferrals": int(opp.details.get("deferrals", 0)) + 1}
             self.store.put("opportunities", opp)
-            self.log(f"{opp.id}: not measured ({blocked})")
+            self.say(f"{opp.id}: not measured ({blocked})", correlation_id=opp.id)
         elif result.verdict is not None and result.verdict.improved:
-            self.log(f"{opp.id}: improved, evidence L{int(opp.evidence_level)}")
+            self.say(f"{opp.id}: improved, evidence L{int(opp.evidence_level)}", correlation_id=opp.id)
         else:
             opp.details = {**opp.details, "attempts": int(opp.details.get("attempts", 0)) + 1}
             self.store.put("opportunities", opp)
             # The verdict's own reasons when one was reached (stage 8, B-7: a measured "no effect" was logged with
             # the last note, a masking notice, as if that were why).
             why = result.verdict.reasons[:2] if result.verdict is not None and result.verdict.reasons else []
-            self.log(f"{opp.id}: no proven fix ({'; '.join(why or result.notes[-1:])})")
+            self.say(f"{opp.id}: no proven fix ({'; '.join(why or result.notes[-1:])})", correlation_id=opp.id)
         self._wake(f"after:{j.id}")
 
     async def proposal_prepare(self, j: Job) -> None:
@@ -584,9 +591,12 @@ class Cycle:
             proposal = await asyncio.to_thread(publisher.publish, proposal, patch)
             self.log(f"pull request opened: {proposal.pr.url if proposal.pr else '?'}")
         except NeedsApproval as exc:
-            self.log(f"{proposal.opportunity_id}: waiting for a person: {exc}")
+            from unbidden.director.asks import for_approval, open_ask
+
+            self.say(f"{proposal.opportunity_id}: waiting for a person: {exc}", correlation_id=proposal.opportunity_id)
+            open_ask(self.store, for_approval(proposal, proposal.title))
         except PublishError as exc:
-            self.log(f"{proposal.opportunity_id}: not published: {exc}")
+            self.say(f"{proposal.opportunity_id}: not published: {exc}", correlation_id=proposal.opportunity_id)
 
     async def observe_live(self, _: Job) -> None:
         from unbidden.contracts.world import WorldModel
@@ -711,8 +721,12 @@ class Cycle:
         world = self.store.get("world", "world", WorldModel)
         found = await asyncio.to_thread(survey, repo, self.store, mandate, world, connectors())
         add_to_world(self.store, repo, found)
+        from unbidden.director.asks import for_deploy_steps, open_ask
+
         for proposal in propose_procedure(self.store, repo):
-            self.log(f"deploy procedure found, proposed only: {proposal.operation}")
+            self.say(f"deploy procedure found, proposed only: {proposal.operation}")
+            if not mandate.operations.deploy_steps:
+                open_ask(self.store, for_deploy_steps(proposal))
         states = ", ".join(f"{c.id} {c.state.value}" for c in found if c.grant)
         self.log(f"connections: {states}")
         # A goal is pursued again each hour, and as soon as what it can use changes (a connection revoked, restored,
@@ -847,6 +861,18 @@ class Cycle:
             return
         self.log(f"deployed {target[:12]}: {'ok' if result.ok else 'FAILED'}")
 
+    def _note_ci(self, publisher: Publisher, proposal: Proposal) -> None:
+        """Say once per change what the pull request's CI did; the app highlights green and red."""
+        state = _ci_state(publisher, proposal)
+        if state is None or proposal.pr is None:
+            return
+        key = f"ci_state:{proposal.id}"
+        if self.store.get_value(key) == state:
+            return
+        self.store.set_value(key, state)
+        self.say(f"CI {state} on pull request #{proposal.pr.number} ({proposal.pr.url})",
+                 correlation_id=proposal.opportunity_id)  # fmt: skip
+
     async def github_poll(self, _: Job) -> None:
         opened = self.store.list("proposals", Proposal, status=ProposalStatus.PR_OPENED.value)
         if not opened:
@@ -859,24 +885,36 @@ class Cycle:
                 self.log(f"poll of {proposal.id} failed: {exc}")
                 continue
             if updated.status is not ProposalStatus.PR_OPENED:
-                self.log(f"{proposal.pr.url if proposal.pr else proposal.id}: {updated.status.value}")
+                self.say(f"{proposal.pr.url if proposal.pr else proposal.id}: {updated.status.value}",
+                         correlation_id=proposal.opportunity_id)  # fmt: skip
                 continue
+            self._note_ci(publisher, updated)
             mandate = self.runtime.workspace.mandate()
             if mandate.autonomy.merge_pull_requests.value != "allow":
                 continue
             try:
                 merged = await asyncio.to_thread(publisher.merge, updated)
             except PublishError as exc:
-                self.log(f"not merged: {exc}")
+                self.say(f"not merged: {exc}", correlation_id=proposal.opportunity_id)
                 continue
             except Exception as exc:  # refused by Guardian, a hold or the hourly limit
-                self.log(f"not merged: {exc}")
+                self.say(f"not merged: {exc}", correlation_id=proposal.opportunity_id)
                 continue
-            self.log(f"merged {merged.pr.url if merged.pr else merged.id}")
+            self.say(f"merged {merged.pr.url if merged.pr else merged.id}", correlation_id=proposal.opportunity_id)
             if mandate.autonomy.deploy.value == "allow":
                 self.store.enqueue(
                     job("ops.deploy", merged.id, {"reason": f"merged {merged.title}", "proposal": merged.id})
                 )
+
+
+def _ci_state(publisher: Publisher, proposal: Proposal) -> str | None:
+    """The pull request's CI on the measured commit: green, red, pending, or None when nothing says."""
+    from unbidden.observe.ci import verdict_of
+
+    try:
+        return verdict_of(publisher._client().check_states(proposal.commit_sha))  # pyright: ignore[reportPrivateUsage]
+    except Exception:
+        return None
 
 
 def _chosen_utility(decision: Decision) -> float:

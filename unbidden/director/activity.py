@@ -139,6 +139,7 @@ def _ecosystem(store: Store) -> dict[str, Any]:
     from unbidden.contracts.acceptance import Acceptance
     from unbidden.contracts.action import Action
     from unbidden.contracts.connection import Connection, ConnectionState
+    from unbidden.director.asks import open_asks
     from unbidden.director.blocks import open_blocks
     from unbidden.director.goals import COLLECTION as GOALS
     from unbidden.director.goals import GoalRun
@@ -150,6 +151,8 @@ def _ecosystem(store: Store) -> dict[str, Any]:
     actions = store.list("actions", Action)
     return {
         "connections": summary(connections),
+        # The questions with options a person answers from the app, the dashboard or `unbidden ask`.
+        "asks": [a.as_summary() for a in open_asks(store)],
         # A person is asked only for what blocks work: a connection in a state only a person changes, a block whose
         # minimum is a person's (a registry, a grant, an approval). An access found but granted to nobody, which
         # blocks nothing, is listed apart as optional.
@@ -304,6 +307,8 @@ def render_text(data: dict[str, Any]) -> list[str]:
             f"{c['satisfied'] or '-'}, failed {c['failed'] or '-'}, unverifiable {c['unverifiable'] or '-'}; "
             f"{a['state']} ({a['why']})"
         )
+    for a in data.get("asks", []):
+        lines.append(f"[yellow]question[/] {a['id']}: {a['title']} ({', '.join(o['key'] for o in a['options'])})")
     for n in data.get("needs_a_person", []):
         lines.append(
             f"[yellow]needs a person[/] {n.get('connection') or n.get('proposal') or n.get('blocked')}: {n['what']}"
