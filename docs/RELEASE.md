@@ -1,4 +1,13 @@
-# Unbidden 0.14.0, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.14.1, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.14.1 (2026-11-03): a deploy's failed requests are judged like its latency
+
+Campaign 13, work stream 4 (class "reliability", `docs/ROAD-TO-1.0.md` §2). After a deploy, each probed endpoint's
+share of failed requests (5xx or no answer) is compared with the previous deploy: lower or higher only when the 95%
+Wilson intervals do not overlap over at least 100 requests per side (`observe/impact.judge_errors`). Until now
+errors only decided an outage. A proposal whose claim is correctness or reliability is judged by the failures it was
+meant to remove, so a fix reaches L5 (and L6 when it holds) the way a speed-up does; a speed-up is still judged by
+latency. The class comes from the verdict's typed measurement (0.13.0).
 
 ## 0.14.0 (2026-11-03): known vulnerabilities, and a dependency bump proven like any other change
 

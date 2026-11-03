@@ -2,8 +2,8 @@
 # Unbidden installer: one wheel, verified, installed as a uv tool with its own Python 3.12.
 #
 #   curl -LsSf <release>/install.sh | sh                 (once a release exists; see docs/INSTALL.md)
-#   sh install.sh --version 0.14.0                        (a fixed version, also a rollback)
-#   UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.14.0   (local artifacts)
+#   sh install.sh --version 0.14.1                        (a fixed version, also a rollback)
+#   UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.14.1   (local artifacts)
 #   sh install.sh --uninstall                            (keeps ~/.unbidden and every .unbidden/)
 #
 # Options     --version X.Y.Z   the release to install (env UNBIDDEN_VERSION); default: the latest GitHub release
