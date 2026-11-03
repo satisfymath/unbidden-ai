@@ -103,7 +103,11 @@ def admit(store: Store, mandate: Mandate | None, need: CapabilityNeed) -> Capabi
     if status is None:
         return _failed(store, need, "the capability it was filled with is gone or disabled")
     if not permitted(status, mandate, need.source):
-        return _set(store, need, NeedStatus.AWAITING_APPROVAL, f"built {need.capability_id}; awaiting approval")
+        waiting = _set(store, need, NeedStatus.AWAITING_APPROVAL, f"built {need.capability_id}; awaiting approval")
+        from unbidden.director.asks import for_capability, open_ask
+
+        open_ask(store, for_capability(waiting))
+        return waiting
     _set(store, need, NeedStatus.IN_USE, f"in use: {need.capability_id}")
     if need.kind in ("api_client", "api_extension") and need.capability_id:
         _attach(store, need.source.split("#", 1)[0], need.capability_id)
@@ -177,3 +181,38 @@ def _set(store: Store, need: CapabilityNeed, status: NeedStatus, note: str) -> C
                   payload={"status": status.value, "source": need.source, "note": note})
         )  # fmt: skip
     return need
+
+
+class NotApprovable(ValueError):
+    """No validated capability by that id."""
+
+
+def approve_capability(store: Store, capability_id: str, by: str) -> list[CapabilityNeed]:
+    """A person approves a validated capability (`unbidden forge approve`, or the agent's question): its record says
+    so, the event is written, and the needs it fills are admitted."""
+    from unbidden.contracts.events import Event, EventType
+    from unbidden.forge.adapter import LogAdapter
+    from unbidden.forge.api_client import COLLECTION as INTEGRATIONS
+    from unbidden.forge.api_client import ApiIntegration
+    from unbidden.forge.stats import StatsAdapter
+    from unbidden.forge.stats_build import COLLECTION as STATS
+
+    found: Any = None
+    collection = ""
+    for collection, model in (("capabilities", LogAdapter), (STATS, StatsAdapter), (INTEGRATIONS, ApiIntegration)):
+        found = store.get(collection, capability_id, model)
+        if found is not None:
+            break
+    if found is None or found.status != "validated":
+        raise NotApprovable(f"only a validated capability can be approved ({capability_id})")
+    found.status, found.approved_by = "approved", by
+    store.put(collection, found)
+    store.append_event(
+        Event(
+            type=EventType.CAPABILITY_APPROVED,
+            actor=by,
+            entity_id=found.id,
+            payload={"source": found.source, "version": found.version},
+        )
+    )
+    return approved(store, found.id)

@@ -14,7 +14,10 @@ from pydantic import Field
 
 from unbidden.contracts.common import Contract, new_id, utc_now
 
-Kind = Literal["approval", "credential", "access", "hold", "deploy_steps", "spend", "capability", "registry"]
+Kind = Literal[
+    "approval", "credential", "access", "hold", "deploy_steps", "spend", "capability", "registry", "drill", "resume",
+    "ledger", "connection",
+]  # fmt: skip
 Status = Literal["open", "answered", "withdrawn"]
 Input = Literal["none", "secret", "text"]
 

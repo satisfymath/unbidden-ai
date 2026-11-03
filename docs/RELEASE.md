@@ -1,4 +1,29 @@
-# Unbidden 0.12.9, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.13.0, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.13.0 (2026-11-03): every stop is retried, asked or declared; the claim is typed; the team's type check
+
+Campaign 13 (`docs/ROAD-TO-1.0.md`), work streams 1, 2 and the first part of 6.
+
+**Blocks and questions.** A stop is now one of three things, by its kind: a service that did not answer is retried
+up to six times with backoff; something a person can grant becomes a question with options and the work waits for
+the answer; something nobody can grant here is declared at once and not retried at the same commit (an error
+Unbidden does not recognise keeps the usual retries). New questions: the monthly cap raised from a stopped job, the
+machine's spend authorization (`unbidden spend`, never changed by the agent), the kill switch (resume), a refused
+connection credential, the rollback drill (asked right after deploy steps are adopted; answering queues it for the
+agent), and approving a capability the forge built (asked when it waits; approving admits it and runs what waited).
+`unbidden status --json` lists open questions and blocks and says `idle` when only housekeeping is due. A scripted
+setup that already granted the database counts it as granted in the reconnaissance.
+
+**The claim, typed.** Every verdict carries its measurements (`contracts/metric.py`: metric, unit, direction,
+threshold, source; base, head, effect, interval, p): request latency, the project's own tool's findings, the
+reproducing test. Pull requests open with that claim, and their last line says what the mandate will do: merged once
+the team's CI is green on the exact commit, or left to a person (campaign 12 merged pull requests that said "a person
+decides"). The perf criteria line reads perf-v4; a perf-v4 verdict is no longer listed as pending revalidation.
+Priorities count by the words they use ("performance of reads as data grows" now boosts performance); reliability
+and dependencies are valued categories.
+
+**The team's type check.** A candidate goes through the mypy or pyright command the CI runs (rich: `make typecheck`)
+on the base once per commit and on the candidate, and is rejected with that feedback when it adds errors.
 
 ## 0.12.9 (2026-11-03): campaign 12's fixes on main; the spend question raises the cap that is checked; the road to 1.0
 

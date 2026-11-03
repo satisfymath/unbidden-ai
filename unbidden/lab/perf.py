@@ -30,6 +30,7 @@ from unbidden.contracts.common import EvidenceRef, utc_now
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.experiment import Experiment, ExperimentSpec, TestOutcome, Verdict
 from unbidden.contracts.llm import LLMRequest, Message, Tier
+from unbidden.contracts.metric import Measurement
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
 from unbidden.guardian.scanner import redact_text
 from unbidden.lab.evaluator import classify_tests, level_for
@@ -1848,6 +1849,7 @@ class PerfLab:
             ],
             scope=scope,
             spec_id=spec.id,
+            measurements=[latency_measurement(promotion)],
         )
         self.store.put("experiments", experiment)
         if self.store.path is not None:
@@ -1890,3 +1892,15 @@ class PerfLab:
         opp.updated_at = utc_now()
         self.store.put("opportunities", opp)
         return result
+
+
+def latency_measurement(promotion: Any) -> Measurement:
+    """The perf-v4 result as a typed measurement: the confirmed judgement when there is one."""
+    from unbidden.contracts.metric import REQUEST_MS
+
+    judged = promotion.confirmation or promotion.primary
+    return Measurement(
+        metric=REQUEST_MS, base=round(judged.median_before, 3), head=round(judged.median_after, 3),
+        effect=round(judged.effect, 4), interval=(round(judged.effect_low, 4), round(judged.effect_high, 4)),
+        p=judged.p_faster, met=bool(promotion.improved),
+    )  # fmt: skip

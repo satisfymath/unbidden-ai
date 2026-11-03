@@ -1764,6 +1764,36 @@ def team_formatter(commands: str | None) -> tuple[str, ...] | None:
     return None
 
 
+_RUNNER_PREFIX = re.compile(r"^(?:uv run|poetry run|pdm run|hatch run|pipenv run|python3? -m)\s+")
+_TYPE_CHECK = re.compile(r"^(?:mypy|pyright)(?:\s|$)")
+
+
+def team_type_check(commands: str | None) -> tuple[str, ...] | None:
+    """The type check the team's CI runs, as the command line it runs (`mypy -p rich --no-incremental`, from rich's
+    `make typecheck`): a candidate goes through it before it is measured (campaign 12, rich #21: green on black, red
+    on the team's mypy). None when the CI runs no type checker, or runs it through shell the sandbox cannot repeat."""
+    import shlex
+
+    if not commands:
+        return None
+    for line in commands.splitlines():
+        for segment in re.split(r"&&|\|\||;", line):
+            segment = _RUNNER_PREFIX.sub("", segment.strip())
+            if not _TYPE_CHECK.match(segment) or re.search(r"[$`|<>]", segment):
+                continue
+            try:
+                argv = tuple(shlex.split(segment))
+            except ValueError:
+                continue
+            return argv
+    return None
+
+
+def type_errors(output: str) -> int:
+    """Errors a mypy or pyright run printed (one line each)."""
+    return sum(1 for line in output.splitlines() if re.search(r":\d+(?::\d+)?:? (?:- )?error:", line))
+
+
 def runs_tool(commands: str | None, tool: str) -> bool:
     """Whether the CI's commands run `tool` itself, in a mode that reports what Unbidden's run of it reports."""
     if not commands or not tool:

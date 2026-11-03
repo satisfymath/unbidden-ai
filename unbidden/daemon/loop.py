@@ -278,6 +278,11 @@ async def _work(
                 block = record(store, classify(f"{claimed.type} {subject}".strip(), f"{type(exc).__name__}: {exc}",
                                                f"{claimed.type} runs again"), claimed.id)  # fmt: skip
                 retry = retry_after(claimed.attempts)
+                from unbidden.director.blocks import attempts_for
+
+                claimed.max_attempts = attempts_for(block, claimed.max_attempts)
+                if claimed.max_attempts == 0:
+                    log(f"{claimed.type}: declared, not retried here ({block.kind}: {block.needs})")
                 if block.kind == "pending_person":
                     outcome = "parked"
                     log(f"needs a person: {block.needs} (then: {block.continues})")

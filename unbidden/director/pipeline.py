@@ -28,6 +28,7 @@ JOB_STAGE: dict[str, tuple[str, str]] = {
     "github.publish": ("opening the pull request", "proposed"),
     "github.poll": ("following the pull request", "merged"),
     "ops.deploy": ("deploying", "deployed"),
+    "ops.drill": ("proving the rollback", "deployed"),
     "observe.live": ("watching the deploy", "deployed"),
     "forge.build": ("building a capability", "found"),
     "goal.pursue": ("pursuing a goal", "found"),
