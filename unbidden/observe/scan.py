@@ -8,6 +8,7 @@ import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.finding import AnalyzerReport
@@ -199,6 +200,37 @@ def _scan_services(
             shutil.rmtree(sub, ignore_errors=True)
 
 
+def _advisories(
+    repo: Path,
+    rev: str,
+    store: Store,
+    python: Any,
+    image: DependencyImage,
+    runner: SandboxRunner,
+    result: ScanResult,
+    progress: Progress,
+    policy: PolicyEngine,
+) -> None:
+    """Known vulnerabilities in what the project installs, looked up on PyPI when the mandate lists it."""
+    from unbidden.contracts.guardian import ActionRequest
+    from unbidden.observe.advisories import HOST, advisory_report, installed, manifest_of
+
+    verdict = policy.evaluate(
+        ActionRequest(capability="sandbox.provision", purpose="look up known vulnerabilities", destinations=[HOST])
+    )
+    if not verdict.allowed:
+        result.stack.blind_spots.append(f"known vulnerabilities not looked up: {'; '.join(verdict.reasons)}")
+        return
+    progress("looking up known vulnerabilities of the installed packages")
+    packages = installed(runner, repo, rev, image)
+    if packages is None:
+        result.problems.append("known vulnerabilities: the installed packages could not be listed")
+        return
+    report = advisory_report(packages, manifest_of(python))
+    result.reports.append(report)
+    result.sweeps.append(record_report(store, report, rev))
+
+
 def scan(
     repo: Path,
     rev: str,
@@ -240,6 +272,8 @@ def scan(
     finally:
         for work in prepared.values():
             discard(work)
+    if stack.python is not None and "python" in images:
+        _advisories(repo, rev, store, stack.python, images["python"], runner, result, progress, policy)
     _scan_services(repo, rev, store, stack, runner, result, progress, policy)
     store.set_value(
         "last_scan",

@@ -66,6 +66,11 @@ TITLE_MAX = 200
 
 
 def _title(tool: str, findings: list[Finding]) -> str:
+    if tool == "pypi-advisories" and findings and findings[0].extra.get("package"):
+        extra = findings[0].extra
+        fix = f", fixed in {extra['lowest_fix']}" if extra.get("lowest_fix") else ", no fix published"
+        many = "y" if len(findings) == 1 else "ies"
+        return f"{extra['package']} {extra.get('version')}: {len(findings)} known vulnerabilit{many}{fix}"
     first = findings[0]
     n = len(findings)
     plural = "s" if n > 1 else ""

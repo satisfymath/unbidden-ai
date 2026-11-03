@@ -1,4 +1,26 @@
-# Unbidden 0.13.0, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.14.0, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.14.0 (2026-11-03): known vulnerabilities, and a dependency bump proven like any other change
+
+Campaign 13, work stream 5 (`docs/ROAD-TO-1.0.md` §2, class "security and dependencies").
+
+- **Known vulnerabilities in what the project installs**: after the project's own tools, a scan lists the
+  distributions installed in the dependency image (offline, inside the sandbox) and looks each one up in PyPI's JSON
+  API, whose advisories come from the Python advisory database and OSV. It runs only when the mandate lists
+  `pypi.org` among its package registries. Each vulnerable package is one opportunity (category `security`), titled
+  "requests 2.31.0: 6 known vulnerabilities, fixed in 2.33.0", with the lowest version that fixes every advisory that
+  has a fix; advisories with no published fix are kept and said apart. A package PyPI does not publish (the
+  project's own) is not a failed lookup.
+- **The dependency lab** (`lab/deps.py`): the bump is written the way the team keeps its dependencies: a pin in a
+  requirements file rewritten (or a transitive package constrained), or `uv.lock` re-resolved with
+  `uv lock --upgrade-package` in a build container, the only place that reaches a registry. The candidate's
+  dependency image is built from a scratch commit (removed afterwards), the advisories are read again, and the
+  team's suite runs on both sides. Proven when the targeted advisories are gone, none is new, and no test regressed;
+  the claim is `advisories: N → 0`. Pull requests are titled "security: bump dnspython 2.8.0 → 2.9.0". Poetry locks
+  and packages with no published fix are declared, not guessed.
+- **Verified for real** on a copy of fst: 80 installed packages looked up; dnspython 2.8.0 carried
+  GHSA-45c3-73f7-pv4m; `uv.lock` re-resolved to 2.9.0; the candidate's image built; the suite green on both sides;
+  the advisory gone; L4. On misago, 19 of 77 installed packages have known advisories.
 
 ## 0.13.0 (2026-11-03): every stop is retried, asked or declared; the claim is typed; the team's type check
 
