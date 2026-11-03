@@ -254,6 +254,24 @@ class FixLab:
 
     # The experiment ------------------------------------------------------------------------------------
 
+    def _baseline(self, rev: str, work: Path, image: DependencyImage, suite: TestPlan) -> TestSummary:
+        """The suite on the base, once per commit, plan and image: every experiment at the same commit compares with
+        the same rounds (campaign 12, P2-6: misago's 8,977 tests, 58 minutes a side, were run again on the base by
+        each experiment and again after an interrupted job)."""
+        import hashlib
+
+        plan_key = hashlib.sha256(f"{suite.argv}|{image.tag}|{self.rounds}".encode()).hexdigest()[:16]
+        key = f"suite_base:{rev}:{plan_key}"
+        known = self.store.get_value(key)
+        if known is not None:
+            self.progress("the test suite's base rounds at this commit are reused")
+            return TestSummary.model_validate(known)
+        self.progress("running the test suite on the base")
+        summary = run_suite(self.runner, work, image, suite, rounds=self.rounds)
+        if summary.rounds and all(summary.status(i) == "ran" for i in range(summary.rounds)):
+            self.store.set_value(key, summary.model_dump(mode="json"))  # only rounds that told something are kept
+        return summary
+
     def _type_regression(
         self, rev: str, candidate: Candidate, image: DependencyImage, argv: tuple[str, ...], notes: list[str]
     ) -> int:
@@ -372,8 +390,7 @@ class FixLab:
                 return result
             baseline_tests = None
             if suite is not None:
-                self.progress("running the test suite on the base")
-                baseline_tests = run_suite(self.runner, base_work, image, suite, rounds=self.rounds)
+                baseline_tests = self._baseline(rev, base_work, image, suite)
         finally:
             discard(base_work)
         if opp.evidence_level < EvidenceLevel.REPRODUCTION:

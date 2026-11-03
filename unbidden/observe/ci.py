@@ -114,6 +114,13 @@ _PY_TESTS = re.compile(
 )
 # Checks the scan already runs, offline and pinned; in a test plan they only add time and network needs.
 _CHECK_RUN = re.compile(r"\b(pre-commit|mypy|pyright|semgrep|ruff|flake8|black|isort|pylint|codespell)\b")
+# Coverage flags of a pytest line: coverage is the team's report, not what a test run here measures, and without
+# pytest-cov installed they stop pytest at its usage error (python-mss, campaign 12: exit 4).
+_COV_FLAG = re.compile(r"\s--(?:cov|no-cov)(?:-[\w-]+)?(?:=\S+|\s+(?!-)(?![\w./-]*(?:test|spec)[\w./-]*)\S+)?")
+# A line that only builds documentation (graphtage, campaign 12: `make -C docs html` before pytest in the test job;
+# the image has no Sphinx and the docs build says nothing about the code's tests).
+_DOCS_BUILD = re.compile(r"\b(?:sphinx-build|mkdocs\s+build|make\s+(?:-C\s+\S*docs?\S*\s+)?(?:html|docs|dirhtml|"
+                         r"latexpdf|linkcheck)\b)")  # fmt: skip
 # A job that does any of this publishes something: never run as a test plan, whatever else it does.
 _PUBLISHES = re.compile(
     r"\bgh\s+(pr|release|issue|api)\b|\bgit\s+push\b|\b(docker|helm)\s+push\b|"
@@ -703,6 +710,10 @@ def _job_plan(
         command = _clean(run)
         if command is not None:
             command = "\n".join(line for line in command.splitlines() if not _CHECK_RUN.search(line))
+            docs = [ln for ln in command.splitlines() if _DOCS_BUILD.search(ln)]
+            if docs:
+                notes.append(f"left out, it builds the documentation, not the tests: {docs[0].strip()[:100]}")
+                command = "\n".join(ln for ln in command.splitlines() if not _DOCS_BUILD.search(ln))
         if command is not None and language == "python":
             foreign = [ln for ln in command.splitlines() if _FOREIGN_BUILD.search(ln)]
             if foreign:
