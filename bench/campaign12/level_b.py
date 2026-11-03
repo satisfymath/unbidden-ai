@@ -27,7 +27,20 @@ import httpx
 import yaml
 
 from bench.campaign12 import labs
-from bench.campaign12.common import LAB, REAL_HOME, Record, Step, env, ledger, run, run_spend, scrub, unbidden
+from bench.campaign12.common import (
+    LAB,
+    REAL_HOME,
+    Record,
+    Step,
+    candidate_of,
+    env,
+    envelope_for,
+    ledger,
+    run,
+    run_spend,
+    scrub,
+    unbidden,
+)
 from bench.campaign12.copies import ci_pending, copy_state, ensure_copy
 from bench.campaign12.level_a import archive, key_from_machine
 
@@ -333,7 +346,7 @@ def level_b(
     repo: dict[str, Any], run_no: int, phase: str, out_dir: Path, port: int, candidate: str, wheel: str
 ) -> dict[str, Any]:
     name = repo["name"]
-    envelope = "s12-pilot" if phase.startswith("pilot") else "s12-eval"
+    envelope = envelope_for(phase)
     e = env(envelope, f"c12-{phase}-B{run_no}-{name}")  # the phase in the tag: pilot and eval spend never mix
     rec = Record(repo=name, phase=phase, run=f"B{run_no}", candidate=candidate, wheel_sha256=wheel)
     rec.facts["repo"] = {k: repo.get(k) for k in ("url", "commit", "family", "class", "build", "lab")}
@@ -432,11 +445,13 @@ def main() -> None:
     parser.add_argument("--phase", required=True)
     parser.add_argument("--out", required=True)
     parser.add_argument("--port", type=int, default=8860)
+    parser.add_argument("--candidate", default="", help="a named candidate in the corpus (confirm: phase 7)")
     args = parser.parse_args()
     corpus = yaml.safe_load(Path(args.corpus).read_text())
     repo = next(r for r in corpus["repos"] if r["name"] == args.repo)
     out = Path(args.out).expanduser().resolve()  # absolute: the browser check runs from frontend/
-    line = level_b(repo, args.run, args.phase, out, args.port, corpus["candidate"], corpus["wheel_sha256"])
+    candidate, wheel = candidate_of(corpus, args.candidate)
+    line = level_b(repo, args.run, args.phase, out, args.port, candidate, wheel)
     summary_path = out / "summary-B.json"
     summary = json.loads(summary_path.read_text()) if summary_path.exists() else []
     summary = [s for s in summary if not (s["name"] == line["name"] and s["run"] == line["run"])] + [line]

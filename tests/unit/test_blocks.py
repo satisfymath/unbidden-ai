@@ -90,3 +90,20 @@ def test_a_dependency_from_a_git_repository_names_its_host_for_a_person() -> Non
              "git+https://github.com/zzstoatzz/python-cli-bench.git@3bdb12d`")  # fmt: skip
     block = classify("research.probe", error, "the probe runs again")
     assert block.kind == "pending_person" and block.needs.startswith("add github.com to egress.package_registries")
+
+
+def test_a_reached_monthly_cap_is_a_persons_block_released_when_the_cap_rises(store: Store) -> None:
+    # spoolman, campaign 12 run 2: the cap was hit inside a measurement and nothing listed it as a block.
+    from unbidden.contracts.guardian import Mandate
+    from unbidden.director.blocks import met, release, spend_block
+
+    block = record(store, spend_block("measure opp_1", "remote spend this month is US$2.00, at the US$2.00 cap", 2.0,
+                                      "the measurement of opp_1"))  # fmt: skip
+    assert block.kind == "pending_person" and "above US$2.00" in block.needs and "unbidden setup budget" in block.needs
+    same = record(store, spend_block("measure opp_2", "…", 2.0, "the measurement of opp_2"))
+    assert same.id == block.id and same.waiting == ["measure opp_1", "measure opp_2"]  # one request for one need
+    mandate = Mandate.model_validate({"workspace": "x", "business_constraints": {"maximum_monthly_spend_usd": 2.0}})
+    assert not met(block, mandate) and release(store, mandate) == []
+    raised = Mandate.model_validate({"workspace": "x", "business_constraints": {"maximum_monthly_spend_usd": 5.0}})
+    assert met(block, raised) and [b.id for b in release(store, raised)] == [block.id]
+    assert open_blocks(store) == []

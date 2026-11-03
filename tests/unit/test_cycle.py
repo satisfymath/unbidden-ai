@@ -100,3 +100,37 @@ async def test_a_measurement_deferred_by_a_busy_host_is_repeated_once_then_stays
     await cycle.director_sweep(sweep)
     assert len([j for j in store.jobs() if j.type == "lab.experiment"]) == 2  # no third try at this commit
     assert int(opp.details.get("attempts", 0)) == 0  # never counted as a failed attempt
+
+
+async def test_a_measurement_stopped_by_the_monthly_cap_is_listed_as_a_persons_block(
+    store: Store, mandate: Mandate, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Campaign 12, spoolman run 2: the cap was hit inside the lab and the record's blocks stayed empty."""
+    from unbidden.director.blocks import open_blocks
+    from unbidden.lab import perf
+
+    cycle = make_cycle(store, mandate)
+    head = store.get_value("head")
+    opp = Opportunity(
+        source="world", category="performance", title="spool.filament_id", summary="s", dedup_key="perf1",
+        evidence=[EvidenceRef(kind="file", locator="a")], details={"rev": head, "table": "spool"},
+    )  # fmt: skip
+    store.put("opportunities", opp, key=opp.dedup_key)
+    monkeypatch.setattr(cycle, "_env", lambda rev: (None, {}))
+    runtime: Any = cycle.runtime
+    runtime.brain = None  # the stub below never calls it
+
+    class Stopped:
+        def __init__(self, *a: Any, **k: Any) -> None: ...
+
+        async def run(self, opp: Opportunity) -> perf.PerfResult:
+            return perf.PerfResult(blocked="cannot measure: the mandate's monthly spend cap stops model calls "
+                                   "(remote spend this month is US$2.00, at the US$2.00 cap)")  # fmt: skip
+
+    monkeypatch.setattr(perf, "PerfLab", Stopped)
+    await cycle.lab_experiment(Job(type="lab.experiment", idempotency_key="e", payload={"id": opp.id}))
+    blocks = open_blocks(store)
+    assert len(blocks) == 1 and blocks[0].kind == "pending_person" and "maximum_monthly_spend_usd" in blocks[0].needs
+    assert blocks[0].continues.startswith(f"the measurement of {opp.id}")
+    kept = store.get("opportunities", opp.id, Opportunity)
+    assert kept is not None and "monthly spend cap" in kept.details["blocked"]["why"] and "attempts" not in kept.details

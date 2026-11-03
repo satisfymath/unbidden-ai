@@ -27,7 +27,19 @@ from typing import Any
 import httpx
 import yaml
 
-from bench.campaign12.common import LAB, LEDGER_HOME, Record, env, ledger, run, run_spend, scrub, unbidden
+from bench.campaign12.common import (
+    LAB,
+    LEDGER_HOME,
+    Record,
+    candidate_of,
+    env,
+    envelope_for,
+    ledger,
+    run,
+    run_spend,
+    scrub,
+    unbidden,
+)
 
 CHECKS_TIMEOUT_S = 3600
 SHORT_S = 600
@@ -116,9 +128,11 @@ def ui_read(repo_dir: Path, port: int, e: dict[str, str], rec: Record) -> dict[s
     return out
 
 
-def level_a(repo: dict[str, Any], phase: str, out_dir: Path, port: int, candidate: str, wheel: str) -> dict[str, Any]:
+def level_a(
+    repo: dict[str, Any], phase: str, out_dir: Path, port: int, candidate: str, wheel: str, *, debian: bool = False
+) -> dict[str, Any]:
     name = repo["name"]
-    e = env("s12-pilot" if phase.startswith("pilot") else "s12-eval", f"c12-{phase}-A-{name}")
+    e = env(envelope_for(phase), f"c12-{phase}-A-{name}")
     rec = Record(repo=name, phase=phase, run="A", candidate=candidate, wheel_sha256=wheel)
     rec.facts["repo"] = {k: repo.get(k) for k in ("url", "commit", "family", "class", "build", "license")}
     rec.facts["ledger_before"] = ledger(e["UNBIDDEN_ENVELOPE"])
@@ -152,6 +166,15 @@ def level_a(repo: dict[str, Any], phase: str, out_dir: Path, port: int, candidat
         )
     )
     rec.facts["setup"] = {"ok": setup.code == 0, "applied": (setup.json() or {}).get("applied")}
+    if debian:
+        # Phase 7 variant, documented: the default mandate lists no Debian archive (FINDINGS 2026-11-03), so the
+        # tool cluster of Level A blocks by design; this run allows it, as Level B's mandate did.
+        path = repo_dir / ".unbidden" / "mandate.yaml"
+        raw = yaml.safe_load(path.read_text())
+        raw["mandate"]["egress"]["package_registries"] = ["pypi.org", "files.pythonhosted.org", "deb.debian.org",
+                                                           "registry.npmjs.org"]  # fmt: skip
+        path.write_text(yaml.safe_dump(raw, sort_keys=False))
+        rec.facts["mandate_variant"] = "debian allowed"
     doctor = rec.add(run("doctor", [unbidden(), "doctor", "--json"], cwd=repo_dir, env_=e, timeout_s=SHORT_S))
     d = doctor.json() or {}
     rec.facts["doctor"] = {
@@ -335,9 +358,11 @@ def main() -> None:
     parser.add_argument("--out", required=True)
     parser.add_argument("--only", default="")
     parser.add_argument("--port", type=int, default=8800)
+    parser.add_argument("--candidate", default="", help="a named candidate in the corpus (confirm: phase 7)")
+    parser.add_argument("--debian", action="store_true", help="allow deb.debian.org in the mandate (variant)")
     args = parser.parse_args()
     corpus = yaml.safe_load(Path(args.corpus).read_text())
-    candidate, wheel = corpus["candidate"], corpus["wheel_sha256"]
+    candidate, wheel = candidate_of(corpus, args.candidate)
     only = {n for n in args.only.split(",") if n}
     out = Path(args.out).expanduser()
     out.mkdir(parents=True, exist_ok=True)
@@ -350,7 +375,7 @@ def main() -> None:
         print(
             f"== {repo['name']} ({repo.get('class')}, {repo.get('family')}) load {os.getloadavg()[0]:.1f}", flush=True
         )
-        line = level_a(repo, args.phase, out, args.port, candidate, wheel)
+        line = level_a(repo, args.phase, out, args.port, candidate, wheel, debian=args.debian)
         summary = [s for s in summary if s["name"] != repo["name"]] + [line]
         summary_path.write_text(json.dumps(summary, indent=1, default=str))
         print(scrub(json.dumps(line, default=str))[:700], flush=True)

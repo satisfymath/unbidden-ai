@@ -284,3 +284,11 @@ runs (spoolman B1/B2 crashed at lab bring-up, harness; they ran apart after comm
 release recommendation) with the aggregate tables in `eval/REPORT-aggregate.md` and the independent verifier's
 records in `eval/verify/`. Phase 6 (general fixes with regression tests, `s12-dev`) starts on David's reading of the
 report; phase 7 (`s12-confirm`) re-runs what phase 6 touched.
+
+## Phase 6 status (2026-11-03)
+
+General fixes on `feat/64-campaign`, product code only, each with a regression test (`REPORT.md` §12a): P1-1, P1-2,
+P1-3 (the product's part; the Level A mandate finding is recorded in §10-3), P2-4, P2-5, 14 and 15. No model call;
+`s12-dev` unspent so far. Phase 7 builds a new candidate wheel from this branch and re-runs under `s12-confirm`:
+Level A on the independent repositories blocked by P1 (default mandate, as before, plus a documented variant with
+Debian's archive allowed for the tool cluster) and Level B on fst, misago, rich and spoolman.

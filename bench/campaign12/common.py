@@ -41,6 +41,22 @@ def env(envelope: str, run: str) -> dict[str, str]:
     return e
 
 
+def envelope_for(phase: str) -> str:
+    """The envelope a phase spends from: pilot, eval (the frozen sequence) or confirm (phase 7 re-runs); never mixed."""
+    if phase.startswith("pilot"):
+        return "s12-pilot"
+    if phase.startswith("confirm"):
+        return "s12-confirm"
+    return "s12-eval"
+
+
+def candidate_of(corpus: dict[str, Any], key: str) -> tuple[str, str]:
+    """The (commit, wheel sha256) pair a run records: the frozen candidate, or a named one (`confirm`: phase 7)."""
+    if not key:
+        return corpus["candidate"], corpus["wheel_sha256"]
+    return corpus[f"{key}_candidate"], corpus[f"{key}_wheel_sha256"]
+
+
 def unbidden() -> str:
     return str(HOME / "bin" / "unbidden")
 

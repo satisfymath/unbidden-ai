@@ -212,3 +212,13 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
   API client extension for `GET /api/v1/spool/group` was rejected twice ("a required parameter has no value to
   read with") so the reported-aggregates check never ran; message "cannot measure: no the handlers …" garbled.
   REPORT §4, §8, §10 (14–17), §11 updated; `s12-eval` spent US$2.1015.
+- 2026-11-03 · phase 6 · **Level A's mandate never allowed Debian's archive**: `level_a.py` runs the product's
+  default mandate, whose `package_registries` list pypi, npm and Go's proxy only; conduit's and archery's `gcc`
+  blocks carry the product's own text "deb.debian.org, which the mandate's package registries do not list". So the
+  tool cluster of §3 splits: a mandate decision (gcc, gettext) and the product's part (no `git`/`make` baseline
+  even when allowed; `apt-get install` after `&&` unread; `command not found` recorded bare). Level B's mandate
+  allowed Debian. Phase 7 keeps the default for comparability and adds a documented variant with Debian allowed.
+- 2026-11-03 · phase 6 · **Fixes landed with tests** (REPORT §12a): TOML dates, requirement includes, runner
+  baseline + apt after `&&` + named missing programs, host-load rule by CPU + deferral as block, spend cap as a
+  person's block (released when the cap rises), candidate through the team's formatter, endpoint→table mapping
+  batched and cached. Unit suite and pyright green on the branch; no model spend.

@@ -186,7 +186,7 @@ async def discover(repo: Path, rev: str, store: Store, mandate: Mandate, brain: 
     _sql_relations(repo, rev, world)
     ran.add(SQL_RELATIONS.ref)
     if brain is not None:
-        await infer_endpoint_tables(repo, rev, world, brain)
+        await infer_endpoint_tables(repo, rev, world, brain, store=store)
         world.stamp(LLM_RELATIONS.ref, valid_for=rev)
         ran.add(LLM_RELATIONS.ref)
     world, diff = reconcile(previous, world, ran)

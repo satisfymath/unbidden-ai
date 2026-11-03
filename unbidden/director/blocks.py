@@ -114,11 +114,25 @@ def record(store: Store, block: Block, job: str | None = None) -> Block:
     return existing
 
 
+def spend_block(operation: str, evidence: str, cap_usd: float, continues: str) -> Block:
+    """The mandate's monthly cap stopped a model call: a person raises it or the month ends (spoolman, campaign 12
+    run 2: the cap was hit inside a measurement and nothing listed it as a block)."""
+    return _block(operation, "pending_person", evidence,
+                  f"raise business_constraints.maximum_monthly_spend_usd above US${cap_usd:.2f} in the mandate "
+                  "(`unbidden setup budget`), or wait for next month", continues)  # fmt: skip
+
+
 def met(block: Block, mandate: Mandate) -> bool:
     """Whether the mandate now shows a person's answer. Only what the mandate itself records can be checked here
-    (registries); an approval or a credential is seen when the work runs again, after its own backoff."""
+    (registries, the monthly cap); an approval or a credential is seen when the work runs again, after its own
+    backoff."""
+    if block.kind != "pending_person":
+        return False
+    cap = re.match(r"raise business_constraints\.maximum_monthly_spend_usd above US\$([\d.]+)", block.needs)
+    if cap is not None:
+        return mandate.business_constraints.maximum_monthly_spend_usd > float(cap.group(1))
     asked = re.match(r"add ([\w.\-, ]+) to egress\.package_registries", block.needs)
-    if block.kind != "pending_person" or asked is None:
+    if asked is None:
         return False
     hosts = [h.strip() for h in asked.group(1).split(",") if h.strip()]
     return all(h in mandate.egress.package_registries for h in hosts)

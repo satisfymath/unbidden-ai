@@ -419,3 +419,63 @@ def test_a_workspaces_members_get_their_metadata_in_the_image(tmp_path: Path) ->
     py = detect_stack(repo).python
     assert py is not None and py.member_packages == (("aegra-api", "0.11.0"),)
     assert "aegra_api-0.11.0.dist-info" in python_dockerfile(py)
+
+
+def test_a_pyproject_with_toml_dates_is_detected(tmp_path: Path) -> None:
+    # TOML has native dates and times; json.dumps does not (pipx's `[tool.nab]`, campaign 12: every `doctor`,
+    # `scan` and agent job crashed before the project was even classified).
+    repo = commit(
+        tmp_path,
+        {
+            "pyproject.toml": '[project]\nname="x"\nversion="1"\ndependencies=[]\n'
+            "[tool.nab]\nreleased = 2024-01-01\nat = 2024-01-01T10:00:00Z\n[tool.ruff]\n",
+            "tests/test_a.py": "def test_a(): pass\n",
+        },
+    )
+    py = detect_stack(repo).python
+    assert py is not None and py.ruff and py.pytest
+
+
+def test_requirement_includes_go_into_the_build_context_and_the_extra_copy_sits_beside_its_file(tmp_path: Path) -> None:
+    # dinkydash (campaign 12): requirements-cloud.txt includes requirements-site.txt, which was never copied;
+    # tracklater and oauthlib: the CI's extra file includes `requirements.txt`, resolved against /tmp.
+    from unbidden.observe.stack import PythonStack
+    from unbidden.sandbox.provision import _manifests, python_dockerfile, requirement_includes  # pyright: ignore[reportPrivateUsage]
+
+    repo = commit(
+        tmp_path,
+        {
+            "requirements.txt": "flask\n-r requirements-base.txt\n",
+            "requirements-base.txt": "-c constraints.txt\nrequests\n",
+            "constraints.txt": "requests==2.32.0\n",
+            "requirements-cloud.txt": "--requirement requirements-site.txt  # the site too\n-r requirements-base.txt\n",
+            "requirements-site.txt": "boto3\n",
+            "tests/requirements-test.txt": "-r ../requirements.txt\npytest\n",
+            "tests/test_a.py": "def test_a(): pass\n",
+        },
+    )
+    files = {"requirements.txt", "requirements-base.txt", "constraints.txt", "requirements-cloud.txt",
+             "requirements-site.txt", "tests/requirements-test.txt", "tests/test_a.py"}  # fmt: skip
+    assert requirement_includes(repo, "HEAD", "requirements-cloud.txt", files) == [
+        "requirements-site.txt", "requirements-base.txt", "constraints.txt",
+    ]  # fmt: skip
+    assert requirement_includes(repo, "HEAD", "tests/requirements-test.txt", files) == [
+        "requirements.txt", "requirements-base.txt", "constraints.txt",
+    ]  # fmt: skip
+    assert requirement_includes(repo, "HEAD", "pyproject.toml", files) == []
+
+    stack = PythonStack(version="3.12", lockfile=None, manifest="requirements.txt", ruff=False, pyright=False,
+                        pytest=True, extra_requirements=("requirements-cloud.txt",))  # fmt: skip
+    assert _manifests(repo, "HEAD", stack) == [
+        "constraints.txt", "requirements-base.txt", "requirements-cloud.txt", "requirements-site.txt",
+        "requirements.txt",
+    ]  # fmt: skip
+
+    extras = ("tests/requirements-test.txt", "requirements-cloud.txt")
+    project = PythonStack(version="3.12", lockfile=None, manifest="pyproject.toml", ruff=False, pyright=False,
+                          pytest=True, extra_requirements=extras)  # fmt: skip
+    dockerfile = python_dockerfile(project)
+    assert "/tmp/unbidden-extra" not in dockerfile
+    assert "/deps/tests/requirements-test.txt > /deps/tests/.unbidden-extra-0.txt" in dockerfile
+    assert "-r /deps/tests/.unbidden-extra-0.txt" in dockerfile
+    assert "/deps/requirements-cloud.txt > /deps/.unbidden-extra-1.txt" in dockerfile

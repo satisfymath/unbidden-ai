@@ -163,6 +163,14 @@ partial/complete/missing reads, UI port busy: 8/8 pass. They are reported apart 
    archery), `make` (graphtage), `task` (rdflib), `msgfmt` (humanize). Seven repositories. The CI reader already
    knows what the team installs (`observe/ci.py`); provision the same in the deps image or classify the run as
    environment with the missing tool named (the codex-lb rule now does this for test-level failures only).
+   *Corrected in phase 6 (2026-11-03):* Level A ran with the product's default mandate, whose package registries
+   do not list `deb.debian.org`, so nothing from Debian could be installed there by design; conduit's and
+   archery's records carry the product's own block naming that registry (correct behaviour, a mandate decision,
+   not a defect), and humanize's `gettext` falls under the same rule. What stays the product's: the runner's
+   baseline (`git`, `make`) is never installed even when Debian is allowed, an `apt-get install` after `&&` on
+   the same line is not read, and a test command stopping at `X: command not found` is recorded as a bare
+   `exit 127` instead of naming the program and what would provide it (`task` is installed by a CI action, not
+   a registry: a declared gap, now said). Level B's mandate did allow Debian.
 
 **P2 — the funnel after the checks**
 4. **Host-load rule unfit for the host and misclassified**: `HOST_LOAD_MAX = 1.5` is an absolute 1-minute load on
@@ -243,6 +251,25 @@ idle in 3.4 min both times.
 - `bench/campaign12/report.py`: agent pull requests counted only when created inside the run's window (the copies
   keep merged pull requests of earlier runs: fst's B2 table showed B1's merge). The "c1/c2 proposals" columns are
   cumulative counts, not re-publications; rich's run 1 published exactly #11–#13.
+
+## 12a. Phase 6: general fixes with regression tests (2026-11-03, `feat/64-campaign`, no model spend)
+
+Product code, each with the test that reproduces the campaign's case; the frozen wheel `a9154175` is untouched and
+every phase 7 run uses a new candidate built from this branch.
+
+| Defect | Change | Test |
+|---|---|---|
+| P1-1 TOML datetime | `observe/stack.py`: the pyproject's searchable text is `json.dumps(…, default=str)` (`_toml_text`) at the three sites | `test_stack_reach.py::test_a_pyproject_with_toml_dates_is_detected` |
+| P1-2 `-r` includes | `sandbox/provision.py`: `requirement_includes()` follows `-r`/`-c` transitively from the manifest and the CI's extra files into the build context; the filtered extra copy is written beside its file (`/deps/<dir>/.unbidden-extra-N.txt`), never under `/tmp` | `test_stack_reach.py::test_requirement_includes_go_into_the_build_context_and_the_extra_copy_sits_beside_its_file`; `test_level_a_blocks.py` updated |
+| P1-3 image tools | `sandbox/provision.py`: `system_packages_wanted()` adds the runner's baseline `git`, `make` when Debian is allowed; `observe/ci.py`: `apt_packages()` reads installs after `&&`/`;`; `lab/testsuite.py`: `environment_lacks()` names the missing program and its source (Debian package or a CI action), the round is not retried | `test_sandbox_tools_missing.py` (4) |
+| P2-4 host load | `lab/perf.py`: `host_load_max()` = max(1.5, 0.25 × CPUs); a deferral from `_sessions` is the opportunity's block (`result.blocked = "deferred: …"`, repeated once by the cycle, never counted as an attempt) instead of "the candidate broke the workload" | `test_perf_blocks.py` (host rule, `experiment_not_executed`); existing `test_cycle.py` deferral test; `test_workload_validation.py` pins 4 CPUs |
+| 15 spend block | `lab/perf.py`: `spend_blocked()` turns `SpendLimitReached`/`KillSwitchEngaged`/`PolicyDenied` into `prep_block` at once in `_ask_files` and `_choose_request`; every repair loop stops on it; `director/blocks.py`: `spend_block()` (pending_person, released by `met()` when the mandate's cap rises); `daemon/cycle.py` records it | `test_perf_blocks.py` (3), `test_blocks.py::test_a_reached_monthly_cap_is_a_persons_block_released_when_the_cap_rises`, `test_cycle.py::test_a_measurement_stopped_by_the_monthly_cap_is_listed_as_a_persons_block`; `test_perf_ask.py` updated (a policy refusal is a block, not a bad answer) |
+| P2-5 formatter | `observe/ci.py`: `team_formatter()` (black, or `ruff format`) from the CI's commands; `lab/fixlab.py`: `_in_team_format()` runs it on the candidate's Python files in the sandbox before measuring; a formatter the environment lacks is noted | `test_team_formatter.py` (3) |
+| 14 mapping cost | `world/relations.py`: handlers read in batches (8 per call, ≤12 KB) with one JSON answer keyed by handler; the answer cached in the store by handler digest, so an unchanged handler is never asked again across maps; prompt `world_endpoint_tables.md` rewritten | `test_endpoint_tables.py` (3) |
+
+Not changed: the default mandate's registries (Debian's archive stays a person's decision), the `US$2` default
+monthly cap and its keying by workspace name (said in §10-15, for David), the `task`/`just` installers (declared
+gaps, now named in the record), prettier for Node candidates (same step, not written yet).
 
 ## 13. Release recommendation
 

@@ -554,6 +554,13 @@ class Cycle:
                 # under a new key), then stays deferred; the attempt is not counted against the opportunity.
                 opp.details = {**opp.details, "deferrals": int(opp.details.get("deferrals", 0)) + 1}
             self.store.put("opportunities", opp)
+            if "monthly spend cap" in str(blocked):
+                # A person can unblock this one: listed as such, released when the mandate's cap rises.
+                from unbidden.director.blocks import record, spend_block
+
+                cap = self.runtime.workspace.mandate().business_constraints.maximum_monthly_spend_usd
+                goes_on = f"the measurement of {opp.id} at {opp.details.get('rev')}"
+                record(self.store, spend_block(f"measure {opp.id}", str(blocked), cap, goes_on), j.id)
             self.log(f"{opp.id}: not measured ({blocked})")
         elif result.verdict is not None and result.verdict.improved:
             self.log(f"{opp.id}: improved, evidence L{int(opp.evidence_level)}")

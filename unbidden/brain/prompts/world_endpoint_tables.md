@@ -1,10 +1,8 @@
-You read one HTTP handler of a web application and say which database tables it reads and which it writes,
-directly or through the functions it calls that are shown below.
+You read HTTP handlers of a web application and say, for each one, which database tables it reads and which it
+writes, directly or through the functions it calls that are shown with it.
 
-Choose only from these table names: {{tables}}. If the handler touches none of them, answer with empty lists.
-A write is an insert, update or delete. Answer with JSON only, matching this schema: {{schema}}
+Choose only from these table names: {{tables}}. If a handler touches none of them, answer with empty lists for it.
+A write is an insert, update or delete. Answer with JSON only: one entry per handler, keyed by the handler's name
+exactly as given, matching this schema: {{schema}}
 
-Handler `{{endpoint}}` in `{{file}}`:
-```
-{{code}}
-```
+{{handlers}}
