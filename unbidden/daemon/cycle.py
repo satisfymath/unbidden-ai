@@ -590,7 +590,10 @@ class Cycle:
         if experiment is None:
             return
         verdict = Verdict.model_validate(opp.details["verdict"])
-        proposal = prepare(self.runtime.workspace.repo, self.store, opp, experiment, verdict)
+        from unbidden.contracts.guardian import Autonomy
+
+        merges = self.runtime.workspace.mandate().autonomy.merge_pull_requests is Autonomy.ALLOW
+        proposal = prepare(self.runtime.workspace.repo, self.store, opp, experiment, verdict, merges=merges)
         self.log(f"{opp.id}: branch {proposal.branch} ready")
         self.store.enqueue(job("github.publish", proposal.id, {"id": proposal.id}, correlation_id=opp.id))
 
