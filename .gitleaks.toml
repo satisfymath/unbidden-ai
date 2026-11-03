@@ -7,4 +7,6 @@ description = "fake secrets planted by tests; Unbidden's own identifiers in benc
 paths = ['''tests/.*''']
 # `idempotency_key: "unbidden-<24 hex>"` in the bench's action records (docs/bench/ecosystem/**.json): an
 # identifier Unbidden mints for each API call it makes, never a credential (gitleaks' generic-api-key rule, PR #2).
-regexes = ['''unbidden-[0-9a-f]{24}''']
+# `sk-invalid-campaign-scenario-0000`: the deliberately invalid key a seeded scenario of the campaign harness plants
+# (bench/campaign13/scenarios.py) to prove a refused key never appears in any output; never a credential.
+regexes = ['''unbidden-[0-9a-f]{24}''', '''sk-invalid-campaign-scenario-0000''']

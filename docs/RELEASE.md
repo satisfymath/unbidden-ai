@@ -1,4 +1,28 @@
-# Unbidden 0.14.1, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.15.0, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.15.0 (2026-11-03): the environment funnel; the campaign 13 harness
+
+Campaign 13, work stream 7 (`docs/ROAD-TO-1.0.md` §3, dimension 2: the project's checks reproduced), and the harness
+of the final pass.
+
+- **A test plan without the documentation build**: a line that only builds docs (`sphinx-build`, `mkdocs build`,
+  `make html`/`docs`) is left out of the CI's test plan and said in its notes. graphtage, blocked in campaign 12 at
+  `make: command not found` and then at `sphinx-build`, now reproduces its checks: 289 tests, passed.
+- **A repository in the snapshot**: before a suite runs, the snapshot gets one commit of its tracked files (the
+  image's links excluded), and git trusts it inside the sandbox, for tests that ask git about their checkout
+  (codex-lb: `git ls-files`, `git grep`).
+- **The runner's home, user and locale**: `/home/runner` is writable in the sandbox; the image has a passwd entry for
+  uid 1000, `LANG`/`LC_ALL` C.UTF-8, and en_US.UTF-8 generated when Debian's `locales` is allowed. harlequin, blocked
+  in campaign 12 and then failing on `en_US.UTF-8`, now passes its checks with Debian allowed.
+- **Coverage flags**: a round that pytest stops at "unrecognized arguments: --cov" (the team's coverage plugin is
+  not installed here) runs again without them, said in the record (python-mss).
+- **Causes named**: a user switch (`su`/`sudo`) and a name that did not resolve are the environment's, said as such
+  (dinkydash, pipx).
+- **The base suite once per commit**: the fix lab reuses the base rounds for the same commit, plan and image
+  (misago: 58 minutes per side were spent again by each experiment).
+- **The campaign 13 harness** (`bench/campaign13/`): the final pass's mandate with every permission, the agent's
+  questions answered only by the protocol's table and each answer recorded, cycles that end on the product's idle
+  signal.
 
 ## 0.14.1 (2026-11-03): a deploy's failed requests are judged like its latency
 

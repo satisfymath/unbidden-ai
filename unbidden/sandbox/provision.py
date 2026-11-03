@@ -272,9 +272,14 @@ def python_dockerfile(stack: PythonStack, *, system_build_tools: bool = False, h
     # Debian packages: the compiler and headers a failed build asked for, and those the project's own CI job installs
     # (`headers` carries both; `system_build_tools` adds the compiler).
     packages = tuple(dict.fromkeys((("build-essential",) if system_build_tools else ()) + headers))
+    # en_US.UTF-8, which the GitHub runner has and some suites set explicitly (harlequin, campaign 12), generated
+    # when Debian's `locales` is installed.
+    locale = (" && sed -i 's/^# *en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen && locale-gen en_US.UTF-8"
+              if "locales" in packages else "")  # fmt: skip
     build_tools = (
         "RUN apt-get update && apt-get install -y --no-install-recommends "
         + " ".join(packages)
+        + locale
         + " && rm -rf /var/lib/apt/lists/*\n"
         if packages
         else ""
@@ -289,7 +294,11 @@ RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \\
  && uv venv /opt/tools \\
  && (uv pip install --python /opt/tools/bin/python ruff=={RUFF_VERSION} pytest=={PYTEST_VERSION} \\
      || uv pip install --python /opt/tools/bin/python ruff=={RUFF_VERSION} pytest)
-{build_tools}ENV UV_PROJECT_ENVIRONMENT=/deps/.venv UV_LINK_MODE=copy
+{build_tools}# The sandbox runs as uid 1000: a passwd entry for it (dooit, campaign 12: getpwuid() failed), its home the
+# GitHub runner's; and a UTF-8 locale, as on the runner.
+RUN useradd -u 1000 -M -d /home/runner -s /bin/sh runner 2>/dev/null || true
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+ENV UV_PROJECT_ENVIRONMENT=/deps/.venv UV_LINK_MODE=copy
 # The interpreter is the one Unbidden chose and records: uv may neither pick another nor download one.
 ENV UV_PYTHON=/usr/local/bin/python{stack.version} UV_PYTHON_DOWNLOADS=never
 # Projects that take their version from git (setuptools-scm, hatch-vcs) cannot read it here: only manifests are
@@ -496,7 +505,7 @@ MAX_SYSTEM_RETRIES = 4
 # What every CI runner has and a slim image does not: tests call `git` (codex-lb, campaign 12: 30 tests), a VCS
 # dependency needs it at install (harlequin), test commands run `make` (graphtage). Small, and installed only when
 # the mandate allows Debian's archive, like any other system package.
-RUNNER_BASELINE = ("git", "make")
+RUNNER_BASELINE = ("git", "make", "locales")
 
 
 def system_packages_wanted(stack: Any, *, allowed: bool) -> tuple[str, ...]:

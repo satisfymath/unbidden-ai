@@ -77,6 +77,9 @@ def docker_argv(spec: SandboxSpec, work: Path, name: str) -> list[str]:
         "--read-only",
         "--tmpfs", "/tmp:rw,noexec,nosuid,size=512m",
         "--tmpfs", "/var/log:rw,noexec,nosuid,size=64m,mode=1777",  # an application's log directory (CTFd), by uid 1000
+        # The GitHub runner's home, which CI steps and tests name literally (mimirq, campaign 12: `mkdir
+        # /home/runner/...` on a read-only root); writable, emptied with the container.
+        "--tmpfs", "/home/runner:rw,noexec,nosuid,size=256m,mode=1777",
         "--cap-drop", "ALL",
         "--security-opt", "no-new-privileges",
         "--user", "1000:1000",
@@ -86,6 +89,8 @@ def docker_argv(spec: SandboxSpec, work: Path, name: str) -> list[str]:
         "-v", f"{work}:/work:rw",  # the snapshot is always /work; a package runs in its own directory below it
         "-w", spec.workdir,
         "-e", "HOME=/tmp", "-e", "CI=1",
+        # A snapshot may carry a .git made on the host (tests that run `git ls-files`): not owned by uid 1000.
+        "-e", "GIT_CONFIG_COUNT=1", "-e", "GIT_CONFIG_KEY_0=safe.directory", "-e", "GIT_CONFIG_VALUE_0=*",
     ]  # fmt: skip
     for key, value in sorted({**spec.public_env, **spec.env}.items()):
         argv += ["-e", f"{key}={value}"]
@@ -137,6 +142,26 @@ class SandboxRunner:
             stdout_truncated=out_cut,
             stderr_truncated=err_cut,
         )
+
+
+def with_git(work: Path, rev: str, exclude: list[str] | None = None) -> None:
+    """A repository in the snapshot, one commit holding its tracked files, for tests that ask git about the checkout
+    they run in (codex-lb, campaign 12: `git ls-files`, `git grep` on a tree without .git). The commit's message
+    names the base revision; `exclude` keeps the image's dependency links out."""
+    if (work / ".git").exists():
+        return
+    git = ["git", "-C", str(work), "-c", "user.name=unbidden", "-c", "user.email=unbidden@localhost",
+           "-c", "commit.gpgsign=false"]  # fmt: skip
+    subprocess.run(["git", "init", "-q", str(work)], check=True, capture_output=True)
+    if exclude:
+        (work / ".git" / "info").mkdir(parents=True, exist_ok=True)
+        (work / ".git" / "info" / "exclude").write_text("\n".join(f"/{name}" for name in exclude) + "\n")
+    subprocess.run([*git, "add", "-A"], check=True, capture_output=True)
+    subprocess.run([*git, "commit", "-q", "--no-verify", "-m", f"snapshot of {rev}"], check=False,
+                   capture_output=True)  # fmt: skip
+    for path in (work / ".git").rglob("*"):
+        if not path.is_symlink():
+            path.chmod(0o777 if path.is_dir() else 0o666)
 
 
 def snapshot(repo: Path, rev: str, dest: Path | None = None) -> Path:

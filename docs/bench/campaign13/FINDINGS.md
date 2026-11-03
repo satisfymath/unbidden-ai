@@ -9,3 +9,14 @@ Dated lines, newest last. Each says what was seen, where (record or log), and wh
   asks and `say()`). Main's spend question amended the machine ledger while the router checks the mandate's cap; it
   now raises the mandate's cap and releases the held blocks. 1361 tests passed, pyright clean. No model spend. Not
   pushed: another session releases on main; the PR waits for David.
+\n
+- 2026-11-03 · release · v0.12.9 (port + docs), v0.13.0 (WS1 blocks/asks, WS2 typed claim, team type check),
+  v0.14.0 (WS5 vulnerabilities + dependency lab), v0.14.1 (WS4 error ratios after a deploy) merged and tagged; each
+  PR's CI green (check, frontend, installed, secrets).
+- 2026-11-03 · WS5 real · fst copy (b874fa5): 80 installed packages looked up on PyPI; dnspython 2.8.0 with
+  GHSA-45c3-73f7-pv4m; uv.lock re-resolved to 2.9.0; suite green both sides; L4, claim advisories 1 -> 0. First run
+  marked it not improved: the project's own package 404s on PyPI and counted as a failed lookup (fixed). misago: 19 of
+  77 installed packages carry advisories. No model spend.
+- 2026-11-03 · WS7 real · graphtage checks: passed, 289 tests (campaign 12: infra_failed at `make`, then at
+  `sphinx-build`); harlequin with Debian allowed: passed, 8 tests (campaign 12: blocked on git, then locale errors).
+  No model spend.

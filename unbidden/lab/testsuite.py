@@ -179,7 +179,17 @@ PROVIDES = {
 def environment_lacks(result: SandboxResult) -> str | None:
     """A test command that stopped at a program the image lacks (`task: command not found`, rdflib; `make`,
     graphtage; `msgfmt`, humanize: campaign 12), named with what would provide it; None when the run says otherwise."""
-    found = _MISSING_COMMAND.search(result.stderr + "\n" + result.stdout)
+    text = result.stderr + "\n" + result.stdout
+    if re.search(
+        r"\bsu: (?:Authentication failure|must be run from a terminal)|\bsudo: .*(?:not found|password)", text
+    ):
+        # dinkydash, campaign 12: a CI step that switches user; the sandbox has no root to switch from.
+        return "the test command switches user (`su`/`sudo`), which the sandbox never allows: no root, no password"
+    if re.search(r"Temporary failure in name resolution|NameResolutionError|Could not resolve host|"
+                 r"getaddrinfo failed|Network is unreachable", text):  # fmt: skip
+        # pipx, campaign 12: a test installs from PyPI; the sandbox has no network by design.
+        return "the tests reach the network (a name did not resolve), which the sandbox never has"
+    found = _MISSING_COMMAND.search(text)
     if found is None:
         return None
     tool = (found.group("a") or found.group("b")).rsplit("/", 1)[-1]
@@ -346,6 +356,17 @@ def _ended(result: SandboxResult) -> str:
     return f"{how}: {tail}" if tail else f"{how}, nothing printed"
 
 
+def without_coverage(plan: TestPlan) -> TestPlan | None:
+    """The plan with pytest's coverage flags removed from its command; None when it has none."""
+    from dataclasses import replace
+
+    from unbidden.observe.ci import _COV_FLAG  # pyright: ignore[reportPrivateUsage]
+
+    argv = tuple(_COV_FLAG.sub("", a) if "pytest" in a or a.startswith("--cov") else a for a in plan.argv)
+    argv = tuple(a for a in argv if a and not a.startswith(("--cov", "--no-cov")))
+    return replace(plan, argv=argv) if argv != plan.argv else None
+
+
 def run_suite(
     runner: SandboxRunner,
     work: Path,
@@ -361,6 +382,9 @@ def run_suite(
     why: list[str | None] = []
     messages: dict[str, str] = {}
     could_not_run: dict[str, str] = {}
+    from unbidden.sandbox.runner import with_git
+
+    with_git(work, "the measured revision", exclude=list(getattr(image, "links", None) or {}))
     n = 0
     for _ in range(rounds):
         result = Round(None, INFRA_FAILED, None)
@@ -368,6 +392,20 @@ def run_suite(
         for attempt in range(2):  # a round that tells nothing about the code is run once more, with one worker
             n += 1
             result = _round(runner, work, image, plan, n, timeout_s, workers=1 if attempt else None)
+            if (
+                not result.meaningful
+                and "unrecognized arguments: --cov" in (result.why or "")
+                and (uncovered := without_coverage(plan)) is not None
+            ):
+                # The team's coverage plugin is not installed here (python-mss, campaign 12: pytest's usage error,
+                # exit 4): coverage is their report, not what is measured; the round runs without its flags.
+                plan = uncovered
+                n += 1
+                result = _round(runner, work, image, plan, n, timeout_s)
+                note = "coverage flags left out: pytest-cov is not installed here"
+                told = "; ".join(filter(None, [result.why, note]))
+                result = Round(result.failed, result.status, result.collected, told, result.messages,
+                               retry=result.retry, could_not_run=result.could_not_run)  # fmt: skip
             if result.meaningful:
                 if first_why:
                     result = Round(result.failed, result.status, result.collected,
