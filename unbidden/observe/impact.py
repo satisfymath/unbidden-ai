@@ -172,6 +172,62 @@ def judge_endpoint(
     )
 
 
+def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
+    """95% Wilson interval of a proportion k/n (sound with few or no events, unlike the normal approximation)."""
+    if n == 0:
+        return 0.0, 1.0
+    p = k / n
+    centre = (p + z * z / (2 * n)) / (1 + z * z / n)
+    half = z * ((p * (1 - p) / n + z * z / (4 * n * n)) ** 0.5) / (1 + z * z / n)
+    return max(0.0, centre - half), min(1.0, centre + half)
+
+
+@dataclass(frozen=True)
+class ErrorImpact:
+    """One endpoint's share of failed requests (5xx, no answer) before and after a deploy (campaign 13, WS4: the
+    reliability class; until now errors only decided an outage)."""
+
+    target: str
+    impact: Impact
+    errors_before: int
+    requests_before: int
+    errors_after: int
+    requests_after: int
+    interval_before: tuple[float, float]
+    interval_after: tuple[float, float]
+    reasons: tuple[str, ...]
+
+    @property
+    def ratio_before(self) -> float:
+        return self.errors_before / self.requests_before if self.requests_before else 0.0
+
+    @property
+    def ratio_after(self) -> float:
+        return self.errors_after / self.requests_after if self.requests_after else 0.0
+
+    def as_dict(self) -> dict[str, Any]:
+        return {**{k: (v.value if isinstance(v, Impact) else v) for k, v in self.__dict__.items()},
+                "ratio_before": self.ratio_before, "ratio_after": self.ratio_after}  # fmt: skip
+
+
+def judge_errors(target: str, before: list[Round], after: list[Round]) -> ErrorImpact:
+    """Improved when the failed share after the deploy is lower with non-overlapping 95% Wilson intervals over at
+    least `MIN_REQUESTS_FOR_ERRORS` requests per side; degraded the other way round; otherwise no change claimed."""
+    eb, nb = _errors(before)
+    ea, na = _errors(after[WARMUP_ROUNDS:])
+    ib, ia = wilson(eb, nb), wilson(ea, na)
+    args = (target, eb, nb, ea, na, ib, ia)
+    line = f"failed {eb}/{nb} ({eb / nb if nb else 0:.1%}) → {ea}/{na} ({ea / na if na else 0:.1%})"
+    if nb < MIN_REQUESTS_FOR_ERRORS or na < MIN_REQUESTS_FOR_ERRORS:
+        return ErrorImpact(target, Impact.INSUFFICIENT, *args[1:], (f"{line}: need {MIN_REQUESTS_FOR_ERRORS} requests "
+                           "per side",))  # fmt: skip
+    if ia[1] < ib[0]:
+        return ErrorImpact(target, Impact.IMPROVED, *args[1:], (f"{line}: lower, 95% intervals apart",))
+    if ia[0] > ib[1]:
+        return ErrorImpact(target, Impact.DEGRADED, *args[1:], (f"{line}: higher, 95% intervals apart",))
+    return ErrorImpact(target, Impact.HEALTHY, *args[1:], (f"{line}: within the criteria, no change claimed",))
+
+
 def overall(endpoints: list[EndpointImpact]) -> Impact:
     """One verdict per deploy. Any outage or degradation wins; HEALTHY needs every endpoint judged."""
     kinds = {e.impact for e in endpoints}
