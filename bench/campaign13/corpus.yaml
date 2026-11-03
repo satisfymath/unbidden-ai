@@ -1,0 +1,678 @@
+# Campaign 12 corpus (docs/bench/campaign12/PROTOCOL.md, section 5). Classes: dev (12, known: calibration and
+# regression), independent (19: 14 by the base rule + 5 by the recorded extension rule, accepted by David 2026-11-01;
+# the FastAPI-with-database quota keeps one declared gap), frontier (8, outside or near the declared support). 39 in all.
+# `commit` is the pin every record refers to; `support` is the class declared BEFORE the first run (inside / near /
+# outside); `exposure` says what Unbidden and the developer saw before. Independent and frontier entries come from
+# bench/campaign12/corpus-candidates.md (the recorded rule) and are appended at the freeze.
+candidate: 8686674327b6ce2fba44b4c2640977fecd0da2e2
+wheel_sha256: a915417588329e4383cd5f07ba96499dc228976863792f8d51e46dfa634a3917
+version: 0.9.0
+pilot_candidate: 2f7eee504dd24d763a72079686161c8247416226  # phase 2 ran on this one; the freeze adds the codex-lb classification fix
+pilot_wheel_sha256: e8c7cc8a2ef849f25930b402393ddc18b04d5972206d1ee247ebe9796568856c
+copy_test_candidate: 69b0702258523e814cc42e0dfcb57eadf19fb7f5  # the fst copy test (pilot-copy) ran on this one: first classification rule only
+copy_test_wheel_sha256: cffdf7ac7f49b39fef525e3452a9fc2008a48faba0fefb9378014fd9a2aa910f
+confirm_candidate: 726009d5225adf38d80cfb21b269d21d497754c2  # phase 7 (2026-11-03): the phase 6 fixes, built with `make dist`, served from dist-confirm
+confirm_wheel_sha256: 5c088f3ee878afd58bf7cbfdad5fac56081677883e806c88fb0b0b14752cd0c6
+repos:
+- name: fst
+  url: https://github.com/fastapi/full-stack-fastapi-template
+  commit: f4bcfaba7c85be3c6332cc74a20819f586dcdbc6
+  license: MIT
+  class: dev
+  family: api-postgres
+  build: uv
+  support: inside
+  services:
+  - postgres
+  exposure: stages 5-10; first L4 and deploy
+  level_b: true
+  lab: fst
+  why: FastAPI + Postgres with compose; uv; the reference application
+- name: conduit
+  url: https://github.com/nsidnev/fastapi-realworld-example-app
+  commit: 029eb7781c60d5f563ee8990a0cbfb79b244538c
+  license: MIT
+  class: dev
+  family: api-postgres
+  build: poetry
+  support: inside
+  services:
+  - postgres
+  exposure: stage 7-10; lab conduit
+  level_b: false
+  why: 'an old Poetry app; its lab exists but the application has no health endpoint, which the rollback drill needs: Level A only (recorded as a product limit to show)'
+- name: spoolman
+  url: https://github.com/Donkie/Spoolman
+  commit: bed3f14ee77a3a571d31b14215d54b0b88a7519c
+  license: MIT
+  class: dev
+  family: api-postgres
+  build: pdm
+  support: inside
+  services:
+  - postgres
+  exposure: stage 9-10; lab spoolman
+  level_b: true
+  lab: spoolman
+  why: integration tests directory, Alembic; lab exists
+- name: codex-lb
+  url: https://github.com/Soju06/codex-lb
+  commit: 84fde5a1ed5e0d5a58ccb3ec4b82938b059bf8c5
+  license: MIT
+  class: dev
+  family: api-postgres
+  build: make
+  support: inside
+  services:
+  - postgres
+  exposure: stage 10; lab codex_lb
+  level_b: false
+  why: 'CI if: branches, make recipes, a bun build in a Python job'
+- name: aegra
+  url: https://github.com/aegra/aegra
+  commit: 46055c0b9adffe51fb168974f79dfadaa6edd612
+  license: MIT
+  class: dev
+  family: api-postgres
+  build: uv
+  support: inside
+  services:
+  - postgres
+  exposure: stage 10; lab aegra
+  level_b: false
+  why: uv workspace with src layouts, pgvector
+- name: ctfd
+  url: https://github.com/CTFd/CTFd
+  commit: 5f345fbaa424e6a22b51addf7f27430927879ae2
+  license: Apache-2.0
+  class: dev
+  family: web-flask
+  build: uv
+  support: inside
+  services:
+  - postgres
+  exposure: campaign v1 level A
+  level_b: false
+  why: Flask; make test under a Postgres service; one workflow per database
+- name: timetracker
+  url: https://github.com/DRYTRIX/TimeTracker
+  commit: 7ae6440d1b0930196609c6cefe3cf13948513f5b
+  license: GPL-3.0
+  class: dev
+  family: web-flask
+  build: pip
+  support: inside
+  services:
+  - postgres
+  exposure: campaign v1 level A
+  level_b: false
+  why: pip requirements + requirements-test; Postgres service container in CI
+- name: rich
+  url: https://github.com/Textualize/rich
+  commit: 9d8f9a372cc5916fd4781fec207ced7ddac2f08f
+  license: MIT
+  class: dev
+  family: library
+  build: poetry
+  support: inside
+  services: []
+  exposure: stage 5 (L4 fix), product walk 2026-11-01
+  level_b: true
+  why: library; property probes; the product walk's repository
+- name: marshmallow
+  url: https://github.com/marshmallow-code/marshmallow
+  commit: b762ea2d59ca52fe5df76b90de14bed7e5ec5607
+  license: MIT
+  class: dev
+  family: library
+  build: tox
+  support: inside
+  services: []
+  exposure: stage 7 (the false L4), demo
+  level_b: true
+  why: tox envlist; CI parity
+- name: pyjwt
+  url: https://github.com/jpadilla/pyjwt
+  commit: 16231abfd1d8eab4953e8779b3017b859c88565e
+  license: MIT
+  class: dev
+  family: library
+  build: tox
+  support: inside
+  services: []
+  exposure: stage 7 pilot
+  level_b: false
+  why: tox, extras
+- name: humanize
+  url: https://github.com/python-humanize/humanize
+  commit: 6b817b963dbb091b9ad20a746cb6a26653a93b95
+  license: MIT
+  class: dev
+  family: library
+  build: hatch
+  support: inside
+  services: []
+  exposure: stage 7 pilot (KeyError probe)
+  level_b: false
+  why: hatch
+- name: sqlmodel
+  url: https://github.com/fastapi/sqlmodel
+  commit: 462b59d9cd1cc3d9072735435330ef9ab6d15cbf
+  license: MIT
+  class: dev
+  family: library
+  build: uv
+  support: inside
+  services: []
+  exposure: level A holdout (stage 7)
+  level_b: false
+  why: Poetry/uv library on SQLAlchemy
+- name: mimirq
+  url: https://github.com/skygazer42/MimirQ
+  commit: 5d08b54beb8011a17ce274319fb79a5f121568c9
+  license: Apache-2.0
+  class: independent
+  family: api-postgres
+  build: pip
+  support: inside
+  services:
+  - postgres
+  - redis
+  - minio
+  exposure: none (selected by the recorded rule, never used before)
+  level_b: false
+  why: rule 1 (topic:fastapi), window w34 / search rank r124; all criteria pass. Tests run with LLM_MOCK_ENABLED=true and dummy sk-test keys, so no paid provider is needed.
+  checks: 'ci.yml > (python 3.11; services: postgres:15, redis:7, minio) make test + python -m pytest tests/...; mixed TS web tested via pnpm/playwright in the same workflow (separate jobs)'
+  size_kb: 448784
+  stars: 575
+  preparation: postgres + redis + minio from CI service containers; copy .env.example; no real secrets (mock LLM)
+  risk: 449 MB (near the 500 MB cap); redis + minio also required; Chinese-first docs; a separate live-core gate exists that would need real provider keys but is not the pytest job
+- name: mediacms
+  url: https://github.com/mediacms-io/mediacms
+  commit: 9bf46be5f4dc00005dd66e868f1d1d23371acadb
+  license: AGPL-3.0
+  class: independent
+  family: web-django
+  build: pip
+  support: inside
+  services:
+  - postgres
+  - redis
+  exposure: none (selected by the recorded rule, never used before)
+  level_b: false
+  why: rule 2 (topic:django), window w23 / rank r27; CI invokes pytest (not manage.py test) so it qualifies for the independent set; all criteria pass
+  checks: python.yml > build & test via docker compose; `docker compose -f docker-compose-dev.yaml exec -T web pytest -n auto --cov`; services db=postgres:17.2, redis:alpine
+  size_kb: 68511
+  stars: 5177
+  preparation: postgres + redis via the project's docker-compose-dev.yaml; no secrets
+  risk: tests run through docker compose (not a bare pytest invocation); mixed React frontend built in a separate job
+- name: misago
+  url: https://github.com/rafalp/Misago
+  commit: 4a37d19d3d9f74064c75cdda6856350b2daea5df
+  license: GPL-2.0
+  class: independent
+  family: web-django
+  build: pip
+  support: inside
+  services:
+  - postgres
+  exposure: none (selected by the recorded rule, never used before)
+  level_b: true
+  why: rule 2 (topic:django), window w42 / rank r48; CI invokes pytest with a postgres service; all criteria pass
+  checks: tests.yml > (python 3.12; service postgres:15) pytest --run-slow --cov=misago
+  size_kb: 121427
+  stars: 2781
+  preparation: postgres service container from CI; COVERALLS_REPO_TOKEN is only used to upload coverage, not to run tests
+  risk: large history; React frontend present but not needed for the Python tests
+- name: brightbean-studio
+  url: https://github.com/brightbeanxyz/brightbean-studio
+  commit: 1d11c52007a3f714979ff1b071d153e69a8c274a
+  license: AGPL-3.0
+  class: independent
+  family: web-django
+  build: pip
+  support: inside
+  services:
+  - postgres
+  exposure: none (selected by the recorded rule, never used before)
+  level_b: true
+  why: rule 2 (topic:django), window w45 / rank r52; Django app, CI invokes pytest; all criteria pass
+  checks: ci.yml > Test (pytest) (python 3.12; PostgreSQL 16 started on the runner, also docker-compose postgres:16-alpine) `pytest --cov=apps`; `python manage.py makemigrations --check`
+  size_kb: 12342
+  stars: 2608
+  preparation: PostgreSQL 16 (runner service or compose); env secrets are test placeholders in CI
+  risk: young project; apps/ layout; social-media connectors are not exercised by the suite
+- name: traefik-manager
+  url: https://github.com/chr0nzz/traefik-manager
+  commit: ebf6a8435efa0b344bf25c7027448b2b064e8be0
+  license: GPL-3.0
+  class: independent
+  family: web-flask
+  build: pip
+  support: inside
+  services: []
+  exposure: none (selected by the recorded rule, never used before)
+  level_b: true
+  why: rule 3 (topic:flask), window w20 / rank r34; Flask app with a pytest CI job; all criteria pass. No database (config-file driven).
+  checks: tests.yml > pytest (python 3.11) `pytest -q --cov=core --cov=app`; a separate job runs Go `go test ./...`
+  size_kb: 489402
+  stars: 1656
+  preparation: none (no database)
+  risk: 489 MB (near the 500 MB cap); polyglot (Go + a JS/TS part) though the Python test job is self-contained
+- name: oauthlib
+  url: https://github.com/oauthlib/oauthlib
+  commit: 179287a5f9067aac7b1c0d71c4c5e083ccbf58f2
+  license: BSD-3-Clause
+  class: independent
+  family: library
+  build: tox
+  support: inside
+  services: []
+  exposure: none (selected by the recorded rule, never used before)
+  level_b: true
+  why: rule 4 (topic:library), window w06 / rank r07; pure-Python library, pytest in CI, no services; build tools tox + make
+  checks: lint_python.yml + python-build.yml > `pytest` across a python matrix; tox.ini and Makefile targets
+  size_kb: 3412
+  stars: 2986
+  preparation: none
+  risk: none notable
+- name: rdflib
+  url: https://github.com/RDFLib/rdflib
+  commit: f87db10f58264d619e5b55f1567bfdca4bb02afc
+  license: BSD-3-Clause
+  class: independent
+  family: library
+  build: uv
+  support: inside
+  services: []
+  exposure: none (selected by the recorded rule, never used before)
+  level_b: true
+  why: rule 4 (topic:library), window w10 / rank r11; RDF library, pytest in CI, no services; build tools uv + tox
+  checks: validate.yaml > pytest (reported as *-pytest-junit-xml); tox.ini; uv.lock present
+  size_kb: 24596
+  stars: 2543
+  preparation: none
+  risk: a devcontainer docker-compose exists but is not used by the test job
+- name: graphtage
+  url: https://github.com/trailofbits/graphtage
+  commit: afa9b34ce09327bcd37bb40e9e61ca97c1baa80d
+  license: LGPL-3.0
+  class: independent
+  family: library
+  build: hatch
+  support: inside
+  services: []
+  exposure: none (selected by the recorded rule, never used before)
+  level_b: true
+  why: rule 4 (topic:library), window w11 / rank r12; semantic-diff library, pytest in CI, no services; build tools hatch (hatchling) + uv
+  checks: pythonpackage.yml > pytest; hatchling build backend; uv run used in CI
+  size_kb: 11714
+  stars: 2495
+  preparation: none
+  risk: none notable
+- name: python-progressbar
+  url: https://github.com/wolph/python-progressbar
+  commit: 05a60c9a2c8fe88570a4bed734579320f9a2cfe8
+  license: BSD-3-Clause
+  class: independent
+  family: library
+  build: pip
+  support: inside
+  services: []
+  exposure: none (selected by the recorded rule, never used before)
+  level_b: false
+  why: rule 4 (topic:library), window w25 / rank r26; progress-bar library, pytest in CI, no services; setuptools/pip build with a tox path
+  checks: main.yml > pytest (python matrix); autofix.yml/docs.yml use `tox -e`
+  size_kb: 3294
+  stars: 879
+  preparation: none
+  risk: terminal-oriented; CI runs pytest headless without issue
+- name: python-mss
+  url: https://github.com/BoboTiG/python-mss
+  commit: 6c00e6e9c735d4e65c8b72f2a732e463078a901e
+  license: MIT
+  class: independent
+  family: library
+  build: hatch
+  support: inside
+  services: []
+  exposure: none (selected by the recorded rule, never used before)
+  level_b: false
+  why: rule 4 (topic:library), python-library window w21 / rank r22; screenshot library, pytest in CI, no services; build tool hatch
+  checks: tests.yml > pytest (python matrix); hatchling backend
+  size_kb: 1925
+  stars: 1292
+  preparation: a virtual display (Xvfb) is needed for the screen-capture tests on Linux
+  risk: tests exercise screen capture and may need a headless display (Xvfb); no network or paid service
+- name: reader
+  url: https://github.com/lemon24/reader
+  commit: 4bac04ef9965930896c9acfc3bac01af0f4cbc96
+  license: BSD-3-Clause
+  class: independent
+  family: library
+  build: tox
+  support: inside
+  services: []
+  exposure: none (selected by the recorded rule, never used before)
+  level_b: false
+  why: rule 4 (topic:library), window w36 / rank r37; feed-reader library (SQLite storage, in-process), pytest in CI, no service containers; build tool tox
+  checks: build.yaml > `coverage run -m pytest --runslow` (python matrix); tox.ini
+  size_kb: 7953
+  stars: 559
+  preparation: none (SQLite is file-based, no service)
+  risk: none notable
+- name: harlequin
+  url: https://github.com/tconbeer/harlequin
+  commit: ad3ecef4ff12bc4c89b15fb9c6a628c424afb6e2
+  license: MIT
+  class: independent
+  family: cli
+  build: hatch
+  support: inside
+  services: []
+  exposure: none (selected by the recorded rule, never used before)
+  level_b: true
+  why: rule 5 (topic:cli), window w27 / rank r30; a terminal SQL IDE, pytest in CI; build tool hatch
+  checks: test.yml + static.yml > pytest (python matrix); hatchling backend
+  size_kb: 25555
+  stars: 6498
+  preparation: none for the default suite (its SQLite/DuckDB adapters are in-process; the postgres adapter is optional)
+  risk: TUI app; the default tests use in-process databases, so no service container is required
+- name: dooit
+  url: https://github.com/dooit-org/dooit
+  commit: ba2a7efdbb56297ee7ed9273232cce265e3254da
+  license: MIT
+  class: independent
+  family: cli
+  build: hatch
+  support: inside
+  services: []
+  exposure: none (selected by the recorded rule, never used before)
+  level_b: false
+  why: rule 5 (topic:cli), window w50 / rank r55; a TUI to-do manager, pytest in CI; build tool hatch
+  checks: pytest.yml > Pytest (python matrix); hatchling backend
+  size_kb: 10698
+  stars: 2964
+  preparation: none
+  risk: TUI app tested headless in CI
+- name: pipx
+  url: https://github.com/pypa/pipx
+  commit: 2ccbdf4c879c04f0dda457b47cb6a051146231bb
+  license: MIT
+  class: independent
+  family: cli
+  build: hatch
+  support: inside
+  services: []
+  exposure: none (selected by the recorded rule, never used before)
+  level_b: true
+  why: rule 5 (topic:cli), window w13 / rank r15; a CLI to run/install Python applications, pytest in CI; build tool hatch
+  checks: tests.yml > pytest (python matrix); hatchling backend
+  size_kb: 7199
+  stars: 12984
+  preparation: none for unit tests; some integration tests install packages
+  risk: part of the suite installs real packages (network); unit markers run offline
+- name: recruitops-agent
+  url: https://github.com/849879772/recruitops-agent
+  commit: 1584307eef66b7e3f839e55cd74dd7e12d7b876d
+  license: MIT
+  class: independent
+  family: api-postgres
+  build: pip
+  support: inside
+  services:
+  - postgres
+  exposure: none (selected by the recorded extension rule, never used before; accepted by David 2026-11-01)
+  level_b: false
+  why: 'extension rule E1: E1 (topic:fastapi stars:50..150), window w08 / rank r9; FastAPI + SQLAlchemy + psycopg + pgvector app; compose provides the DB; pytest in CI; no provider keys in CI'
+  checks: 'ci.yml > python -m pytest -c pytest-public.ini (no DB in the job); scripts/check_migrations.py ''without a database''; compose: postgres=pgvector/pgvector:pg16 + api'
+  size_kb: 5960
+  stars: 147
+  python:
+  - '3.11'
+  preparation: pgvector/pg16 from compose for DB-backed work; the CI test job itself runs without a database
+  risk: very young (2026-09); the pytest job does not touch Postgres, so DB opportunities come from the app, not its suite; 'agent' naming but no LLM SDK in dependencies
+  extension_rule: E1
+- name: aiogramshopbot
+  url: https://github.com/ilyarolf/AiogramShopBot
+  commit: f886de2519c71bd6eae008b61c3c43d9822591aa
+  license: MIT
+  class: independent
+  family: api-postgres
+  build: pip
+  support: inside
+  services:
+  - postgres
+  - redis
+  exposure: none (selected by the recorded extension rule, never used before; accepted by David 2026-11-01)
+  level_b: false
+  why: 'extension rule E2: E2 (topic:sqlalchemy stars:>100, applications only), window w37 / rank r48; FastAPI webhook + aiogram shop app on asyncpg/SQLAlchemy; compose Postgres; pytest in CI; no secrets in CI'
+  checks: 'tests.yml > pip install -r requirements.txt; pytest (no services in the job); compose: postgres:18 + redis:latest + caddy + bot'
+  size_kb: 1084
+  stars: 249
+  python:
+  - '3.12'
+  preparation: postgres:18 + redis from compose; CI tests run without them
+  risk: crypto-payment integrations exist in the app but are not exercised by CI; the CI suite is DB-less
+  extension_rule: E2
+- name: gymhero
+  url: https://github.com/JakubPluta/gymhero
+  commit: 890b0db70d58a59d7589af34aff8bd58b5b876a2
+  license: MIT
+  class: independent
+  family: api-postgres
+  build: uv
+  support: inside
+  services:
+  - postgres
+  exposure: none (selected by the recorded extension rule, never used before; accepted by David 2026-11-01)
+  level_b: false
+  why: 'extension rule E2: E2 (topic:sqlalchemy stars:>100, applications only), window w41 / rank r52; FastAPI + SQLAlchemy + Alembic + Postgres CRUD application with a React frontend dir; pytest and a Postgres service in CI'
+  checks: 'ci.yaml > lint (ruff/mypy); test: uv run pytest --cov=gymhero tests/ (Testcontainers on the runner''s Docker); migrations: service postgres:16-alpine, alembic upgrade/downgrade/upgrade'
+  size_kb: 803
+  stars: 194
+  python:
+  - '3.13'
+  preparation: postgres:16-alpine service (as in the migrations job) or Docker for testcontainers
+  risk: small, self-described 'simple CRUD application' (few opportunities); testcontainers in the pytest job
+  extension_rule: E2
+- name: dinkydash
+  url: https://github.com/caspii/dinkydash
+  commit: d5985375989681c80193ca4da91e33867a32978e
+  license: MIT
+  class: independent
+  family: web-flask
+  build: pip
+  support: inside
+  services:
+  - postgres
+  exposure: none (selected by the recorded extension rule, never used before; accepted by David 2026-11-01)
+  level_b: false
+  why: 'extension rule E4: E4 window w33 / rank r33; Flask family-calendar app with a Postgres service and pytest in CI; no API key used by the suite; DB-backed alternate (fourth in window order) - the cleanest Postgres + in-range-interpreter Flask option if David prefers to swap it for biweeklybudget'
+  checks: test.yml > pytest (service postgres:17; DINKYDASH_TEST_DATABASE_URL) then a second pytest run without a database (postgres tests skip); playwright chromium installed
+  size_kb: 9260
+  stars: 99
+  python:
+  - '3.11'
+  preparation: postgres:17 service; playwright chromium
+  risk: under 100 stars; LLM-written content at runtime (not in tests)
+  extension_rule: E4
+- name: tracklater
+  url: https://github.com/eerovil/TrackLater
+  commit: 0b05b0a66be018914261e9d2c0a2be632d89d406
+  license: MIT
+  class: independent
+  family: web-flask
+  build: pip
+  support: inside
+  services: []
+  exposure: none (selected by the recorded extension rule, never used before; accepted by David 2026-11-01)
+  level_b: false
+  why: 'extension rule E4: E4 window w15 / rank r15; Flask time-tracking app with Flask-SQLAlchemy (file DB), pytest in CI; alternate (no DB service)'
+  checks: pythonapp.yml > pytest --cov=. (python 3.12)
+  size_kb: 821
+  stars: 126
+  python:
+  - '3.12'
+  preparation: none
+  risk: small suite
+  extension_rule: E4
+- name: librephotos
+  url: https://github.com/LibrePhotos/librephotos
+  commit: 8def36a24cd0435dc7338abde36d51ed9e8a7ad3
+  license: MIT
+  class: frontier
+  family: monorepo-subdir
+  build: npm+pip
+  support: outside
+  services: []
+  exposure: none
+  level_b: false
+  frontier_class: 1
+  frontier_why: A monorepo whose root has no pyproject/requirements/setup; the Python project sits in a subdirectory.
+  product_should: Report that there is no Python project at the repository root (declared support not met at root); either locate the package under apps/ and say the scope is that subdirectory, or abstain
+    with a clear 'no root project' diagnosis. It must not claim the repo is unsupported outright without noting the subdir.
+  why: 'rule: topic:django window, first fit with no root Python manifest. Root holds only package.json + apps/; the Python backend lives under apps/, not at the repository root.'
+  checks: image build workflows + api-client.yml (npm); backend tests are not a bare pytest CI job
+  size_kb: 206248
+  stars: 8123
+- name: netbox
+  url: https://github.com/netbox-community/netbox
+  commit: ddcfe22db6147b59a0c0d5a904dcda8bfeb9398b
+  license: Apache-2.0
+  class: frontier
+  family: web-django
+  build: pip
+  support: near
+  services:
+  - postgres
+  - redis
+  exposure: none
+  level_b: false
+  frontier_class: 2
+  frontier_why: A Django application whose CI runs `manage.py test`, not pytest; fails the pytest-job criterion.
+  product_should: Detect that the project's checks are the Django test runner (not pytest). Either reproduce `manage.py test` as the project's own checks and say so, or report that no pytest job exists
+    (outside the pytest-declared support) and give a partial run / abstention rather than inventing a pytest invocation.
+  why: 'rule: topic:django window w04 / rank r06, first application whose CI uses Django''s own test runner instead of pytest.'
+  checks: 'ci.yml > (python matrix; services: postgres:18, redis:8) `python netbox/manage.py test --parallel` and `coverage run netbox/manage.py test` -- NOT pytest'
+  size_kb: 230713
+  stars: 21829
+- name: archery
+  url: https://github.com/hhyo/Archery
+  commit: a2675e236da8395940d7316483cdc54b177d2702
+  license: Apache-2.0
+  class: frontier
+  family: web-django-mysql
+  build: pip
+  support: near
+  services:
+  - mysql
+  - redis
+  exposure: none
+  level_b: false
+  frontier_class: 3
+  frontier_why: A Python (Django) application whose only database is MySQL; PostgreSQL is where the scope says consistency/performance is measured, so MySQL is near, not inside, support. (It does run pytest,
+    so the test-reproduction part is in scope.)
+  product_should: Reproduce the pytest job against a MySQL service, but report that consistency/performance measurement is defined for PostgreSQL and abstain on (or clearly caveat) those measurements on
+    MySQL -- a partial run, not a silent pass.
+  why: 'rule: `language:Python topic:mysql stars:>150 pushed:>2026-05-01 archived:false`, sorted by stars; first application (not a driver/ORM/client) whose only database is MySQL -- hhyo/Archery (rank
+    among apps after dbcli/mycli, sqlglot, PyMySQL which are tools/libraries).'
+  checks: 'django.yml > (python 3.11/3.12; services: mysql:8.0, redis) `pytest --cov`; compose ships mysql:5.7 + redis + goinception'
+  size_kb: 25863
+  stars: 7085
+- name: resumeio-to-pdf
+  url: https://github.com/felipeall/resumeio-to-pdf
+  commit: 108b5cf2586a2e1d38d97adbfd4558efa9994d9f
+  license: MIT
+  class: frontier
+  family: api-nodb
+  build: uv
+  support: near
+  services: []
+  exposure: none
+  level_b: false
+  frontier_class: 4
+  frontier_why: A Python project with tests in the repo but NO test job in CI (CI runs lint only).
+  product_should: Report that CI defines no test job, so there is no CI contract to reproduce. Either run the repo's tests outside a CI contract and label them as such, or abstain -- but not claim a reproduced,
+    passing CI test job that does not exist.
+  why: 'rule: topic:fastapi window w09 / rank r99, first repo inside support (root pyproject, Python app) whose only CI workflow runs ruff and never invokes its tests.'
+  checks: ruff.yml only (lint). No pytest job despite a tests/ directory in the repo.
+  size_kb: 239
+  stars: 819
+- name: ai-avatar-system
+  url: https://github.com/PunithVT/ai-avatar-system
+  commit: 0dee976c229b2b6d274f8d04784d7e5be964d7b6
+  license: MIT
+  class: frontier
+  family: python+typescript
+  build: pip
+  support: near
+  services:
+  - postgres
+  - redis
+  exposure: none
+  level_b: false
+  frontier_class: 5
+  frontier_why: A mixed Python + TypeScript project where CI runs both; the Python backend sits under backend/ with its own pytest + postgres/redis.
+  product_should: Identify the Python backend under backend/, reproduce its pytest job (postgres + redis), and explicitly scope out the TypeScript frontend -- reporting a backend-only analysis rather than
+    attempting or claiming the JS build.
+  why: 'rule: topic:fastapi window w35 / rank r125, first mixed FastAPI-backend + TS-frontend project whose CI runs both a Python pytest job and the frontend toolchain.'
+  checks: 'ci.yml > backend `pytest tests/ --cov=app` (services: postgres:15, redis:7; env DATABASE_URL/REDIS/CELERY/SECRET provided) AND frontend npm lint/typecheck/build in the same workflow'
+  size_kb: 2788
+  stars: 563
+- name: zod
+  url: https://github.com/colinhacks/zod
+  commit: 2554b70c3d4a80273381e61d527d820720626440
+  license: MIT
+  class: frontier
+  family: typescript
+  build: n/a
+  support: outside
+  services: []
+  exposure: none
+  level_b: false
+  frontier_class: 6
+  frontier_why: A TypeScript/Node project, entirely outside the declared Python support.
+  product_should: Diagnose that there is no Python project (no pyproject/requirements/setup, language is TypeScript) and give a clean out-of-scope abstention -- no partial analysis.
+  why: 'rule: a widely used TypeScript library NOT previously exposed (the satisfymath fork list already carries expressjs/express and fastify/fast-json-stringify; zod is fresh).'
+  checks: n/a (TypeScript project)
+  size_kb: 27098
+  stars: 44241
+- name: gin
+  url: https://github.com/gin-gonic/gin
+  commit: 0f09c3a9b4626d9fe9979cf4d0521d6ae32ab646
+  license: MIT
+  class: frontier
+  family: go
+  build: n/a
+  support: outside
+  services: []
+  exposure: none
+  level_b: false
+  frontier_class: 7
+  frontier_why: A Go project, entirely outside the declared Python support.
+  product_should: Diagnose that the language is Go with no Python project present and give a clean out-of-scope abstention.
+  why: 'rule: a widely used Go project NOT previously exposed (the fork list carries go-chi/chi and spf13/cobra; gin is fresh).'
+  checks: n/a (Go project; `go test`)
+  size_kb: 10657
+  stars: 89467
+- name: weblate
+  url: https://github.com/WeblateOrg/weblate
+  commit: 80852ad7530516a32ebac7a40052f1c432ab4b73
+  license: GPL-3.0
+  class: frontier
+  family: web-django-large
+  build: pip
+  support: near
+  services:
+  - postgres
+  exposure: none
+  level_b: false
+  frontier_class: 8
+  frontier_why: A Python/Django project inside the declared support but ~5.8 GB (far over the 500 MB cap), with a very large test suite likely to time out.
+  product_should: 'Abstain on a resource bound: state that the repository exceeds the size/time budget (cannot be cloned/reproduced within limits) -- a resource-limit abstention, explicitly NOT a capability
+    gap or an out-of-scope language diagnosis.'
+  why: 'rule: topic:django window, first repo inside support (Python/Django/Postgres) that is far over the size limit -- ~5.8 GB on GitHub (size_kb 6,050,510).'
+  checks: Django + large pytest-based suite; Postgres supported
+  size_kb: 6050510
+  stars: 6146
