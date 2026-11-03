@@ -252,6 +252,12 @@ idle in 3.4 min both times.
   keep merged pull requests of earlier runs: fst's B2 table showed B1's merge). The "c1/c2 proposals" columns are
   cumulative counts, not re-publications; rich's run 1 published exactly #11–#13.
 
+- Phase 7 (2026-11-03): `common.envelope_for(phase)`, `candidate_of(corpus, key)` and `--candidate confirm`
+  (level_a, level_b); `level_a --debian` (the documented variant); `level_b --budget` (the cap variant; its first
+  launch was stopped before any product run for an undefined name and relaunched); `run_confirm.sh`; `verify.py`
+  tolerates a temp-directory cleanup error that lost spoolman's record. Corpus: `confirm_candidate`,
+  `confirm_wheel_sha256`.
+
 ## 12a. Phase 6: general fixes with regression tests (2026-11-03, `feat/64-campaign`, no model spend)
 
 Product code, each with the test that reproduces the campaign's case; the frozen wheel `a9154175` is untouched and
@@ -271,13 +277,90 @@ Not changed: the default mandate's registries (Debian's archive stays a person's
 monthly cap and its keying by workspace name (said in §10-15, for David), the `task`/`just` installers (declared
 gaps, now named in the record), prettier for Node candidates (same step, not written yet).
 
-## 13. Release recommendation
+## 12b. Phase 7: confirmation on the phase 6 candidate (2026-11-03, `s12-confirm`)
 
-Not a 1.0 and no automatic release. The installed product is dependable where it matters first: installation,
-onboarding, lifecycle, dashboard, spend, and the safety rules under maximum autonomy held in 24 runs on public
-copies. The value funnel on repositories the product did not grow up with is thin for reasons that are concrete
-and general (§10 P1–P2), not architectural. Phase 6 should take P1-1, P1-2, P1-3, P2-4 (with 15, the same rule: a
-block stays a block) and P2-5 with regression tests under `s12-dev`; 14 (mapping cost) is worth taking in the same
-phase if it stays a bounded change, because it decides what a run costs on any API-rich repository. Then, phase 7 re-runs Level A on the 11 independent repositories blocked by P1 and Level B
-on fst, misago, rich, spoolman and whichever of those repositories reaches a green suite, under `s12-confirm`. The next
-candidate is judged on the same nine dimensions, per class, and claims nothing beyond that sample.
+Candidate `726009d` (wheel `5c088f3e…`, built with `make dist`, served from `~/unbidden-lab/c12/dist-confirm`, installed
+into the same campaign HOME), `bench/campaign12/run_confirm.sh`: Level A on all 39 with the default mandate (as in
+phase 4), a documented variant with Debian's archive allowed on the tool cluster, then Level B run 1 on fst, misago,
+rich and spoolman. Records under `docs/bench/campaign12/confirm/` (`debian/`, `cap/`, `verify/` apart). Spend
+**US$0.461** of the US$5 envelope; no intervention during any run; the harness itself was corrected twice between
+runs (§12).
+
+### Level A: the same 39, default mandate, then Debian allowed
+
+28 repositories gave the same checks status as in the frozen evaluation; the 11 that differ, or that ran in the
+variant, are these (status; tests collected):
+
+| repo | class | frozen (eval) | phase 7, default mandate | phase 7, Debian allowed | collected (default / Debian) |
+|---|---|---|---|---|---|
+| oauthlib | independent | blocked | **passed** | — | 902 / — |
+| tracklater | independent | blocked | failed (GitPython needs `git` at collection) | **passed** | 1 / 105 |
+| dinkydash | independent | blocked | infra_failed (`su: Authentication failure`: its CI step runs `su`) | infra_failed (same) | — |
+| pipx | independent | crash (datetime) | infra_failed (a test installs from PyPI; the sandbox has no network) | — | — |
+| conduit | dev | blocked (gcc) | blocked (gcc) | **passed** | — / 90 |
+| humanize | dev | infra_failed (`msgfmt`) | infra_failed, now named with its package | **passed** | — / 878 |
+| harlequin | independent | blocked (git) | blocked, now named | failed: 6 errors, locale `en_US.UTF-8` missing in the image | — / 8 |
+| codex-lb | dev | failed: 30 tests lack `git` | failed (same) | failed: 6 of 6422 (tests run `git grep`/`git ls-files` on a snapshot without `.git`) | 6422 / 6422 |
+| graphtage | independent | infra_failed (`make`) | infra_failed, now named | infra_failed: `make html` needs `sphinx-build` (the plan picked the docs target) | — |
+| rdflib | independent | infra_failed (`task`) | infra_failed, now named: a CI action installs it | infra_failed (same, declared) | — |
+| archery | frontier | blocked (gcc) | blocked (gcc) | blocked: the dependency build fails later and the record keeps only the command (P3-12) | — |
+
+Per class, default mandate: dev 8 passed / 2 project failures / 2 environment (unchanged); independent passed
+2 → 3, blocked 5 → 2, infra_failed 6 → 8, failed 5 → 6, crash 1 → 0; frontier unchanged. With Debian allowed,
+four more repositories reproduce their checks green (conduit, humanize, tracklater, and oauthlib already green),
+and two more run their whole suite (harlequin, codex-lb). What the fixes bought is mostly **the next cause,
+named**: every environment failure now says the program or the condition it lacks instead of a bare exit code.
+New causes found by phase 7, all environment-side and specific: a locale in the image (harlequin), tests that
+need a `.git` in the snapshot (codex-lb), a CI test plan that picks a docs target (graphtage), `su` in a CI step
+(dinkydash), network inside a test (pipx).
+
+### Level B run 1: fst, misago, rich, spoolman
+
+| repo | run | mode | model calls | spend US$ | cycle 1 / 2 (min) | bounds hit | PRs in run | merged | what happened |
+|---|---|---|---|---|---|---|---|---|---|
+| fst | eval B1 | autonomous | 50 | 0.1654 | 19 / 3 | no | #5 | #5 | full chain |
+| fst | eval B2 | autonomous | 52 | 0.1865 | 37 / 3 | no | — | — | host-load deferral read as the candidate's failure (P2-4) |
+| fst | **confirm** | autonomous | **12** | **0.0717** | 13 / 8 | no | #6 | #6 | full chain again: 13 green checks, merged, deployed, judged healthy |
+| misago | eval B1 | autopilot | 4 | 0.031 | 90 / 45 | both | #1 | — | one PR |
+| misago | eval B2 | autopilot | 3 | 0.0231 | 90 / 45 | both | — | — | base suite twice (P2-6) |
+| misago | **confirm** | autopilot | 3 | 0.0202 | 90 / 45 | both | — | — | base suite 41 min, candidate measured, restart at the bound: P2-6 not in phase 6, unchanged |
+| rich | eval B1 | autopilot | 11 | 0.1061 | 13 / 3 | no | #11 #12 #13 | — | #12, #13 red on `black --check` |
+| rich | eval B2 | autopilot | 9 | 0.1173 | 10 / 3 | no | #17 #18 #19 | — | #18 red on black |
+| rich | **confirm** | autopilot | 8 | 0.0884 | 12 / 3 | no | #20 #21 #22 | — | **black green on all three**; #21 red on `mypy` (`builtins.get_ipython`: the candidate's own content, §5) |
+| spoolman | eval B1 | autonomous | 108 | 0.7248 | 45 / 3 | no | — | — | 81 mapping calls |
+| spoolman | eval B2 | autonomous | 92 | 0.5304 | 53 / 3 | no | — | — | hit the US$2 cap |
+| spoolman | confirm, default cap | autonomous | **0** | 0 | 11 / 5 | no | — | — | the name's November spend already sat at the US$2 cap: no model call possible; the new block (`pending_person`, "raise … above US$2.00") was recorded and shown |
+| spoolman | **confirm, cap US$10** (variant) | autonomous | **26** | **0.2807** | 46 / 4 | no | #1 | #1 | **full chain**: index on `spool.filament_id` measured 14.69 → 2.77 ms, 15 green checks, merged, deployed, lab healthy; mapping 8 calls instead of 81 |
+
+Reading. (1) The cost fix holds: the endpoint-to-table mapping went from 81 to 8 calls on spoolman and fst's run
+from 50 to 12 calls, with the same outcomes or better. (2) The formatter fix holds: rich's three pull requests pass
+`black --check` in every cell; the one still red fails the team's `mypy`, which says the fix lab should hold a
+candidate to the team's type check as it now does to its formatter (same mechanism, next phase). (3) The spend
+block is real and visible: spoolman's first confirmation run could not call a model because the US$2 default cap is
+summed by workspace name across every checkout this month (§10-15); the product said so once, recorded a person's
+block and stopped retrying, which is the phase 6 behaviour; the variant with the cap raised then produced the
+campaign's second full chain outside fst. (4) The host-load rule was not exercised: no deferral happened in these
+runs (host load 1.7–7 on 18 CPUs, limit 4.5); the deferral-as-block path is covered by its unit test only.
+(5) misago is unchanged because P2-6 was not in phase 6. (6) Two independent repositories (oauthlib, tracklater)
+and two development ones (conduit, humanize) now reproduce their checks, two of them only with Debian allowed:
+the default mandate's registries remain a product decision for David (§10-3).
+
+Independent verifier (`confirm/verify/`): rich #20, #21, #22 **verified** at the claim level (findings gone at the
+head, no test deleted, no skip added); fst #6 and spoolman #1 are performance claims the lint verifier cannot
+confirm ("no independent confirmation": no test deleted, no skip added, a migration plus a model index each); their
+measurement is the product's own, with the A/A control and the confirmation sessions in each record.
+
+## 13. Release recommendation (updated after phase 7)
+
+Not a 1.0 and no automatic release; a release candidate from `726009d` is justified for the installed product's
+dependable part, which phase 7 re-measured on 39 repositories and 6 Level B runs: installation, onboarding,
+lifecycle, dashboard, spend and the safety rules held again (39/39, no intervention), and the full chain (PR → own
+CI on the exact head → merge on green → deploy → effect) now exists on two repositories (fst, spoolman) with the
+cost of a run cut by 3–4×. What keeps it short of 1.0 is unchanged in kind and smaller in size: the value funnel on
+independent repositories (3 of 19 reproduce their checks green with the default mandate, 4 more with Debian, 1 PR
+in 17 independent runs), the base-suite re-run and restart (P2-6, misago), candidates not held to the team's type
+check (rich #21), and the environment causes phase 7 named (locale, `.git` in snapshots, docs targets, network in
+tests). The next phase should take those in that order, with the same discipline: fix with a test, re-run the
+affected cases under a named envelope, claim nothing beyond the sample. Two decisions are David's, not the
+product's: whether the default mandate lists Debian's archive, and whether the US$2 default monthly cap keys by
+checkout rather than by repository name.

@@ -1,0 +1,50 @@
+[
+ {
+  "name": "fst",
+  "run": "B1",
+  "mode": "autonomous",
+  "record": "/Users/david/unbidden-ai-campaign/docs/bench/campaign12/confirm/fst/B1.json",
+  "proposals_c1": 1,
+  "proposals_c2": 1,
+  "pulls_after": 6,
+  "spent_usd": 0.0717,
+  "blocks": [],
+  "wall_s": 1305.9
+ },
+ {
+  "name": "misago",
+  "run": "B1",
+  "mode": "autopilot",
+  "record": "/Users/david/unbidden-ai-campaign/docs/bench/campaign12/confirm/misago/B1.json",
+  "proposals_c1": 0,
+  "proposals_c2": 0,
+  "pulls_after": 1,
+  "spent_usd": 0.0202,
+  "blocks": [],
+  "wall_s": 8292.8
+ },
+ {
+  "name": "rich",
+  "run": "B1",
+  "mode": "autopilot",
+  "record": "/Users/david/unbidden-ai-campaign/docs/bench/campaign12/confirm/rich/B1.json",
+  "proposals_c1": 3,
+  "proposals_c2": 3,
+  "pulls_after": 22,
+  "spent_usd": 0.0884,
+  "blocks": [],
+  "wall_s": 950.8
+ },
+ {
+  "name": "spoolman",
+  "run": "B1",
+  "mode": "autonomous",
+  "record": "/Users/david/unbidden-ai-campaign/docs/bench/campaign12/confirm/spoolman/B1.json",
+  "proposals_c1": 0,
+  "proposals_c2": 0,
+  "pulls_after": 0,
+  "spent_usd": 0.0,
+  "blocks": [],
+  "wall_s": 1015.8
+ }
+]

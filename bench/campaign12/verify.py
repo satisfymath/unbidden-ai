@@ -58,7 +58,9 @@ def main() -> None:
         "tests_deleted": [f["filename"] for f in files if f["status"] == "removed" and "test" in f["filename"]],
         "skips_added": [f["filename"] for f in files if re.search(r"^\+.*(pytest\.mark\.(skip|xfail)|@skip)", f.get("patch") or "", re.M)],
     }  # fmt: skip
-    with tempfile.TemporaryDirectory(prefix="c12-verify-") as tmp:
+    # ignore_cleanup_errors: spoolman's clone (phase 7) left a directory macOS reported as not empty at cleanup, and
+    # the record was lost with it; the verdict matters, the temp directory does not.
+    with tempfile.TemporaryDirectory(prefix="c12-verify-", ignore_cleanup_errors=True) as tmp:
         repo = Path(tmp) / "repo"
         subprocess.run(["git", "clone", "-q", f"https://github.com/{args.slug}.git", str(repo)], check=True)
         subprocess.run(

@@ -1,0 +1,606 @@
+{
+ "repo": "spoolman",
+ "phase": "confirm",
+ "run": "B1",
+ "candidate": "726009d5225adf38d80cfb21b269d21d497754c2",
+ "wheel_sha256": "5c088f3ee878afd58bf7cbfdad5fac56081677883e806c88fb0b0b14752cd0c6",
+ "started_at": "2026-11-03T08:02:42-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "autopilot",
+    "--budget",
+    "2",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--github-token-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 5.7,
+   "timed_out": false,
+   "stdout": "{\n  \"models\": \"api\",\n  \"profile\": \"frontier\",\n  \"private_code_to_frontier\": \"deny\",\n  \"mode\": \"autopilot\",\n  \"act_on_connections\": \"deny\",\n  \"budget_usd\": 2.0,\n  \"credentials_saved\": [\n    \"MODEL_API_KEY\",\n    \"GITHUB_TOKEN\"\n  ],\n  \"credential_names_present\": [\n    \"GITHUB_TOKEN\",\n    \"MODEL_API_KEY\"\n  ],\n  \"dashboard\": \"later\",\n  \"effective\": [\n    {\n      \"what\": \"observe the repository, its CI and running services\",\n      \"capability\": \"repo.read\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.observe\"\n    },\n    {\n      \"what\": \"run experiments in the offline sandbox\",\n      \"capability\": \"sandbox.run\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.run_experiments\"\n    },\n    {\n      \"what\": \"install dependencies while building\",\n      \"capability\": \"sandbox.provision\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.provision_dependencies\"\n    },\n    {\n      \"what\": \"send synthetic or public content to remote models\",\n      \"capability\": \"model.remote.synthetic\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.delegate_synthetic\"\n    },\n    {\n      \"what\": \"use capabilities it built for itself\",\n      \"capability\": \"capability.use\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.use_new_capabilities\"\n    },\n    {\n      \"what\": \"open pull requests\",\n      \"capability\": \"github.open_pull_request\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.open_pull_requests\"\n    },\n    {\n      \"what\": \"merge pull requests\",\n      \"capability\": \"github.merge_pull_request\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": null,\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c12/spoolman/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c12/spoolman/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 2.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -12,9 +12,10 @@\",\n    \"     provision_dependencies: allow\",\n    \"     delegate_synthetic: allow\",\n    \"-    open_pull_requests: require_approval\",\n    \"+    open_pull_requests: allow\",\n    \"     merge_pull_requests: deny\",\n    \"     deploy: deny\",\n    \"     rollback: deny\",\n    \"-    use_new_capabilities: require_approval\",\n    \"+    use_new_capabilities: allow\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,7 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c12/spoolman/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "ts own for proven work; people merge\n  autonomous: also merges L4 work, deploys with the team's steps and rolls back\nEffective permissions\n  observe the repository, its CI and running services  allowed\n  run experiments in the offline sandbox               allowed\n  install dependencies while building                  allowed\n  send synthetic or public content to remote models    allowed\n  use capabilities it built for itself                 allowed\n  open pull requests                                   allowed\n  merge pull requests                                  denied\n  deploy with the team's steps                         denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nConnections (optional)\n\nBudget\nMachine ledger: verified balance US$97.29 (stage 6 spend cap authorized by David\non 2026-10-28: up to US$10 of free credits from this point (dev 3, evaluation 5,\ndemo and contingency 2; the earlier US$3 reserve is included, not added). \nDashboard as reported by David 2026-10-28: Current balance US$0, free credits in\nuse US$144.98, a Visa card on file, content sent while on free credits may be \nused to improve products. A cap, not a measured balance; no recharge or card \ncharge authorized (entered by david) | stage 9: US$30 additional Meta API spend \nauthorized by David on 2026-10-29, replacing the US$10 cap; cumulative cap \nUS$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval 12, demo 6 (D-052).\nDashboard as reported by David: free credits in use US$137.96, balance US$0, a \ncard on file. No recharge or card charge authorized (entered by david) | stage \n10: the remaining US$20.30 of the US$37.29 cap split before any call (D-058), by\nDavid's stage 10 instruction of 2026-10-30 (entered by david) | stage 10 after \nthe frozen evaluation: US$5 of the unspent s10-eval moved to s10-dev for \ncorrections and regressions, by David's instruction of 2026-10-31; envelopes \ntotal US$20.30 and the cumulative cap US$37.2945 unchanged; spent at the \ntransfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, s10-close 0) (entered by \ndavid) | product phase (A-E): s11-product US$4.00 authorized by David on \n2026-11-01, reassigned from s10-close (3.80, unspent, closed) and US$0.20 of \ns10-dev; envelopes total US$20.30 and the cumulative cap US$37.2945 unchanged; \nspent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval 1.0010, s10-close 0) \n(entered by david) | product phase correction: David's authorization of \n2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken from s10-dev had \nno recorded authorization and goes back (s10-dev 13.00, s11-product 3.80); \nenvelopes total US$20.30 and the cumulative cap US$37.2945 unchanged; \ns11-product spent 0 at the correction; spent at the correction US$27.7199 \n(entered by david) | campaign 12 (installed-product validation): US$60 \nadditional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david)); permitted US$97.29 · \nspent US$31.3519 · available US$65.9426\nenvelopes: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, \ns12-eval 30.00, s12-dev 17.00, s12-confirm 5.00\nProvider credits and authorized spend are different things: the cap a person \nentered with `unbidden spend --verified-balance` is what this machine may spend;\nit is never raised or reset here.\n\nDashboard\nOpening the dashboard, restoring its layout and showing records calls no model; \nchatting or asking for analysis can.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 4.2,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"4 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key set, API reachable\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"GITHUB_TOKEN set\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs allow\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.11 (pyproject.toml, uv.lock)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"no CI job that runs pytest was read; pytest files found: the default command is used, partially\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "map",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "map",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 5.9,
+   "timed_out": false,
+   "stdout": "\"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"table:filament_field\",\n      \"dst\": \"table:filament\",\n      \"predicate\": \"references\"\n    },\n    {\n      \"status\": \"observed\",\n      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"config\",\n          \"locator\": \"psql db/spoolman (read-only)\",\n          \"sha256\": null,\n          \"note\": \"spool_field.spool_id -> spool\",\n          \"captured_at\": \"2026-11-03T11:03:41.621983Z\"\n        }\n      ],\n      \"source\": \"postgres-readonly@1\",\n      \"observed_at\": \"2026-11-03T11:03:41.621984Z\",\n      \"environment\": \"local-compose\",\n      \"valid_for\": \"deployment:0\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"table:spool_field\",\n      \"dst\": \"table:spool\",\n      \"predicate\": \"references\"\n    },\n    {\n      \"status\": \"observed\",\n      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"config\",\n          \"locator\": \"psql db/spoolman (read-only)\",\n          \"sha256\": null,\n          \"note\": \"tag.spool_id -> spool\",\n          \"captured_at\": \"2026-11-03T11:03:41.622003Z\"\n        }\n      ],\n      \"source\": \"postgres-readonly@1\",\n      \"observed_at\": \"2026-11-03T11:03:41.622004Z\",\n      \"environment\": \"local-compose\",\n      \"valid_for\": \"deployment:0\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"table:tag\",\n      \"dst\": \"table:spool\",\n      \"predicate\": \"references\"\n    },\n    {\n      \"status\": \"observed\",\n      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"config\",\n          \"locator\": \"psql db/spoolman (read-only)\",\n          \"sha256\": null,\n          \"note\": \"tag.filament_id -> filament\",\n          \"captured_at\": \"2026-11-03T11:03:41.624465Z\"\n        }\n      ],\n      \"source\": \"postgres-readonly@1\",\n      \"observed_at\": \"2026-11-03T11:03:41.624469Z\",\n      \"environment\": \"local-compose\",\n      \"valid_for\": \"deployment:0\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"table:tag\",\n      \"dst\": \"table:filament\",\n      \"predicate\": \"references\"\n    },\n    {\n      \"status\": \"observed\",\n      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"config\",\n          \"locator\": \"docker inspect c12-spoolman-app-1\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-11-03T11:03:41.875850Z\"\n        }\n      ],\n      \"source\": \"compose-docker@1\",\n      \"observed_at\": \"2026-11-03T11:03:41.875852Z\",\n      \"environment\": \"local-compose\",\n      \"valid_for\": \"deployment:0\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"container:c12-spoolman-app-1\",\n      \"dst\": \"image:774aa0e33a1a\",\n      \"predicate\": \"runs_image\"\n    },\n    {\n      \"status\": \"observed\",\n      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"config\",\n          \"locator\": \"deployments/0\",\n          \"sha256\": null,\n          \"note\": \"the checkout's HEAD when these containers were first seen; nothing in the images says what code they hold\",\n          \"captured_at\": \"2026-11-03T11:03:41.875824Z\"\n        }\n      ],\n      \"source\": \"deploy-ledger@1\",\n      \"observed_at\": \"2026-11-03T11:03:41.875911Z\",\n      \"environment\": \"local-compose\",\n      \"valid_for\": \"deployment:0\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"deployment:0\",\n      \"dst\": \"service:app\",\n      \"predicate\": \"deploys\"\n    }\n  ],\n  \"blind_spots\": [\n    {\n      \"what\": \"services\",\n      \"why\": \"no compose file; services are not declared in the repository\"\n    },\n    {\n      \"what\": \"frontend\",\n      \"why\": \"its JavaScript package was not analyzed\"\n    },\n    {\n      \"what\": \"endpoints of db\",\n      \"why\": \"ports 55530 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown\"\n    },\n    {\n      \"what\": \"services app, db\",\n      \"why\": \"running, but not declared in any compose file read: their environment, build and dependencies are unknown\"\n    }\n  ],\n  \"updated_at\": \"2026-11-03T11:03:37.916607Z\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "drill",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "drill",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 4.2,
+   "timed_out": false,
+   "stdout": "{\n  \"at\": \"2026-11-03T11:03:47.798797+00:00\",\n  \"from\": \"57ee325fc78e4e4648a241b9235a71404d9a0ab1\",\n  \"to\": \"bed3f14ee77a3a571d31b14215d54b0b88a7519c\",\n  \"back\": true,\n  \"forth\": true,\n  \"passed\": true\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "mode-autonomous",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "mode",
+    "autonomous",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.1,
+   "timed_out": false,
+   "stdout": "mode: autonomous (was autopilot)\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "8860",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 5662,\n  \"log\": \"/Users/david/unbidden-lab/c12/spoolman/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-browser",
+   "argv": [
+    "node",
+    "/Users/david/unbidden-ai-campaign/frontend/scripts/c12_ui_check.mjs",
+    "http://127.0.0.1:8860/?s=<token>",
+    "/Users/david/unbidden-ai-campaign/docs/bench/campaign12/confirm/spoolman/B1/ui-c1"
+   ],
+   "code": 0,
+   "seconds": 18.9,
+   "timed_out": false,
+   "stdout": "{\"ok\":true,\"steps\":5,\"console_errors\":2}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-status",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué ha hecho el agente hasta ahora y cuántas oportunidades hay?"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_f3ca31f1e7614ad6\",\n  \"role\": \"assistant\",\n  \"content\": \"Registro de spoolman (live, head 57ee325fc78e): 2 oportunidades, 0 experimentos, 0 propuestas, 28 eventos, 0 llamadas a modelos, 2 bloqueos.\\nJobs: done 37, failed 1\\nBloqueo pending_person en «measure opp_ace2046656e94d07»: cannot measure: the mandate's monthly spend cap stops model calls (remote spend this month is US$2.00, at the US$2.00 cap); nothing is retri\\nBloqueo compatibility en «research.consistency opp_9497d04139164d0b»: SpendLimitReached: remote spend this month is US$2.00, at the US$2.00 cap\\nAgente: agent running, pid 5662.\\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.\",\n  \"created_at\": \"2026-11-03T11:14:55.876942Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"rule\",\n  \"model\": null,\n  \"route\": {\n    \"intent\": \"inform\",\n    \"purpose\": null,\n    \"tier\": null,\n    \"model\": null,\n    \"reason\": \"the mandate denies local inference; reading records needs no model: answered by rules\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-analyze",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué hallazgo priorizarías y por qué? Di qué falta en el registro."
+   ],
+   "code": 0,
+   "seconds": 0.7,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_022b7981eed64739\",\n  \"role\": \"assistant\",\n  \"content\": \"No puedo analizar esto con un modelo: remote spend this month is US$2.00, at the US$2.00 cap. Lo permitiría: `unbidden spend` shows the cap; the mandate's maximum_monthly_spend_usd is this project's monthly cap.\",\n  \"created_at\": \"2026-11-03T11:14:56.593367Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"rule\",\n  \"model\": null,\n  \"route\": {\n    \"intent\": \"analyze\",\n    \"purpose\": \"chat.analyze\",\n    \"tier\": \"code\",\n    \"model\": null,\n    \"reason\": \"profile frontier; public_code may leave; digest labelled public_code\",\n    \"blocked\": \"remote spend this month is US$2.00, at the US$2.00 cap\",\n    \"hint\": \"`unbidden spend` shows the cap; the mandate's maximum_monthly_spend_usd is this project's monthly cap\",\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 5662,\n  \"waited_s\": 0.6,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "8860",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 15716,\n  \"log\": \"/Users/david/unbidden-lab/c12/spoolman/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.6,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 15716,\n  \"waited_s\": 0.4,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-final",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.1,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c12/spoolman\",\n  \"head\": \"57ee325fc78e4e4648a241b9235a71404d9a0ab1\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c12/spoolman/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"57ee325fc78e4e4648a241b9235a71404d9a0ab1\",\n    \"tools\": [\n      \"ruff\"\n    ],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"python 3.11: from the project's Dockerfile (the oldest in its matrix)\",\n      \"pyproject requires-python: >=3.10\",\n      \"the project's Dockerfile: 3.11, 3.14\",\n      \"image unbidden-deps-python:208c4335d7c3078d on linux/arm64\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"open\": 2\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "egress",
+   "argv": [
+    "/Users/david/unbidden-lab/c12/home/bin/unbidden",
+    "egress",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 ha hecho el agente hasta ahora y cu\\u00e1ntas oportunidades hay?\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"Registro de spoolman (live, head 57ee325fc78e): 4 oportunidades, 0 experimentos, 0 propuestas, 257 eventos, 107 llamadas a modelos, 0 bloqueos.\\\\nJobs: done 34, queued 2, running 1\\\\nAgente: agent running, pid 82804.\\\\nPara un porqu\\u00e9 o una recomendaci\\u00f3n pide un an\\u00e1lisis; para ver algo, una tabla o un gr\\u00e1fico.\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"Records digest:\\\\nworkspace spoolman (live record); head 57ee325fc78e; observed 2026-11-03T04:20:09.651263+00:00; freshness current\\\\ncounts: {\\\\\\\"opportunities\\\\\\\":4,\\\\\\\"experiments\\\\\\\":0,\\\\\\\"proposals\\\\\\\":0,\\\\\\\"events\\\\\\\":257,\\\\\\\"model_runs\\\\\\\":107,\\\\\\\"connections\\\\\\\":3,\\\\\\\"deployments\\\\\\\":1,\\\\\\\"needs\\\\\\\":3,\\\\\\\"blocks\\\\\\\":0,\\\\\\\"spend_calls\\\\\\\":854,\\\\\\\"world\\\\\\\":1}\\\\njobs: {\\\\\\\"done\\\\\\\":34,\\\\\\\"queued\\\\\\\":2,\\\\\\\"running\\\\\\\":1}\\\\ndiscovered: {\\\\\\\"total\\\\\\\":4,\\\\\\\"by_status\\\\\\\":{\\\\\\\"declined\\\\\\\":2,\\\\\\\"open\\\\\\\":2}}\\\\ninvalidated: []\\\\nproposals: {}\\\\nblocks: []\\\\nlearned: {}\\\\nconnections: [{\\\\\\\"id\\\\\\\":\\\\\\\"compose:compose\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"compose\\\\\\\",\\\\\\\"environment\\\\\\\":\\\\\\\"local\\\\\\\",\\\\\\\"state\\\\\\\":\\\\\\\"connected\\\\\\\",\\\\\\\"read\\\\\\\":[\\\\\\\"ps\\\\\\\",\\\\\\\"inspect\\\\\\\",\\\\\\\"logs\\\\\\\"],\\\\\\\"write\\\\\\\":[],\\\\\\\"requested\\\\\\\":[],\\\\\\\"effective\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"blocked\\\\\\\":null,\\\\\\\"next_step\\\\\\\":null,\\\\\\\"found_by\\\\\\\":[\\\\\\\"the map's compose connector\\\\\\\"],\\\\\\\"checked_at\\\\\\\":null},{\\\\\\\"id\\\\\\\":\\\\\\\"http_api:http://<ip>:18230\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"http_api\\\\\\\",\\\\\\\"environment\\\\\\\":\\\\\\\"staging\\\\\\\",\\\\\\\"state\\\\\\\":\\\\\\\"connected\\\\\\\",\\\\\\\"read\\\\\\\":[\\\\\\\"Find_spool_spool_get\\\\\\\"],\\\\\\\"write\\\\\\\":[],\\\\\\\"requested\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"effective\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"blocked\\\\\\\":null,\\\\\\\"next_step\\\\\\\":null,\\\\\\\"found_by\\\\\\\":[\\\\\\\"mandate grant\\\\\\\"],\\\\\\\"checked_at\\\\\\\":\\\\\\\"2026-11-03T04:16:28.450413+00:00\\\\\\\"},{\\\\\\\"id\\\\\\\":\\\\\\\"postgres:<ip>:55530/spoolman\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"postgres\\\\\\\",\\\\\\\"environment\\\\\\\":\\\\\\\"staging\\\\\\\",\\\\\\\"state\\\\\\\":\\\\\\\"connected\\\\\\\",\\\\\\\"read\\\\\\\":[\\\\\\\"catalog\\\\\\\",\\\\\\\"select public.alembic_version\\\\\\\",\\\\\\\"select public.filament\\\\\\\",\\\\\\\"select public.filament_field\\\\\\\",\\\\\\\"select public.setting\\\\\\\",\\\\\\\"select public.spool\\\\\\\",\\\\\\\"select public.spool_field\\\\\\\",\\\\\\\"select public.tag\\\\\\\",\\\\\\\"select public.vendor\\\\\\\",\\\\\\\"select public.vendor_field\\\\\\\"],\\\\\\\"write\\\\\\\":[],\\\\\\\"requested\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"effective\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"blocked\\\\\\\":null,\\\\\\\"next_step\\\\\\\":null,\\\\\\\"found_by\\\\\\\":[\\\\\\\"mandate grant\\\\\\\"],\\\\\\\"checked_at\\\\\\\":\\\\\\\"2026-11-03T04:16:07.315240+00:00\\\\\\\"}]\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_89e29c523ad04b01\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"filament.vendor_id is a foreign key without an index, filtered on by 1 endpoint(s)\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"declined\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_28a22e4ac6c440fc\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"spool.filament_id is a foreign key without an index, checked when 1 endpoint(s) delete a filament row\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"declined\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_5d62ae2be6544c40\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"GET /api/v1/spool/group reports [].spool_count, [].in_use_count: unverified against the stored data\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"open\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_9920eee217824d3e\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"spool (100000 rows) was read whole 12616 times in the last 33 minutes\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"open\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 hallazgo priorizar\\u00edas y por qu\\u00e9? Di qu\\u00e9 falta en el registro.\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}], \\\"response_schema\\\": null, \\\"tools\\\": []}\",\n    \"created_at\": \"2026-11-03T04:20:09.659282Z\",\n    \"origin\": \"dashboard apart\"\n  }\n]\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/Donkie/Spoolman",
+   "commit": "bed3f14ee77a3a571d31b14215d54b0b88a7519c",
+   "family": "api-postgres",
+   "class": "dev",
+   "build": "pdm",
+   "lab": "spoolman",
+   "copy_base_sha": "57ee325fc78e4e4648a241b9235a71404d9a0ab1"
+  },
+  "ledger_before": {
+   "envelope": "s12-confirm",
+   "envelope_spent_usd": 0.1803,
+   "available_usd": 65.9426,
+   "permitted_usd": 97.2945
+  },
+  "fork": {
+   "slug": "satisfymath/c12-spoolman",
+   "base": "master",
+   "upstream": "Donkie/Spoolman",
+   "kind": "copy",
+   "created": false,
+   "prep": {
+    "applied": false,
+    "why": "nothing to change (already prepared, or nothing listed)"
+   },
+   "pin": "bed3f14ee77a3a571d31b14215d54b0b88a7519c",
+   "restore": {
+    "expected": "57ee325fc78e4e4648a241b9235a71404d9a0ab1",
+    "head_before": "57ee325fc78e4e4648a241b9235a71404d9a0ab1",
+    "pin_in_history": true,
+    "closed": [],
+    "deleted": [],
+    "base_sha": "57ee325fc78e4e4648a241b9235a71404d9a0ab1"
+   },
+   "base_sha": "57ee325fc78e4e4648a241b9235a71404d9a0ab1",
+   "pin_in_history": true,
+   "dependabot_prs_closed": [],
+   "workflows_registered": [
+    "ci.yml"
+   ],
+   "disabled_in_settings": [],
+   "kept": "ci.yml (style, build-client, build-amd64, build-tester, test, test-frontend, test-frontend-v2, build-arm64, build-armv7, test-multiarch-smoke), guard-translations"
+  },
+  "fork_before": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "57ee325fc78e4e4648a241b9235a71404d9a0ab1"
+  },
+  "lab": {
+   "app": "spoolman",
+   "project": "c12-spoolman",
+   "port": 18230,
+   "db_port": 55530,
+   "health": "http://127.0.0.1:18230/api/v1/health",
+   "up_s": 6.9,
+   "data": {
+    "vendors": 200,
+    "filaments": 5000,
+    "spools": 100000
+   },
+   "deploy_steps": [
+    [
+     "docker",
+     "compose",
+     "-f",
+     "docker-compose.yml",
+     "-p",
+     "c12-spoolman",
+     "up",
+     "-d",
+     "--build"
+    ]
+   ],
+   "check_steps": [
+    [
+     "python",
+     "-c",
+     "import compileall,sys; sys.exit(0 if compileall.compile_dir('.', quiet=1) else 1)"
+    ]
+   ],
+   "check_image": "python:3.12-slim",
+   "connections": [
+    {
+     "id": "spoolman-db",
+     "kind": "postgres",
+     "location": "127.0.0.1:55530/spoolman",
+     "environment": "staging",
+     "username": "spoolman_reader",
+     "credential_ref": "SPOOLMAN_READER_PW",
+     "permissions": [
+      "read"
+     ],
+     "content_may_leave": true
+    },
+    {
+     "id": "spoolman-api",
+     "kind": "http_api",
+     "location": "http://127.0.0.1:18230",
+     "docs": "http://127.0.0.1:18230/api/v1/openapi.json",
+     "environment": "staging",
+     "permissions": [
+      "read"
+     ],
+     "content_may_leave": true
+    }
+   ],
+   "writes": false,
+   "prep": []
+  },
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required"
+  },
+  "mode": {
+   "asked": "autonomous",
+   "got": "autonomous",
+   "drill_code": 0
+  },
+  "mode_got": "autonomous",
+  "cycle1": {
+   "started": true,
+   "waited_s": 647.9,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 5662,
+    "started_at": "2026-11-03T11:03:48.218146+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c12/spoolman/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "counts": {
+    "events": {
+     "action.executed": 2,
+     "analyzer.ran": 1,
+     "capability.need_changed": 4,
+     "capability.needed": 1,
+     "connection.changed": 3,
+     "decision.made": 5,
+     "deployment.observed": 1,
+     "mandate.changed": 2,
+     "operations.deployed": 1,
+     "opportunity.opened": 2,
+     "repo.head_moved": 1,
+     "workspace.initialized": 1,
+     "world.changed": 4
+    },
+    "docs": {
+     "actions": 2,
+     "blocks": 2,
+     "connections": 3,
+     "decisions": 4,
+     "deployments": 1,
+     "needs": 1,
+     "opportunities": 2,
+     "world": 1
+    },
+    "jobs": {
+     "done": 35,
+     "failed": 1
+    },
+    "proposals": []
+   }
+  },
+  "ui1": {
+   "opened": true,
+   "in_daemon": true,
+   "summary": {
+    "mode": "live",
+    "freshness": "current",
+    "counts": {
+     "opportunities": 2,
+     "experiments": 0,
+     "proposals": 0,
+     "events": 28,
+     "model_runs": 0,
+     "connections": 3,
+     "deployments": 1,
+     "needs": 1,
+     "blocks": 2,
+     "spend_calls": 947,
+     "world": 1
+    },
+    "agent": {
+     "running": true,
+     "pid": 5662,
+     "started_at": "2026-11-03T11:03:48.218146+00:00",
+     "command": "watch",
+     "detail": "agent running, pid 5662"
+    },
+    "key_present": true
+   },
+   "opportunities_total": 2,
+   "widgets": [
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:spoolman"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:spoolman"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:spoolman"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:spoolman"
+    }
+   ],
+   "browser": {
+    "ok": true,
+    "steps": 5,
+    "console_errors": 2
+   },
+   "chat_status": {
+    "planner": "rule",
+    "route": {
+     "intent": "inform",
+     "purpose": null,
+     "tier": null,
+     "model": null,
+     "reason": "the mandate denies local inference; reading records needs no model: answered by rules",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Registro de spoolman (live, head 57ee325fc78e): 2 oportunidades, 0 experimentos, 0 propuestas, 28 eventos, 0 llamadas a modelos, 2 bloqueos.\nJobs: done 37, failed 1\nBloqueo pending_person en «measure opp_ace2046656e94d07»: cannot measure: the mandate's monthly spend cap stops model calls (remote spend this month is US$2.00, at the US$2.00 cap); nothing is retri\nBloqueo compatibility en «research.c"
+   },
+   "chat_analyze": {
+    "planner": "rule",
+    "route": {
+     "intent": "analyze",
+     "purpose": "chat.analyze",
+     "tier": "code",
+     "model": null,
+     "reason": "profile frontier; public_code may leave; digest labelled public_code",
+     "blocked": "remote spend this month is US$2.00, at the US$2.00 cap",
+     "hint": "`unbidden spend` shows the cap; the mandate's maximum_monthly_spend_usd is this project's monthly cap",
+     "action": null
+    },
+    "state": "done",
+    "content": "No puedo analizar esto con un modelo: remote spend this month is US$2.00, at the US$2.00 cap. Lo permitiría: `unbidden spend` shows the cap; the mandate's maximum_monthly_spend_usd is this project's monthly cap."
+   }
+  },
+  "fork_after_c1": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "57ee325fc78e4e4648a241b9235a71404d9a0ab1"
+  },
+  "lab_after_c1": {
+   "health_status": 200,
+   "containers": [
+    "app Up 11 minutes sha256:774aa0e33a1a4339663af91d76e92f3993ef00986eb350087fac184395b3afc5",
+    "db Up 11 minutes (healthy) postgres:16"
+   ],
+   "checkout_head": "57ee325fc78e4e4648a241b9235a71404d9a0ab1"
+  },
+  "cycle2": {
+   "started": true,
+   "waited_s": 324.8,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 15716,
+    "started_at": "2026-11-03T11:15:03.305100+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c12/spoolman/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "counts": {
+    "events": {
+     "action.executed": 2,
+     "analyzer.ran": 1,
+     "capability.need_changed": 4,
+     "capability.needed": 1,
+     "connection.changed": 3,
+     "decision.made": 5,
+     "deployment.observed": 1,
+     "mandate.changed": 2,
+     "operations.deployed": 1,
+     "opportunity.opened": 2,
+     "repo.head_moved": 1,
+     "workspace.initialized": 1,
+     "world.changed": 5
+    },
+    "docs": {
+     "actions": 2,
+     "blocks": 2,
+     "connections": 3,
+     "decisions": 4,
+     "deployments": 1,
+     "needs": 1,
+     "opportunities": 2,
+     "world": 1
+    },
+    "jobs": {
+     "done": 50,
+     "failed": 1
+    },
+    "proposals": []
+   }
+  },
+  "fork_after_c2": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "57ee325fc78e4e4648a241b9235a71404d9a0ab1"
+  },
+  "lab_after_c2": {
+   "health_status": 200,
+   "containers": [
+    "app Up 17 minutes sha256:774aa0e33a1a4339663af91d76e92f3993ef00986eb350087fac184395b3afc5",
+    "db Up 17 minutes (healthy) postgres:16"
+   ],
+   "checkout_head": "57ee325fc78e4e4648a241b9235a71404d9a0ab1"
+  },
+  "status_final": {
+   "running": false,
+   "pid": null,
+   "started_at": null,
+   "command": null,
+   "log": "/Users/david/unbidden-lab/c12/spoolman/.unbidden/logs/agent.log",
+   "stale": false,
+   "jobs_running": 0,
+   "jobs_queued": 0
+  },
+  "egress": {
+   "api.meta.ai:chat.analyze:allowed_sent": 2
+  },
+  "ledger_after": {
+   "envelope": "s12-confirm",
+   "envelope_spent_usd": 0.1803,
+   "available_usd": 65.9426,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c12-confirm-B1-spoolman",
+   "calls": 0,
+   "usd": 0.0,
+   "tokens_in": 0,
+   "tokens_out": 0
+  },
+  "spent_usd": 0.0,
+  "archive": "/Users/david/unbidden-lab/c12/archive/spoolman-B1-confirm.tgz"
+ },
+ "human": [
+  {
+   "step": "lab spoolman up and seeded",
+   "minutes": 0.2,
+   "why": "the application's own services, synthetic data, a read-only role"
+  },
+  {
+   "step": "mandate: fork, registries, operations, connections",
+   "minutes": 2,
+   "why": "a person's declaration"
+  },
+  {
+   "step": "connection credentials into the project's .env",
+   "minutes": 1,
+   "why": "read-only role"
+  },
+  {
+   "step": "rollback drill (the product's command; the lab's steps)",
+   "minutes": 0.1,
+   "why": "autonomous requires a passed drill"
+  }
+ ],
+ "blocks": []
+}

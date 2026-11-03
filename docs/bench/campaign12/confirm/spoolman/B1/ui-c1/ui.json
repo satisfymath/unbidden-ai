@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:8860/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "filament.vendor_id is a foreign key without an index, filtered on by 1 endpoint(…\tabierta\t1\twait",
+    "GET /api/v1/spool/group reports [].spool_count, [].in_use_count: unverified agai…\tabierta\t1\twait",
+    "",
+    "2 fila(s)",
+    "actual",
+    "workspace",
+    "03 nov, 08:14",
+    "opportunities",
+    "Oportunidades"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "4 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "spoolman",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 28 eventos · en vivo",
+    "todos los tipos",
+    "action.executed",
+    "analyzer.ran",
+    "capability.need_changed",
+    "capability.needed",
+    "connection.changed",
+    "decision.made",
+    "deployment.observed",
+    "mandate.changed",
+    "operations.deployed",
+    "opportunity.opened",
+    "repo.head_moved",
+    "workspace.initialized",
+    "world.changed",
+    "Mapa actualizado",
+    "08:10",
+    "{\"carried\":[\"api:http_api:http://127.0.0.1:18230\",\"database:postgres:127.0.0.1:5",
+    "Mapa actualizado",
+    "08:06",
+    "{\"carried\":[\"api:http_api:http://127.0.0.1:18230\",\"database:postgres:127.0.0.1:5",
+    "Decisión tomada",
+    "08:04",
+    "wait — not measurable at this commit: cannot measure: the mandate's monthly spend cap stops model calls (remote spend this month is US$2.00, at the US$2.00 cap); nothing is retried until the cap changes or the month ends",
+    "capability.need_changed",
+    "08:04",
+    "note: the source returned no lines to build from · source: compose:app · status: abandoned",
+    "capability.need_changed",
+    "08:04",
+    "note: attempt 2 · source: compose:app · status: building",
+    "Decisión tomada",
+    "08:04"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "spoolman",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 2 oportunidades, ordenadas por evidencia",
+    "L1 sospecha",
+    "filament.vendor_id is a foreign key without an index, filtered on by 1 endpoint(s)",
+    "world · performance · wait · bloqueada · 03 nov, 08:03",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "GET /api/v1/spool/group reports [].spool_count, [].in_use_count: unverified against the stored data",
+    "world · bugs · wait · 03 nov, 08:03",
+    "abierta",
+    "—",
+    "filament.vendor_id is a foreign key without an index, filtered on by 1 endpoint(s)",
+    "hallazgo al lienzo",
+    "experimento al lienzo",
+    "L1 sospecha",
+    "abierta",
+    "world · performance",
+    "filament.vendor_id is a foreign key without an index, filtered on by 1 endpoint(s)",
+    "Code reads filament by vendor_id (spoolman/database/spool.py:911 measure; inferred from the code, not observed): without an index every such lookup scans the whole table (~5000 rows now, from the database's statistics), so its cost grows with all rows, not the ones it needs. Endpoints: PUT /api/v1/spool/{spool_id}/measure. Cost of the index: about 0.1 MB for 5000 rows (10% of the table's 0.9 MB); every INSERT into filament, UPDATE of vendor_id and DELETE also writes it.",
+    "Decisión wait",
+    "not measurable at this commit: cannot measure: the mandate's monthly spend cap stops model calls (remote spend this month is US$2.00, at the US$2.00 cap); nothing is retried until the cap changes or the month ends"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "4 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

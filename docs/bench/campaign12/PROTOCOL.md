@@ -292,3 +292,10 @@ P1-3 (the product's part; the Level A mandate finding is recorded in §10-3), P2
 `s12-dev` unspent so far. Phase 7 builds a new candidate wheel from this branch and re-runs under `s12-confirm`:
 Level A on the independent repositories blocked by P1 (default mandate, as before, plus a documented variant with
 Debian's archive allowed for the tool cluster) and Level B on fst, misago, rich and spoolman.
+
+## Phase 7 status (2026-11-03)
+
+`run_confirm.sh all` on candidate `726009d` (wheel `5c088f3e…`) from 05:57Z to 11:20Z, plus two complementary runs
+(spoolman with the cap raised to US$10; the Debian variant on tracklater and dinkydash) until 12:21Z. Spend US$0.461
+of `s12-confirm`. Results and the updated recommendation: `REPORT.md` §12b and §13. Campaign 12 closes here; the
+next phase is a new plan on David's reading.

@@ -1,0 +1,17 @@
+{
+ "slug": "satisfymath/c12-fst",
+ "number": 6,
+ "title": "perf: index item.owner_id · DELETE /api/v1/users/me: session medians 16.76 -> 5.76 ms (+66% faster), permutation p = 0.0",
+ "base": "4a375a5ee6ffceae314cc78ed4ee543229e323fd",
+ "head": "6ad6d53678e67d701aedaef46367310f16205945",
+ "claims": [],
+ "changed_files": [
+  "backend/app/alembic/versions/c9e8d7f6a5b4_add_index_to_item_owner_id.py",
+  "backend/app/models.py"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [],
+ "change_matches_problem": false,
+ "verdict": "no independent confirmation"
+}

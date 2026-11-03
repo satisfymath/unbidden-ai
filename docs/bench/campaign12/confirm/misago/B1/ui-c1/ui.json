@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:8860/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "1 ruff-baseline F811 finding in misago/admin/\tabierta\t1\trun_experiment",
+    "1 ruff-baseline F822 finding in misago/categories/\tabierta\t1\trun_experiment",
+    "18 ruff-baseline F811 findings in misago/\tabierta\t1\trun_experiment",
+    "1 ruff-baseline F811 finding in misago/likes/\tabierta\t1\trun_experiment",
+    "1 ruff-baseline F811 finding in misago/markup/tests/\tabierta\t1\trun_experiment",
+    "1 ruff-baseline F811 finding in misago/parser/tests/\tabierta\t1\trun_experiment",
+    "3 ruff-baseline F822 findings in misago/permissions/\tabierta\t1\trun_experiment",
+    "6 ruff-baseline F811 findings in misago/permissions/tests/\tabierta\t1\trun_experiment",
+    "1 ruff-baseline F811 finding in misago/polls/tests/\tabierta\t1\trun_experiment"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "3 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "misago",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 48 eventos · en vivo",
+    "todos los tipos",
+    "action.executed",
+    "analyzer.ran",
+    "decision.made",
+    "egress.allowed",
+    "experiment.started",
+    "mandate.changed",
+    "model.called",
+    "opportunity.opened",
+    "repo.head_moved",
+    "world.changed",
+    "Experimento iniciado",
+    "06:25",
+    "files: [\"misago/admin/forms.py\"] · origin: frontier · patch_sha256: eb548f02f9cf3ab232226ffa15524b2c94147edabea82180cc95",
+    "Llamada al modelo",
+    "06:25",
+    "lab.fix_candidate · code · muse-spark-1.3 · 711→1007 tokens",
+    "Salida permitida",
+    "06:25",
+    "lab.fix_candidate → api.meta.ai (3392 B)",
+    "Llamada al modelo",
+    "05:44",
+    "research.robustness · code · muse-spark-1.3 · 312→2222 tokens",
+    "Salida permitida",
+    "05:43",
+    "research.robustness → api.meta.ai (1535 B)",
+    "Decisión tomada",
+    "05:43",
+    "decline — the team's CI checks ruff only in devproject, misago, plugins: these findings are outside what it holds to",
+    "Decisión tomada",
+    "05:43"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "misago",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 18 oportunidades, ordenadas por evidencia",
+    "L1 sospecha",
+    "1 ruff-baseline F821 finding in ./",
+    "ruff-baseline · bugs · decline · 03 nov, 05:28",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "1 ruff-baseline F811 finding in misago/admin/",
+    "ruff-baseline · bugs · run_experiment · 03 nov, 05:28",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "1 ruff-baseline F822 finding in misago/categories/",
+    "ruff-baseline · bugs · run_experiment · 03 nov, 05:28",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "18 ruff-baseline F811 findings in misago/",
+    "ruff-baseline · bugs · run_experiment · 03 nov, 05:28",
+    "abierta",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "3 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

@@ -1,0 +1,14 @@
+[
+ {
+  "name": "spoolman",
+  "run": "B1",
+  "mode": "autonomous",
+  "record": "/Users/david/unbidden-ai-campaign/docs/bench/campaign12/confirm/cap/spoolman/B1.json",
+  "proposals_c1": 1,
+  "proposals_c2": 1,
+  "pulls_after": 1,
+  "spent_usd": 0.2807,
+  "blocks": [],
+  "wall_s": 3157.1
+ }
+]

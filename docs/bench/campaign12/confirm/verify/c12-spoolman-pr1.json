@@ -1,0 +1,17 @@
+{
+ "slug": "satisfymath/c12-spoolman",
+ "number": 1,
+ "title": "perf: index spool.filament_id · DELETE /api/v1/filament/{value}: session medians 14.69 -> 2.77 ms (+81% faster), permuta",
+ "base": "57ee325fc78e4e4648a241b9235a71404d9a0ab1",
+ "head": "f86496ce5f948eb7f507da0195ffa4df8a48e2cb",
+ "claims": [],
+ "changed_files": [
+  "migrations/versions/91068bd6832b_add_index_spool_filament_id.py",
+  "spoolman/database/models.py"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [],
+ "change_matches_problem": false,
+ "verdict": "no independent confirmation"
+}

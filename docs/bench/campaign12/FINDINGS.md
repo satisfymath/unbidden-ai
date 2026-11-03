@@ -222,3 +222,12 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
   baseline + apt after `&&` + named missing programs, host-load rule by CPU + deferral as block, spend cap as a
   person's block (released when the cap rises), candidate through the team's formatter, endpoint→table mapping
   batched and cached. Unit suite and pyright green on the branch; no model spend.
+- 2026-11-03 · phase 7 · **Confirmation on `726009d`** (REPORT §12b): Level A 28/39 unchanged; oauthlib green;
+  tracklater, conduit, humanize green with Debian allowed; pipx, dinkydash, harlequin, codex-lb, graphtage now name
+  their next cause (network in a test, `su` in CI, locale, `.git` in the snapshot, a docs target). Level B: fst full
+  chain with 12 calls (was 50); rich's three PRs green on black (one red on mypy); spoolman's default-cap run made
+  no model call because the name's November spend sat at the US$2 cap (block recorded, as designed), and with the
+  cap raised it produced a full chain (PR #1 merged, deployed) with 8 mapping calls instead of 81. US$0.461 spent.
+- 2026-11-03 · phase 7 · **Harness**: the `--budget` variant's first launch raised NameError before any product
+  run (stopped, fixed, relaunched: 11:25–11:26Z); `verify.py` lost spoolman's record to a temp-dir cleanup error on
+  macOS (now ignored). Neither touched a product run.

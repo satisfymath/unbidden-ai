@@ -80,6 +80,7 @@ def write_mandate(
     lab: dict[str, Any] | None,
     e: dict[str, str],
     rec: Record,
+    budget: str = "2",
 ) -> None:
     """The product's own setup (scripted form), then the operations and GitHub target a person declares, written as
     YAML by the harness and validated by `unbidden mode`/`doctor` afterwards. Counted as human preparation."""
@@ -97,7 +98,7 @@ def write_mandate(
                 "--mode",
                 "autopilot",
                 "--budget",
-                "2",
+                budget,  # the project's monthly cap: US$2 (the product's default) unless a variant raises it
                 "--dashboard",
                 "later",
                 "--model-key-stdin",
@@ -343,7 +344,14 @@ def ui_and_chat(repo_dir: Path, e: dict[str, str], rec: Record, out_dir: Path, l
 
 
 def level_b(
-    repo: dict[str, Any], run_no: int, phase: str, out_dir: Path, port: int, candidate: str, wheel: str
+    repo: dict[str, Any],
+    run_no: int,
+    phase: str,
+    out_dir: Path,
+    port: int,
+    candidate: str,
+    wheel: str,
+    budget: str = "2",
 ) -> dict[str, Any]:
     name = repo["name"]
     envelope = envelope_for(phase)
@@ -380,7 +388,7 @@ def level_b(
         ["git", "-C", str(repo_dir), "remote", "set-url", "origin", f"git@github-satisfymath:{fork['slug']}.git"],
         check=True,
     )
-    write_mandate(repo_dir, repo, fork, lab_info, e, rec)
+    write_mandate(repo_dir, repo, fork, lab_info, e, rec, budget=budget)
     rec.facts["doctor"] = (
         rec.add(run("doctor", [unbidden(), "doctor", "--json"], cwd=repo_dir, env_=e, timeout_s=600)).json() or {}
     )
@@ -446,12 +454,13 @@ def main() -> None:
     parser.add_argument("--out", required=True)
     parser.add_argument("--port", type=int, default=8860)
     parser.add_argument("--candidate", default="", help="a named candidate in the corpus (confirm: phase 7)")
+    parser.add_argument("--budget", default="2", help="the project's monthly cap in US$ (variant; default 2)")
     args = parser.parse_args()
     corpus = yaml.safe_load(Path(args.corpus).read_text())
     repo = next(r for r in corpus["repos"] if r["name"] == args.repo)
     out = Path(args.out).expanduser().resolve()  # absolute: the browser check runs from frontend/
     candidate, wheel = candidate_of(corpus, args.candidate)
-    line = level_b(repo, args.run, args.phase, out, args.port, candidate, wheel)
+    line = level_b(repo, args.run, args.phase, out, args.port, candidate, wheel, budget=args.budget)
     summary_path = out / "summary-B.json"
     summary = json.loads(summary_path.read_text()) if summary_path.exists() else []
     summary = [s for s in summary if not (s["name"] == line["name"] and s["run"] == line["run"])] + [line]
