@@ -27,6 +27,7 @@ from unbidden.observe.impact import (
     Impact,
     Round,
     judge_endpoint,
+    judge_errors,
     overall,
     sustained,
 )
@@ -89,6 +90,13 @@ def classify_outcome(
     if impacts == {Impact.IMPROVED}:
         return "positive", [f"{e.target}: {e.reasons[0]}" for e in judged if e.reasons]
     return "inconclusive", [f"{e.target}: {e.reasons[0]}" for e in judged if e.reasons]
+
+
+def improvement_class(opp: Opportunity) -> str:
+    """The class of improvement an opportunity's verdict claims (its first measurement's metric); latency when the
+    verdict carries no typed measurement (verdicts recorded before 0.13.0 were all latency at L5)."""
+    measurements = (opp.details.get("verdict") or {}).get("measurements") or []
+    return str(((measurements[0] if measurements else {}).get("metric") or {}).get("improvement") or "latency")
 
 
 def _git(repo: Path, *args: str) -> str:
@@ -250,6 +258,7 @@ class LiveWatcher:
         need = self.mandate.operations.guard_samples
         judgeable = [t for t in self.store.round_targets() if self._served(t, baseline)]
         endpoints = [judge_endpoint(t, self._rounds(t, baseline), self._rounds(t, current), need) for t in judgeable]
+        errors = [judge_errors(t, self._rounds(t, baseline), self._rounds(t, current)) for t in judgeable]
         verdict = overall(endpoints)
         if verdict is Impact.INSUFFICIENT and any(e.rounds_after < need for e in endpoints):
             return  # still filling the window of the new deploy
@@ -280,11 +289,13 @@ class LiveWatcher:
         )
         notable = "; ".join(f"{e.target} {e.reasons[0]}" for e in endpoints if e.impact is not Impact.HEALTHY)
         self.log(f"deploy {current} ({version[:12]}) judged {verdict.value} against deploy {baseline}: {notable[:300]}")
-        self._outcomes(history, current, baseline, endpoints)
+        self._outcomes(history, current, baseline, endpoints, errors)
         if verdict in (Impact.DEGRADED, Impact.OUTAGE):
             self._bad(history, current, verdict, bad)
 
-    def _outcomes(self, history: list[str], current: int, baseline: int, endpoints: list[Any]) -> None:
+    def _outcomes(
+        self, history: list[str], current: int, baseline: int, endpoints: list[Any], errors: list[Any] | None = None
+    ) -> None:
         """Level 5 for each proposal whose first deploy this is, with what else could explain the change. What counts
         is that its commit is in the deployed version, merged on GitHub or deployed from its local branch (a proposal
         that cannot be published yet). A proposal already present in any earlier deploy was judged there."""
@@ -303,6 +314,11 @@ class LiveWatcher:
             if opp is None or opp.details.get("outcome"):
                 continue
             judged = [by_target[e] for e in opp.details.get("endpoints", []) if e in by_target]
+            if improvement_class(opp) in ("correctness", "reliability"):
+                # A fix is judged by the failures it was meant to remove, not by latency (campaign 13, WS4).
+                failing = {e.target: e for e in errors or []}
+                targets = opp.details.get("endpoints") or [t for t, e in failing.items() if e.errors_before]
+                judged = [failing[e] for e in targets if e in failing]
             base_d, cur_d = self._deployment(baseline), self._deployment(current)
             external = [
                 f"deploy {i}"
