@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import replace
 from datetime import datetime
 from typing import Any, NoReturn
 
@@ -18,14 +17,14 @@ from jsonschema import Draft202012Validator
 
 from unbidden.brain.codeblocks import CodeBlockError, parse_files
 from unbidden.brain.providers import LLMProvider, ProviderError, ProviderRejected, ProviderThrottled
-from unbidden.brain.route_policy import NEVER_REMOTE, RouteDecision, decide_route
+from unbidden.brain.route_policy import NEVER_REMOTE, RouteDecision, apply_mandate, decide_route
 from unbidden.brain.spend import SpendLedger, SpendRefused, worst_cost
 from unbidden.brain.tasks import task_for
 from unbidden.config import Config, Route
 from unbidden.contracts.common import Cost
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import ActionRequest, EgressAttempt, EgressVerdict, Mandate
-from unbidden.contracts.llm import ContentLabel, LLMRequest, LLMResponse, Message, ModelRun, Tier, Usage
+from unbidden.contracts.llm import ContentLabel, LLMRequest, LLMResponse, Message, ModelRun, Source, Tier, Usage
 from unbidden.guardian.classify import Classification, classify
 from unbidden.guardian.egress import evaluate_screenshots, evaluate_synthetic
 from unbidden.guardian.killswitch import KillSwitch, checkpoint
@@ -179,46 +178,62 @@ class Brain:
             private_code_to_frontier=models.private_code_to_frontier == "allow",
             remote_available=remote_available,
         )
+        decision = apply_mandate(decision, local_inference=models.local_inference, local_fallback=models.local_fallback)
         return decision, classification
+
+    def where(self, purpose: str, source: Source = "repo") -> str:
+        """Where a call for this purpose would go now, named for a person: `the model at api.meta.ai (muse-spark)`
+        or `the local model (llama3.2:3b)`. Dry: nothing is called. For progress lines that say who is being asked
+        (stage 11: a lab said "the local model" while the call went to Meta's API)."""
+        probe = LLMRequest(purpose=purpose, tier=Tier.LOCAL, messages=[Message(role="user", content="", source=source)])
+        decision, _ = self.decide(probe)
+        if decision.denied:
+            return "no model (the mandate denies local inference and this call may not go remote)"
+        route = self.config.routing.get(decision.tier)
+        provider = self.providers.get(route.provider) if route is not None else None
+        if route is None or provider is None:
+            return f"the {decision.tier.value} model"
+        if decision.tier.remote:
+            return f"the model at {getattr(provider, 'host', provider.name)} ({route.model})"
+        return f"the local model ({route.model})"
 
     async def complete(self, request: LLMRequest, *, identifiers: SensitiveTermIndex | None = None) -> LLMResponse:
         """`identifiers` adds names that must not leave the machine on this call, on top of the workspace's."""
         request = self._mask_repository(request)
         self._guard_prompt(request)
         decision, classification = self.decide(request)
-        if self.mandate.models.local_inference == "deny":
-            if not decision.tier.remote:
-                why = f"the mandate denies local inference, and this call may not go remote: {decision.reason}"
-                self.store.append_event(
-                    Event(type=EventType.POLICY_DENIED, actor=ACTOR, correlation_id=request.correlation_id,
-                          payload={"rule": "local_inference", "purpose": request.purpose, "why": why})
-                )  # fmt: skip
-                raise PolicyDenied(why)
-            decision = replace(decision, fallback=None if decision.fallback is Tier.LOCAL else decision.fallback)
+        if decision.denied:
+            self.store.append_event(
+                Event(type=EventType.POLICY_DENIED, actor=ACTOR, correlation_id=request.correlation_id,
+                      payload={"rule": "local_inference", "purpose": request.purpose, "why": decision.denied})
+            )  # fmt: skip
+            raise PolicyDenied(decision.denied)
         tiers = [decision.tier, *([decision.fallback] if decision.fallback else [])]
         last: Exception | None = None
         for i, tier in enumerate(tiers):
             if i > 0:
                 assert last is not None
-                to_local = not tier.remote and tiers[0].remote
-                allowed = not to_local or self.mandate.models.local_fallback == "allow"
-                self.store.append_event(
-                    Event(
-                        type=EventType.MODEL_FALLBACK,
-                        actor=ACTOR,
-                        correlation_id=request.correlation_id,
-                        payload={"purpose": request.purpose, "from": tiers[0].value, "to": tier.value,
-                                 "cause": f"{type(last).__name__}: {str(last)[:300]}", "taken": allowed},
-                    )
-                )  # fmt: skip
-                if not allowed:
-                    break
+                self._fallback(request, tiers[0], tier, last, taken=True)
             try:
                 return await self._complete_on(tier, request, identifiers, decision, classification)
             except (ModelFailed, ProviderError, EgressBlocked, SpendLimitReached, PolicyDenied) as exc:
                 last = exc
         assert last is not None
+        if decision.fallback_refused is not None:
+            # The route would have tried another model; the mandate refuses it. Recorded, never taken.
+            self._fallback(request, decision.tier, decision.fallback_refused, last, taken=False)
         raise last
+
+    def _fallback(self, request: LLMRequest, from_: Tier, to: Tier, cause: Exception, *, taken: bool) -> None:
+        self.store.append_event(
+            Event(
+                type=EventType.MODEL_FALLBACK,
+                actor=ACTOR,
+                correlation_id=request.correlation_id,
+                payload={"purpose": request.purpose, "from": from_.value, "to": to.value,
+                         "cause": f"{type(cause).__name__}: {str(cause)[:300]}", "taken": taken},
+            )
+        )  # fmt: skip
 
     async def _complete_on(
         self,

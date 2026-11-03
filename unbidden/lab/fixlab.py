@@ -322,7 +322,8 @@ class FixLab:
                 if attempts > self.repairs:
                     break
                 attempts += 1
-                self.progress("asking the local model for a candidate")
+                who = self.brain.where("lab.fix_candidate") if self.brain is not None else "the model"
+                self.progress(f"asking {who} for a candidate")
                 try:
                     candidate = await self._model_candidate(opp, rev, findings, feedback)
                 except (BrainError, ProviderError) as exc:

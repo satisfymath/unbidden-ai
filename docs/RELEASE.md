@@ -1,4 +1,25 @@
-# Unbidden 0.12.1, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.12.2, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.12.2 (2026-11-02): the route shown is the route run; the egress gate reads code as the prompt guard does
+
+Three things seen on the first walk on Linux (Fedora x86-64, option `api`, mode `supervised`, a public copy of the
+FastAPI full-stack template), each a fix with its test:
+
+- A lab's progress line said "asking the local model for the schema change" while the call went to Meta's API; the
+  text was fixed in the code. The labs now ask the Brain where the call goes (`Brain.where`, dry) and say so:
+  `asking the model at api.meta.ai (muse-spark) for the schema change`, `the local model (llama3.2:3b)`, or `no
+  model` with the mandate's reason.
+- `unbidden route` showed `fallback local` under a mandate with `local_fallback: deny` or `local_inference: deny`:
+  both rules were applied only when a call was made (`Brain.complete`). `apply_mandate` (`brain/route_policy.py`)
+  applies them in `Brain.decide`, which `route`, the chat and the labs read, so what is shown is what runs: a call that
+  may run nowhere shows `denied` with the reason; a refused fallback shows `-` and names the rule. When the first model
+  fails, a refused fallback is still recorded (`MODEL_FALLBACK`, `taken: false`), never taken.
+- The egress gate refused five `world.endpoint_tables` requests over public code ("payload contains 1 secret(s)")
+  that the prompt guard had passed. The gate scans the request serialized as JSON, where a newline is the two
+  characters `\n`, so `password=user_in.password\n` read as a value ending in a backslash and no longer looked like
+  code. A backslash now ends a value; a parameter's type annotation inside a parameter list (`token: TokenDep)`) and
+  the template's `changethis` placeholder are not secrets. On the template's five files that were refused: 8 false
+  hits before, once serialized; 0 after; the suite's real-secret cases are still refused, raw and serialized.
 
 ## 0.12.1 (2026-11-02): GitHub through gh, no OAuth App
 
@@ -55,7 +76,7 @@ already existed (start, stop, kill switch, approve, reject, chat). `docs/INSTALL
 on macOS arm64 with the built wheel installed by `install.sh` into an empty HOME and driven in a pseudoterminal; CI
 unchanged (without a terminal, `unbidden` is the text home screen). Everything below describes 0.9.0 and still holds.
 
-**Status: 0.12.1, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
+**Status: 0.12.2, experimental candidate.** Not 1.0: the criteria of v1.0 are in `docs/CAMPAIGN-v1.md` and were not
 met when the campaign paused at its gate (D-063); they are not changed here. The one that blocks 1.0: no useful cycle
 has been shown on an application not used in development. This candidate adds the product around the same engine:
 an installable wheel, a guided setup, one executor per workspace with a background agent, and the dashboard and chat

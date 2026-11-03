@@ -313,3 +313,25 @@ async def test_a_mandate_that_denies_local_inference_never_uses_the_local_model(
         await brain.complete(LLMRequest(purpose="forge.adapter", tier=Tier.CODE,
                                         messages=[Message(role="user", content=log, source="runtime")]))  # fmt: skip
     assert local.requests == []
+
+
+def test_where_names_the_model_that_would_answer(store: Store, mandate: Mandate) -> None:
+    brain, _, _ = make_brain(store, mandate)
+    brain.repo_public = True
+    mandate.models.profile = "frontier"
+    assert brain.where("lab.perf_candidate") == f"the model at api.meta.ai ({brain.config.routing[Tier.CODE].model})"
+    assert brain.where("bridge.names") == f"the local model ({brain.config.routing[Tier.LOCAL].model})"
+    mandate.models.local_inference = "deny"
+    assert brain.where("bridge.names").startswith("no model (")
+
+
+def test_decide_applies_the_mandate_so_the_route_shown_is_the_route_run(store: Store, mandate: Mandate) -> None:
+    brain, _, _ = make_brain(store, mandate)
+    brain.repo_public = True
+    mandate.models.profile = "frontier"
+    mandate.models.local_fallback = "deny"
+    ask = LLMRequest(
+        purpose="lab.fix_candidate", tier=Tier.LOCAL, messages=[Message(role="user", content="fix", source="repo")]
+    )
+    decision, _ = brain.decide(ask)
+    assert (decision.tier, decision.fallback, decision.fallback_refused) == (Tier.CODE, None, Tier.LOCAL)

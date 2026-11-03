@@ -1134,7 +1134,7 @@ def cmd_models(args: argparse.Namespace) -> int:
 
 def cmd_route(args: argparse.Namespace) -> int:
     """Which model would serve each kind of task here, and why. Dry: no model is called."""
-    from unbidden.brain.route_policy import decide_route
+    from unbidden.brain.route_policy import apply_mandate, decide_route
     from unbidden.brain.tasks import TASKS, TYPICAL_SOURCES
     from unbidden.contracts.llm import Message, Source
     from unbidden.guardian.classify import classify
@@ -1149,21 +1149,28 @@ def cmd_route(args: argparse.Namespace) -> int:
             label = classify(
                 [Message(role="user", content="", source=source)], repo_public=runtime.brain.repo_public
             ).label  # type: ignore[arg-type]
-            d = decide_route(
-                models.profile,
-                spec,
-                label,
-                private_code_to_frontier=models.private_code_to_frontier == "allow",
-                remote_available=runtime.bridge() is not None or models.profile != "local",
+            d = apply_mandate(
+                decide_route(
+                    models.profile,
+                    spec,
+                    label,
+                    private_code_to_frontier=models.private_code_to_frontier == "allow",
+                    remote_available=runtime.bridge() is not None or models.profile != "local",
+                ),
+                local_inference=models.local_inference,
+                local_fallback=models.local_fallback,
             )
+            why = d.denied or d.reason
+            if d.fallback_refused is not None:
+                why += f"; the mandate denies the {d.fallback_refused.value} fallback"
             rows.append(
                 {
                     "task": purpose,
                     "weight": spec.weight,
                     "content": label.value,
-                    "first": d.tier.value,
+                    "first": "denied" if d.denied else d.tier.value,
                     "fallback": d.fallback.value if d.fallback else "-",
-                    "why": d.reason,
+                    "why": why,
                 }
             )
     if _emit(args, {"profile": models.profile, "repo_public": runtime.brain.repo_public, "routes": rows}):
