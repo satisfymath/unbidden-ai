@@ -66,31 +66,31 @@
 1. Installation and onboarding: setup applied 16/16 (100%, 95% CI 81-100%); doctor without a missing requirement 14/16 (88%, 95% CI 64-97%); autonomous granted by the product 0/16 (0%, 95% CI 0-19%) (drill passed 0/0 lab runs).
 2. Checks reproduced and coverage: Level A (same pins) is the record; a Level B cycle starts experiments only after them.
 3. Discovery and experiments: runs with ≥1 opportunity 2/16 (12%, 95% CI 3-36%); with ≥1 experiment 1/16 (6%, 95% CI 1-28%).
-4. Pull requests published by the agent: 2 in 2/16 runs (duplicated effects between cycles: 0).
-5. CI observed on the exact head of those pull requests: green 2 / 2.
-6. Merges effective (on the copy, by the product): 0/2 pull requests.
+4. Pull requests published by the agent: 1 in 1/16 runs (duplicated effects between cycles: 0).
+5. CI observed on the exact head of those pull requests: green 1 / 1.
+6. Merges effective (on the copy, by the product): 0/1 pull requests.
 7. Deploys and verified effects: `operations.deployed` events 0 (the drill's deploy included); lab healthy after the second cycle 0/0.
 8. UI and recovery: dashboard served and the browser walk passed 16/16 (100%, 95% CI 81-100%); a routed chat analysis 16/16 (100%, 95% CI 81-100%); second start after stop 16/16 (100%, 95% CI 81-100%); agent stopped at the end 16/16 (100%, 95% CI 81-100%).
 9. Interventions, latency and cost: interventions during autonomous runs 0 (any ends the attempt); human preparation 32 min counted apart; cycles that hit their bound 18; agent wall time 1286 min; 31 model calls, US$0.2302 (ledger, list price); blocks recorded 0.
 
-### Level B, class **dev** (calibration: not independent evidence): 6 run(s) on 3 repositories (fst, marshmallow, rich)
+### Level B, class **dev** (calibration: not independent evidence): 8 run(s) on 4 repositories (fst, marshmallow, rich, spoolman)
 
-1. Installation and onboarding: setup applied 6/6 (100%, 95% CI 61-100%); doctor without a missing requirement 6/6 (100%, 95% CI 61-100%); autonomous granted by the product 2/6 (33%, 95% CI 10-70%) (drill passed 2/2 lab runs).
+1. Installation and onboarding: setup applied 8/8 (100%, 95% CI 68-100%); doctor without a missing requirement 8/8 (100%, 95% CI 68-100%); autonomous granted by the product 4/8 (50%, 95% CI 22-78%) (drill passed 4/4 lab runs).
 2. Checks reproduced and coverage: Level A (same pins) is the record; a Level B cycle starts experiments only after them.
-3. Discovery and experiments: runs with ≥1 opportunity 6/6 (100%, 95% CI 61-100%); with ≥1 experiment 3/6 (50%, 95% CI 19-81%).
-4. Pull requests published by the agent: 13 in 4/6 runs (duplicated effects between cycles: 0).
-5. CI observed on the exact head of those pull requests: green 8, red 5 / 13.
-6. Merges effective (on the copy, by the product): 4/13 pull requests.
-7. Deploys and verified effects: `operations.deployed` events 2 (the drill's deploy included); lab healthy after the second cycle 2/2.
-8. UI and recovery: dashboard served and the browser walk passed 6/6 (100%, 95% CI 61-100%); a routed chat analysis 6/6 (100%, 95% CI 61-100%); second start after stop 6/6 (100%, 95% CI 61-100%); agent stopped at the end 6/6 (100%, 95% CI 61-100%).
-9. Interventions, latency and cost: interventions during autonomous runs 0 (any ends the attempt); human preparation 15.6 min counted apart; cycles that hit their bound 0; agent wall time 106 min; 126 model calls, US$0.6161 (ledger, list price); blocks recorded 0.
+3. Discovery and experiments: runs with ≥1 opportunity 8/8 (100%, 95% CI 68-100%); with ≥1 experiment 3/8 (38%, 95% CI 14-69%).
+4. Pull requests published by the agent: 7 in 3/8 runs (duplicated effects between cycles: 0).
+5. CI observed on the exact head of those pull requests: green 4, red 3 / 7.
+6. Merges effective (on the copy, by the product): 1/7 pull requests.
+7. Deploys and verified effects: `operations.deployed` events 4 (the drill's deploy included); lab healthy after the second cycle 4/4.
+8. UI and recovery: dashboard served and the browser walk passed 8/8 (100%, 95% CI 68-100%); a routed chat analysis 8/8 (100%, 95% CI 68-100%); second start after stop 8/8 (100%, 95% CI 68-100%); agent stopped at the end 8/8 (100%, 95% CI 68-100%).
+9. Interventions, latency and cost: interventions during autonomous runs 0 (any ends the attempt); human preparation 22.0 min counted apart; cycles that hit their bound 0; agent wall time 211 min; 326 model calls, US$1.8713 (ledger, list price); blocks recorded 0.
 
 | repo | run | mode | c1 proposals | c2 proposals | agent PRs on copy | CI | merged | deploys seen | duplicates | blocks | spent | UI | chat analyze |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | brightbean-studio | B1 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0155 | ok | code |
 | brightbean-studio | B2 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0151 | ok | code |
-| fst | B1 | autonomous | 1 | 1 | 2 | green,green | 2 | 1 | none | 0 | 0.1654 | ok | code |
-| fst | B2 | autonomous | 0 | 0 | 2 | green,green | 2 | 1 | none | 0 | 0.1865 | ok | code |
+| fst | B1 | autonomous | 1 | 1 | 1 | green | 1 | 1 | none | 0 | 0.1654 | ok | code |
+| fst | B2 | autonomous | 0 | 0 | 0 | - | 0 | 1 | none | 0 | 0.1865 | ok | code |
 | graphtage | B1 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0162 | ok | code |
 | graphtage | B2 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0165 | ok | code |
 | harlequin | B1 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0032 | ok | code |
@@ -98,7 +98,7 @@
 | marshmallow | B1 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0232 | ok | code |
 | marshmallow | B2 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0176 | ok | code |
 | misago | B1 | autopilot | 0 | 1 | 1 | green | 0 | 0 | none | 0 | 0.031 | ok | code |
-| misago | B2 | autopilot | 0 | 0 | 1 | green | 0 | 0 | none | 0 | 0.0231 | ok | code |
+| misago | B2 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0231 | ok | code |
 | oauthlib | B1 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0039 | ok | code |
 | oauthlib | B2 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0036 | ok | code |
 | pipx | B1 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0038 | ok | code |
@@ -106,7 +106,9 @@
 | rdflib | B1 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.032 | ok | code |
 | rdflib | B2 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0275 | ok | code |
 | rich | B1 | autopilot | 3 | 3 | 3 | red,red,green | 0 | 0 | none | 0 | 0.1061 | ok | code |
-| rich | B2 | autopilot | 3 | 3 | 6 | green,red,green,red,red,green | 0 | 0 | none | 0 | 0.1173 | ok | code |
+| rich | B2 | autopilot | 3 | 3 | 3 | green,red,green | 0 | 0 | none | 0 | 0.1173 | ok | code |
+| spoolman | B1 | autonomous | 0 | 0 | 0 | - | 0 | 1 | none | 0 | 0.7248 | ok | code |
+| spoolman | B2 | autonomous | 0 | 0 | 0 | - | 0 | 1 | none | 0 | 0.5304 | ok | code |
 | traefik-manager | B1 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0143 | ok | code |
 | traefik-manager | B2 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0159 | ok | code |
 

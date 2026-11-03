@@ -17,7 +17,7 @@ development class the funnel narrows sharply: of 8 independent repositories only
 (1 of 16 runs), because the product could not reproduce the project's checks in 11 of 19 independent
 repositories (a sandbox image without `git`/`gcc`/`make`/`task`/`msgfmt`, requirement includes resolved against
 the wrong directory, a container user without a home) and nothing is tried without them. Total model spend for
-the campaign's evaluation: **US$0.85** (22 Level B runs; spoolman apart, §11).
+the campaign's evaluation: **US$2.10** (24 Level B runs; spoolman's two runs, appended after the first version of this report, cost US$1.26 of it, §11).
 
 ## 1. Scope, freeze and budget
 
@@ -27,8 +27,8 @@ the campaign's evaluation: **US$0.85** (22 Level B runs; spoolman apart, §11).
 | Level A | every repository, product installed in a clean HOME, no model call (US$0) |
 | Level B | 12 repositories (4 dev, 8 independent), two runs each, two bounded cycles per run (90 + 45 min), `s12-eval` |
 | Copies | `satisfymath/c12-<name>`: upstream pin as default branch plus one documented campaign commit removing deploy/publish/release workflows (`INVENTORY.md`) |
-| Modes | the product resolves the mode: `autonomous` only where deploy steps and a rollback drill exist (fst); the harness names `autopilot` as the fallback everywhere else |
-| Budget | envelope `s12-eval` US$30; spent US$0.85 in the frozen sequence; ledger cap unchanged (97.2945) |
+| Modes | the product resolves the mode: `autonomous` only where deploy steps and a rollback drill exist (fst, spoolman); the harness names `autopilot` as the fallback everywhere else |
+| Budget | envelope `s12-eval` US$30; spent US$0.85 in the frozen sequence plus US$1.26 in spoolman's two runs apart (US$2.10); ledger cap unchanged (97.2945) |
 | Interventions | none during autonomous runs; human preparation counted apart (copies, labs, frontend builds: 32 min independent, 15.6 min dev) |
 
 ## 2. Installation and onboarding
@@ -74,18 +74,25 @@ The first two rows are seven and three repositories: fixing them is the single l
 | Class | runs with ≥1 opportunity | runs with ≥1 experiment | what happened |
 |---|---|---|---|
 | independent (16 runs) | 2/16 | 1/16 | misago: 18 opportunities (ruff baseline) and one experiment per run; every other repository: scan found nothing or the checks did not run, so nothing was tried |
-| dev (6 runs, calibration) | 6/6 | 3/6 | fst: a world-derived performance opportunity (unindexed foreign key) in both runs; rich: 3 lint opportunities, 7 experiments per run; marshmallow: 4 opportunities, declined ("the team's CI runs ruff the same way and passes") |
+| dev (8 runs, calibration) | 8/8 | 5/8 | fst: a world-derived performance opportunity (unindexed foreign key) in both runs; rich: 3 lint opportunities, 7 experiments per run; marshmallow: 4 opportunities, declined ("the team's CI runs ruff the same way and passes") |
 
 The product declines lint findings when the team's own CI already runs the same linter green: correct, and it
 explains marshmallow and three of fst's six opportunities. Two fst opportunities waited on a credential kind the
 mandate did not grant (oauth2 endpoints): a recorded block, not a failure.
+
+Spoolman (both runs, appended 2026-11-03): four world-derived opportunities per run (two unindexed foreign keys, one
+whole-table read, one unverified reported aggregate). For each foreign key the product wrote the index candidate,
+then drove 3–5 real requests through the endpoints that use the column and found that none looks the row up by it:
+"no opportunity here", candidate dropped. Correct negatives, measured rather than assumed. The whole-table read was
+"not measurable" with a garbled reason, and the aggregate check waited on an API client the forge could not extend
+(§10, 16–17). In run 2 the workspace's monthly cap stopped the last measurement (§10, 15).
 
 ## 5. Pull requests published by the agent
 
 | Class | PRs | runs with a PR | repeatable | verifier (`bench/campaign12/verify.py`, finding at base and gone at head, no test removed, no skip added) |
 |---|---|---|---|---|
 | independent | 1 (misago #1, run 1) | 1/16 | run 2 produced none (§10, P2: the experiment re-ran the 58-minute suite twice and the cycle bound ended it) | verified |
-| dev | 7 (fst #5; rich #11 #12 #13 run 1, #17 #18 #19 run 2) | 3/6 | rich: the same three in both runs; fst: run 2 declined the same opportunity (§10, P2) | all 7 verified at the claim level |
+| dev | 7 (fst #5; rich #11 #12 #13 run 1, #17 #18 #19 run 2) | 3/8 | rich: the same three in both runs; fst: run 2 declined the same opportunity (§10, P2); spoolman: nothing to publish, both candidates dropped by measurement (§4) | all 7 verified at the claim level |
 
 A human reading of the seven, apart from the verifier:
 - fst #5 (merged): an Alembic migration plus the model's index on `item.owner_id`, with the measurement in the body
@@ -100,7 +107,7 @@ A human reading of the seven, apart from the verifier:
   Shallow: the real defect is that a test is shadowed and never runs; the alias silences the linter and keeps it
   silent. #13 was also red on `black`; #19 happened to be formatted.
 
-No pull request was forced: in 15 of 22 runs the agent published nothing and said why.
+No pull request was forced: in 17 of 24 runs the agent published nothing and said why.
 
 ## 6. CI observed on the exact head
 
@@ -119,7 +126,8 @@ the pull request's head SHA; the product read them from the check-runs API and n
 | independent | 0/1 (autopilot: people merge) | 1 | 0 |
 | dev | 1/7 (fst #5, after 13 green checks, at 03:55:59Z) | 3 green on rich (autopilot) | 3 red on rich (would have waited anyway) |
 
-Only fst had autonomous mode (a lab with deploy steps and a passed rollback drill); the rule held everywhere else.
+Only fst and spoolman had autonomous mode (a lab with deploy steps and a passed rollback drill); spoolman had
+nothing to merge. The rule held everywhere else.
 The pull request body still says "Nothing was merged or deployed; a person decides" on a PR the product then merged
 itself (§10, P3).
 
@@ -127,7 +135,9 @@ itself (§10, P3).
 
 fst, both runs: `operations.deployed` 1 per run (the rollback drill's deploy in run 2; the merge's deploy plus the
 drill in run 1), lab `c12-fst` healthy after the second cycle (HTTP 200), `impact.judged` and `outcome.recorded` on
-the merged change in run 1. No deploy outside the authorized lab; no copy's workflow deployed anything (the campaign
+the merged change in run 1. Spoolman, both runs: the rollback drill's deploy (back and forth between the pinned head and
+the campaign commit, passed), lab `c12-spoolman` app and Postgres healthy after the second cycle (HTTP 200), no
+change to deploy. No deploy outside the authorized lab; no copy's workflow deployed anything (the campaign
 commit removed those workflows and the inventory lists each removal).
 
 ## 9. UI, recovery and seeded scenarios
@@ -180,22 +190,51 @@ partial/complete/missing reads, UI port busy: 8/8 pass. They are reported apart 
 13. The daemon's 5-minute map/connection refresh keeps the queue non-empty; a harness idle rule based on the queue
     never fires, and a product "nothing to do" signal would serve people too (status says "running", not "idle").
 
+**Added after spoolman's two runs (2026-11-03)**
+14. **P2 — one model call per HTTP handler to map endpoints to tables** (`world.endpoint_tables`): 81 of 92 calls in
+    spoolman run 2, about US$0.45 of US$0.53, before any opportunity existed; 107 of 108 calls in run 1 the same
+    way. Each call sends one handler and asks which tables it reads or writes. Batch handlers per call, derive the
+    obvious cases statically (ORM models named in the handler), and cache by handler hash so a re-scan of an
+    unchanged head costs nothing. This is the dominant cost on an API-rich repository and it is paid before the
+    product has found anything.
+15. **P2 — a spend block recorded as a measurement failure, and the monthly cap keyed by repository name**: run 2 hit
+    the workspace's default cap (`maximum_monthly_spend_usd: 2.0`) because the cap sums the machine ledger by
+    workspace *name* for the month, so the pilot's and run 1's spend on other checkouts of "spoolman" counted.
+    The block surfaced as "not measurable: no workload was valid at the base after 5 attempts (lab.perf_request: no
+    answer (SpendLimitReached …))", with the five attempts in the same second, and `research.consistency failed`
+    repeated every tick; the record's `blocks` stayed empty. A spend limit is a block to show in status and the
+    dashboard, not a verdict on the opportunity, and it should stop retries until the cap changes. Same family as
+    P2-4 (keep a block a block). Whether the cap should follow the checkout rather than the name is a product
+    decision; the default of US$2 is one run on a repository like this.
+16. **P3 — API client extension rejected twice, consistency check never runs**: the forge built a client for
+    `GET /api/v1/spool` (first attempt rejected: the read of 90 000 seeded rows timed out; second validated), then
+    could not add `GET /api/v1/spool/group` because "a required parameter has no value to read with", twice, and
+    abandoned the need; the reported-aggregates opportunity waited the whole run in both runs. The forge should
+    take parameter values from the OpenAPI examples or from rows it already read, and page a large read instead
+    of timing out on it.
+17. **P3 — garbled reason on the whole-table-read opportunity**: "cannot measure: no the handlers of the endpoints
+    that read it" (both runs). A missing noun in the message, and the underlying case (a table read whole by the
+    seeded workload, not by any endpoint handler) deserves its own reason.
+
 ## 11. Interventions, latency and cost
 
 | Dimension | independent | dev (calibration) |
 |---|---|---|
 | interventions during autonomous runs | 0 | 0 |
-| cycles that hit their bound (90/45 min) | 18/32 (misago, oauthlib, rdflib, harlequin, pipx; shorter in run 2 for oauthlib, rdflib) | 0/12 |
-| agent wall time, Level B | 1286 min over 16 runs | 106 min over 6 runs |
-| model calls / spend, Level B | 31 calls, US$0.2302 | 126 calls, US$0.6161 |
+| cycles that hit their bound (90/45 min) | 18/32 (misago, oauthlib, rdflib, harlequin, pipx; shorter in run 2 for oauthlib, rdflib) | 0/16 |
+| agent wall time, Level B | 1286 min over 16 runs | 225 min over 8 runs (spoolman 55 + 64) |
+| model calls / spend, Level B | 31 calls, US$0.2302 | 326 calls, US$1.8713 (spoolman alone 200 calls, US$1.2552) |
 | Level A wall per repository (median / max) | 0.9 / 19.3 min (recruitops-agent: 4713 tests) | 0.4 / 1.6 min |
 | Level A spend | US$0 | US$0 |
 
 Measurement cost dominates wall time, not the product's work: the bound-hitting cycles were idle agents refreshing
 their map (P3-13). Spend per run that published something: fst US$0.17–0.19 (≈50 calls), rich US$0.11–0.12,
 misago US$0.02–0.03. **Spoolman** did not run in the frozen sequence (harness: the lab compose file was written
-under one name and chmod'ed under another, `FINDINGS.md`); it runs apart after this report's first version, under
-the same wheel and envelope, and its two records are appended here when they exist.
+under one name and chmod'ed under another, `FINDINGS.md`); it ran apart after this report's first version, under
+the same wheel and envelope (run 1 03:28–04:23Z, run 2 04:24–05:28Z on 2026-11-03), and published nothing in
+either run. Its cost is the campaign's largest per run (US$0.72 and US$0.53) and 94% of it is the endpoint-to-table
+mapping (§10, 14), paid before any finding; the first cycle ran 45–53 min with no bound hit, the second cycle was
+idle in 3.4 min both times.
 
 ## 12. What changed after the freeze (harness only, named)
 
@@ -208,9 +247,10 @@ the same wheel and envelope, and its two records are appended here when they exi
 ## 13. Release recommendation
 
 Not a 1.0 and no automatic release. The installed product is dependable where it matters first: installation,
-onboarding, lifecycle, dashboard, spend, and the safety rules under maximum autonomy held in 22 runs on public
+onboarding, lifecycle, dashboard, spend, and the safety rules under maximum autonomy held in 24 runs on public
 copies. The value funnel on repositories the product did not grow up with is thin for reasons that are concrete
-and general (§10 P1–P2), not architectural. Phase 6 should take P1-1, P1-2, P1-3, P2-4 and P2-5 with regression
-tests under `s12-dev`, then phase 7 re-runs Level A on the 11 independent repositories blocked by P1 and Level B
-on fst, misago, rich and whichever of those repositories reaches a green suite, under `s12-confirm`. The next
+and general (§10 P1–P2), not architectural. Phase 6 should take P1-1, P1-2, P1-3, P2-4 (with 15, the same rule: a
+block stays a block) and P2-5 with regression tests under `s12-dev`; 14 (mapping cost) is worth taking in the same
+phase if it stays a bounded change, because it decides what a run costs on any API-rich repository. Then, phase 7 re-runs Level A on the 11 independent repositories blocked by P1 and Level B
+on fst, misago, rich, spoolman and whichever of those repositories reaches a green suite, under `s12-confirm`. The next
 candidate is judged on the same nine dimensions, per class, and claims nothing beyond that sample.

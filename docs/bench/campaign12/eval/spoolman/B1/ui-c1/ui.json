@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:8860/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "filament.vendor_id is a foreign key without an index, filtered on by 1 endpoint(…\tdescartada\t1\trun_experiment",
+    "spool.filament_id is a foreign key without an index, checked when 1 endpoint(s) …\tdescartada\t1\trun_experiment",
+    "GET /api/v1/spool/group reports [].spool_count, [].in_use_count: unverified agai…\tabierta\t1\twait",
+    "spool (100000 rows) was read whole 12616 times in the last 33 minutes\tabierta\t1\twait",
+    "",
+    "4 fila(s)",
+    "actual",
+    "workspace",
+    "03 nov, 01:19"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "2 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "spoolman",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 257 eventos · en vivo",
+    "todos los tipos",
+    "capability.built",
+    "capability.need_changed",
+    "capability.needed",
+    "connection.changed",
+    "decision.made",
+    "egress.allowed",
+    "model.called",
+    "world.changed",
+    "Mapa actualizado",
+    "01:16",
+    "{\"carried\":[\"api:http_api:http://127.0.0.1:18230\",\"database:postgres:127.0.0.1:5",
+    "Decisión tomada",
+    "01:15",
+    "wait — not measurable at this commit: cannot measure: no the handlers of the endpoints that read it",
+    "Llamada al modelo",
+    "01:14",
+    "lab.perf_request · code · muse-spark-1.3 · 2431→1315 tokens",
+    "Salida permitida",
+    "01:14",
+    "lab.perf_request → api.meta.ai (10776 B)",
+    "Llamada al modelo",
+    "01:14",
+    "lab.perf_request · code · muse-spark-1.3 · 2396→2848 tokens",
+    "Salida permitida",
+    "01:14",
+    "lab.perf_request → api.meta.ai (10568 B)",
+    "Llamada al modelo",
+    "01:13",
+    "lab.perf_request · code · muse-spark-1.3 · 2474→2709 tokens",
+    "Salida permitida"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "spoolman",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 4 oportunidades, ordenadas por evidencia",
+    "L1 sospecha",
+    "filament.vendor_id is a foreign key without an index, filtered on by 1 endpoint(s)",
+    "world · performance · run_experiment · 03 nov, 00:35",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "spool.filament_id is a foreign key without an index, checked when 1 endpoint(s) delete a filament row",
+    "world · performance · run_experiment · 03 nov, 00:35",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "GET /api/v1/spool/group reports [].spool_count, [].in_use_count: unverified against the stored data",
+    "world · bugs · wait · 03 nov, 00:35",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "spool (100000 rows) was read whole 12616 times in the last 33 minutes",
+    "world · performance · wait · bloqueada · 03 nov, 00:35",
+    "abierta",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "2 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

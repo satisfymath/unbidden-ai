@@ -262,5 +262,29 @@
   "spent_usd": 0.0044,
   "blocks": [],
   "wall_s": 8154.0
+ },
+ {
+  "name": "spoolman",
+  "run": "B1",
+  "mode": "autonomous",
+  "record": "/Users/david/unbidden-ai-campaign/docs/bench/campaign12/eval/spoolman/B1.json",
+  "proposals_c1": 0,
+  "proposals_c2": 0,
+  "pulls_after": 0,
+  "spent_usd": 0.7248,
+  "blocks": [],
+  "wall_s": 3293.8
+ },
+ {
+  "name": "spoolman",
+  "run": "B2",
+  "mode": "autonomous",
+  "record": "/Users/david/unbidden-ai-campaign/docs/bench/campaign12/eval/spoolman/B2.json",
+  "proposals_c1": 0,
+  "proposals_c2": 0,
+  "pulls_after": 0,
+  "spent_usd": 0.5304,
+  "blocks": [],
+  "wall_s": 3836.4
  }
 ]

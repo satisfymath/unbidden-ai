@@ -278,7 +278,8 @@ Frozen for phase 4, nothing below changes until phase 6:
 ## Phase 4 and 5 status (2026-11-03)
 
 Phase 4 ran frozen from 2026-11-01T23:48Z to 2026-11-03T03:25Z (`run_eval.sh all`): Level A 39/39, Level B 22/24
-runs (spoolman B1/B2 crashed at lab bring-up, harness; they run apart after commit `77cf1ca`). Spend US$0.85 of the
+runs (spoolman B1/B2 crashed at lab bring-up, harness; they ran apart after commit `77cf1ca` and finished
+2026-11-03T05:28Z, 24/24). Spend US$0.85 in the frozen sequence plus US$1.26 for spoolman: US$2.10 of the
 `s12-eval` envelope. Phase 5 is `REPORT.md` (nine dimensions per class, failure matrix, prioritized defects,
 release recommendation) with the aggregate tables in `eval/REPORT-aggregate.md` and the independent verifier's
 records in `eval/verify/`. Phase 6 (general fixes with regression tests, `s12-dev`) starts on David's reading of the

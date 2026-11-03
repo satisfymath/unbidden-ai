@@ -73,17 +73,17 @@
 8. UI and recovery: dashboard served and the browser walk passed 16/16 (100%, 95% CI 81-100%); a routed chat analysis 16/16 (100%, 95% CI 81-100%); second start after stop 16/16 (100%, 95% CI 81-100%); agent stopped at the end 16/16 (100%, 95% CI 81-100%).
 9. Interventions, latency and cost: interventions during autonomous runs 0 (any ends the attempt); human preparation 32 min counted apart; cycles that hit their bound 18; agent wall time 1286 min; 31 model calls, US$0.2302 (ledger, list price); blocks recorded 0.
 
-### Level B, class **dev** (calibration: not independent evidence): 6 run(s) on 3 repositories (fst, marshmallow, rich)
+### Level B, class **dev** (calibration: not independent evidence): 8 run(s) on 4 repositories (fst, marshmallow, rich, spoolman)
 
-1. Installation and onboarding: setup applied 6/6 (100%, 95% CI 61-100%); doctor without a missing requirement 6/6 (100%, 95% CI 61-100%); autonomous granted by the product 2/6 (33%, 95% CI 10-70%) (drill passed 2/2 lab runs).
+1. Installation and onboarding: setup applied 8/8 (100%, 95% CI 68-100%); doctor without a missing requirement 8/8 (100%, 95% CI 68-100%); autonomous granted by the product 4/8 (50%, 95% CI 22-78%) (drill passed 4/4 lab runs).
 2. Checks reproduced and coverage: Level A (same pins) is the record; a Level B cycle starts experiments only after them.
-3. Discovery and experiments: runs with ≥1 opportunity 6/6 (100%, 95% CI 61-100%); with ≥1 experiment 3/6 (50%, 95% CI 19-81%).
-4. Pull requests published by the agent: 7 in 3/6 runs (duplicated effects between cycles: 0).
+3. Discovery and experiments: runs with ≥1 opportunity 8/8 (100%, 95% CI 68-100%); with ≥1 experiment 3/8 (38%, 95% CI 14-69%).
+4. Pull requests published by the agent: 7 in 3/8 runs (duplicated effects between cycles: 0).
 5. CI observed on the exact head of those pull requests: green 4, red 3 / 7.
 6. Merges effective (on the copy, by the product): 1/7 pull requests.
-7. Deploys and verified effects: `operations.deployed` events 2 (the drill's deploy included); lab healthy after the second cycle 2/2.
-8. UI and recovery: dashboard served and the browser walk passed 6/6 (100%, 95% CI 61-100%); a routed chat analysis 6/6 (100%, 95% CI 61-100%); second start after stop 6/6 (100%, 95% CI 61-100%); agent stopped at the end 6/6 (100%, 95% CI 61-100%).
-9. Interventions, latency and cost: interventions during autonomous runs 0 (any ends the attempt); human preparation 15.6 min counted apart; cycles that hit their bound 0; agent wall time 106 min; 126 model calls, US$0.6161 (ledger, list price); blocks recorded 0.
+7. Deploys and verified effects: `operations.deployed` events 4 (the drill's deploy included); lab healthy after the second cycle 4/4.
+8. UI and recovery: dashboard served and the browser walk passed 8/8 (100%, 95% CI 68-100%); a routed chat analysis 8/8 (100%, 95% CI 68-100%); second start after stop 8/8 (100%, 95% CI 68-100%); agent stopped at the end 8/8 (100%, 95% CI 68-100%).
+9. Interventions, latency and cost: interventions during autonomous runs 0 (any ends the attempt); human preparation 22.0 min counted apart; cycles that hit their bound 0; agent wall time 211 min; 326 model calls, US$1.8713 (ledger, list price); blocks recorded 0.
 
 | repo | run | mode | c1 proposals | c2 proposals | agent PRs on copy | CI | merged | deploys seen | duplicates | blocks | spent | UI | chat analyze |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -107,6 +107,8 @@
 | rdflib | B2 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0275 | ok | code |
 | rich | B1 | autopilot | 3 | 3 | 3 | red,red,green | 0 | 0 | none | 0 | 0.1061 | ok | code |
 | rich | B2 | autopilot | 3 | 3 | 3 | green,red,green | 0 | 0 | none | 0 | 0.1173 | ok | code |
+| spoolman | B1 | autonomous | 0 | 0 | 0 | - | 0 | 1 | none | 0 | 0.7248 | ok | code |
+| spoolman | B2 | autonomous | 0 | 0 | 0 | - | 0 | 1 | none | 0 | 0.5304 | ok | code |
 | traefik-manager | B1 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0143 | ok | code |
 | traefik-manager | B2 | autopilot | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0159 | ok | code |
 

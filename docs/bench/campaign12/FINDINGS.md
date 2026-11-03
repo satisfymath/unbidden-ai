@@ -202,3 +202,13 @@ accepted limit). Fixes happen only in phase 6; until then the line stays open an
   Bounds: five repos hit both cycle bounds (90 + 45 min: misago, oauthlib, rdflib, harlequin, pipx) because the
   loop keeps scheduling `world.refresh`/map jobs every 5 min, so the harness's idle rule (empty queue through two
   ticks) never fires · measurement cost, not a product defect; the per-repo wall time is dominated by it.
+- 2026-11-03 · eval · **spoolman B1/B2 finished apart** (03:28→04:23Z and 04:24→05:28Z, harness fix `77cf1ca`, same wheel
+  and envelope): mode `autonomous` (lab + drill passed), 4 world opportunities per run, 0 proposals, 0 PRs, no bound
+  hit (cycle 1: 45 and 53 min; cycle 2 idle in 3.4 min). Both foreign-key index candidates were written and then
+  dropped after real requests showed no lookup by that column (correct negatives). Spend US$0.7248 + US$0.5304, the
+  campaign's largest per run: 81/92 calls are `world.endpoint_tables`, one model call per HTTP handler, before any
+  finding. Run 2 hit the workspace's default monthly cap (US$2.00, summed by workspace name across the pilot and run
+  1) and recorded it as "not measurable … SpendLimitReached" with five attempts in one second; `blocks` empty. The
+  API client extension for `GET /api/v1/spool/group` was rejected twice ("a required parameter has no value to
+  read with") so the reported-aggregates check never ran; message "cannot measure: no the handlers …" garbled.
+  REPORT §4, §8, §10 (14–17), §11 updated; `s12-eval` spent US$2.1015.
