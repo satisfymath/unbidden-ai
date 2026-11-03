@@ -79,7 +79,17 @@ def data_services(
             container = f"unbidden-data-{service.name}-{run_id}"
             argv = ["run", "-d", "--rm", "--name", container, "--network", network, "--network-alias", service.name,
                     "--tmpfs", f"{DATA_DIRS.get(kind, '/data')}:rw", "--memory", "1g"]  # fmt: skip
-            for key, value in sorted(service.environment.items()):
+            environment = dict(service.environment)
+            if (
+                kind == "postgres"
+                and not environment.get("POSTGRES_PASSWORD")
+                and "POSTGRES_HOST_AUTH_METHOD" not in environment
+            ):
+                # The project's password lives in an untracked .env (`${POSTGRES_PASSWORD:?...}` resolves empty here),
+                # and the image refuses to start without one. This database is throwaway, offline, on an internal
+                # network: it trusts its clients, so the application connects with the empty password it was given.
+                environment["POSTGRES_HOST_AUTH_METHOD"] = "trust"
+            for key, value in sorted(environment.items()):
                 argv += ["-e", f"{key}={value}"]
             command = (["postgres", "-c", "shared_preload_libraries=pg_stat_statements", "-c",
                         "pg_stat_statements.track=all"] if statements and kind == "postgres" else [])  # fmt: skip
