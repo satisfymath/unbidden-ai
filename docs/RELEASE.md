@@ -1,5 +1,22 @@
 # Unbidden 0.18.0, experimental candidate: the terminal app on the product branch, not 1.0
 
+## 0.18.4 (2026-11-04): security bumps the final pass could not finish
+
+- **A requirement in `pyproject.toml` is bumped.** pyjwt: pytest's advisory was found and its fix known, but
+  "bumping a dependency in pyproject.toml is not supported yet". Every requirement string naming the package
+  (dependencies, optional dependencies, dependency groups) is raised to the fixed version, extras and markers kept,
+  an upper bound kept when the fixed version still satisfies it (`pytest>=8.4.2,<9.0.0` becomes `pytest>=9.0.3`). A
+  package the file does not name, without a lock, is declared, not guessed.
+- **The candidate's packages are read from Unbidden's own environment.** marshmallow: certifi's advisories were gone
+  and its 1192 tests passed 3/3, yet "no proven fix": the candidate's installed packages were read from the CI job's
+  image, which has no `/deps/.venv`, and an unread list declined silently. Now read from Unbidden's own environment
+  (0.18.3); unread is said in the verdict.
+- **A `uv.lock` is re-resolved from the whole tree.** sqlmodel: five advisories with known fixes (anyio, black and
+  others) stopped at "uv lock --upgrade-package failed": only the manifests were copied, and its build backend (pdm)
+  needs the licence file and the package to compute its metadata. Real check: anyio relocked to 4.14.2.
+- **The robustness lab's reproduction runs where pytest is.** The same cause would have stopped every crash the probe
+  finds from being reproduced beside a CI job's environment.
+
 ## 0.18.3 (2026-11-04): beside the CI job's environment, Unbidden's own
 
 - **Types, advisories and robustness probes work where the team's CI job prepares the environment.** The final

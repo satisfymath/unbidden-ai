@@ -127,3 +127,74 @@ def test_a_security_opportunity_and_its_pull_request_say_what_they_are(store: St
                       criteria={}, tests=TestOutcome.PASSED,
                       reasons=["requests 2.31.0 → 2.32.0: advisories GHSA-xxxx gone"])  # fmt: skip
     assert proposal_title(opp, verdict) == "security: bump requests 2.31.0 → 2.32.0"
+
+
+def test_a_requirement_in_pyproject_is_raised_to_the_fixed_version() -> None:
+    """pyjwt, campaign 13: pytest's advisory was found, but pyproject.toml could not be bumped."""
+    from unbidden.lab.deps import bump_pyproject
+
+    text = '[project]\noptional-dependencies.dev = [\n    "pytest>=8.4.2,<9.0.0",\n]\n[dependency-groups]\n' \
+        'test = ["Pytest[extra]>=8,<10,!=9.0.1 ; python_version >= \'3.9\'", "pytest-cov"]\n'  # fmt: skip
+    out = bump_pyproject(text, "pytest", "9.0.3")
+    assert out is not None and '"pytest>=9.0.3"' in out and "pytest-cov" in out
+    assert "\"Pytest[extra]>=9.0.3,<10,!=9.0.1 ; python_version >= '3.9'\"" in out
+    assert bump_pyproject(text, "urllib3", "2.5.0") is None
+
+
+async def test_beside_a_ci_jobs_environment_the_bump_is_read_from_unbiddens_own(
+    store: Store, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mandate: Any
+) -> None:
+    """marshmallow, campaign 13: the advisories were gone and the suite passed, yet "no proven fix": the candidate's
+    packages were read from the CI job's image, which has no `/deps/.venv`. Unread is now said, never a silent no."""
+    from dataclasses import replace
+
+    from unbidden.guardian.policy import PolicyEngine
+
+    repo, rev = _repo(tmp_path)
+    own = DependencyImage(tag="deps", language="python", registries=[], env={}, links={})
+    ci = DependencyImage(tag="ci", language="python", registries=[], env={}, links={}, runner_like=True, own=own)
+    read: list[str] = []
+
+    class Seen(Runner):
+        def run(self, spec: SandboxSpec, work: Path) -> SandboxResult:
+            read.append(spec.image)
+            return super().run(spec, work)
+
+    monkeypatch.setattr(deps_mod, "provision", lambda *a, **k: ci)
+    suite = TestSummary(rounds=1, failed_per_round=[[]], round_status=["ran"], collected_per_round=[1])
+    monkeypatch.setattr(deps_mod, "run_suite", lambda *a, **k: suite)
+    report = advisory_report([("requests", "2.31.0")], "requirements.txt", fetch)
+    (opp,) = record_report(store, report, rev).opened
+    lab = DepsLab(repo, store, detect_stack(repo, rev), ci, PolicyEngine(mandate), runner=Seen(),  # type: ignore[arg-type]
+                  fetch=fetch, rounds=1)  # fmt: skip
+    result = await lab.run(opp)
+    assert result.verdict is not None and result.verdict.improved and read == ["deps"], (result, read)
+    monkeypatch.setattr(deps_mod, "provision", lambda *a, **k: replace(ci, own=None))
+    result = await DepsLab(repo, store, detect_stack(repo, rev), ci, PolicyEngine(mandate), runner=Seen(),  # type: ignore[arg-type]
+                           fetch=fetch, rounds=1).run(opp)  # fmt: skip
+    assert result.verdict is not None and not result.verdict.improved
+    assert any("could not be read" in r for r in result.verdict.reasons)
+
+
+def test_the_relock_builds_from_the_whole_tree(tmp_path: Path) -> None:
+    """sqlmodel, campaign 13: with only the manifests copied, its build backend (pdm) failed on `license-files`, so
+    every `uv lock --upgrade-package` failed. The relock's build context now holds the whole tree at the commit."""
+    from unbidden.lab.deps import relock_uv
+
+    repo, rev = _repo(tmp_path)
+    (repo / "LICENSE").write_text("MIT\n")
+    (repo / "uv.lock").write_text("version = 1\n")
+    git = ["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "lock"], check=True)
+    rev = subprocess.run([*git, "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+    docker = tmp_path / "docker"
+    docker.write_text(
+        "#!/bin/sh\n"
+        'case "$1" in\n'
+        '  build) for a; do ctx="$a"; done; test -f "$ctx/p/LICENSE" && test -f "$ctx/p/tests/test_a.py" || exit 1;;\n'
+        '  run) echo "relocked";;\n'
+        "esac\n"
+    )
+    docker.chmod(0o755)
+    assert relock_uv(repo, rev, ["uv.lock"], "requests", "2.32.0", docker=str(docker)).strip() == "relocked"

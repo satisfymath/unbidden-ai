@@ -28,7 +28,7 @@ from unbidden.lab.fixlab import Candidate, unified_patch
 from unbidden.lab.testsuite import run_suite, test_plan
 from unbidden.observe.advisories import Fetch, advisory_report, installed, pypi_vulnerabilities
 from unbidden.observe.stack import Stack
-from unbidden.sandbox.provision import DependencyImage, ProvisionError, link_dependencies, provision
+from unbidden.sandbox.provision import DependencyImage, ProvisionError, link_dependencies, own_image, provision
 from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
 from unbidden.store import Store
 
@@ -60,11 +60,68 @@ def bump_requirements(text: str, package: str, version: str) -> str:
     return text.rstrip("\n") + f"\n{package}>={version}  # security: known advisories fixed (Unbidden)\n"
 
 
+def _release(version: str) -> tuple[int, ...]:
+    return tuple(int(n) for n in re.findall(r"\d+", version.split("+")[0])[:4])
+
+
+def _kept(spec: str, version: str) -> bool:
+    """Whether one specifier of the team's stays beside `>=version`: an upper bound the fixed version still satisfies
+    and an exclusion stay; a lower bound, a pin or a compatible-release clause is replaced."""
+    found = re.match(r"\s*(<=|<|!=)\s*([\w.*+!-]+)\s*$", spec)
+    if found is None:
+        return False
+    op, bound = found.groups()
+    if op == "!=":
+        return True
+    have, limit = _release(version), _release(bound)
+    return have < limit or (op == "<=" and have == limit)
+
+
+def bump_pyproject(text: str, package: str, version: str) -> str | None:
+    """A pyproject.toml with every requirement string naming `package` (dependencies, optional dependencies,
+    dependency groups) raised to `>=version`, its extras and markers kept, an upper bound kept when the fixed version
+    still satisfies it; None when the file does not name the package (a transitive one: declared, not guessed).
+    pyjwt, campaign 13: `"pytest>=8.4.2,<9.0.0"` becomes `"pytest>=9.0.3"`."""
+    name = "[-_.]".join(re.escape(p) for p in re.split(r"[-_.]", package))
+    requirement = re.compile(
+        rf"^({name})(\[[^\]]*\])?(?=[\s<>=!~;,]|$)\s*([^;]*?)\s*(;.*)?$", re.IGNORECASE | re.DOTALL
+    )
+    quoted = re.compile(r"""(")([^"\n]*)"|(')([^'\n]*)'""")
+
+    def raised(m: re.Match[str]) -> str:
+        quote, inner = (m.group(1), m.group(2)) if m.group(1) else (m.group(3), m.group(4))
+        found = requirement.match(inner)
+        if found is None:
+            return m.group(0)
+        pkg, extras, specs, marker = found.groups()
+        kept = [s.strip() for s in (specs or "").split(",") if s.strip() and _kept(s, version)]
+        spec = ",".join([f">={version}", *kept])
+        return f"{quote}{pkg}{extras or ''}{spec}{(' ' + marker.strip()) if marker else ''}{quote}"
+
+    count = 0
+
+    def counted(m: re.Match[str]) -> str:
+        nonlocal count
+        out = raised(m)
+        count += out != m.group(0)
+        return out
+
+    changed = quoted.sub(counted, text)
+    return changed if count else None
+
+
 def relock_uv(repo: Path, rev: str, files: list[str], package: str, version: str, docker: str = "docker") -> str:
     """`uv.lock` re-resolved with `package` upgraded to `version`, in a build container (registries only)."""
     with tempfile.TemporaryDirectory(prefix="unbidden-relock-") as tmp:
         ctx = Path(tmp)
-        for path in files:
+        # The whole tree at `rev`, not only the manifests: uv builds the project's own metadata, and a build backend
+        # reads more than pyproject.toml (sqlmodel, campaign 13: pdm validates `license-files` and reads the version
+        # from the package; with the manifests alone every relock failed).
+        (ctx / "p").mkdir()
+        archive = subprocess.run(["git", "-C", str(repo), "archive", "--format=tar", rev], capture_output=True,
+                                 check=True).stdout  # fmt: skip
+        subprocess.run(["tar", "-x", "-C", str(ctx / "p")], input=archive, check=True)
+        for path in files:  # what the caller names, kept as committed (also when outside the archive's attributes)
             data = subprocess.run(["git", "-C", str(repo), "show", f"{rev}:{path}"], capture_output=True,
                                   check=True).stdout  # fmt: skip
             (ctx / "p" / path).parent.mkdir(parents=True, exist_ok=True)
@@ -76,7 +133,9 @@ def relock_uv(repo: Path, rev: str, files: list[str], package: str, version: str
         tag = f"unbidden-relock:{_norm(package)}-{version}".replace("+", "-")[:120]
         built = subprocess.run([docker, "build", "-q", "-t", tag, str(ctx)], capture_output=True, text=True)
         if built.returncode != 0:
-            raise ProvisionError(f"uv lock --upgrade-package {package}=={version} failed:\n{built.stderr[-1200:]}")
+            said = [ln for ln in built.stderr.splitlines() if "error" in ln.lower() or "Error:" in ln]
+            raise ProvisionError(f"uv lock --upgrade-package {package}=={version} failed:\n"
+                                 f"{chr(10).join(said[-6:])[-1200:] or built.stderr[-1200:]}")  # fmt: skip
         out = subprocess.run([docker, "run", "--rm", "--network", "none", tag, "cat", "/p/uv.lock"],
                              capture_output=True, text=True)  # fmt: skip
         subprocess.run([docker, "image", "rm", "-f", tag], capture_output=True, check=False)
@@ -115,6 +174,14 @@ class DepsLab:
 
             files = [f for f in _manifests(self.repo, rev, python) if not f.endswith(".txt") or "requirements" in f]
             return {"uv.lock": relock_uv(self.repo, rev, files, package, version)}
+        if manifest.endswith("pyproject.toml"):
+            text = subprocess.run(["git", "-C", str(self.repo), "show", f"{rev}:{manifest}"], capture_output=True,
+                                  text=True, check=True).stdout  # fmt: skip
+            bumped = bump_pyproject(text, package, version)
+            if bumped is None:
+                raise ProvisionError(f"{package} is not named in {manifest}: a transitive dependency without a lock "
+                                     "file is declared, not guessed")  # fmt: skip
+            return {manifest: bumped}
         raise ProvisionError(f"bumping a dependency in {manifest} is not supported yet (declared)")
 
     async def run(self, opp: Opportunity) -> DepsResult:
@@ -154,7 +221,10 @@ class DepsLab:
             except ProvisionError as exc:
                 result.blocked = f"the bumped dependencies do not install: {str(exc)[-400:]}"
                 return self._done(opp, result)
-            after = installed(self.runner, self.repo, sha, image)
+            # The installed packages are read from Unbidden's own environment of the candidate: the CI job's keeps
+            # the project where the job wants it (0.18.3); unread, the verdict says so instead of declining silently.
+            own = own_image(image)
+            after = installed(self.runner, self.repo, sha, own) if own is not None else None
             report = advisory_report(after or [], manifest, self.fetch)
             remaining = {str(f.extra.get("advisory")) for f in report.findings}
             before_all = {f["extra"]["advisory"] for f in opp.details.get("all_advisories", [])} or targeted
@@ -188,6 +258,8 @@ class DepsLab:
             reasons.append(f"no published fix yet, still open: {', '.join(sorted(unfixed))}")
         if new:
             reasons.append(f"new advisories with the bump: {', '.join(sorted(str(n) for n in new))}")
+        if after is None:
+            reasons.append("the candidate's installed packages could not be read: nothing is claimed")
         if not report.can_resolve:
             reasons.append(f"the advisories at the candidate could not all be read: {report.error}")
         verdict = Verdict(
