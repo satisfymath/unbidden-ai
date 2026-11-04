@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18800/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "GET /api/automations reports total: unverified against the stored data\tabierta\t1\twait",
+    "GET /api/automations/runs reports items[].attemptCount, total: unverified agains…\tabierta\t1\twait",
+    "GET /api/conversation-archive/records reports total: unverified against the stor…\tabierta\t1\twait",
+    "GET /api/conversations reports conversations[].requestCount, conversations[].rem…\tabierta\t1\tinvestigate",
+    "GET /api/dashboard/overview reports timeframe.bucketCount: unverified against th…\tabierta\t1\tinvestigate",
+    "GET /api/fleet/observability reports pressure.windows[].requestCount, pressure.w…\tabierta\t1\tinvestigate",
+    "GET /api/reports reports daily[].errorCount, daily[].cancelledCount: unverified …\tabierta\t1\tinvestigate",
+    "GET /api/request-logs reports total: unverified against the stored data\tabierta\t1\tinvestigate",
+    "GET /api/sticky-sessions reports stalePromptCacheCount, total: unverified agains…\tabierta\t1\tinvestigate"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "1 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "codex-lb",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 116 eventos · en vivo",
+    "todos los tipos",
+    "capability.need_changed",
+    "decision.made",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "model.called",
+    "policy.denied",
+    "world.changed",
+    "Trabajo terminado",
+    "03:37",
+    "next: [] · outcome: ok · seconds: 26.7",
+    "Trabajo iniciado",
+    "03:37",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "03:37",
+    "next: [\"research.consistency\"] · outcome: failed · seconds: 0",
+    "Política denegó",
+    "03:37",
+    "local_inference: the mandate denies local inference, and this call may not go remote: production_data never leaves this machine",
+    "Trabajo iniciado",
+    "03:37",
+    "doing: checking consistency · stage: found · subject: opp_33eed88d01524290",
+    "Trabajo terminado",
+    "03:37",
+    "next: [\"research.consistency\"] · outcome: failed · seconds: 0",
+    "Política denegó",
+    "03:37",
+    "local_inference: the mandate denies local inference, and this call may not go remote: production_data never leaves this machine",
+    "Trabajo iniciado"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "codex-lb",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 10 oportunidades, ordenadas por evidencia",
+    "L1 sospecha",
+    "GET /api/automations reports total: unverified against the stored data",
+    "world · bugs · wait · 04 nov, 03:23",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "GET /api/automations/runs reports items[].attemptCount, total: unverified against the stored data",
+    "world · bugs · wait · 04 nov, 03:23",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "GET /api/conversation-archive/records reports total: unverified against the stored data",
+    "world · bugs · wait · 04 nov, 03:23",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "GET /api/conversations reports conversations[].requestCount, conversations[].remainingAccountCount, conversations[].remainingModelCount: unverified against the stored data",
+    "world · bugs · investigate · 04 nov, 03:23",
+    "abierta",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "1 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

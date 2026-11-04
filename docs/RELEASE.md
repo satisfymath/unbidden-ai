@@ -1,4 +1,43 @@
-# Unbidden 0.17.1, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.18.0, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.18.0 (2026-11-04): Unbidden brings an app up by itself, L5 beyond latency, every model answer kept
+
+What a large autonomous run over many repositories needs, proven on a rehearsal before it.
+
+- **`unbidden host up | down | status`** (`operate/bringup.py`): the application brought up from the repository's
+  own compose file, rendered by Docker Compose with the repository's example env values and generated secrets
+  (example placeholders never used), host ports remapped to free local ones, fixed container names dropped, an
+  isolated project; migrations in the application's own service when the database is empty (alembic, Django,
+  Flask-Migrate); synthetic rows from the database's own catalog; the health URL found (a documented OpenAPI health
+  route first, then the usual paths, Django's admin login, local TLS proxies); the deploy steps written as this same
+  command, the probe interval at 1 s, the reconnaissance settled, and the rollback drill run against the latest
+  commit with the same migrations. Gated by `operations.self_host` (`auto`: autonomous, or a person's `--yes`).
+- **L5 beyond latency**: a security, quality or correctness change reaches L5 by a *verified deploy*
+  (`verified-deploy-v1`): the deploy containing the merge is healthy, no endpoint fails more, both deploys are
+  attributable, and for a security fix the fixed version is what the running container holds. It claims no measured
+  effect and is kept apart from measured L5 everywhere.
+- **Evidence**: every model call, local or remote, leaves a redacted transcript (request as sent, answer, tokens,
+  cost); `unbidden export` writes a workspace's events, decisions, experiments, verdicts, proposals, deployments,
+  transcripts and its own spend rows as JSONL with a manifest of hashes, refused if the secret scanner finds anything.
+- **Stale pull requests**: when a merge moves the base, an open pull request measured on the old base is closed and
+  its opportunity opened again at the new head, so it is measured and proposed afresh.
+- **CI-job environment**: the tests run in the environment their last test step saw (codex-lb sets up bun between
+  two test steps); the map probes Flask routes and a self-hosted health route on the service's port.
+- **Harness** (`bench/campaign13`): copies `c13-<name>` keep the team's test workflows and drop what publishes and
+  Dependabot's config; Level B is parallel-safe (ports per worker, locked summaries); `run_final` schedules N
+  workers; apps without a hand lab use `unbidden host up`; libraries merge on green CI with nothing deployed; every
+  run's export is kept; the report joins A and B per repository and compares with campaign 12 with Wilson intervals.
+
+Rehearsal (US$0.33 from s13-dev, autonomous, frontier models only):
+
+| Repository | What Unbidden did on its own |
+|---|---|
+| fst | found dnspython 2.8.0's advisory, bumped it to 2.9.0, the copy's CI green, merged, deployed: **L5 by verified deploy** (security); its index proposal (GET /api/v1/items/ 18.3 → 5.9 ms) went stale when the base moved, which 0.18.0 now measures again |
+| rich | four lint findings declined: the team's CI runs ruff the same way and passes (Unbidden's environment, not the code's): no pull request, correctly |
+| codex-lb | brought up by itself (FastAPI, 86 s), rollback drill passed, autonomous; its CI test job then lacked bun, a 0.17.1 regression fixed here: 6422 tests pass again (pyjwt 476, unchanged) |
+
+Real bring-ups: codex-lb (FastAPI), misago (Django, drill passed), TimeTracker (Flask behind nginx/TLS: up,
+healthy, 500 users and 20000 activities seeded; drill declared, its head adds a migration).
 
 ## 0.17.1 (2026-11-04): three regressions of the CI-job environment fixed
 

@@ -7,6 +7,7 @@ force-pushed, and never the base branch.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import stat
 import subprocess
@@ -79,6 +80,9 @@ class GitHubClient:
 
     def get_pr(self, number: int) -> dict[str, Any]:
         return self._check(self._http.get(f"/repos/{self.slug}/pulls/{number}"))
+
+    def close_pr(self, number: int) -> dict[str, Any]:
+        return self._check(self._http.patch(f"/repos/{self.slug}/pulls/{number}", json={"state": "closed"}))
 
     def merge_pr(self, number: int, *, sha: str, method: str = "squash") -> dict[str, Any]:
         """Merge only if the pull request's head is still exactly the commit that was measured."""
@@ -327,6 +331,17 @@ class Publisher:
             raise PublishError("the pull request's CI is still running; merging waits for it")
         raise PublishError(f"the pull request's CI is {verdict}; a person decides this merge")
 
+    def _reopen(self, opportunity_id: str, head: str) -> None:
+        from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
+
+        opp = self.store.get("opportunities", opportunity_id, Opportunity)
+        if opp is None or opp.status is not OpportunityStatus.PROPOSED:
+            return
+        kept = {k: v for k, v in opp.details.items() if k not in ("experiment_id", "verdict", "candidate")}
+        opp.details = {**kept, "rev": head, "superseded": [*kept.get("superseded", []), opp.details.get("rev")]}
+        opp.status = OpportunityStatus.OPEN
+        self.store.put("opportunities", opp)
+
     def poll(self, proposal: Proposal) -> Proposal:
         """Follow an open pull request: merged, closed, or stale because its base moved."""
         if proposal.status is not ProposalStatus.PR_OPENED or proposal.pr is None:
@@ -337,8 +352,14 @@ class Publisher:
             proposal.status = ProposalStatus.MERGED
         elif pr.get("state") == "closed":
             proposal.status = ProposalStatus.CLOSED_UNMERGED
-        elif client.branch_head(self.mandate.egress.github.base_branch) != proposal.base_sha:
+        elif (head := client.branch_head(self.mandate.egress.github.base_branch)) != proposal.base_sha:
             proposal.status = ProposalStatus.STALE
+            # Its evidence was measured on a base that no longer is: the pull request is closed and the opportunity
+            # opened again at the new head, so the next cycle measures it there and proposes it afresh (0.18.0
+            # rehearsal: fst's index stayed "proposed" for good after a security merge moved the base).
+            with contextlib.suppress(PublishError):  # closing is tidiness; the opportunity is reopened either way
+                client.close_pr(proposal.pr.number)
+            self._reopen(proposal.opportunity_id, head)
             self.store.append_event(
                 Event(
                     type=EventType.PROPOSAL_STALE,

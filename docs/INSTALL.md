@@ -1,6 +1,6 @@
 # Installing Unbidden
 
-This is the one install guide. Unbidden 0.17.1 (experimental candidate; not 1.0) ships as one Python wheel with the
+This is the one install guide. Unbidden 0.18.0 (experimental candidate; not 1.0) ships as one Python wheel with the
 web workspace already built inside. The installer puts it in its own environment with its own Python 3.12 through
 [uv](https://docs.astral.sh/uv/); nothing else on the machine changes. The end user needs no Node and no Python of
 their own.
@@ -26,7 +26,7 @@ runs `uv tool install --python 3.12 --reinstall` on the wheel; tells you if the 
 It never uses `sudo` and never prints a secret.
 
 On a terminal it shows one line per step with a mark when the step is done (`uv 0.9.x`, `Downloading unbidden
-0.17.1`, `sha256 verified`, `Installing unbidden 0.17.1`), then the installed path and the two commands that matter.
+0.18.0`, `sha256 verified`, `Installing unbidden 0.18.0`), then the installed path and the two commands that matter.
 What uv and curl print is kept in a log and shown only when a step fails. `--verbose` (or
 `UNBIDDEN_INSTALL_VERBOSE=1`) shows every line; so does a run without a terminal (CI, a pipe).
 
@@ -36,10 +36,10 @@ Build the files from a checkout (`make dist`: builds the web workspace with Node
 `SHA256SUMS`), serve the directory, point the installer at it. `http://` is accepted only for loopback addresses.
 
 ```sh
-make dist                                   # dist/unbidden_ai-0.17.1-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
+make dist                                   # dist/unbidden_ai-0.18.0-py3-none-any.whl (~950 KB), .tar.gz, SHA256SUMS
 (cd dist && python3 -m http.server 8777 --bind 127.0.0.1 &)
-UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.17.1
-unbidden --version                          # unbidden 0.17.1
+UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.18.0
+unbidden --version                          # unbidden 0.18.0
 ```
 
 Only the person building the wheel needs Node; the wheel carries the built assets, so the installed tool serves the
@@ -335,7 +335,7 @@ behind it.
 |---|---|
 | the installer, `unbidden --version`, `update`, `uninstall` | none |
 | `unbidden setup`, `unbidden key set` | one short inference call (8 tokens) when a key is pasted, and once for a key saved earlier that was never proven; a refused key (401) costs nothing |
-| `unbidden` (home), `status`, `route`, `spend`, `egress`, `key` | none |
+| `unbidden` (home), `status`, `route`, `spend`, `egress`, `export`, `key` | none |
 | `unbidden doctor`, `unbidden start` | none, except the same one short call for a saved key that was never proven |
 | `unbidden ui`: opening, restoring the layout, showing records, widgets created by the rules | none |
 | `chat`, informing (counts, status, tables, charts, explain a block, change a chart, compare two runs, undo) | none remote: the deterministic rules answer; when the option allows local inference the local model may plan the same tool calls (`chat.inform` is light and local-only) |
@@ -347,6 +347,30 @@ The monthly cap is one for every process of a workspace: the dashboard and the e
 (`SpendLedger.workspace_month_spend`). Every remote call reserves its worst cost in `~/.unbidden/spend.db` before it
 is sent and settles after; `unbidden spend` shows the cap a person entered, what was spent and the envelopes. The
 ledger is never reset by an install, update or uninstall.
+
+## Evidence: `unbidden export`
+
+Every model call, local or remote, leaves a **transcript** beside its model run (collection `transcripts` of
+`.unbidden/state.db`): the messages exactly as sent (role, source, content; pictures by their sha256 only), the tools
+and response schema, the answer (and its parsed JSON when JSON was asked), tokens, cost, the caller's `prompt_sha256`
+and the sha256 of the exact payload. It is written through the store, so every secret pattern is masked like in any
+record; each text field is cut at 200 000 characters and the cut is listed in `truncated`. No key, header or provider
+URL is ever part of it.
+
+```sh
+unbidden export                    # into .unbidden/export/<UTC timestamp>/
+unbidden export --out evidence/    # a new or empty directory; --json prints the manifest
+```
+
+The bundle is JSON Lines, one file per record kind: `events`, `audit`, `opportunities`, `hypotheses`,
+`experiment_specs`, `experiments`, `proposals`, `decisions`, `deploy_verdicts`, `deployments`, `holds`, `approvals`,
+`acceptances`, `actions`, `goal_runs`, `model_runs`, `transcripts`, `egress`, `needs`, `asks`, `blocks`,
+`deploy_ledger` (the store's deploy keys) and `spend` (this workspace's rows of `~/.unbidden/spend.db`, no content);
+plus `mandate.json` and `manifest.json` (Unbidden's version, the workspace, and each file's name, lines, bytes and
+sha256). Only records are read: never `.env`, credentials, `ui.json` or a database file. Every record is redacted
+again on its way out and every written file is scanned by the guardian's secret scanner; if anything is found, the
+whole bundle is deleted and the command exits 1 naming the file and the rule, never the value. Records of a dashboard
+served apart (`~/.unbidden/web`) are not part of the bundle.
 
 ## The dashboard: persistence and provenance
 
@@ -373,7 +397,7 @@ real on live sources only; deploy and rollback name the CLI command instead of r
 
 ```sh
 unbidden update                     # the latest published release
-unbidden update --version 0.17.1     # a fixed version: also how you roll back after a failed update
+unbidden update --version 0.18.0     # a fixed version: also how you roll back after a failed update
 unbidden uninstall                  # shows what would happen
 unbidden uninstall --yes            # uv tool uninstall unbidden-ai; data stays
 unbidden uninstall --purge --yes    # also deletes ~/.unbidden and this repository's .unbidden/ (listed first)

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import urllib.error
 import urllib.request
 from collections.abc import Callable
@@ -44,6 +45,45 @@ def installed(runner: SandboxRunner, repo: Path, rev: str, image: DependencyImag
     except (ValueError, IndexError):
         return None
     return [(str(n), str(v)) for n, v in rows if n]
+
+
+def installed_in_container(
+    container: str, docker: str = "docker", timeout_s: float = 60.0
+) -> list[tuple[str, str]] | None:
+    """(name, version) of every distribution the interpreter of a running container sees, read with `docker exec`
+    and the same snippet as the sandbox (`python`, then `python3`); None when nothing in it answered."""
+    for python in ("python", "python3"):
+        try:
+            out = subprocess.run([docker, "exec", container, python, "-c", LIST_INSTALLED], capture_output=True,
+                                 text=True, check=False, timeout=timeout_s)  # fmt: skip
+        except (OSError, subprocess.TimeoutExpired):
+            return None
+        if out.returncode != 0:
+            continue
+        try:
+            rows = json.loads(out.stdout.strip().splitlines()[-1])
+        except (ValueError, IndexError):
+            continue
+        return [(str(n), str(v)) for n, v in rows if n]
+    return None
+
+
+def normalize(name: str) -> str:
+    """A distribution's name as PyPI compares it (PEP 503)."""
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
+def version_of(packages: list[tuple[str, str]], name: str) -> str | None:
+    wanted = normalize(name)
+    return next((v for n, v in packages if normalize(n) == wanted), None)
+
+
+def at_least(version: str, fix: str) -> bool | None:
+    """Whether `version` is the fixed one or later; None when the two cannot be compared (never guessed)."""
+    try:
+        return _version_key(version) >= _version_key(fix)
+    except TypeError:
+        return None
 
 
 def pypi_vulnerabilities(name: str, version: str) -> list[dict[str, Any]] | None:

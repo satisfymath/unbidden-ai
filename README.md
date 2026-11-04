@@ -11,7 +11,7 @@ It runs on Meta models. **Muse Glimmer** runs locally through Ollama and is the 
 secrets, logs or production data. **Muse Spark** (Meta Model API) takes the heavy work when the content is
 allowed to leave. Private code reaches Spark only after the privacy bridge has renamed it.
 
-Built at the Meta Global AI Developer Hackathon (October 26 – November 4, 2026). Current version: **0.17.1,
+Built at the Meta Global AI Developer Hackathon (October 26 – November 4, 2026). Current version: **0.18.0,
 experimental candidate** (not 1.0; what that means is in [`docs/RELEASE.md`](docs/RELEASE.md)).
 
 ## What it has done on real repositories
@@ -43,10 +43,10 @@ curl -fsSL https://unbidden.cl/install.sh | sh
 **From local artifacts** (how the installer is tested, and how to install an unreleased build):
 
 ```sh
-make dist                                   # from a checkout: dist/unbidden_ai-0.17.1-py3-none-any.whl + SHA256SUMS
+make dist                                   # from a checkout: dist/unbidden_ai-0.18.0-py3-none-any.whl + SHA256SUMS
 (cd dist && python3 -m http.server 8777 --bind 127.0.0.1 &)
-UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.17.1
-unbidden --version                          # unbidden 0.17.1
+UNBIDDEN_INSTALL_BASE=http://127.0.0.1:8777 sh install.sh --yes --version 0.18.0
+unbidden --version                          # unbidden 0.18.0
 ```
 
 What the machine provides (each reported by `unbidden doctor` as required or optional for the option you chose):
@@ -83,7 +83,9 @@ production data stay on the machine; private code leaves only renamed by the pri
 `private_code_to_frontier: allow`; code counts as public only when GitHub confirms the repository is public. The
 egress gate re-checks the label and scans every payload before it leaves, whatever the router decided.
 `unbidden route` explains where each task would go without calling any model; `unbidden egress --payload` shows,
-byte for byte, everything that left.
+byte for byte, everything that left. `unbidden export` writes the workspace's evidence (records, the redacted transcript of every
+model call, spend, a manifest of sha256s) as files to publish, refusing if its secret scan finds anything
+([INSTALL.md](docs/INSTALL.md#evidence-unbidden-export)).
 
 ## Autonomy
 

@@ -1,0 +1,19 @@
+{
+ "campaign": 12,
+ "candidate": "8686674",
+ "source": "docs/bench/campaign12/REPORT.md at commit decc9db (phase 5 report, 2026-11-03); the records are docs/bench/campaign12/eval/ in that commit. Campaign 12 had no machine-readable aggregate in this tree: the figures below are copied by hand from the report, each with its section.",
+ "dimensions": {
+  "setup applied (Level A)": {"by_class": {"dev": [12, 12], "independent": [19, 19], "frontier": [8, 8]}, "where": "REPORT.md §2"},
+  "doctor without a missing requirement (Level A)": {"by_class": {"dev": [12, 12], "independent": [18, 19], "frontier": [8, 8]}, "where": "REPORT.md §2"},
+  "start / second start refused / stop (Level A)": {"by_class": {"dev": [12, 12], "independent": [19, 19], "frontier": [8, 8]}, "where": "REPORT.md §2"},
+  "checks executed, tests collected (Level A)": {"by_class": {"dev": [10, 12], "independent": [7, 19], "frontier": [1, 8]}, "where": "REPORT.md §3 (denominator: every repository of the class)"},
+  "Level B runs with >=1 opportunity": {"by_class": {"dev": [8, 8], "independent": [2, 16]}, "where": "REPORT.md §4"},
+  "Level B runs with >=1 experiment": {"by_class": {"dev": [5, 8], "independent": [1, 16]}, "where": "REPORT.md §4"},
+  "Level B runs with a pull request": {"by_class": {"dev": [3, 8], "independent": [1, 16]}, "where": "REPORT.md §5"},
+  "pull requests green on the exact head": {"by_class": {"dev": [4, 7], "independent": [1, 1]}, "where": "REPORT.md §6"},
+  "pull requests merged by the product": {"by_class": {"dev": [1, 7], "independent": [0, 1]}, "where": "REPORT.md §7"},
+  "pull requests verified independently": {"by_class": {"dev": [7, 7], "independent": [1, 1]}, "where": "REPORT.md §5 (verify.py, claim level)"},
+  "Level B runs with a verified live effect (L5)": {"by_class": {"dev": [1, 8], "independent": [0, 16]}, "where": "REPORT.md §8 (fst run 1: impact.judged and outcome.recorded on the merged change)"}
+ },
+ "spend": {"level_b_usd": 2.10, "level_b_runs": 24, "where": "REPORT.md opening paragraph and §1; §11 by class (independent US$0.2302, dev US$1.8713)"}
+}

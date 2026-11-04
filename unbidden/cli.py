@@ -642,7 +642,7 @@ def _drill(args: argparse.Namespace, ws: Workspace) -> int:
     from unbidden.operate.deploy import drill, health_url
 
     store = ws.store()
-    url = health_url(store)
+    url = health_url(store, ws.mandate())
     if url is None:
         err.print("no live health endpoint is known; run `unbidden map` while the system runs")
         return 2
@@ -659,6 +659,95 @@ def _drill(args: argparse.Namespace, ws: Workspace) -> int:
     mark = "[green]passed[/]" if record["passed"] else "[red]failed[/]"
     console.print(f"rollback drill {mark}: back {record['back']}, forth {record['forth']}")
     return 0 if record["passed"] else 1
+
+
+def _recon_after_host(store: Any, repo: Any) -> None:
+    """The reconnaissance a bring-up settles: the stack is up (started by Unbidden) and its databases are the ones
+    this project runs, read in their containers. A database the compose file keeps behind a profile that was not
+    started is not part of what runs (codex-lb's optional Postgres); before 0.18.0 it kept `start` refused."""
+    import yaml as _yaml
+
+    from unbidden.operate import bringup
+    from unbidden.setup.recon import KEY, status
+
+    rendered = repo / bringup.RENDERED
+    config = _yaml.safe_load(rendered.read_text()) if rendered.exists() else {}
+    record = dict(status(store) or {})
+    databases = {name: "container" for name, spec in (config.get("services") or {}).items()
+                 if str(spec.get("image") or "").split(":")[0].endswith("postgres")}  # fmt: skip
+    record.update(stack="started", databases=databases, by="unbidden host up")
+    record["complete"] = record.get("github") != "no_push"
+    store.set_value(KEY, record)
+
+
+def cmd_host(args: argparse.Namespace) -> int:
+    """Bring the application up from the repository's own compose file (operate/bringup.py), or take it down."""
+
+    import yaml
+
+    from unbidden.contracts.events import Event, EventType
+    from unbidden.contracts.guardian import Autonomy
+    from unbidden.guardian.mandate_edit import write_mandate
+    from unbidden.operate import bringup
+
+    ws = Workspace.find()
+    store = ws.store()
+    if args.action == "down":
+        record = bringup.down(ws.repo)
+        store.append_event(Event(type=EventType.DEPLOYED, actor="operator", payload={"self_host": "down", **record}))
+        if not _emit(args, record):
+            console.print(f"{record['project']}: {'down' if record['ok'] else record['why']}")
+        return 0 if record["ok"] else 1
+    if args.action == "status":
+        state = {k: v for k, v in bringup.load_state(ws.repo).items() if k != "env"}  # values stay on this machine
+        if not _emit(args, state):
+            console.print(state or "nothing brought up here")
+        return 0
+    mandate = ws.mandate()
+    policy = mandate.operations.self_host
+    autonomous = mandate.autonomy.merge_pull_requests is Autonomy.ALLOW
+    if policy == "deny" or (policy == "auto" and not (autonomous or args.yes or args.deploy)):
+        why = ("the mandate does not let Unbidden bring the application up (operations.self_host: deny)"
+               if policy == "deny" else "bringing the application up runs its build and containers: pass --yes, or "
+               "set operations.self_host: allow")  # fmt: skip
+        if not _emit(args, {"ok": False, "why": why}):
+            err.print(why)
+        return 2
+    with console.status("bringing the application up from its compose file"):
+        result = bringup.up(ws.repo, deploy=args.deploy, build=args.build or not args.deploy)
+    if result.ok and not args.deploy:
+        raw = yaml.safe_load(ws.mandate_path.read_text())
+        ops = raw["mandate"].setdefault("operations", {})
+        ops["deploy_steps"] = result.deploy_steps
+        ops["health_url"] = result.health_url
+        ops["probe_every_s"] = bringup.PROBE_EVERY_S  # the ≥100 requests per side a deploy is judged on, in minutes
+        change = {"project": result.project, "health_url": result.health_url, "deploy_steps": result.deploy_steps}
+        write_mandate(ws.mandate_path, raw, store, {"self_host": change}, actor="unbidden")
+        if not args.no_drill:
+            from unbidden.operate.deploy import drill
+
+            previous = bringup.same_schema_previous(ws.repo)
+            if previous and result.health_url:
+                with console.status(f"rollback drill: {previous[:12]} and back"):
+                    result.drill = drill(ws.repo, store, ws.mandate(), previous, result.health_url)
+            else:
+                result.drill = {"passed": False, "why": "no earlier commit with the same migrations to roll back to"}
+    if result.ok:
+        _recon_after_host(store, ws.repo)
+    record = result.as_dict()
+    store.set_value("self_host", record)
+    store.append_event(Event(type=EventType.DEPLOYED, actor="operator",
+                             payload={"self_host": "deploy" if args.deploy else "up", "ok": result.ok,
+                                      "health_url": result.health_url, "why": result.why}))  # fmt: skip
+    if _emit(args, record):
+        return 0 if result.ok else 1
+    if result.ok:
+        drilled = (result.drill or {}).get("passed")
+        console.print(f"[green]{result.project} is up[/]: {result.health_url}"
+                      + (f"; rollback drill {'passed' if drilled else 'failed'}" if result.drill else ""))  # fmt: skip
+    else:
+        err.print(f"{result.project}: {result.why}")
+    return 0 if result.ok else 1
 
 
 def cmd_hold(args: argparse.Namespace) -> int:
@@ -844,6 +933,13 @@ def why_lines(opp: Opportunity, data: dict[str, Any], attempts: list[EgressAttem
     if outcome:
         result = outcome.get("result", "recorded before results were classified")
         lines.append(f"outcome after deploy {outcome['deploy']}: {result}")
+        criteria = outcome.get("criteria")
+        if isinstance(criteria, dict) and criteria.get("criteria_version"):
+            lines.append(f"  criteria: {criteria['criteria_version']}")
+        if outcome.get("basis") == "verified-deploy":
+            from unbidden.publish.proposal import LIVE_LEVELS
+
+            lines.append(f"  {LIVE_LEVELS['verified-deploy']}")
         for reason in outcome.get("why", []):
             lines.append(f"  - {reason}")
         for confounder in outcome.get("confounders", []):
@@ -1250,6 +1346,35 @@ def cmd_egress(args: argparse.Namespace) -> int:
             console.print(a.payload, markup=False, highlight=False)
     if not attempts:
         console.print("Nothing has left this machine.")
+    return 0
+
+
+def cmd_export(args: argparse.Namespace) -> int:
+    """The workspace's evidence as files to publish: records, model transcripts, spend, mandate and a manifest."""
+    from pathlib import Path
+
+    from unbidden.export import ExportRefused, default_out, export_bundle
+
+    ws = Workspace.find()
+    ws.require()
+    out = Path(args.out).expanduser().resolve() if args.out else default_out(ws.dir)
+    store = ws.store()
+    try:
+        manifest = export_bundle(store, ws.mandate(), out)
+    except ExportRefused as exc:
+        err.print(f"[red]unbidden export:[/] {exc}")
+        return 1
+    except FileExistsError as exc:
+        err.print(f"[red]unbidden export:[/] {exc}")
+        return 2
+    finally:
+        store.close()
+    if _emit(args, {"out": str(out), **manifest}):
+        return 0
+    console.print(f"[bold]Evidence of {manifest['workspace']}[/] written to {out}")
+    for f in manifest["files"]:
+        console.print(f"  {f['name']:28} {f['lines']:>7} lines  {f['sha256'][:12]}")
+    console.print("[dim]every file was scanned for secrets; manifest.json holds the sha256 of each[/]")
     return 0
 
 
@@ -2374,6 +2499,12 @@ def build_parser() -> argparse.ArgumentParser:
     deploy_.add_argument("--reason", help="recorded with the deploy")
     drill_ = command("drill", cmd_drill, "prove rollback works before autonomy relies on it")
     drill_.add_argument("previous", nargs="?", help="the version to roll back to (default HEAD~1)")
+    host = command("host", cmd_host, "bring the application up from the repository's own compose file")
+    host.add_argument("action", nargs="?", choices=["up", "down", "status"], default="status")
+    host.add_argument("--yes", action="store_true", help="a person allows running the build and its containers")
+    host.add_argument("--deploy", action="store_true", help="rebuild and restart as brought up (the deploy step)")
+    host.add_argument("--build", action="store_true", help="rebuild the images")
+    host.add_argument("--no-drill", action="store_true", help="do not run the rollback drill after bringing it up")
     hold = command("hold", cmd_hold, "list holds, or release one (people only)")
     hold.add_argument("action", nargs="?", choices=["list", "release"], default="list")
     hold.add_argument("id", nargs="?")
@@ -2408,6 +2539,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     spend.add_argument("--envelopes", metavar="NAME=USD,...", help="split the authorization into capped envelopes")
     spend.add_argument("--envelopes-total", type=float, metavar="USD", help="what the envelopes may add up to")
+    export = command("export", cmd_export, "the evidence bundle of this workspace: records, transcripts, spend")
+    export.add_argument("--out", help="where the bundle goes (default: .unbidden/export/<timestamp>)")
     egress = command("egress", cmd_egress, "everything that left this machine, with the exact payloads")
     egress.add_argument("--payload", action="store_true")
     egress.add_argument("--last", type=int, default=30)

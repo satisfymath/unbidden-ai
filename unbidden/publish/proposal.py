@@ -15,6 +15,14 @@ LEVELS = {
     3: "L3 · lab improvement: the tool's findings are gone in an offline sandbox; behavior was not checked by tests",
     4: "L4 · functional validation: the findings are gone and the test suite shows no regression",
 }
+# Level 5 has two bases, never merged into one claim (`observe/live.py`): an effect measured after a deploy under
+# criteria fixed before it (latency, error ratio), or, for fixes whose effect traffic cannot show (security,
+# quality, correctness without a failing endpoint), a deploy verified healthy that runs the fix.
+LIVE_LEVELS = {
+    "measured-effect": "L5 · operational result: the effect was measured after the deploy, under criteria fixed before",
+    "verified-deploy": "L5 · verified deploy: deployed, healthy, the fix is in the running version; "
+    "no measured effect claimed",
+}
 
 
 AUTHORS = {

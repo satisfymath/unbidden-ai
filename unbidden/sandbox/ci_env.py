@@ -100,12 +100,12 @@ def service_ports(services: Any) -> list[tuple[str, str]]:
 TOOLCACHE = "act-toolcache"  # act keeps setup-python/uv/node downloads in this shared volume, outside the commit
 PREPARED = "/opt/unbidden-prepared"  # the job's workspace as it left it, inside the committed image
 ENV_FILE = "/opt/unbidden-job.env"
-# The job's environment as its first test step saw it: a later step may change it (pyjwt, campaign 13: a second
+# The job's environment as its last test step saw it: a later step may change it (pyjwt, campaign 13: a second
 # setup-python to 3.9 after the tests, so the job's final PATH found a Python without the tests' packages).
 TEST_ENV_FILE = "/opt/unbidden-test.env"
 WORKFLOW = ".unbidden-ci/job.yml"
 JOB_TIMEOUT_S = 3600.0
-RECORD_VERSION = "ci-env-13"  # part of the cache key: a record from an older layout is prepared again
+RECORD_VERSION = "ci-env-14"  # part of the cache key: a record from an older layout is prepared again
 Progress = Callable[[str], None]
 
 # A step that would reach outside the copy: coverage and test reports uploaded, releases, deploys, pushes,
@@ -245,9 +245,10 @@ def filtered_job(repo: Path, rev: str, workflow: str, job: str) -> tuple[str, di
             # A condition on another job's outputs (codex-lb: `needs.changes.outputs.backend == 'true'`): that job
             # does not run here, so the step runs as when the change touches it.
             step = {k: v for k, v in step.items() if k != "if"}
-        if not any(str(x.get("name", "")).startswith("unbidden: the tests") for x in steps) and runs_tests(
-            str(step.get("name") or ""), run_text
-        ):
+        # Before every test step, each one overwriting the last: the measured command runs all the job's test steps,
+        # so the environment is the one its last test step saw (codex-lb: bun is set up between two test steps;
+        # pyjwt: Python 3.9 is set up after them).
+        if runs_tests(str(step.get("name") or ""), run_text):
             steps.append({"name": "unbidden: the tests' environment", "shell": "bash",
                           "run": f"env -0 > {TEST_ENV_FILE}"})  # fmt: skip
         steps.append(step)

@@ -130,7 +130,9 @@ def deploy(
 def healthy(url: str, *, attempts: int = 30, every_s: float = 2.0) -> bool:
     for _ in range(attempts):
         try:
-            if httpx.get(url, timeout=5).status_code == 200:
+            # A local health URL may sit behind the app's own proxy with a self-signed certificate (TimeTracker).
+            local = httpx.URL(url).host in ("127.0.0.1", "localhost")
+            if httpx.get(url, timeout=5, verify=not local).status_code == 200:
                 return True
         except httpx.HTTPError:
             pass
@@ -166,9 +168,12 @@ def drill(repo: Path, store: Store, mandate: Mandate, previous: str, health_url:
     return record
 
 
-def health_url(store: Store) -> str | None:
-    """The live health endpoint the map knows (`GET …health…` with a published port), as a URL; None without one."""
+def health_url(store: Store, mandate: Mandate | None = None) -> str | None:
+    """The live health endpoint the map knows (`GET …health…` with a published port), as a URL; else the one the
+    mandate declares (`operations.health_url`, written by `unbidden host up`); None without one."""
     from unbidden.contracts.world import WorldModel
+
+    declared = mandate.operations.health_url if mandate is not None else None
 
     world = store.get("world", "world", WorldModel)
     health = next(
@@ -176,5 +181,5 @@ def health_url(store: Store) -> str | None:
         None,
     )
     if health is None or not health.attributes.get("port"):
-        return None
+        return declared
     return f"http://127.0.0.1:{health.attributes['port']}{health.name.split(' ', 1)[1]}"
