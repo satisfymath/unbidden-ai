@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18830/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "IndexError in format_unit_value (progressbar/widgets.py)\tdescartada\t2\tdecline",
+    "certifi 2026.5.20: 2 known vulnerabilities, fixed in 2026.10.18\tabierta\t1\twait",
+    "",
+    "2 fila(s)",
+    "actual",
+    "workspace",
+    "04 nov, 12:46",
+    "opportunities",
+    "UNBIDDEN"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "1 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "python-progressbar",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 62 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "analyzer.ran",
+    "connection.changed",
+    "decision.made",
+    "egress.allowed",
+    "egress.blocked",
+    "job.finished",
+    "job.started",
+    "model.called",
+    "model.fallback",
+    "opportunity.opened",
+    "repo.head_moved",
+    "world.changed",
+    "Trabajo terminado",
+    "12:45",
+    "next: [] · outcome: ok · seconds: 3",
+    "Decisión tomada",
+    "12:45",
+    "decline — 2 experiments found no proven fix",
+    "Trabajo iniciado",
+    "12:45",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "12:45",
+    "next: [\"director.sweep\"] · outcome: ok · seconds: 3.5",
+    "Nota del agente",
+    "12:45",
+    "text: opp_3a7f0b054afe43e5: no proven fix ()",
+    "Fallback de modelo",
+    "12:45"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "python-progressbar",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 2 oportunidades, ordenadas por evidencia",
+    "L2 reproducido",
+    "IndexError in format_unit_value (progressbar/widgets.py)",
+    "robustness · bugs · decline · 04 nov, 12:45",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "certifi 2026.5.20: 2 known vulnerabilities, fixed in 2026.10.18",
+    "pypi-advisories · security · wait · bloqueada · 04 nov, 12:44",
+    "abierta",
+    "—",
+    "IndexError in format_unit_value (progressbar/widgets.py)",
+    "hallazgo al lienzo",
+    "experimento al lienzo",
+    "L2 reproducido",
+    "descartada",
+    "robustness · bugs",
+    "IndexError in format_unit_value (progressbar/widgets.py)",
+    "IndexError: tuple index out of range. Found by a property-based test; falsifying example: test_format_unit_value_never_crashes( value=1.175494351e-38, unit='', # or any other generated value unit_scale=True,",
+    "Decisión decline",
+    "2 experiments found no proven fix"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "1 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

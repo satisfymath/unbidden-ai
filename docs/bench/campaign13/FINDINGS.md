@@ -58,3 +58,13 @@ Dated lines, newest last. Each says what was seen, where (record or log), and wh
   first L5 that is not latency; rich correctly proposed nothing; codex-lb ran autonomous on its own bring-up. Four
   defects found and fixed: Dependabot on the copies, a stale proposal never measured again, the exported spend of
   other campaigns, the tests' environment taken before the last test step.
+- 2026-11-04 · final pass, starts · Launched on this Mac (David), 6 workers, OrbStack raised to 44 GB. Two product
+  defects stopped it, both general, each fixed with its test and released before going on: (1) 0.18.1, five minutes
+  in: sqlmodel, a library whose compose file serves its tests, refused at start ("recon incomplete: stack down")
+  although its mandate denied deploys; a merge needs no running stack (0.18.2). (2) 0.18.2, half an hour in: six
+  libraries ended with no proposal, because wherever the team's CI job prepares the environment its Python keeps the
+  project where the job wants it (tox's environment), so the robustness probe found no pytest, mypy no `/deps/.venv`
+  and the advisories listed nothing, silently, since 0.16.0. Unbidden's own environment now goes beside the CI job's
+  (0.18.3); on marshmallow: mypy 3 findings, advisories 29, 6 opportunities where there were none, the probe runs.
+  The partial records are kept (`final-0.18.1-aborted`, `final-0.18.2-stopped`, about US$0.23 of s13-final). The
+  0.18.1 partial records were committed to main by mistake with 0.18.2 and are moved there.
