@@ -17,6 +17,8 @@ rehearsal_candidate: 357fb64cb2d07cbf9a9f878efe28736e46d7aff0  # 0.18.0 rehearsa
 rehearsal_wheel_sha256: e7d9e6b54ad3615b682eab6944af0aa5a5443461e4be80995e31576b21339525
 final_candidate: 5bbaaf39f8eaa65e31ca02d9ee70d894f6fd0e6d  # 0.18.6 (2026-11-04): the final pass, released wheel v0.18.6 (0.18.1-0.18.5 starts stopped: FINDINGS)
 final_wheel_sha256: 9615de540d10d7911abd337f1b692643232e9de799e502614df81a3d1fc97122
+rerun_candidate: 0230c67cbe2cad21c74d0e3ac768900d30c68a57  # 0.18.9 (2026-11-04): repositories whose result the 0.18.7/0.18.9 fixes change, run beside the final pass (envelope s13-confirm)
+rerun_wheel_sha256: 4b8477f4e4e484c84401fcfb676169795497894f14772376d7815b6e809f1036
 repos:
 - name: fst
   url: https://github.com/fastapi/full-stack-fastapi-template

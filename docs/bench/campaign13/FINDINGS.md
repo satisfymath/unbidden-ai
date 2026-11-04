@@ -92,3 +92,10 @@ Dated lines, newest last. Each says what was seen, where (record or log), and wh
   tree (sqlmodel: `mkdir coverage`, five bumps declined), a team CI that never runs on pull requests was waited for
   (dooit: two open security pull requests), and a `uv.lock` with a git source could not relock (harlequin: eight
   bumps; the image had no git, and the reason was lost). Records kept in `final-0.18.5-stopped`.
+- 2026-11-04 · final pass, an operator's mistake · To run the 0.18.9 rerun beside the pass, the campaign HOME was
+  copied and 0.18.9 installed into the copy; uv's tool receipt in the copy still named the original HOME's
+  `bin/unbidden`, so the install removed it there. For a few seconds the pass had no `unbidden`: 20 jobs (two in
+  flight, spoolman and harlequin) failed at once with FileNotFoundError and left no record (`failures-1.json`). The
+  link was restored, the orphaned agents stopped with `unbidden stop` and their stacks with `unbidden host down`,
+  and the 20 repositories resumed (`runner-2.log`, ports from 19000). The second HOME was then installed clean (its
+  copied tool removed, never through uv). The harness takes `C13_HOME` for a second HOME; the ledger stays one.
