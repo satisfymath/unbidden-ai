@@ -1,4 +1,23 @@
-# Unbidden 0.17.0, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.17.1, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.17.1 (2026-11-04): three regressions of the CI-job environment fixed
+
+Level A on 0.16.0 found three repositories that passed with 0.15.0 and stopped running. All three were in how the
+measurement used what the team's job prepared, not in the repositories:
+
+- **A step without a name, or with an expression in its name**, is found as act shows it, with the expressions
+  resolved (marshmallow: `run: uv run tox -e ${{ matrix.tox }}` shown as `uv run tox -e py310`; pyjwt: `name: Run tox
+  targets for ${{ matrix.python-version }}`). Before, no test step was found and Unbidden's own plan ran instead.
+- **The tests run in the environment their first step saw**, not the job's last: pyjwt switches to Python 3.9 after
+  its tests to combine coverage, and the final PATH found a Python without the tests' packages.
+- timetracker was already fixed by 0.17.0 (its services on localhost).
+
+| Repository | 0.15.0 | 0.16.0 | 0.17.1 |
+|---|---|---|---|
+| marshmallow | passed, 1192 | did not run | passed, 1192 |
+| pyjwt | passed, 476 | did not run | passed, 476 |
+| timetracker | 560 run, failures | did not run | its CI's tests: 169 of 169 pass |
+| humanize (control) | did not run | passed, 878 | passed, 878 |
 
 ## 0.17.0 (2026-11-03): the team's failing tests repaired, when its own CI fails them too
 
