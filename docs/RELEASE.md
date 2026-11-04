@@ -1,5 +1,16 @@
 # Unbidden 0.18.0, experimental candidate: the terminal app on the product branch, not 1.0
 
+## 0.18.3 (2026-11-04): beside the CI job's environment, Unbidden's own
+
+- **Types, advisories and robustness probes work where the team's CI job prepares the environment.** The final
+  pass's first libraries ended with nothing to propose: the CI job's Python keeps the project where the job wants it
+  (marshmallow: tox's own environment), so the robustness probe found no pytest, mypy no `/deps/.venv`, and the
+  advisories could not list the installed packages — silently, on every repository measured through its CI job since
+  0.16.0. Unbidden now installs its own environment of the same revision beside it: the team's checks still run in
+  the CI job's environment, while mypy, pyright, the advisories and the probe use Unbidden's. When that install
+  fails, it is said. Real check, marshmallow: mypy complete (3 findings), advisories complete (29), 6 opportunities
+  opened where there were none; the probe runs (4 property tests).
+
 ## 0.18.2 (2026-11-04): a merge needs no running stack
 
 - **An incomplete reconnaissance refuses only a start that may deploy.** The final pass's first minutes: sqlmodel, a

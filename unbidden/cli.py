@@ -1202,7 +1202,13 @@ def _probe(args: argparse.Namespace, ws: Workspace) -> int:
     if "python" not in images:
         err.print("robustness probes need a Python package")
         return 2
-    probe = RobustnessProbe(runtime.workspace.repo, runtime.store, runtime.brain, images["python"])
+    from unbidden.sandbox.provision import own_image
+
+    own = own_image(images["python"])
+    if own is None:
+        err.print("robustness probes need Unbidden's own Python environment, which could not be installed")
+        return 2
+    probe = RobustnessProbe(runtime.workspace.repo, runtime.store, runtime.brain, own)
     artifacts = runtime.workspace.dir / "artifacts"
     artifacts.mkdir(exist_ok=True)
 

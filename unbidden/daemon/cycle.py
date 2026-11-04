@@ -262,7 +262,16 @@ class Cycle:
             self.store.set_value("last_probe", {**record, "why": "no Python image could be built"})
             self.log(f"robustness probe of {package}: no Python image could be built")
             return
-        probe = RobustnessProbe(self.runtime.workspace.repo, self.store, self.runtime.brain, images["python"])
+        from unbidden.sandbox.provision import own_image
+
+        own = own_image(images["python"])
+        if own is None:
+            self.store.set_value(
+                "last_probe", {**record, "why": "Unbidden's own Python environment could not be installed"}
+            )
+            self.log(f"robustness probe of {package}: Unbidden's own Python environment could not be installed")
+            return
+        probe = RobustnessProbe(self.runtime.workspace.repo, self.store, self.runtime.brain, own)
         outcome = await probe_package(
             probe,
             rev,
