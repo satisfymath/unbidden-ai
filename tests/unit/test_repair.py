@@ -171,3 +171,13 @@ def test_when_the_traceback_stops_in_the_test_the_called_code_is_found() -> None
             "tools/add.py": "def add(): ...\n"}  # fmt: skip
     found = defined_by(test, "tests.test_core::test_add[1]", [*TRACKED, *code], lambda p: code.get(p, ""))
     assert found == ["src/calc/core.py"]
+
+
+def test_the_test_file_is_reduced_to_the_failing_tests() -> None:
+    from unbidden.lab.repair import only_tests
+
+    source = ("import pytest\nfrom calc import add\nX = 1\n\n@pytest.mark.parametrize('a', [1])\n"
+              "def test_add(a):\n    assert add(a, 1) == 2\n\ndef test_other():\n    pass\n")  # fmt: skip
+    reduced = only_tests(source, ["tests.test_core::test_add[1]"])
+    assert "def test_add" in reduced and "parametrize" in reduced and "X = 1" in reduced
+    assert "test_other" not in reduced

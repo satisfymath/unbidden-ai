@@ -31,6 +31,9 @@ from unbidden.contracts.experiment import SUITE, Experiment, TestOutcome, TestSu
 from unbidden.contracts.llm import LLMRequest, Message, Tier
 from unbidden.contracts.metric import FAILING_TESTS, Measurement, relative
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
+from unbidden.lab.context import SpliceError, payload_bytes, splice
+from unbidden.lab.context import render as render_context
+from unbidden.lab.context import select as select_context
 from unbidden.lab.evaluator import classify_tests, level_for, validates
 from unbidden.lab.fixlab import Candidate, added_suppressions, unified_patch
 from unbidden.lab.testsuite import TestPlan, run_suite, test_plan
@@ -43,7 +46,9 @@ from unbidden.store import Store
 SOURCE = "repair"
 ROUNDS = 3
 MAX_SOURCES = 3  # code files shown to the model: the deepest frames of the repository's own code
-SOURCE_CHARS = 60_000
+FAILURE_CHARS = 4_000  # the failures' reports shown to the model
+TEST_CHARS = 6_000  # the failing tests shown, reduced to them
+DEFAULT_PAYLOAD = 20_000  # the default remote cap (contracts/guardian.py RemoteModelPolicy)
 MAX_TESTS = 10  # failing tests per opportunity (one per test file)
 Progress = Callable[[str], None]
 TEST_PATH = re.compile(r"(?:^|/)(?:tests?|testing)/|(?:^|/)(?:test_[^/]*|[^/]*_tests?|conftest)\.py$")
@@ -123,6 +128,47 @@ def defined_by(test_source: str, test_name: str, tracked: list[str], read: Calla
                for w in wanted if w in imported or w in called):  # fmt: skip
             found.append(path)
     return found
+
+
+HOW_FILES = (
+    "Reply with the complete new content of each code file you change, each in its own fenced block whose "
+    "first line is `# file: <path>`. Change only the code files shown below. No explanations."
+)
+HOW_EXCERPTS = (
+    "The code is shown as excerpts. Reply only with the excerpts you change, each in its own fenced block "
+    "whose first line is exactly the excerpt's header, `# file: <path>:<start>-<end>`, followed by the "
+    "complete new text of those lines. Code outside the excerpts exists. No explanations."
+)
+_LINE = re.compile(r"(?P<path>[\w./\\-]+\.py)(?::|\", line )(?P<line>\d+)")
+
+
+def anchor_lines(path: str, texts: dict[str, str], targets: list[str], base: Path, also: str = "") -> list[int | None]:
+    """The lines of `path` an excerpt is centred on: where the failures' tracebacks pass through it, else where the
+    names the failing tests call are defined in it."""
+    lines = sorted({int(m.group("line")) for n in targets for m in _LINE.finditer(texts.get(n, ""))
+                    if m.group("path").replace("\\", "/").endswith(path)})  # fmt: skip
+    if lines:
+        return list[int | None](lines)
+    source = (base / path).read_text(errors="replace").splitlines()
+    names = {w for n in targets for w in re.findall(r"\w+", texts.get(n, ""))} | set(re.findall(r"\w+", also))
+    found = [i + 1 for i, text in enumerate(source)
+             if (m := re.match(r"\s*(?:async\s+def|def|class)\s+(\w+)", text)) and m.group(1) in names]  # fmt: skip
+    return list[int | None](found[:5]) or [None]
+
+
+def only_tests(source: str, names: list[str]) -> str:
+    """A test file reduced to the failing tests (their decorators and parameters), its imports and the module's
+    other statements (fixtures, constants, classes): what the model must read, within the mandate's payload cap."""
+    import ast
+
+    wanted = {n.split("::")[-1].split("[")[0] for n in names}
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return source
+    tree.body = [n for n in tree.body if not (isinstance(n, ast.FunctionDef | ast.AsyncFunctionDef)
+                 and n.name.startswith("test") and n.name not in wanted)]  # fmt: skip
+    return ast.unparse(tree) + "\n"
 
 
 def test_file_of(name: str, tracked: list[str], text: str = "") -> str | None:
@@ -228,6 +274,7 @@ class RepairLab:
         self.repo, self.store, self.brain, self.stack, self.image = repo, store, brain, stack, image
         self.runner = runner or SandboxRunner()
         self.progress, self.attempts, self.rounds = progress, attempts, rounds
+        self.problem = ""  # why the last attempt gave no usable change
 
     def _suite(self, rev: str, plan: TestPlan, files: dict[str, str]) -> TestSummary:
         work = snapshot(self.repo, rev)
@@ -239,6 +286,12 @@ class RepairLab:
             return run_suite(self.runner, work, self.image, plan, rounds=self.rounds)
         finally:
             discard(work)
+
+    def _payload_cap(self) -> int:
+        try:
+            return int(self.brain.mandate.egress.remote_models.max_payload_bytes)
+        except AttributeError:
+            return DEFAULT_PAYLOAD
 
     async def _candidate(self, opp: Opportunity, rev: str, targets: list[str], texts: dict[str, str],
                          feedback: str) -> Candidate | None:  # fmt: skip
@@ -254,40 +307,51 @@ class RepairLab:
                     code += [p for p in defined_by(test_source, name, tracked,
                                                    lambda q: (base / q).read_text(errors="replace"))
                              if p not in code]  # fmt: skip
-            # The deepest frames are closest to the cause: the last files a traceback passes through.
-            shown: dict[str, str] = {}
-            for path in reversed(code):
-                text = (base / path).read_text(errors="replace")
-                if len(shown) >= MAX_SOURCES or sum(map(len, shown.values())) + len(text) > SOURCE_CHARS:
-                    continue
-                shown[path] = text
-            if not shown:
+            if not code:
+                self.problem = "no code of the repository is on the failures' path or defines what the tests call"
                 return None
+            code = code[-MAX_SOURCES:]  # the deepest frames, closest to the cause
             test_path = str(opp.details["test_file"])
             prompt = load_prompt("repair_fix")
-            content = prompt.render(
-                failures="\n\n".join(f"{n}\n{texts.get(n, '')}" for n in targets)[-12000:],
-                test_path=test_path,
-                test_source=(base / test_path).read_text(errors="replace")[:20000],
-                sources="\n\n".join(f"The code file `{p}`:\n```python\n{t}\n```" for p, t in shown.items()),
-            )
+            failures = "\n\n".join(f"{n}\n{texts.get(n, '')[-3000:]}" for n in targets)[-FAILURE_CHARS:]
+            test_source = only_tests((base / test_path).read_text(errors="replace"), targets)[:TEST_CHARS]
+            fields = {"failures": failures, "test_path": test_path, "test_source": test_source}
+            overhead = payload_bytes(prompt.render(**fields, how=HOW_EXCERPTS, sources="")) + 1500
+            # What may leave per call (the mandate's remote cap) decides whole files or excerpts around the frames
+            # and definitions (lab/context.py, as FixLab); nothing partial is sent when even those do not fit.
+            anchors = [(p, line) for p in code for line in anchor_lines(p, texts, targets, base, test_source)]
+            selection = select_context(base, anchors, max(0, self._payload_cap() - overhead))
+            if selection.mode == "does_not_fit":
+                self.problem = (
+                    f"the code to repair does not fit in what the mandate lets leave per call: {selection.reason}"
+                )
+                return None
+            how = HOW_FILES if selection.mode == "files" else HOW_EXCERPTS
+            content = prompt.render(**fields, how=how, sources=render_context(selection, "#"))
             messages = [Message(role="user", content=content, source="repo")]
             if feedback:
                 messages.append(Message(role="user", content=f"A previous attempt failed: {feedback}", source="repo"))
             response = await self.brain.complete(LLMRequest(
                 purpose="lab.repair_fix", expect_files=True, tier=Tier.LOCAL, messages=messages,
-                prompt_sha256=prompt.sha256, max_tokens=min(16000, 2000 + sum(map(len, shown.values())) // 2),
+                prompt_sha256=prompt.sha256, max_tokens=min(16000, 2000 + selection.bytes // 2),
                 correlation_id=opp.id,
             ))  # fmt: skip
             answered = parse_files(response.content)
+            if selection.mode == "excerpts":
+                tests_answered = {p: c for p, c in answered.items() if is_test_path(p.split(":")[0])}
+                code_answered = {k: v for k, v in answered.items() if k not in tests_answered}
+                answered = {**splice(base, selection.excerpts, code_answered), **tests_answered}
+            shown = selection.files if selection.mode == "files" else {e.path: "" for e in selection.excerpts}
             files = {p: c for p, c in answered.items() if p in shown}
             files |= {p: c for p, c in answered.items() if is_test_path(p)}  # kept to be refused, never applied
             if not files:
+                self.problem = f"the answer changed none of the files shown ({', '.join(shown)}): {list(answered)[:5]}"
                 return None
             return Candidate(self.brain.author("lab.repair_fix"), files, unified_patch(base, files))
         except ProviderUnauthorized:
             raise
-        except (BrainError, ProviderError, CodeBlockError, OSError):
+        except (BrainError, ProviderError, CodeBlockError, SpliceError, OSError) as exc:
+            self.problem = f"{type(exc).__name__}: {str(exc)[:300]}"
             return None
         finally:
             discard(base)
@@ -317,7 +381,7 @@ class RepairLab:
             candidate = await self._candidate(opp, rev, targets, texts, feedback)
             if candidate is None:
                 feedback = "the answer had no usable file block for the code files shown"
-                result.notes.append(f"attempt {attempt + 1}: no usable change")
+                result.notes.append(f"attempt {attempt + 1}: no usable change ({self.problem})")
                 continue
             hides = weakening(candidate.patch, candidate.files)
             if hides:
@@ -363,7 +427,7 @@ class RepairLab:
                      f"{self.rounds} base rounds and pass in {self.rounds} of {self.rounds} with the change",
                      f"why the failure is the repository's: {opp.details.get('evidence')}",
                      *(notes if tests is TestOutcome.REGRESSION else [])],
-            caveats=["no test, conftest, skip or assertion was changed; only code the tracebacks pass through",
+            caveats=["no test, conftest, skip or assertion was changed; only code the failures pass through or the tests call",
                      *(notes if tests is not TestOutcome.REGRESSION else [])],
             measurements=[measurement],
         )  # fmt: skip

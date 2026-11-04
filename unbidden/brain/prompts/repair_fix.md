@@ -7,12 +7,11 @@ The failing tests and how they fail (their reports, traceback included):
 {{failures}}
 ```
 
-The test file `{{test_path}}`:
+The failing tests, from `{{test_path}}` (other tests of the file left out):
 ```python
 {{test_source}}
 ```
 
-{{sources}}
+{{how}}
 
-Reply with the complete new content of each code file you change, each in its own fenced block whose first line is
-`# file: <path>`. Change only the files shown above that are not tests. No explanations.
+{{sources}}
