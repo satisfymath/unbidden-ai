@@ -72,6 +72,8 @@ def test_the_workflow_is_reduced_to_the_test_job_on_linux_without_publishing(tmp
     names = [s.get("name") or s.get("uses") for s in job["steps"]]
     assert "Upload coverage" not in names and "Publish" not in names
     assert names[-1] == "unbidden: keep the prepared environment"
+    # the environment as the tests saw it is kept before them (pyjwt: a later setup-python changed PATH)
+    assert names[names.index("Tox tests") - 1] == "unbidden: the tests' environment"
     log = (
         "[Test/test] ⭐ Run Main Install Linux dependencies\n"
         "[Test/test]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/3] user= workdir=\n"
@@ -262,3 +264,19 @@ def test_at_measurement_localhost_reaches_the_jobs_services_by_name() -> None:
     line = localhost_forwards([("mysql", "3306"), ("web", "80")])
     assert "TCP-LISTEN:3306" in line and "TCP:mysql:3306" in line and "/dev/tcp/mysql/3306" in line
     assert ":80" not in line and localhost_forwards([]) == ""
+
+
+def test_a_step_without_a_name_is_found_by_its_resolved_command() -> None:
+    from unbidden.sandbox.ci_env import _runs_tests, shown_as  # pyright: ignore[reportPrivateUsage]
+
+    # marshmallow, campaign 13: act shows the step as its command with the matrix value resolved
+    job = yaml.safe_dump({"jobs": {"tests": {"steps": [{"uses": "actions/checkout@v4"},
+                                                       {"run": "uv run tox -e ${{ matrix.tox }}"}]}}})  # fmt: skip
+    log = ("[build/3.10] ⭐ Run Main uv run tox -e py310\n"
+           "[build/3.10]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/1] user= workdir=\n")  # fmt: skip
+    assert job_test_command(job, step_scripts(log)) == "bash -e /opt/unbidden-scripts/1"
+    assert _runs_tests(job, "uv run tox -e py310") and not _runs_tests(job, "uv run tox -e")
+    assert not shown_as({"run": "pytest -q"}, "pytest -x") and shown_as({"name": "T", "run": "x"}, "T")
+    # pyjwt: a name with an expression
+    assert shown_as({"name": "Run tox targets for ${{ matrix.python-version }}", "run": "python -m tox"},
+                    "Run tox targets for 3.12")  # fmt: skip

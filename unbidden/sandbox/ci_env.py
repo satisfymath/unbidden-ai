@@ -100,9 +100,12 @@ def service_ports(services: Any) -> list[tuple[str, str]]:
 TOOLCACHE = "act-toolcache"  # act keeps setup-python/uv/node downloads in this shared volume, outside the commit
 PREPARED = "/opt/unbidden-prepared"  # the job's workspace as it left it, inside the committed image
 ENV_FILE = "/opt/unbidden-job.env"
+# The job's environment as its first test step saw it: a later step may change it (pyjwt, campaign 13: a second
+# setup-python to 3.9 after the tests, so the job's final PATH found a Python without the tests' packages).
+TEST_ENV_FILE = "/opt/unbidden-test.env"
 WORKFLOW = ".unbidden-ci/job.yml"
 JOB_TIMEOUT_S = 3600.0
-RECORD_VERSION = "ci-env-11"  # part of the cache key: a record from an older layout is prepared again
+RECORD_VERSION = "ci-env-13"  # part of the cache key: a record from an older layout is prepared again
 Progress = Callable[[str], None]
 
 # A step that would reach outside the copy: coverage and test reports uploaded, releases, deploys, pushes,
@@ -242,6 +245,11 @@ def filtered_job(repo: Path, rev: str, workflow: str, job: str) -> tuple[str, di
             # A condition on another job's outputs (codex-lb: `needs.changes.outputs.backend == 'true'`): that job
             # does not run here, so the step runs as when the change touches it.
             step = {k: v for k, v in step.items() if k != "if"}
+        if not any(str(x.get("name", "")).startswith("unbidden: the tests") for x in steps) and runs_tests(
+            str(step.get("name") or ""), run_text
+        ):
+            steps.append({"name": "unbidden: the tests' environment", "shell": "bash",
+                          "run": f"env -0 > {TEST_ENV_FILE}"})  # fmt: skip
         steps.append(step)
     steps.append({
         "name": "unbidden: keep the prepared environment",
@@ -294,6 +302,28 @@ def step_scripts(log: str) -> dict[str, tuple[str, str, str]]:
     return found
 
 
+def _resolved(text: str) -> str:
+    """A regular expression for a step's text as act shows it: each `${{ ... }}` resolved to some value."""
+    return "".join(".+?" if part.startswith("${{") else re.escape(part)
+                   for part in re.split(r"(\$\{\{.*?\}\})", text))  # fmt: skip
+
+
+def shown_as(step: dict[str, Any], shown: str) -> bool:
+    """Whether act's name for a step (`shown`, as its log says) is this step: its `name:`, or for a step without one
+    its command, both with their expressions resolved by act (marshmallow, campaign 13: `run: uv run tox -e
+    ${{ matrix.tox }}` is shown as `uv run tox -e py310`; pyjwt: `name: Run tox targets for ${{ matrix.python-version
+    }}` as `Run tox targets for 3.12`)."""
+    name = str(step.get("name") or "")
+    if name:
+        return name == shown or ("${{" in name and bool(re.fullmatch(_resolved(name), shown)))
+    run_text = str(step.get("run") or "").strip()
+    first = run_text.splitlines()[0] if run_text else ""
+    if not first:
+        return False
+    # act may cut a long command when it names the step: a long shown name may match the command's beginning.
+    return bool(re.fullmatch(_resolved(first), shown) or (len(shown) >= 40 and re.match(re.escape(shown[:40]), first)))
+
+
 def test_command(job_text: str, scripts: dict[str, tuple[str, str, str]]) -> str | None:
     """The job's test steps as act ran them: the saved script of each step whose name or command runs tests, in
     order, in its working directory. Expressions such as `${{ matrix.os == 'x' && '--flag' || '' }}` were resolved by
@@ -308,7 +338,7 @@ def test_command(job_text: str, scripts: dict[str, tuple[str, str, str]]) -> str
                 continue
             if not runs_tests(name, run_text):
                 continue
-            ran = scripts.get(name) or next((v for k, v in scripts.items() if k == run_text.strip()[:60]), None)
+            ran = scripts.get(name) or next((v for k, v in scripts.items() if shown_as(step, k)), None)
             if ran is None:
                 continue
             cmd, path, directory = ran
@@ -428,7 +458,7 @@ def _runs_tests(job_text: str, name: str) -> bool:
     data = yaml.safe_load(job_text) or {}
     for definition in (data.get("jobs") or {}).values():
         for step in definition.get("steps") or []:
-            if str(step.get("name") or "") == name and runs_tests(name, str(step.get("run", ""))):
+            if shown_as(step, name) and runs_tests(str(step.get("name") or ""), str(step.get("run", ""))):
                 return True
     return False
 
@@ -546,6 +576,9 @@ def prepare(
         raise NotPreparable(f"the CI job left no container (act exit {done.returncode}): {log[-600:]}")
     try:
         dumped = run([docker, "exec", container, "cat", ENV_FILE], capture_output=True, text=True)
+        at_tests = run([docker, "exec", container, "cat", TEST_ENV_FILE], capture_output=True, text=True)
+        if at_tests.returncode == 0 and at_tests.stdout:
+            dumped = at_tests
         if dumped.returncode != 0:
             raise NotPreparable(f"the CI job ended before its environment was kept: {log[-600:]}")
         usable, failed_at = prepared_well(steps, text)
