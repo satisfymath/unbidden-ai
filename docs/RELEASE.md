@@ -1,4 +1,4 @@
-# Unbidden 0.18.0, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden release notes: experimental candidate, not 1.0
 
 ## 0.18.10 (2026-11-04): a result the director has not swept is work to come
 
