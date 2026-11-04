@@ -169,6 +169,11 @@ def ensure_copy(repo: dict[str, Any], human: list[dict[str, Any]] | None = None)
     # Dependabot: its dynamic workflow disabled, security pull requests off (settings, no commit), and whatever pull
     # requests it opened before that closed (not the agent's; never counted)
     gh("api", "-X", "DELETE", f"repos/{slug}/automated-security-fixes")
+    # The dependency graph on, as upstream has it: the team's `dependency-review` job fails on a repository without it
+    # ("not supported on this repository"), which is the copy's setting, not the change (oauthlib, final pass 0.18.5).
+    # Alerts only: security pull requests stay off (above).
+    graph = gh("api", "-X", "PUT", f"repos/{slug}/vulnerability-alerts")
+    state["dependency_graph"] = graph.returncode == 0
     bots = gh(
         "api",
         f"repos/{slug}/pulls?state=open&per_page=50",
