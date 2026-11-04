@@ -6,6 +6,9 @@
   0.18.5: reproducing its lint findings, the fix lab ran mypy in the CI job's image (no `/deps/.venv`), so every
   fix ended "cannot judge: incomplete reports from mypy". A tool that reads `/deps/.venv` now runs beside, in
   Unbidden's own environment of the same revision (0.18.3); the others still run in the CI job's.
+- **Each round of the team's own test step starts from the measured revision.** sqlmodel, the same pass: its CI
+  step runs `mkdir coverage`; rounds 2 and 3 failed on "File exists" in the tree round 1 left, and all five
+  security bumps (their advisories gone) were declined as infrastructure failures.
 - **The candidate goes through the team's formatter and type check from the installed project.** rich, the same
   pass: two pull requests red on `black --check` in every CI cell, with the note "black: not in the project's
   environment": the formatter ran in the CI job's image, where it is not on the PATH.

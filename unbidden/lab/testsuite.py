@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import shutil
+import subprocess
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -395,6 +396,16 @@ def without_coverage(plan: TestPlan) -> TestPlan | None:
     return replace(plan, argv=argv) if argv != plan.argv else None
 
 
+def reset_tree(work: Path, keep: list[str]) -> None:
+    """The snapshot back to its one commit: tracked files restored, everything else removed but `keep` (the image's
+    dependency links, the rounds' reports)."""
+    if not (work / ".git").exists():
+        return
+    subprocess.run(["git", "-C", str(work), "checkout", "-q", "--", "."], capture_output=True, check=False)
+    excludes = [arg for name in keep for arg in ("-e", f"/{name}")]
+    subprocess.run(["git", "-C", str(work), "clean", "-fdxq", *excludes], capture_output=True, check=False)
+
+
 def run_suite(
     runner: SandboxRunner,
     work: Path,
@@ -429,9 +440,14 @@ def run_suite(
         plan = replace(plan, argv=("bash", "-c", f"set -e\n{script}"), pytest=True, env=env,
                        source=f"the team's CI job, verbatim: {command[:200]}")  # fmt: skip
 
-    with_git(work, "the measured revision", exclude=list(getattr(image, "links", None) or {}))
+    links = list(getattr(image, "links", None) or {})
+    with_git(work, "the measured revision", exclude=links)
     n = 0
-    for _ in range(rounds):
+    for index in range(rounds):
+        if index and command:
+            # The team's own test step may write into the tree (sqlmodel's `mkdir coverage`, final pass 0.18.5: rounds 2
+            # and 3 failed on "File exists"); each round starts from the measured revision, as each CI run does.
+            reset_tree(work, keep=[*links, ".unbidden-junit"])
         result = Round(None, INFRA_FAILED, None)
         first_why = None
         for attempt in range(2):  # a round that tells nothing about the code is run once more, with one worker

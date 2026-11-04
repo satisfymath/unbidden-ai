@@ -102,3 +102,27 @@ def test_a_missing_tool_beside_a_real_failure_keeps_both_apart(tmp_path: Path) -
     assert summary.round_status == ["ran"] and summary.failed_per_round == [["t::c"]]
     assert summary.could_not_run == {"t::b": "git"}
     assert "1 test(s) could not run: the sandbox image lacks `git`" in str(summary.infra_why[0])
+
+
+def test_each_round_of_the_teams_own_step_starts_from_the_measured_revision(tmp_path: Path) -> None:
+    """sqlmodel, final pass 0.18.5: its CI step runs `mkdir coverage`; rounds 2 and 3 failed on "File exists" in the
+    tree round 1 left, and every security bump was declined for an infrastructure failure."""
+    import subprocess
+
+    work = tmp_path / "w"
+    work.mkdir()
+    (work / "app.py").write_text("x = 1\n")
+    subprocess.run(["git", "init", "-q", str(work)], check=True)
+    ci = DependencyImage(tag="ci", language="python", registries=[], env={}, links={}, runner_like=True,
+                         test_command="mkdir coverage && pytest")  # fmt: skip
+
+    class Runner(FakeRunner):
+        def run(self, spec: SandboxSpec, work: Path) -> SandboxResult:
+            if (work / "coverage").exists():
+                return SandboxResult(1, "", "mkdir: cannot create directory 'coverage': File exists", False, 1.0,
+                                     False, False)  # fmt: skip
+            (work / "coverage").mkdir()
+            return super().run(spec, work)
+
+    summary = run_suite(Runner(work, [(1, JUNIT)]), work, ci, PYTEST, rounds=3)  # type: ignore[arg-type]  # pyright: ignore[reportArgumentType]
+    assert summary.round_status == ["ran", "ran", "ran"], summary
