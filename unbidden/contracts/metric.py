@@ -61,6 +61,10 @@ ERROR_RATIO = Metric(name="error_ratio", unit="share of requests", direction="lo
 ADVISORIES = Metric(name="advisories", unit="count", direction="lower", improvement="security",
                     threshold="the targeted advisory gone, none new, no test regressed",
                     source="the vulnerability scanner in the sandbox")  # fmt: skip
+FAILING_TESTS = Metric(name="failing_tests", unit="tests failing in every round", direction="lower",
+                       improvement="correctness",
+                       threshold="every targeted test passes in 3 of 3 rounds, no test changed, no regression",
+                       source="the team's suite in the sandbox, 3 rounds per side")  # fmt: skip
 FLAKY_FAILURES = Metric(name="flaky_failures", unit="failing reruns", direction="lower", improvement="quality",
                         threshold="0 failures in 10 reruns where the base failed at least once",
                         source="the team's suite rerun in the sandbox")  # fmt: skip

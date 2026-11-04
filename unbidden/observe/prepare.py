@@ -59,7 +59,8 @@ def checks_record(repo: Path, rev: str, mandate: Mandate, *, timeout_s: float = 
             "blind_spots": list(stack.blind_spots),
         }  # fmt: skip
         image = provision(repo, rev, py, policy=PolicyEngine(mandate))
-        record["image"] = {"tag": image.tag, "notes": list(image.notes)}
+        record["image"] = {"tag": image.tag, "notes": list(image.notes),
+                           "ci_tests_failed": getattr(image, "ci_tests_failed", None)}  # fmt: skip
         plan = test_plan(repo, rev, stack, "python")
         if plan is None:
             record |= {"status": "no_plan", "why": "no test job to run (no CI job and no test files found)"}
@@ -80,10 +81,12 @@ def checks_record(repo: Path, rev: str, mandate: Mandate, *, timeout_s: float = 
                 "failed": summary.failed_per_round[0][:50],
                 "why": summary.infra_why[0] if summary.infra_why else None,
                 "failures": summary.failure_messages,
+                "failure_texts": summary.failure_texts,  # tracebacks: what a repair of the team's failures reads
                 # the environment's, apart from the code's failures: how many tests, which tools the image lacks
                 "could_not_run": {
                     "tests": len(summary.could_not_run),
                     "lacks": sorted(set(summary.could_not_run.values())),
+                    "by_test": sorted(summary.could_not_run)[:200],
                 },
             }
     except Exception as exc:  # the environment could not be built: that is the finding

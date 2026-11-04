@@ -172,6 +172,36 @@ class Cycle:
         apart = f", {cnr['tests']} could not run: the image lacks {', '.join(cnr['lacks'])}" if cnr.get("tests") else ""
         self.log(f"the project's own checks at {rev[:12]}: {record.get('status')} "
                  f"({record.get('collected')} collected, {len(record.get('failed') or [])} failed{apart})")  # fmt: skip
+        await self._open_repairs(rev, found)
+
+    async def _open_repairs(self, rev: str, found: dict[str, Any]) -> None:
+        """The team's tests that fail here, opened for a repair only when the team's own CI fails them too: the
+        repository's failure, never Unbidden's environment (campaign 13, David's rule; `lab/repair.py`)."""
+        from unbidden.lab.repair import ci_evidence, repair_opportunities, tracked_files
+
+        if found.get("status") != "failed" or not found.get("collected"):
+            return
+        github, _, _ = await asyncio.to_thread(self._ci_verdicts, rev, self.runtime.workspace.mandate())
+        evidence = ci_evidence(github, (found.get("image") or {}).get("ci_tests_failed"))
+        if evidence is None:
+            self.log(f"the failing tests at {rev[:12]} are not repaired: the team's CI does not fail them the same "
+                     f"way (GitHub: {github or 'not read'}; its job here: "
+                     f"{(found.get('image') or {}).get('ci_tests_failed')})")  # fmt: skip
+            return
+        repo = self.runtime.workspace.repo
+        opened = 0
+        for opp in repair_opportunities(rev, found, tracked_files(repo, rev), evidence):
+            if self.store.get_by_key("opportunities", opp.dedup_key, Opportunity) is not None:
+                continue
+            self.store.put("opportunities", opp, key=opp.dedup_key)
+            self.store.append_event(Event(type=EventType.OPPORTUNITY_OPENED, actor="research", entity_id=opp.id,
+                                          payload={"source": opp.source, "title": opp.title}))  # fmt: skip
+            opened += 1
+        if opened:
+            self.log(
+                f"{opened} repair opportunit{'y' if opened == 1 else 'ies'} of the team's failing tests ({evidence})"
+            )
+            self._wake(f"repair:{rev[:12]}")
 
     async def world_refresh(self, _: Job) -> None:
         """The running system, mapped again without waiting for a commit: data grows, a migration is applied, a
@@ -530,6 +560,12 @@ class Cycle:
                 self.runtime.workspace.repo, self.store, stack, images["python"],
                 PolicyEngine(self.runtime.workspace.mandate()), progress=self.log,
             ).run(opp)  # fmt: skip
+        elif opp.source == "repair":
+            from unbidden.lab.repair import RepairLab
+
+            result = await RepairLab(
+                self.runtime.workspace.repo, self.store, self.runtime.brain, stack, images["python"], progress=self.log
+            ).run(opp)
         elif opp.source == "robustness":
             from unbidden.lab.robust import RobustLab
 

@@ -171,6 +171,8 @@ def _junit_failures(path: Path) -> list[str] | None:
 
 
 MESSAGES_KEPT = 20
+TEXTS_KEPT = 10  # failures whose whole report is kept (a repair reads their tracebacks)
+TEXT_CHARS = 6000
 # A failure that is the environment's, not the code's: the test asked for an executable the sandbox image does not
 # hold (a bare name: `git`, `msgfmt`; a CI runner has them, the dependency image only what the project installs).
 MISSING_TOOL = re.compile(r"(?:FileNotFoundError|OSError): \[Errno 2\] No such file or directory: '(?P<tool>[\w.+-]+)'")
@@ -222,7 +224,7 @@ def missing_tool(message: str) -> str | None:
     return found.group("tool") if found else None
 
 
-def _junit(path: Path) -> tuple[list[str], int, dict[str, str], dict[str, str]] | None:
+def _junit(path: Path) -> tuple[list[str], int, dict[str, str], dict[str, str], dict[str, str]] | None:
     """Failing test names, how many test cases the report holds, each failure's message (its first lines, for the
     first `MESSAGES_KEPT`) and, over every failure, the executable the environment lacks when the message names one
     (test -> tool); or None without a report."""
@@ -232,6 +234,7 @@ def _junit(path: Path) -> tuple[list[str], int, dict[str, str], dict[str, str]] 
     failed: list[str] = []
     messages: dict[str, str] = {}
     lacking: dict[str, str] = {}
+    texts: dict[str, str] = {}  # the whole report of the first failures (traceback included), for a repair
     cases = 0
     for case in root.iter("testcase"):
         cases += 1
@@ -242,10 +245,13 @@ def _junit(path: Path) -> tuple[list[str], int, dict[str, str], dict[str, str]] 
             text = (problem.get("message") or problem.text or "").strip()
             if len(messages) < MESSAGES_KEPT:
                 messages[name] = "\n".join(text.splitlines()[:4])[:400]
+            if len(texts) < TEXTS_KEPT:
+                whole = f"{case.get('file') or ''}\n{problem.get('message') or ''}\n{problem.text or ''}"
+                texts[name] = whole[-TEXT_CHARS:]
             tool = missing_tool(text) or missing_tool(problem.text or "")
             if tool:
                 lacking[name] = tool
-    return failed, cases, messages, lacking
+    return failed, cases, messages, lacking, texts
 
 
 @dataclass(frozen=True)
@@ -259,6 +265,7 @@ class Round:
     # Tests that could not run because the sandbox image lacks an executable (test -> tool): the environment's, not
     # the code's; kept apart from `failed` so a reader sees both counts.
     could_not_run: dict[str, str] = field(default_factory=dict[str, str])
+    texts: dict[str, str] = field(default_factory=dict[str, str])  # whole reports of the first failures
 
     @property
     def meaningful(self) -> bool:
@@ -331,6 +338,7 @@ def _round(
         return Round([], NOT_COLLECTED, 0, f"{_ended(result)} (no test report: no test ran)")
     names, collected = (report[0], report[1]) if report is not None else (None, None)
     messages = report[2] if report is not None else {}
+    texts = report[4] if report is not None else {}
     lacking = report[3] if report is not None else {}  # test -> executable the environment lacks
     if names and any(n == "pytest::internal" for n in names):
         # pytest itself crashed (TimeTracker, stage 10: an xdist worker died at the sandbox's limits, `Broken pipe`
@@ -362,7 +370,7 @@ def _round(
     if could_not_run:
         note = f"{len(could_not_run)} test(s) could not run: the sandbox image lacks {lacks}"
         why = f"{why}; {note}" if why else note
-    return Round(sorted(names), status, collected, why, messages, could_not_run=could_not_run)
+    return Round(sorted(names), status, collected, why, messages, could_not_run=could_not_run, texts=texts)
 
 
 def _ended(result: SandboxResult) -> str:
@@ -402,6 +410,7 @@ def run_suite(
     why: list[str | None] = []
     messages: dict[str, str] = {}
     could_not_run: dict[str, str] = {}
+    texts: dict[str, str] = {}
     from unbidden.sandbox.runner import with_git
 
     command = getattr(image, "test_command", None)
@@ -459,6 +468,7 @@ def run_suite(
         collected.append(result.collected)
         why.append(result.why)
         messages = messages or dict(result.messages)
+        texts = texts or dict(result.texts)
         could_not_run = could_not_run or dict(result.could_not_run)
     shutil.rmtree(work / JUNIT_DIR, ignore_errors=True)
     return TestSummary(
@@ -468,5 +478,6 @@ def run_suite(
         collected_per_round=collected,
         infra_why=why,
         failure_messages=messages,
+        failure_texts=texts,
         could_not_run=could_not_run,
     )

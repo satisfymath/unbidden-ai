@@ -50,7 +50,7 @@ PREPARED = "/opt/unbidden-prepared"  # the job's workspace as it left it, inside
 ENV_FILE = "/opt/unbidden-job.env"
 WORKFLOW = ".unbidden-ci/job.yml"
 JOB_TIMEOUT_S = 3600.0
-RECORD_VERSION = "ci-env-9"  # part of the cache key: a record from an older layout is prepared again
+RECORD_VERSION = "ci-env-10"  # part of the cache key: a record from an older layout is prepared again
 Progress = Callable[[str], None]
 
 # A step that would reach outside the copy: coverage and test reports uploaded, releases, deploys, pushes,
@@ -503,6 +503,7 @@ def prepare(
                + (f"; publishing steps left out: {', '.join(skipped)}" if skipped else ""),),
         mount=mount, volumes=(f"{TOOLCACHE}:/opt/hostedtoolcache",), runner_like=True,
         test_command=test_command(text, step_scripts(log)),
+        ci_tests_failed=any(not ok and _runs_tests(text, name) for name, ok in steps),
     )  # fmt: skip
     environment = CiEnvironment(image=image, workflow=workflow, job=job, matrix=matrix, skipped=skipped, steps=steps,
                                 job_ok=done.returncode == 0, seconds=seconds, log_tail=_tail(log))  # fmt: skip
