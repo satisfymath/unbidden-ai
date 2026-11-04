@@ -48,12 +48,16 @@ class Tool:
     def in_package(self, path: str, argv: tuple[str, ...] | None = None) -> Tool:
         return replace(self, name=f"{self.name}:{path}", cwd=path, argv=argv or self.argv)
 
-    def _repo_path(self, path: str) -> str:
+    def _repo_path(self, path: str, mount: str = "/work") -> str:
+        # An environment the team's CI job prepared runs at its own workspace path, and tools report absolute paths
+        # there (rich: `/Users/…/ci-env/<key>/ws/rich/console.py`); a model's answer naming such a path was refused
+        # as unsafe, so no quality fix could land. Findings are always relative to the repository.
+        path = path.removeprefix(f"{mount.rstrip('/')}/")
         if self.cwd in (".", "") or path.startswith(f"{self.cwd}/"):
             return path
         return f"{self.cwd}/{path}"
 
-    def report(self, result: SandboxResult, argv: list[str]) -> AnalyzerReport:
+    def report(self, result: SandboxResult, argv: list[str], mount: str = "/work") -> AnalyzerReport:
         """Parse, then label every finding with this tool's own name and category."""
         report = self.parse(result, argv)
         findings = [
@@ -62,7 +66,7 @@ class Tool:
                 rule=f.rule,
                 severity=f.severity,
                 category=self.category,
-                path=self._repo_path(f.path),
+                path=self._repo_path(f.path, mount),
                 message=f.message,
                 line=f.line,
                 extra=f.extra,

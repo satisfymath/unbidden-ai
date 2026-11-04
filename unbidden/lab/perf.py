@@ -1254,7 +1254,7 @@ class PerfLab:
                 if tool.language != "python":
                     continue
                 result = self.runner.run(sandbox_spec(image, list(tool.argv), cwd=tool.cwd), work)
-                for f in tool.report(result, list(tool.argv)).findings:
+                for f in tool.report(result, list(tool.argv), image.mount).findings:
                     found[f"{f.tool} {f.rule} {f.path}: {f.message}"] += 1
             return found
         finally:

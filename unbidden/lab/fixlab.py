@@ -170,7 +170,7 @@ class FixLab:
         for tool in tools:
             result = self.runner.run(sandbox_spec(image, list(tool.argv), cwd=tool.cwd), work)
             with every_finding():  # compared before and after a fix: all of them, not the scan's capped list
-                reports.append(tool.report(result, list(tool.argv)))
+                reports.append(tool.report(result, list(tool.argv), image.mount))
         return reports
 
     # Candidates ----------------------------------------------------------------------------------------
