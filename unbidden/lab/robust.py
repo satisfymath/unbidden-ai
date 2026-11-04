@@ -29,7 +29,7 @@ from unbidden.lab.testsuite import run_suite, test_plan
 from unbidden.observe.stack import Stack
 from unbidden.provenance import provenance
 from unbidden.research.robustness import parse_crashes
-from unbidden.sandbox.provision import DependencyImage, link_dependencies, sandbox_spec
+from unbidden.sandbox.provision import DependencyImage, link_dependencies, own_image, sandbox_spec
 from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
 from unbidden.store import Store
 
@@ -87,7 +87,9 @@ class RobustLab:
             for path, content in files.items():
                 (work / path).parent.mkdir(parents=True, exist_ok=True)
                 (work / path).write_text(content)
-            link_dependencies(work, self.image)
+            # The probe's test needs pytest and Hypothesis: Unbidden's own environment, beside a CI job's (0.18.3).
+            image = own_image(self.image) or self.image
+            link_dependencies(work, image)
             argv = [
                 "python",
                 "-m",
@@ -101,7 +103,7 @@ class RobustLab:
                 "addopts=",
                 "--hypothesis-seed=0",
             ]
-            result = self.runner.run(sandbox_spec(self.image, argv, timeout_s=900), work)
+            result = self.runner.run(sandbox_spec(image, argv, timeout_s=900), work)
             return result.stdout + result.stderr
         finally:
             discard(work)

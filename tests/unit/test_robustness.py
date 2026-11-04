@@ -184,3 +184,36 @@ def test_a_package_whose_api_lives_in_its_init_is_probed(tmp_path: Path) -> None
     )
     assert probe_targets(tmp_path, rev, stack) == [("src/esc", 1)]
     assert public_functions(tmp_path, rev, "src/esc")[0].startswith("from esc import escape")
+
+
+def test_the_robustness_labs_reproduction_runs_in_unbiddens_own_environment(tmp_path: Path) -> None:
+    """Beside a CI job's environment (no pytest on its PATH: marshmallow, campaign 13) the probe's test runs in
+    Unbidden's own image, where pytest and Hypothesis are."""
+    from typing import Any
+
+    from unbidden.lab.robust import RobustLab
+    from unbidden.sandbox.provision import DependencyImage
+
+    repo = tmp_path / "r"
+    repo.mkdir()
+    git = ["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    (repo / "a.py").write_text("x = 1\n")
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    own = DependencyImage(tag="deps", language="python", registries=[], env={}, links={})
+    ci = DependencyImage(tag="ci", language="python", registries=[], env={}, links={}, runner_like=True, own=own)
+    seen: list[str] = []
+
+    class Runner:
+        def run(self, spec: Any, work: Path) -> Any:
+            seen.append(spec.image)
+
+            class R:
+                stdout, stderr = "1 passed", ""
+
+            return R()
+
+    lab = RobustLab(repo, None, None, None, ci, runner=Runner())  # type: ignore[arg-type]
+    lab._run_test("HEAD", {}, "test_probe.py")  # pyright: ignore[reportPrivateUsage]
+    assert seen == ["deps"]
