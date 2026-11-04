@@ -26,17 +26,17 @@
 8. UI and recovery: dashboard served and the browser walk passed 15/15 (100%, 95% CI 80-100%); a routed chat analysis 15/15 (100%, 95% CI 80-100%); second start after stop 15/15 (100%, 95% CI 80-100%); agent stopped at the end 15/15 (100%, 95% CI 80-100%).
 9. Interventions, latency and cost: interventions during autonomous runs 0 (any ends the attempt); human preparation 75 min counted apart; cycles that hit their bound 2; agent wall time 300 min; 157 model calls, US$1.3849 (ledger, list price); blocks recorded 0.
 
-### Level B, class **dev** (calibration: not independent evidence): 13 run(s) on 10 repositories (aegra, conduit, ctfd, fst, humanize, marshmallow, pyjwt, rich, spoolman, sqlmodel)
+### Level B, class **dev** (calibration: not independent evidence): 14 run(s) on 11 repositories (aegra, codex-lb, conduit, ctfd, fst, humanize, marshmallow, pyjwt, rich, spoolman, sqlmodel)
 
-1. Installation and onboarding: setup applied 13/13 (100%, 95% CI 77-100%); doctor without a missing requirement 13/13 (100%, 95% CI 77-100%); autonomous granted by the product 4/13 (31%, 95% CI 13-58%) (drill passed 2/2 lab runs).
+1. Installation and onboarding: setup applied 14/14 (100%, 95% CI 78-100%); doctor without a missing requirement 14/14 (100%, 95% CI 78-100%); autonomous granted by the product 5/14 (36%, 95% CI 16-61%) (drill passed 2/2 lab runs).
 2. Checks reproduced and coverage: Level A (same pins) is the record; a Level B cycle starts experiments only after them.
-3. Discovery and experiments: runs with ≥1 opportunity 12/13 (92%, 95% CI 67-99%); with ≥1 experiment 11/13 (85%, 95% CI 58-96%).
-4. Pull requests published by the agent: 26 in 9/13 runs (duplicated effects between cycles: 0).
+3. Discovery and experiments: runs with ≥1 opportunity 13/14 (93%, 95% CI 69-99%); with ≥1 experiment 12/14 (86%, 95% CI 60-96%).
+4. Pull requests published by the agent: 26 in 9/14 runs (duplicated effects between cycles: 0).
 5. CI observed on the exact head of those pull requests: green 20, red 6 / 26.
 6. Merges effective (on the copy, by the product): 7/26 pull requests.
-7. Deploys and verified effects: `operations.deployed` events 19 (the drill's deploy included); lab healthy after the second cycle 2/2.
-8. UI and recovery: dashboard served and the browser walk passed 13/13 (100%, 95% CI 77-100%); a routed chat analysis 13/13 (100%, 95% CI 77-100%); second start after stop 13/13 (100%, 95% CI 77-100%); agent stopped at the end 13/13 (100%, 95% CI 77-100%).
-9. Interventions, latency and cost: interventions during autonomous runs 0 (any ends the attempt); human preparation 57.7 min counted apart; cycles that hit their bound 4; agent wall time 589 min; 277 model calls, US$2.5565 (ledger, list price); blocks recorded 1.
+7. Deploys and verified effects: `operations.deployed` events 23 (the drill's deploy included); lab healthy after the second cycle 2/2.
+8. UI and recovery: dashboard served and the browser walk passed 14/14 (100%, 95% CI 78-100%); a routed chat analysis 14/14 (100%, 95% CI 78-100%); second start after stop 14/14 (100%, 95% CI 78-100%); agent stopped at the end 14/14 (100%, 95% CI 78-100%).
+9. Interventions, latency and cost: interventions during autonomous runs 0 (any ends the attempt); human preparation 65.7 min counted apart; cycles that hit their bound 6; agent wall time 724 min; 316 model calls, US$2.6014 (ledger, list price); blocks recorded 1.
 
 ### Level B, class **frontier**: 5 run(s) on 5 repositories (ai-avatar-system, archery, librephotos, netbox, resumeio-to-pdf)
 
@@ -56,6 +56,7 @@
 | ai-avatar-system | B1 | custom | 0 | 0 | 0 | - | 0 | 0 | none | 0 | 0.0597 | ok | code |
 | aiogramshopbot | B1 | custom | 3 | 3 | 3 | green,green,green | 1 | 1 | none | 0 | 0.023 | ok | code |
 | archery | B1 | custom | 0 | 0 | 0 | - | 0 | 1 | none | 0 | 0.0053 | ok | code |
+| codex-lb | B1 | autonomous | 0 | 0 | 0 | - | 0 | 4 | none | 0 | 0.0449 | ok | code |
 | conduit | B1 | custom | 0 | 0 | 0 | - | 0 | 1 | none | 0 | 0.0701 | ok | code |
 | ctfd | B1 | custom | 1 | 1 | 1 | red | 0 | 4 | none | 1 | 0.0765 | ok | code |
 | dinkydash | B1 | custom | 0 | 0 | 0 | - | 0 | 1 | none | 0 | 0.0159 | ok | code |
@@ -93,7 +94,7 @@
 | fst | B1 | dev | api-postgres | autonomous | passed | 58 | bugs 2, lint 3, performance 1, security 1 | 1 | L4 | #17 | green | 1 | 2 | L5 (verified-deploy-v1; verified after deploy 1:c2d276ddc4497c36663019687d3960f9e03a83e2) | verified | 0.4434 | 0.4434 | 24.8 | 0 | - | ok |
 | conduit | B1 | dev | api-postgres | custom | passed | 90 | security 17 | 0 | - | - | - | 0 | 1 | L1 | - | 0.0701 |  |  | 0 | - | ok |
 | spoolman | B1 | dev | api-postgres | autonomous | passed | 278 | bugs 1, performance 1, security 5 | 7 | L4,L4,L4,L4 | #12,#11,#10,#9 | green,green,green,green | 1 | 2 | L5 (verified-deploy-v1; verified after deploy 1:eacd90b80dcb98290cff75c0c3547df87bc6c1fd) | verified | 0.0567 | 0.0142 | 3.6 | 2 | raise to the final pass's per-repository cap 2 | ok |
-| codex-lb | A | dev | api-postgres | A only |  |  | - |  | - | - | - | 0 |  | - | - | 0.0 |  |  | 0 | - | - |
+| codex-lb | B1 | dev | api-postgres | autonomous | passed | 6422 | bugs 10, security 10 | 2 | - | - | - | 0 | 4 | L3 | - | 0.0449 |  |  | 0 | - | ok |
 | aegra | B1 | dev | api-postgres | autonomous | passed | 2429 | bugs 2, security 6 | 8 | L4,L4,L4 | #6,#5,#4 | red,red,red | 0 | 4 | L4 | - | 0.1742 | 0.0581 | 12.3 | 0 | - | ok |
 | aegra | B1 | dev | api-postgres | autonomous | passed | 2429 | bugs 2, security 6 | 9 | L4,L4,L4 | #9,#8,#7 | green,green,green | 1 | 6 | L5 (verified-deploy-v1; verified after deploy 1:600c12eaa65e24d074a6b29f31cc76ea594e6c72) | verified | 0.0824 | 0.0275 | 13.3 | 0 | - | ok |
 | ctfd | B1 | dev | web-flask | custom | passed | 679 | security 10 | 2 | L4 | #1 | red | 0 | 4 | L4 | - | 0.0765 | 0.0765 | 88.9 | 0 | - | ok |
@@ -149,16 +150,16 @@ Campaign 12 figures from `docs/bench/campaign12/REPORT.md at commit decc9db (pha
 | start / second start refused / stop (Level A) | dev | 12/12 (100%, 95% CI 76-100%) | no record | REPORT.md §2 |
 | start / second start refused / stop (Level A) | independent | 19/19 (100%, 95% CI 83-100%) | no record | REPORT.md §2 |
 | start / second start refused / stop (Level A) | frontier | 8/8 (100%, 95% CI 68-100%) | 2/2 (100%, 95% CI 34-100%) | REPORT.md §2 |
-| checks executed, tests collected (Level A) | dev | 10/12 (83%, 95% CI 55-95%) | 10/10 (100%, 95% CI 72-100%) | REPORT.md §3 (denominator: every repository of the class) |
+| checks executed, tests collected (Level A) | dev | 10/12 (83%, 95% CI 55-95%) | 11/11 (100%, 95% CI 74-100%) | REPORT.md §3 (denominator: every repository of the class) |
 | checks executed, tests collected (Level A) | independent | 7/19 (37%, 95% CI 19-59%) | 11/14 (79%, 95% CI 52-92%) | REPORT.md §3 (denominator: every repository of the class) |
 | checks executed, tests collected (Level A) | frontier | 1/8 (12%, 95% CI 2-47%) | 1/7 (14%, 95% CI 3-51%) | REPORT.md §3 (denominator: every repository of the class) |
-| Level B runs with >=1 opportunity | dev | 8/8 (100%, 95% CI 68-100%) | 12/13 (92%, 95% CI 67-99%) | REPORT.md §4 |
+| Level B runs with >=1 opportunity | dev | 8/8 (100%, 95% CI 68-100%) | 13/14 (93%, 95% CI 69-99%) | REPORT.md §4 |
 | Level B runs with >=1 opportunity | independent | 2/16 (12%, 95% CI 3-36%) | 13/15 (87%, 95% CI 62-96%) | REPORT.md §4 |
 | Level B runs with >=1 opportunity | frontier | not measured | 4/5 (80%, 95% CI 38-96%) | REPORT.md §4 |
-| Level B runs with >=1 experiment | dev | 5/8 (62%, 95% CI 31-86%) | 11/13 (85%, 95% CI 58-96%) | REPORT.md §4 |
+| Level B runs with >=1 experiment | dev | 5/8 (62%, 95% CI 31-86%) | 12/14 (86%, 95% CI 60-96%) | REPORT.md §4 |
 | Level B runs with >=1 experiment | independent | 1/16 (6%, 95% CI 1-28%) | 9/15 (60%, 95% CI 36-80%) | REPORT.md §4 |
 | Level B runs with >=1 experiment | frontier | not measured | 1/5 (20%, 95% CI 4-62%) | REPORT.md §4 |
-| Level B runs with a pull request | dev | 3/8 (38%, 95% CI 14-69%) | 9/13 (69%, 95% CI 42-87%) | REPORT.md §5 |
+| Level B runs with a pull request | dev | 3/8 (38%, 95% CI 14-69%) | 9/14 (64%, 95% CI 39-84%) | REPORT.md §5 |
 | Level B runs with a pull request | independent | 1/16 (6%, 95% CI 1-28%) | 8/15 (53%, 95% CI 30-75%) | REPORT.md §5 |
 | Level B runs with a pull request | frontier | not measured | 1/5 (20%, 95% CI 4-62%) | REPORT.md §5 |
 | pull requests green on the exact head | dev | 4/7 (57%, 95% CI 25-84%) | 20/26 (77%, 95% CI 58-89%) | REPORT.md §6 |
@@ -170,8 +171,8 @@ Campaign 12 figures from `docs/bench/campaign12/REPORT.md at commit decc9db (pha
 | pull requests verified independently | dev | 7/7 (100%, 95% CI 65-100%) | 7/26 (27%, 95% CI 14-46%) | REPORT.md §5 (verify.py, claim level) |
 | pull requests verified independently | independent | 1/1 (100%, 95% CI 21-100%) | 6/13 (46%, 95% CI 23-71%) | REPORT.md §5 (verify.py, claim level) |
 | pull requests verified independently | frontier | not measured | 1/5 (20%, 95% CI 4-62%) | REPORT.md §5 (verify.py, claim level) |
-| Level B runs with a verified live effect (L5) | dev | 1/8 (12%, 95% CI 2-47%) | 3/13 (23%, 95% CI 8-50%) | REPORT.md §8 (fst run 1: impact.judged and outcome.recorded on the merged change) |
+| Level B runs with a verified live effect (L5) | dev | 1/8 (12%, 95% CI 2-47%) | 3/14 (21%, 95% CI 8-48%) | REPORT.md §8 (fst run 1: impact.judged and outcome.recorded on the merged change) |
 | Level B runs with a verified live effect (L5) | independent | 0/16 (0%, 95% CI 0-19%) | 0/15 (0%, 95% CI 0-20%) | REPORT.md §8 (fst run 1: impact.judged and outcome.recorded on the merged change) |
 | Level B runs with a verified live effect (L5) | frontier | not measured | 0/5 (0%, 95% CI 0-43%) | REPORT.md §8 (fst run 1: impact.judged and outcome.recorded on the merged change) |
 
-Level B spend: campaign 12 US$2.1 over 24 runs (REPORT.md opening paragraph and §1; §11 by class (independent US$0.2302, dev US$1.8713)); campaign 13 US$4.0352 over 33 runs (ledger by run tag).
+Level B spend: campaign 12 US$2.1 over 24 runs (REPORT.md opening paragraph and §1; §11 by class (independent US$0.2302, dev US$1.8713)); campaign 13 US$4.0801 over 34 runs (ledger by run tag).

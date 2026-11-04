@@ -25,3 +25,4 @@ Traceback (most recent call last):
 FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'
 
 2026-11-04T18:10:21-0300 [B1] worker 3 starts on ports {'dashboard': 19030, 'ui_a': 19031, 'lab': 19032, 'lab_db': 19033}
+2026-11-04T20:31:55-0300 [B1] done in 8494 s: {"name": "codex-lb", "run": "B1", "mode": "autonomous", "deploy_target": "self_host", "self_host_ok": true, "export": true, "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/codex-lb/B1.json", "proposals_c1": 0, "proposals_c2": 0, "pulls_after": 24, "spent_usd": 0.0449, "blocks": [], "wall_s": 8368.9}

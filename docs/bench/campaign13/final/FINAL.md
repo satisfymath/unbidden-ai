@@ -1,6 +1,6 @@
 # Campaign 13, final pass
 
-Generated 2026-11-04T23:30+00:00 from the records in this directory (`bench/campaign13/evidence.py`).
+Generated 2026-11-04T23:41+00:00 from the records in this directory (`bench/campaign13/evidence.py`).
 
 Unbidden ran on its own, frontier models only, over the 39 repositories of the corpus. It worked on copies
 under `github.com/satisfymath`, and nothing went upstream. It found improvements and measured them, opened pull
@@ -11,12 +11,12 @@ The apps it brought up itself it then deployed and verified.
 
 | | |
 |---|---|
-| Repositories with a record | 31 of 39 |
+| Repositories with a record | 32 of 39 |
 | Pull requests opened by the agent | 44 (30 green on the team's CI) |
 | Improvements merged by the product, autonomously | **13** in 13 repositories (5 quality, 8 security; 14 merges, one fix merged in two runs) |
 | Merges verified independently (`verify.py`: ruff, or OSV advisories) | 13 of 13 |
 | L5, verified after the agent's own deploy | 3: fst, spoolman, aegra |
-| Model spend | US$4.04 |
+| Model spend | US$4.08 |
 
 ## Every merge
 
@@ -111,7 +111,7 @@ These are listed in `REPORT-aggregate.md`, one row each with its reason. The rea
 propose, the team's CI does not run the tool, no proven fix, a stack that does not build here, no compose
 file, or out of scope (TypeScript, Go, a monorepo subdirectory).
 
-Still running when this page was generated: brightbean-studio, codex-lb, gymhero, misago, recruitops-agent, timetracker, traefik-manager, weblate.
+Stopped before their record when the pass was closed at 20:36 -03 (the hackathon's deadline): brightbean-studio, gymhero, misago, recruitops-agent, timetracker, traefik-manager, weblate. Their partial logs are kept; nothing of them is counted.
 
 ## How this pass got here
 
@@ -122,6 +122,7 @@ The stopped starts are kept in `final-0.18.*-stopped/`. They are never added to 
 
 ## Where
 
+- `MATRIX.md`: everything the agent did, per repository: the matrix, then every opportunity with its decision.
 - `final-evidence.json`: this page as data, for the site.
 - `REPORT-aggregate.md`: every dimension per class with Wilson intervals, one joined row per repository, and
   the comparison with campaign 12.

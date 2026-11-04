@@ -435,5 +435,20 @@
   "spent_usd": 0.144,
   "blocks": [],
   "wall_s": 8284.9
+ },
+ {
+  "name": "codex-lb",
+  "run": "B1",
+  "mode": "autonomous",
+  "deploy_target": "self_host",
+  "self_host_ok": true,
+  "export": true,
+  "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/codex-lb/B1.json",
+  "proposals_c1": 0,
+  "proposals_c2": 0,
+  "pulls_after": 24,
+  "spent_usd": 0.0449,
+  "blocks": [],
+  "wall_s": 8368.9
  }
 ]

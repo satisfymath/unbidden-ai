@@ -3,3 +3,5 @@ remote:
 remote: GitHub found 50 vulnerabilities on satisfymath/c13-codex-lb's default branch (3 critical, 18 high, 23 moderate, 6 low). To find out more, visit:        
 remote:      https://github.com/satisfymath/c13-codex-lb/security/dependabot        
 remote: 
+/Users/david/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 3 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

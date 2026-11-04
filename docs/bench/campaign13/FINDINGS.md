@@ -99,3 +99,12 @@ Dated lines, newest last. Each says what was seen, where (record or log), and wh
   link was restored, the orphaned agents stopped with `unbidden stop` and their stacks with `unbidden host down`,
   and the 20 repositories resumed (`runner-2.log`, ports from 19000). The second HOME was then installed clean (its
   copied tool removed, never through uv). The harness takes `C13_HOME` for a second HOME; the ledger stays one.
+- 2026-11-04 · final pass closed at 20:36 -03 (David: the deadline) · Resources at the close (`final/resources-at-close.txt`):
+  1-minute load 17.4 on 18 CPUs, 19% of memory free (8.9 GB), Docker 43 GB with ~46 containers (the heaviest misago's
+  celery worker, 1 GB, and archery's MariaDB sidecars, ~0.5 GB each); 9 repositories in flight. Every agent was stopped
+  with `unbidden stop` (three that had lost their owner file with SIGTERM, one whose job thread kept starting sandboxes
+  with SIGKILL), every self-hosted stack with `unbidden host down`, sandboxes and CI-service sidecars removed. Seven
+  repositories have no record (timetracker, misago, brightbean-studio, traefik-manager, recruitops-agent, gymhero,
+  weblate) and are said as such; nothing of them is counted. Final: 32 of 39 with a record, 13 improvements merged
+  autonomously in 13 repositories, each verified independently (ruff, or OSV for the bumps), 3 L5 by verified deploy
+  (fst, spoolman, aegra). The pass's latency measurement was deferred on every app (load above a quarter of the CPUs).

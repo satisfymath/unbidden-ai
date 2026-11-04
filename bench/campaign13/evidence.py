@@ -166,7 +166,11 @@ def markdown(out: dict[str, Any]) -> str:
         "file, or out of scope (TypeScript, Go, a monorepo subdirectory).",
     ]
     if running:
-        lines += ["", f"Still running when this page was generated: {', '.join(running)}."]
+        lines += [
+            "",
+            f"Stopped before their record when the pass was closed at 20:36 -03 (the hackathon's deadline): "
+            f"{', '.join(running)}. Their partial logs are kept; nothing of them is counted.",
+        ]
     lines += [
         "",
         "## How this pass got here",
@@ -181,6 +185,7 @@ def markdown(out: dict[str, Any]) -> str:
         "",
         "## Where",
         "",
+        "- `MATRIX.md`: everything the agent did, per repository: the matrix, then every opportunity with its decision.",
         "- `final-evidence.json`: this page as data, for the site.",
         "- `REPORT-aggregate.md`: every dimension per class with Wilson intervals, one joined row per repository, and",
         "  the comparison with campaign 12.",

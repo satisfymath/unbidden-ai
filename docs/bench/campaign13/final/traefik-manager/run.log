@@ -26,3 +26,4 @@ Traceback (most recent call last):
 FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'
 
 2026-11-04T19:41:49-0300 [B1] worker 2 starts on ports {'dashboard': 19220, 'ui_a': 19221, 'lab': 19222, 'lab_db': 19223}
+2026-11-04T20:31:55-0300 [B1] worker 3 starts on ports {'dashboard': 19030, 'ui_a': 19031, 'lab': 19032, 'lab_db': 19033}
