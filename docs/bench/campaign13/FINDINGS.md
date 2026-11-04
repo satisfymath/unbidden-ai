@@ -29,3 +29,16 @@ Dated lines, newest last. Each says what was seen, where (record or log), and wh
   (self-hosted) recorded. Each defect found on the way was general and has its test (matrix of objects, shell form
   of act's commands, step names with durations, runner locale, setup-uv cache prune, host ports, publishing vs
   installing, the network rerun).
+- 2026-11-03 · repair · David's rule: Unbidden repairs the team's failing tests only when the team's own CI fails
+  them too. Checked on real repositories first, nothing opened, as the rule requires: timetracker now passes its
+  169 CI tests (its earlier 3 failures were the environment's); rdflib's job fails without naming a test; archery
+  (red on GitHub) passes all 1521 of its tests here and recruitops-agent's red CI is its runner lacking Playwright's
+  browser (a failure that names the environment is never repaired). Archery needed three general fixes to prepare at
+  all: steps that drive the host's Docker are left out, a service's fixed container name is dropped, and a fixed
+  host port is kept when free (act runs the job on the host's network, as GitHub, so that is how localhost reaches
+  the service); localhost forwarding to services at measurement; database clients in the runner image. Seeded
+  scenario (humanize copy, a commit that breaks `ordinal(13)`, labelled seeded, calibration not evidence): the
+  team's job fails its test step, one opportunity opens, the model's change is the exact inverse of the seeded
+  defect, the test passes 3/3, no regression in 878 tests, L4. Two defects found on the way: an assertion's
+  traceback never shows the code (the code the test calls is now found), and a 17 KB file exceeds the 20 KB
+  per-call cap (excerpts, as FixLab). Spend: US$0.007 from s13-dev.

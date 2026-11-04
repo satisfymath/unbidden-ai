@@ -427,7 +427,8 @@ class RepairLab:
                      f"{self.rounds} base rounds and pass in {self.rounds} of {self.rounds} with the change",
                      f"why the failure is the repository's: {opp.details.get('evidence')}",
                      *(notes if tests is TestOutcome.REGRESSION else [])],
-            caveats=["no test, conftest, skip or assertion was changed; only code the failures pass through or the tests call",
+            caveats=["no test, conftest, skip or assertion was changed; only code the failures pass through or the "
+                     "tests call",
                      *(notes if tests is not TestOutcome.REGRESSION else [])],
             measurements=[measurement],
         )  # fmt: skip
