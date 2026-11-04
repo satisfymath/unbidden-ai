@@ -1,5 +1,21 @@
 # Unbidden 0.18.0, experimental candidate: the terminal app on the product branch, not 1.0
 
+## 0.18.7 (2026-11-04): a crash fix and its regression test the team's CI can run
+
+- **The robustness lab puts its candidate through the team's formatter.** rich, final pass on 0.18.6: two crash
+  fixes found by the probe (`ZeroDivisionError` and `IndexError` in `_split_text`) were red on `black --check` in
+  every CI cell, only for the regression test file they add. The formatting step the fix lab has (0.18.6) is now one
+  function both labs use.
+- **Every round starts from the measured revision, whatever runs it.** 0.18.6 reset the tree between rounds only when
+  the CI job's own test step ran; sqlmodel's `mkdir coverage` comes from its CI steps as Unbidden translates them, so
+  rounds 2 and 3 still failed on "File exists" and its security bumps were declined again. Real check: sqlmodel's
+  268 tests run in all three rounds.
+- **Without Hypothesis in the project, the regression test is pinned to the falsifying example.** python-mss, the
+  same pass: the crash fix's regression test imported Hypothesis, which the project does not install, and failed to
+  import in every CI cell. When no manifest, lock or tox file names Hypothesis, the property test travels as a plain
+  test whose arguments default to the example Hypothesis found (decorators and imports gone); when that cannot be
+  done, the fix is not proposed and the reason is kept.
+
 ## 0.18.6 (2026-11-04): the labs' type checks and formatter run where the project is installed
 
 - **The fix lab and the performance lab run mypy and pyright in Unbidden's own environment.** reader, final pass on

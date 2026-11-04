@@ -64,6 +64,68 @@ class RobustResult:
     notes: list[str] = field(default_factory=list[str])
 
 
+def uses_hypothesis(repo: Path, rev: str) -> bool:
+    """Whether the project's declared dependencies (any manifest, lock or tox file) name Hypothesis."""
+    import subprocess
+
+    listed = subprocess.run(["git", "-C", str(repo), "ls-tree", "-r", "--name-only", rev], capture_output=True,
+                            text=True, check=False).stdout.split()  # fmt: skip
+    names = ("pyproject.toml", "setup.cfg", "setup.py", "tox.ini", "uv.lock", "poetry.lock", "Pipfile", "Pipfile.lock")
+    manifests = [f for f in listed if Path(f).name in names or re.search(r"requirements[^/]*\.(txt|in)$", f)]
+    for path in manifests:
+        text = subprocess.run(["git", "-C", str(repo), "show", f"{rev}:{path}"], capture_output=True, text=True,
+                              check=False).stdout  # fmt: skip
+        if re.search(r"\bhypothesis\b", text, re.IGNORECASE):
+            return True
+    return False
+
+
+def example_test(source: str, name: str, example: str) -> str | None:
+    """The property test `name` as a plain pytest test pinned to Hypothesis's falsifying `example`: decorators and
+    Hypothesis imports gone, each argument defaulting to the example's value (pytest passes no argument that has a
+    default). For a project that does not install Hypothesis (python-mss, final pass 0.18.6: the regression test
+    failed to import in every CI cell). None when the example or the test cannot be read so."""
+    text = example.strip()
+    if "(" not in text:
+        return None
+    if not text.rstrip().endswith(")"):
+        text += "\n)"
+    try:
+        call = ast.parse(text, mode="eval").body
+        module = ast.parse(source)
+    except SyntaxError:
+        return None
+    if not isinstance(call, ast.Call):
+        return None
+    values = {k.arg: k.value for k in call.keywords if k.arg}
+    found = None
+    body: list[ast.stmt] = []
+    for node in module.body:
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            names = [a.name for a in node.names]
+            mod = getattr(node, "module", None) or ""
+            if mod.startswith("hypothesis") or any(n.startswith("hypothesis") for n in names):
+                continue
+        if isinstance(node, ast.FunctionDef) and node.name == name:
+            args = [a.arg for a in node.args.args]
+            if set(args) - set(values):
+                return None
+            node.decorator_list = []
+            node.args.defaults = [values[a] for a in args]
+            found = node
+        body.append(node)
+    if found is None:
+        return None
+    module.body = body
+    out = ast.unparse(module) + "\n"
+    if re.search(r"\b(hypothesis|given|settings|st)\.|@given|@settings|\bst\b", out):
+        return None
+    return (
+        "# A regression test pinned to the falsifying example Hypothesis found (Hypothesis is not installed here).\n"
+        + out
+    )
+
+
 class RobustLab:
     def __init__(
         self,
@@ -147,6 +209,14 @@ class RobustLab:
         result = RobustResult()
         rev, package, name = opp.details["rev"], opp.details["package"], opp.details["test"]
         test = single_test(opp.details["tests_source"], name)
+        if not uses_hypothesis(self.repo, rev):
+            # The team's CI does not install Hypothesis: the regression test travels pinned to the example it found.
+            pinned = example_test(test, name, str(opp.details.get("example") or ""))
+            if pinned is None:
+                result.notes.append("the project does not use Hypothesis and the example could not be pinned: the "
+                                    "regression test would not import in the team's CI")  # fmt: skip
+                return result
+            test = pinned
         test_file = REGRESSION_FILE.format(name=re.sub(r"\W", "_", name.removeprefix("test_")))
         self.progress("reproducing the crash at the base")
         before = parse_crashes(self._run_test(rev, {test_file: test}, test_file), package)
@@ -189,6 +259,16 @@ class RobustLab:
             candidate = Candidate(
                 candidate.origin, files, candidate.patch + unified_patch(snapshot(self.repo, rev), {test_file: test})
             )
+            # The fix and its regression test as the team's formatter leaves them (rich, final pass 0.18.6: the test
+            # file was red on `black --check` in every CI cell).
+            from unbidden.lab.fixlab import in_team_format
+            from unbidden.observe.ci import ci_commands, team_formatter
+
+            formatter = team_formatter(ci_commands(self.repo, rev))
+            if formatter is not None:
+                candidate = in_team_format(self.runner, self.repo, rev, candidate, self.image, formatter, ".",
+                                           result.notes)  # fmt: skip
+                files = candidate.files
             experiment = Experiment(
                 opportunity_id=opp.id,
                 base_sha=rev,

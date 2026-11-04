@@ -217,3 +217,32 @@ def test_the_robustness_labs_reproduction_runs_in_unbiddens_own_environment(tmp_
     lab = RobustLab(repo, None, None, None, ci, runner=Runner())  # type: ignore[arg-type]
     lab._run_test("HEAD", {}, "test_probe.py")  # pyright: ignore[reportPrivateUsage]
     assert seen == ["deps"]
+
+
+def test_without_hypothesis_the_regression_test_is_pinned_to_the_falsifying_example(tmp_path: Path) -> None:
+    """python-mss, final pass 0.18.6: the crash fix's regression test imported Hypothesis, which the project does not
+    install; every CI cell failed to import it. It now travels as a plain test pinned to the example found."""
+    from unbidden.lab.robust import example_test, uses_hypothesis
+
+    source = (
+        "from hypothesis import given, settings\nimport hypothesis.strategies as st\nfrom mss.models import Monitor\n\n"
+        "@settings(max_examples=50)\n@given(left=st.integers(), width=st.integers())\n"
+        "def test_as_region(left, width):\n    Monitor.as_region({'left': left, 'width': width})\n"
+    )
+    example = "test_as_region(\n# Always failed.\nleft=0,  # or any\nwidth=-1,\n)"
+    pinned = example_test(source, "test_as_region", example)
+    assert pinned is not None and "hypothesis" not in pinned.split("\n", 1)[1]
+    assert "def test_as_region(left=0, width=-1):" in pinned and "@" not in pinned
+    assert example_test(source, "test_as_region", "test_as_region(left=0)") is None  # an argument without a value
+
+    repo = tmp_path / "r"
+    repo.mkdir()
+    (repo / "pyproject.toml").write_text('[project]\nname = "x"\ndependencies = ["mss"]\n')
+    git = ["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "x"], check=True)
+    assert not uses_hypothesis(repo, "HEAD")
+    (repo / "pyproject.toml").write_text('[project]\nname = "x"\n[dependency-groups]\ntest = ["hypothesis>=6"]\n')
+    subprocess.run([*git, "commit", "-qam", "y"], check=True)
+    assert uses_hypothesis(repo, "HEAD")
