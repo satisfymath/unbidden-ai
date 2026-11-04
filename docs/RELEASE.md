@@ -1,5 +1,13 @@
 # Unbidden 0.18.0, experimental candidate: the terminal app on the product branch, not 1.0
 
+## 0.18.2 (2026-11-04): a merge needs no running stack
+
+- **An incomplete reconnaissance refuses only a start that may deploy.** The final pass's first minutes: sqlmodel, a
+  library whose compose file serves its tests, was refused at `unbidden start` ("incomplete: stack down, postgres
+  unread") although its mandate allowed merges and denied deploys. A merge on the team's green CI needs no running
+  stack; a deploy does. With deploys denied the incomplete recon is now a warning; with deploys allowed it still
+  refuses.
+
 ## 0.18.1 (2026-11-04): a tool beside the application is never its health; the development runs as evidence
 
 - **Health on the application's own port.** misago's bring-up took mailpit's web page (`/` on its 8025) for the
