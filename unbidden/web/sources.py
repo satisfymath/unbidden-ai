@@ -425,7 +425,9 @@ def _record_opportunities(store: Store, activity: dict[str, Any], locator: str) 
                 else OpportunityStatus.OPEN,
                 evidence=[EvidenceRef(kind="analyzer_report", locator=locator, note="activity.json of a closed run")],
                 details={
-                    "outcome": {"result": p.get("outcome")} if p.get("outcome") else {},
+                    "outcome": {"result": p.get("outcome"), "criteria": {"criteria_version": p.get("criteria")}}
+                    if p.get("outcome")
+                    else {},
                     "recorded": {k: p.get(k) for k in ("held_checks", "current_rules", "pending_revalidation")},
                 },
             ),

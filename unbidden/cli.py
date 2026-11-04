@@ -844,6 +844,13 @@ def why_lines(opp: Opportunity, data: dict[str, Any], attempts: list[EgressAttem
     if outcome:
         result = outcome.get("result", "recorded before results were classified")
         lines.append(f"outcome after deploy {outcome['deploy']}: {result}")
+        criteria = outcome.get("criteria")
+        if isinstance(criteria, dict) and criteria.get("criteria_version"):
+            lines.append(f"  criteria: {criteria['criteria_version']}")
+        if outcome.get("basis") == "verified-deploy":
+            from unbidden.publish.proposal import LIVE_LEVELS
+
+            lines.append(f"  {LIVE_LEVELS['verified-deploy']}")
         for reason in outcome.get("why", []):
             lines.append(f"  - {reason}")
         for confounder in outcome.get("confounders", []):
