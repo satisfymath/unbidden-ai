@@ -20,6 +20,7 @@ from unbidden.sandbox.provision import (
     DependencyImage,
     ProvisionError,
     link_dependencies,
+    own_image,
     provision,
     sandbox_spec,
 )
@@ -263,6 +264,8 @@ def scan(
                 prepared["node"] = work
         for tool in tools_for(stack):
             image = images.get(tool.language)
+            if image is not None and any("/deps/.venv" in a for a in tool.argv):
+                image = own_image(image)
             if image is None:
                 continue
             progress(f"running {tool.name}")
@@ -272,8 +275,8 @@ def scan(
     finally:
         for work in prepared.values():
             discard(work)
-    if stack.python is not None and "python" in images:
-        _advisories(repo, rev, store, stack.python, images["python"], runner, result, progress, policy)
+    if stack.python is not None and "python" in images and (own := own_image(images["python"])) is not None:
+        _advisories(repo, rev, store, stack.python, own, runner, result, progress, policy)
     _scan_services(repo, rev, store, stack, runner, result, progress, policy)
     store.set_value(
         "last_scan",

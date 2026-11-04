@@ -297,3 +297,35 @@ def test_no_path_provisions_what_the_mandate_does_not_allow(
     assert built == []
     mandate.egress.package_registries = list(adapter("python").registries)
     assert prov.provision(tmp_path, "HEAD", stack, policy=PolicyEngine(mandate)) == "image"  # pyright: ignore[reportArgumentType]
+
+
+def test_beside_the_ci_jobs_environment_unbiddens_own_holds_the_project(
+    tmp_path: Path, mandate: Mandate, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Campaign 13 final pass: marshmallow's CI job keeps pytest in tox's own environment, so the robustness probe
+    found no pytest, mypy no `/deps/.venv`, and the advisories read nothing. Unbidden's own image goes beside it."""
+    from unbidden.contracts.guardian import Autonomy
+    from unbidden.guardian.policy import PolicyEngine
+    from unbidden.languages import adapter
+    from unbidden.observe.stack import PythonStack
+    from unbidden.sandbox import provision as prov
+
+    ci = prov.DependencyImage("unbidden-ci:x", "python", [], {}, {}, runner_like=True, test_command="tox")
+    own = prov.DependencyImage("unbidden-deps-python:x", "python", [], {}, {})
+    monkeypatch.setattr(prov, "_from_ci_job", lambda *a: (ci, None))
+    monkeypatch.setattr(prov, "_provision", lambda *a, **k: own)
+    mandate.autonomy.provision_dependencies = Autonomy.ALLOW
+    mandate.egress.package_registries = list(adapter("python").registries)
+    stack = PythonStack(
+        version="3.12", lockfile=None, manifest="pyproject.toml", ruff=False, pyright=False, pytest=True
+    )
+    image = prov.provision(tmp_path, "HEAD", stack, policy=PolicyEngine(mandate))
+    assert image.tag == "unbidden-ci:x" and prov.own_image(image) == own  # checks: the CI's; the rest: Unbidden's
+    assert prov.own_image(own) == own
+
+    def fails(*a: object, **k: object) -> prov.DependencyImage:
+        raise prov.ProvisionError("no wheel for lxml")
+
+    monkeypatch.setattr(prov, "_provision", fails)
+    image = prov.provision(tmp_path, "HEAD", stack, policy=PolicyEngine(mandate))
+    assert prov.own_image(image) is None and any("own environment could not be installed" in n for n in image.notes)

@@ -56,6 +56,11 @@ class DependencyImage:
     # Whether the team's own test step failed when its CI job ran here (None: not prepared by the job): the repository's
     # failures, seen in its own CI, are what a repair may take on (lab/repair.py).
     ci_tests_failed: bool | None = None
+    # Beside an environment the team's CI job prepared: Unbidden's own image of the same revision (`/deps/.venv`), for
+    # what reads the installed packages or imports the project with pytest and Hypothesis (mypy, pyright, the
+    # advisories, the robustness probe). The CI job's Python keeps them where it wants (tox's own environments:
+    # marshmallow, campaign 13), so those found nothing. None when Unbidden's own install fails.
+    own: DependencyImage | None = None
 
 
 class ProvisionError(RuntimeError):
@@ -617,7 +622,17 @@ def provision(
     if isinstance(stack, PythonStack) and docker == "docker":
         prepared, ci_note = _from_ci_job(repo, rev, policy)
         if prepared is not None:
-            return prepared
+            from dataclasses import replace
+
+            try:
+                own = _provision(repo, rev, stack, docker=docker, system_build_tools=False,
+                                 headers=system_packages_wanted(stack, allowed=system_build_tools))  # fmt: skip
+            except ProvisionError as exc:
+                note = (
+                    f"Unbidden's own environment could not be installed (types, advisories, probes): {str(exc)[:200]}"
+                )
+                return replace(prepared, notes=(*prepared.notes, note))
+            return replace(prepared, own=own if isinstance(own, DependencyImage) else None)
     wanted = system_packages_wanted(stack, allowed=system_build_tools)
     try:
         return _noted(_provision(repo, rev, stack, docker=docker, system_build_tools=False, headers=wanted), ci_note)
@@ -722,6 +737,12 @@ def _python_notes(tag: str, stack: PythonStack, docker: str) -> tuple[str, ...]:
         if stale:
             notes.append("uv.lock is out of date with pyproject.toml: dependencies resolved at provisioning time")
     return tuple(notes)
+
+
+def own_image(image: DependencyImage) -> DependencyImage | None:
+    """The image whose `/deps/.venv` holds the project and its dependencies: the image itself, or Unbidden's own
+    beside an environment the team's CI job prepared (None when that could not be installed)."""
+    return image.own if image.runner_like else image
 
 
 def link_dependencies(work: Path, image: DependencyImage) -> None:
