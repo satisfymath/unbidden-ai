@@ -305,3 +305,42 @@ def test_an_interrupted_publish_does_not_repeat_the_effect_when_it_runs_again(
     again = store.get("proposals", prop.id, Proposal)
     assert again is not None and again.status is ProposalStatus.READY
     assert reconcile_publishing(store) == []
+
+
+def test_a_stale_pull_request_is_closed_and_its_opportunity_measured_again(
+    store: Store, mandate: Mandate, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """0.18.0 rehearsal (fst): a merge moved the base; the index's evidence was measured on the old one."""
+    from unbidden.contracts.common import EvidenceRef
+    from unbidden.contracts.experiment import PullRequestRef
+    from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
+
+    closed: list[str] = []
+    old, new = "a" * 40, "b" * 40
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if request.method == "PATCH" and path.endswith("/pulls/7"):
+            closed.append(path)
+            return httpx.Response(200, json={"state": "closed"})
+        if path.endswith("/pulls/7"):
+            return httpx.Response(200, json={"number": 7, "state": "open", "merged_at": None})
+        if "/branches/" in path or path.endswith("/git/ref/heads/main") or "/commits/" in path:
+            return httpx.Response(200, json={"commit": {"sha": new}, "object": {"sha": new}, "sha": new})
+        return httpx.Response(404)
+
+    monkeypatch.setenv("GITHUB_TOKEN", "t0ken-value-123")
+    client = GitHubClient("acme/shop", "GITHUB_TOKEN", transport=httpx.MockTransport(handle))
+    monkeypatch.setattr(client, "branch_head", lambda branch: new)
+    opp = Opportunity(id="opp_1", source="world", category="performance", title="index", summary="s", dedup_key="k",
+                      status=OpportunityStatus.PROPOSED, evidence=[EvidenceRef(kind="config", locator="y")],
+                      details={"rev": old, "verdict": {"improved": True}, "candidate": {"files": {}}})  # fmt: skip
+    store.put("opportunities", opp, key="k")
+    prop = proposal(old)
+    prop.status = ProposalStatus.PR_OPENED
+    prop.pr = PullRequestRef(number=7, url="u", head_sha=old)
+    Publisher(tmp_path, store, mandate, client).poll(prop)
+    again = store.get("opportunities", "opp_1", Opportunity)
+    assert prop.status is ProposalStatus.STALE and closed
+    assert again is not None and again.status is OpportunityStatus.OPEN and again.details["rev"] == new
+    assert "verdict" not in again.details and again.details["superseded"] == [old]

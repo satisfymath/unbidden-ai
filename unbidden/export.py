@@ -13,7 +13,7 @@ import json
 import shutil
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -129,6 +129,18 @@ def find_secret(path: Path) -> str | None:
     return None
 
 
+def _born(store: Store) -> datetime | None:
+    """When this workspace's store began (its first event): the machine's ledger is shared, and a workspace name is
+    reused across runs (fst in every campaign), so rows before it are another workspace's (0.18.0 rehearsal: 249
+    rows, four campaigns, in fst's bundle)."""
+    first = next(iter(store.event_rows()), None)
+    ts = (first or {}).get("ts")
+    if not ts:
+        return None
+    # A call is reserved in the ledger just before its first event is written: a margin keeps it.
+    return datetime.fromisoformat(str(ts).replace("Z", "+00:00")) - timedelta(minutes=5)
+
+
 def export_bundle(
     store: Store, mandate: Mandate, out: Path, *, ledger: SpendLedger | None = None, now: datetime | None = None
 ) -> dict[str, Any]:
@@ -147,7 +159,7 @@ def export_bundle(
                 "deploy_ledger.jsonl",
                 ({"key": k, "value": v} for k in DEPLOY_KEYS if (v := store.get_value(k)) is not None),
             ),
-            _write(out, "spend.jsonl", (ledger or SpendLedger()).rows(workspace=mandate.workspace)),
+            _write(out, "spend.jsonl", (ledger or SpendLedger()).rows(workspace=mandate.workspace, since=_born(store))),
             _write(out, "mandate.json", [mandate.model_dump(mode="json")], jsonl=False),
         ]
         manifest = {
