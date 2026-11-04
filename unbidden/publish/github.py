@@ -326,6 +326,19 @@ class Publisher:
             )  # fmt: skip
             if not listed.stdout.strip():
                 return
+            from unbidden.observe.ci import runs_on_pull_requests
+
+            files = {
+                name: subprocess.run(
+                    ["git", "-C", str(self.repo), "show", f"{proposal.commit_sha}:.github/workflows/{name}"],
+                    capture_output=True, text=True, check=False,
+                ).stdout
+                for name in listed.stdout.split()
+                if name.endswith((".yml", ".yaml"))
+            }  # fmt: skip
+            base = self.mandate.egress.github.base_branch or "main"
+            if not runs_on_pull_requests(files, base, proposal.branch):
+                return  # the team's CI never runs on a pull request here: the lab's evidence is all there is
             raise PublishError("the repository declares CI workflows but none has run on the pull request yet")
         if verdict == PENDING_CI:
             raise PublishError("the pull request's CI is still running; merging waits for it")

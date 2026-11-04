@@ -6,6 +6,11 @@
   0.18.5: reproducing its lint findings, the fix lab ran mypy in the CI job's image (no `/deps/.venv`), so every
   fix ended "cannot judge: incomplete reports from mypy". A tool that reads `/deps/.venv` now runs beside, in
   Unbidden's own environment of the same revision (0.18.3); the others still run in the CI job's.
+- **A team CI that never runs on pull requests is no CI to wait for.** dooit, the same pass: its workflows run
+  only on pushes to `develop` (the `pull_request` trigger commented out), so the agent waited for checks that would
+  never come and both security pull requests stayed open. When no workflow at the measured commit runs on a pull
+  request into the base (`pull_request`, `pull_request_target`, or a `push` that matches the branch), the merge rests
+  on the lab's evidence, as for a repository with no workflow; an unreadable workflow is assumed to run.
 - **Each round of the team's own test step starts from the measured revision.** sqlmodel, the same pass: its CI
   step runs `mkdir coverage`; rounds 2 and 3 failed on "File exists" in the tree round 1 left, and all five
   security bumps (their advisories gone) were declined as infrastructure failures.

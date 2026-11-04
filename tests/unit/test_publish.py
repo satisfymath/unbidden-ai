@@ -344,3 +344,17 @@ def test_a_stale_pull_request_is_closed_and_its_opportunity_measured_again(
     assert prop.status is ProposalStatus.STALE and closed
     assert again is not None and again.status is OpportunityStatus.OPEN and again.details["rev"] == new
     assert "verdict" not in again.details and again.details["superseded"] == [old]
+
+
+def test_workflows_that_never_run_on_a_pull_request_are_no_ci_to_wait_for() -> None:
+    """dooit, final pass 0.18.5: its workflows run only on pushes to `develop` (the `pull_request` trigger commented
+    out); the agent waited for a CI that would never come, and both security pull requests stayed open."""
+    from unbidden.observe.ci import runs_on_pull_requests
+
+    dooit = {"pytest.yml": "on:\n  push:\n    branches:\n      - develop\n  # pull_request:\njobs: {}\n"}
+    assert not runs_on_pull_requests(dooit, "main", "unbidden/idna-3-10")
+    assert runs_on_pull_requests({"ci.yml": "on: [push, pull_request]\n"}, "main", "unbidden/x")
+    assert runs_on_pull_requests({"ci.yml": "on:\n  pull_request:\n    branches: [main]\n"}, "main", "unbidden/x")
+    assert not runs_on_pull_requests({"ci.yml": "on:\n  pull_request:\n    branches: [develop]\n"}, "main", "u/x")
+    assert runs_on_pull_requests({"ci.yml": "on:\n  push:\n    branches-ignore: [gh-pages]\n"}, "main", "unbidden/x")
+    assert runs_on_pull_requests({"ci.yml": "on: [push\n"}, "main", "unbidden/x")  # unreadable: assume it runs
