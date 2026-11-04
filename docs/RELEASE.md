@@ -1,5 +1,14 @@
 # Unbidden 0.18.0, experimental candidate: the terminal app on the product branch, not 1.0
 
+## 0.18.5 (2026-11-04): another package's standing advisories are not new with a bump
+
+- **The base's advisories are read, every package's.** marshmallow, final pass on 0.18.4: certifi's bump removed its
+  advisories and the suite passed 3/3, yet it was declined because virtualenv's 25 advisories, standing before the
+  bump, were counted as new with it. The comparison set was never filled; the dependency lab now reads the base's
+  installed packages (Unbidden's own environment) and their advisories before judging the candidate.
+- **Why the candidate's packages could not be read is said.** pyjwt: pytest's fix (9.0.3) needs Python 3.10, and
+  pyjwt supports 3.9; the verdict now carries the install's own reason instead of only "nothing is claimed".
+
 ## 0.18.4 (2026-11-04): security bumps the final pass could not finish
 
 - **A requirement in `pyproject.toml` is bumped.** pyjwt: pytest's advisory was found and its fix known, but
