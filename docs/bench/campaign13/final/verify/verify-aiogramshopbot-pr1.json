@@ -1,0 +1,50 @@
+{
+ "slug": "satisfymath/c13-aiogramshopbot",
+ "number": 1,
+ "title": "fix: 2 ruff-baseline F811 findings in ./",
+ "base": "307057c664e84ec4714037ab3e632fb1f0b5e328",
+ "head": "4673f5edec9bfd436577a6ffb2f306bfab862ceb",
+ "claims": [
+  {
+   "file": "run.py",
+   "line": "83",
+   "rule": "F811"
+  },
+  {
+   "file": "run.py",
+   "line": "126",
+   "rule": "F811"
+  }
+ ],
+ "changed_files": [
+  "run.py"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [
+  {
+   "file": "run.py",
+   "line": "83",
+   "rule": "F811",
+   "at_base": [
+    "run.py:83:11: F811 Redefinition of unused `support` from line 73: `support` redefined here",
+    "run.py:126:11: F811 Redefinition of unused `banned_message` from line 121: `banned_message` redefined here"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "run.py",
+   "line": "126",
+   "rule": "F811",
+   "at_base": [
+    "run.py:83:11: F811 Redefinition of unused `support` from line 73: `support` redefined here",
+    "run.py:126:11: F811 Redefinition of unused `banned_message` from line 121: `banned_message` redefined here"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  }
+ ],
+ "change_matches_problem": true,
+ "verdict": "verified"
+}

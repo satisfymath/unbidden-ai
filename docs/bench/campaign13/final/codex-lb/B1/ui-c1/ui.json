@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:19030/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "aiohttp 3.14.3: 8 known vulnerabilities, fixed in 3.14.4\tdescartada\t3\tdecline",
+    "anyio 4.13.0: 4 known vulnerabilities, fixed in 4.14.2\tdescartada\t3\tdecline",
+    "brotli 1.2.0: 2 known vulnerabilities, fixed in 1.2.1\tabierta\t1\trun_experiment",
+    "certifi 2026.7.22: 2 known vulnerabilities, fixed in 2026.10.18\tabierta\t1\trun_experiment",
+    "dnspython 2.8.0: 1 known vulnerability, fixed in 2.9.0\tabierta\t1\trun_experiment",
+    "filelock 3.29.0: 9 known vulnerabilities, fixed in 4.2.1\tabierta\t1\trun_experiment",
+    "httpx2 2.10.0: 6 known vulnerabilities, fixed in 2.12.0\tabierta\t1\trun_experiment",
+    "multidict 6.7.1: 2 known vulnerabilities, fixed in 6.9.1\tabierta\t1\trun_experiment",
+    "urllib3 2.7.0: 6 known vulnerabilities, fixed in 2.8.0\tabierta\t1\trun_experiment"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "3 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "codex-lb",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 158 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "capability.need_changed",
+    "decision.made",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "model.called",
+    "policy.denied",
+    "verdict.recorded",
+    "Trabajo iniciado",
+    "19:28",
+    "doing: measuring a candidate in the sandbox · stage: measured · subject: opp_723e1ae68ff846e4",
+    "Trabajo terminado",
+    "19:28",
+    "next: [] · outcome: ok · seconds: 0",
+    "Trabajo iniciado",
+    "19:28",
+    "doing: checking consistency · stage: found · subject: opp_0bde6a5b52c74cc5",
+    "Trabajo terminado",
+    "19:28",
+    "next: [\"research.consistency\"] · outcome: failed · seconds: 0",
+    "Política denegó",
+    "19:28",
+    "local_inference: the mandate denies local inference, and this call may not go remote: production_data never leaves this machine",
+    "Trabajo iniciado",
+    "19:28",
+    "doing: checking consistency · stage: found · subject: opp_6a63d151e2174fef",
+    "Trabajo terminado",
+    "19:28",
+    "next: [\"research.consistency\"] · outcome: failed · seconds: 0"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "codex-lb",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 20 oportunidades, ordenadas por evidencia",
+    "L3 lab",
+    "aiohttp 3.14.3: 8 known vulnerabilities, fixed in 3.14.4",
+    "pypi-advisories · security · decline · 04 nov, 18:14",
+    "descartada",
+    "—",
+    "L3 lab",
+    "anyio 4.13.0: 4 known vulnerabilities, fixed in 4.14.2",
+    "pypi-advisories · security · decline · 04 nov, 18:14",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "GET /api/automations reports total: unverified against the stored data",
+    "world · bugs · wait · 04 nov, 18:12",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "GET /api/automations/runs reports items[].attemptCount, total: unverified against the stored data",
+    "world · bugs · wait · 04 nov, 18:12",
+    "abierta",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "3 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:19260/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "setuptools 84.0.0: 1 known vulnerability, fixed in 84.1.0\tdescartada\t3\tdecline",
+    "16 ruff-baseline F811 findings in tests/\tdescartada\t2\tdecline",
+    "pillow 12.3.0: 55 known vulnerabilities, fixed in 13.0.0\tabierta\t1\twait",
+    "",
+    "3 fila(s)",
+    "actual",
+    "workspace",
+    "04 nov, 20:04",
+    "opportunities"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "1 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "dinkydash",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 60 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "analyzer.ran",
+    "connection.changed",
+    "decision.made",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "mandate.changed",
+    "model.called",
+    "operations.deployed",
+    "opportunity.opened",
+    "repo.head_moved",
+    "verdict.recorded",
+    "world.changed",
+    "Trabajo terminado",
+    "20:03",
+    "next: [] · outcome: ok · seconds: 3.1",
+    "Decisión tomada",
+    "20:03",
+    "decline — 2 experiments found no proven fix",
+    "Trabajo iniciado",
+    "20:03",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "20:03",
+    "next: [\"director.sweep\"] · outcome: ok · seconds: 5.9",
+    "Nota del agente",
+    "20:03",
+    "text: opp_04ed60f5582441bf: no proven fix (context: does_not_fit, excerpts around every finding need 15594 bytes, over t",
+    "Trabajo iniciado"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "dinkydash",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 3 oportunidades, ordenadas por evidencia",
+    "L3 lab",
+    "setuptools 84.0.0: 1 known vulnerability, fixed in 84.1.0",
+    "pypi-advisories · security · decline · 04 nov, 19:48",
+    "descartada",
+    "—",
+    "L2 reproducido",
+    "16 ruff-baseline F811 findings in tests/",
+    "ruff-baseline · bugs · decline · 04 nov, 19:48",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "pillow 12.3.0: 55 known vulnerabilities, fixed in 13.0.0",
+    "pypi-advisories · security · wait · bloqueada · 04 nov, 19:48",
+    "abierta",
+    "—",
+    "setuptools 84.0.0: 1 known vulnerability, fixed in 84.1.0",
+    "hallazgo al lienzo",
+    "experimento al lienzo",
+    "L3 lab",
+    "descartada"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "1 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

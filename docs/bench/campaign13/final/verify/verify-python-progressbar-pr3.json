@@ -1,0 +1,29 @@
+{
+ "slug": "satisfymath/c13-python-progressbar",
+ "number": 3,
+ "title": "security: bump certifi 2026.5.20 → 2026.10.18",
+ "base": "c951e3097e04c97b4d713d3f8a582069b4107a08",
+ "head": "d91cd87065d5137c6848109053051e12f6a11761",
+ "claims": [],
+ "changed_files": [
+  "uv.lock"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [
+  {
+   "rule": "advisories (OSV)",
+   "file": "certifi",
+   "at_base": [
+    "GHSA-6q48-6c7w-9gw2",
+    "PYSEC-2026-4320"
+   ],
+   "at_head": [],
+   "new_version_in_patch": true,
+   "only_dependency_files": true,
+   "verdict": "confirmed"
+  }
+ ],
+ "change_matches_problem": true,
+ "verdict": "verified"
+}

@@ -1,0 +1,761 @@
+{
+ "repo": "tracklater",
+ "phase": "final",
+ "run": "B1",
+ "candidate": "5bbaaf39f8eaa65e31ca02d9ee70d894f6fd0e6d",
+ "wheel_sha256": "9615de540d10d7911abd337f1b692643232e9de799e502614df81a3d1fc97122",
+ "started_at": "2026-11-04T19:41:49-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "autopilot",
+    "--budget",
+    "2",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--github-token-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 5.4,
+   "timed_out": false,
+   "stdout": "pen_pull_request\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.open_pull_requests\"\n    },\n    {\n      \"what\": \"merge pull requests\",\n      \"capability\": \"github.merge_pull_request\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": {\n    \"ok\": true,\n    \"rejected\": false,\n    \"model\": \"muse-spark-1.3\",\n    \"usd\": 0.000571,\n    \"why\": null\n  },\n  \"priorities\": [\n    \"correctness\",\n    \"maintainability\",\n    \"security\"\n  ],\n  \"github\": \"file\",\n  \"found\": {\n    \"repository\": \"satisfymath/c13-tracklater\",\n    \"branch\": \"HEAD\",\n    \"head\": \"a1d22173d5f00cfc230e2249c35c589cb47d29ff\",\n    \"scope\": [\n      {\n        \"name\": \"scope: stack\",\n        \"in_scope\": true,\n        \"note\": \"Python 3.12 (pyproject.toml)\"\n      },\n      {\n        \"name\": \"scope: tests\",\n        \"in_scope\": true,\n        \"note\": \"pythonapp.yml > build (the whole job)\"\n      },\n      {\n        \"name\": \"scope: database\",\n        \"in_scope\": false,\n        \"note\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n      }\n    ],\n    \"machine\": \"Apple M5 Pro, 64 GB, 54 GB for a model\",\n    \"ollama\": {\n      \"url\": \"http://localhost:11434\",\n      \"present\": true,\n      \"models\": [\n        \"muse-glimmer:30b-mxfp8-dflash\",\n        \"nomic-embed-text:latest\"\n      ]\n    },\n    \"local_model\": {\n      \"tag\": \"muse-glimmer:30b-mxfp8-dflash\",\n      \"installed\": true\n    },\n    \"key\": {\n      \"name\": \"MODEL_API_KEY\",\n      \"present\": true\n    },\n    \"github\": \"file\",\n    \"github_check\": {\n      \"login\": \"satisfymath\",\n      \"can_push\": true,\n      \"detail\": \"can push to satisfymath/c13-tracklater\"\n    },\n    \"compose\": \"docker-compose.yml\",\n    \"services\": [\n      {\n        \"name\": \"tracklater\",\n        \"kind\": null\n      }\n    ],\n    \"external\": [],\n    \"option\": \"mixed\",\n    \"option_why\": \"hay una clave y un modelo local\"\n  },\n  \"defaulted\": [\n    \"priorities\",\n    \"key\",\n    \"connections\",\n    \"private_code\",\n    \"language\"\n  ],\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c13/tracklater/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c13/tracklater/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 2.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -12,9 +12,10 @@\",\n    \"     provision_dependencies: allow\",\n    \"     delegate_synthetic: allow\",\n    \"-    open_pull_requests: require_approval\",\n    \"+    open_pull_requests: allow\",\n    \"     merge_pull_requests: deny\",\n    \"     deploy: deny\",\n    \"     rollback: deny\",\n    \"-    use_new_capabilities: require_approval\",\n    \"+    use_new_capabilities: allow\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,16 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\",\n    \"+  connections:\",\n    \"+  - id: github\",\n    \"+    kind: github\",\n    \"+    location: satisfymath/c13-tracklater\",\n    \"+    credential_ref: GITHUB_TOKEN\",\n    \"+    environment: production\",\n    \"+    permissions:\",\n    \"+    - read\",\n    \"+  operations: {}\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c13/tracklater/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "                    denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nCredenciales\nGuardadas en /Users/david/unbidden-lab/c13/home/.unbidden/.env (modo 600), \nreferidas por nombre; nunca escritas en el repositorio ni en registros.\nMODEL_API_KEY guardada.\nClave aceptada: muse-spark-1.3 respondió (US$0.0006).\nGITHUB_TOKEN guardada.\n\nPresupuesto\nLibro de la máquina: verified balance US$97.29 (stage 6 spend cap authorized by \nDavid on 2026-10-28: up to US$10 of free credits from this point (dev 3, \nevaluation 5, demo and contingency 2; the earlier US$3 reserve is included, not \nadded). Dashboard as reported by David 2026-10-28: Current balance US$0, free \ncredits in use US$144.98, a Visa card on file, content sent while on free \ncredits may be used to improve products. A cap, not a measured balance; no \nrecharge or card charge authorized (entered by david) | stage 9: US$30 \nadditional Meta API spend authorized by David on 2026-10-29, replacing the US$10\ncap; cumulative cap US$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval\n12, demo 6 (D-052). Dashboard as reported by David: free credits in use \nUS$137.96, balance US$0, a card on file. No recharge or card charge authorized \n(entered by david) | stage 10: the remaining US$20.30 of the US$37.29 cap split \nbefore any call (D-058), by David's stage 10 instruction of 2026-10-30 (entered \nby david) | stage 10 after the frozen evaluation: US$5 of the unspent s10-eval \nmoved to s10-dev for corrections and regressions, by David's instruction of \n2026-10-31; envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; spent at the transfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, \ns10-close 0) (entered by david) | product phase (A-E): s11-product US$4.00 \nauthorized by David on 2026-11-01, reassigned from s10-close (3.80, unspent, \nclosed) and US$0.20 of s10-dev; envelopes total US$20.30 and the cumulative cap \nUS$37.2945 unchanged; spent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval\n1.0010, s10-close 0) (entered by david) | product phase correction: David's \nauthorization of 2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken \nfrom s10-dev had no recorded authorization and goes back (s10-dev 13.00, \ns11-product 3.80); envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; s11-product spent 0 at the correction; spent at the correction \nUS$27.7199 (entered by david) | campaign 12 (installed-product validation): \nUS$60 additional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david) | envelopes s13-dev 15, \ns13-pass 15, s13-final 20, s13-confirm 5 authorized by David on 2026-11-03 \n('dale entonces empecemos con todo', campaign 13 to 1.0, within the cumulative \ncap US$97.2945, not amended); earlier envelopes unchanged; no transfers (entered\nby david)); permitido US$97.29 · gastado US$35.8705 · disponible US$61.4240\nsobres: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, s12-eval\n30.00, s12-dev 17.00, s12-confirm 5.00, s13-dev 15.00, s13-pass 15.00, s13-final\n20.00, s13-confirm 5.00\nLos créditos del proveedor y el gasto autorizado son cosas distintas: el tope \nque una persona ingresó con `unbidden spend --verified-balance` es lo que esta \nmáquina puede gastar; aquí nunca se sube ni se reinicia.\n\nPanel\nAbrir el panel, restaurar su disposición y mostrar registros no llama a ningún \nmodelo; chatear o pedir un análisis sí puede.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 2.8,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"2 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"act\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"found: the team's CI job prepares the environment when the mandate allows it\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key proven: muse-spark-1.3 answered\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"GITHUB_TOKEN set\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs allow\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"recon\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"incompleto: stack down; stack down\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.12 (pyproject.toml)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"pythonapp.yml > build (the whole job)\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "host-up",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "host",
+    "up",
+    "--yes",
+    "--json"
+   ],
+   "code": 1,
+   "seconds": 194.6,
+   "timed_out": false,
+   "stdout": "{\n  \"ok\": false,\n  \"project\": \"unbidden-tracklater\",\n  \"health_url\": null,\n  \"ports\": {\n    \"tracklater:5000\": 53020\n  },\n  \"deploy_steps\": [],\n  \"drill\": null,\n  \"why\": \"`docker compose up` failed: Image unbidden-tracklater-tracklater Building \\n Image unbidden-tracklater-tracklater Built \\n Network unbidden-tracklater_default Creating \\n Network unbidden-tracklater_default Creating \\n Network unbidden-tracklater_default Created \\n Network unbidden-tracklater_default Created \\n Container unbidden-tracklater-tracklater-1 Creating \\n Container unbidden-tracklater-tracklater-1 Created \\n Container unbidden-tracklater-tracklater-1 Starting \\nError response from daemon: error while creating mount source path '/Users/eerovilpponen/.1password/agent.sock': mkdir /Users/eerovilpponen: permission denied\",\n  \"steps\": [\n    {\n      \"step\": \"render the compose file\",\n      \"ok\": true,\n      \"detail\": \"docker-compose.yml; 1 services\",\n      \"seconds\": 0.1\n    },\n    {\n      \"step\": \"docker compose up\",\n      \"ok\": false,\n      \"detail\": \"Image unbidden-tracklater-tracklater Building \\n Image unbidden-tracklater-tracklater Built \\n Network unbidden-tracklater_default Creating \\n Network unbidden-tracklater_default Creating \\n Network unbidden-tracklater_default Created \\n Network unbidden-tracklater_default Created \\n Container unbidden-tracklater-tracklater-1 Creating \\n Container unbidden-tracklater-tracklater-1 Created \\n Container unbidden-tracklater-tracklater-1 Starting \\nError response from daemon: error while creating mount source path '/Users/eerovilpponen/.1password/agent.sock': mkdir /Users/eerovilpponen: permission denied\",\n      \"seconds\": 194.1\n    }\n  ],\n  \"migrated\": null,\n  \"seeded\": {},\n  \"generated_env\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "19270",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.9,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 12317,\n  \"log\": \"/Users/david/unbidden-lab/c13/tracklater/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-browser",
+   "argv": [
+    "node",
+    "/Users/david/unbidden-ai-v1b/frontend/scripts/c13_ui_check.mjs",
+    "http://127.0.0.1:19270/?s=<token>",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/tracklater/B1/ui-c1"
+   ],
+   "code": 0,
+   "seconds": 20.7,
+   "timed_out": false,
+   "stdout": "{\"ok\":true,\"steps\":5,\"console_errors\":2}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-status",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué ha hecho el agente hasta ahora y cuántas oportunidades hay?"
+   ],
+   "code": 0,
+   "seconds": 1.4,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_23c97de87e034099\",\n  \"role\": \"assistant\",\n  \"content\": \"Registro de tracklater (live, head a1d22173d5f0): 1 oportunidades, 1 experimentos, 1 propuestas, 67 eventos, 4 llamadas a modelos, 0 bloqueos.\\nJobs: done 18\\nAgente: agent running, pid 12317.\\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.\",\n  \"created_at\": \"2026-11-04T22:52:10.455890Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"rule\",\n  \"model\": null,\n  \"route\": {\n    \"intent\": \"inform\",\n    \"purpose\": null,\n    \"tier\": null,\n    \"model\": null,\n    \"reason\": \"the mandate denies local inference; reading records needs no model: answered by rules\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-analyze",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué hallazgo priorizarías y por qué? Di qué falta en el registro."
+   ],
+   "code": 0,
+   "seconds": 10.3,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_474460dd3d2a47f9\",\n  \"role\": \"assistant\",\n  \"content\": \"Priorizaría `opp_e88a5c7cf7ab49dc` — \\\"2 ruff-baseline F811 findings in tracklater/tests/\\\":\\n- es la única en el digest: `counts.opportunities:1`, `discovered.total:1`\\n- `level:4`, `status:proposed`, `has_experiment:true`\\n- `proposals.merged:1`, `learned.ruff-baseline · bugs · python: successes:1, failures:0, p:0.73`\\n\\nLo que falta en el registro:\\n- el digest no contiene comparativa entre hallazgos, ni impacto, esfuerzo o riesgo para justificar prioridad frente a otros.\\n- no contiene otras oportunidades, `invalidated:[]`, `blocks:[]`, `needs:0`, `deployments:0`.\",\n  \"created_at\": \"2026-11-04T22:52:20.755068Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"brain\",\n  \"model\": \"muse-spark-1.3\",\n  \"route\": {\n    \"intent\": \"analyze\",\n    \"purpose\": \"chat.analyze\",\n    \"tier\": \"code\",\n    \"model\": \"muse-spark-1.3\",\n    \"reason\": \"profile frontier; public_code may leave; label public_code\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.9,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 12317,\n  \"waited_s\": 0.6,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "19270",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 1.4,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 73499,\n  \"log\": \"/Users/david/unbidden-lab/c13/tracklater/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.7,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 73499,\n  \"waited_s\": 0.4,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-final",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.4,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/tracklater\",\n  \"head\": \"a1d22173d5f00cfc230e2249c35c589cb47d29ff\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c13/tracklater/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"a1d22173d5f00cfc230e2249c35c589cb47d29ff\",\n    \"tools\": [\n      \"ruff-baseline\",\n      \"pypi-advisories\"\n    ],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"pyproject.toml without uv.lock: dependencies resolved at provisioning time\",\n      \"environment prepared by the team's CI job pythonapp.yml:build\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff-baseline\",\n        \"completeness\": \"complete\",\n        \"findings\": 2,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"pypi-advisories\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"proposed\": 1\n  },\n  \"asks\": [],\n  \"blocks\": [],\n  \"idle\": true\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "egress",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "egress",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 1.3,
+   "timed_out": false,
+   "stdout": "13,7 +13,6 @@\\n import pytest\\n \\n from tracklater import create_app\\n-from tracklater.database import db\\n from tracklater.models import Entry\\n from tracklater.work_inference import (\\n     MIN_WORK_BEFORE_COMMIT,\\n\",\n    \"created_at\": \"2026-11-04T22:50:22.579436Z\",\n    \"origin\": \"engine\"\n  },\n  {\n    \"id\": \"egr_b78df9c4839e4afc\",\n    \"status\": \"allowed_sent\",\n    \"purpose\": \"chat.analyze\",\n    \"destination\": \"api.meta.ai\",\n    \"provider\": \"meta\",\n    \"model\": \"muse-spark-1.3\",\n    \"verdict\": {\n      \"allowed\": true,\n      \"kind\": \"synthetic_task\",\n      \"destination\": \"api.meta.ai\",\n      \"reasons\": [],\n      \"matched\": [],\n      \"payload_sha256\": \"afd6ed94a1d1ba5e1eabcfdbabbaf2ba8bddceeaddfb71f58bb0846c75db0c16\",\n      \"payload_bytes\": 2724\n    },\n    \"payload\": \"{\\\"messages\\\": [{\\\"content\\\": \\\"You are the analyst of Unbidden's dashboard. You receive a digest of Unbidden's own records\\\\n(counts, levels, statuses, titles, ids, medians) and a question. Answer in the language the question is written in,\\\\nbriefly, from the digest alone: cite the ids and numbers you rely on, say what the digest does not contain instead\\\\nof guessing, and never invent a metric, a finding or an improvement. You cannot act: do not promise to approve,\\\\ndeploy, merge, run or stop anything; name the command or button when the person should decide something.\\\", \\\"role\\\": \\\"system\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ade una tabla con las oportunidades\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ado una tabla con las oportunidades.\\\\na\\u00f1adido \\u00abOportunidades\\u00bb\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 ha hecho el agente hasta ahora y cu\\u00e1ntas oportunidades hay?\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"Registro de tracklater (live, head a1d22173d5f0): 1 oportunidades, 1 experimentos, 1 propuestas, 67 eventos, 4 llamadas a modelos, 0 bloqueos.\\\\nJobs: done 18\\\\nAgente: agent running, pid 12317.\\\\nPara un porqu\\u00e9 o una recomendaci\\u00f3n pide un an\\u00e1lisis; para ver algo, una tabla o un gr\\u00e1fico.\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"Records digest:\\\\nworkspace tracklater (live record); head a1d22173d5f0; observed 2026-11-04T22:52:11.514031+00:00; freshness current\\\\ncounts: {\\\\\\\"opportunities\\\\\\\":1,\\\\\\\"experiments\\\\\\\":1,\\\\\\\"proposals\\\\\\\":1,\\\\\\\"events\\\\\\\":67,\\\\\\\"model_runs\\\\\\\":4,\\\\\\\"connections\\\\\\\":1,\\\\\\\"deployments\\\\\\\":0,\\\\\\\"needs\\\\\\\":0,\\\\\\\"blocks\\\\\\\":0,\\\\\\\"spend_calls\\\\\\\":4,\\\\\\\"world\\\\\\\":1}\\\\njobs: {\\\\\\\"done\\\\\\\":18}\\\\ndiscovered: {\\\\\\\"total\\\\\\\":1,\\\\\\\"by_status\\\\\\\":{\\\\\\\"proposed\\\\\\\":1}}\\\\ninvalidated: []\\\\nproposals: {\\\\\\\"merged\\\\\\\":[\\\\\\\"fix: 2 ruff-baseline F811 findings in tracklater/tests/\\\\\\\"]}\\\\nblocks: []\\\\nlearned: {\\\\\\\"ruff-baseline \\u00b7 bugs \\u00b7 python\\\\\\\":{\\\\\\\"successes\\\\\\\":1,\\\\\\\"failures\\\\\\\":0,\\\\\\\"p\\\\\\\":0.73,\\\\\\\"prior\\\\\\\":0.6}}\\\\nconnections: [{\\\\\\\"id\\\\\\\":\\\\\\\"github:satisfymath/c13-tracklater\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"github\\\\\\\",\\\\\\\"environment\\\\\\\":\\\\\\\"production\\\\\\\",\\\\\\\"state\\\\\\\":\\\\\\\"connected\\\\\\\",\\\\\\\"read\\\\\\\":[\\\\\\\"repository\\\\\\\",\\\\\\\"check runs\\\\\\\",\\\\\\\"pull requests\\\\\\\"],\\\\\\\"write\\\\\\\":[\\\\\\\"push branch\\\\\\\",\\\\\\\"pull request\\\\\\\"],\\\\\\\"requested\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"effective\\\\\\\":[\\\\\\\"read\\\\\\\",\\\\\\\"write\\\\\\\"],\\\\\\\"blocked\\\\\\\":null,\\\\\\\"next_step\\\\\\\":null,\\\\\\\"found_by\\\\\\\":[\\\\\\\"mandate grant\\\\\\\"],\\\\\\\"checked_at\\\\\\\":\\\\\\\"2026-11-04T22:51:34.076418+00:00\\\\\\\"}]\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_e88a5c7cf7ab49dc\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"2 ruff-baseline F811 findings in tracklater/tests/\\\\\\\",\\\\\\\"level\\\\\\\":4,\\\\\\\"status\\\\\\\":\\\\\\\"proposed\\\\\\\",\\\\\\\"has_experiment\\\\\\\":true}\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 hallazgo priorizar\\u00edas y por qu\\u00e9? Di qu\\u00e9 falta en el registro.\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}], \\\"response_schema\\\": null, \\\"tools\\\": []}\",\n    \"created_at\": \"2026-11-04T22:52:11.525234Z\",\n    \"origin\": \"dashboard apart\"\n  }\n]\n",
+   "stderr": ""
+  },
+  {
+   "name": "export",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "export",
+    "--out",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/tracklater/export"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "Evidence of tracklater written to \n/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/tracklater/export\n  events.jsonl                      71 lines  8ab7b5276682\n  audit.jsonl                       11 lines  ab6b0e5d93c9\n  opportunities.jsonl                1 lines  6d374861de29\n  hypotheses.jsonl                   0 lines  e3b0c44298fc\n  experiment_specs.jsonl             0 lines  e3b0c44298fc\n  experiments.jsonl                  1 lines  15a78d70723e\n  proposals.jsonl                    1 lines  5a45bf968476\n  decisions.jsonl                    2 lines  e56a94cf8130\n  deploy_verdicts.jsonl              0 lines  e3b0c44298fc\n  deployments.jsonl                  0 lines  e3b0c44298fc\n  holds.jsonl                        0 lines  e3b0c44298fc\n  approvals.jsonl                    0 lines  e3b0c44298fc\n  acceptances.jsonl                  0 lines  e3b0c44298fc\n  actions.jsonl                      0 lines  e3b0c44298fc\n  goal_runs.jsonl                    0 lines  e3b0c44298fc\n  model_runs.jsonl                   4 lines  074f0ac7a698\n  transcripts.jsonl                  4 lines  d06f3f876bad\n  egress.jsonl                       5 lines  a5984b7c6fb3\n  needs.jsonl                        0 lines  e3b0c44298fc\n  asks.jsonl                         0 lines  e3b0c44298fc\n  blocks.jsonl                       0 lines  e3b0c44298fc\n  deploy_ledger.jsonl                0 lines  e3b0c44298fc\n  spend.jsonl                        5 lines  88fca2ee5037\n  mandate.json                      96 lines  b80b79266374\nevery file was scanned for secrets; manifest.json holds the sha256 of each\n",
+   "stderr": ""
+  },
+  {
+   "name": "host-down",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "host",
+    "down",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"ok\": true,\n  \"project\": \"unbidden-tracklater\",\n  \"why\": null\n}\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/eerovil/TrackLater",
+   "commit": "0b05b0a66be018914261e9d2c0a2be632d89d406",
+   "family": "web-flask",
+   "class": "independent",
+   "build": "pip",
+   "lab": null,
+   "copy_base_sha": "a1d22173d5f00cfc230e2249c35c589cb47d29ff"
+  },
+  "ledger_before": {
+   "envelope": "s13-final",
+   "envelope_spent_usd": 3.6136,
+   "available_usd": 61.4444,
+   "permitted_usd": 97.2945
+  },
+  "fork": {
+   "slug": "satisfymath/c13-tracklater",
+   "base": "master",
+   "upstream": "eerovil/TrackLater",
+   "kind": "copy",
+   "created": true,
+   "prep": {
+    "applied": true,
+    "sha": "a1d22173d5f00cfc230e2249c35c589cb47d29ff",
+    "removed": [
+     "pythonpublish.yml"
+    ],
+    "edited": [],
+    "plan": [
+     {
+      "file": "pythonapp.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "build"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "pythonpublish.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "deploy"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by release: checks no code"
+     }
+    ],
+    "kept": [
+     "pythonapp.yml"
+    ]
+   },
+   "pin": "0b05b0a66be018914261e9d2c0a2be632d89d406",
+   "restore": {
+    "expected": "a1d22173d5f00cfc230e2249c35c589cb47d29ff",
+    "head_before": "a1d22173d5f00cfc230e2249c35c589cb47d29ff",
+    "pin_in_history": true,
+    "closed": [],
+    "deleted": [],
+    "base_sha": "a1d22173d5f00cfc230e2249c35c589cb47d29ff"
+   },
+   "base_sha": "a1d22173d5f00cfc230e2249c35c589cb47d29ff",
+   "pin_in_history": true,
+   "dependency_graph": true,
+   "dependabot_prs_closed": [],
+   "workflows_registered": [
+    "pythonapp.yml",
+    "update-graph"
+   ],
+   "disabled_in_settings": [],
+   "kept": [
+    "pythonapp.yml"
+   ]
+  },
+  "fork_before": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "a1d22173d5f00cfc230e2249c35c589cb47d29ff"
+  },
+  "deploy_target": "self_host",
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required"
+  },
+  "self_host": {
+   "ok": false,
+   "project": "unbidden-tracklater",
+   "health_url": null,
+   "ports": {
+    "tracklater:5000": 53020
+   },
+   "deploy_steps": [],
+   "drill": null,
+   "why": "`docker compose up` failed: Image unbidden-tracklater-tracklater Building \n Image unbidden-tracklater-tracklater Built \n Network unbidden-tracklater_default Creating \n Network unbidden-tracklater_default Creating \n Network unbidden-tracklater_default Created \n Network unbidden-tracklater_default Created \n Container unbidden-tracklater-tracklater-1 Creating \n Container unbidden-tracklater-tracklater-1 Created \n Container unbidden-tracklater-tracklater-1 Starting \nError response from daemon: error while creating mount source path '/Users/eerovilpponen/.1password/agent.sock': mkdir /Users/eerovilpponen: permission denied",
+   "steps": [
+    {
+     "step": "render the compose file",
+     "ok": true,
+     "detail": "docker-compose.yml; 1 services",
+     "seconds": 0.1
+    },
+    {
+     "step": "docker compose up",
+     "ok": false,
+     "detail": "Image unbidden-tracklater-tracklater Building \n Image unbidden-tracklater-tracklater Built \n Network unbidden-tracklater_default Creating \n Network unbidden-tracklater_default Creating \n Network unbidden-tracklater_default Created \n Network unbidden-tracklater_default Created \n Container unbidden-tracklater-tracklater-1 Creating \n Container unbidden-tracklater-tracklater-1 Created \n Container unbidden-tracklater-tracklater-1 Starting \nError response from daemon: error while creating mount source path '/Users/eerovilpponen/.1password/agent.sock': mkdir /Users/eerovilpponen: permission denied",
+     "seconds": 194.1
+    }
+   ],
+   "migrated": null,
+   "seeded": {},
+   "generated_env": [],
+   "code": 1
+  },
+  "mode": {
+   "asked": "custom",
+   "got": "custom",
+   "why": "nothing to deploy: `unbidden host up` did not bring it up (`docker compose up` failed: Image unbidden-tracklater-tracklater Building \n Image unbidden-tracklater-tracklater Built \n Network unbidden-tracklater_default Creating \n Network unbidden-tracklater_default Creating \n Network unbidden-tracklater_default Created \n Network unbidden-tracklater_default Created \n Container unbidden-tracklater-tracklater-1 Creating \n Container unbidden-tracklater-tracklater-1 Created \n Container unbidden-tracklater-tracklater-1 Starting \nError response from daemon: error while creating mount source path '/Users/eerovilpponen/.1password/agent.sock': mkdir /Users/eerovilpponen: permission denied)"
+  },
+  "autonomy": {
+   "mode": "custom",
+   "why": "nothing to deploy: `unbidden host up` did not bring it up (`docker compose up` failed: Image unbidden-tracklater-tracklater Building \n Image unbidden-tracklater-tracklater Built \n Network unbidden-tracklater_default Creating \n Network unbidden-tracklater_default Creating \n Network unbidden-tracklater_default Created \n Network unbidden-tracklater_default Created \n Container unbidden-tracklater-tracklater-1 Creating \n Container unbidden-tracklater-tracklater-1 Created \n Container unbidden-tracklater-tracklater-1 Starting \nError response from daemon: error while creating mount source path '/Users/eerovilpponen/.1password/agent.sock': mkdir /Users/eerovilpponen: permission denied)",
+   "fields": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "delegate_synthetic": "allow",
+    "open_pull_requests": "allow",
+    "merge_pull_requests": "allow",
+    "deploy": "deny",
+    "rollback": "deny",
+    "use_new_capabilities": "allow",
+    "act_on_connections": "deny"
+   }
+  },
+  "mode_got": "custom",
+  "cycle1": {
+   "started": true,
+   "waited_s": 335.5,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 12317,
+    "started_at": "2026-11-04T22:46:12.639592+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/tracklater/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "agent.note": 3,
+     "analyzer.ran": 2,
+     "connection.changed": 1,
+     "decision.made": 3,
+     "egress.allowed": 5,
+     "experiment.started": 1,
+     "job.finished": 18,
+     "job.started": 18,
+     "mandate.changed": 1,
+     "model.called": 4,
+     "operations.deployed": 1,
+     "operations.merged": 1,
+     "opportunity.opened": 1,
+     "proposal.published": 1,
+     "proposal.pushed": 1,
+     "proposal.ready": 1,
+     "repo.head_moved": 1,
+     "verdict.recorded": 1,
+     "world.changed": 3
+    },
+    "docs": {
+     "connections": 1,
+     "decisions": 2,
+     "egress": 5,
+     "experiments": 1,
+     "model_runs": 4,
+     "opportunities": 1,
+     "proposals": 1,
+     "transcripts": 4,
+     "world": 1
+    },
+    "jobs": {
+     "done": 18
+    },
+    "experiments": 1,
+    "opportunities": [
+     {
+      "id": "opp_e88a5c7cf7ab49dc",
+      "source": "ruff-baseline",
+      "category": "bugs",
+      "evidence_level": 4,
+      "status": "proposed"
+     }
+    ],
+    "level_max": 4,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": [
+     {
+      "id": "prop_91bd2c586d924d2c",
+      "opportunity_id": "opp_e88a5c7cf7ab49dc",
+      "experiment_id": "exp_0f4735a381ec47af",
+      "status": "merged",
+      "branch": "unbidden/2-ruff-baseline-f811-findings-in-trackla-ab49dc",
+      "evidence_level": 4,
+      "title": "fix: 2 ruff-baseline F811 findings in tracklater/tests/",
+      "pr": "https://github.com/satisfymath/c13-tracklater/pull/1",
+      "criteria": null
+     }
+    ]
+   }
+  },
+  "ui1": {
+   "opened": true,
+   "in_daemon": true,
+   "summary": {
+    "mode": "live",
+    "freshness": "current",
+    "counts": {
+     "opportunities": 1,
+     "experiments": 1,
+     "proposals": 1,
+     "events": 67,
+     "model_runs": 4,
+     "connections": 1,
+     "deployments": 0,
+     "needs": 0,
+     "blocks": 0,
+     "spend_calls": 4,
+     "world": 1
+    },
+    "agent": {
+     "running": true,
+     "pid": 12317,
+     "started_at": "2026-11-04T22:46:12.639592+00:00",
+     "command": "watch",
+     "detail": "agent running, pid 12317"
+    },
+    "key_present": true
+   },
+   "opportunities_total": 1,
+   "widgets": [
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:tracklater"
+    }
+   ],
+   "browser": {
+    "ok": true,
+    "steps": 5,
+    "console_errors": 2
+   },
+   "chat_status": {
+    "planner": "rule",
+    "route": {
+     "intent": "inform",
+     "purpose": null,
+     "tier": null,
+     "model": null,
+     "reason": "the mandate denies local inference; reading records needs no model: answered by rules",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Registro de tracklater (live, head a1d22173d5f0): 1 oportunidades, 1 experimentos, 1 propuestas, 67 eventos, 4 llamadas a modelos, 0 bloqueos.\nJobs: done 18\nAgente: agent running, pid 12317.\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico."
+   },
+   "chat_analyze": {
+    "planner": "brain",
+    "route": {
+     "intent": "analyze",
+     "purpose": "chat.analyze",
+     "tier": "code",
+     "model": "muse-spark-1.3",
+     "reason": "profile frontier; public_code may leave; label public_code",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Priorizaría `opp_e88a5c7cf7ab49dc` — \"2 ruff-baseline F811 findings in tracklater/tests/\":\n- es la única en el digest: `counts.opportunities:1`, `discovered.total:1`\n- `level:4`, `status:proposed`, `has_experiment:true`\n- `proposals.merged:1`, `learned.ruff-baseline · bugs · python: successes:1, failures:0, p:0.73`\n\nLo que falta en el registro:\n- el digest no contiene comparativa entre hallazgos, "
+   }
+  },
+  "fork_after_c1": {
+   "pulls": [
+    {
+     "created_at": "2026-11-04T22:50:26Z",
+     "head": "unbidden/2-ruff-baseline-f811-findings-in-trackla-ab49dc",
+     "head_sha": "fd94e6d17d19ff5ceff731f545c5e0d988551711",
+     "merge_commit_sha": "c0475e69b3372de659a0bef7ee144ba1a41f2535",
+     "merged_at": "2026-11-04T22:51:31Z",
+     "number": 1,
+     "state": "closed",
+     "title": "fix: 2 ruff-baseline F811 findings in tracklater/tests/",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T22:51:10Z",
+       "conclusion": "success",
+       "head_sha": "fd94e6d17d19ff5ceff731f545c5e0d988551711",
+       "html_url": "https://github.com/satisfymath/c13-tracklater/actions/runs/41928738797/job/126919915081",
+       "name": "build",
+       "started_at": "2026-11-04T22:50:30Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [
+    "unbidden/2-ruff-baseline-f811-findings-in-trackla-ab49dc"
+   ],
+   "base_head": "c0475e69b3372de659a0bef7ee144ba1a41f2535"
+  },
+  "cycle2": {
+   "started": true,
+   "waited_s": 46.8,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 73499,
+    "started_at": "2026-11-04T22:52:26.158936+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/tracklater/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "agent.note": 3,
+     "analyzer.ran": 2,
+     "connection.changed": 1,
+     "decision.made": 3,
+     "egress.allowed": 5,
+     "experiment.started": 1,
+     "job.finished": 20,
+     "job.started": 20,
+     "mandate.changed": 1,
+     "model.called": 4,
+     "operations.deployed": 1,
+     "operations.merged": 1,
+     "opportunity.opened": 1,
+     "proposal.published": 1,
+     "proposal.pushed": 1,
+     "proposal.ready": 1,
+     "repo.head_moved": 1,
+     "verdict.recorded": 1,
+     "world.changed": 3
+    },
+    "docs": {
+     "connections": 1,
+     "decisions": 2,
+     "egress": 5,
+     "experiments": 1,
+     "model_runs": 4,
+     "opportunities": 1,
+     "proposals": 1,
+     "transcripts": 4,
+     "world": 1
+    },
+    "jobs": {
+     "done": 20
+    },
+    "experiments": 1,
+    "opportunities": [
+     {
+      "id": "opp_e88a5c7cf7ab49dc",
+      "source": "ruff-baseline",
+      "category": "bugs",
+      "evidence_level": 4,
+      "status": "proposed"
+     }
+    ],
+    "level_max": 4,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": [
+     {
+      "id": "prop_91bd2c586d924d2c",
+      "opportunity_id": "opp_e88a5c7cf7ab49dc",
+      "experiment_id": "exp_0f4735a381ec47af",
+      "status": "merged",
+      "branch": "unbidden/2-ruff-baseline-f811-findings-in-trackla-ab49dc",
+      "evidence_level": 4,
+      "title": "fix: 2 ruff-baseline F811 findings in tracklater/tests/",
+      "pr": "https://github.com/satisfymath/c13-tracklater/pull/1",
+      "criteria": null
+     }
+    ]
+   }
+  },
+  "asks_answered": [],
+  "fork_after_c2": {
+   "pulls": [
+    {
+     "created_at": "2026-11-04T22:50:26Z",
+     "head": "unbidden/2-ruff-baseline-f811-findings-in-trackla-ab49dc",
+     "head_sha": "fd94e6d17d19ff5ceff731f545c5e0d988551711",
+     "merge_commit_sha": "c0475e69b3372de659a0bef7ee144ba1a41f2535",
+     "merged_at": "2026-11-04T22:51:31Z",
+     "number": 1,
+     "state": "closed",
+     "title": "fix: 2 ruff-baseline F811 findings in tracklater/tests/",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T22:51:10Z",
+       "conclusion": "success",
+       "head_sha": "fd94e6d17d19ff5ceff731f545c5e0d988551711",
+       "html_url": "https://github.com/satisfymath/c13-tracklater/actions/runs/41928738797/job/126919915081",
+       "name": "build",
+       "started_at": "2026-11-04T22:50:30Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [
+    "unbidden/2-ruff-baseline-f811-findings-in-trackla-ab49dc"
+   ],
+   "base_head": "c0475e69b3372de659a0bef7ee144ba1a41f2535"
+  },
+  "status_final": {
+   "running": false,
+   "pid": null,
+   "started_at": null,
+   "command": null,
+   "log": "/Users/david/unbidden-lab/c13/tracklater/.unbidden/logs/agent.log",
+   "stale": false,
+   "jobs_running": 0,
+   "jobs_queued": 0
+  },
+  "egress": {
+   "api.meta.ai:world.endpoint_tables:allowed_sent": 2,
+   "api.meta.ai:research.robustness:allowed_sent": 1,
+   "api.meta.ai:lab.fix_candidate:allowed_sent": 1,
+   "github.com:github.pull_request:allowed_sent": 1,
+   "api.meta.ai:chat.analyze:allowed_sent": 1
+  },
+  "checks": {
+   "status": "passed",
+   "collected": 105,
+   "why": null,
+   "scope": "the whole job",
+   "partial": false,
+   "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest --cov=. --cov-report term",
+   "rev": "a1d22173d5f00cfc230e2249c35c589cb47d29ff",
+   "could_not_run": {
+    "tests": 0,
+    "lacks": [],
+    "by_test": []
+   },
+   "failed": 0,
+   "image_notes": [
+    "environment prepared by the team's CI job pythonapp.yml:build"
+   ],
+   "python": "3.12"
+  },
+  "ledger_after": {
+   "envelope": "s13-final",
+   "envelope_spent_usd": 3.7716,
+   "available_usd": 61.2864,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c13-final-B1-tracklater",
+   "calls": 5,
+   "usd": 0.0471,
+   "tokens_in": 9897,
+   "tokens_out": 8180
+  },
+  "spent_usd": 0.0471,
+  "export": {
+   "available": true,
+   "ok": true,
+   "code": 0,
+   "dir": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/tracklater/export",
+   "files": 25,
+   "answer": null
+  },
+  "archive": "/Users/david/unbidden-lab/c13/archive/tracklater-B1-final.tgz",
+  "archive_kept": {
+   "name": "tracklater-B1-final.tgz",
+   "bytes": 48551,
+   "sha256": "b86df86257db812b8dc5ec24e50d050acd1f7c0966cfe4fb5fe3fbe8a9fd6d82",
+   "kept": true,
+   "where": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/tracklater/export/tracklater-B1-final.tgz"
+  },
+  "self_host_down": {
+   "code": 0,
+   "answer": {
+    "ok": true,
+    "project": "unbidden-tracklater",
+    "why": null
+   }
+  }
+ },
+ "human": [
+  {
+   "step": "create the public copy satisfymath/c13-tracklater",
+   "minutes": 1,
+   "why": "pull requests, CI and merges off upstream"
+  },
+  {
+   "step": "push the pin 0b05b0a66be0 to satisfymath/c13-tracklater:master",
+   "minutes": 1,
+   "why": "the copy's base"
+  },
+  {
+   "step": "campaign commit a1d22173d5f0 on satisfymath/c13-tracklater:master: 1 workflow file(s) removed, 0 cut",
+   "minutes": 5,
+   "why": "no deploy, release, package or bot runs from the copy; the checks stay as written"
+  },
+  {
+   "step": "mandate: fork, registries, operations, connections",
+   "minutes": 2,
+   "why": "a person's declaration"
+  },
+  {
+   "step": "mandate autonomy: merge on green CI, no deploy",
+   "minutes": 1,
+   "why": "nothing to deploy: `unbidden host up` did not bring it up (`docker compose up` failed: Image unbidden-tracklater-tracklater Building \n Image unbidden-tracklater-tracklater Built \n Network unbidden-tracklater_default Creating \n Network unbidden-tracklater_default Creating \n Network unbidden-tracklater_default Created \n Network unbidden-tracklater_default Created \n Container unbidden-tracklater-tracklater-1 Creating \n Container unbidden-tracklater-tracklater-1 Created \n Container unbidden-tracklater-tracklater-1 Starting \nError response from daemon: error while creating mount source path '/Users/eerovilpponen/.1password/agent.sock': mkdir /Users/eerovilpponen: permission denied)"
+  }
+ ],
+ "blocks": []
+}

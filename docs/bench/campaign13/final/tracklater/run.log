@@ -1,0 +1,29 @@
+2026-11-04T18:08:32-0300 [B1] worker 5 starts on ports {'dashboard': 18850, 'ui_a': 18851, 'lab': 18852, 'lab_db': 18853}
+2026-11-04T18:08:32-0300 [B1] FAILED: FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'
+Traceback (most recent call last):
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/run_final.py", line 130, in worker
+    line = run_one(job, repos[job.name], ports, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/run_final.py", line 106, in execute
+    line = level_b(repo, job.run, args["phase"], out, ports["dashboard"], args["candidate"], args["wheel"],
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/level_b.py", line 549, in level_b
+    rec.facts["ledger_before"] = ledger(envelope)
+                                 ^^^^^^^^^^^^^^^^
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/common.py", line 202, in ledger
+    def ledger(envelope: str) -> dict[str, Any]:
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/common.py", line 176, in run
+    started = time.monotonic()
+              ^^^^^^^^^^^^^^^^
+  File "/Users/david/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/Users/david/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'
+
+2026-11-04T19:41:49-0300 [B1] worker 7 starts on ports {'dashboard': 19270, 'ui_a': 19271, 'lab': 19272, 'lab_db': 19273}
+2026-11-04T19:53:20-0300 [B1] done in 691 s: {"name": "tracklater", "run": "B1", "mode": "custom", "deploy_target": "self_host", "self_host_ok": false, "export": true, "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/tracklater/B1.json", "proposals_c1": 1, "proposals_c2": 1, "pulls_after": 1, "spent_usd": 0.0471, "blocks": [], "wall_s": 624.2}

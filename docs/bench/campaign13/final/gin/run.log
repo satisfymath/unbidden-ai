@@ -1,0 +1,29 @@
+2026-11-04T18:08:32-0300 [A1] worker 5 starts on ports {'dashboard': 18850, 'ui_a': 18851, 'lab': 18852, 'lab_db': 18853}
+2026-11-04T18:08:32-0300 [A1] FAILED: FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'
+Traceback (most recent call last):
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/run_final.py", line 130, in worker
+    line = run_one(job, repos[job.name], ports, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/run_final.py", line 112, in execute
+    line = level_a(repo, args["phase"], out, ports["ui_a"], args["candidate"], args["wheel"], ci_env=args["ci_env"])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/level_a.py", line 147, in level_a
+    rec.facts["ledger_before"] = ledger(e["UNBIDDEN_ENVELOPE"])
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/common.py", line 202, in ledger
+    def ledger(envelope: str) -> dict[str, Any]:
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/common.py", line 176, in run
+    started = time.monotonic()
+              ^^^^^^^^^^^^^^^^
+  File "/Users/david/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/Users/david/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'
+
+2026-11-04T20:20:01-0300 [A1] worker 3 starts on ports {'dashboard': 19230, 'ui_a': 19231, 'lab': 19232, 'lab_db': 19233}
+2026-11-04T20:22:18-0300 [A1] done in 137 s: {"name": "gin", "class": "frontier", "family": "go", "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/gin/A.json", "setup": true, "doctor_ok": true, "scan_ok": true, "checks": "out_of_scope", "collected": null, "opps": 0, "lifecycle": {"started": true, "running_after_checks": true, "second_start_refused": true, "stopped": true, "jobs_left_running": 0, "stale_after": false, "kill_file": false, "status0_ok": true}, "ui": true, "spent_usd": 0.0, "wall_s": 83.8}

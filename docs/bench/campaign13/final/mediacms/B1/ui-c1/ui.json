@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18810/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "1 ruff-baseline B006 finding in files/models/\tabierta\t1\trun_experiment",
+    "pillow 12.3.0: 55 known vulnerabilities, fixed in 13.0.0\tabierta\t1\trun_experiment",
+    "",
+    "2 fila(s)",
+    "actual",
+    "workspace",
+    "04 nov, 18:11",
+    "opportunities",
+    "UNBIDDEN"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "1 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "mediacms",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 59 eventos · en vivo",
+    "todos los tipos",
+    "action.executed",
+    "agent.note",
+    "analyzer.ran",
+    "capability.need_changed",
+    "capability.needed",
+    "connection.changed",
+    "decision.made",
+    "deployment.observed",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "log.signal",
+    "mandate.changed",
+    "model.called",
+    "operations.deployed",
+    "opportunity.opened",
+    "repo.head_moved",
+    "workspace.initialized",
+    "world.changed",
+    "Trabajo terminado",
+    "18:11",
+    "next: [] · outcome: ok · seconds: 33.5",
+    "Llamada al modelo",
+    "18:11",
+    "research.robustness · code · muse-spark-1.3 · 2292→2265 tokens",
+    "Salida permitida",
+    "18:10",
+    "research.robustness → api.meta.ai (11397 B)",
+    "Trabajo iniciado",
+    "18:10"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "mediacms",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 2 oportunidades, ordenadas por evidencia",
+    "L1 sospecha",
+    "1 ruff-baseline B006 finding in files/models/",
+    "ruff-baseline · bugs · run_experiment · 04 nov, 18:09",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "pillow 12.3.0: 55 known vulnerabilities, fixed in 13.0.0",
+    "pypi-advisories · security · run_experiment · 04 nov, 18:09",
+    "abierta",
+    "—",
+    "1 ruff-baseline B006 finding in files/models/",
+    "hallazgo al lienzo",
+    "experimento al lienzo",
+    "L1 sospecha",
+    "abierta",
+    "ruff-baseline · bugs",
+    "1 ruff-baseline B006 finding in files/models/",
+    "B006: Do not use mutable data structures for argument defaults",
+    "Decisión run_experiment",
+    "reproduce it and measure a candidate offline (p 0.60 from the lab's history of this kind)"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "1 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

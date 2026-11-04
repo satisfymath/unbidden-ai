@@ -1,0 +1,49 @@
+{
+ "slug": "satisfymath/c13-tracklater",
+ "number": 1,
+ "title": "fix: 2 ruff-baseline F811 findings in tracklater/tests/",
+ "base": "a1d22173d5f00cfc230e2249c35c589cb47d29ff",
+ "head": "fd94e6d17d19ff5ceff731f545c5e0d988551711",
+ "claims": [
+  {
+   "file": "tracklater/tests/test_activitywatch.py",
+   "line": "31",
+   "rule": "F811"
+  },
+  {
+   "file": "tracklater/tests/test_inactive_span_last_week.py",
+   "line": "39",
+   "rule": "F811"
+  }
+ ],
+ "changed_files": [
+  "tracklater/tests/test_activitywatch.py",
+  "tracklater/tests/test_inactive_span_last_week.py"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [
+  {
+   "file": "tracklater/tests/test_activitywatch.py",
+   "line": "31",
+   "rule": "F811",
+   "at_base": [
+    "tracklater/tests/test_activitywatch.py:31:37: F811 Redefinition of unused `requests_mock` from line 4: `requests_mock` redefined here"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tracklater/tests/test_inactive_span_last_week.py",
+   "line": "39",
+   "rule": "F811",
+   "at_base": [
+    "tracklater/tests/test_inactive_span_last_week.py:39:12: F811 Redefinition of unused `db` from line 16: `db` redefined here"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  }
+ ],
+ "change_matches_problem": true,
+ "verdict": "verified"
+}

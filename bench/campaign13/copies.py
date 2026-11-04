@@ -169,6 +169,11 @@ def ensure_copy(repo: dict[str, Any], human: list[dict[str, Any]] | None = None)
     # Dependabot: its dynamic workflow disabled, security pull requests off (settings, no commit), and whatever pull
     # requests it opened before that closed (not the agent's; never counted)
     gh("api", "-X", "DELETE", f"repos/{slug}/automated-security-fixes")
+    # The dependency graph on, as upstream has it: the team's `dependency-review` job fails on a repository without it
+    # ("not supported on this repository"), which is the copy's setting, not the change (oauthlib, final pass 0.18.5).
+    # Alerts only: security pull requests stay off (above).
+    graph = gh("api", "-X", "PUT", f"repos/{slug}/vulnerability-alerts")
+    state["dependency_graph"] = graph.returncode == 0
     bots = gh(
         "api",
         f"repos/{slug}/pulls?state=open&per_page=50",
@@ -390,6 +395,24 @@ def ci_pending(slug: str, base: str) -> bool:
             created = time.strptime(pr["created_at"], "%Y-%m-%dT%H:%M:%SZ")
             if time.time() - time.mktime(created) + time.timezone < 15 * 60:
                 return True
+    return False
+
+
+def green_unmerged(slug: str, base: str) -> bool:
+    """Whether an open pull request against the base has its CI finished and green, not merged yet: the agent merges
+    it on its next poll (every few minutes), so the harness keeps observing a while (final pass, 0.18.4:
+    python-progressbar's CI turned green one minute before the cycle ended, and the merge was never seen)."""
+    state = copy_state(slug, base)
+    for pr in state.get("pulls", []):
+        runs = pr.get("checks") or []
+        if pr.get("state") != "open" or not runs:
+            continue
+        done = all(r.get("status") == "completed" for r in runs)
+        failed = any(
+            r.get("conclusion") in ("failure", "timed_out", "action_required", "startup_failure") for r in runs
+        )
+        if done and not failed:
+            return True
     return False
 
 

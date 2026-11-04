@@ -1,0 +1,2 @@
+2026-11-04T12:33:45-0300 [B1] worker 5 starts on ports {'dashboard': 18850, 'ui_a': 18851, 'lab': 18852, 'lab_db': 18853}
+2026-11-04T12:44:43-0300 [B1] done in 658 s: {"name": "sqlmodel", "run": "B1", "mode": "custom", "deploy_target": "none", "self_host_ok": null, "export": true, "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/sqlmodel/B1.json", "proposals_c1": 0, "proposals_c2": 0, "pulls_after": 0, "spent_usd": 0.023, "blocks": [], "wall_s": 617.2}

@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18800/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "1 ruff ICN001 finding in /Users/david/.unbidden/ci-env/3e56cc6f0a8a266a/ws/examp…\tdescartada\t1\tdecline",
+    "1 ruff ICN001 finding in /Users/david/.unbidden/ci-env/3e56cc6f0a8a266a/ws/perfo…\tdescartada\t1\tdecline",
+    "1 mypy error in src/marshmallow/fields.py\tabierta\t1\twait",
+    "2 mypy errors in tests/test_fields.py\tabierta\t1\twait",
+    "filelock 4.0.3: 14 known vulnerabilities, fixed in 4.2.1\tabierta\t1\twait",
+    "certifi 2026.7.22: 2 known vulnerabilities, fixed in 2026.10.18\tdescartada\t1\tdecline",
+    "uv 0.12.18: 2 known vulnerabilities, fixed in 0.13.4\tdescartada\t1\tdecline",
+    "virtualenv 21.11.1: 11 known vulnerabilities, fixed in 21.14.9\tdescartada\t1\tdecline",
+    ""
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "7 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "marshmallow",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 107 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "decision.made",
+    "job.finished",
+    "job.started",
+    "verdict.recorded",
+    "Trabajo terminado",
+    "14:12",
+    "next: [] · outcome: ok · seconds: 1.2",
+    "Decisión tomada",
+    "14:12",
+    "decline — 2 experiments found no proven fix",
+    "Trabajo iniciado",
+    "14:12",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "14:12",
+    "next: [\"director.sweep\"] · outcome: ok · seconds: 41.5",
+    "Nota del agente",
+    "14:12",
+    "text: opp_bd59ff002f8241e3: no proven fix (virtualenv 21.11.1 → 21.14.9: advisories GHSA-394h-qwmc-48pf, GHSA-494p-63j8-",
+    "Veredicto registrado",
+    "14:12",
+    "sin mejora · L",
+    "Trabajo iniciado",
+    "14:11",
+    "doing: measuring a candidate in the sandbox · stage: measured · subject: opp_bd59ff002f8241e3",
+    "Trabajo terminado",
+    "14:11",
+    "next: [] · outcome: ok · seconds: 1.4",
+    "Decisión tomada"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "marshmallow",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 8 oportunidades, ordenadas por evidencia",
+    "L1 sospecha",
+    "1 ruff ICN001 finding in /Users/david/.unbidden/ci-env/3e56cc6f0a8a266a/ws/examples/",
+    "ruff · lint · decline · 04 nov, 14:07",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "1 ruff ICN001 finding in /Users/david/.unbidden/ci-env/3e56cc6f0a8a266a/ws/performance/",
+    "ruff · lint · decline · 04 nov, 14:07",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "1 mypy error in src/marshmallow/fields.py",
+    "mypy · types · wait · bloqueada · 04 nov, 14:07",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "2 mypy errors in tests/test_fields.py",
+    "mypy · types · wait · bloqueada · 04 nov, 14:07",
+    "abierta",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "7 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

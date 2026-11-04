@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18820/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "1 ruff ICN001 finding in /Users/david/.unbidden/ci-env/3e56cc6f0a8a266a/ws/examp…\tdescartada\t1\tdecline",
+    "1 ruff ICN001 finding in /Users/david/.unbidden/ci-env/3e56cc6f0a8a266a/ws/perfo…\tdescartada\t1\tdecline",
+    "",
+    "2 fila(s)",
+    "actual",
+    "workspace",
+    "04 nov, 12:36",
+    "opportunities",
+    "Oportunidades"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "5 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "marshmallow",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 34 eventos · en vivo",
+    "todos los tipos",
+    "analyzer.ran",
+    "connection.changed",
+    "decision.made",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "mandate.changed",
+    "model.called",
+    "opportunity.opened",
+    "repo.head_moved",
+    "world.changed",
+    "Trabajo terminado",
+    "12:35",
+    "next: [] · outcome: ok · seconds: 35",
+    "Llamada al modelo",
+    "12:35",
+    "research.robustness · code · muse-spark-1.3 · 1612→3402 tokens",
+    "Salida permitida",
+    "12:35",
+    "research.robustness → api.meta.ai (7114 B)",
+    "Trabajo iniciado",
+    "12:35",
+    "doing: probing for crashes · stage: found · subject: null",
+    "Trabajo terminado",
+    "12:35",
+    "next: [] · outcome: ok · seconds: 1.2",
+    "Trabajo iniciado",
+    "12:35",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "marshmallow",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 2 oportunidades, ordenadas por evidencia",
+    "L1 sospecha",
+    "1 ruff ICN001 finding in /Users/david/.unbidden/ci-env/3e56cc6f0a8a266a/ws/examples/",
+    "ruff · lint · decline · 04 nov, 12:34",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "1 ruff ICN001 finding in /Users/david/.unbidden/ci-env/3e56cc6f0a8a266a/ws/performance/",
+    "ruff · lint · decline · 04 nov, 12:34",
+    "descartada",
+    "—",
+    "1 ruff ICN001 finding in /Users/david/.unbidden/ci-env/3e56cc6f0a8a266a/ws/examples/",
+    "hallazgo al lienzo",
+    "experimento al lienzo",
+    "L1 sospecha",
+    "descartada",
+    "ruff · lint",
+    "1 ruff ICN001 finding in /Users/david/.unbidden/ci-env/3e56cc6f0a8a266a/ws/examples/",
+    "ICN001: `datetime` should be imported as `dt`",
+    "Decisión decline",
+    "the team's CI does not run ruff: its style is not the team's standard"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "5 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

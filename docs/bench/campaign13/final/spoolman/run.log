@@ -1,0 +1,29 @@
+2026-11-04T16:32:52-0300 [B1] worker 5 starts on ports {'dashboard': 18850, 'ui_a': 18851, 'lab': 18852, 'lab_db': 18853}
+2026-11-04T18:08:32-0300 [B1] FAILED: FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'
+Traceback (most recent call last):
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/run_final.py", line 130, in worker
+    line = run_one(job, repos[job.name], ports, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/run_final.py", line 106, in execute
+    line = level_b(repo, job.run, args["phase"], out, ports["dashboard"], args["candidate"], args["wheel"],
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/level_b.py", line 600, in level_b
+    rec.facts["cycle2"] = cycle(repo_dir, e, rec, "c2", port, CYCLE_BOUND_S // 2, fork, policy)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/level_b.py", line 406, in cycle
+    st = run("status", [unbidden(), "status", "--json"], cwd=repo_dir, env_=e, timeout_s=120).json() or {}
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/common.py", line 176, in run
+    started = time.monotonic()
+              ^^^^^^^^^^^^^^^^
+  File "/Users/david/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/Users/david/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'
+
+2026-11-04T18:10:21-0300 [B1] worker 1 starts on ports {'dashboard': 19010, 'ui_a': 19011, 'lab': 19012, 'lab_db': 19013}
+2026-11-04T20:28:03-0300 [B1] done in 8262 s: {"name": "spoolman", "run": "B1", "mode": "autonomous", "deploy_target": "lab", "self_host_ok": null, "export": true, "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/spoolman/B1.json", "proposals_c1": 4, "proposals_c2": 4, "pulls_after": 12, "spent_usd": 0.0567, "blocks": [], "wall_s": 8170.7}

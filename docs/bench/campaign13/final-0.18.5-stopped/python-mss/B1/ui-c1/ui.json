@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18810/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "1 failing test(s) in src/tests/test_issue_220.py\tdescartada\t2\tdecline",
+    "4 ruff ERA001 findings in demos/\tdescartada\t1\tdecline",
+    "2 ruff PLR0915 findings in demos/\tdescartada\t1\tdecline",
+    "3 ruff PLR2004 findings in demos/\tdescartada\t1\tdecline",
+    "1 ruff S101 finding in demos/\tdescartada\t1\tdecline",
+    "2 ruff F401 findings in demos/\tdescartada\t1\tdecline",
+    "2 ruff I001 findings in demos/\tdescartada\t1\tdecline",
+    "1 ruff E501 finding in demos/\tdescartada\t1\tdecline",
+    ""
+   ],
+   "mentions_live": true,
+   "mentions_demo": true,
+   "widgets_line": "3 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "python-mss",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 59 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "analyzer.ran",
+    "connection.changed",
+    "decision.made",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "mandate.changed",
+    "model.called",
+    "opportunity.opened",
+    "repo.head_moved",
+    "world.changed",
+    "Trabajo terminado",
+    "15:09",
+    "next: [] · outcome: ok · seconds: 1.7",
+    "Decisión tomada",
+    "15:09",
+    "decline — 2 experiments found no proven fix",
+    "Trabajo iniciado",
+    "15:09",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "15:09",
+    "next: [\"director.sweep\"] · outcome: ok · seconds: 10.1",
+    "Nota del agente",
+    "15:09",
+    "text: opp_a5ee528141f74bb4: no proven fix (attempt 2: no usable change (no code of the repository is on the failures' pa",
+    "Trabajo iniciado",
+    "15:09",
+    "doing: measuring a candidate in the sandbox · stage: measured · subject: opp_a5ee528141f74bb4"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "python-mss",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 8 oportunidades, ordenadas por evidencia",
+    "L2 reproducido",
+    "1 failing test(s) in src/tests/test_issue_220.py",
+    "repair · tests · decline · 04 nov, 15:07",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "4 ruff ERA001 findings in demos/",
+    "ruff · lint · decline · 04 nov, 15:06",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "2 ruff PLR0915 findings in demos/",
+    "ruff · lint · decline · 04 nov, 15:06",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "3 ruff PLR2004 findings in demos/",
+    "ruff · lint · decline · 04 nov, 15:06",
+    "descartada",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "3 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

@@ -1,0 +1,33 @@
+{
+ "slug": "satisfymath/c13-rich",
+ "number": 23,
+ "title": "fix: 1 ruff-baseline F821 finding in examples/",
+ "base": "902343888d0c2095c3c39cb2658b995598d7aeb4",
+ "head": "7ba48c7eee6638924e87642abc2c8c77180c9b56",
+ "claims": [
+  {
+   "file": "examples/suppress.py",
+   "line": "19",
+   "rule": "F821"
+  }
+ ],
+ "changed_files": [
+  "examples/suppress.py"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [
+  {
+   "file": "examples/suppress.py",
+   "line": "19",
+   "rule": "F821",
+   "at_base": [
+    "examples/suppress.py:19:29: F821 Undefined name `name`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  }
+ ],
+ "change_matches_problem": true,
+ "verdict": "verified"
+}

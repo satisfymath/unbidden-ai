@@ -1,0 +1,2 @@
+2026-11-04T18:10:49-0300 [B1] worker 2 starts on ports {'dashboard': 19120, 'ui_a': 19121, 'lab': 19122, 'lab_db': 19123}
+2026-11-04T18:15:53-0300 [B1] done in 303 s: {"name": "python-mss", "run": "B1", "mode": "custom", "deploy_target": "none", "self_host_ok": null, "export": true, "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final-rerun-0.18.9/python-mss/B1.json", "proposals_c1": 0, "proposals_c2": 0, "pulls_after": 1, "spent_usd": 0.0293, "blocks": [], "wall_s": 256.1}

@@ -1,0 +1,76 @@
+{
+ "url": "http://127.0.0.1:18820/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "1 ruff ICN001 finding in /Users/david/.unbidden/ci-env/3e56cc6f0a8a266a/ws/examp…\tdescartada\t1\tdecline",
+    "1 ruff ICN001 finding in /Users/david/.unbidden/ci-env/3e56cc6f0a8a266a/ws/perfo…\tdescartada\t1\tdecline",
+    "",
+    "2 fila(s)",
+    "actual",
+    "workspace",
+    "04 nov, 12:19",
+    "opportunities",
+    "Oportunidades"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "4 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "marshmallow",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 34 eventos · en vivo",
+    "todos los tipos",
+    "analyzer.ran",
+    "connection.changed",
+    "decision.made",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "mandate.changed",
+    "model.called",
+    "opportunity.opened",
+    "repo.head_moved",
+    "world.changed",
+    "Trabajo terminado",
+    "12:18",
+    "next: [] · outcome: ok · seconds: 31.8",
+    "Llamada al modelo",
+    "12:18",
+    "research.robustness · code · muse-spark-1.3 · 1612→3139 tokens",
+    "Salida permitida",
+    "12:18",
+    "research.robustness → api.meta.ai (7114 B)",
+    "Trabajo iniciado",
+    "12:18",
+    "doing: probing for crashes · stage: found · subject: null",
+    "Trabajo terminado",
+    "12:18",
+    "next: [] · outcome: ok · seconds: 1.6",
+    "Trabajo iniciado",
+    "12:18",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado"
+   ]
+  }
+ ],
+ "ok": false,
+ "error": "Error: page.waitForTimeout: Target page, context or browser has been closed"
+}

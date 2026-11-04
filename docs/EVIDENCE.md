@@ -22,7 +22,7 @@ then learned to reject that class of result by itself.
 | L2 | Reproduced | a crash or finding reproduced in the sandbox |
 | L3 | Improved in the lab | the candidate removes it offline |
 | L4 | Functionally validated | the team's own checks and tests pass on both sides, and the CI's interpreter agrees (CI parity, D-038) |
-| L5 | Operational result | measured live between two deploys whose code is verified or observed, with confounders |
+| L5 | Operational result | measured live between two deploys whose code is verified or observed, with confounders (criteria `perf-v*`: a latency or error-ratio effect); or, for a security, quality or correctness change, a verified deploy (criteria `verified-deploy-v1`): healthy, no endpoint degraded, both deploys attributable, and for security the fixed version running. A verified deploy claims no measured effect and is reported apart |
 | L6 | Persisted | L5 held over time |
 
 ## Results on single systems

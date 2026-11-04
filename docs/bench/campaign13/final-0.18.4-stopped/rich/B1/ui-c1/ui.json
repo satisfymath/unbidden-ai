@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18810/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "1 ruff-baseline F821 finding in /Users/david/.unbidden/ci-env/f29b6880bed947c6/w…\tdescartada\t2\tdecline",
+    "2 ruff-baseline F821 findings in /Users/david/.unbidden/ci-env/f29b6880bed947c6/…\tdescartada\t2\tdecline",
+    "3 ruff-baseline F811 findings in /Users/david/.unbidden/ci-env/f29b6880bed947c6/…\tdescartada\t2\tdecline",
+    "2 ruff-baseline F821 findings in /Users/david/.unbidden/ci-env/f29b6880bed947c6/…\tdescartada\t2\tdecline",
+    "Pygments 2.19.2: 2 known vulnerabilities, fixed in 2.20.0\tabierta\t1\twait",
+    "black 22.12.0: 5 known vulnerabilities, fixed in 26.10.1\tabierta\t1\twait",
+    "filelock 3.16.1: 6 known vulnerabilities, fixed in 4.2.1\tabierta\t1\twait",
+    "pip 25.2: 12 known vulnerabilities, fixed in 26.2.0\tabierta\t1\twait",
+    "pytest 7.4.4: 2 known vulnerabilities, fixed in 9.0.3\tabierta\t1\twait"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "8 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "rich",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 191 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "decision.made",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "model.called",
+    "model.fallback",
+    "policy.denied",
+    "Trabajo terminado",
+    "14:16",
+    "next: [] · outcome: ok · seconds: 0.9",
+    "Decisión tomada",
+    "14:16",
+    "decline — 2 experiments found no proven fix",
+    "Trabajo iniciado",
+    "14:16",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "14:16",
+    "next: [\"director.sweep\"] · outcome: ok · seconds: 40.2",
+    "Nota del agente",
+    "14:16",
+    "text: opp_6ca0b55d86f14759: no proven fix (context: excerpts, files are 58092 bytes; 4 excerpts, 1627 bytes)",
+    "Fallback de modelo",
+    "14:16",
+    "cause: ModelFailed: lab.fix_candidate: unsafe path '/Users/david/.unbidden/ci-env/f29b6880bed947c6/ws/tests/test_syntax.",
+    "Llamada al modelo",
+    "14:16",
+    "lab.fix_candidate · code · muse-spark-1.3 · 1113→978 tokens",
+    "Salida permitida"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "rich",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 11 oportunidades, ordenadas por evidencia",
+    "L2 reproducido",
+    "1 ruff-baseline F821 finding in /Users/david/.unbidden/ci-env/f29b6880bed947c6/ws/examples/",
+    "ruff-baseline · bugs · decline · 04 nov, 14:07",
+    "descartada",
+    "—",
+    "L2 reproducido",
+    "2 ruff-baseline F821 findings in /Users/david/.unbidden/ci-env/f29b6880bed947c6/ws/rich/",
+    "ruff-baseline · bugs · decline · 04 nov, 14:07",
+    "descartada",
+    "—",
+    "L2 reproducido",
+    "3 ruff-baseline F811 findings in /Users/david/.unbidden/ci-env/f29b6880bed947c6/ws/tests/",
+    "ruff-baseline · bugs · decline · 04 nov, 14:07",
+    "descartada",
+    "—",
+    "L2 reproducido",
+    "2 ruff-baseline F821 findings in /Users/david/.unbidden/ci-env/f29b6880bed947c6/ws/tests/",
+    "ruff-baseline · bugs · decline · 04 nov, 14:07",
+    "descartada",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "8 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

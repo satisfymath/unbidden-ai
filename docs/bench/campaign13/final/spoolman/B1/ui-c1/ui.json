@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:19010/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "anyio 4.14.1: 6 known vulnerabilities, fixed in 4.14.2\tverificada\t5\tpropose_change",
+    "certifi 2026.6.17: 2 known vulnerabilities, fixed in 2026.10.18\texperimentando\t4\tpropose_change",
+    "msgpack 1.2.1: 1 known vulnerability, fixed in 1.2.3\texperimentando\t4\tpropose_change",
+    "urllib3 2.7.0: 6 known vulnerabilities, fixed in 2.8.0\texperimentando\t4\tpropose_change",
+    "setuptools 83.0.0: 1 known vulnerability, fixed in 84.1.0\tabierta\t1\twait",
+    "filament.vendor_id is a foreign key without an index, filtered on by 1 endpoint(…\tabierta\t1\twait",
+    "GET /api/v1/spool/group reports [].spool_count, [].in_use_count: unverified agai…\tabierta\t1\twait",
+    "",
+    "7 fila(s)"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "7 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "spoolman",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 850 eventos · en vivo",
+    "todos los tipos",
+    "job.finished",
+    "job.started",
+    "model.fallback",
+    "world.changed",
+    "Trabajo terminado",
+    "19:42",
+    "next: [] · outcome: ok · seconds: 5.6",
+    "Trabajo iniciado",
+    "19:41",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "19:41",
+    "next: [\"research.consistency\"] · outcome: parked · seconds: 0",
+    "Fallback de modelo",
+    "19:41",
+    "cause: SpendLimitReached: remote spend this month is US$2.30, at the US$2.00 cap · from: code · purpose: director.goal_p",
+    "Trabajo iniciado",
+    "19:41",
+    "doing: checking consistency · stage: found · subject: opp_0a44164001fd438b",
+    "Trabajo terminado",
+    "19:41",
+    "next: [] · outcome: ok · seconds: 0",
+    "Trabajo iniciado",
+    "19:41",
+    "doing: looking at the head · stage: found · subject: null",
+    "Trabajo terminado",
+    "19:40",
+    "next: [] · outcome: ok · seconds: 5.2",
+    "Trabajo iniciado",
+    "19:40"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "spoolman",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 7 oportunidades, ordenadas por evidencia",
+    "L5 operativo",
+    "anyio 4.14.1: 6 known vulnerabilities, fixed in 4.14.2",
+    "pypi-advisories · security · propose_change · 04 nov, 18:12",
+    "verificada",
+    "—",
+    "L4 validado",
+    "certifi 2026.6.17: 2 known vulnerabilities, fixed in 2026.10.18",
+    "pypi-advisories · security · propose_change · 04 nov, 18:12",
+    "experimentando",
+    "—",
+    "L4 validado",
+    "msgpack 1.2.1: 1 known vulnerability, fixed in 1.2.3",
+    "pypi-advisories · security · propose_change · 04 nov, 18:12",
+    "experimentando",
+    "—",
+    "L4 validado",
+    "urllib3 2.7.0: 6 known vulnerabilities, fixed in 2.8.0",
+    "pypi-advisories · security · propose_change · 04 nov, 18:12",
+    "experimentando",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "7 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

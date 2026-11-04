@@ -1,0 +1,29 @@
+{
+ "slug": "satisfymath/c13-aegra",
+ "number": 7,
+ "title": "fix(deps): bump certifi 2026.1.4 → 2026.10.18 (security)",
+ "base": "f3a53c1e00912b87ef434b25b7152a9bf6f86445",
+ "head": "3b5389519fff75282cd73f80d86c0de84b062a4c",
+ "claims": [],
+ "changed_files": [
+  "uv.lock"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [
+  {
+   "rule": "advisories (OSV)",
+   "file": "certifi",
+   "at_base": [
+    "GHSA-6q48-6c7w-9gw2",
+    "PYSEC-2026-4320"
+   ],
+   "at_head": [],
+   "new_version_in_patch": true,
+   "only_dependency_files": true,
+   "verdict": "confirmed"
+  }
+ ],
+ "change_matches_problem": true,
+ "verdict": "verified"
+}

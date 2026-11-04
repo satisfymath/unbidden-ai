@@ -1,0 +1,76 @@
+miércoles,  4 de noviembre de 2026, 20:36:10 -03
+== load
+{ 17.39 16.73 16.16 }
+== memory
+System-wide memory free percentage: 19%
+8.89522 GB free+inactive
+== docker VM
+43.099 GB, 18 cpus
+== containers
+unbidden-data-postgres-749118db50	5.348MiB / 1GiB	26.46%
+unbidden-brightbean-studio-app-1	157.2MiB / 43.1GiB	5.23%
+unbidden-brightbean-studio-worker-1	80.96MiB / 43.1GiB	1.72%
+unbidden-9daee5da63a1	116.9MiB / 8GiB	106.50%
+unbidden-data-db-206f618ae1	17.55MiB / 1GiB	0.02%
+unbidden-845d29ce1848	145.1MiB / 2GiB	106.73%
+unbidden-data-postgres-693aabd21d	19.27MiB / 1GiB	0.02%
+unbidden-traefik-manager-traefik-manager-1	97.7MiB / 43.1GiB	0.04%
+unbidden-f47d1fab45f2	219.2MiB / 2GiB	97.98%
+unbidden-data-postgres-ffb54d33e8	46.27MiB / 1GiB	8.08%
+unbidden-brightbean-studio-postgres-1	25.03MiB / 43.1GiB	1.71%
+unbidden-misago-misago-1	246.6MiB / 43.1GiB	14.81%
+unbidden-misago-postgres-1	32.3MiB / 43.1GiB	0.14%
+unbidden-misago-mailpit-1	10.47MiB / 43.1GiB	0.00%
+unbidden-372f679e88ee	165.4MiB / 8GiB	107.37%
+unbidden-a1e5672a855f	307.1MiB / 8GiB	34.36%
+act-unbidden-ci-Build-and-Test-a-Django-Project-9183442e2d703d4-a2724165a5ea2b5bff239701b89a3512d417e4b3a1fdd7b0b3d9ae4dd51c450c	7.375MiB / 43.1GiB	0.24%
+act-unbidden-ci-Build-and-Test-a-Django-Project-9183442e2d703d4-e73880b5ddacfcfabb6217f906cc0195fe3f9007dd4410e0648d7019130fe13e	331.7MiB / 43.1GiB	7.48%
+act-unbidden-ci-Tests-Python-3-12-eca45d54423d794b4353b03b6a7ff-402929adbcea31c7524968059dcdfd5485b8aa28971916dffd06f65a43be5b6d	23.12MiB / 43.1GiB	23.65%
+act-unbidden-ci-Tests-Python-3-12-eca45d54423d794b4353b03b6a7ff-41af5e7e7842bf40aa2e46cfcf64825f6813549d89e17ed69d33246d5b52cfff	7.18MiB / 43.1GiB	0.28%
+act-unbidden-ci-pytest-e521b86922da85c1cc58185ccd1e75b16902095b-019f832d5b54f9f4aecb44e24ee3c8a28602d7697bcb0e0f1ee4315cf790922e	18.4MiB / 43.1GiB	10.37%
+act-unbidden-ci-build-b828a2c3c47c3630fbf32d16ededa0de674773164-e36cc8644a5ac4f410ae910de879ec443bb1977c1a49065002986b3c29b474ee	17.94MiB / 43.1GiB	0.00%
+unbidden-recruitops-agent-api-1	0B / 0B	0.00%
+unbidden-recruitops-agent-postgres-1	24.97MiB / 1GiB	0.00%
+unbidden-brightbean-studio-tailwind-1	51.45MiB / 43.1GiB	0.01%
+unbidden-misago-celery-worker-1	1.059GiB / 43.1GiB	0.39%
+unbidden-misago-redis-1	3.812MiB / 43.1GiB	0.20%
+unbidden-gymhero-app-1	99.55MiB / 43.1GiB	11.13%
+unbidden-gymhero-db-1	29.39MiB / 43.1GiB	1.29%
+unbidden-data-redis-46b886688d	7.258MiB / 1GiB	0.26%
+unbidden-data-mariadb-46b886688d	286.3MiB / 1GiB	0.01%
+act-unbidden-ci-Python-3-11-de0c28b102d9c86ccbff54481d48864c601-c8887fee2fdfc28c3be6a539c8471d6b216be5811e3c8c4c951159947d833f2c	7.188MiB / 43.1GiB	0.26%
+act-unbidden-ci-Python-3-11-de0c28b102d9c86ccbff54481d48864c601-c435df4d020159747711100490c751cc41c359897dd4f4909028139d8815ca69	74.94MiB / 43.1GiB	0.01%
+unbidden-data-redis-3838456918	7.328MiB / 1GiB	0.19%
+unbidden-data-mariadb-3838456918	491.7MiB / 1GiB	0.02%
+unbidden-timetracker-app-1	207.9MiB / 1GiB	0.03%
+unbidden-timetracker-nginx-1	14.74MiB / 43.1GiB	0.00%
+unbidden-timetracker-db-1	36.26MiB / 1GiB	0.00%
+unbidden-timetracker-peppol-bridge-1	64.25MiB / 43.1GiB	0.01%
+act-unbidden-ci-public-pr-verify-b2b2b6bde4a155e2418ade79887599-70456314fd6c956722f8b4cda101aa260a824b4a5b6a28159096cf58a7a83702	19.25MiB / 43.1GiB	7.35%
+act-unbidden-ci-public-pr-verify-b2b2b6bde4a155e2418ade79887599-9ac497efc9e8151d1599bfd73071fd4292aee87cd2bfd184ed29fe32b5110e64	5.02MiB / 43.1GiB	0.59%
+act-unbidden-ci-Run-tests-9b1baabd57a36e4d4692f8fa310fa534bd2dd-0bad050e93fa554fd752a3129ab7417f623cfa7a7d0f193ea3ed035a2a18e57c	13.19MiB / 43.1GiB	0.00%
+unbidden-data-redis-27f555c6fa	7.086MiB / 1GiB	0.22%
+unbidden-data-mariadb-27f555c6fa	455.6MiB / 1GiB	0.01%
+== agents
+brightbean-studio rss=47MB
+recruitops-agent rss=24MB
+traefik-manager rss=60MB
+misago rss=22MB
+timetracker rss=134MB
+brightbean-studio rss=11MB
+traefik-manager rss=15MB
+misago rss=42MB
+gymhero rss=42MB
+== harness workers
+10257 02:25:55 4MB
+10258 02:25:55 10MB
+10260 02:25:55 7MB
+10261 02:25:55 8MB
+67745 54:27 0MB
+67746 54:27 3MB
+67813 54:26 9MB
+67814 54:26 10MB
+67815 54:26 11MB
+67817 54:26 8MB
+67819 54:26 9MB
+67820 54:26 6MB

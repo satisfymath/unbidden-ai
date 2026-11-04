@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18820/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "sin datos",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "pytest 8.4.2: 2 known vulnerabilities, fixed in 9.0.3\tdescartada\t1\tdecline",
+    "",
+    "1 fila(s)",
+    "actual",
+    "workspace",
+    "04 nov, 15:04",
+    "opportunities",
+    "Oportunidades"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "4 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "pyjwt",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 45 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "analyzer.ran",
+    "connection.changed",
+    "decision.made",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "mandate.changed",
+    "model.called",
+    "opportunity.opened",
+    "repo.head_moved",
+    "verdict.recorded",
+    "world.changed",
+    "Trabajo terminado",
+    "15:03",
+    "next: [] · outcome: ok · seconds: 1",
+    "Decisión tomada",
+    "15:03",
+    "decline — 2 experiments found no proven fix",
+    "Trabajo iniciado",
+    "15:03",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "15:03",
+    "next: [\"director.sweep\"] · outcome: ok · seconds: 127",
+    "Nota del agente",
+    "15:03",
+    "text: opp_ace91b473bed4e56: no proven fix (pytest 8.4.2 → 9.0.3: advisories GHSA-6w46-j5rx-g56g, PYSEC-2026-1845 gone; t",
+    "Veredicto registrado",
+    "15:03"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "pyjwt",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 1 oportunidades, ordenadas por evidencia",
+    "L1 sospecha",
+    "pytest 8.4.2: 2 known vulnerabilities, fixed in 9.0.3",
+    "pypi-advisories · security · decline · 04 nov, 14:58",
+    "descartada",
+    "—",
+    "pytest 8.4.2: 2 known vulnerabilities, fixed in 9.0.3",
+    "hallazgo al lienzo",
+    "experimento al lienzo",
+    "L1 sospecha",
+    "descartada",
+    "pypi-advisories · security",
+    "pytest 8.4.2: 2 known vulnerabilities, fixed in 9.0.3",
+    "pytest: pytest 8.4.2: GHSA-6w46-j5rx-g56g (CVE-2025-71176, PYSEC-2026-1845); fixed in 9.0.3: pytest through 9.0.2 on UNIX relies on directories with the `/tmp/pytest-of-{user}` name pattern, which allows local users to cause a denial of service or possibly gain privileges.; pytest: pytest 8.4.2: PYSEC-2026-1845 (CVE-2025-71176, GHSA-6w46-j5rx-g56g); fixed in 9.0.3: pytest through 9.0.2 on UNIX relies on directories with the `/tmp/pytest-of-{user}` name pattern, which allows local users to cause a denial of service or possibly gain privileges.",
+    "Decisión decline",
+    "2 experiments found no proven fix",
+    "analyzer_report: pypi-advisories@1172aabc896864448d22dcc217245164d95d0e46",
+    "Todavía sin experimento",
+    "La oportunidad no ha sido medida; el motor lo hará cuando la decisión sea run_experiment (o `unbidden try <id>`).",
+    "4 widgets · Guardado",
+    "100%"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "4 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

@@ -1,0 +1,2679 @@
+{
+ "repo": "aegra",
+ "phase": "confirm-rerun",
+ "run": "B1",
+ "candidate": "0230c67cbe2cad21c74d0e3ac768900d30c68a57",
+ "wheel_sha256": "4b8477f4e4e484c84401fcfb676169795497894f14772376d7815b6e809f1036",
+ "started_at": "2026-11-04T18:15:53-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "autopilot",
+    "--budget",
+    "2",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--github-token-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 13.9,
+   "timed_out": false,
+   "stdout": "at\": \"merge pull requests\",\n      \"capability\": \"github.merge_pull_request\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": {\n    \"ok\": true,\n    \"rejected\": false,\n    \"model\": \"muse-spark-1.3\",\n    \"usd\": 0.000571,\n    \"why\": null\n  },\n  \"priorities\": [\n    \"correctness\",\n    \"maintainability\",\n    \"security\"\n  ],\n  \"github\": \"file\",\n  \"found\": {\n    \"repository\": \"satisfymath/c13-aegra\",\n    \"branch\": \"HEAD\",\n    \"head\": \"f3a53c1e00912b87ef434b25b7152a9bf6f86445\",\n    \"scope\": [\n      {\n        \"name\": \"scope: stack\",\n        \"in_scope\": true,\n        \"note\": \"Python 3.12 (pyproject.toml, uv.lock; workspace members libs/aegra-api, libs/aegra-cli)\"\n      },\n      {\n        \"name\": \"scope: tests\",\n        \"in_scope\": true,\n        \"note\": \"ci.yml > test-api (the whole job)\"\n      },\n      {\n        \"name\": \"scope: database\",\n        \"in_scope\": true,\n        \"note\": \"services in compose: redis (PostgreSQL is where performance work is measured; not seen)\"\n      }\n    ],\n    \"machine\": \"Apple M5 Pro, 64 GB, 54 GB for a model\",\n    \"ollama\": {\n      \"url\": \"http://localhost:11434\",\n      \"present\": true,\n      \"models\": [\n        \"muse-glimmer:30b-mxfp8-dflash\",\n        \"nomic-embed-text:latest\"\n      ]\n    },\n    \"local_model\": {\n      \"tag\": \"muse-glimmer:30b-mxfp8-dflash\",\n      \"installed\": true\n    },\n    \"key\": {\n      \"name\": \"MODEL_API_KEY\",\n      \"present\": true\n    },\n    \"github\": \"file\",\n    \"github_check\": {\n      \"login\": \"satisfymath\",\n      \"can_push\": true,\n      \"detail\": \"can push to satisfymath/c13-aegra\"\n    },\n    \"compose\": \"docker-compose.yml\",\n    \"services\": [\n      {\n        \"name\": \"postgres\",\n        \"kind\": null\n      },\n      {\n        \"name\": \"aegra\",\n        \"kind\": null\n      },\n      {\n        \"name\": \"redis\",\n        \"kind\": \"redis\"\n      }\n    ],\n    \"external\": [],\n    \"option\": \"mixed\",\n    \"option_why\": \"hay una clave y un modelo local\"\n  },\n  \"defaulted\": [\n    \"priorities\",\n    \"key\",\n    \"connections\",\n    \"private_code\",\n    \"language\"\n  ],\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c13/aegra/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c13/aegra/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 2.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -12,9 +12,10 @@\",\n    \"     provision_dependencies: allow\",\n    \"     delegate_synthetic: allow\",\n    \"-    open_pull_requests: require_approval\",\n    \"+    open_pull_requests: allow\",\n    \"     merge_pull_requests: deny\",\n    \"     deploy: deny\",\n    \"     rollback: deny\",\n    \"-    use_new_capabilities: require_approval\",\n    \"+    use_new_capabilities: allow\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,16 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\",\n    \"+  connections:\",\n    \"+  - id: github\",\n    \"+    kind: github\",\n    \"+    location: satisfymath/c13-aegra\",\n    \"+    credential_ref: GITHUB_TOKEN\",\n    \"+    environment: production\",\n    \"+    permissions:\",\n    \"+    - read\",\n    \"+  operations: {}\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c13/aegra/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "            denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nCredenciales\nGuardadas en /Users/david/unbidden-lab/c13/home-confirm/.unbidden/.env (modo \n600), referidas por nombre; nunca escritas en el repositorio ni en registros.\nMODEL_API_KEY guardada.\nClave aceptada: muse-spark-1.3 respondió (US$0.0006).\nGITHUB_TOKEN guardada.\n\nPresupuesto\nLibro de la máquina: verified balance US$97.29 (stage 6 spend cap authorized by \nDavid on 2026-10-28: up to US$10 of free credits from this point (dev 3, \nevaluation 5, demo and contingency 2; the earlier US$3 reserve is included, not \nadded). Dashboard as reported by David 2026-10-28: Current balance US$0, free \ncredits in use US$144.98, a Visa card on file, content sent while on free \ncredits may be used to improve products. A cap, not a measured balance; no \nrecharge or card charge authorized (entered by david) | stage 9: US$30 \nadditional Meta API spend authorized by David on 2026-10-29, replacing the US$10\ncap; cumulative cap US$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval\n12, demo 6 (D-052). Dashboard as reported by David: free credits in use \nUS$137.96, balance US$0, a card on file. No recharge or card charge authorized \n(entered by david) | stage 10: the remaining US$20.30 of the US$37.29 cap split \nbefore any call (D-058), by David's stage 10 instruction of 2026-10-30 (entered \nby david) | stage 10 after the frozen evaluation: US$5 of the unspent s10-eval \nmoved to s10-dev for corrections and regressions, by David's instruction of \n2026-10-31; envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; spent at the transfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, \ns10-close 0) (entered by david) | product phase (A-E): s11-product US$4.00 \nauthorized by David on 2026-11-01, reassigned from s10-close (3.80, unspent, \nclosed) and US$0.20 of s10-dev; envelopes total US$20.30 and the cumulative cap \nUS$37.2945 unchanged; spent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval\n1.0010, s10-close 0) (entered by david) | product phase correction: David's \nauthorization of 2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken \nfrom s10-dev had no recorded authorization and goes back (s10-dev 13.00, \ns11-product 3.80); envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; s11-product spent 0 at the correction; spent at the correction \nUS$27.7199 (entered by david) | campaign 12 (installed-product validation): \nUS$60 additional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david) | envelopes s13-dev 15, \ns13-pass 15, s13-final 20, s13-confirm 5 authorized by David on 2026-11-03 \n('dale entonces empecemos con todo', campaign 13 to 1.0, within the cumulative \ncap US$97.2945, not amended); earlier envelopes unchanged; no transfers (entered\nby david)); permitido US$97.29 · gastado US$35.6804 · disponible US$61.6141\nsobres: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, s12-eval\n30.00, s12-dev 17.00, s12-confirm 5.00, s13-dev 15.00, s13-pass 15.00, s13-final\n20.00, s13-confirm 5.00\nLos créditos del proveedor y el gasto autorizado son cosas distintas: el tope \nque una persona ingresó con `unbidden spend --verified-balance` es lo que esta \nmáquina puede gastar; aquí nunca se sube ni se reinicia.\n\nPanel\nAbrir el panel, restaurar su disposición y mostrar registros no llama a ningún \nmodelo; chatear o pedir un análisis sí puede.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 10.7,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"2 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"act\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"found: the team's CI job prepares the environment when the mandate allows it\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key proven: muse-spark-1.3 answered\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"GITHUB_TOKEN set\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs allow\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"recon\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"incompleto: stack down; stack down\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.12 (pyproject.toml, uv.lock; workspace members libs/aegra-api, libs/aegra-cli)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"ci.yml > test-api (the whole job)\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"services in compose: redis (PostgreSQL is where performance work is measured; not seen)\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "host-up",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "host",
+    "up",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 26.4,
+   "timed_out": false,
+   "stdout": "{\n  \"ok\": true,\n  \"project\": \"unbidden-aegra\",\n  \"health_url\": \"http://127.0.0.1:64500/health\",\n  \"ports\": {\n    \"aegra:2026\": 64500,\n    \"postgres:5432\": 64501,\n    \"redis:6379\": 64502\n  },\n  \"deploy_steps\": [\n    [\n      \"/Users/david/unbidden-lab/c13/home-confirm/tools/unbidden-ai/bin/python\",\n      \"-m\",\n      \"unbidden.cli\",\n      \"host\",\n      \"up\",\n      \"--deploy\",\n      \"--build\",\n      \"--json\"\n    ]\n  ],\n  \"drill\": {\n    \"at\": \"2026-11-04T21:17:42.601434+00:00\",\n    \"from\": \"f3a53c1e00912b87ef434b25b7152a9bf6f86445\",\n    \"to\": \"46055c0b9adffe51fb168974f79dfadaa6edd612\",\n    \"back\": true,\n    \"forth\": true,\n    \"passed\": true\n  },\n  \"why\": null,\n  \"steps\": [\n    {\n      \"step\": \"render the compose file\",\n      \"ok\": true,\n      \"detail\": \"docker-compose.yml; 3 services\",\n      \"seconds\": 0.1\n    },\n    {\n      \"step\": \"docker compose up\",\n      \"ok\": true,\n      \"detail\": \"reated \\n Network unbidden-aegra_default Created \\n Network unbidden-aegra_default Created \\n Container unbidden-aegra-redis-1 Creating \\n Container unbidden-aegra-postgres-1 Creating \\n Container unbidden-aegra-postgres-1 Created \\n Container unbidden-aegra-redis-1 Created \\n Container unbidden-aegra-aegra-1 Creating \\n Container unbidden-aegra-aegra-1 Created \\n Container unbidden-aegra-redis-1 Starting \\n Container unbidden-aegra-postgres-1 Starting \\n Container unbidden-aegra-redis-1 Started \\n Container unbidden-aegra-postgres-1 Started \\n Container unbidden-aegra-redis-1 Waiting \\n Container unbidden-aegra-postgres-1 Waiting \\n Container unbidden-aegra-redis-1 Healthy \\n Container unbidden-aegra-postgres-1 Healthy \\n Container unbidden-aegra-aegra-1 Starting \\n Container unbidden-aegra-aegra-1 Started\",\n      \"seconds\": 12.1\n    },\n    {\n      \"step\": \"health\",\n      \"ok\": true,\n      \"detail\": \"http://127.0.0.1:64500/health\",\n      \"seconds\": 6.3\n    }\n  ],\n  \"migrated\": null,\n  \"seeded\": {},\n  \"generated_env\": [\n    \"POSTGRES_PASSWORD\",\n    \"OPENAI_API_KEY\",\n    \"LANGFUSE_PUBLIC_KEY\",\n    \"LANGFUSE_SECRET_KEY\"\n  ]\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "map",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "map",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 80.5,
+   "timed_out": false,
+   "stdout": "      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"endpoint:GET /threads/{thread_id}/runs/{run_id}/stream\",\n      \"dst\": \"table:runs\",\n      \"predicate\": \"reads\"\n    },\n    {\n      \"status\": \"inferred\",\n      \"confidence\": 0.6,\n      \"evidence\": [\n        {\n          \"kind\": \"file\",\n          \"locator\": \"libs/aegra-api/src/aegra_api/api/threads.py:345\",\n          \"sha256\": null,\n          \"note\": \"read by the local model; handler bbe7e3f68238d60c\",\n          \"captured_at\": \"2026-11-04T21:18:52.257683Z\"\n        }\n      ],\n      \"source\": \"local-model-relations@1\",\n      \"observed_at\": \"2026-11-04T21:18:52.257692Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"f3a53c1e00912b87ef434b25b7152a9bf6f86445\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"endpoint:PATCH /threads/{thread_id}\",\n      \"dst\": \"table:thread\",\n      \"predicate\": \"reads\"\n    },\n    {\n      \"status\": \"inferred\",\n      \"confidence\": 0.6,\n      \"evidence\": [\n        {\n          \"kind\": \"file\",\n          \"locator\": \"libs/aegra-api/src/aegra_api/api/threads.py:345\",\n          \"sha256\": null,\n          \"note\": \"read by the local model; handler bbe7e3f68238d60c\",\n          \"captured_at\": \"2026-11-04T21:18:52.257683Z\"\n        }\n      ],\n      \"source\": \"local-model-relations@1\",\n      \"observed_at\": \"2026-11-04T21:18:52.257747Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"f3a53c1e00912b87ef434b25b7152a9bf6f86445\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"endpoint:PATCH /threads/{thread_id}\",\n      \"dst\": \"table:thread\",\n      \"predicate\": \"writes\"\n    },\n    {\n      \"status\": \"inferred\",\n      \"confidence\": 0.6,\n      \"evidence\": [\n        {\n          \"kind\": \"file\",\n          \"locator\": \"libs/aegra-api/src/aegra_api/api/runs.py:267\",\n          \"sha256\": null,\n          \"note\": \"read by the local model; handler 794cf01ada537162\",\n          \"captured_at\": \"2026-11-04T21:18:52.257871Z\"\n        }\n      ],\n      \"source\": \"local-model-relations@1\",\n      \"observed_at\": \"2026-11-04T21:18:52.257879Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"f3a53c1e00912b87ef434b25b7152a9bf6f86445\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"endpoint:PATCH /threads/{thread_id}/runs/{run_id}\",\n      \"dst\": \"table:runs\",\n      \"predicate\": \"reads\"\n    },\n    {\n      \"status\": \"inferred\",\n      \"confidence\": 0.6,\n      \"evidence\": [\n        {\n          \"kind\": \"file\",\n          \"locator\": \"libs/aegra-api/src/aegra_api/api/runs.py:541\",\n          \"sha256\": null,\n          \"note\": \"read by the local model; handler f552674eebcfca48\",\n          \"captured_at\": \"2026-11-04T21:19:03.046854Z\"\n        }\n      ],\n      \"source\": \"local-model-relations@1\",\n      \"observed_at\": \"2026-11-04T21:19:03.046862Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"f3a53c1e00912b87ef434b25b7152a9bf6f86445\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"endpoint:POST /runs/cancel\",\n      \"dst\": \"table:runs\",\n      \"predicate\": \"reads\"\n    },\n    {\n      \"status\": \"inferred\",\n      \"confidence\": 0.6,\n      \"evidence\": [\n        {\n          \"kind\": \"file\",\n          \"locator\": \"libs/aegra-api/src/aegra_api/api/runs.py:541\",\n          \"sha256\": null,\n          \"note\": \"read by the local model; handler f552674eebcfca48\",\n          \"captured_at\": \"2026-11-04T21:19:03.046854Z\"\n        }\n      ],\n      \"source\": \"local-model-relations@1\",\n      \"observed_at\": \"2026-11-04T21:19:03.046918Z\",\n      \"environment\": \"local\",\n      \"valid_for\": \"f3a53c1e00912b87ef434b25b7152a9bf6f86445\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"endpoint:POST /runs/cancel\",\n      \"dst\": \"table:thread\",\n      \"predicate\": \"reads\"\n    }\n  ],\n  \"blind_spots\": [\n    {\n      \"what\": \"endpoints of postgres\",\n      \"why\": \"ports 64501 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown\"\n    }\n  ],\n  \"updated_at\": \"2026-11-04T21:17:42.939451Z\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "mode-autonomous",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "mode",
+    "autonomous",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "mode: autonomous (was autopilot)\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "19120",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 94449,\n  \"log\": \"/Users/david/unbidden-lab/c13/aegra/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-browser",
+   "argv": [
+    "node",
+    "/Users/david/unbidden-ai-v1b/frontend/scripts/c13_ui_check.mjs",
+    "http://127.0.0.1:19120/?s=<token>",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final-rerun-0.18.9/aegra/B1/ui-c1"
+   ],
+   "code": 0,
+   "seconds": 18.6,
+   "timed_out": false,
+   "stdout": "{\"ok\":true,\"steps\":5,\"console_errors\":2}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-status",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué ha hecho el agente hasta ahora y cuántas oportunidades hay?"
+   ],
+   "code": 0,
+   "seconds": 2.4,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_938747bc6c9b4674\",\n  \"role\": \"assistant\",\n  \"content\": \"Registro de aegra (live, head 600c12eaa65e): 8 oportunidades, 9 experimentos, 3 propuestas, 240 eventos, 8 llamadas a modelos, 2 bloqueos.\\nJobs: done 48, failed 2, queued 1, running 1\\nBloqueo compatibility en «research.consistency opp_d9ef532aa4d04570»: PolicyDenied: the mandate denies local inference, and this call may not go remote: production_data never leaves this machine\\nBloqueo compatibility en «research.consistency opp_5485c89bab3a43eb»: PolicyDenied: the mandate denies local inference, and this call may not go remote: production_data never leaves this machine\\nAgente: agent running, pid 94449.\\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.\",\n  \"created_at\": \"2026-11-04T22:33:04.856905Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"rule\",\n  \"model\": null,\n  \"route\": {\n    \"intent\": \"inform\",\n    \"purpose\": null,\n    \"tier\": null,\n    \"model\": null,\n    \"reason\": \"the mandate denies local inference; reading records needs no model: answered by rules\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-analyze",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué hallazgo priorizarías y por qué? Di qué falta en el registro."
+   ],
+   "code": 0,
+   "seconds": 12.6,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_f24a2307282844fe\",\n  \"role\": \"assistant\",\n  \"content\": \"Priorizaría `opp_f7580c5d8e654812` — «certifi 2026.1.4: 2 known vulnerabilities, fixed in 2026.10.18» — porque es nivel 5, frente a nivel 4 de `opp_ec8c0f2bea224d45` y `opp_7f30f16ef9ec40e1` y nivel 3 de `opp_e628a7f9a87247da`, con estado `verified` y `has_experiment:true`.\\n\\nDe 8 oportunidades: 3 `declined`, 2 `open`, 1 `verified`, 2 `experimenting`.\\n\\nLo que falta en el registro: no incluye las ids/títulos de las 2 `open` ni de 2 `declined` restantes, ni severidad, explotabilidad, impacto o esfuerzo; no puedo inferir el porqué más allá de nivel y estado.\",\n  \"created_at\": \"2026-11-04T22:33:17.452497Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"brain\",\n  \"model\": \"muse-spark-1.3\",\n  \"route\": {\n    \"intent\": \"analyze\",\n    \"purpose\": \"chat.analyze\",\n    \"tier\": \"code\",\n    \"model\": \"muse-spark-1.3\",\n    \"reason\": \"profile frontier; public_code may leave; label public_code\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 1.9,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 94449,\n  \"waited_s\": 1.6,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "19120",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.7,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 16581,\n  \"log\": \"/Users/david/unbidden-lab/c13/aegra/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 16581,\n  \"waited_s\": 0.2,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-final",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/aegra\",\n  \"head\": \"600c12eaa65e24d074a6b29f31cc76ea594e6c72\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c13/aegra/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"600c12eaa65e24d074a6b29f31cc76ea594e6c72\",\n    \"tools\": [\n      \"ruff\",\n      \"pypi-advisories\"\n    ],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"python 3.12: from .python-version\",\n      \"pyproject requires-python: >=3.12\",\n      \".python-version: 3.12\",\n      \"image unbidden-deps-python:eccb9f5a899afd0f on linux/arm64\",\n      \"the team's CI job did not prepare the environment: the CI job failed at `Install uv` before its tests: 040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.\\n[unbidden-ci/test-api]   | (Use `node --trace-deprecation ...` to show where the warning was created)\\n[unbidden-ci/test-api]   \\u2757  ::error::Para\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"pypi-advisories\",\n        \"completeness\": \"complete\",\n        \"findings\": 26,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"declined\": 3,\n    \"verified\": 1,\n    \"experimenting\": 2,\n    \"open\": 2\n  },\n  \"asks\": [],\n  \"blocks\": [\n    {\n      \"id\": \"blk_d55fe9612d6e1c44\",\n      \"kind\": \"compatibility\",\n      \"needs\": \"nothing known a person can grant; the evidence says what failed\",\n      \"waiting\": [\n        \"research.consistency opp_d9ef532aa4d04570\"\n      ]\n    },\n    {\n      \"id\": \"blk_54abc9f11e43e856\",\n      \"kind\": \"compatibility\",\n      \"needs\": \"nothing known a person can grant; the evidence says what failed\",\n      \"waiting\": [\n        \"research.consistency opp_5485c89bab3a43eb\"\n      ]\n    }\n  ],\n  \"idle\": true\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "egress",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "egress",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 1.0,
+   "timed_out": false,
+   "stdout": " una tabla o un gr\\u00e1fico.\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"Records digest:\\\\nworkspace aegra (live record); head 600c12eaa65e; observed 2026-11-04T22:33:05.891618+00:00; freshness current\\\\ncounts: {\\\\\\\"opportunities\\\\\\\":8,\\\\\\\"experiments\\\\\\\":9,\\\\\\\"proposals\\\\\\\":3,\\\\\\\"events\\\\\\\":240,\\\\\\\"model_runs\\\\\\\":8,\\\\\\\"connections\\\\\\\":2,\\\\\\\"deployments\\\\\\\":2,\\\\\\\"needs\\\\\\\":1,\\\\\\\"blocks\\\\\\\":2,\\\\\\\"spend_calls\\\\\\\":210,\\\\\\\"world\\\\\\\":1}\\\\njobs: {\\\\\\\"done\\\\\\\":48,\\\\\\\"failed\\\\\\\":2,\\\\\\\"queued\\\\\\\":1,\\\\\\\"running\\\\\\\":1}\\\\ndiscovered: {\\\\\\\"total\\\\\\\":8,\\\\\\\"by_status\\\\\\\":{\\\\\\\"declined\\\\\\\":3,\\\\\\\"open\\\\\\\":2,\\\\\\\"verified\\\\\\\":1,\\\\\\\"experimenting\\\\\\\":2}}\\\\ninvalidated: []\\\\nproposals: {\\\\\\\"merged\\\\\\\":[\\\\\\\"fix(deps): bump certifi 2026.1.4 \\u2192 2026.10.18 (security)\\\\\\\"],\\\\\\\"stale\\\\\\\":[\\\\\\\"fix(deps): bump filelock 4.0.9 \\u2192 4.2.1 (security)\\\\\\\",\\\\\\\"fix(deps): bump langgraph-sdk 0.4.2 \\u2192 0.4.6 (security)\\\\\\\"]}\\\\nblocks: [{\\\\\\\"operation\\\\\\\":\\\\\\\"research.consistency opp_d9ef532aa4d04570\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"compatibility\\\\\\\",\\\\\\\"needs\\\\\\\":\\\\\\\"nothing known a person can grant; the evidence says what failed\\\\\\\",\\\\\\\"continues\\\\\\\":\\\\\\\"research.consistency runs again\\\\\\\",\\\\\\\"evidence\\\\\\\":\\\\\\\"PolicyDenied: the mandate denies local inference, and this call may not go remote: production_data never leaves this machine\\\\\\\"},{\\\\\\\"operation\\\\\\\":\\\\\\\"research.consistency opp_5485c89bab3a43eb\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"compatibility\\\\\\\",\\\\\\\"needs\\\\\\\":\\\\\\\"nothing known a person can grant; the evidence says what failed\\\\\\\",\\\\\\\"continues\\\\\\\":\\\\\\\"research.consistency runs again\\\\\\\",\\\\\\\"evidence\\\\\\\":\\\\\\\"PolicyDenied: the mandate denies local inference, and this call may not go remote: production_data never leaves this machine\\\\\\\"}]\\\\nlearned: {\\\\\\\"pypi-advisories \\u00b7 security \\u00b7 -\\\\\\\":{\\\\\\\"successes\\\\\\\":3,\\\\\\\"failures\\\\\\\":2,\\\\\\\"p\\\\\\\":0.6,\\\\\\\"prior\\\\\\\":0.6}}\\\\nconnections: [{\\\\\\\"id\\\\\\\":\\\\\\\"compose:compose\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"compose\\\\\\\",\\\\\\\"environment\\\\\\\":\\\\\\\"local\\\\\\\",\\\\\\\"state\\\\\\\":\\\\\\\"connected\\\\\\\",\\\\\\\"read\\\\\\\":[\\\\\\\"ps\\\\\\\",\\\\\\\"inspect\\\\\\\",\\\\\\\"logs\\\\\\\"],\\\\\\\"write\\\\\\\":[],\\\\\\\"requested\\\\\\\":[],\\\\\\\"effective\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"blocked\\\\\\\":null,\\\\\\\"next_step\\\\\\\":null,\\\\\\\"found_by\\\\\\\":[\\\\\\\"the map's compose connector\\\\\\\"],\\\\\\\"checked_at\\\\\\\":null},{\\\\\\\"id\\\\\\\":\\\\\\\"github:satisfymath/c13-aegra\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"github\\\\\\\",\\\\\\\"environment\\\\\\\":\\\\\\\"production\\\\\\\",\\\\\\\"state\\\\\\\":\\\\\\\"connected\\\\\\\",\\\\\\\"read\\\\\\\":[\\\\\\\"repository\\\\\\\",\\\\\\\"check runs\\\\\\\",\\\\\\\"pull requests\\\\\\\"],\\\\\\\"write\\\\\\\":[\\\\\\\"push branch\\\\\\\",\\\\\\\"pull request\\\\\\\"],\\\\\\\"requested\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"effective\\\\\\\":[\\\\\\\"read\\\\\\\",\\\\\\\"write\\\\\\\"],\\\\\\\"blocked\\\\\\\":null,\\\\\\\"next_step\\\\\\\":null,\\\\\\\"found_by\\\\\\\":[\\\\\\\"mandate grant\\\\\\\"],\\\\\\\"checked_at\\\\\\\":\\\\\\\"2026-11-04T22:32:50.945578+00:00\\\\\\\"}]\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_f7580c5d8e654812\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"certifi 2026.1.4: 2 known vulnerabilities, fixed in 2026.10.18\\\\\\\",\\\\\\\"level\\\\\\\":5,\\\\\\\"status\\\\\\\":\\\\\\\"verified\\\\\\\",\\\\\\\"has_experiment\\\\\\\":true}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_ec8c0f2bea224d45\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"filelock 4.0.9: 13 known vulnerabilities, fixed in 4.2.1\\\\\\\",\\\\\\\"level\\\\\\\":4,\\\\\\\"status\\\\\\\":\\\\\\\"experimenting\\\\\\\",\\\\\\\"has_experiment\\\\\\\":true}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_7f30f16ef9ec40e1\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"langgraph-sdk 0.4.2: 3 known vulnerabilities, fixed in 0.4.6\\\\\\\",\\\\\\\"level\\\\\\\":4,\\\\\\\"status\\\\\\\":\\\\\\\"experimenting\\\\\\\",\\\\\\\"has_experiment\\\\\\\":true}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_e628a7f9a87247da\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"langgraph-checkpoint-postgres 3.1.2: 1 known vulnerability, fixed in 3.1.3\\\\\\\",\\\\\\\"level\\\\\\\":3,\\\\\\\"status\\\\\\\":\\\\\\\"declined\\\\\\\",\\\\\\\"has_experiment\\\\\\\":true}\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 hallazgo priorizar\\u00edas y por qu\\u00e9? Di qu\\u00e9 falta en el registro.\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}], \\\"response_schema\\\": null, \\\"tools\\\": []}\",\n    \"created_at\": \"2026-11-04T22:33:05.947015Z\",\n    \"origin\": \"dashboard apart\"\n  }\n]\n",
+   "stderr": ""
+  },
+  {
+   "name": "export",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "export",
+    "--out",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final-rerun-0.18.9/aegra/export"
+   ],
+   "code": 0,
+   "seconds": 1.1,
+   "timed_out": false,
+   "stdout": "Evidence of aegra written to \n/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final-rerun-0.18.9/aegra/expo\nrt\n  events.jsonl                     248 lines  12a40e6431d3\n  audit.jsonl                       23 lines  4f9fad5dd293\n  opportunities.jsonl                8 lines  8bb9544b4eb8\n  hypotheses.jsonl                   0 lines  e3b0c44298fc\n  experiment_specs.jsonl             0 lines  e3b0c44298fc\n  experiments.jsonl                  9 lines  9948696ef15c\n  proposals.jsonl                    3 lines  29f5e09d67ed\n  decisions.jsonl                   21 lines  b762ecf30c19\n  deploy_verdicts.jsonl              1 lines  528149727d66\n  deployments.jsonl                  2 lines  e07a45ec3a5f\n  holds.jsonl                        0 lines  e3b0c44298fc\n  approvals.jsonl                    0 lines  e3b0c44298fc\n  acceptances.jsonl                  0 lines  e3b0c44298fc\n  actions.jsonl                      9 lines  0dbb22a7796c\n  goal_runs.jsonl                    0 lines  e3b0c44298fc\n  model_runs.jsonl                   8 lines  014fbe1f9887\n  transcripts.jsonl                  8 lines  bb87b9e8140a\n  egress.jsonl                      11 lines  67b2b1521793\n  needs.jsonl                        1 lines  417b69fcc3ab\n  asks.jsonl                         0 lines  e3b0c44298fc\n  blocks.jsonl                       2 lines  2940ab04d9cb\n  deploy_ledger.jsonl                6 lines  d21b4c5b1336\n  spend.jsonl                        9 lines  86b05e48398a\n  mandate.json                     107 lines  02b38e370c97\nevery file was scanned for secrets; manifest.json holds the sha256 of each\n",
+   "stderr": ""
+  },
+  {
+   "name": "host-down",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "host",
+    "down",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 3.3,
+   "timed_out": false,
+   "stdout": "{\n  \"ok\": true,\n  \"project\": \"unbidden-aegra\",\n  \"why\": null\n}\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/aegra/aegra",
+   "commit": "46055c0b9adffe51fb168974f79dfadaa6edd612",
+   "family": "api-postgres",
+   "class": "dev",
+   "build": "uv",
+   "lab": null,
+   "copy_base_sha": "f3a53c1e00912b87ef434b25b7152a9bf6f86445"
+  },
+  "ledger_before": {
+   "envelope": "s13-confirm",
+   "envelope_spent_usd": 0.0947,
+   "available_usd": 61.6534,
+   "permitted_usd": 97.2945
+  },
+  "fork": {
+   "slug": "satisfymath/c13-aegra",
+   "base": "main",
+   "upstream": "aegra/aegra",
+   "kind": "copy",
+   "created": false,
+   "prep": {
+    "applied": false,
+    "why": "nothing to change (already prepared, or nothing publishes)",
+    "plan": [
+     {
+      "file": "ci.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "lint",
+       "test-api",
+       "test-cli"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "codeql.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "analyze"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "conventional-commits.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "check-commits"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "e2e.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "e2e-dev-mode",
+       "e2e-prod-mode",
+       "e2e-auth"
+      ],
+      "why": "the team's checks"
+     }
+    ],
+    "kept": [
+     "ci.yml",
+     "codeql.yml",
+     "conventional-commits.yml",
+     "e2e.yml"
+    ]
+   },
+   "pin": "46055c0b9adffe51fb168974f79dfadaa6edd612",
+   "restore": {
+    "expected": "f3a53c1e00912b87ef434b25b7152a9bf6f86445",
+    "head_before": "f3a53c1e00912b87ef434b25b7152a9bf6f86445",
+    "pin_in_history": true,
+    "closed": [
+     6,
+     5,
+     4
+    ],
+    "deleted": [
+     "unbidden/certifi-2026-1-4-2-known-vulnerabilities-054eb7",
+     "unbidden/filelock-4-0-9-13-known-vulnerabilities-044d94",
+     "unbidden/langgraph-checkpoint-postgres-3-1-2-1-kn-e34177"
+    ],
+    "base_sha": "f3a53c1e00912b87ef434b25b7152a9bf6f86445"
+   },
+   "base_sha": "f3a53c1e00912b87ef434b25b7152a9bf6f86445",
+   "pin_in_history": true,
+   "dependency_graph": true,
+   "dependabot_prs_closed": [],
+   "workflows_registered": [
+    "ci.yml",
+    "codeql.yml",
+    "conventional-commits.yml",
+    "e2e.yml",
+    "openapi-spec.yml",
+    "update-graph"
+   ],
+   "disabled_in_settings": [],
+   "kept": [
+    "ci.yml",
+    "codeql.yml",
+    "conventional-commits.yml",
+    "e2e.yml"
+   ]
+  },
+  "fork_before": {
+   "pulls": [
+    {
+     "created_at": "2026-11-04T20:02:31Z",
+     "head": "unbidden/langgraph-checkpoint-postgres-3-1-2-1-kn-e34177",
+     "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+     "merge_commit_sha": "f14c8850d253d5cdc90ce657848f3f6c1292943d",
+     "merged_at": null,
+     "number": 6,
+     "state": "closed",
+     "title": "security: bump langgraph-checkpoint-postgres 3.1.2 → 3.1.3",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T20:04:13Z",
+       "conclusion": "success",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126830149780",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T20:04:10Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T20:02:53Z",
+       "conclusion": "success",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41902758350/job/126829247248",
+       "name": "test-cli",
+       "started_at": "2026-11-04T20:02:38Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T20:02:49Z",
+       "conclusion": "success",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41902758350/job/126829247215",
+       "name": "lint",
+       "started_at": "2026-11-04T20:02:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T20:03:51Z",
+       "conclusion": "success",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41902758350/job/126829247179",
+       "name": "test-api",
+       "started_at": "2026-11-04T20:02:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T20:04:20Z",
+       "conclusion": "success",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41902758293/job/126829246611",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T20:02:38Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T20:02:45Z",
+       "conclusion": "failure",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41902758341/job/126829246525",
+       "name": "check-commits",
+       "started_at": "2026-11-04T20:02:38Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T19:56:28Z",
+     "head": "unbidden/filelock-4-0-9-13-known-vulnerabilities-044d94",
+     "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+     "merge_commit_sha": "e85680aa56794305ce7a0f4a32485a278d7aadef",
+     "merged_at": null,
+     "number": 5,
+     "state": "closed",
+     "title": "security: bump filelock 4.0.9 → 4.2.1",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T19:57:35Z",
+       "conclusion": "success",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126826394328",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T19:57:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:56:41Z",
+       "conclusion": "failure",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41901788904/job/126825845933",
+       "name": "check-commits",
+       "started_at": "2026-11-04T19:56:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:56:52Z",
+       "conclusion": "success",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41901788833/job/126825845892",
+       "name": "test-cli",
+       "started_at": "2026-11-04T19:56:35Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:57:43Z",
+       "conclusion": "success",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41901788902/job/126825845863",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T19:56:35Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:57:56Z",
+       "conclusion": "success",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41901788833/job/126825845822",
+       "name": "test-api",
+       "started_at": "2026-11-04T19:56:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:56:46Z",
+       "conclusion": "success",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41901788833/job/126825845663",
+       "name": "lint",
+       "started_at": "2026-11-04T19:56:36Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T19:49:49Z",
+     "head": "unbidden/certifi-2026-1-4-2-known-vulnerabilities-054eb7",
+     "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+     "merge_commit_sha": "76b4e430337e5666a2ea586df426aea161959c0a",
+     "merged_at": null,
+     "number": 4,
+     "state": "closed",
+     "title": "security: bump certifi 2026.1.4 → 2026.10.18",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T19:51:36Z",
+       "conclusion": "success",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126823041791",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T19:51:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:51:16Z",
+       "conclusion": "success",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41900730179/job/126822112186",
+       "name": "test-api",
+       "started_at": "2026-11-04T19:49:57Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:50:13Z",
+       "conclusion": "success",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41900730179/job/126822111917",
+       "name": "test-cli",
+       "started_at": "2026-11-04T19:49:57Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:51:43Z",
+       "conclusion": "success",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41900730151/job/126822111577",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T19:49:57Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:50:03Z",
+       "conclusion": "failure",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41900730311/job/126822111451",
+       "name": "check-commits",
+       "started_at": "2026-11-04T19:49:57Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:50:05Z",
+       "conclusion": "success",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41900730179/job/126822111409",
+       "name": "lint",
+       "started_at": "2026-11-04T19:49:57Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T18:48:20Z",
+     "head": "unbidden/langgraph-checkpoint-postgres-3-1-2-1-kn-32451a",
+     "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+     "merge_commit_sha": "0eab628f140f83868ff37aebabb5e7acba9ca422",
+     "merged_at": null,
+     "number": 3,
+     "state": "closed",
+     "title": "security: bump langgraph-checkpoint-postgres 3.1.2 → 3.1.3",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T18:49:59Z",
+       "conclusion": "success",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126787999736",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T18:49:56Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:50:06Z",
+       "conclusion": "success",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41890740708/job/126787152139",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T18:48:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:48:36Z",
+       "conclusion": "failure",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41890740752/job/126787150271",
+       "name": "check-commits",
+       "started_at": "2026-11-04T18:48:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:48:38Z",
+       "conclusion": "success",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41890740812/job/126787149064",
+       "name": "lint",
+       "started_at": "2026-11-04T18:48:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:49:45Z",
+       "conclusion": "success",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41890740812/job/126787148986",
+       "name": "test-api",
+       "started_at": "2026-11-04T18:48:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:48:48Z",
+       "conclusion": "success",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41890740812/job/126787148452",
+       "name": "test-cli",
+       "started_at": "2026-11-04T18:48:28Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T18:42:23Z",
+     "head": "unbidden/filelock-4-0-9-13-known-vulnerabilities-e548af",
+     "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+     "merge_commit_sha": "090b6d4637917457c9f2255bf56a8dc2425b30c7",
+     "merged_at": null,
+     "number": 2,
+     "state": "closed",
+     "title": "security: bump filelock 4.0.9 → 4.2.1",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T18:43:46Z",
+       "conclusion": "success",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126784503798",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T18:43:43Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:42:47Z",
+       "conclusion": "success",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41889785165/job/126783797834",
+       "name": "test-cli",
+       "started_at": "2026-11-04T18:42:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:43:34Z",
+       "conclusion": "success",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41889785165/job/126783797636",
+       "name": "test-api",
+       "started_at": "2026-11-04T18:42:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:42:42Z",
+       "conclusion": "success",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41889785165/job/126783797232",
+       "name": "lint",
+       "started_at": "2026-11-04T18:42:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:42:37Z",
+       "conclusion": "failure",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41889784820/job/126783796346",
+       "name": "check-commits",
+       "started_at": "2026-11-04T18:42:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:43:53Z",
+       "conclusion": "success",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41889784673/job/126783795690",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T18:42:30Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T18:36:33Z",
+     "head": "unbidden/certifi-2026-1-4-2-known-vulnerabilities-a04664",
+     "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+     "merge_commit_sha": "fa596084e53b78ea575bde461cd9c1d39a1df4f0",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "security: bump certifi 2026.1.4 → 2026.10.18",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T18:37:45Z",
+       "conclusion": "success",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126781103387",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T18:37:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:37:51Z",
+       "conclusion": "success",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41888844626/job/126780491123",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T18:36:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:36:48Z",
+       "conclusion": "failure",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41888844659/job/126780488692",
+       "name": "check-commits",
+       "started_at": "2026-11-04T18:36:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:38:05Z",
+       "conclusion": "success",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41888844517/job/126780488536",
+       "name": "test-api",
+       "started_at": "2026-11-04T18:36:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:37:02Z",
+       "conclusion": "success",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41888844517/job/126780488492",
+       "name": "test-cli",
+       "started_at": "2026-11-04T18:36:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:36:50Z",
+       "conclusion": "success",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41888844517/job/126780488051",
+       "name": "lint",
+       "started_at": "2026-11-04T18:36:40Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [],
+   "base_head": "f3a53c1e00912b87ef434b25b7152a9bf6f86445"
+  },
+  "deploy_target": "self_host",
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required"
+  },
+  "self_host": {
+   "ok": true,
+   "project": "unbidden-aegra",
+   "health_url": "http://127.0.0.1:64500/health",
+   "ports": {
+    "aegra:2026": 64500,
+    "postgres:5432": 64501,
+    "redis:6379": 64502
+   },
+   "deploy_steps": [
+    [
+     "/Users/david/unbidden-lab/c13/home-confirm/tools/unbidden-ai/bin/python",
+     "-m",
+     "unbidden.cli",
+     "host",
+     "up",
+     "--deploy",
+     "--build",
+     "--json"
+    ]
+   ],
+   "drill": {
+    "at": "2026-11-04T21:17:42.601434+00:00",
+    "from": "f3a53c1e00912b87ef434b25b7152a9bf6f86445",
+    "to": "46055c0b9adffe51fb168974f79dfadaa6edd612",
+    "back": true,
+    "forth": true,
+    "passed": true
+   },
+   "why": null,
+   "steps": [
+    {
+     "step": "render the compose file",
+     "ok": true,
+     "detail": "docker-compose.yml; 3 services",
+     "seconds": 0.1
+    },
+    {
+     "step": "docker compose up",
+     "ok": true,
+     "detail": "reated \n Network unbidden-aegra_default Created \n Network unbidden-aegra_default Created \n Container unbidden-aegra-redis-1 Creating \n Container unbidden-aegra-postgres-1 Creating \n Container unbidden-aegra-postgres-1 Created \n Container unbidden-aegra-redis-1 Created \n Container unbidden-aegra-aegra-1 Creating \n Container unbidden-aegra-aegra-1 Created \n Container unbidden-aegra-redis-1 Starting \n Container unbidden-aegra-postgres-1 Starting \n Container unbidden-aegra-redis-1 Started \n Container unbidden-aegra-postgres-1 Started \n Container unbidden-aegra-redis-1 Waiting \n Container unbidden-aegra-postgres-1 Waiting \n Container unbidden-aegra-redis-1 Healthy \n Container unbidden-aegra-postgres-1 Healthy \n Container unbidden-aegra-aegra-1 Starting \n Container unbidden-aegra-aegra-1 Started",
+     "seconds": 12.1
+    },
+    {
+     "step": "health",
+     "ok": true,
+     "detail": "http://127.0.0.1:64500/health",
+     "seconds": 6.3
+    }
+   ],
+   "migrated": null,
+   "seeded": {},
+   "generated_env": [
+    "POSTGRES_PASSWORD",
+    "OPENAI_API_KEY",
+    "LANGFUSE_PUBLIC_KEY",
+    "LANGFUSE_SECRET_KEY"
+   ],
+   "code": 0
+  },
+  "mode": {
+   "asked": "autonomous",
+   "got": "autonomous",
+   "drill_code": 1
+  },
+  "autonomy": {
+   "mode": "autonomous",
+   "deploy_target": "self_host",
+   "fields": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "delegate_synthetic": "allow",
+    "open_pull_requests": "allow",
+    "merge_pull_requests": "allow",
+    "deploy": "allow",
+    "rollback": "allow",
+    "use_new_capabilities": "allow",
+    "act_on_connections": "deny"
+   }
+  },
+  "mode_got": "autonomous",
+  "cycle1": {
+   "started": true,
+   "waited_s": 4419.7,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 94449,
+    "started_at": "2026-11-04T21:19:04.071367+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/aegra/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [
+    {
+     "kind": "compatibility",
+     "needs": "nothing known a person can grant; the evidence says what failed"
+    },
+    {
+     "kind": "compatibility",
+     "needs": "nothing known a person can grant; the evidence says what failed"
+    }
+   ],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "action.executed": 9,
+     "agent.note": 13,
+     "analyzer.ran": 4,
+     "capability.need_changed": 4,
+     "capability.needed": 1,
+     "connection.changed": 2,
+     "decision.made": 23,
+     "deployment.observed": 2,
+     "egress.allowed": 11,
+     "impact.judged": 1,
+     "job.finished": 51,
+     "job.started": 51,
+     "mandate.changed": 3,
+     "model.called": 8,
+     "operations.deployed": 6,
+     "operations.merged": 1,
+     "opportunity.opened": 8,
+     "opportunity.resolved": 1,
+     "outcome.recorded": 1,
+     "policy.denied": 6,
+     "proposal.published": 3,
+     "proposal.pushed": 3,
+     "proposal.ready": 3,
+     "proposal.stale": 2,
+     "repo.head_moved": 2,
+     "verdict.recorded": 9,
+     "workspace.initialized": 1,
+     "world.changed": 4
+    },
+    "docs": {
+     "actions": 9,
+     "blocks": 2,
+     "connections": 2,
+     "decisions": 21,
+     "deploy_verdicts": 1,
+     "deployments": 2,
+     "egress": 11,
+     "experiments": 9,
+     "model_runs": 8,
+     "needs": 1,
+     "opportunities": 8,
+     "proposals": 3,
+     "transcripts": 8,
+     "world": 1
+    },
+    "jobs": {
+     "done": 45,
+     "failed": 2
+    },
+    "experiments": 9,
+    "opportunities": [
+     {
+      "id": "opp_e628a7f9a87247da",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 3,
+      "status": "declined"
+     },
+     {
+      "id": "opp_4f3fedd0630d44f8",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 3,
+      "status": "declined"
+     },
+     {
+      "id": "opp_069a70b482dc4d0d",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "declined"
+     },
+     {
+      "id": "opp_ec8c0f2bea224d45",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "experimenting"
+     },
+     {
+      "id": "opp_7f30f16ef9ec40e1",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "experimenting"
+     },
+     {
+      "id": "opp_d9ef532aa4d04570",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_5485c89bab3a43eb",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_f7580c5d8e654812",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 5,
+      "status": "verified",
+      "outcome": {
+       "result": "verified",
+       "deploy": "1:600c12eaa65e24d074a6b29f31cc76ea594e6c72",
+       "criteria": {
+        "attribution": "the baseline and candidate deploys are both attributable (verified or observed), none external",
+        "basis": "verified-deploy",
+        "claim": "L5 · verified deploy: deployed, healthy, the fix is in the running version; no measured effect claimed",
+        "classes": "security, quality, correctness (correctness only without a failing endpoint)",
+        "criteria_version": "verified-deploy-v1",
+        "deploy_verdict": "the deploy that first contains the change is judged healthy or improved",
+        "errors": "no endpoint's failed share is higher after the deploy (95% Wilson intervals apart)",
+        "security": "the fixed version of the package is installed in a running container of the deploy (docker exec)"
+       },
+       "promoted": null
+      }
+     }
+    ],
+    "level_max": 5,
+    "level_max_criteria": {
+     "attribution": "the baseline and candidate deploys are both attributable (verified or observed), none external",
+     "basis": "verified-deploy",
+     "claim": "L5 · verified deploy: deployed, healthy, the fix is in the running version; no measured effect claimed",
+     "classes": "security, quality, correctness (correctness only without a failing endpoint)",
+     "criteria_version": "verified-deploy-v1",
+     "deploy_verdict": "the deploy that first contains the change is judged healthy or improved",
+     "errors": "no endpoint's failed share is higher after the deploy (95% Wilson intervals apart)",
+     "security": "the fixed version of the package is installed in a running container of the deploy (docker exec)"
+    },
+    "level_max_outcome": {
+     "result": "verified",
+     "deploy": "1:600c12eaa65e24d074a6b29f31cc76ea594e6c72",
+     "criteria": {
+      "attribution": "the baseline and candidate deploys are both attributable (verified or observed), none external",
+      "basis": "verified-deploy",
+      "claim": "L5 · verified deploy: deployed, healthy, the fix is in the running version; no measured effect claimed",
+      "classes": "security, quality, correctness (correctness only without a failing endpoint)",
+      "criteria_version": "verified-deploy-v1",
+      "deploy_verdict": "the deploy that first contains the change is judged healthy or improved",
+      "errors": "no endpoint's failed share is higher after the deploy (95% Wilson intervals apart)",
+      "security": "the fixed version of the package is installed in a running container of the deploy (docker exec)"
+     },
+     "promoted": null
+    },
+    "proposals": [
+     {
+      "id": "prop_41474bede6b34ee1",
+      "opportunity_id": "opp_f7580c5d8e654812",
+      "experiment_id": "exp_b596e8ed3b644442",
+      "status": "merged",
+      "branch": "unbidden/certifi-2026-1-4-2-known-vulnerabilities-654812",
+      "evidence_level": 4,
+      "title": "fix(deps): bump certifi 2026.1.4 → 2026.10.18 (security)",
+      "pr": "https://github.com/satisfymath/c13-aegra/pull/7",
+      "criteria": null
+     },
+     {
+      "id": "prop_445eae8365ac49a3",
+      "opportunity_id": "opp_ec8c0f2bea224d45",
+      "experiment_id": "exp_1ca6d8f30de44994",
+      "status": "stale",
+      "branch": "unbidden/filelock-4-0-9-13-known-vulnerabilities-224d45",
+      "evidence_level": 4,
+      "title": "fix(deps): bump filelock 4.0.9 → 4.2.1 (security)",
+      "pr": "https://github.com/satisfymath/c13-aegra/pull/8",
+      "criteria": null
+     },
+     {
+      "id": "prop_5be848173e2841a3",
+      "opportunity_id": "opp_7f30f16ef9ec40e1",
+      "experiment_id": "exp_c709d2bb1a2e4107",
+      "status": "stale",
+      "branch": "unbidden/langgraph-sdk-0-4-2-3-known-vulnerabilit-ec40e1",
+      "evidence_level": 4,
+      "title": "fix(deps): bump langgraph-sdk 0.4.2 → 0.4.6 (security)",
+      "pr": "https://github.com/satisfymath/c13-aegra/pull/9",
+      "criteria": null
+     }
+    ]
+   }
+  },
+  "ui1": {
+   "opened": true,
+   "in_daemon": true,
+   "summary": {
+    "mode": "live",
+    "freshness": "current",
+    "counts": {
+     "opportunities": 8,
+     "experiments": 9,
+     "proposals": 3,
+     "events": 233,
+     "model_runs": 8,
+     "connections": 2,
+     "deployments": 2,
+     "needs": 1,
+     "blocks": 2,
+     "spend_calls": 210,
+     "world": 1
+    },
+    "agent": {
+     "running": true,
+     "pid": 94449,
+     "started_at": "2026-11-04T21:19:04.071367+00:00",
+     "command": "watch",
+     "detail": "agent running, pid 94449"
+    },
+    "key_present": true
+   },
+   "opportunities_total": 8,
+   "widgets": [
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:aegra"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:aegra"
+    }
+   ],
+   "browser": {
+    "ok": true,
+    "steps": 5,
+    "console_errors": 2
+   },
+   "chat_status": {
+    "planner": "rule",
+    "route": {
+     "intent": "inform",
+     "purpose": null,
+     "tier": null,
+     "model": null,
+     "reason": "the mandate denies local inference; reading records needs no model: answered by rules",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Registro de aegra (live, head 600c12eaa65e): 8 oportunidades, 9 experimentos, 3 propuestas, 240 eventos, 8 llamadas a modelos, 2 bloqueos.\nJobs: done 48, failed 2, queued 1, running 1\nBloqueo compatibility en «research.consistency opp_d9ef532aa4d04570»: PolicyDenied: the mandate denies local inference, and this call may not go remote: production_data never leaves this machine\nBloqueo compatibility"
+   },
+   "chat_analyze": {
+    "planner": "brain",
+    "route": {
+     "intent": "analyze",
+     "purpose": "chat.analyze",
+     "tier": "code",
+     "model": "muse-spark-1.3",
+     "reason": "profile frontier; public_code may leave; label public_code",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Priorizaría `opp_f7580c5d8e654812` — «certifi 2026.1.4: 2 known vulnerabilities, fixed in 2026.10.18» — porque es nivel 5, frente a nivel 4 de `opp_ec8c0f2bea224d45` y `opp_7f30f16ef9ec40e1` y nivel 3 de `opp_e628a7f9a87247da`, con estado `verified` y `has_experiment:true`.\n\nDe 8 oportunidades: 3 `declined`, 2 `open`, 1 `verified`, 2 `experimenting`.\n\nLo que falta en el registro: no incluye las id"
+   }
+  },
+  "fork_after_c1": {
+   "pulls": [
+    {
+     "created_at": "2026-11-04T21:50:25Z",
+     "head": "unbidden/langgraph-sdk-0-4-2-3-known-vulnerabilit-ec40e1",
+     "head_sha": "d0794990f6d4c85e61a45dab7b8e81741fbdf201",
+     "merge_commit_sha": "f58fb1347197117ddbf6129d645c542a8910085f",
+     "merged_at": null,
+     "number": 9,
+     "state": "closed",
+     "title": "fix(deps): bump langgraph-sdk 0.4.2 → 0.4.6 (security)",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:52:10Z",
+       "conclusion": "success",
+       "head_sha": "d0794990f6d4c85e61a45dab7b8e81741fbdf201",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126889857651",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T21:52:06Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:50:43Z",
+       "conclusion": "success",
+       "head_sha": "d0794990f6d4c85e61a45dab7b8e81741fbdf201",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41919805727/job/126888993111",
+       "name": "lint",
+       "started_at": "2026-11-04T21:50:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:51:54Z",
+       "conclusion": "success",
+       "head_sha": "d0794990f6d4c85e61a45dab7b8e81741fbdf201",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41919805727/job/126888992957",
+       "name": "test-api",
+       "started_at": "2026-11-04T21:50:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:50:49Z",
+       "conclusion": "success",
+       "head_sha": "d0794990f6d4c85e61a45dab7b8e81741fbdf201",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41919805727/job/126888992362",
+       "name": "test-cli",
+       "started_at": "2026-11-04T21:50:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:50:38Z",
+       "conclusion": "success",
+       "head_sha": "d0794990f6d4c85e61a45dab7b8e81741fbdf201",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41919805767/job/126888991617",
+       "name": "check-commits",
+       "started_at": "2026-11-04T21:50:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:52:16Z",
+       "conclusion": "success",
+       "head_sha": "d0794990f6d4c85e61a45dab7b8e81741fbdf201",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41919805791/job/126888991348",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T21:50:32Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T21:35:52Z",
+     "head": "unbidden/filelock-4-0-9-13-known-vulnerabilities-224d45",
+     "head_sha": "63742066d0126643c985e5a9351a62460f9f8401",
+     "merge_commit_sha": "0452aa54a20849b0e70ea2713414ddd280307425",
+     "merged_at": null,
+     "number": 8,
+     "state": "closed",
+     "title": "fix(deps): bump filelock 4.0.9 → 4.2.1 (security)",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:37:29Z",
+       "conclusion": "success",
+       "head_sha": "63742066d0126643c985e5a9351a62460f9f8401",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126882039232",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T21:37:26Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:36:06Z",
+       "conclusion": "success",
+       "head_sha": "63742066d0126643c985e5a9351a62460f9f8401",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41917588038/job/126881237337",
+       "name": "check-commits",
+       "started_at": "2026-11-04T21:36:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:36:14Z",
+       "conclusion": "success",
+       "head_sha": "63742066d0126643c985e5a9351a62460f9f8401",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41917587763/job/126881236454",
+       "name": "test-cli",
+       "started_at": "2026-11-04T21:36:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:38:11Z",
+       "conclusion": "success",
+       "head_sha": "63742066d0126643c985e5a9351a62460f9f8401",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41917587763/job/126881236390",
+       "name": "test-api",
+       "started_at": "2026-11-04T21:36:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:36:08Z",
+       "conclusion": "success",
+       "head_sha": "63742066d0126643c985e5a9351a62460f9f8401",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41917587763/job/126881236092",
+       "name": "lint",
+       "started_at": "2026-11-04T21:36:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:36Z",
+       "conclusion": "success",
+       "head_sha": "63742066d0126643c985e5a9351a62460f9f8401",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41917587684/job/126881235610",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T21:36:00Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T21:29:14Z",
+     "head": "unbidden/certifi-2026-1-4-2-known-vulnerabilities-654812",
+     "head_sha": "3b5389519fff75282cd73f80d86c0de84b062a4c",
+     "merge_commit_sha": "600c12eaa65e24d074a6b29f31cc76ea594e6c72",
+     "merged_at": "2026-11-04T22:14:10Z",
+     "number": 7,
+     "state": "closed",
+     "title": "fix(deps): bump certifi 2026.1.4 → 2026.10.18 (security)",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:30:44Z",
+       "conclusion": "success",
+       "head_sha": "3b5389519fff75282cd73f80d86c0de84b062a4c",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126878357249",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T21:30:40Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:30:43Z",
+       "conclusion": "success",
+       "head_sha": "3b5389519fff75282cd73f80d86c0de84b062a4c",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41916540567/job/126877635080",
+       "name": "test-api",
+       "started_at": "2026-11-04T21:29:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:30:50Z",
+       "conclusion": "success",
+       "head_sha": "3b5389519fff75282cd73f80d86c0de84b062a4c",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41916540678/job/126877634742",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T21:29:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:29:44Z",
+       "conclusion": "success",
+       "head_sha": "3b5389519fff75282cd73f80d86c0de84b062a4c",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41916540567/job/126877634633",
+       "name": "test-cli",
+       "started_at": "2026-11-04T21:29:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:29:30Z",
+       "conclusion": "success",
+       "head_sha": "3b5389519fff75282cd73f80d86c0de84b062a4c",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41916540519/job/126877634515",
+       "name": "check-commits",
+       "started_at": "2026-11-04T21:29:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:29:30Z",
+       "conclusion": "success",
+       "head_sha": "3b5389519fff75282cd73f80d86c0de84b062a4c",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41916540567/job/126877634417",
+       "name": "lint",
+       "started_at": "2026-11-04T21:29:22Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T20:02:31Z",
+     "head": "unbidden/langgraph-checkpoint-postgres-3-1-2-1-kn-e34177",
+     "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+     "merge_commit_sha": "f14c8850d253d5cdc90ce657848f3f6c1292943d",
+     "merged_at": null,
+     "number": 6,
+     "state": "closed",
+     "title": "security: bump langgraph-checkpoint-postgres 3.1.2 → 3.1.3",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T20:04:13Z",
+       "conclusion": "success",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126830149780",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T20:04:10Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T20:02:53Z",
+       "conclusion": "success",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41902758350/job/126829247248",
+       "name": "test-cli",
+       "started_at": "2026-11-04T20:02:38Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T20:02:49Z",
+       "conclusion": "success",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41902758350/job/126829247215",
+       "name": "lint",
+       "started_at": "2026-11-04T20:02:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T20:03:51Z",
+       "conclusion": "success",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41902758350/job/126829247179",
+       "name": "test-api",
+       "started_at": "2026-11-04T20:02:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T20:04:20Z",
+       "conclusion": "success",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41902758293/job/126829246611",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T20:02:38Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T20:02:45Z",
+       "conclusion": "failure",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41902758341/job/126829246525",
+       "name": "check-commits",
+       "started_at": "2026-11-04T20:02:38Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T19:56:28Z",
+     "head": "unbidden/filelock-4-0-9-13-known-vulnerabilities-044d94",
+     "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+     "merge_commit_sha": "e85680aa56794305ce7a0f4a32485a278d7aadef",
+     "merged_at": null,
+     "number": 5,
+     "state": "closed",
+     "title": "security: bump filelock 4.0.9 → 4.2.1",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T19:57:35Z",
+       "conclusion": "success",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126826394328",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T19:57:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:56:41Z",
+       "conclusion": "failure",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41901788904/job/126825845933",
+       "name": "check-commits",
+       "started_at": "2026-11-04T19:56:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:56:52Z",
+       "conclusion": "success",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41901788833/job/126825845892",
+       "name": "test-cli",
+       "started_at": "2026-11-04T19:56:35Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:57:43Z",
+       "conclusion": "success",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41901788902/job/126825845863",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T19:56:35Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:57:56Z",
+       "conclusion": "success",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41901788833/job/126825845822",
+       "name": "test-api",
+       "started_at": "2026-11-04T19:56:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:56:46Z",
+       "conclusion": "success",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41901788833/job/126825845663",
+       "name": "lint",
+       "started_at": "2026-11-04T19:56:36Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T19:49:49Z",
+     "head": "unbidden/certifi-2026-1-4-2-known-vulnerabilities-054eb7",
+     "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+     "merge_commit_sha": "76b4e430337e5666a2ea586df426aea161959c0a",
+     "merged_at": null,
+     "number": 4,
+     "state": "closed",
+     "title": "security: bump certifi 2026.1.4 → 2026.10.18",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T19:51:36Z",
+       "conclusion": "success",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126823041791",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T19:51:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:51:16Z",
+       "conclusion": "success",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41900730179/job/126822112186",
+       "name": "test-api",
+       "started_at": "2026-11-04T19:49:57Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:50:13Z",
+       "conclusion": "success",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41900730179/job/126822111917",
+       "name": "test-cli",
+       "started_at": "2026-11-04T19:49:57Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:51:43Z",
+       "conclusion": "success",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41900730151/job/126822111577",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T19:49:57Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:50:03Z",
+       "conclusion": "failure",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41900730311/job/126822111451",
+       "name": "check-commits",
+       "started_at": "2026-11-04T19:49:57Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:50:05Z",
+       "conclusion": "success",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41900730179/job/126822111409",
+       "name": "lint",
+       "started_at": "2026-11-04T19:49:57Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T18:48:20Z",
+     "head": "unbidden/langgraph-checkpoint-postgres-3-1-2-1-kn-32451a",
+     "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+     "merge_commit_sha": "0eab628f140f83868ff37aebabb5e7acba9ca422",
+     "merged_at": null,
+     "number": 3,
+     "state": "closed",
+     "title": "security: bump langgraph-checkpoint-postgres 3.1.2 → 3.1.3",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T18:49:59Z",
+       "conclusion": "success",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126787999736",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T18:49:56Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:50:06Z",
+       "conclusion": "success",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41890740708/job/126787152139",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T18:48:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:48:36Z",
+       "conclusion": "failure",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41890740752/job/126787150271",
+       "name": "check-commits",
+       "started_at": "2026-11-04T18:48:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:48:38Z",
+       "conclusion": "success",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41890740812/job/126787149064",
+       "name": "lint",
+       "started_at": "2026-11-04T18:48:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:49:45Z",
+       "conclusion": "success",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41890740812/job/126787148986",
+       "name": "test-api",
+       "started_at": "2026-11-04T18:48:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:48:48Z",
+       "conclusion": "success",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41890740812/job/126787148452",
+       "name": "test-cli",
+       "started_at": "2026-11-04T18:48:28Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T18:42:23Z",
+     "head": "unbidden/filelock-4-0-9-13-known-vulnerabilities-e548af",
+     "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+     "merge_commit_sha": "090b6d4637917457c9f2255bf56a8dc2425b30c7",
+     "merged_at": null,
+     "number": 2,
+     "state": "closed",
+     "title": "security: bump filelock 4.0.9 → 4.2.1",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T18:43:46Z",
+       "conclusion": "success",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126784503798",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T18:43:43Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:42:47Z",
+       "conclusion": "success",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41889785165/job/126783797834",
+       "name": "test-cli",
+       "started_at": "2026-11-04T18:42:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:43:34Z",
+       "conclusion": "success",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41889785165/job/126783797636",
+       "name": "test-api",
+       "started_at": "2026-11-04T18:42:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:42:42Z",
+       "conclusion": "success",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41889785165/job/126783797232",
+       "name": "lint",
+       "started_at": "2026-11-04T18:42:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:42:37Z",
+       "conclusion": "failure",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41889784820/job/126783796346",
+       "name": "check-commits",
+       "started_at": "2026-11-04T18:42:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:43:53Z",
+       "conclusion": "success",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41889784673/job/126783795690",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T18:42:30Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T18:36:33Z",
+     "head": "unbidden/certifi-2026-1-4-2-known-vulnerabilities-a04664",
+     "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+     "merge_commit_sha": "fa596084e53b78ea575bde461cd9c1d39a1df4f0",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "security: bump certifi 2026.1.4 → 2026.10.18",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T18:37:45Z",
+       "conclusion": "success",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126781103387",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T18:37:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:37:51Z",
+       "conclusion": "success",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41888844626/job/126780491123",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T18:36:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:36:48Z",
+       "conclusion": "failure",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41888844659/job/126780488692",
+       "name": "check-commits",
+       "started_at": "2026-11-04T18:36:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:38:05Z",
+       "conclusion": "success",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41888844517/job/126780488536",
+       "name": "test-api",
+       "started_at": "2026-11-04T18:36:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:37:02Z",
+       "conclusion": "success",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41888844517/job/126780488492",
+       "name": "test-cli",
+       "started_at": "2026-11-04T18:36:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:36:50Z",
+       "conclusion": "success",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41888844517/job/126780488051",
+       "name": "lint",
+       "started_at": "2026-11-04T18:36:40Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [
+    "unbidden/certifi-2026-1-4-2-known-vulnerabilities-654812",
+    "unbidden/filelock-4-0-9-13-known-vulnerabilities-224d45",
+    "unbidden/langgraph-sdk-0-4-2-3-known-vulnerabilit-ec40e1"
+   ],
+   "base_head": "600c12eaa65e24d074a6b29f31cc76ea594e6c72"
+  },
+  "cycle2": {
+   "started": true,
+   "waited_s": 58.9,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 16581,
+    "started_at": "2026-11-04T22:33:29.104171+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/aegra/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [
+    {
+     "kind": "compatibility",
+     "needs": "nothing known a person can grant; the evidence says what failed"
+    },
+    {
+     "kind": "compatibility",
+     "needs": "nothing known a person can grant; the evidence says what failed"
+    }
+   ],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "action.executed": 9,
+     "agent.note": 13,
+     "analyzer.ran": 4,
+     "capability.need_changed": 4,
+     "capability.needed": 1,
+     "connection.changed": 2,
+     "decision.made": 23,
+     "deployment.observed": 2,
+     "egress.allowed": 11,
+     "impact.judged": 1,
+     "job.finished": 58,
+     "job.started": 58,
+     "mandate.changed": 3,
+     "model.called": 8,
+     "operations.deployed": 6,
+     "operations.merged": 1,
+     "opportunity.opened": 8,
+     "opportunity.resolved": 1,
+     "outcome.recorded": 1,
+     "policy.denied": 6,
+     "proposal.published": 3,
+     "proposal.pushed": 3,
+     "proposal.ready": 3,
+     "proposal.stale": 2,
+     "repo.head_moved": 2,
+     "verdict.recorded": 9,
+     "workspace.initialized": 1,
+     "world.changed": 5
+    },
+    "docs": {
+     "actions": 9,
+     "blocks": 2,
+     "connections": 2,
+     "decisions": 21,
+     "deploy_verdicts": 1,
+     "deployments": 2,
+     "egress": 11,
+     "experiments": 9,
+     "model_runs": 8,
+     "needs": 1,
+     "opportunities": 8,
+     "proposals": 3,
+     "transcripts": 8,
+     "world": 1
+    },
+    "jobs": {
+     "done": 52,
+     "failed": 2
+    },
+    "experiments": 9,
+    "opportunities": [
+     {
+      "id": "opp_e628a7f9a87247da",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 3,
+      "status": "declined"
+     },
+     {
+      "id": "opp_4f3fedd0630d44f8",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 3,
+      "status": "declined"
+     },
+     {
+      "id": "opp_069a70b482dc4d0d",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "declined"
+     },
+     {
+      "id": "opp_ec8c0f2bea224d45",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "experimenting"
+     },
+     {
+      "id": "opp_7f30f16ef9ec40e1",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "experimenting"
+     },
+     {
+      "id": "opp_d9ef532aa4d04570",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_5485c89bab3a43eb",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_f7580c5d8e654812",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 5,
+      "status": "verified",
+      "outcome": {
+       "result": "verified",
+       "deploy": "1:600c12eaa65e24d074a6b29f31cc76ea594e6c72",
+       "criteria": {
+        "attribution": "the baseline and candidate deploys are both attributable (verified or observed), none external",
+        "basis": "verified-deploy",
+        "claim": "L5 · verified deploy: deployed, healthy, the fix is in the running version; no measured effect claimed",
+        "classes": "security, quality, correctness (correctness only without a failing endpoint)",
+        "criteria_version": "verified-deploy-v1",
+        "deploy_verdict": "the deploy that first contains the change is judged healthy or improved",
+        "errors": "no endpoint's failed share is higher after the deploy (95% Wilson intervals apart)",
+        "security": "the fixed version of the package is installed in a running container of the deploy (docker exec)"
+       },
+       "promoted": null
+      }
+     }
+    ],
+    "level_max": 5,
+    "level_max_criteria": {
+     "attribution": "the baseline and candidate deploys are both attributable (verified or observed), none external",
+     "basis": "verified-deploy",
+     "claim": "L5 · verified deploy: deployed, healthy, the fix is in the running version; no measured effect claimed",
+     "classes": "security, quality, correctness (correctness only without a failing endpoint)",
+     "criteria_version": "verified-deploy-v1",
+     "deploy_verdict": "the deploy that first contains the change is judged healthy or improved",
+     "errors": "no endpoint's failed share is higher after the deploy (95% Wilson intervals apart)",
+     "security": "the fixed version of the package is installed in a running container of the deploy (docker exec)"
+    },
+    "level_max_outcome": {
+     "result": "verified",
+     "deploy": "1:600c12eaa65e24d074a6b29f31cc76ea594e6c72",
+     "criteria": {
+      "attribution": "the baseline and candidate deploys are both attributable (verified or observed), none external",
+      "basis": "verified-deploy",
+      "claim": "L5 · verified deploy: deployed, healthy, the fix is in the running version; no measured effect claimed",
+      "classes": "security, quality, correctness (correctness only without a failing endpoint)",
+      "criteria_version": "verified-deploy-v1",
+      "deploy_verdict": "the deploy that first contains the change is judged healthy or improved",
+      "errors": "no endpoint's failed share is higher after the deploy (95% Wilson intervals apart)",
+      "security": "the fixed version of the package is installed in a running container of the deploy (docker exec)"
+     },
+     "promoted": null
+    },
+    "proposals": [
+     {
+      "id": "prop_41474bede6b34ee1",
+      "opportunity_id": "opp_f7580c5d8e654812",
+      "experiment_id": "exp_b596e8ed3b644442",
+      "status": "merged",
+      "branch": "unbidden/certifi-2026-1-4-2-known-vulnerabilities-654812",
+      "evidence_level": 4,
+      "title": "fix(deps): bump certifi 2026.1.4 → 2026.10.18 (security)",
+      "pr": "https://github.com/satisfymath/c13-aegra/pull/7",
+      "criteria": null
+     },
+     {
+      "id": "prop_445eae8365ac49a3",
+      "opportunity_id": "opp_ec8c0f2bea224d45",
+      "experiment_id": "exp_1ca6d8f30de44994",
+      "status": "stale",
+      "branch": "unbidden/filelock-4-0-9-13-known-vulnerabilities-224d45",
+      "evidence_level": 4,
+      "title": "fix(deps): bump filelock 4.0.9 → 4.2.1 (security)",
+      "pr": "https://github.com/satisfymath/c13-aegra/pull/8",
+      "criteria": null
+     },
+     {
+      "id": "prop_5be848173e2841a3",
+      "opportunity_id": "opp_7f30f16ef9ec40e1",
+      "experiment_id": "exp_c709d2bb1a2e4107",
+      "status": "stale",
+      "branch": "unbidden/langgraph-sdk-0-4-2-3-known-vulnerabilit-ec40e1",
+      "evidence_level": 4,
+      "title": "fix(deps): bump langgraph-sdk 0.4.2 → 0.4.6 (security)",
+      "pr": "https://github.com/satisfymath/c13-aegra/pull/9",
+      "criteria": null
+     }
+    ]
+   }
+  },
+  "asks_answered": [],
+  "fork_after_c2": {
+   "pulls": [
+    {
+     "created_at": "2026-11-04T21:50:25Z",
+     "head": "unbidden/langgraph-sdk-0-4-2-3-known-vulnerabilit-ec40e1",
+     "head_sha": "d0794990f6d4c85e61a45dab7b8e81741fbdf201",
+     "merge_commit_sha": "f58fb1347197117ddbf6129d645c542a8910085f",
+     "merged_at": null,
+     "number": 9,
+     "state": "closed",
+     "title": "fix(deps): bump langgraph-sdk 0.4.2 → 0.4.6 (security)",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:52:10Z",
+       "conclusion": "success",
+       "head_sha": "d0794990f6d4c85e61a45dab7b8e81741fbdf201",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126889857651",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T21:52:06Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:50:43Z",
+       "conclusion": "success",
+       "head_sha": "d0794990f6d4c85e61a45dab7b8e81741fbdf201",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41919805727/job/126888993111",
+       "name": "lint",
+       "started_at": "2026-11-04T21:50:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:51:54Z",
+       "conclusion": "success",
+       "head_sha": "d0794990f6d4c85e61a45dab7b8e81741fbdf201",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41919805727/job/126888992957",
+       "name": "test-api",
+       "started_at": "2026-11-04T21:50:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:50:49Z",
+       "conclusion": "success",
+       "head_sha": "d0794990f6d4c85e61a45dab7b8e81741fbdf201",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41919805727/job/126888992362",
+       "name": "test-cli",
+       "started_at": "2026-11-04T21:50:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:50:38Z",
+       "conclusion": "success",
+       "head_sha": "d0794990f6d4c85e61a45dab7b8e81741fbdf201",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41919805767/job/126888991617",
+       "name": "check-commits",
+       "started_at": "2026-11-04T21:50:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:52:16Z",
+       "conclusion": "success",
+       "head_sha": "d0794990f6d4c85e61a45dab7b8e81741fbdf201",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41919805791/job/126888991348",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T21:50:32Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T21:35:52Z",
+     "head": "unbidden/filelock-4-0-9-13-known-vulnerabilities-224d45",
+     "head_sha": "63742066d0126643c985e5a9351a62460f9f8401",
+     "merge_commit_sha": "0452aa54a20849b0e70ea2713414ddd280307425",
+     "merged_at": null,
+     "number": 8,
+     "state": "closed",
+     "title": "fix(deps): bump filelock 4.0.9 → 4.2.1 (security)",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:37:29Z",
+       "conclusion": "success",
+       "head_sha": "63742066d0126643c985e5a9351a62460f9f8401",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126882039232",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T21:37:26Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:36:06Z",
+       "conclusion": "success",
+       "head_sha": "63742066d0126643c985e5a9351a62460f9f8401",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41917588038/job/126881237337",
+       "name": "check-commits",
+       "started_at": "2026-11-04T21:36:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:36:14Z",
+       "conclusion": "success",
+       "head_sha": "63742066d0126643c985e5a9351a62460f9f8401",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41917587763/job/126881236454",
+       "name": "test-cli",
+       "started_at": "2026-11-04T21:36:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:38:11Z",
+       "conclusion": "success",
+       "head_sha": "63742066d0126643c985e5a9351a62460f9f8401",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41917587763/job/126881236390",
+       "name": "test-api",
+       "started_at": "2026-11-04T21:36:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:36:08Z",
+       "conclusion": "success",
+       "head_sha": "63742066d0126643c985e5a9351a62460f9f8401",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41917587763/job/126881236092",
+       "name": "lint",
+       "started_at": "2026-11-04T21:36:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:36Z",
+       "conclusion": "success",
+       "head_sha": "63742066d0126643c985e5a9351a62460f9f8401",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41917587684/job/126881235610",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T21:36:00Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T21:29:14Z",
+     "head": "unbidden/certifi-2026-1-4-2-known-vulnerabilities-654812",
+     "head_sha": "3b5389519fff75282cd73f80d86c0de84b062a4c",
+     "merge_commit_sha": "600c12eaa65e24d074a6b29f31cc76ea594e6c72",
+     "merged_at": "2026-11-04T22:14:10Z",
+     "number": 7,
+     "state": "closed",
+     "title": "fix(deps): bump certifi 2026.1.4 → 2026.10.18 (security)",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:30:44Z",
+       "conclusion": "success",
+       "head_sha": "3b5389519fff75282cd73f80d86c0de84b062a4c",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126878357249",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T21:30:40Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:30:43Z",
+       "conclusion": "success",
+       "head_sha": "3b5389519fff75282cd73f80d86c0de84b062a4c",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41916540567/job/126877635080",
+       "name": "test-api",
+       "started_at": "2026-11-04T21:29:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:30:50Z",
+       "conclusion": "success",
+       "head_sha": "3b5389519fff75282cd73f80d86c0de84b062a4c",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41916540678/job/126877634742",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T21:29:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:29:44Z",
+       "conclusion": "success",
+       "head_sha": "3b5389519fff75282cd73f80d86c0de84b062a4c",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41916540567/job/126877634633",
+       "name": "test-cli",
+       "started_at": "2026-11-04T21:29:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:29:30Z",
+       "conclusion": "success",
+       "head_sha": "3b5389519fff75282cd73f80d86c0de84b062a4c",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41916540519/job/126877634515",
+       "name": "check-commits",
+       "started_at": "2026-11-04T21:29:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:29:30Z",
+       "conclusion": "success",
+       "head_sha": "3b5389519fff75282cd73f80d86c0de84b062a4c",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41916540567/job/126877634417",
+       "name": "lint",
+       "started_at": "2026-11-04T21:29:22Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T20:02:31Z",
+     "head": "unbidden/langgraph-checkpoint-postgres-3-1-2-1-kn-e34177",
+     "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+     "merge_commit_sha": "f14c8850d253d5cdc90ce657848f3f6c1292943d",
+     "merged_at": null,
+     "number": 6,
+     "state": "closed",
+     "title": "security: bump langgraph-checkpoint-postgres 3.1.2 → 3.1.3",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T20:04:13Z",
+       "conclusion": "success",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126830149780",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T20:04:10Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T20:02:53Z",
+       "conclusion": "success",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41902758350/job/126829247248",
+       "name": "test-cli",
+       "started_at": "2026-11-04T20:02:38Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T20:02:49Z",
+       "conclusion": "success",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41902758350/job/126829247215",
+       "name": "lint",
+       "started_at": "2026-11-04T20:02:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T20:03:51Z",
+       "conclusion": "success",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41902758350/job/126829247179",
+       "name": "test-api",
+       "started_at": "2026-11-04T20:02:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T20:04:20Z",
+       "conclusion": "success",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41902758293/job/126829246611",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T20:02:38Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T20:02:45Z",
+       "conclusion": "failure",
+       "head_sha": "d07a1746f1933fd70e9277778ce7cd33456c6aba",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41902758341/job/126829246525",
+       "name": "check-commits",
+       "started_at": "2026-11-04T20:02:38Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T19:56:28Z",
+     "head": "unbidden/filelock-4-0-9-13-known-vulnerabilities-044d94",
+     "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+     "merge_commit_sha": "e85680aa56794305ce7a0f4a32485a278d7aadef",
+     "merged_at": null,
+     "number": 5,
+     "state": "closed",
+     "title": "security: bump filelock 4.0.9 → 4.2.1",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T19:57:35Z",
+       "conclusion": "success",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126826394328",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T19:57:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:56:41Z",
+       "conclusion": "failure",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41901788904/job/126825845933",
+       "name": "check-commits",
+       "started_at": "2026-11-04T19:56:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:56:52Z",
+       "conclusion": "success",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41901788833/job/126825845892",
+       "name": "test-cli",
+       "started_at": "2026-11-04T19:56:35Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:57:43Z",
+       "conclusion": "success",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41901788902/job/126825845863",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T19:56:35Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:57:56Z",
+       "conclusion": "success",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41901788833/job/126825845822",
+       "name": "test-api",
+       "started_at": "2026-11-04T19:56:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:56:46Z",
+       "conclusion": "success",
+       "head_sha": "91cb7f537487f25d67e389faae02fe1cb4a2e616",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41901788833/job/126825845663",
+       "name": "lint",
+       "started_at": "2026-11-04T19:56:36Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T19:49:49Z",
+     "head": "unbidden/certifi-2026-1-4-2-known-vulnerabilities-054eb7",
+     "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+     "merge_commit_sha": "76b4e430337e5666a2ea586df426aea161959c0a",
+     "merged_at": null,
+     "number": 4,
+     "state": "closed",
+     "title": "security: bump certifi 2026.1.4 → 2026.10.18",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T19:51:36Z",
+       "conclusion": "success",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126823041791",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T19:51:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:51:16Z",
+       "conclusion": "success",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41900730179/job/126822112186",
+       "name": "test-api",
+       "started_at": "2026-11-04T19:49:57Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:50:13Z",
+       "conclusion": "success",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41900730179/job/126822111917",
+       "name": "test-cli",
+       "started_at": "2026-11-04T19:49:57Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:51:43Z",
+       "conclusion": "success",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41900730151/job/126822111577",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T19:49:57Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:50:03Z",
+       "conclusion": "failure",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41900730311/job/126822111451",
+       "name": "check-commits",
+       "started_at": "2026-11-04T19:49:57Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:50:05Z",
+       "conclusion": "success",
+       "head_sha": "fe76b09e96032657c27c2c4fafc81cab0cd741cd",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41900730179/job/126822111409",
+       "name": "lint",
+       "started_at": "2026-11-04T19:49:57Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T18:48:20Z",
+     "head": "unbidden/langgraph-checkpoint-postgres-3-1-2-1-kn-32451a",
+     "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+     "merge_commit_sha": "0eab628f140f83868ff37aebabb5e7acba9ca422",
+     "merged_at": null,
+     "number": 3,
+     "state": "closed",
+     "title": "security: bump langgraph-checkpoint-postgres 3.1.2 → 3.1.3",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T18:49:59Z",
+       "conclusion": "success",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126787999736",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T18:49:56Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:50:06Z",
+       "conclusion": "success",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41890740708/job/126787152139",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T18:48:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:48:36Z",
+       "conclusion": "failure",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41890740752/job/126787150271",
+       "name": "check-commits",
+       "started_at": "2026-11-04T18:48:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:48:38Z",
+       "conclusion": "success",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41890740812/job/126787149064",
+       "name": "lint",
+       "started_at": "2026-11-04T18:48:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:49:45Z",
+       "conclusion": "success",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41890740812/job/126787148986",
+       "name": "test-api",
+       "started_at": "2026-11-04T18:48:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:48:48Z",
+       "conclusion": "success",
+       "head_sha": "0afbed229f6b849a355e6277bc433967f4c09f33",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41890740812/job/126787148452",
+       "name": "test-cli",
+       "started_at": "2026-11-04T18:48:28Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T18:42:23Z",
+     "head": "unbidden/filelock-4-0-9-13-known-vulnerabilities-e548af",
+     "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+     "merge_commit_sha": "090b6d4637917457c9f2255bf56a8dc2425b30c7",
+     "merged_at": null,
+     "number": 2,
+     "state": "closed",
+     "title": "security: bump filelock 4.0.9 → 4.2.1",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T18:43:46Z",
+       "conclusion": "success",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126784503798",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T18:43:43Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:42:47Z",
+       "conclusion": "success",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41889785165/job/126783797834",
+       "name": "test-cli",
+       "started_at": "2026-11-04T18:42:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:43:34Z",
+       "conclusion": "success",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41889785165/job/126783797636",
+       "name": "test-api",
+       "started_at": "2026-11-04T18:42:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:42:42Z",
+       "conclusion": "success",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41889785165/job/126783797232",
+       "name": "lint",
+       "started_at": "2026-11-04T18:42:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:42:37Z",
+       "conclusion": "failure",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41889784820/job/126783796346",
+       "name": "check-commits",
+       "started_at": "2026-11-04T18:42:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:43:53Z",
+       "conclusion": "success",
+       "head_sha": "a97fcdef9a29d4a2b8daa60dac5d1643d0c6ad25",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41889784673/job/126783795690",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T18:42:30Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T18:36:33Z",
+     "head": "unbidden/certifi-2026-1-4-2-known-vulnerabilities-a04664",
+     "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+     "merge_commit_sha": "fa596084e53b78ea575bde461cd9c1d39a1df4f0",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "security: bump certifi 2026.1.4 → 2026.10.18",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T18:37:45Z",
+       "conclusion": "success",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/runs/126781103387",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T18:37:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:37:51Z",
+       "conclusion": "success",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41888844626/job/126780491123",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T18:36:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:36:48Z",
+       "conclusion": "failure",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41888844659/job/126780488692",
+       "name": "check-commits",
+       "started_at": "2026-11-04T18:36:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:38:05Z",
+       "conclusion": "success",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41888844517/job/126780488536",
+       "name": "test-api",
+       "started_at": "2026-11-04T18:36:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:37:02Z",
+       "conclusion": "success",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41888844517/job/126780488492",
+       "name": "test-cli",
+       "started_at": "2026-11-04T18:36:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:36:50Z",
+       "conclusion": "success",
+       "head_sha": "efd5e093204891b0e47d9f938a825f2e91454d1e",
+       "html_url": "https://github.com/satisfymath/c13-aegra/actions/runs/41888844517/job/126780488051",
+       "name": "lint",
+       "started_at": "2026-11-04T18:36:40Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [
+    "unbidden/certifi-2026-1-4-2-known-vulnerabilities-654812",
+    "unbidden/filelock-4-0-9-13-known-vulnerabilities-224d45",
+    "unbidden/langgraph-sdk-0-4-2-3-known-vulnerabilit-ec40e1"
+   ],
+   "base_head": "600c12eaa65e24d074a6b29f31cc76ea594e6c72"
+  },
+  "status_final": {
+   "running": false,
+   "pid": null,
+   "started_at": null,
+   "command": null,
+   "log": "/Users/david/unbidden-lab/c13/aegra/.unbidden/logs/agent.log",
+   "stale": false,
+   "jobs_running": 0,
+   "jobs_queued": 0
+  },
+  "egress": {
+   "api.meta.ai:chat.analyze:allowed_sent": 2,
+   "api.meta.ai:world.endpoint_tables:allowed_sent": 6,
+   "api.meta.ai:research.robustness:allowed_sent": 2,
+   "github.com:github.pull_request:allowed_sent": 3
+  },
+  "checks": {
+   "status": "passed",
+   "collected": 2429,
+   "why": null,
+   "scope": "the whole job",
+   "partial": false,
+   "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest libs/aegra-api/tests/unit libs/aegra-api/tests/integration --cov=libs/aegra-api/src --cov-report=xml --cov-report=term",
+   "rev": "600c12eaa65e24d074a6b29f31cc76ea594e6c72",
+   "could_not_run": {
+    "tests": 0,
+    "lacks": [],
+    "by_test": []
+   },
+   "failed": 0,
+   "image_notes": [
+    "python 3.12: from .python-version",
+    "pyproject requires-python: >=3.12",
+    ".python-version: 3.12",
+    "image unbidden-deps-python:eccb9f5a899afd0f on linux/arm64",
+    "the team's CI job did not prepare the environment: the CI job failed at `Install uv` before its tests: 040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.\n[unbidden-ci/test-api]   | (Use `node --trace-deprecation ...` to show where the warning was created)\n[unbidden-ci/test-api]   ❗  ::error::Para"
+   ],
+   "python": "3.12"
+  },
+  "ledger_after": {
+   "envelope": "s13-confirm",
+   "envelope_spent_usd": 0.2674,
+   "available_usd": 61.4613,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c13-confirm-rerun-B1-aegra",
+   "calls": 9,
+   "usd": 0.0824,
+   "tokens_in": 25869,
+   "tokens_out": 11773
+  },
+  "spent_usd": 0.0824,
+  "export": {
+   "available": true,
+   "ok": true,
+   "code": 0,
+   "dir": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final-rerun-0.18.9/aegra/export",
+   "files": 25,
+   "answer": null
+  },
+  "archive": "/Users/david/unbidden-lab/c13/archive/aegra-B1-confirm-rerun.tgz",
+  "archive_kept": {
+   "name": "aegra-B1-confirm-rerun.tgz",
+   "bytes": 2147515,
+   "sha256": "fdb3b518ca92b9adcec45c0444be65786fdac7d8da97a3f40203d43ae7edf611",
+   "kept": true,
+   "where": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final-rerun-0.18.9/aegra/export/aegra-B1-confirm-rerun.tgz"
+  },
+  "self_host_down": {
+   "code": 0,
+   "answer": {
+    "ok": true,
+    "project": "unbidden-aegra",
+    "why": null
+   }
+  }
+ },
+ "human": [
+  {
+   "step": "mandate: fork, registries, operations, connections",
+   "minutes": 2,
+   "why": "a person's declaration"
+  }
+ ],
+ "blocks": []
+}

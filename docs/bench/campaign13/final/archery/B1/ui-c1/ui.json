@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:19270/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "1 ruff-baseline F821 finding in common/utils/\tabierta\t1\trun_experiment",
+    "1 ruff-baseline F821 finding in sql/engines/cloud/\tabierta\t1\trun_experiment",
+    "1 ruff-baseline F811 finding in sql/engines/\tabierta\t1\trun_experiment",
+    "2 ruff-baseline F811 findings in sql/utils/\tabierta\t1\trun_experiment",
+    "2 ruff-baseline F811 findings in sql/\tabierta\t1\trun_experiment",
+    "",
+    "5 fila(s)",
+    "actual",
+    "workspace"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "1 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "archery",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 37 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "analyzer.ran",
+    "connection.changed",
+    "decision.made",
+    "job.finished",
+    "job.started",
+    "mandate.changed",
+    "operations.deployed",
+    "opportunity.opened",
+    "repo.head_moved",
+    "world.changed",
+    "Trabajo terminado",
+    "20:10",
+    "next: [] · outcome: ok · seconds: 27.4",
+    "Trabajo iniciado",
+    "20:09",
+    "doing: probing for crashes · stage: found · subject: null",
+    "Trabajo terminado",
+    "20:09",
+    "next: [] · outcome: ok · seconds: 0.8",
+    "Trabajo iniciado",
+    "20:09",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "20:09",
+    "next: [] · outcome: ok · seconds: 1.6",
+    "Decisión tomada",
+    "20:09",
+    "run_experiment — reproduce it and measure a candidate offline (p 0.60 from the lab's history of this kind)",
+    "Decisión tomada"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "archery",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 5 oportunidades, ordenadas por evidencia",
+    "L1 sospecha",
+    "1 ruff-baseline F821 finding in common/utils/",
+    "ruff-baseline · bugs · run_experiment · 04 nov, 20:08",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "1 ruff-baseline F821 finding in sql/engines/cloud/",
+    "ruff-baseline · bugs · run_experiment · 04 nov, 20:08",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "1 ruff-baseline F811 finding in sql/engines/",
+    "ruff-baseline · bugs · run_experiment · 04 nov, 20:08",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "2 ruff-baseline F811 findings in sql/utils/",
+    "ruff-baseline · bugs · run_experiment · 04 nov, 20:08",
+    "abierta",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "1 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

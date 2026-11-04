@@ -9,4 +9,7 @@ paths = ['''tests/.*''']
 # identifier Unbidden mints for each API call it makes, never a credential (gitleaks' generic-api-key rule, PR #2).
 # `sk-invalid-campaign-scenario-0000`: the deliberately invalid key a seeded scenario of the campaign harness plants
 # (bench/campaign13/scenarios.py) to prove a refused key never appears in any output; never a credential.
-regexes = ['''unbidden-[0-9a-f]{24}''', '''sk-invalid-campaign-scenario-0000''']
+# `GHSA-xxxx-xxxx-xxxx`: a GitHub Security Advisory's public identifier, in the advisories the agent records
+# (docs/bench/campaign13/**/export/opportunities.jsonl); never a credential (gitleaks' generic-api-key rule, PR #41).
+regexes = ['''unbidden-[0-9a-f]{24}''', '''sk-invalid-campaign-scenario-0000''',
+           '''GHSA-[23456789cfghjmpqrvwx]{4}-[23456789cfghjmpqrvwx]{4}-[23456789cfghjmpqrvwx]{4}''']

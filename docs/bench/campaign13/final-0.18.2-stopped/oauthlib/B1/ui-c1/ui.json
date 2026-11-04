@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18830/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "sin datos",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "1 ruff-baseline B006 finding in /Users/david/.unbidden/ci-env/f4ad06bb341e7d55/w…\tdescartada\t2\tdecline",
+    "",
+    "1 fila(s)",
+    "actual",
+    "workspace",
+    "04 nov, 12:40",
+    "opportunities",
+    "Oportunidades"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "3 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "oauthlib",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 51 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "analyzer.ran",
+    "connection.changed",
+    "decision.made",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "mandate.changed",
+    "model.called",
+    "model.fallback",
+    "opportunity.opened",
+    "repo.head_moved",
+    "world.changed",
+    "Trabajo terminado",
+    "12:40",
+    "next: [] · outcome: ok · seconds: 2.9",
+    "Decisión tomada",
+    "12:40",
+    "decline — 2 experiments found no proven fix",
+    "Trabajo iniciado",
+    "12:40",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "12:40",
+    "next: [\"director.sweep\"] · outcome: ok · seconds: 19",
+    "Nota del agente",
+    "12:40",
+    "text: opp_28c28ed7d71547dd: no proven fix (context: excerpts, files are 10954 bytes; 2 excerpts, 1246 bytes)",
+    "Fallback de modelo",
+    "12:40"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "oauthlib",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 1 oportunidades, ordenadas por evidencia",
+    "L2 reproducido",
+    "1 ruff-baseline B006 finding in /Users/david/.unbidden/ci-env/f4ad06bb341e7d55/ws/oauthlib/oauth2/rfc6749/endpoints/",
+    "ruff-baseline · bugs · decline · 04 nov, 12:38",
+    "descartada",
+    "—",
+    "1 ruff-baseline B006 finding in /Users/david/.unbidden/ci-env/f4ad06bb341e7d55/ws/oauthlib/oauth2/rfc6749/endpoints/",
+    "hallazgo al lienzo",
+    "experimento al lienzo",
+    "L2 reproducido",
+    "descartada",
+    "ruff-baseline · bugs",
+    "1 ruff-baseline B006 finding in /Users/david/.unbidden/ci-env/f4ad06bb341e7d55/ws/oauthlib/oauth2/rfc6749/endpoints/",
+    "B006: Do not use mutable data structures for argument defaults",
+    "Decisión decline",
+    "2 experiments found no proven fix",
+    "analyzer_report: ruff-baseline@fdf407a404695355759a4061e6f3dd85ed51475f",
+    "Todavía sin experimento",
+    "La oportunidad no ha sido medida; el motor lo hará cuando la decisión sea run_experiment (o `unbidden try <id>`).",
+    "3 widgets · Guardado",
+    "100%"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "3 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

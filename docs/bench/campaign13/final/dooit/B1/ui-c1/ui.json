@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18800/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "Pygments 2.19.2: 2 known vulnerabilities, fixed in 2.20.0\tpropuesta\t4\tpropose_change",
+    "idna 3.10: 2 known vulnerabilities, fixed in 3.15\tpropuesta\t4\tpropose_change",
+    "aiohttp 3.12.15: 72 known vulnerabilities, fixed in 3.14.4\tabierta\t1\twait",
+    "filelock 3.19.1: 6 known vulnerabilities, fixed in 4.2.1\tabierta\t1\twait",
+    "msgpack 1.1.1: 3 known vulnerabilities, fixed in 1.2.3\tabierta\t1\twait",
+    "pytest 8.4.2: 2 known vulnerabilities, fixed in 9.0.3\tabierta\t1\twait",
+    "virtualenv 20.34.0: 21 known vulnerabilities, fixed in 21.14.9\tdescartada\t1\tdecline",
+    "",
+    "7 fila(s)"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "3 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "dooit",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 110 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "decision.made",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "proposal.published",
+    "proposal.pushed",
+    "proposal.ready",
+    "verdict.recorded",
+    "Trabajo terminado",
+    "16:38",
+    "next: [] · outcome: ok · seconds: 1.7",
+    "Decisión tomada",
+    "16:38",
+    "decline — 2 experiments found no proven fix",
+    "Trabajo iniciado",
+    "16:38",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "16:38",
+    "next: [\"director.sweep\"] · outcome: ok · seconds: 218.6",
+    "Nota del agente",
+    "16:38",
+    "text: opp_41dc98cd0d504444: no proven fix (virtualenv 20.34.0 → 21.14.9: advisories GHSA-394h-qwmc-48pf, GHSA-494p-63j8-",
+    "Veredicto registrado",
+    "16:38",
+    "sin mejora · L",
+    "Trabajo iniciado",
+    "16:34",
+    "doing: measuring a candidate in the sandbox · stage: measured · subject: opp_41dc98cd0d504444"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "dooit",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 7 oportunidades, ordenadas por evidencia",
+    "L4 validado",
+    "Pygments 2.19.2: 2 known vulnerabilities, fixed in 2.20.0",
+    "pypi-advisories · security · propose_change · 04 nov, 16:21",
+    "propuesta",
+    "—",
+    "L4 validado",
+    "idna 3.10: 2 known vulnerabilities, fixed in 3.15",
+    "pypi-advisories · security · propose_change · 04 nov, 16:21",
+    "propuesta",
+    "—",
+    "L1 sospecha",
+    "aiohttp 3.12.15: 72 known vulnerabilities, fixed in 3.14.4",
+    "pypi-advisories · security · wait · bloqueada · 04 nov, 16:21",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "filelock 3.19.1: 6 known vulnerabilities, fixed in 4.2.1",
+    "pypi-advisories · security · wait · bloqueada · 04 nov, 16:21",
+    "abierta",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "3 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

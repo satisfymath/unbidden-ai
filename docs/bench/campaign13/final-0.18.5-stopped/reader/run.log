@@ -1,0 +1,2 @@
+2026-11-04T15:08:02-0300 [B1] worker 5 starts on ports {'dashboard': 18850, 'ui_a': 18851, 'lab': 18852, 'lab_db': 18853}
+2026-11-04T15:12:13-0300 [B1] done in 251 s: {"name": "reader", "run": "B1", "mode": "custom", "deploy_target": "none", "self_host_ok": null, "export": true, "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/reader/B1.json", "proposals_c1": 0, "proposals_c2": 0, "pulls_after": 0, "spent_usd": 0.0568, "blocks": [], "wall_s": 211.1}

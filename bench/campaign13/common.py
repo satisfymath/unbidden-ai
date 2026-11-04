@@ -19,7 +19,9 @@ from pathlib import Path
 from typing import Any
 
 LAB = Path.home() / "unbidden-lab" / "c13"  # every campaign resource lives under here (INVENTORY.md)
-HOME = LAB / "home"  # the campaign HOME: the installed tool, its credentials file, the dashboard's state
+# the campaign HOME: the installed tool, its credentials file, the dashboard's state. C13_HOME names another one, so a
+# second pass on a newer release runs beside the first on this host (final pass, 2026-11-04); the ledger stays one.
+HOME = Path(os.environ["C13_HOME"]) if os.environ.get("C13_HOME") else LAB / "home"
 REAL_HOME = Path(os.environ.get("C12_REAL_HOME", str(Path.home())))
 LEDGER_HOME = REAL_HOME / ".unbidden"  # the machine's ledger: every paid call counts in the real budget
 TOKEN_RE = re.compile(r"(\?s=|Bearer )[A-Za-z0-9_\-]+")

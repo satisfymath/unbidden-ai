@@ -1,0 +1,1574 @@
+{
+ "repo": "python-progressbar",
+ "phase": "final",
+ "run": "B1",
+ "candidate": "f43fcc195adda64f0a8d9fbd9b9faeabd6587b02",
+ "wheel_sha256": "fea3f5b0d7facab86352c6309813f6968e6920372082ca947a5708c1057bcc85",
+ "started_at": "2026-11-04T15:05:44-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "autopilot",
+    "--budget",
+    "2",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--github-token-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 6.3,
+   "timed_out": false,
+   "stdout": "\n      \"capability\": \"github.open_pull_request\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.open_pull_requests\"\n    },\n    {\n      \"what\": \"merge pull requests\",\n      \"capability\": \"github.merge_pull_request\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": {\n    \"ok\": true,\n    \"rejected\": false,\n    \"model\": \"muse-spark-1.3\",\n    \"usd\": 0.000571,\n    \"why\": null\n  },\n  \"priorities\": [\n    \"correctness\",\n    \"maintainability\",\n    \"security\"\n  ],\n  \"github\": \"file\",\n  \"found\": {\n    \"repository\": \"satisfymath/c13-python-progressbar\",\n    \"branch\": \"HEAD\",\n    \"head\": \"c951e3097e04c97b4d713d3f8a582069b4107a08\",\n    \"scope\": [\n      {\n        \"name\": \"scope: stack\",\n        \"in_scope\": true,\n        \"note\": \"Python 3.10 (pyproject.toml, uv.lock)\"\n      },\n      {\n        \"name\": \"scope: tests\",\n        \"in_scope\": true,\n        \"note\": \"main.yml > perf-budget (the whole job)\"\n      },\n      {\n        \"name\": \"scope: database\",\n        \"in_scope\": false,\n        \"note\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n      }\n    ],\n    \"machine\": \"Apple M5 Pro, 64 GB, 54 GB for a model\",\n    \"ollama\": {\n      \"url\": \"http://localhost:11434\",\n      \"present\": true,\n      \"models\": [\n        \"muse-glimmer:30b-mxfp8-dflash\",\n        \"nomic-embed-text:latest\"\n      ]\n    },\n    \"local_model\": {\n      \"tag\": \"muse-glimmer:30b-mxfp8-dflash\",\n      \"installed\": true\n    },\n    \"key\": {\n      \"name\": \"MODEL_API_KEY\",\n      \"present\": true\n    },\n    \"github\": \"file\",\n    \"github_check\": {\n      \"login\": \"satisfymath\",\n      \"can_push\": true,\n      \"detail\": \"can push to satisfymath/c13-python-progressbar\"\n    },\n    \"compose\": null,\n    \"services\": [],\n    \"external\": [],\n    \"option\": \"mixed\",\n    \"option_why\": \"hay una clave y un modelo local\"\n  },\n  \"defaulted\": [\n    \"priorities\",\n    \"key\",\n    \"connections\",\n    \"private_code\",\n    \"language\"\n  ],\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c13/python-progressbar/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c13/python-progressbar/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 2.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -12,9 +12,10 @@\",\n    \"     provision_dependencies: allow\",\n    \"     delegate_synthetic: allow\",\n    \"-    open_pull_requests: require_approval\",\n    \"+    open_pull_requests: allow\",\n    \"     merge_pull_requests: deny\",\n    \"     deploy: deny\",\n    \"     rollback: deny\",\n    \"-    use_new_capabilities: require_approval\",\n    \"+    use_new_capabilities: allow\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,16 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\",\n    \"+  connections:\",\n    \"+  - id: github\",\n    \"+    kind: github\",\n    \"+    location: satisfymath/c13-python-progressbar\",\n    \"+    credential_ref: GITHUB_TOKEN\",\n    \"+    environment: production\",\n    \"+    permissions:\",\n    \"+    - read\",\n    \"+  operations: {}\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c13/python-progressbar/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "                    denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nCredenciales\nGuardadas en /Users/david/unbidden-lab/c13/home/.unbidden/.env (modo 600), \nreferidas por nombre; nunca escritas en el repositorio ni en registros.\nMODEL_API_KEY guardada.\nClave aceptada: muse-spark-1.3 respondió (US$0.0006).\nGITHUB_TOKEN guardada.\n\nPresupuesto\nLibro de la máquina: verified balance US$97.29 (stage 6 spend cap authorized by \nDavid on 2026-10-28: up to US$10 of free credits from this point (dev 3, \nevaluation 5, demo and contingency 2; the earlier US$3 reserve is included, not \nadded). Dashboard as reported by David 2026-10-28: Current balance US$0, free \ncredits in use US$144.98, a Visa card on file, content sent while on free \ncredits may be used to improve products. A cap, not a measured balance; no \nrecharge or card charge authorized (entered by david) | stage 9: US$30 \nadditional Meta API spend authorized by David on 2026-10-29, replacing the US$10\ncap; cumulative cap US$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval\n12, demo 6 (D-052). Dashboard as reported by David: free credits in use \nUS$137.96, balance US$0, a card on file. No recharge or card charge authorized \n(entered by david) | stage 10: the remaining US$20.30 of the US$37.29 cap split \nbefore any call (D-058), by David's stage 10 instruction of 2026-10-30 (entered \nby david) | stage 10 after the frozen evaluation: US$5 of the unspent s10-eval \nmoved to s10-dev for corrections and regressions, by David's instruction of \n2026-10-31; envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; spent at the transfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, \ns10-close 0) (entered by david) | product phase (A-E): s11-product US$4.00 \nauthorized by David on 2026-11-01, reassigned from s10-close (3.80, unspent, \nclosed) and US$0.20 of s10-dev; envelopes total US$20.30 and the cumulative cap \nUS$37.2945 unchanged; spent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval\n1.0010, s10-close 0) (entered by david) | product phase correction: David's \nauthorization of 2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken \nfrom s10-dev had no recorded authorization and goes back (s10-dev 13.00, \ns11-product 3.80); envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; s11-product spent 0 at the correction; spent at the correction \nUS$27.7199 (entered by david) | campaign 12 (installed-product validation): \nUS$60 additional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david) | envelopes s13-dev 15, \ns13-pass 15, s13-final 20, s13-confirm 5 authorized by David on 2026-11-03 \n('dale entonces empecemos con todo', campaign 13 to 1.0, within the cumulative \ncap US$97.2945, not amended); earlier envelopes unchanged; no transfers (entered\nby david)); permitido US$97.29 · gastado US$34.2570 · disponible US$63.0375\nsobres: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, s12-eval\n30.00, s12-dev 17.00, s12-confirm 5.00, s13-dev 15.00, s13-pass 15.00, s13-final\n20.00, s13-confirm 5.00\nLos créditos del proveedor y el gasto autorizado son cosas distintas: el tope \nque una persona ingresó con `unbidden spend --verified-balance` es lo que esta \nmáquina puede gastar; aquí nunca se sube ni se reinicia.\n\nPanel\nAbrir el panel, restaurar su disposición y mostrar registros no llama a ningún \nmodelo; chatear o pedir un análisis sí puede.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 3.5,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"2 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"act\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"found: the team's CI job prepares the environment when the mandate allows it\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key proven: muse-spark-1.3 answered\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"GITHUB_TOKEN set\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs allow\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"recon\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"completo (2026-11-04T18:06); stack absent\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.10 (pyproject.toml, uv.lock)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"main.yml > perf-budget (the whole job)\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "18820",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 36717,\n  \"log\": \"/Users/david/unbidden-lab/c13/python-progressbar/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-browser",
+   "argv": [
+    "node",
+    "/Users/david/unbidden-ai-v1b/frontend/scripts/c13_ui_check.mjs",
+    "http://127.0.0.1:18820/?s=<token>",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/python-progressbar/B1/ui-c1"
+   ],
+   "code": 0,
+   "seconds": 19.2,
+   "timed_out": false,
+   "stdout": "{\"ok\":true,\"steps\":5,\"console_errors\":2}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-status",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué ha hecho el agente hasta ahora y cuántas oportunidades hay?"
+   ],
+   "code": 0,
+   "seconds": 0.9,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_09bb00dedd62448d\",\n  \"role\": \"assistant\",\n  \"content\": \"Registro de python-progressbar (live, head c951e3097e04): 2 oportunidades, 1 experimentos, 1 propuestas, 114 eventos, 1 llamadas a modelos, 0 bloqueos.\\nJobs: done 36\\nAgente: agent running, pid 36717.\\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.\",\n  \"created_at\": \"2026-11-04T18:16:26.643807Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"rule\",\n  \"model\": null,\n  \"route\": {\n    \"intent\": \"inform\",\n    \"purpose\": null,\n    \"tier\": null,\n    \"model\": null,\n    \"reason\": \"the mandate denies local inference; reading records needs no model: answered by rules\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-analyze",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué hallazgo priorizarías y por qué? Di qué falta en el registro."
+   ],
+   "code": 0,
+   "seconds": 8.9,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_1ef1f5be856c4d70\",\n  \"role\": \"assistant\",\n  \"content\": \"Priorizaría `opp_569fe9cfe6664c98` — \\\"certifi 2026.5.20: 2 known vulnerabilities, fixed in 2026.10.18\\\" — frente a `opp_61742537bb864c3d`:\\n\\n- nivel 4 vs nivel 2\\n- estado `proposed` vs `declined`\\n- con experimento `true` vs `false`\\n- de 2 oportunidades totales: 1 `proposed`, 1 `declined`\\n\\nEl registro no contiene el detalle de las 2 vulnerabilidades, la evidencia del experimento, ni el motivo del `declined` de `opp_61742537bb864c3d`.\",\n  \"created_at\": \"2026-11-04T18:16:35.513068Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"brain\",\n  \"model\": \"muse-spark-1.3\",\n  \"route\": {\n    \"intent\": \"analyze\",\n    \"purpose\": \"chat.analyze\",\n    \"tier\": \"code\",\n    \"model\": \"muse-spark-1.3\",\n    \"reason\": \"profile frontier; public_code may leave; label public_code\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.4,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 36717,\n  \"waited_s\": 0.2,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "18820",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.6,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 1845,\n  \"log\": \"/Users/david/unbidden-lab/c13/python-progressbar/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.6,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 1845,\n  \"waited_s\": 0.4,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-final",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/python-progressbar\",\n  \"head\": \"c951e3097e04c97b4d713d3f8a582069b4107a08\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c13/python-progressbar/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"c951e3097e04c97b4d713d3f8a582069b4107a08\",\n    \"tools\": [\n      \"ruff-baseline\",\n      \"pyright\",\n      \"mypy\",\n      \"pypi-advisories\"\n    ],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"python 3.10: from the CI's python-version (the oldest in its matrix)\",\n      \"pyproject requires-python: >=3.10\",\n      \"the CI's python-version: 3.10, 3.11, 3.12, 3.13, 3.14, 3.15\",\n      \"image unbidden-deps-python:0871df11e6cb6a4a on linux/arm64\",\n      \"the team's CI job did not prepare the environment: the CI job failed at `autofix-ci/action@c5b2d67aa2274e7b5a18224e8171550871fc7e4a` before its tests: 1550871fc7e4a/index.dist.js] user= workdir=\\n[unbidden-ci/autofix]   \\u2757  ::error::For security reasons, the workflow in which the autofix.ci action is used must be named \\\"autofix.ci\\\".\\n[unbidden-ci/autof\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff-baseline\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"pyright\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"mypy\",\n        \"completeness\": \"failed\",\n        \"findings\": 0,\n        \"error\": \"/deps/.venv/bin/python: No module named mypy\"\n      },\n      {\n        \"tool\": \"pypi-advisories\",\n        \"completeness\": \"complete\",\n        \"findings\": 2,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"proposed\": 1,\n    \"declined\": 1\n  },\n  \"asks\": [],\n  \"blocks\": [],\n  \"idle\": true\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "egress",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "egress",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.6,
+   "timed_out": false,
+   "stdout": "t.analyze\",\n    \"destination\": \"api.meta.ai\",\n    \"provider\": \"meta\",\n    \"model\": \"muse-spark-1.3\",\n    \"verdict\": {\n      \"allowed\": true,\n      \"kind\": \"synthetic_task\",\n      \"destination\": \"api.meta.ai\",\n      \"reasons\": [],\n      \"matched\": [],\n      \"payload_sha256\": \"357f257836deca60434617ac3656e2a429697137eafe6565990c4fb00abf1e78\",\n      \"payload_bytes\": 3040\n    },\n    \"payload\": \"{\\\"messages\\\": [{\\\"content\\\": \\\"You are the analyst of Unbidden's dashboard. You receive a digest of Unbidden's own records\\\\n(counts, levels, statuses, titles, ids, medians) and a question. Answer in the language the question is written in,\\\\nbriefly, from the digest alone: cite the ids and numbers you rely on, say what the digest does not contain instead\\\\nof guessing, and never invent a metric, a finding or an improvement. You cannot act: do not promise to approve,\\\\ndeploy, merge, run or stop anything; name the command or button when the person should decide something.\\\", \\\"role\\\": \\\"system\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ade una tabla con las oportunidades\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ado una tabla con las oportunidades.\\\\na\\u00f1adido \\u00abOportunidades\\u00bb\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 ha hecho el agente hasta ahora y cu\\u00e1ntas oportunidades hay?\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"Registro de python-progressbar (live, head c951e3097e04): 2 oportunidades, 1 experimentos, 1 propuestas, 114 eventos, 1 llamadas a modelos, 0 bloqueos.\\\\nJobs: done 36\\\\nAgente: agent running, pid 36717.\\\\nPara un porqu\\u00e9 o una recomendaci\\u00f3n pide un an\\u00e1lisis; para ver algo, una tabla o un gr\\u00e1fico.\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"Records digest:\\\\nworkspace python-progressbar (live record); head c951e3097e04; observed 2026-11-04T18:16:27.455648+00:00; freshness current\\\\ncounts: {\\\\\\\"opportunities\\\\\\\":2,\\\\\\\"experiments\\\\\\\":1,\\\\\\\"proposals\\\\\\\":1,\\\\\\\"events\\\\\\\":114,\\\\\\\"model_runs\\\\\\\":1,\\\\\\\"connections\\\\\\\":1,\\\\\\\"deployments\\\\\\\":0,\\\\\\\"needs\\\\\\\":0,\\\\\\\"blocks\\\\\\\":0,\\\\\\\"spend_calls\\\\\\\":23,\\\\\\\"world\\\\\\\":1}\\\\njobs: {\\\\\\\"done\\\\\\\":36}\\\\ndiscovered: {\\\\\\\"total\\\\\\\":2,\\\\\\\"by_status\\\\\\\":{\\\\\\\"proposed\\\\\\\":1,\\\\\\\"declined\\\\\\\":1}}\\\\ninvalidated: []\\\\nproposals: {\\\\\\\"merged\\\\\\\":[\\\\\\\"security: bump certifi 2026.5.20 \\u2192 2026.10.18\\\\\\\"]}\\\\nblocks: []\\\\nlearned: {\\\\\\\"pypi-advisories \\u00b7 security \\u00b7 -\\\\\\\":{\\\\\\\"successes\\\\\\\":1,\\\\\\\"failures\\\\\\\":0,\\\\\\\"p\\\\\\\":0.73,\\\\\\\"prior\\\\\\\":0.6},\\\\\\\"robustness \\u00b7 bugs \\u00b7 python\\\\\\\":{\\\\\\\"successes\\\\\\\":0,\\\\\\\"failures\\\\\\\":2,\\\\\\\"p\\\\\\\":0.3,\\\\\\\"prior\\\\\\\":0.6}}\\\\nconnections: [{\\\\\\\"id\\\\\\\":\\\\\\\"github:satisfymath/c13-python-progressbar\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"github\\\\\\\",\\\\\\\"environment\\\\\\\":\\\\\\\"production\\\\\\\",\\\\\\\"state\\\\\\\":\\\\\\\"connected\\\\\\\",\\\\\\\"read\\\\\\\":[\\\\\\\"repository\\\\\\\",\\\\\\\"check runs\\\\\\\",\\\\\\\"pull requests\\\\\\\"],\\\\\\\"write\\\\\\\":[\\\\\\\"push branch\\\\\\\",\\\\\\\"pull request\\\\\\\"],\\\\\\\"requested\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"effective\\\\\\\":[\\\\\\\"read\\\\\\\",\\\\\\\"write\\\\\\\"],\\\\\\\"blocked\\\\\\\":null,\\\\\\\"next_step\\\\\\\":null,\\\\\\\"found_by\\\\\\\":[\\\\\\\"mandate grant\\\\\\\"],\\\\\\\"checked_at\\\\\\\":\\\\\\\"2026-11-04T18:15:27.833846+00:00\\\\\\\"}]\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_569fe9cfe6664c98\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"certifi 2026.5.20: 2 known vulnerabilities, fixed in 2026.10.18\\\\\\\",\\\\\\\"level\\\\\\\":4,\\\\\\\"status\\\\\\\":\\\\\\\"proposed\\\\\\\",\\\\\\\"has_experiment\\\\\\\":true}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_61742537bb864c3d\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"IndexError in format_unit_value (progressbar/widgets.py)\\\\\\\",\\\\\\\"level\\\\\\\":2,\\\\\\\"status\\\\\\\":\\\\\\\"declined\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 hallazgo priorizar\\u00edas y por qu\\u00e9? Di qu\\u00e9 falta en el registro.\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}], \\\"response_schema\\\": null, \\\"tools\\\": []}\",\n    \"created_at\": \"2026-11-04T18:16:27.465795Z\",\n    \"origin\": \"dashboard apart\"\n  }\n]\n",
+   "stderr": ""
+  },
+  {
+   "name": "export",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "export",
+    "--out",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/python-progressbar/export"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "Evidence of python-progressbar written to \n/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/python-progressbar/expo\nrt\n  events.jsonl                     118 lines  dac97da2dc56\n  audit.jsonl                       12 lines  6e0631eb9242\n  opportunities.jsonl                2 lines  a504ef71fb8f\n  hypotheses.jsonl                   0 lines  e3b0c44298fc\n  experiment_specs.jsonl             0 lines  e3b0c44298fc\n  experiments.jsonl                  1 lines  85692a8adf7b\n  proposals.jsonl                    1 lines  bc9e997d4517\n  decisions.jsonl                    5 lines  4dd224871f14\n  deploy_verdicts.jsonl              0 lines  e3b0c44298fc\n  deployments.jsonl                  0 lines  e3b0c44298fc\n  holds.jsonl                        0 lines  e3b0c44298fc\n  approvals.jsonl                    0 lines  e3b0c44298fc\n  acceptances.jsonl                  0 lines  e3b0c44298fc\n  actions.jsonl                      0 lines  e3b0c44298fc\n  goal_runs.jsonl                    0 lines  e3b0c44298fc\n  model_runs.jsonl                   1 lines  c710b6e53678\n  transcripts.jsonl                  1 lines  bda224e5d71f\n  egress.jsonl                       6 lines  2527bf6b961f\n  needs.jsonl                        0 lines  e3b0c44298fc\n  asks.jsonl                         0 lines  e3b0c44298fc\n  blocks.jsonl                       0 lines  e3b0c44298fc\n  deploy_ledger.jsonl                0 lines  e3b0c44298fc\n  spend.jsonl                        6 lines  c313c22228fd\n  mandate.json                      96 lines  bae7fd6d5173\nevery file was scanned for secrets; manifest.json holds the sha256 of each\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/wolph/python-progressbar",
+   "commit": "05a60c9a2c8fe88570a4bed734579320f9a2cfe8",
+   "family": "library",
+   "class": "independent",
+   "build": "pip",
+   "lab": null,
+   "copy_base_sha": "c951e3097e04c97b4d713d3f8a582069b4107a08"
+  },
+  "ledger_before": {
+   "envelope": "s13-final",
+   "envelope_spent_usd": 2.2289,
+   "available_usd": 63.0966,
+   "permitted_usd": 97.2945
+  },
+  "fork": {
+   "slug": "satisfymath/c13-python-progressbar",
+   "base": "develop",
+   "upstream": "wolph/python-progressbar",
+   "kind": "copy",
+   "created": false,
+   "prep": {
+    "applied": false,
+    "why": "nothing to change (already prepared, or nothing publishes)",
+    "plan": [
+     {
+      "file": "autofix.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "autofix"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "codeql.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "analyze"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "docs.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "console"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "main.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "perf-budget",
+       "build",
+       "windows"
+      ],
+      "why": "the team's checks"
+     }
+    ],
+    "kept": [
+     "autofix.yml",
+     "codeql.yml",
+     "docs.yml",
+     "main.yml"
+    ]
+   },
+   "pin": "05a60c9a2c8fe88570a4bed734579320f9a2cfe8",
+   "restore": {
+    "expected": "c951e3097e04c97b4d713d3f8a582069b4107a08",
+    "head_before": "c951e3097e04c97b4d713d3f8a582069b4107a08",
+    "pin_in_history": true,
+    "closed": [
+     1
+    ],
+    "deleted": [
+     "unbidden/certifi-2026-5-20-2-known-vulnerabilitie-234c56"
+    ],
+    "base_sha": "c951e3097e04c97b4d713d3f8a582069b4107a08"
+   },
+   "base_sha": "c951e3097e04c97b4d713d3f8a582069b4107a08",
+   "pin_in_history": true,
+   "dependabot_prs_closed": [],
+   "workflows_registered": [
+    "autofix.yml",
+    "codeql.yml",
+    "docs.yml",
+    "main.yml"
+   ],
+   "disabled_in_settings": [],
+   "kept": [
+    "autofix.yml",
+    "codeql.yml",
+    "docs.yml",
+    "main.yml"
+   ]
+  },
+  "fork_before": {
+   "pulls": [
+    {
+     "created_at": "2026-11-04T17:17:19Z",
+     "head": "unbidden/certifi-2026-5-20-2-known-vulnerabilitie-234c56",
+     "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+     "merge_commit_sha": "20f510290640ff95631962765aa64e0e4c491abe",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "security: bump certifi 2026.5.20 → 2026.10.18",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T17:18:44Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/runs/126736662462",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T17:18:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:43Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126332/job/126735888550",
+       "name": "autofix",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:18:14Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888488",
+       "name": "tox (docs)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:20:12Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888350",
+       "name": "tox (py314)",
+       "started_at": "2026-11-04T17:17:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:21:05Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888164",
+       "name": "tox (py311)",
+       "started_at": "2026-11-04T17:17:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:41Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888154",
+       "name": "tox (codespell)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:51Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888104",
+       "name": "tox (docs-demos)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:18:05Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888009",
+       "name": "tox (docs-linkcheck)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:20:58Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887986",
+       "name": "tox (py310)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:45Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887978",
+       "name": "tox (readme)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:20:30Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887945",
+       "name": "tox (py312)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:20:13Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887807",
+       "name": "tox (py315)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:47Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887676",
+       "name": "tox (ruff)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:20:03Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887410",
+       "name": "tox (py313)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:21:03Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887348",
+       "name": "tox (windows / py312)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:48Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735886817",
+       "name": "Performance budget",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:23:09Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126416/job/126735886134",
+       "name": "in-browser console smoke test",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:18:52Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126164/job/126735885140",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [],
+   "base_head": "c951e3097e04c97b4d713d3f8a582069b4107a08"
+  },
+  "deploy_target": "none",
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required"
+  },
+  "mode": {
+   "asked": "custom",
+   "got": "custom",
+   "why": "nothing to deploy: not an application"
+  },
+  "autonomy": {
+   "mode": "custom",
+   "why": "nothing to deploy: not an application",
+   "fields": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "delegate_synthetic": "allow",
+    "open_pull_requests": "allow",
+    "merge_pull_requests": "allow",
+    "deploy": "deny",
+    "rollback": "deny",
+    "use_new_capabilities": "allow",
+    "act_on_connections": "deny"
+   }
+  },
+  "mode_got": "custom",
+  "cycle1": {
+   "started": true,
+   "waited_s": 570.5,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 36717,
+    "started_at": "2026-11-04T18:06:35.911025+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/python-progressbar/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "agent.note": 7,
+     "analyzer.ran": 4,
+     "connection.changed": 1,
+     "decision.made": 6,
+     "egress.allowed": 2,
+     "egress.blocked": 4,
+     "job.finished": 36,
+     "job.started": 36,
+     "mandate.changed": 1,
+     "model.called": 1,
+     "model.fallback": 4,
+     "operations.merged": 1,
+     "opportunity.opened": 2,
+     "proposal.published": 1,
+     "proposal.pushed": 1,
+     "proposal.ready": 1,
+     "repo.head_moved": 1,
+     "verdict.recorded": 1,
+     "world.changed": 4
+    },
+    "docs": {
+     "connections": 1,
+     "decisions": 5,
+     "egress": 6,
+     "experiments": 1,
+     "model_runs": 1,
+     "opportunities": 2,
+     "proposals": 1,
+     "transcripts": 1,
+     "world": 1
+    },
+    "jobs": {
+     "done": 36
+    },
+    "experiments": 1,
+    "opportunities": [
+     {
+      "id": "opp_61742537bb864c3d",
+      "source": "robustness",
+      "category": "bugs",
+      "evidence_level": 2,
+      "status": "declined"
+     },
+     {
+      "id": "opp_569fe9cfe6664c98",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "proposed"
+     }
+    ],
+    "level_max": 4,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": [
+     {
+      "id": "prop_1334ed55653f440e",
+      "opportunity_id": "opp_569fe9cfe6664c98",
+      "experiment_id": "exp_b67744d6cd934cf6",
+      "status": "merged",
+      "branch": "unbidden/certifi-2026-5-20-2-known-vulnerabilitie-664c98",
+      "evidence_level": 4,
+      "title": "security: bump certifi 2026.5.20 → 2026.10.18",
+      "pr": "https://github.com/satisfymath/c13-python-progressbar/pull/2",
+      "criteria": null
+     }
+    ]
+   }
+  },
+  "ui1": {
+   "opened": true,
+   "in_daemon": true,
+   "summary": {
+    "mode": "live",
+    "freshness": "current",
+    "counts": {
+     "opportunities": 2,
+     "experiments": 1,
+     "proposals": 1,
+     "events": 114,
+     "model_runs": 1,
+     "connections": 1,
+     "deployments": 0,
+     "needs": 0,
+     "blocks": 0,
+     "spend_calls": 23,
+     "world": 1
+    },
+    "agent": {
+     "running": true,
+     "pid": 36717,
+     "started_at": "2026-11-04T18:06:35.911025+00:00",
+     "command": "watch",
+     "detail": "agent running, pid 36717"
+    },
+    "key_present": true
+   },
+   "opportunities_total": 2,
+   "widgets": [
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:python-progressbar"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:python-progressbar"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:python-progressbar"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:python-progressbar"
+    }
+   ],
+   "browser": {
+    "ok": true,
+    "steps": 5,
+    "console_errors": 2
+   },
+   "chat_status": {
+    "planner": "rule",
+    "route": {
+     "intent": "inform",
+     "purpose": null,
+     "tier": null,
+     "model": null,
+     "reason": "the mandate denies local inference; reading records needs no model: answered by rules",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Registro de python-progressbar (live, head c951e3097e04): 2 oportunidades, 1 experimentos, 1 propuestas, 114 eventos, 1 llamadas a modelos, 0 bloqueos.\nJobs: done 36\nAgente: agent running, pid 36717.\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico."
+   },
+   "chat_analyze": {
+    "planner": "brain",
+    "route": {
+     "intent": "analyze",
+     "purpose": "chat.analyze",
+     "tier": "code",
+     "model": "muse-spark-1.3",
+     "reason": "profile frontier; public_code may leave; label public_code",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Priorizaría `opp_569fe9cfe6664c98` — \"certifi 2026.5.20: 2 known vulnerabilities, fixed in 2026.10.18\" — frente a `opp_61742537bb864c3d`:\n\n- nivel 4 vs nivel 2\n- estado `proposed` vs `declined`\n- con experimento `true` vs `false`\n- de 2 oportunidades totales: 1 `proposed`, 1 `declined`\n\nEl registro no contiene el detalle de las 2 vulnerabilidades, la evidencia del experimento, ni el motivo del `de"
+   }
+  },
+  "fork_after_c1": {
+   "pulls": [
+    {
+     "created_at": "2026-11-04T18:08:38Z",
+     "head": "unbidden/certifi-2026-5-20-2-known-vulnerabilitie-664c98",
+     "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+     "merge_commit_sha": "8418a3e48f0ce9284a54298d3ae0810ae43a8087",
+     "merged_at": "2026-11-04T18:15:25Z",
+     "number": 2,
+     "state": "closed",
+     "title": "security: bump certifi 2026.5.20 → 2026.10.18",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T18:10:02Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/runs/126764814964",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T18:09:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:09:36Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764036205",
+       "name": "tox (docs)",
+       "started_at": "2026-11-04T18:08:55Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:09:23Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764036122",
+       "name": "tox (docs-linkcheck)",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:12:34Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764036101",
+       "name": "tox (py310)",
+       "started_at": "2026-11-04T18:08:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:11:43Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764036100",
+       "name": "tox (py311)",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:11:21Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764036040",
+       "name": "tox (py315)",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:09:07Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764036039",
+       "name": "tox (ruff)",
+       "started_at": "2026-11-04T18:08:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:09:08Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764035988",
+       "name": "tox (codespell)",
+       "started_at": "2026-11-04T18:08:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:08:59Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168265/job/126764035951",
+       "name": "autofix",
+       "started_at": "2026-11-04T18:08:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:11:45Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764035869",
+       "name": "tox (py312)",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:11:29Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764035815",
+       "name": "tox (py314)",
+       "started_at": "2026-11-04T18:08:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:11:31Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764035788",
+       "name": "tox (py313)",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:09:01Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764035727",
+       "name": "tox (readme)",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:09:28Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764035708",
+       "name": "tox (docs-demos)",
+       "started_at": "2026-11-04T18:08:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:11:40Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764035672",
+       "name": "tox (windows / py312)",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:09:04Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764035467",
+       "name": "Performance budget",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:15:11Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884167965/job/126764034783",
+       "name": "in-browser console smoke test",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:10:10Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168026/job/126764034302",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T17:17:19Z",
+     "head": "unbidden/certifi-2026-5-20-2-known-vulnerabilitie-234c56",
+     "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+     "merge_commit_sha": "20f510290640ff95631962765aa64e0e4c491abe",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "security: bump certifi 2026.5.20 → 2026.10.18",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T17:18:44Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/runs/126736662462",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T17:18:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:43Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126332/job/126735888550",
+       "name": "autofix",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:18:14Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888488",
+       "name": "tox (docs)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:20:12Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888350",
+       "name": "tox (py314)",
+       "started_at": "2026-11-04T17:17:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:21:05Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888164",
+       "name": "tox (py311)",
+       "started_at": "2026-11-04T17:17:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:41Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888154",
+       "name": "tox (codespell)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:51Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888104",
+       "name": "tox (docs-demos)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:18:05Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888009",
+       "name": "tox (docs-linkcheck)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:20:58Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887986",
+       "name": "tox (py310)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:45Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887978",
+       "name": "tox (readme)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:20:30Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887945",
+       "name": "tox (py312)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:20:13Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887807",
+       "name": "tox (py315)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:47Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887676",
+       "name": "tox (ruff)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:20:03Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887410",
+       "name": "tox (py313)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:21:03Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887348",
+       "name": "tox (windows / py312)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:48Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735886817",
+       "name": "Performance budget",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:23:09Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126416/job/126735886134",
+       "name": "in-browser console smoke test",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:18:52Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126164/job/126735885140",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [
+    "unbidden/certifi-2026-5-20-2-known-vulnerabilitie-664c98"
+   ],
+   "base_head": "8418a3e48f0ce9284a54298d3ae0810ae43a8087"
+  },
+  "cycle2": {
+   "started": true,
+   "waited_s": 47.5,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 1845,
+    "started_at": "2026-11-04T18:16:40.190880+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/python-progressbar/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "agent.note": 7,
+     "analyzer.ran": 4,
+     "connection.changed": 1,
+     "decision.made": 6,
+     "egress.allowed": 2,
+     "egress.blocked": 4,
+     "job.finished": 38,
+     "job.started": 38,
+     "mandate.changed": 1,
+     "model.called": 1,
+     "model.fallback": 4,
+     "operations.merged": 1,
+     "opportunity.opened": 2,
+     "proposal.published": 1,
+     "proposal.pushed": 1,
+     "proposal.ready": 1,
+     "repo.head_moved": 1,
+     "verdict.recorded": 1,
+     "world.changed": 4
+    },
+    "docs": {
+     "connections": 1,
+     "decisions": 5,
+     "egress": 6,
+     "experiments": 1,
+     "model_runs": 1,
+     "opportunities": 2,
+     "proposals": 1,
+     "transcripts": 1,
+     "world": 1
+    },
+    "jobs": {
+     "done": 38
+    },
+    "experiments": 1,
+    "opportunities": [
+     {
+      "id": "opp_61742537bb864c3d",
+      "source": "robustness",
+      "category": "bugs",
+      "evidence_level": 2,
+      "status": "declined"
+     },
+     {
+      "id": "opp_569fe9cfe6664c98",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "proposed"
+     }
+    ],
+    "level_max": 4,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": [
+     {
+      "id": "prop_1334ed55653f440e",
+      "opportunity_id": "opp_569fe9cfe6664c98",
+      "experiment_id": "exp_b67744d6cd934cf6",
+      "status": "merged",
+      "branch": "unbidden/certifi-2026-5-20-2-known-vulnerabilitie-664c98",
+      "evidence_level": 4,
+      "title": "security: bump certifi 2026.5.20 → 2026.10.18",
+      "pr": "https://github.com/satisfymath/c13-python-progressbar/pull/2",
+      "criteria": null
+     }
+    ]
+   }
+  },
+  "asks_answered": [],
+  "fork_after_c2": {
+   "pulls": [
+    {
+     "created_at": "2026-11-04T18:08:38Z",
+     "head": "unbidden/certifi-2026-5-20-2-known-vulnerabilitie-664c98",
+     "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+     "merge_commit_sha": "8418a3e48f0ce9284a54298d3ae0810ae43a8087",
+     "merged_at": "2026-11-04T18:15:25Z",
+     "number": 2,
+     "state": "closed",
+     "title": "security: bump certifi 2026.5.20 → 2026.10.18",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T18:10:02Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/runs/126764814964",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T18:09:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:09:36Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764036205",
+       "name": "tox (docs)",
+       "started_at": "2026-11-04T18:08:55Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:09:23Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764036122",
+       "name": "tox (docs-linkcheck)",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:12:34Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764036101",
+       "name": "tox (py310)",
+       "started_at": "2026-11-04T18:08:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:11:43Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764036100",
+       "name": "tox (py311)",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:11:21Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764036040",
+       "name": "tox (py315)",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:09:07Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764036039",
+       "name": "tox (ruff)",
+       "started_at": "2026-11-04T18:08:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:09:08Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764035988",
+       "name": "tox (codespell)",
+       "started_at": "2026-11-04T18:08:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:08:59Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168265/job/126764035951",
+       "name": "autofix",
+       "started_at": "2026-11-04T18:08:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:11:45Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764035869",
+       "name": "tox (py312)",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:11:29Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764035815",
+       "name": "tox (py314)",
+       "started_at": "2026-11-04T18:08:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:11:31Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764035788",
+       "name": "tox (py313)",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:09:01Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764035727",
+       "name": "tox (readme)",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:09:28Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764035708",
+       "name": "tox (docs-demos)",
+       "started_at": "2026-11-04T18:08:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:11:40Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764035672",
+       "name": "tox (windows / py312)",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:09:04Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168137/job/126764035467",
+       "name": "Performance budget",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:15:11Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884167965/job/126764034783",
+       "name": "in-browser console smoke test",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:10:10Z",
+       "conclusion": "success",
+       "head_sha": "c898cacf32a151d6e58d765335c5a228cd819e04",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41884168026/job/126764034302",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T18:08:45Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T17:17:19Z",
+     "head": "unbidden/certifi-2026-5-20-2-known-vulnerabilitie-234c56",
+     "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+     "merge_commit_sha": "20f510290640ff95631962765aa64e0e4c491abe",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "security: bump certifi 2026.5.20 → 2026.10.18",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T17:18:44Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/runs/126736662462",
+       "name": "CodeQL",
+       "started_at": "2026-11-04T17:18:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:43Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126332/job/126735888550",
+       "name": "autofix",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:18:14Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888488",
+       "name": "tox (docs)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:20:12Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888350",
+       "name": "tox (py314)",
+       "started_at": "2026-11-04T17:17:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:21:05Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888164",
+       "name": "tox (py311)",
+       "started_at": "2026-11-04T17:17:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:41Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888154",
+       "name": "tox (codespell)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:51Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888104",
+       "name": "tox (docs-demos)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:18:05Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735888009",
+       "name": "tox (docs-linkcheck)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:20:58Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887986",
+       "name": "tox (py310)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:45Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887978",
+       "name": "tox (readme)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:20:30Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887945",
+       "name": "tox (py312)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:20:13Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887807",
+       "name": "tox (py315)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:47Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887676",
+       "name": "tox (ruff)",
+       "started_at": "2026-11-04T17:17:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:20:03Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887410",
+       "name": "tox (py313)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:21:03Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735887348",
+       "name": "tox (windows / py312)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:17:48Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126365/job/126735886817",
+       "name": "Performance budget",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:23:09Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126416/job/126735886134",
+       "name": "in-browser console smoke test",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T17:18:52Z",
+       "conclusion": "success",
+       "head_sha": "b539a042bf05015ebc111d88e030b89176211d6c",
+       "html_url": "https://github.com/satisfymath/c13-python-progressbar/actions/runs/41876126164/job/126735885140",
+       "name": "Analyze (python)",
+       "started_at": "2026-11-04T17:17:27Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [
+    "unbidden/certifi-2026-5-20-2-known-vulnerabilitie-664c98"
+   ],
+   "base_head": "8418a3e48f0ce9284a54298d3ae0810ae43a8087"
+  },
+  "status_final": {
+   "running": false,
+   "pid": null,
+   "started_at": null,
+   "command": null,
+   "log": "/Users/david/unbidden-lab/c13/python-progressbar/.unbidden/logs/agent.log",
+   "stale": false,
+   "jobs_running": 0,
+   "jobs_queued": 0
+  },
+  "egress": {
+   "api.meta.ai:chat.analyze:allowed_sent": 4,
+   "api.meta.ai:research.robustness:allowed_sent": 1,
+   "github.com:github.pull_request:allowed_sent": 1,
+   "api.meta.ai:lab.robust_fix:blocked": 4
+  },
+  "checks": {
+   "status": "passed",
+   "collected": 3,
+   "why": null,
+   "scope": "the whole job",
+   "partial": false,
+   "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npython -m pytest tests/test_perf_budget.py -v --no-cov",
+   "rev": "c951e3097e04c97b4d713d3f8a582069b4107a08",
+   "could_not_run": {
+    "tests": 0,
+    "lacks": [],
+    "by_test": []
+   },
+   "failed": 0,
+   "image_notes": [
+    "python 3.10: from the CI's python-version (the oldest in its matrix)",
+    "pyproject requires-python: >=3.10",
+    "the CI's python-version: 3.10, 3.11, 3.12, 3.13, 3.14, 3.15",
+    "image unbidden-deps-python:0871df11e6cb6a4a on linux/arm64",
+    "the team's CI job did not prepare the environment: the CI job failed at `autofix-ci/action@c5b2d67aa2274e7b5a18224e8171550871fc7e4a` before its tests: 1550871fc7e4a/index.dist.js] user= workdir=\n[unbidden-ci/autofix]   ❗  ::error::For security reasons, the workflow in which the autofix.ci action is used must be named \"autofix.ci\".\n[unbidden-ci/autof"
+   ],
+   "python": "3.10"
+  },
+  "ledger_after": {
+   "envelope": "s13-final",
+   "envelope_spent_usd": 2.4634,
+   "available_usd": 62.862,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c13-final-B1-python-progressbar",
+   "calls": 24,
+   "usd": 0.0893,
+   "tokens_in": 11427,
+   "tokens_out": 17641
+  },
+  "spent_usd": 0.0893,
+  "export": {
+   "available": true,
+   "ok": true,
+   "code": 0,
+   "dir": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/python-progressbar/export",
+   "files": 25,
+   "answer": null
+  },
+  "archive": "/Users/david/unbidden-lab/c13/archive/python-progressbar-B1-final.tgz",
+  "archive_kept": {
+   "name": "python-progressbar-B1-final.tgz",
+   "bytes": 171622,
+   "sha256": "1714faee64c6aef7db77eaeada0a1d17b2d00806739efd2b49b4dd067373c82d",
+   "kept": true,
+   "where": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/python-progressbar/export/python-progressbar-B1-final.tgz"
+  }
+ },
+ "human": [
+  {
+   "step": "mandate: fork, registries, operations, connections",
+   "minutes": 2,
+   "why": "a person's declaration"
+  },
+  {
+   "step": "mandate autonomy: merge on green CI, no deploy",
+   "minutes": 1,
+   "why": "nothing to deploy: not an application"
+  }
+ ],
+ "blocks": []
+}

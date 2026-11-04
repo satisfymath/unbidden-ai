@@ -1,0 +1,931 @@
+{
+ "repo": "mimirq",
+ "phase": "final",
+ "run": "B1",
+ "candidate": "5bbaaf39f8eaa65e31ca02d9ee70d894f6fd0e6d",
+ "wheel_sha256": "9615de540d10d7911abd337f1b692643232e9de799e502614df81a3d1fc97122",
+ "started_at": "2026-11-04T17:35:09-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "autopilot",
+    "--budget",
+    "2",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--github-token-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 37.7,
+   "timed_out": false,
+   "stdout": "m's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": {\n    \"ok\": true,\n    \"rejected\": false,\n    \"model\": \"muse-spark-1.3\",\n    \"usd\": 0.000571,\n    \"why\": null\n  },\n  \"priorities\": [\n    \"correctness\",\n    \"maintainability\",\n    \"security\"\n  ],\n  \"github\": \"file\",\n  \"found\": {\n    \"repository\": \"satisfymath/c13-mimirq\",\n    \"branch\": \"HEAD\",\n    \"head\": \"14eede8f4eadf7f93c320846921212ed66634f7f\",\n    \"scope\": [\n      {\n        \"name\": \"scope: stack\",\n        \"in_scope\": true,\n        \"note\": \"Python 3.11 (requirements.txt, requirements.txt)\"\n      },\n      {\n        \"name\": \"scope: tests\",\n        \"in_scope\": true,\n        \"note\": \"ci.yml > public-pr-verify (the whole job, without its tests that need a container runtime); 3 step(s) after the tests left out (they run no tests); left out, it needs a container runtime (tests/test_ocr_server_complexity_refactors.py imports docker): the sandbox has none and never gets the host's Docker socket: mkdir -p artifacts\\npython scripts/run_sample_retrieval_benchmark.py \\\\\\n  --fixture data/sample/retrieval_fixture_hybrid_v\"\n      },\n      {\n        \"name\": \"scope: database\",\n        \"in_scope\": false,\n        \"note\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n      }\n    ],\n    \"machine\": \"Apple M5 Pro, 64 GB, 54 GB for a model\",\n    \"ollama\": {\n      \"url\": \"http://localhost:11434\",\n      \"present\": true,\n      \"models\": [\n        \"muse-glimmer:30b-mxfp8-dflash\",\n        \"nomic-embed-text:latest\"\n      ]\n    },\n    \"local_model\": {\n      \"tag\": \"muse-glimmer:30b-mxfp8-dflash\",\n      \"installed\": true\n    },\n    \"key\": {\n      \"name\": \"MODEL_API_KEY\",\n      \"present\": true\n    },\n    \"github\": \"file\",\n    \"github_check\": {\n      \"login\": \"satisfymath\",\n      \"can_push\": true,\n      \"detail\": \"can push to satisfymath/c13-mimirq\"\n    },\n    \"compose\": null,\n    \"services\": [],\n    \"external\": [],\n    \"option\": \"mixed\",\n    \"option_why\": \"hay una clave y un modelo local\"\n  },\n  \"defaulted\": [\n    \"priorities\",\n    \"key\",\n    \"connections\",\n    \"private_code\",\n    \"language\"\n  ],\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c13/mimirq/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c13/mimirq/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 2.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -12,9 +12,10 @@\",\n    \"     provision_dependencies: allow\",\n    \"     delegate_synthetic: allow\",\n    \"-    open_pull_requests: require_approval\",\n    \"+    open_pull_requests: allow\",\n    \"     merge_pull_requests: deny\",\n    \"     deploy: deny\",\n    \"     rollback: deny\",\n    \"-    use_new_capabilities: require_approval\",\n    \"+    use_new_capabilities: allow\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,16 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\",\n    \"+  connections:\",\n    \"+  - id: github\",\n    \"+    kind: github\",\n    \"+    location: satisfymath/c13-mimirq\",\n    \"+    credential_ref: GITHUB_TOKEN\",\n    \"+    environment: production\",\n    \"+    permissions:\",\n    \"+    - read\",\n    \"+  operations: {}\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c13/mimirq/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "                    denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nCredenciales\nGuardadas en /Users/david/unbidden-lab/c13/home/.unbidden/.env (modo 600), \nreferidas por nombre; nunca escritas en el repositorio ni en registros.\nMODEL_API_KEY guardada.\nClave aceptada: muse-spark-1.3 respondió (US$0.0006).\nGITHUB_TOKEN guardada.\n\nPresupuesto\nLibro de la máquina: verified balance US$97.29 (stage 6 spend cap authorized by \nDavid on 2026-10-28: up to US$10 of free credits from this point (dev 3, \nevaluation 5, demo and contingency 2; the earlier US$3 reserve is included, not \nadded). Dashboard as reported by David 2026-10-28: Current balance US$0, free \ncredits in use US$144.98, a Visa card on file, content sent while on free \ncredits may be used to improve products. A cap, not a measured balance; no \nrecharge or card charge authorized (entered by david) | stage 9: US$30 \nadditional Meta API spend authorized by David on 2026-10-29, replacing the US$10\ncap; cumulative cap US$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval\n12, demo 6 (D-052). Dashboard as reported by David: free credits in use \nUS$137.96, balance US$0, a card on file. No recharge or card charge authorized \n(entered by david) | stage 10: the remaining US$20.30 of the US$37.29 cap split \nbefore any call (D-058), by David's stage 10 instruction of 2026-10-30 (entered \nby david) | stage 10 after the frozen evaluation: US$5 of the unspent s10-eval \nmoved to s10-dev for corrections and regressions, by David's instruction of \n2026-10-31; envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; spent at the transfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, \ns10-close 0) (entered by david) | product phase (A-E): s11-product US$4.00 \nauthorized by David on 2026-11-01, reassigned from s10-close (3.80, unspent, \nclosed) and US$0.20 of s10-dev; envelopes total US$20.30 and the cumulative cap \nUS$37.2945 unchanged; spent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval\n1.0010, s10-close 0) (entered by david) | product phase correction: David's \nauthorization of 2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken \nfrom s10-dev had no recorded authorization and goes back (s10-dev 13.00, \ns11-product 3.80); envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; s11-product spent 0 at the correction; spent at the correction \nUS$27.7199 (entered by david) | campaign 12 (installed-product validation): \nUS$60 additional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david) | envelopes s13-dev 15, \ns13-pass 15, s13-final 20, s13-confirm 5 authorized by David on 2026-11-03 \n('dale entonces empecemos con todo', campaign 13 to 1.0, within the cumulative \ncap US$97.2945, not amended); earlier envelopes unchanged; no transfers (entered\nby david)); permitido US$97.29 · gastado US$35.4821 · disponible US$61.8124\nsobres: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, s12-eval\n30.00, s12-dev 17.00, s12-confirm 5.00, s13-dev 15.00, s13-pass 15.00, s13-final\n20.00, s13-confirm 5.00\nLos créditos del proveedor y el gasto autorizado son cosas distintas: el tope \nque una persona ingresó con `unbidden spend --verified-balance` es lo que esta \nmáquina puede gastar; aquí nunca se sube ni se reinicia.\n\nPanel\nAbrir el panel, restaurar su disposición y mostrar registros no llama a ningún \nmodelo; chatear o pedir un análisis sí puede.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 32.3,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"2 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"act\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"found: the team's CI job prepares the environment when the mandate allows it\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key proven: muse-spark-1.3 answered\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"GITHUB_TOKEN set\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs allow\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"recon\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"completo (2026-11-04T20:39); stack absent\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.11 (requirements.txt, requirements.txt)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"ci.yml > public-pr-verify (the whole job, without its tests that need a container runtime); 3 step(s) after the tests left out (they run no tests); left out, it needs a container runtime (tests/test_parser_service_upload_limits.py imports docker): the sandbox has none and never gets the host's Docker socket: mkdir -p artifacts\\npython scripts/run_sample_retrieval_benchmark.py \\\\\\n  --fixture data/sample/retrieval_fixture_hybrid_v\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "host-up",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "host",
+    "up",
+    "--yes",
+    "--json"
+   ],
+   "code": 1,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"ok\": false,\n  \"project\": \"unbidden-mimirq\",\n  \"health_url\": null,\n  \"ports\": {},\n  \"deploy_steps\": [],\n  \"drill\": null,\n  \"why\": \"the repository tracks no compose file (compose.yml, docker-compose.yml)\",\n  \"steps\": [],\n  \"migrated\": null,\n  \"seeded\": {},\n  \"generated_env\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "18810",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.6,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 86465,\n  \"log\": \"/Users/david/unbidden-lab/c13/mimirq/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-browser",
+   "argv": [
+    "node",
+    "/Users/david/unbidden-ai-v1b/frontend/scripts/c13_ui_check.mjs",
+    "http://127.0.0.1:18810/?s=<token>",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/mimirq/B1/ui-c1"
+   ],
+   "code": 0,
+   "seconds": 19.8,
+   "timed_out": false,
+   "stdout": "{\"ok\":true,\"steps\":5,\"console_errors\":2}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-status",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué ha hecho el agente hasta ahora y cuántas oportunidades hay?"
+   ],
+   "code": 0,
+   "seconds": 1.4,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_efa240c6a1a14d45\",\n  \"role\": \"assistant\",\n  \"content\": \"Registro de mimirq (live, head 14eede8f4ead): 12 oportunidades, 0 experimentos, 0 propuestas, 80 eventos, 1 llamadas a modelos, 0 bloqueos.\\nJobs: done 9\\nAgente: agent running, pid 86465.\\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.\",\n  \"created_at\": \"2026-11-04T21:02:30.173668Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"rule\",\n  \"model\": null,\n  \"route\": {\n    \"intent\": \"inform\",\n    \"purpose\": null,\n    \"tier\": null,\n    \"model\": null,\n    \"reason\": \"the mandate denies local inference; reading records needs no model: answered by rules\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-analyze",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué hallazgo priorizarías y por qué? Di qué falta en el registro."
+   ],
+   "code": 0,
+   "seconds": 12.1,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_6bfcf37e70a044f3\",\n  \"role\": \"assistant\",\n  \"content\": \"Priorizaría `opp_dd862604779b4cb6` — \\\"PyJWT 2.13.0: 29 known vulnerabilities, fixed in 2.15.0\\\", level 1, status open.\\n\\nPor qué, según el digest: es el único de los destacados con fix publicado en el título, y con el conteo mayor — 29 — frente a `opp_198cd45294ac4246` con 2, `opp_53c7405795c746b5` con 8 y `opp_37472b778c02470f` con 2, todos \\\"no fix published\\\".\\n\\nQué falta en el registro:\\n- El digest solo detalla 4 de las 12 oportunidades open; de las otras 8 no contiene título, level ni id.\\n- counts: experiments 0, proposals 0, blocks 0; proposals {}, blocks [], learned {}, invalidated [].\\n- No contiene impacto, explotabilidad, alcance afectado ni criterio de priorización más allá de level 1 y conteos del título.\",\n  \"created_at\": \"2026-11-04T21:02:42.307697Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"brain\",\n  \"model\": \"muse-spark-1.3\",\n  \"route\": {\n    \"intent\": \"analyze\",\n    \"purpose\": \"chat.analyze\",\n    \"tier\": \"code\",\n    \"model\": \"muse-spark-1.3\",\n    \"reason\": \"profile frontier; public_code may leave; label public_code\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.6,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 86465,\n  \"waited_s\": 0.4,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "18810",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.6,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 53720,\n  \"log\": \"/Users/david/unbidden-lab/c13/mimirq/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 53720,\n  \"waited_s\": 0.6,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-final",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/mimirq\",\n  \"head\": \"14eede8f4eadf7f93c320846921212ed66634f7f\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c13/mimirq/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"14eede8f4eadf7f93c320846921212ed66634f7f\",\n    \"tools\": [\n      \"ruff-baseline\",\n      \"pypi-advisories\"\n    ],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"python 3.11: where the CI runs the checks and the project's Dockerfile both use it\",\n      \"the CI's python-version: 3.11\",\n      \"the project's Dockerfile: 3.11\",\n      \"image unbidden-deps-python:c3e224c3d7f774ed on linux/arm64\",\n      \"the environment is seeded with pip and setuptools as of 2026-08-29T04:46:32+08:00 (the lockfile's era), as virtualenvs on Python 3.11 were\",\n      \"the team's CI job did not prepare the environment: the CI job failed at `Install Python deps` before its tests: c cmd=[/opt/acttoolcache/node/24.19.0/arm64/bin/node /var/run/act/workflow/hashfiles/index.js] user= workdir=\\n[unbidden-ci/public-pr-verify]   \\ud83d\\udc33  docker exec cmd=[/opt/acttoolcache/node/24.19.0/arm64/bin/node /var/run/act/workflow/hashfile\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff-baseline\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"pypi-advisories\",\n        \"completeness\": \"complete\",\n        \"findings\": 179,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"open\": 12\n  },\n  \"asks\": [],\n  \"blocks\": [],\n  \"idle\": true\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "egress",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "egress",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.7,
+   "timed_out": false,
+   "stdout": "\"api.meta.ai\",\n    \"provider\": \"meta\",\n    \"model\": \"muse-spark-1.3\",\n    \"verdict\": {\n      \"allowed\": true,\n      \"kind\": \"synthetic_task\",\n      \"destination\": \"api.meta.ai\",\n      \"reasons\": [],\n      \"matched\": [],\n      \"payload_sha256\": \"cc76ba64b1b0875caaa5379ac69029102328f7a9bf8c88fa8a01999c5d902409\",\n      \"payload_bytes\": 3076\n    },\n    \"payload\": \"{\\\"messages\\\": [{\\\"content\\\": \\\"You are the analyst of Unbidden's dashboard. You receive a digest of Unbidden's own records\\\\n(counts, levels, statuses, titles, ids, medians) and a question. Answer in the language the question is written in,\\\\nbriefly, from the digest alone: cite the ids and numbers you rely on, say what the digest does not contain instead\\\\nof guessing, and never invent a metric, a finding or an improvement. You cannot act: do not promise to approve,\\\\ndeploy, merge, run or stop anything; name the command or button when the person should decide something.\\\", \\\"role\\\": \\\"system\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ade una tabla con las oportunidades\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ado una tabla con las oportunidades.\\\\na\\u00f1adido \\u00abOportunidades\\u00bb\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 ha hecho el agente hasta ahora y cu\\u00e1ntas oportunidades hay?\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"Registro de mimirq (live, head 14eede8f4ead): 12 oportunidades, 0 experimentos, 0 propuestas, 80 eventos, 1 llamadas a modelos, 0 bloqueos.\\\\nJobs: done 9\\\\nAgente: agent running, pid 86465.\\\\nPara un porqu\\u00e9 o una recomendaci\\u00f3n pide un an\\u00e1lisis; para ver algo, una tabla o un gr\\u00e1fico.\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"Records digest:\\\\nworkspace mimirq (live record); head 14eede8f4ead; observed 2026-11-04T21:02:31.215640+00:00; freshness current\\\\ncounts: {\\\\\\\"opportunities\\\\\\\":12,\\\\\\\"experiments\\\\\\\":0,\\\\\\\"proposals\\\\\\\":0,\\\\\\\"events\\\\\\\":80,\\\\\\\"model_runs\\\\\\\":1,\\\\\\\"connections\\\\\\\":1,\\\\\\\"deployments\\\\\\\":0,\\\\\\\"needs\\\\\\\":0,\\\\\\\"blocks\\\\\\\":0,\\\\\\\"spend_calls\\\\\\\":7,\\\\\\\"world\\\\\\\":1}\\\\njobs: {\\\\\\\"done\\\\\\\":9}\\\\ndiscovered: {\\\\\\\"total\\\\\\\":12,\\\\\\\"by_status\\\\\\\":{\\\\\\\"open\\\\\\\":12}}\\\\ninvalidated: []\\\\nproposals: {}\\\\nblocks: []\\\\nlearned: {}\\\\nconnections: [{\\\\\\\"id\\\\\\\":\\\\\\\"github:satisfymath/c13-mimirq\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"github\\\\\\\",\\\\\\\"environment\\\\\\\":\\\\\\\"production\\\\\\\",\\\\\\\"state\\\\\\\":\\\\\\\"connected\\\\\\\",\\\\\\\"read\\\\\\\":[\\\\\\\"repository\\\\\\\",\\\\\\\"check runs\\\\\\\",\\\\\\\"pull requests\\\\\\\"],\\\\\\\"write\\\\\\\":[\\\\\\\"push branch\\\\\\\",\\\\\\\"pull request\\\\\\\"],\\\\\\\"requested\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"effective\\\\\\\":[\\\\\\\"read\\\\\\\",\\\\\\\"write\\\\\\\"],\\\\\\\"blocked\\\\\\\":null,\\\\\\\"next_step\\\\\\\":null,\\\\\\\"found_by\\\\\\\":[\\\\\\\"mandate grant\\\\\\\"],\\\\\\\"checked_at\\\\\\\":\\\\\\\"2026-11-04T20:40:25.629363+00:00\\\\\\\"}]\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_dd862604779b4cb6\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"PyJWT 2.13.0: 29 known vulnerabilities, fixed in 2.15.0\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"open\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_198cd45294ac4246\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"accelerate 1.13.0: 2 known vulnerabilities, no fix published\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"open\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_53c7405795c746b5\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"chromadb 1.5.7: 8 known vulnerabilities, no fix published\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"open\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_37472b778c02470f\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"diskcache 5.6.3: 2 known vulnerabilities, no fix published\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"open\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 hallazgo priorizar\\u00edas y por qu\\u00e9? Di qu\\u00e9 falta en el registro.\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}], \\\"response_schema\\\": null, \\\"tools\\\": []}\",\n    \"created_at\": \"2026-11-04T21:02:31.226525Z\",\n    \"origin\": \"dashboard apart\"\n  }\n]\n",
+   "stderr": ""
+  },
+  {
+   "name": "export",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "export",
+    "--out",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/mimirq/export"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "Evidence of mimirq written to \n/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/mimirq/export\n  events.jsonl                      91 lines  5dc4c92222d0\n  audit.jsonl                        5 lines  913b7f043234\n  opportunities.jsonl               12 lines  00438470541a\n  hypotheses.jsonl                   0 lines  e3b0c44298fc\n  experiment_specs.jsonl             0 lines  e3b0c44298fc\n  experiments.jsonl                  0 lines  e3b0c44298fc\n  proposals.jsonl                    0 lines  e3b0c44298fc\n  decisions.jsonl                   12 lines  bef25830a525\n  deploy_verdicts.jsonl              0 lines  e3b0c44298fc\n  deployments.jsonl                  0 lines  e3b0c44298fc\n  holds.jsonl                        0 lines  e3b0c44298fc\n  approvals.jsonl                    0 lines  e3b0c44298fc\n  acceptances.jsonl                  0 lines  e3b0c44298fc\n  actions.jsonl                     18 lines  215aad2ce86e\n  goal_runs.jsonl                    0 lines  e3b0c44298fc\n  model_runs.jsonl                   1 lines  bf08ffd3d894\n  transcripts.jsonl                  1 lines  721602aef2f0\n  egress.jsonl                       7 lines  cc19b6576fdb\n  needs.jsonl                        0 lines  e3b0c44298fc\n  asks.jsonl                         0 lines  e3b0c44298fc\n  blocks.jsonl                       0 lines  e3b0c44298fc\n  deploy_ledger.jsonl                0 lines  e3b0c44298fc\n  spend.jsonl                        8 lines  674392c389c2\n  mandate.json                      96 lines  3b387d3f767d\nevery file was scanned for secrets; manifest.json holds the sha256 of each\n",
+   "stderr": ""
+  },
+  {
+   "name": "host-down",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "host",
+    "down",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "{\n  \"ok\": true,\n  \"project\": \"unbidden-mimirq\",\n  \"why\": \"nothing brought up here\"\n}\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/skygazer42/MimirQ",
+   "commit": "5d08b54beb8011a17ce274319fb79a5f121568c9",
+   "family": "api-postgres",
+   "class": "independent",
+   "build": "pip",
+   "lab": null,
+   "copy_base_sha": "14eede8f4eadf7f93c320846921212ed66634f7f"
+  },
+  "ledger_before": {
+   "envelope": "s13-final",
+   "envelope_spent_usd": 3.5131,
+   "available_usd": 61.8124,
+   "permitted_usd": 97.2945
+  },
+  "fork": {
+   "slug": "satisfymath/c13-mimirq",
+   "base": "main",
+   "upstream": "skygazer42/MimirQ",
+   "kind": "copy",
+   "created": true,
+   "prep": {
+    "applied": true,
+    "sha": "14eede8f4eadf7f93c320846921212ed66634f7f",
+    "removed": [
+     "docs-site.yml",
+     "handbook-matrix.yml",
+     "parsing-proof-nightly.yml",
+     "parsing-proof-sample.yml",
+     "perf-nightly.yml",
+     "rag-quality-gate.yml",
+     ".github/dependabot.yml"
+    ],
+    "edited": [
+     {
+      "file": ".github/workflows/api-docs.yml",
+      "removed_jobs": [
+       "deploy",
+       "publish"
+      ],
+      "lines": [
+       175,
+       61
+      ]
+     }
+    ],
+    "plan": [
+     {
+      "file": "api-docs.yml",
+      "action": "edit",
+      "removed_jobs": [
+       "deploy",
+       "publish"
+      ],
+      "kept_jobs": [
+       "build"
+      ],
+      "why": "publishing jobs cut out; the checks stay byte for byte"
+     },
+     {
+      "file": "ci.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "public-pr-verify",
+       "test-and-verify",
+       "web-test-and-verify",
+       "docker-build",
+       "retrieval-only-bounded-gate",
+       "retrieval-regression-gate",
+       "kg-search-regression-gate"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "docs-site.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "build"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by workflow_dispatch: checks no code"
+     },
+     {
+      "file": "handbook-matrix.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "matrix-diff"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by workflow_dispatch: checks no code"
+     },
+     {
+      "file": "lint-fast.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "lint-fast"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "parsing-proof-nightly.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "parsing-proof-nightly"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by schedule, workflow_dispatch: checks no code"
+     },
+     {
+      "file": "parsing-proof-sample.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "parsing-proof-sample"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by workflow_dispatch: checks no code"
+     },
+     {
+      "file": "perf-nightly.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "perf-suite"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by schedule, workflow_dispatch: checks no code"
+     },
+     {
+      "file": "rag-quality-gate.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "answer-quality-nightly"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by schedule, workflow_dispatch: checks no code"
+     },
+     {
+      "file": "security.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "secret-scan",
+       "dependency-audit"
+      ],
+      "why": "the team's checks"
+     }
+    ],
+    "kept": [
+     "api-docs.yml (without deploy, publish)",
+     "ci.yml",
+     "lint-fast.yml",
+     "security.yml"
+    ]
+   },
+   "pin": "5d08b54beb8011a17ce274319fb79a5f121568c9",
+   "restore": {
+    "expected": "14eede8f4eadf7f93c320846921212ed66634f7f",
+    "head_before": "14eede8f4eadf7f93c320846921212ed66634f7f",
+    "pin_in_history": true,
+    "closed": [],
+    "deleted": [],
+    "base_sha": "14eede8f4eadf7f93c320846921212ed66634f7f"
+   },
+   "base_sha": "14eede8f4eadf7f93c320846921212ed66634f7f",
+   "pin_in_history": true,
+   "dependency_graph": true,
+   "dependabot_prs_closed": [],
+   "workflows_registered": [
+    "api-docs.yml",
+    "ci.yml",
+    "lint-fast.yml",
+    "security.yml",
+    "update-graph"
+   ],
+   "disabled_in_settings": [],
+   "kept": [
+    "api-docs.yml (without deploy, publish)",
+    "ci.yml",
+    "lint-fast.yml",
+    "security.yml"
+   ]
+  },
+  "fork_before": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "14eede8f4eadf7f93c320846921212ed66634f7f"
+  },
+  "deploy_target": "self_host",
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required"
+  },
+  "self_host": {
+   "ok": false,
+   "project": "unbidden-mimirq",
+   "health_url": null,
+   "ports": {},
+   "deploy_steps": [],
+   "drill": null,
+   "why": "the repository tracks no compose file (compose.yml, docker-compose.yml)",
+   "steps": [],
+   "migrated": null,
+   "seeded": {},
+   "generated_env": [],
+   "code": 1
+  },
+  "mode": {
+   "asked": "custom",
+   "got": "custom",
+   "why": "nothing to deploy: `unbidden host up` did not bring it up (the repository tracks no compose file (compose.yml, docker-compose.yml))"
+  },
+  "autonomy": {
+   "mode": "custom",
+   "why": "nothing to deploy: `unbidden host up` did not bring it up (the repository tracks no compose file (compose.yml, docker-compose.yml))",
+   "fields": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "delegate_synthetic": "allow",
+    "open_pull_requests": "allow",
+    "merge_pull_requests": "allow",
+    "deploy": "deny",
+    "rollback": "deny",
+    "use_new_capabilities": "allow",
+    "act_on_connections": "deny"
+   }
+  },
+  "mode_got": "custom",
+  "cycle1": {
+   "started": true,
+   "waited_s": 1305.4,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 86465,
+    "started_at": "2026-11-04T20:40:23.494960+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/mimirq/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "action.executed": 18,
+     "agent.note": 2,
+     "analyzer.ran": 2,
+     "connection.changed": 1,
+     "decision.made": 13,
+     "egress.allowed": 1,
+     "egress.blocked": 6,
+     "job.finished": 9,
+     "job.started": 9,
+     "mandate.changed": 1,
+     "model.called": 1,
+     "model.fallback": 1,
+     "operations.deployed": 1,
+     "opportunity.opened": 12,
+     "repo.head_moved": 1,
+     "world.changed": 2
+    },
+    "docs": {
+     "actions": 18,
+     "connections": 1,
+     "decisions": 12,
+     "egress": 7,
+     "model_runs": 1,
+     "opportunities": 12,
+     "transcripts": 1,
+     "world": 1
+    },
+    "jobs": {
+     "done": 9
+    },
+    "experiments": 0,
+    "opportunities": [
+     {
+      "id": "opp_dd862604779b4cb6",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_198cd45294ac4246",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_53c7405795c746b5",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_37472b778c02470f",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_fc36649ac2b548c6",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_144693ebfafe4273",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_394166811ca145d0",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_d89d1d18abcc4b1e",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_2b492d0d14e74f0a",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_ca9f3188af944774",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_5fe6ef01bc0d4d7d",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_8e5da0f032834c5c",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     }
+    ],
+    "level_max": 1,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": []
+   }
+  },
+  "ui1": {
+   "opened": true,
+   "in_daemon": true,
+   "summary": {
+    "mode": "live",
+    "freshness": "current",
+    "counts": {
+     "opportunities": 12,
+     "experiments": 0,
+     "proposals": 0,
+     "events": 80,
+     "model_runs": 1,
+     "connections": 1,
+     "deployments": 0,
+     "needs": 0,
+     "blocks": 0,
+     "spend_calls": 7,
+     "world": 1
+    },
+    "agent": {
+     "running": true,
+     "pid": 86465,
+     "started_at": "2026-11-04T20:40:23.494960+00:00",
+     "command": "watch",
+     "detail": "agent running, pid 86465"
+    },
+    "key_present": true
+   },
+   "opportunities_total": 12,
+   "widgets": [
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:mimirq"
+    }
+   ],
+   "browser": {
+    "ok": true,
+    "steps": 5,
+    "console_errors": 2
+   },
+   "chat_status": {
+    "planner": "rule",
+    "route": {
+     "intent": "inform",
+     "purpose": null,
+     "tier": null,
+     "model": null,
+     "reason": "the mandate denies local inference; reading records needs no model: answered by rules",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Registro de mimirq (live, head 14eede8f4ead): 12 oportunidades, 0 experimentos, 0 propuestas, 80 eventos, 1 llamadas a modelos, 0 bloqueos.\nJobs: done 9\nAgente: agent running, pid 86465.\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico."
+   },
+   "chat_analyze": {
+    "planner": "brain",
+    "route": {
+     "intent": "analyze",
+     "purpose": "chat.analyze",
+     "tier": "code",
+     "model": "muse-spark-1.3",
+     "reason": "profile frontier; public_code may leave; label public_code",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Priorizaría `opp_dd862604779b4cb6` — \"PyJWT 2.13.0: 29 known vulnerabilities, fixed in 2.15.0\", level 1, status open.\n\nPor qué, según el digest: es el único de los destacados con fix publicado en el título, y con el conteo mayor — 29 — frente a `opp_198cd45294ac4246` con 2, `opp_53c7405795c746b5` con 8 y `opp_37472b778c02470f` con 2, todos \"no fix published\".\n\nQué falta en el registro:\n- El digest"
+   }
+  },
+  "fork_after_c1": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "14eede8f4eadf7f93c320846921212ed66634f7f"
+  },
+  "cycle2": {
+   "started": true,
+   "waited_s": 125.7,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 53720,
+    "started_at": "2026-11-04T21:02:45.965205+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/mimirq/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "action.executed": 18,
+     "agent.note": 2,
+     "analyzer.ran": 2,
+     "connection.changed": 1,
+     "decision.made": 13,
+     "egress.allowed": 1,
+     "egress.blocked": 6,
+     "job.finished": 14,
+     "job.started": 14,
+     "mandate.changed": 1,
+     "model.called": 1,
+     "model.fallback": 1,
+     "operations.deployed": 1,
+     "opportunity.opened": 12,
+     "repo.head_moved": 1,
+     "world.changed": 3
+    },
+    "docs": {
+     "actions": 18,
+     "connections": 1,
+     "decisions": 12,
+     "egress": 7,
+     "model_runs": 1,
+     "opportunities": 12,
+     "transcripts": 1,
+     "world": 1
+    },
+    "jobs": {
+     "done": 14
+    },
+    "experiments": 0,
+    "opportunities": [
+     {
+      "id": "opp_dd862604779b4cb6",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_198cd45294ac4246",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_53c7405795c746b5",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_37472b778c02470f",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_fc36649ac2b548c6",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_144693ebfafe4273",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_394166811ca145d0",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_d89d1d18abcc4b1e",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_2b492d0d14e74f0a",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_ca9f3188af944774",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_5fe6ef01bc0d4d7d",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_8e5da0f032834c5c",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     }
+    ],
+    "level_max": 1,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": []
+   }
+  },
+  "asks_answered": [],
+  "fork_after_c2": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "14eede8f4eadf7f93c320846921212ed66634f7f"
+  },
+  "status_final": {
+   "running": false,
+   "pid": null,
+   "started_at": null,
+   "command": null,
+   "log": "/Users/david/unbidden-lab/c13/mimirq/.unbidden/logs/agent.log",
+   "stale": false,
+   "jobs_running": 0,
+   "jobs_queued": 0
+  },
+  "egress": {
+   "api.meta.ai:world.endpoint_tables:blocked": 5,
+   "api.meta.ai:world.endpoint_tables:allowed_sent": 1,
+   "api.meta.ai:research.robustness:blocked": 1,
+   "api.meta.ai:chat.analyze:allowed_sent": 1
+  },
+  "checks": {
+   "status": "infra_failed",
+   "collected": null,
+   "why": "the tests reach the network (a name did not resolve), which the sandbox never has; exit 1: [wheels] failed to fetch torch-2.13.0+cpu-cp311-cp311-manylinux_2_28_x86_64.whl: <urlopen error [Errno -3] Temporary failure in name resolution>",
+   "scope": "the whole job, without its tests that need a container runtime",
+   "partial": false,
+   "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nmkdir -p \"$PIP_CACHE_DIR\" \"$TORCH_WHEEL_DIR\"\npython ci/download_verified_wheels.py --cache-dir \"$TORCH_WHEEL_DIR\"\ncd /work\n( openapi-types)\n( openapi-validate)\ncd /work\ncp .env.example .env\ncd /work\n(python3 -m pytest -q -n auto )\ncd /work\n(python3 scripts/alembic_cli.py -c alembic.ini upgrade head)\npython -m pytest -q  tests/test_alembic_upgrade_from_prior_revision.py  tests/test_core_schema_integration.py  tests/test_document_version_diff_integration.py  tests/test_document_versions_integration.py\ncd /work\nbash scripts/run_ci_live_core_gate.sh artifacts/live-core-release-gate.pr.json\ncd /work\n( lint-py)\n( check-queryset-health-policy)\n( check-parsing-proof-governance)\n( check-parsing-proof-rollout)\n( api-check)\n(node scripts/docs/check_doc_links.mjs)\n(cd web && pnpm run lint)\n(cd web && pnpm run typecheck)\n(PYTHONPYCACHEPREFIX=/tmp/mimirq-pycache python3 -m compileall -q app)\ncd /work\n(cd web && pnpm exec vitest run )",
+   "rev": "14eede8f4eadf7f93c320846921212ed66634f7f",
+   "could_not_run": {
+    "tests": 0,
+    "lacks": [],
+    "by_test": []
+   },
+   "failed": 1,
+   "image_notes": [
+    "python 3.11: where the CI runs the checks and the project's Dockerfile both use it",
+    "the CI's python-version: 3.11",
+    "the project's Dockerfile: 3.11",
+    "image unbidden-deps-python:c3e224c3d7f774ed on linux/arm64",
+    "the environment is seeded with pip and setuptools as of 2026-08-29T04:46:32+08:00 (the lockfile's era), as virtualenvs on Python 3.11 were",
+    "the team's CI job did not prepare the environment: the CI job failed at `Install Python deps` before its tests: ec cmd=[/opt/acttoolcache/node/24.19.0/arm64/bin/node /var/run/act/workflow/hashfiles/index.js] user= workdir=\n[unbidden-ci/public-pr-verify]   🐳  docker exec cmd=[/opt/acttoolcache/node/24.19.0/arm64/bin/node /var/run/act/workflow/hashfil"
+   ],
+   "python": "3.11"
+  },
+  "ledger_after": {
+   "envelope": "s13-final",
+   "envelope_spent_usd": 3.545,
+   "available_usd": 61.7804,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c13-final-B1-mimirq",
+   "calls": 8,
+   "usd": 0.0078,
+   "tokens_in": 1940,
+   "tokens_out": 1276
+  },
+  "spent_usd": 0.0078,
+  "export": {
+   "available": true,
+   "ok": true,
+   "code": 0,
+   "dir": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/mimirq/export",
+   "files": 25,
+   "answer": null
+  },
+  "archive": "/Users/david/unbidden-lab/c13/archive/mimirq-B1-final.tgz",
+  "archive_kept": {
+   "name": "mimirq-B1-final.tgz",
+   "bytes": 74721,
+   "sha256": "4274ef40d340f859e1d6ff6db453bf1aebb0278eb160d8706fb973e23b17fccb",
+   "kept": true,
+   "where": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/mimirq/export/mimirq-B1-final.tgz"
+  },
+  "self_host_down": {
+   "code": 0,
+   "answer": {
+    "ok": true,
+    "project": "unbidden-mimirq",
+    "why": "nothing brought up here"
+   }
+  }
+ },
+ "human": [
+  {
+   "step": "create the public copy satisfymath/c13-mimirq",
+   "minutes": 1,
+   "why": "pull requests, CI and merges off upstream"
+  },
+  {
+   "step": "push the pin 5d08b54beb80 to satisfymath/c13-mimirq:main",
+   "minutes": 1,
+   "why": "the copy's base"
+  },
+  {
+   "step": "campaign commit 14eede8f4ead on satisfymath/c13-mimirq:main: 7 workflow file(s) removed, 1 cut",
+   "minutes": 5,
+   "why": "no deploy, release, package or bot runs from the copy; the checks stay as written"
+  },
+  {
+   "step": "mandate: fork, registries, operations, connections",
+   "minutes": 2,
+   "why": "a person's declaration"
+  },
+  {
+   "step": "mandate autonomy: merge on green CI, no deploy",
+   "minutes": 1,
+   "why": "nothing to deploy: `unbidden host up` did not bring it up (the repository tracks no compose file (compose.yml, docker-compose.yml))"
+  }
+ ],
+ "blocks": []
+}

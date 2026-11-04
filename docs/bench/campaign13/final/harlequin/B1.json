@@ -1,0 +1,3514 @@
+{
+ "repo": "harlequin",
+ "phase": "final",
+ "run": "B1",
+ "candidate": "5bbaaf39f8eaa65e31ca02d9ee70d894f6fd0e6d",
+ "wheel_sha256": "9615de540d10d7911abd337f1b692643232e9de799e502614df81a3d1fc97122",
+ "started_at": "2026-11-04T18:10:21-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "autopilot",
+    "--budget",
+    "2",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--github-token-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 6.4,
+   "timed_out": false,
+   "stdout": "ilities\"\n    },\n    {\n      \"what\": \"open pull requests\",\n      \"capability\": \"github.open_pull_request\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.open_pull_requests\"\n    },\n    {\n      \"what\": \"merge pull requests\",\n      \"capability\": \"github.merge_pull_request\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": {\n    \"ok\": true,\n    \"rejected\": false,\n    \"model\": \"muse-spark-1.3\",\n    \"usd\": 0.000571,\n    \"why\": null\n  },\n  \"priorities\": [\n    \"correctness\",\n    \"maintainability\",\n    \"security\"\n  ],\n  \"github\": \"file\",\n  \"found\": {\n    \"repository\": \"satisfymath/c13-harlequin\",\n    \"branch\": \"HEAD\",\n    \"head\": \"b586cefa6d41ce4760a4bc37c6178a34c19c1fed\",\n    \"scope\": [\n      {\n        \"name\": \"scope: stack\",\n        \"in_scope\": true,\n        \"note\": \"Python 3.10 (pyproject.toml, uv.lock)\"\n      },\n      {\n        \"name\": \"scope: tests\",\n        \"in_scope\": true,\n        \"note\": \"static.yml > plugin (the whole job)\"\n      },\n      {\n        \"name\": \"scope: database\",\n        \"in_scope\": false,\n        \"note\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n      }\n    ],\n    \"machine\": \"Apple M5 Pro, 64 GB, 54 GB for a model\",\n    \"ollama\": {\n      \"url\": \"http://localhost:11434\",\n      \"present\": true,\n      \"models\": [\n        \"muse-glimmer:30b-mxfp8-dflash\",\n        \"nomic-embed-text:latest\"\n      ]\n    },\n    \"local_model\": {\n      \"tag\": \"muse-glimmer:30b-mxfp8-dflash\",\n      \"installed\": true\n    },\n    \"key\": {\n      \"name\": \"MODEL_API_KEY\",\n      \"present\": true\n    },\n    \"github\": \"file\",\n    \"github_check\": {\n      \"login\": \"satisfymath\",\n      \"can_push\": true,\n      \"detail\": \"can push to satisfymath/c13-harlequin\"\n    },\n    \"compose\": null,\n    \"services\": [],\n    \"external\": [],\n    \"option\": \"mixed\",\n    \"option_why\": \"hay una clave y un modelo local\"\n  },\n  \"defaulted\": [\n    \"priorities\",\n    \"key\",\n    \"connections\",\n    \"private_code\",\n    \"language\"\n  ],\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c13/harlequin/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c13/harlequin/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 2.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -12,9 +12,10 @@\",\n    \"     provision_dependencies: allow\",\n    \"     delegate_synthetic: allow\",\n    \"-    open_pull_requests: require_approval\",\n    \"+    open_pull_requests: allow\",\n    \"     merge_pull_requests: deny\",\n    \"     deploy: deny\",\n    \"     rollback: deny\",\n    \"-    use_new_capabilities: require_approval\",\n    \"+    use_new_capabilities: allow\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,16 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\",\n    \"+  connections:\",\n    \"+  - id: github\",\n    \"+    kind: github\",\n    \"+    location: satisfymath/c13-harlequin\",\n    \"+    credential_ref: GITHUB_TOKEN\",\n    \"+    environment: production\",\n    \"+    permissions:\",\n    \"+    - read\",\n    \"+  operations: {}\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c13/harlequin/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "                    denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nCredenciales\nGuardadas en /Users/david/unbidden-lab/c13/home/.unbidden/.env (modo 600), \nreferidas por nombre; nunca escritas en el repositorio ni en registros.\nMODEL_API_KEY guardada.\nClave aceptada: muse-spark-1.3 respondió (US$0.0006).\nGITHUB_TOKEN guardada.\n\nPresupuesto\nLibro de la máquina: verified balance US$97.29 (stage 6 spend cap authorized by \nDavid on 2026-10-28: up to US$10 of free credits from this point (dev 3, \nevaluation 5, demo and contingency 2; the earlier US$3 reserve is included, not \nadded). Dashboard as reported by David 2026-10-28: Current balance US$0, free \ncredits in use US$144.98, a Visa card on file, content sent while on free \ncredits may be used to improve products. A cap, not a measured balance; no \nrecharge or card charge authorized (entered by david) | stage 9: US$30 \nadditional Meta API spend authorized by David on 2026-10-29, replacing the US$10\ncap; cumulative cap US$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval\n12, demo 6 (D-052). Dashboard as reported by David: free credits in use \nUS$137.96, balance US$0, a card on file. No recharge or card charge authorized \n(entered by david) | stage 10: the remaining US$20.30 of the US$37.29 cap split \nbefore any call (D-058), by David's stage 10 instruction of 2026-10-30 (entered \nby david) | stage 10 after the frozen evaluation: US$5 of the unspent s10-eval \nmoved to s10-dev for corrections and regressions, by David's instruction of \n2026-10-31; envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; spent at the transfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, \ns10-close 0) (entered by david) | product phase (A-E): s11-product US$4.00 \nauthorized by David on 2026-11-01, reassigned from s10-close (3.80, unspent, \nclosed) and US$0.20 of s10-dev; envelopes total US$20.30 and the cumulative cap \nUS$37.2945 unchanged; spent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval\n1.0010, s10-close 0) (entered by david) | product phase correction: David's \nauthorization of 2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken \nfrom s10-dev had no recorded authorization and goes back (s10-dev 13.00, \ns11-product 3.80); envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; s11-product spent 0 at the correction; spent at the correction \nUS$27.7199 (entered by david) | campaign 12 (installed-product validation): \nUS$60 additional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david) | envelopes s13-dev 15, \ns13-pass 15, s13-final 20, s13-confirm 5 authorized by David on 2026-11-03 \n('dale entonces empecemos con todo', campaign 13 to 1.0, within the cumulative \ncap US$97.2945, not amended); earlier envelopes unchanged; no transfers (entered\nby david)); permitido US$97.29 · gastado US$35.5611 · disponible US$61.7334\nsobres: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, s12-eval\n30.00, s12-dev 17.00, s12-confirm 5.00, s13-dev 15.00, s13-pass 15.00, s13-final\n20.00, s13-confirm 5.00\nLos créditos del proveedor y el gasto autorizado son cosas distintas: el tope \nque una persona ingresó con `unbidden spend --verified-balance` es lo que esta \nmáquina puede gastar; aquí nunca se sube ni se reinicia.\n\nPanel\nAbrir el panel, restaurar su disposición y mostrar registros no llama a ningún \nmodelo; chatear o pedir un análisis sí puede.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 3.7,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"2 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"act\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"found: the team's CI job prepares the environment when the mandate allows it\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key proven: muse-spark-1.3 answered\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"GITHUB_TOKEN set\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs allow\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"recon\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"completo (2026-11-04T21:11); stack absent\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.10 (pyproject.toml, uv.lock)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"static.yml > plugin (the whole job)\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "19000",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.6,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 16767,\n  \"log\": \"/Users/david/unbidden-lab/c13/harlequin/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-browser",
+   "argv": [
+    "node",
+    "/Users/david/unbidden-ai-v1b/frontend/scripts/c13_ui_check.mjs",
+    "http://127.0.0.1:19000/?s=<token>",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/harlequin/B1/ui-c1"
+   ],
+   "code": 0,
+   "seconds": 19.1,
+   "timed_out": false,
+   "stdout": "{\"ok\":true,\"steps\":5,\"console_errors\":2}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-status",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué ha hecho el agente hasta ahora y cuántas oportunidades hay?"
+   ],
+   "code": 0,
+   "seconds": 1.6,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_5335ad3dfb4c4da1\",\n  \"role\": \"assistant\",\n  \"content\": \"Registro de harlequin (live, head b586cefa6d41): 7 oportunidades, 3 experimentos, 3 propuestas, 95 eventos, 1 llamadas a modelos, 0 bloqueos.\\nJobs: done 23, queued 2, running 1\\nAgente: agent running, pid 16767.\\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.\",\n  \"created_at\": \"2026-11-04T22:41:41.227608Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"rule\",\n  \"model\": null,\n  \"route\": {\n    \"intent\": \"inform\",\n    \"purpose\": null,\n    \"tier\": null,\n    \"model\": null,\n    \"reason\": \"the mandate denies local inference; reading records needs no model: answered by rules\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-analyze",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué hallazgo priorizarías y por qué? Di qué falta en el registro."
+   ],
+   "code": 0,
+   "seconds": 10.3,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_b86d9b94f1c84fa7\",\n  \"role\": \"assistant\",\n  \"content\": \"Priorizaría `opp_1e590f510f094e17` — \\\"aiohttp 3.14.3: 8 known vulnerabilities, fixed in 3.14.4\\\", level 4, status `proposed`, `has_experiment:true`.\\n\\nPor qué, solo con el registro:\\n- Es level 4 como `opp_1ed8f6829e874ad6` y `opp_5851a639c55d4363`, pero cita 8 vulnerabilidades frente a 1 y 2.\\n- Frente a `opp_3d125e14b7504d28`, que es level 1, status `open`, `has_experiment:false`.\\n- Hay 7 oportunidades: 4 `open`, 3 `proposed`; hay 3 PR abiertas y 0 `blocks`.\\n\\nLo que falta en el registro y no puedo inferir:\\n- El registro solo detalla 4 de 7 oportunidades; faltan 3.\\n- No contiene severidad, explotabilidad, impacto, ni por qué el level es 4 vs 1.\\n- No contiene detalle de los 3 experimentos, 95 eventos, ni 1 `model_runs` para justificar causa.\",\n  \"created_at\": \"2026-11-04T22:41:51.487867Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"brain\",\n  \"model\": \"muse-spark-1.3\",\n  \"route\": {\n    \"intent\": \"analyze\",\n    \"purpose\": \"chat.analyze\",\n    \"tier\": \"code\",\n    \"model\": \"muse-spark-1.3\",\n    \"reason\": \"profile frontier; public_code may leave; label public_code\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 60.5,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 16767,\n  \"waited_s\": 60.2,\n  \"forced\": true,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 1\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "19000",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 77517,\n  \"log\": \"/Users/david/unbidden-lab/c13/harlequin/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 60.6,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 77517,\n  \"waited_s\": 60.4,\n  \"forced\": true,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 1\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-final",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.4,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/harlequin\",\n  \"head\": \"b586cefa6d41ce4760a4bc37c6178a34c19c1fed\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": 77517,\n    \"started_at\": \"2026-11-04T22:43:00.127895+00:00\",\n    \"command\": \"watch\",\n    \"log\": \"/Users/david/unbidden-lab/c13/harlequin/.unbidden/logs/agent.log\",\n    \"stale\": true,\n    \"jobs_running\": 1,\n    \"jobs_queued\": 1\n  },\n  \"stale\": true,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"b586cefa6d41ce4760a4bc37c6178a34c19c1fed\",\n    \"tools\": [\n      \"ruff\",\n      \"mypy\",\n      \"pypi-advisories\"\n    ],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"environment prepared by the team's CI job test.yml:test (os=ubuntu-latest, py=3.12); publishing steps left out: Store snapshot report on failure\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"mypy\",\n        \"completeness\": \"failed\",\n        \"findings\": 0,\n        \"error\": \"/deps/.venv/bin/python: No module named mypy\"\n      },\n      {\n        \"tool\": \"pypi-advisories\",\n        \"completeness\": \"complete\",\n        \"findings\": 50,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"open\": 3,\n    \"proposed\": 3,\n    \"declined\": 1\n  },\n  \"asks\": [],\n  \"blocks\": [],\n  \"idle\": false\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "egress",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "egress",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": " [{\\\"content\\\": \\\"You are the analyst of Unbidden's dashboard. You receive a digest of Unbidden's own records\\\\n(counts, levels, statuses, titles, ids, medians) and a question. Answer in the language the question is written in,\\\\nbriefly, from the digest alone: cite the ids and numbers you rely on, say what the digest does not contain instead\\\\nof guessing, and never invent a metric, a finding or an improvement. You cannot act: do not promise to approve,\\\\ndeploy, merge, run or stop anything; name the command or button when the person should decide something.\\\", \\\"role\\\": \\\"system\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ade una tabla con las oportunidades\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ado una tabla con las oportunidades.\\\\na\\u00f1adido \\u00abOportunidades\\u00bb\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 ha hecho el agente hasta ahora y cu\\u00e1ntas oportunidades hay?\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"Registro de harlequin (live, head b586cefa6d41): 7 oportunidades, 3 experimentos, 3 propuestas, 95 eventos, 1 llamadas a modelos, 0 bloqueos.\\\\nJobs: done 23, queued 2, running 1\\\\nAgente: agent running, pid 16767.\\\\nPara un porqu\\u00e9 o una recomendaci\\u00f3n pide un an\\u00e1lisis; para ver algo, una tabla o un gr\\u00e1fico.\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"Records digest:\\\\nworkspace harlequin (live record); head b586cefa6d41; observed 2026-11-04T22:41:42.292987+00:00; freshness current\\\\ncounts: {\\\\\\\"opportunities\\\\\\\":7,\\\\\\\"experiments\\\\\\\":3,\\\\\\\"proposals\\\\\\\":3,\\\\\\\"events\\\\\\\":95,\\\\\\\"model_runs\\\\\\\":1,\\\\\\\"connections\\\\\\\":1,\\\\\\\"deployments\\\\\\\":0,\\\\\\\"needs\\\\\\\":0,\\\\\\\"blocks\\\\\\\":0,\\\\\\\"spend_calls\\\\\\\":12,\\\\\\\"world\\\\\\\":1}\\\\njobs: {\\\\\\\"done\\\\\\\":23,\\\\\\\"queued\\\\\\\":2,\\\\\\\"running\\\\\\\":1}\\\\ndiscovered: {\\\\\\\"total\\\\\\\":7,\\\\\\\"by_status\\\\\\\":{\\\\\\\"open\\\\\\\":4,\\\\\\\"proposed\\\\\\\":3}}\\\\ninvalidated: []\\\\nproposals: {\\\\\\\"pr_opened\\\\\\\":[\\\\\\\"security: bump aiohttp 3.14.3 \\u2192 3.14.4\\\\\\\",\\\\\\\"security: bump msgpack 1.2.1 \\u2192 1.2.3\\\\\\\",\\\\\\\"security: bump multidict 6.7.1 \\u2192 6.9.1\\\\\\\"]}\\\\nblocks: []\\\\nlearned: {\\\\\\\"pypi-advisories \\u00b7 security \\u00b7 -\\\\\\\":{\\\\\\\"successes\\\\\\\":3,\\\\\\\"failures\\\\\\\":0,\\\\\\\"p\\\\\\\":0.84,\\\\\\\"prior\\\\\\\":0.6}}\\\\nconnections: [{\\\\\\\"id\\\\\\\":\\\\\\\"github:satisfymath/c13-harlequin\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"github\\\\\\\",\\\\\\\"environment\\\\\\\":\\\\\\\"production\\\\\\\",\\\\\\\"state\\\\\\\":\\\\\\\"connected\\\\\\\",\\\\\\\"read\\\\\\\":[\\\\\\\"repository\\\\\\\",\\\\\\\"check runs\\\\\\\",\\\\\\\"pull requests\\\\\\\"],\\\\\\\"write\\\\\\\":[\\\\\\\"push branch\\\\\\\",\\\\\\\"pull request\\\\\\\"],\\\\\\\"requested\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"effective\\\\\\\":[\\\\\\\"read\\\\\\\",\\\\\\\"write\\\\\\\"],\\\\\\\"blocked\\\\\\\":null,\\\\\\\"next_step\\\\\\\":null,\\\\\\\"found_by\\\\\\\":[\\\\\\\"mandate grant\\\\\\\"],\\\\\\\"checked_at\\\\\\\":\\\\\\\"2026-11-04T21:11:16.741931+00:00\\\\\\\"}]\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_1e590f510f094e17\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"aiohttp 3.14.3: 8 known vulnerabilities, fixed in 3.14.4\\\\\\\",\\\\\\\"level\\\\\\\":4,\\\\\\\"status\\\\\\\":\\\\\\\"proposed\\\\\\\",\\\\\\\"has_experiment\\\\\\\":true}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_1ed8f6829e874ad6\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"msgpack 1.2.1: 1 known vulnerability, fixed in 1.2.3\\\\\\\",\\\\\\\"level\\\\\\\":4,\\\\\\\"status\\\\\\\":\\\\\\\"proposed\\\\\\\",\\\\\\\"has_experiment\\\\\\\":true}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_5851a639c55d4363\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"multidict 6.7.1: 2 known vulnerabilities, fixed in 6.9.1\\\\\\\",\\\\\\\"level\\\\\\\":4,\\\\\\\"status\\\\\\\":\\\\\\\"proposed\\\\\\\",\\\\\\\"has_experiment\\\\\\\":true}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_3d125e14b7504d28\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"pyarrow 21.0.0: 2 known vulnerabilities, fixed in 23.0.1\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"open\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 hallazgo priorizar\\u00edas y por qu\\u00e9? Di qu\\u00e9 falta en el registro.\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}], \\\"response_schema\\\": null, \\\"tools\\\": []}\",\n    \"created_at\": \"2026-11-04T22:41:42.304363Z\",\n    \"origin\": \"dashboard apart\"\n  }\n]\n",
+   "stderr": ""
+  },
+  {
+   "name": "export",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "export",
+    "--out",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/harlequin/export"
+   ],
+   "code": 0,
+   "seconds": 1.5,
+   "timed_out": false,
+   "stdout": "Evidence of harlequin written to \n/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/harlequin/export\n  events.jsonl                     120 lines  2651377ae211\n  audit.jsonl                       13 lines  80abe4d66827\n  opportunities.jsonl                7 lines  134855c67a6b\n  hypotheses.jsonl                   0 lines  e3b0c44298fc\n  experiment_specs.jsonl             0 lines  e3b0c44298fc\n  experiments.jsonl                  4 lines  8e637735ee98\n  proposals.jsonl                    3 lines  a6c1a105e386\n  decisions.jsonl                   12 lines  987bb69d0247\n  deploy_verdicts.jsonl              0 lines  e3b0c44298fc\n  deployments.jsonl                  0 lines  e3b0c44298fc\n  holds.jsonl                        0 lines  e3b0c44298fc\n  approvals.jsonl                    0 lines  e3b0c44298fc\n  acceptances.jsonl                  0 lines  e3b0c44298fc\n  actions.jsonl                      0 lines  e3b0c44298fc\n  goal_runs.jsonl                    0 lines  e3b0c44298fc\n  model_runs.jsonl                   1 lines  7c30c6caf349\n  transcripts.jsonl                  1 lines  52ae92f444b0\n  egress.jsonl                       4 lines  e9322770aa92\n  needs.jsonl                        0 lines  e3b0c44298fc\n  asks.jsonl                         0 lines  e3b0c44298fc\n  blocks.jsonl                       0 lines  e3b0c44298fc\n  deploy_ledger.jsonl                0 lines  e3b0c44298fc\n  spend.jsonl                        2 lines  ed919d3cc354\n  mandate.json                      96 lines  7cda28483ae6\nevery file was scanned for secrets; manifest.json holds the sha256 of each\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/tconbeer/harlequin",
+   "commit": "ad3ecef4ff12bc4c89b15fb9c6a628c424afb6e2",
+   "family": "cli",
+   "class": "independent",
+   "build": "hatch",
+   "lab": null,
+   "copy_base_sha": "b586cefa6d41ce4760a4bc37c6178a34c19c1fed"
+  },
+  "ledger_before": {
+   "envelope": "s13-final",
+   "envelope_spent_usd": 3.5478,
+   "available_usd": 61.7777,
+   "permitted_usd": 97.2945
+  },
+  "fork": {
+   "slug": "satisfymath/c13-harlequin",
+   "base": "main",
+   "upstream": "tconbeer/harlequin",
+   "kind": "copy",
+   "created": false,
+   "prep": {
+    "applied": false,
+    "why": "nothing to change (already prepared, or nothing publishes)",
+    "plan": [
+     {
+      "file": "static.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "static",
+       "plugin"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "test-build.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "test-build"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "test.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "test"
+      ],
+      "why": "the team's checks"
+     }
+    ],
+    "kept": [
+     "static.yml",
+     "test-build.yml",
+     "test.yml"
+    ]
+   },
+   "pin": "ad3ecef4ff12bc4c89b15fb9c6a628c424afb6e2",
+   "restore": {
+    "expected": "b586cefa6d41ce4760a4bc37c6178a34c19c1fed",
+    "head_before": "b586cefa6d41ce4760a4bc37c6178a34c19c1fed",
+    "pin_in_history": true,
+    "closed": [
+     1
+    ],
+    "deleted": [
+     "unbidden/aiohttp-3-14-3-8-known-vulnerabilities-f-614dbb"
+    ],
+    "base_sha": "b586cefa6d41ce4760a4bc37c6178a34c19c1fed"
+   },
+   "base_sha": "b586cefa6d41ce4760a4bc37c6178a34c19c1fed",
+   "pin_in_history": true,
+   "dependency_graph": true,
+   "dependabot_prs_closed": [],
+   "workflows_registered": [
+    "static.yml",
+    "test-build.yml",
+    "test.yml",
+    "update-graph"
+   ],
+   "disabled_in_settings": [],
+   "kept": [
+    "static.yml",
+    "test-build.yml",
+    "test.yml"
+   ]
+  },
+  "fork_before": {
+   "pulls": [
+    {
+     "created_at": "2026-11-04T19:48:07Z",
+     "head": "unbidden/aiohttp-3-14-3-8-known-vulnerabilities-f-614dbb",
+     "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+     "merge_commit_sha": "ea0d2800e9e18bd5a466bb8011fa606662a9bae1",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "security: bump aiohttp 3.14.3 → 3.14.4",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T19:48:44Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145958",
+       "name": "build - Windows-latest - 3.14",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:54:30Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145880",
+       "name": "MacOs-latest - 3.14",
+       "started_at": "2026-11-04T19:49:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:52:55Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145841",
+       "name": "Windows-latest - 3.13",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:41Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145818",
+       "name": "build - Windows-latest - 3.13",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:54:07Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145739",
+       "name": "Windows-latest - 3.10",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:54:07Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145668",
+       "name": "ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:49:40Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145667",
+       "name": "build - Windows-latest - 3.10",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:51Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145663",
+       "name": "Windows-latest - 3.14",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:33Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145591",
+       "name": "build - MacOs-latest - 3.13",
+       "started_at": "2026-11-04T19:53:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:23Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145585",
+       "name": "ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:52:48Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145553",
+       "name": "ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:16Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145537",
+       "name": "Windows-latest - 3.11",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:30Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145522",
+       "name": "build - ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:05Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145518",
+       "name": "MacOs-latest - 3.13",
+       "started_at": "2026-11-04T19:48:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:43Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145499",
+       "name": "ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:52:09Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145455",
+       "name": "ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:34Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145452",
+       "name": "build - ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:32Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145446",
+       "name": "MacOs-latest - 3.12",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:29Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145431",
+       "name": "build - MacOs-latest - 3.14",
+       "started_at": "2026-11-04T19:53:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:40Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145404",
+       "name": "Windows-latest - 3.12",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:49:29Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145375",
+       "name": "build - MacOs-latest - 3.10",
+       "started_at": "2026-11-04T19:48:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:33Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145364",
+       "name": "build - ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:54:30Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145326",
+       "name": "MacOs-latest - 3.10",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:33Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145308",
+       "name": "build - MacOs-latest - 3.11",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:48Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145300",
+       "name": "build - Windows-latest - 3.11",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:30Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145262",
+       "name": "build - ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:30Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145223",
+       "name": "build - ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:35Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145212",
+       "name": "build - MacOs-latest - 3.12",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:43Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145021",
+       "name": "build - Windows-latest - 3.12",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:13Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821144959",
+       "name": "MacOs-latest - 3.11",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:49:01Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459917/job/126821144251",
+       "name": "Static Analysis",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:43Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459917/job/126821143928",
+       "name": "Validate Plugin",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [],
+   "base_head": "b586cefa6d41ce4760a4bc37c6178a34c19c1fed"
+  },
+  "deploy_target": "none",
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required"
+  },
+  "mode": {
+   "asked": "custom",
+   "got": "custom",
+   "why": "nothing to deploy: not an application"
+  },
+  "autonomy": {
+   "mode": "custom",
+   "why": "nothing to deploy: not an application",
+   "fields": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "delegate_synthetic": "allow",
+    "open_pull_requests": "allow",
+    "merge_pull_requests": "allow",
+    "deploy": "deny",
+    "rollback": "deny",
+    "use_new_capabilities": "allow",
+    "act_on_connections": "deny"
+   }
+  },
+  "mode_got": "custom",
+  "cycle1": {
+   "started": true,
+   "waited_s": 5404.9,
+   "bound_hit": true,
+   "status_at_end": {
+    "running": true,
+    "pid": 16767,
+    "started_at": "2026-11-04T21:11:15.446089+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/harlequin/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 1,
+    "jobs_queued": 2
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "agent.note": 4,
+     "analyzer.ran": 3,
+     "connection.changed": 1,
+     "decision.made": 12,
+     "egress.allowed": 4,
+     "job.finished": 23,
+     "job.started": 24,
+     "mandate.changed": 1,
+     "model.called": 1,
+     "opportunity.opened": 7,
+     "proposal.published": 3,
+     "proposal.pushed": 3,
+     "proposal.ready": 3,
+     "repo.head_moved": 1,
+     "verdict.recorded": 3,
+     "world.changed": 2
+    },
+    "docs": {
+     "connections": 1,
+     "decisions": 11,
+     "egress": 4,
+     "experiments": 3,
+     "model_runs": 1,
+     "opportunities": 7,
+     "proposals": 3,
+     "transcripts": 1,
+     "world": 1
+    },
+    "jobs": {
+     "done": 23,
+     "queued": 2,
+     "running": 1
+    },
+    "experiments": 3,
+    "opportunities": [
+     {
+      "id": "opp_42dd7ad98de94e95",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_3d125e14b7504d28",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_fbce4c4eb2264f4f",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_ff975a3f89f74b96",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_1e590f510f094e17",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "proposed"
+     },
+     {
+      "id": "opp_1ed8f6829e874ad6",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "proposed"
+     },
+     {
+      "id": "opp_5851a639c55d4363",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "proposed"
+     }
+    ],
+    "level_max": 4,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": [
+     {
+      "id": "prop_0aad86326ff94d90",
+      "opportunity_id": "opp_1e590f510f094e17",
+      "experiment_id": "exp_283712517ba746db",
+      "status": "pr_opened",
+      "branch": "unbidden/aiohttp-3-14-3-8-known-vulnerabilities-f-094e17",
+      "evidence_level": 4,
+      "title": "security: bump aiohttp 3.14.3 → 3.14.4",
+      "pr": "https://github.com/satisfymath/c13-harlequin/pull/2",
+      "criteria": null
+     },
+     {
+      "id": "prop_0435860345ea4fd7",
+      "opportunity_id": "opp_1ed8f6829e874ad6",
+      "experiment_id": "exp_142453f505724f21",
+      "status": "pr_opened",
+      "branch": "unbidden/msgpack-1-2-1-1-known-vulnerability-fixe-874ad6",
+      "evidence_level": 4,
+      "title": "security: bump msgpack 1.2.1 → 1.2.3",
+      "pr": "https://github.com/satisfymath/c13-harlequin/pull/3",
+      "criteria": null
+     },
+     {
+      "id": "prop_c0653b269faa47de",
+      "opportunity_id": "opp_5851a639c55d4363",
+      "experiment_id": "exp_c753ed2fc3a7463b",
+      "status": "pr_opened",
+      "branch": "unbidden/multidict-6-7-1-2-known-vulnerabilities-5d4363",
+      "evidence_level": 4,
+      "title": "security: bump multidict 6.7.1 → 6.9.1",
+      "pr": "https://github.com/satisfymath/c13-harlequin/pull/4",
+      "criteria": null
+     }
+    ]
+   }
+  },
+  "ui1": {
+   "opened": true,
+   "in_daemon": true,
+   "summary": {
+    "mode": "live",
+    "freshness": "current",
+    "counts": {
+     "opportunities": 7,
+     "experiments": 3,
+     "proposals": 3,
+     "events": 95,
+     "model_runs": 1,
+     "connections": 1,
+     "deployments": 0,
+     "needs": 0,
+     "blocks": 0,
+     "spend_calls": 12,
+     "world": 1
+    },
+    "agent": {
+     "running": true,
+     "pid": 16767,
+     "started_at": "2026-11-04T21:11:15.446089+00:00",
+     "command": "watch",
+     "detail": "agent running, pid 16767"
+    },
+    "key_present": true
+   },
+   "opportunities_total": 7,
+   "widgets": [
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:harlequin"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:harlequin"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:harlequin"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:harlequin"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:harlequin"
+    }
+   ],
+   "browser": {
+    "ok": true,
+    "steps": 5,
+    "console_errors": 2
+   },
+   "chat_status": {
+    "planner": "rule",
+    "route": {
+     "intent": "inform",
+     "purpose": null,
+     "tier": null,
+     "model": null,
+     "reason": "the mandate denies local inference; reading records needs no model: answered by rules",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Registro de harlequin (live, head b586cefa6d41): 7 oportunidades, 3 experimentos, 3 propuestas, 95 eventos, 1 llamadas a modelos, 0 bloqueos.\nJobs: done 23, queued 2, running 1\nAgente: agent running, pid 16767.\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico."
+   },
+   "chat_analyze": {
+    "planner": "brain",
+    "route": {
+     "intent": "analyze",
+     "purpose": "chat.analyze",
+     "tier": "code",
+     "model": "muse-spark-1.3",
+     "reason": "profile frontier; public_code may leave; label public_code",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Priorizaría `opp_1e590f510f094e17` — \"aiohttp 3.14.3: 8 known vulnerabilities, fixed in 3.14.4\", level 4, status `proposed`, `has_experiment:true`.\n\nPor qué, solo con el registro:\n- Es level 4 como `opp_1ed8f6829e874ad6` y `opp_5851a639c55d4363`, pero cita 8 vulnerabilidades frente a 1 y 2.\n- Frente a `opp_3d125e14b7504d28`, que es level 1, status `open`, `has_experiment:false`.\n- Hay 7 oportunida"
+   }
+  },
+  "fork_after_c1": {
+   "pulls": [
+    {
+     "created_at": "2026-11-04T22:31:22Z",
+     "head": "unbidden/multidict-6-7-1-2-known-vulnerabilities-5d4363",
+     "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+     "merge_commit_sha": "d9524674b080f7b5b9c75ef6be2d560bc7ce42f4",
+     "merged_at": null,
+     "number": 4,
+     "state": "open",
+     "title": "security: bump multidict 6.7.1 → 6.9.1",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T22:37:57Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910472128",
+       "name": "MacOs-latest - 3.10",
+       "started_at": "2026-11-04T22:32:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:36:54Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471893",
+       "name": "Windows-latest - 3.13",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:35:55Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471859",
+       "name": "Windows-latest - 3.11",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:36:18Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471836",
+       "name": "Windows-latest - 3.14",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:36:15Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471752",
+       "name": "ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:35:11Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471723",
+       "name": "MacOs-latest - 3.14",
+       "started_at": "2026-11-04T22:31:56Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:35:35Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471712",
+       "name": "ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:37:15Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471694",
+       "name": "MacOs-latest - 3.11",
+       "started_at": "2026-11-04T22:31:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:37:30Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471648",
+       "name": "Windows-latest - 3.10",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:37:17Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471639",
+       "name": "ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:37:12Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471629",
+       "name": "MacOs-latest - 3.12",
+       "started_at": "2026-11-04T22:31:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:35:55Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471624",
+       "name": "ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:37:05Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471614",
+       "name": "Windows-latest - 3.12",
+       "started_at": "2026-11-04T22:31:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:36:55Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471585",
+       "name": "ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:37:39Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471423",
+       "name": "MacOs-latest - 3.13",
+       "started_at": "2026-11-04T22:31:54Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:54Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008501/job/126910471194",
+       "name": "Validate Plugin",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:32:13Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008501/job/126910470845",
+       "name": "Static Analysis",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:32:41Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468676",
+       "name": "build - Windows-latest - 3.10",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:59Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468674",
+       "name": "build - MacOs-latest - 3.10",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:32:00Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468667",
+       "name": "build - Windows-latest - 3.11",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:44Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468626",
+       "name": "build - MacOs-latest - 3.14",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:43Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468623",
+       "name": "build - ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:42Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468621",
+       "name": "build - ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:32:06Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468618",
+       "name": "build - Windows-latest - 3.14",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:50Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468613",
+       "name": "build - MacOs-latest - 3.11",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:53Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468611",
+       "name": "build - MacOs-latest - 3.12",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:54Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468597",
+       "name": "build - Windows-latest - 3.12",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:45Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468570",
+       "name": "build - ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:32:07Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468564",
+       "name": "build - Windows-latest - 3.13",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:52Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468552",
+       "name": "build - ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:45Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468528",
+       "name": "build - ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:46Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468194",
+       "name": "build - MacOs-latest - 3.13",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T22:06:55Z",
+     "head": "unbidden/msgpack-1-2-1-1-known-vulnerability-fixe-874ad6",
+     "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+     "merge_commit_sha": "869740129eb1a93b9cb438a3454d98a6f6f1f086",
+     "merged_at": null,
+     "number": 3,
+     "state": "open",
+     "title": "security: bump msgpack 1.2.1 → 1.2.3",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T22:12:55Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897756243",
+       "name": "MacOs-latest - 3.12",
+       "started_at": "2026-11-04T22:07:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:13:35Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897754178",
+       "name": "Windows-latest - 3.10",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:10:39Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897754021",
+       "name": "MacOs-latest - 3.11",
+       "started_at": "2026-11-04T22:07:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:12:48Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897754004",
+       "name": "Windows-latest - 3.14",
+       "started_at": "2026-11-04T22:07:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:13:08Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753965",
+       "name": "MacOs-latest - 3.14",
+       "started_at": "2026-11-04T22:07:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:11:50Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753931",
+       "name": "ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:13:28Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753928",
+       "name": "MacOs-latest - 3.10",
+       "started_at": "2026-11-04T22:07:26Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:11:15Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753876",
+       "name": "ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:13:08Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753838",
+       "name": "Windows-latest - 3.13",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:11:43Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753823",
+       "name": "ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:11:21Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753811",
+       "name": "ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:12:36Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753808",
+       "name": "MacOs-latest - 3.13",
+       "started_at": "2026-11-04T22:07:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:12:13Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753770",
+       "name": "Windows-latest - 3.11",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:12:30Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753703",
+       "name": "Windows-latest - 3.12",
+       "started_at": "2026-11-04T22:07:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:12:24Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753292",
+       "name": "ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T22:07:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:23Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752359",
+       "name": "build - MacOs-latest - 3.13",
+       "started_at": "2026-11-04T22:07:05Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:34Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752332",
+       "name": "build - Windows-latest - 3.13",
+       "started_at": "2026-11-04T22:07:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:31Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752317",
+       "name": "build - Windows-latest - 3.12",
+       "started_at": "2026-11-04T22:07:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:27Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752308",
+       "name": "build - Windows-latest - 3.11",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:20Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752297",
+       "name": "build - ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:14Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752290",
+       "name": "build - ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:20Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752262",
+       "name": "build - MacOs-latest - 3.11",
+       "started_at": "2026-11-04T22:07:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:14Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752233",
+       "name": "build - ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:22Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752230",
+       "name": "build - MacOs-latest - 3.12",
+       "started_at": "2026-11-04T22:07:04Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:56Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752181",
+       "name": "build - Windows-latest - 3.10",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:33Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752079",
+       "name": "build - Windows-latest - 3.14",
+       "started_at": "2026-11-04T22:07:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:29Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752009",
+       "name": "build - MacOs-latest - 3.10",
+       "started_at": "2026-11-04T22:07:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:21Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897751993",
+       "name": "build - MacOs-latest - 3.14",
+       "started_at": "2026-11-04T22:07:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:15Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897751990",
+       "name": "build - ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:19Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897751638",
+       "name": "build - ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:33Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342311/job/126897751634",
+       "name": "Validate Plugin",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:34Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342311/job/126897750848",
+       "name": "Static Analysis",
+       "started_at": "2026-11-04T22:07:01Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T21:41:11Z",
+     "head": "unbidden/aiohttp-3-14-3-8-known-vulnerabilities-f-094e17",
+     "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+     "merge_commit_sha": "d2353c3b6e9fb42b37d5ac78085c3ba37622baf1",
+     "merged_at": null,
+     "number": 2,
+     "state": "open",
+     "title": "security: bump aiohttp 3.14.3 → 3.14.4",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:41:49Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884085100",
+       "name": "build - Windows-latest - 3.12",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:49Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084982",
+       "name": "build - Windows-latest - 3.14",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:45Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084898",
+       "name": "build - Windows-latest - 3.11",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:43:32Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084858",
+       "name": "build - MacOs-latest - 3.10",
+       "started_at": "2026-11-04T21:42:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:42:30Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084796",
+       "name": "build - MacOs-latest - 3.11",
+       "started_at": "2026-11-04T21:42:10Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:42:56Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084785",
+       "name": "build - MacOs-latest - 3.13",
+       "started_at": "2026-11-04T21:42:34Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:32Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084770",
+       "name": "build - ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:42:35Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084768",
+       "name": "build - Windows-latest - 3.10",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:31Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084726",
+       "name": "build - ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:36Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084712",
+       "name": "build - ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T21:41:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:36Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084692",
+       "name": "build - ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:31Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084665",
+       "name": "build - ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:42:07Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084663",
+       "name": "build - MacOs-latest - 3.12",
+       "started_at": "2026-11-04T21:41:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:40Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084621",
+       "name": "build - Windows-latest - 3.13",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:38Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084283",
+       "name": "build - MacOs-latest - 3.14",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:49:57Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884084207",
+       "name": "MacOs-latest - 3.10",
+       "started_at": "2026-11-04T21:43:35Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:46:35Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083628",
+       "name": "MacOs-latest - 3.13",
+       "started_at": "2026-11-04T21:41:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:45:59Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083531",
+       "name": "ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T21:41:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:47:19Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083448",
+       "name": "Windows-latest - 3.13",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:46:52Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083342",
+       "name": "Windows-latest - 3.12",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:44:44Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083324",
+       "name": "MacOs-latest - 3.11",
+       "started_at": "2026-11-04T21:41:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:46:16Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083238",
+       "name": "Windows-latest - 3.11",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:46:57Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083234",
+       "name": "ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T21:41:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:47:03Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083206",
+       "name": "Windows-latest - 3.14",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:46:35Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083193",
+       "name": "MacOs-latest - 3.12",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:45:22Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083182",
+       "name": "ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:47:35Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083109",
+       "name": "Windows-latest - 3.10",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:46:35Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083104",
+       "name": "ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T21:41:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:47:04Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083080",
+       "name": "MacOs-latest - 3.14",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:46:36Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884082779",
+       "name": "ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T21:41:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:42:04Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394167/job/126884081900",
+       "name": "Static Analysis",
+       "started_at": "2026-11-04T21:41:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:49Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394167/job/126884081286",
+       "name": "Validate Plugin",
+       "started_at": "2026-11-04T21:41:18Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T19:48:07Z",
+     "head": "unbidden/aiohttp-3-14-3-8-known-vulnerabilities-f-614dbb",
+     "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+     "merge_commit_sha": "ea0d2800e9e18bd5a466bb8011fa606662a9bae1",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "security: bump aiohttp 3.14.3 → 3.14.4",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T19:48:44Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145958",
+       "name": "build - Windows-latest - 3.14",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:54:30Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145880",
+       "name": "MacOs-latest - 3.14",
+       "started_at": "2026-11-04T19:49:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:52:55Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145841",
+       "name": "Windows-latest - 3.13",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:41Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145818",
+       "name": "build - Windows-latest - 3.13",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:54:07Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145739",
+       "name": "Windows-latest - 3.10",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:54:07Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145668",
+       "name": "ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:49:40Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145667",
+       "name": "build - Windows-latest - 3.10",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:51Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145663",
+       "name": "Windows-latest - 3.14",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:33Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145591",
+       "name": "build - MacOs-latest - 3.13",
+       "started_at": "2026-11-04T19:53:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:23Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145585",
+       "name": "ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:52:48Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145553",
+       "name": "ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:16Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145537",
+       "name": "Windows-latest - 3.11",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:30Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145522",
+       "name": "build - ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:05Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145518",
+       "name": "MacOs-latest - 3.13",
+       "started_at": "2026-11-04T19:48:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:43Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145499",
+       "name": "ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:52:09Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145455",
+       "name": "ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:34Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145452",
+       "name": "build - ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:32Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145446",
+       "name": "MacOs-latest - 3.12",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:29Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145431",
+       "name": "build - MacOs-latest - 3.14",
+       "started_at": "2026-11-04T19:53:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:40Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145404",
+       "name": "Windows-latest - 3.12",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:49:29Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145375",
+       "name": "build - MacOs-latest - 3.10",
+       "started_at": "2026-11-04T19:48:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:33Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145364",
+       "name": "build - ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:54:30Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145326",
+       "name": "MacOs-latest - 3.10",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:33Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145308",
+       "name": "build - MacOs-latest - 3.11",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:48Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145300",
+       "name": "build - Windows-latest - 3.11",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:30Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145262",
+       "name": "build - ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:30Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145223",
+       "name": "build - ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:35Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145212",
+       "name": "build - MacOs-latest - 3.12",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:43Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145021",
+       "name": "build - Windows-latest - 3.12",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:13Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821144959",
+       "name": "MacOs-latest - 3.11",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:49:01Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459917/job/126821144251",
+       "name": "Static Analysis",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:43Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459917/job/126821143928",
+       "name": "Validate Plugin",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [
+    "unbidden/aiohttp-3-14-3-8-known-vulnerabilities-f-094e17",
+    "unbidden/msgpack-1-2-1-1-known-vulnerability-fixe-874ad6",
+    "unbidden/multidict-6-7-1-2-known-vulnerabilities-5d4363"
+   ],
+   "base_head": "b586cefa6d41ce4760a4bc37c6178a34c19c1fed"
+  },
+  "cycle2": {
+   "started": true,
+   "waited_s": 2713.7,
+   "bound_hit": true,
+   "status_at_end": {
+    "running": true,
+    "pid": 77517,
+    "started_at": "2026-11-04T22:43:00.127895+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/harlequin/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 1,
+    "jobs_queued": 1
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "agent.note": 11,
+     "analyzer.ran": 3,
+     "connection.changed": 1,
+     "decision.made": 13,
+     "egress.allowed": 4,
+     "job.finished": 30,
+     "job.started": 32,
+     "mandate.changed": 1,
+     "model.called": 1,
+     "opportunity.opened": 7,
+     "proposal.published": 3,
+     "proposal.pushed": 3,
+     "proposal.ready": 3,
+     "repo.head_moved": 1,
+     "verdict.recorded": 4,
+     "world.changed": 3
+    },
+    "docs": {
+     "connections": 1,
+     "decisions": 12,
+     "egress": 4,
+     "experiments": 4,
+     "model_runs": 1,
+     "opportunities": 7,
+     "proposals": 3,
+     "transcripts": 1,
+     "world": 1
+    },
+    "jobs": {
+     "done": 30,
+     "queued": 1,
+     "running": 1
+    },
+    "experiments": 4,
+    "opportunities": [
+     {
+      "id": "opp_3d125e14b7504d28",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 3,
+      "status": "declined"
+     },
+     {
+      "id": "opp_42dd7ad98de94e95",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_fbce4c4eb2264f4f",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_ff975a3f89f74b96",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_1e590f510f094e17",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "proposed"
+     },
+     {
+      "id": "opp_1ed8f6829e874ad6",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "proposed"
+     },
+     {
+      "id": "opp_5851a639c55d4363",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "proposed"
+     }
+    ],
+    "level_max": 4,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": [
+     {
+      "id": "prop_0aad86326ff94d90",
+      "opportunity_id": "opp_1e590f510f094e17",
+      "experiment_id": "exp_283712517ba746db",
+      "status": "pr_opened",
+      "branch": "unbidden/aiohttp-3-14-3-8-known-vulnerabilities-f-094e17",
+      "evidence_level": 4,
+      "title": "security: bump aiohttp 3.14.3 → 3.14.4",
+      "pr": "https://github.com/satisfymath/c13-harlequin/pull/2",
+      "criteria": null
+     },
+     {
+      "id": "prop_0435860345ea4fd7",
+      "opportunity_id": "opp_1ed8f6829e874ad6",
+      "experiment_id": "exp_142453f505724f21",
+      "status": "pr_opened",
+      "branch": "unbidden/msgpack-1-2-1-1-known-vulnerability-fixe-874ad6",
+      "evidence_level": 4,
+      "title": "security: bump msgpack 1.2.1 → 1.2.3",
+      "pr": "https://github.com/satisfymath/c13-harlequin/pull/3",
+      "criteria": null
+     },
+     {
+      "id": "prop_c0653b269faa47de",
+      "opportunity_id": "opp_5851a639c55d4363",
+      "experiment_id": "exp_c753ed2fc3a7463b",
+      "status": "pr_opened",
+      "branch": "unbidden/multidict-6-7-1-2-known-vulnerabilities-5d4363",
+      "evidence_level": 4,
+      "title": "security: bump multidict 6.7.1 → 6.9.1",
+      "pr": "https://github.com/satisfymath/c13-harlequin/pull/4",
+      "criteria": null
+     }
+    ]
+   }
+  },
+  "asks_answered": [],
+  "fork_after_c2": {
+   "pulls": [
+    {
+     "created_at": "2026-11-04T22:31:22Z",
+     "head": "unbidden/multidict-6-7-1-2-known-vulnerabilities-5d4363",
+     "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+     "merge_commit_sha": "d9524674b080f7b5b9c75ef6be2d560bc7ce42f4",
+     "merged_at": null,
+     "number": 4,
+     "state": "open",
+     "title": "security: bump multidict 6.7.1 → 6.9.1",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T22:37:57Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910472128",
+       "name": "MacOs-latest - 3.10",
+       "started_at": "2026-11-04T22:32:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:36:54Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471893",
+       "name": "Windows-latest - 3.13",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:35:55Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471859",
+       "name": "Windows-latest - 3.11",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:36:18Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471836",
+       "name": "Windows-latest - 3.14",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:36:15Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471752",
+       "name": "ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:35:11Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471723",
+       "name": "MacOs-latest - 3.14",
+       "started_at": "2026-11-04T22:31:56Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:35:35Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471712",
+       "name": "ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:37:15Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471694",
+       "name": "MacOs-latest - 3.11",
+       "started_at": "2026-11-04T22:31:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:37:30Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471648",
+       "name": "Windows-latest - 3.10",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:37:17Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471639",
+       "name": "ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:37:12Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471629",
+       "name": "MacOs-latest - 3.12",
+       "started_at": "2026-11-04T22:31:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:35:55Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471624",
+       "name": "ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:37:05Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471614",
+       "name": "Windows-latest - 3.12",
+       "started_at": "2026-11-04T22:31:33Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:36:55Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471585",
+       "name": "ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:37:39Z",
+       "conclusion": "failure",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008422/job/126910471423",
+       "name": "MacOs-latest - 3.13",
+       "started_at": "2026-11-04T22:31:54Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:54Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008501/job/126910471194",
+       "name": "Validate Plugin",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:32:13Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926008501/job/126910470845",
+       "name": "Static Analysis",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:32:41Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468676",
+       "name": "build - Windows-latest - 3.10",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:59Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468674",
+       "name": "build - MacOs-latest - 3.10",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:32:00Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468667",
+       "name": "build - Windows-latest - 3.11",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:44Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468626",
+       "name": "build - MacOs-latest - 3.14",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:43Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468623",
+       "name": "build - ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:42Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468621",
+       "name": "build - ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:32:06Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468618",
+       "name": "build - Windows-latest - 3.14",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:50Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468613",
+       "name": "build - MacOs-latest - 3.11",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:53Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468611",
+       "name": "build - MacOs-latest - 3.12",
+       "started_at": "2026-11-04T22:31:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:54Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468597",
+       "name": "build - Windows-latest - 3.12",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:45Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468570",
+       "name": "build - ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:32:07Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468564",
+       "name": "build - Windows-latest - 3.13",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:52Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468552",
+       "name": "build - ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:45Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468528",
+       "name": "build - ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:31:46Z",
+       "conclusion": "success",
+       "head_sha": "7303b93f3b06e908b35c2977ab7b4a6cc393fd8e",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41926006589/job/126910468194",
+       "name": "build - MacOs-latest - 3.13",
+       "started_at": "2026-11-04T22:31:30Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T22:06:55Z",
+     "head": "unbidden/msgpack-1-2-1-1-known-vulnerability-fixe-874ad6",
+     "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+     "merge_commit_sha": "869740129eb1a93b9cb438a3454d98a6f6f1f086",
+     "merged_at": null,
+     "number": 3,
+     "state": "open",
+     "title": "security: bump msgpack 1.2.1 → 1.2.3",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T22:12:55Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897756243",
+       "name": "MacOs-latest - 3.12",
+       "started_at": "2026-11-04T22:07:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:13:35Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897754178",
+       "name": "Windows-latest - 3.10",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:10:39Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897754021",
+       "name": "MacOs-latest - 3.11",
+       "started_at": "2026-11-04T22:07:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:12:48Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897754004",
+       "name": "Windows-latest - 3.14",
+       "started_at": "2026-11-04T22:07:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:13:08Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753965",
+       "name": "MacOs-latest - 3.14",
+       "started_at": "2026-11-04T22:07:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:11:50Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753931",
+       "name": "ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:13:28Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753928",
+       "name": "MacOs-latest - 3.10",
+       "started_at": "2026-11-04T22:07:26Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:11:15Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753876",
+       "name": "ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:13:08Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753838",
+       "name": "Windows-latest - 3.13",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:11:43Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753823",
+       "name": "ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:11:21Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753811",
+       "name": "ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:12:36Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753808",
+       "name": "MacOs-latest - 3.13",
+       "started_at": "2026-11-04T22:07:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:12:13Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753770",
+       "name": "Windows-latest - 3.11",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:12:30Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753703",
+       "name": "Windows-latest - 3.12",
+       "started_at": "2026-11-04T22:07:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:12:24Z",
+       "conclusion": "failure",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342166/job/126897753292",
+       "name": "ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T22:07:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:23Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752359",
+       "name": "build - MacOs-latest - 3.13",
+       "started_at": "2026-11-04T22:07:05Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:34Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752332",
+       "name": "build - Windows-latest - 3.13",
+       "started_at": "2026-11-04T22:07:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:31Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752317",
+       "name": "build - Windows-latest - 3.12",
+       "started_at": "2026-11-04T22:07:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:27Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752308",
+       "name": "build - Windows-latest - 3.11",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:20Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752297",
+       "name": "build - ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:14Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752290",
+       "name": "build - ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:20Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752262",
+       "name": "build - MacOs-latest - 3.11",
+       "started_at": "2026-11-04T22:07:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:14Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752233",
+       "name": "build - ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:22Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752230",
+       "name": "build - MacOs-latest - 3.12",
+       "started_at": "2026-11-04T22:07:04Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:56Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752181",
+       "name": "build - Windows-latest - 3.10",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:33Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752079",
+       "name": "build - Windows-latest - 3.14",
+       "started_at": "2026-11-04T22:07:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:29Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897752009",
+       "name": "build - MacOs-latest - 3.10",
+       "started_at": "2026-11-04T22:07:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:21Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897751993",
+       "name": "build - MacOs-latest - 3.14",
+       "started_at": "2026-11-04T22:07:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:15Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897751990",
+       "name": "build - ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:19Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342450/job/126897751638",
+       "name": "build - ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:33Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342311/job/126897751634",
+       "name": "Validate Plugin",
+       "started_at": "2026-11-04T22:07:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T22:07:34Z",
+       "conclusion": "success",
+       "head_sha": "3ae525e9ed33c0361da016299f678205c576343a",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41922342311/job/126897750848",
+       "name": "Static Analysis",
+       "started_at": "2026-11-04T22:07:01Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T21:41:11Z",
+     "head": "unbidden/aiohttp-3-14-3-8-known-vulnerabilities-f-094e17",
+     "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+     "merge_commit_sha": "d2353c3b6e9fb42b37d5ac78085c3ba37622baf1",
+     "merged_at": null,
+     "number": 2,
+     "state": "open",
+     "title": "security: bump aiohttp 3.14.3 → 3.14.4",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:41:49Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884085100",
+       "name": "build - Windows-latest - 3.12",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:49Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084982",
+       "name": "build - Windows-latest - 3.14",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:45Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084898",
+       "name": "build - Windows-latest - 3.11",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:43:32Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084858",
+       "name": "build - MacOs-latest - 3.10",
+       "started_at": "2026-11-04T21:42:58Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:42:30Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084796",
+       "name": "build - MacOs-latest - 3.11",
+       "started_at": "2026-11-04T21:42:10Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:42:56Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084785",
+       "name": "build - MacOs-latest - 3.13",
+       "started_at": "2026-11-04T21:42:34Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:32Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084770",
+       "name": "build - ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:42:35Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084768",
+       "name": "build - Windows-latest - 3.10",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:31Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084726",
+       "name": "build - ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:36Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084712",
+       "name": "build - ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T21:41:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:36Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084692",
+       "name": "build - ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:31Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084665",
+       "name": "build - ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:42:07Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084663",
+       "name": "build - MacOs-latest - 3.12",
+       "started_at": "2026-11-04T21:41:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:40Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084621",
+       "name": "build - Windows-latest - 3.13",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:38Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394294/job/126884084283",
+       "name": "build - MacOs-latest - 3.14",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:49:57Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884084207",
+       "name": "MacOs-latest - 3.10",
+       "started_at": "2026-11-04T21:43:35Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:46:35Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083628",
+       "name": "MacOs-latest - 3.13",
+       "started_at": "2026-11-04T21:41:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:45:59Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083531",
+       "name": "ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T21:41:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:47:19Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083448",
+       "name": "Windows-latest - 3.13",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:46:52Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083342",
+       "name": "Windows-latest - 3.12",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:44:44Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083324",
+       "name": "MacOs-latest - 3.11",
+       "started_at": "2026-11-04T21:41:28Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:46:16Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083238",
+       "name": "Windows-latest - 3.11",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:46:57Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083234",
+       "name": "ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T21:41:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:47:03Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083206",
+       "name": "Windows-latest - 3.14",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:46:35Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083193",
+       "name": "MacOs-latest - 3.12",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:45:22Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083182",
+       "name": "ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:47:35Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083109",
+       "name": "Windows-latest - 3.10",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:46:35Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083104",
+       "name": "ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T21:41:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:47:04Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884083080",
+       "name": "MacOs-latest - 3.14",
+       "started_at": "2026-11-04T21:41:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:46:36Z",
+       "conclusion": "failure",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394173/job/126884082779",
+       "name": "ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T21:41:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:42:04Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394167/job/126884081900",
+       "name": "Static Analysis",
+       "started_at": "2026-11-04T21:41:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:41:49Z",
+       "conclusion": "success",
+       "head_sha": "8283d9cbdf86c5e4b9fd238dddcc46759cd03cd7",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41918394167/job/126884081286",
+       "name": "Validate Plugin",
+       "started_at": "2026-11-04T21:41:18Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T19:48:07Z",
+     "head": "unbidden/aiohttp-3-14-3-8-known-vulnerabilities-f-614dbb",
+     "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+     "merge_commit_sha": "ea0d2800e9e18bd5a466bb8011fa606662a9bae1",
+     "merged_at": null,
+     "number": 1,
+     "state": "closed",
+     "title": "security: bump aiohttp 3.14.3 → 3.14.4",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T19:48:44Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145958",
+       "name": "build - Windows-latest - 3.14",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:54:30Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145880",
+       "name": "MacOs-latest - 3.14",
+       "started_at": "2026-11-04T19:49:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:52:55Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145841",
+       "name": "Windows-latest - 3.13",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:41Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145818",
+       "name": "build - Windows-latest - 3.13",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:54:07Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145739",
+       "name": "Windows-latest - 3.10",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:54:07Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145668",
+       "name": "ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:49:40Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145667",
+       "name": "build - Windows-latest - 3.10",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:51Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145663",
+       "name": "Windows-latest - 3.14",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:33Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145591",
+       "name": "build - MacOs-latest - 3.13",
+       "started_at": "2026-11-04T19:53:18Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:23Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145585",
+       "name": "ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:52:48Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145553",
+       "name": "ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:16Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145537",
+       "name": "Windows-latest - 3.11",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:30Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145522",
+       "name": "build - ubuntu-latest - 3.12",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:05Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145518",
+       "name": "MacOs-latest - 3.13",
+       "started_at": "2026-11-04T19:48:36Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:43Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145499",
+       "name": "ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:52:09Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145455",
+       "name": "ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:34Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145452",
+       "name": "build - ubuntu-latest - 3.10",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:32Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145446",
+       "name": "MacOs-latest - 3.12",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:29Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145431",
+       "name": "build - MacOs-latest - 3.14",
+       "started_at": "2026-11-04T19:53:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:40Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145404",
+       "name": "Windows-latest - 3.12",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:49:29Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145375",
+       "name": "build - MacOs-latest - 3.10",
+       "started_at": "2026-11-04T19:48:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:33Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145364",
+       "name": "build - ubuntu-latest - 3.13",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:54:30Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821145326",
+       "name": "MacOs-latest - 3.10",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:33Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145308",
+       "name": "build - MacOs-latest - 3.11",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:48Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145300",
+       "name": "build - Windows-latest - 3.11",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:30Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145262",
+       "name": "build - ubuntu-latest - 3.11",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:30Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145223",
+       "name": "build - ubuntu-latest - 3.14",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:35Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145212",
+       "name": "build - MacOs-latest - 3.12",
+       "started_at": "2026-11-04T19:48:16Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:43Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900460137/job/126821145021",
+       "name": "build - Windows-latest - 3.12",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:53:13Z",
+       "conclusion": "failure",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459918/job/126821144959",
+       "name": "MacOs-latest - 3.11",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:49:01Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459917/job/126821144251",
+       "name": "Static Analysis",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T19:48:43Z",
+       "conclusion": "success",
+       "head_sha": "18c1eb6c1013b60b36c7e5bd5c3cb6d97fcac56d",
+       "html_url": "https://github.com/satisfymath/c13-harlequin/actions/runs/41900459917/job/126821143928",
+       "name": "Validate Plugin",
+       "started_at": "2026-11-04T19:48:15Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [
+    "unbidden/aiohttp-3-14-3-8-known-vulnerabilities-f-094e17",
+    "unbidden/msgpack-1-2-1-1-known-vulnerability-fixe-874ad6",
+    "unbidden/multidict-6-7-1-2-known-vulnerabilities-5d4363"
+   ],
+   "base_head": "b586cefa6d41ce4760a4bc37c6178a34c19c1fed"
+  },
+  "status_final": {
+   "running": false,
+   "pid": 77517,
+   "started_at": "2026-11-04T22:43:00.127895+00:00",
+   "command": "watch",
+   "log": "/Users/david/unbidden-lab/c13/harlequin/.unbidden/logs/agent.log",
+   "stale": true,
+   "jobs_running": 1,
+   "jobs_queued": 1
+  },
+  "egress": {
+   "api.meta.ai:chat.analyze:allowed_sent": 5,
+   "api.meta.ai:research.robustness:allowed_sent": 1,
+   "github.com:github.pull_request:allowed_sent": 3
+  },
+  "checks": {
+   "status": "failed",
+   "collected": 2214,
+   "why": "exit 1: [0m\u001b]8;;\u001b\\\u001b[1m.\u001b[0m\n\n\u001b[2;35m/Users/david/.unbidden/ci-env/9bda986c6148a8c2/ws/\u001b[0m\u001b[2;95msnapshot_report.html\u001b[0m\n\n--------------------------- snapshot report summary ----------------------------\n24 snapshots failed. 132 snapshots passed. 4 snapshots unused.\n\nRe-run pytest with --snapshot-update to delete unused snapshots.\n=========================== short test summary info ============================\nFAILED tests/adapter_tests/test_sqlite.py::test_load_extension - harlequin.exception.HarlequinConnectionError: /Users/david/.unbidden/ci-env/9bda986c6148a8c2/ws/tests/data/adapter_tests/sqlite/extensions/hello0.so: cannot open shared object file: No such file or directory\nFAILED tests/unit_tests/test_publish_artifacts.py::test_the_workflow_runs_this_script - FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/.unbidden/ci-env/9bda986c6148a8c2/ws/.github/workflows/publish-artifacts.yml'\nFAILED tests/unit_tests/test_publish_artifacts.py::test_the_generators_the_workflow_checks_are_the_ones_that_write_artifacts - FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/.unbidden/ci-env/9bda986c6148a8c2/ws/.github/workflows/publish-artifacts.yml'\nFAILED tests/unit_tests/test_publish_artifacts.py::test_a_release_publishes_the_artifacts - FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/.unbidden/ci-env/9bda986c6148a8c2/ws/.github/workflows/publish.yml'\n====== 4 failed, 2205 passed, 5 skipped, 7 warnings in 206.57s (0:03:26) =======",
+   "scope": "the whole job",
+   "partial": false,
+   "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\npytest tests/unit_tests/test_plugin.py -n0",
+   "rev": "b586cefa6d41ce4760a4bc37c6178a34c19c1fed",
+   "could_not_run": {
+    "tests": 0,
+    "lacks": [],
+    "by_test": []
+   },
+   "failed": 4,
+   "image_notes": [
+    "environment prepared by the team's CI job test.yml:test (os=ubuntu-latest, py=3.12); publishing steps left out: Store snapshot report on failure"
+   ],
+   "python": "3.10"
+  },
+  "ledger_after": {
+   "envelope": "s13-final",
+   "envelope_spent_usd": 4.2825,
+   "available_usd": 60.7756,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c13-final-B1-harlequin",
+   "calls": 11,
+   "usd": 0.144,
+   "tokens_in": 28282,
+   "tokens_out": 25573
+  },
+  "spent_usd": 0.144,
+  "export": {
+   "available": true,
+   "ok": true,
+   "code": 0,
+   "dir": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/harlequin/export",
+   "files": 25,
+   "answer": null
+  },
+  "archive": "/Users/david/unbidden-lab/c13/archive/harlequin-B1-final.tgz",
+  "archive_kept": {
+   "name": "harlequin-B1-final.tgz",
+   "bytes": 1572473,
+   "sha256": "b85dc04de741e66ba11ae32e76ef61625682111af535d8add8ca691d9755b8f1",
+   "kept": true,
+   "where": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/harlequin/export/harlequin-B1-final.tgz"
+  }
+ },
+ "human": [
+  {
+   "step": "mandate: fork, registries, operations, connections",
+   "minutes": 2,
+   "why": "a person's declaration"
+  },
+  {
+   "step": "mandate autonomy: merge on green CI, no deploy",
+   "minutes": 1,
+   "why": "nothing to deploy: not an application"
+  }
+ ],
+ "blocks": []
+}
