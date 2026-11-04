@@ -38,6 +38,12 @@ def isolated_copy(source: str, into: Path, rev: str | None) -> tuple[Path, str]:
     return into, commit
 
 
+def ends(text: str, head: int = 1200, tail: int = 600) -> str:
+    """A long error kept by both ends: the installer's first error leads it, Docker's summary closes it (P3-12,
+    campaign 12: the last 1500 characters were only the failed command, twice, and never the cause)."""
+    return text if len(text) <= head + tail else f"{text[:head]}\n[…]\n{text[-tail:]}"
+
+
 def checks_record(repo: Path, rev: str, mandate: Mandate, *, timeout_s: float = CHECKS_TIMEOUT_S) -> dict[str, Any]:
     """The record `observe.checks` keeps: the stack (with why each version was chosen), the image and its notes,
     the plan (its source, scope, what was left out and why), and the checks' outcome with the evidence (tests
@@ -59,7 +65,8 @@ def checks_record(repo: Path, rev: str, mandate: Mandate, *, timeout_s: float = 
             "blind_spots": list(stack.blind_spots),
         }  # fmt: skip
         image = provision(repo, rev, py, policy=PolicyEngine(mandate))
-        record["image"] = {"tag": image.tag, "notes": list(image.notes)}
+        record["image"] = {"tag": image.tag, "notes": list(image.notes),
+                           "ci_tests_failed": getattr(image, "ci_tests_failed", None)}  # fmt: skip
         plan = test_plan(repo, rev, stack, "python")
         if plan is None:
             record |= {"status": "no_plan", "why": "no test job to run (no CI job and no test files found)"}
@@ -80,14 +87,16 @@ def checks_record(repo: Path, rev: str, mandate: Mandate, *, timeout_s: float = 
                 "failed": summary.failed_per_round[0][:50],
                 "why": summary.infra_why[0] if summary.infra_why else None,
                 "failures": summary.failure_messages,
+                "failure_texts": summary.failure_texts,  # tracebacks: what a repair of the team's failures reads
                 # the environment's, apart from the code's failures: how many tests, which tools the image lacks
                 "could_not_run": {
                     "tests": len(summary.could_not_run),
                     "lacks": sorted(set(summary.could_not_run.values())),
+                    "by_test": sorted(summary.could_not_run)[:200],
                 },
             }
     except Exception as exc:  # the environment could not be built: that is the finding
-        record |= {"status": "blocked", "why": f"{type(exc).__name__}: {str(exc)[-1500:]}"}
+        record |= {"status": "blocked", "why": f"{type(exc).__name__}: {ends(str(exc))}"}
     record["wall_s"] = round(time.monotonic() - started, 1)
     return record
 

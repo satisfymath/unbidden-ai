@@ -83,3 +83,9 @@ def test_the_scope_diagnosis_says_what_is_in_and_out_and_why(tmp_path: Path) -> 
     subprocess.run([*git, "commit", "-qm", "x"], check=True)
     out = diagnose(other)
     assert out[0][0] == "scope: stack" and not out[0][1] and "Python only" in out[0][2]
+
+
+def test_a_long_error_keeps_its_cause_and_its_end() -> None:
+    text = "error: No solution found: foo==1 depends on bar>2\n" + "x" * 5000 + "\nexit code: 1"
+    kept = prepare.ends(text)
+    assert kept.startswith("error: No solution found") and kept.endswith("exit code: 1") and len(kept) < 2000

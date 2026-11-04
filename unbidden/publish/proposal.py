@@ -99,6 +99,38 @@ def build_perf_body(
     return "\n".join(lines) + "\n"
 
 
+def build_repair_body(
+    opp: Opportunity, experiment: Experiment, verdict: Verdict, origin: str, merges: bool = False
+) -> str:
+    """Tests the team wrote that fail on its commit and in its CI, repaired in the code they test."""
+    d = opp.details
+    lines = [
+        f"**{opp.title}**",
+        "",
+        f"L{int(verdict.evidence_level)} · these tests fail on this commit and in the team's CI; with this change they "
+        "pass in every round, no test was changed, and the rest of the suite shows no regression.",
+        "",
+        "### What was found",
+        *(f"- `{name}`" for name in (d.get("tests") or [])[:10]),
+        f"- Why it is the repository's failure and not the environment's: {d.get('evidence')}.",
+        "",
+        *_claim(verdict),
+        "### What was measured",
+        *(f"- {reason}" for reason in verdict.reasons),
+        f"- {_tests_line(experiment)}",
+        f"- Fix written by: {AUTHORS.get(origin, origin)}.",
+        "",
+        "### Included",
+        *(f"- `{path}`" for path in sorted(d.get("candidate", {}).get("files", {}))),
+        "",
+        "### Caveats",
+        *(f"- {c}" for c in (verdict.caveats or ["none recorded"])),
+        "",
+        f"<sub>Proposed by Unbidden. Opportunity `{opp.id}`, experiment `{experiment.id}`. {_what_next(merges)}</sub>",
+    ]
+    return "\n".join(lines) + "\n"
+
+
 def build_robust_body(
     opp: Opportunity, experiment: Experiment, verdict: Verdict, origin: str, merges: bool = False
 ) -> str:
@@ -141,6 +173,8 @@ def proposal_title(opp: Opportunity, verdict: Verdict) -> str:
     if opp.source == "pypi-advisories" and verdict.reasons:
         # "dnspython 2.8.0 → 2.9.0: advisories GHSA-… gone" is the headline.
         return f"security: bump {verdict.reasons[0].split(': advisories')[0]}"[:120]
+    if opp.source == "repair":
+        return f"fix: repair {opp.title}"[:120]
     return f"fix: {opp.title}"[:120]
 
 
@@ -149,6 +183,8 @@ def build_body(opp: Opportunity, experiment: Experiment, verdict: Verdict, origi
         return build_perf_body(opp, experiment, verdict, origin, merges)
     if opp.source == "robustness":
         return build_robust_body(opp, experiment, verdict, origin, merges)
+    if opp.source == "repair":
+        return build_repair_body(opp, experiment, verdict, origin, merges)
     findings = opp.details.get("findings", [])[:20]
     lines = [
         f"**{opp.title}**",

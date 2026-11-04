@@ -1,4 +1,30 @@
-# Unbidden 0.16.0, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.17.0, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.17.0 (2026-11-03): the team's failing tests repaired, when its own CI fails them too
+
+David's rule: when Unbidden did its part well and the tests still fail because of the repository, and the
+repository's own CI fails them too, Unbidden may repair them (`lab/repair.py`).
+
+- **When it opens**: the project's checks fail named tests here, and the team's CI fails the same way: its test job,
+  run here as GitHub runs it, failed at a test step; or its CI on GitHub is red and not contradicted here. A green CI,
+  or the job's tests passing here, means the environment is Unbidden's: nothing opens. A failure whose report names
+  a missing piece of the environment (a browser, an executable, a service, a module, the network) is never repaired.
+- **What it proves**: only tests failing in 3 of 3 base rounds are targeted (a flaky test is another opportunity).
+  The model sees the failures, the failing tests and the code their tracebacks pass through, or where what they call
+  is defined; whole files, or excerpts when the mandate's per-call cap is smaller. A change to a test or a conftest,
+  a skip, an xfail, a suppression or a new exception handler is refused and the model told why. Accepted when every
+  targeted test passes in 3 of 3 rounds and the team's suite shows no regression; metric `failing_tests`
+  (correctness); the proposal says why the failure was the repository's.
+- **The team's CI job, more of them prepared** (archery, MySQL and Redis): steps that drive the host's Docker are
+  left out and said; a service's fixed container name is dropped; a fixed host port is kept when free (act runs the
+  job on the host's network, as GitHub does) and left to Docker, and said, when taken; at measurement the job's
+  services answer on localhost; the runner image has the MySQL, Postgres and Redis clients. Archery: 1521 tests pass
+  (before: blocked).
+- A blocked environment's error is kept by both ends, the installer's first error first (P3-12).
+
+Measured: on real repositories the rule opened nothing (timetracker 169/169 pass, archery 1521 pass, rdflib names no
+test, recruitops-agent's red CI is its runner's); a seeded defect in a humanize copy was repaired with the exact
+inverse change, L4, US$0.007.
 
 ## 0.16.0 (2026-11-03): the environment the team's own CI job prepares
 

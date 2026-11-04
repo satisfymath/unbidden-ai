@@ -34,7 +34,7 @@ from unbidden.sandbox.provision import DependencyImage
 from unbidden.sandbox.runner import snapshot, with_git
 
 RUNNER_BASE = "catthehacker/ubuntu:act-22.04"
-RUNNER_IMAGE = "unbidden-runner:22.04-2"
+RUNNER_IMAGE = "unbidden-runner:22.04-3"
 # What GitHub's hosted runner has and the act image lacks: the apt index, apt answering yes, en_US.UTF-8 (harlequin),
 # git trusting any checkout (the workspace is mounted from the host, owned by another uid).
 RUNNER_DOCKERFILE = (
@@ -43,14 +43,66 @@ RUNNER_DOCKERFILE = (
     " && apt-get update \\\n"
     " && (apt-get install -y --no-install-recommends locales >/dev/null || true) \\\n"
     " && sed -i 's/^# *en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen && locale-gen en_US.UTF-8 \\\n"
-    " && git config --system --add safe.directory '*'\n"
+    " && git config --system --add safe.directory '*' \\\n"
+    # GitHub's runner has the database clients (archery: `mysql -h127.0.0.1 -e "CREATE DATABASE ..."`); socat
+    # gives localhost the job's services, as the runner's mapped ports do (`localhost_forwards`).
+    " && (apt-get install -y --no-install-recommends socat default-mysql-client postgresql-client redis-tools "
+    ">/dev/null || true)\n"
 )
+
+
+def port_free(port: int) -> bool:
+    """Whether this machine can listen on a port (a published container port holds it too)."""
+    import socket
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        try:
+            sock.bind(("0.0.0.0", port))
+        except OSError:
+            return False
+    return True
+
+
+def _host_port(mapping: str, taken: list[str]) -> str:
+    parts = mapping.split(":")
+    if len(parts) < 2:
+        return mapping
+    host, container = parts[-2], parts[-1]
+    if host.isdigit() and port_free(int(host)):
+        return f"{host}:{container}"
+    taken.append(mapping)
+    return container
+
+
+def localhost_forwards(pairs: list[tuple[str, str]]) -> str:
+    """A shell line that makes each service's port answer on localhost, as on GitHub's runner, where a job reaches
+    its service containers at 127.0.0.1 on their mapped ports (archery's settings: `mysql://root:@127.0.0.1:3306`).
+    Here services are containers reached by name, so socat forwards; ports below 1024 are left (no privilege)."""
+    lines = [f"(setsid nohup socat TCP-LISTEN:{port},fork,reuseaddr,bind=127.0.0.1 TCP:{host}:{port} >/dev/null 2>&1 &)"
+             for host, port in pairs if port.isdigit() and int(port) >= 1024]  # fmt: skip
+    # GitHub starts the steps once the services are healthy; here each port is awaited (up to 2 minutes) first.
+    ready = [f"for _ in $(seq 120); do (exec 3<>/dev/tcp/{host}/{port}) 2>/dev/null && break; sleep 1; done"
+             for host, port in pairs if port.isdigit() and int(port) >= 1024]  # fmt: skip
+    return ("; ".join(ready) + "; if command -v socat >/dev/null; then " + "; ".join(lines) + "; sleep 1; fi"
+            if lines else "")  # fmt: skip
+
+
+def service_ports(services: Any) -> list[tuple[str, str]]:
+    """(service, container port) of a job's `services:` mapping."""
+    pairs: list[tuple[str, str]] = []
+    for name, service in (services or {}).items():
+        if isinstance(service, dict):
+            for port in service.get("ports") or []:
+                pairs.append((str(name), str(port).split(":")[-1].split("/")[0]))
+    return pairs
+
+
 TOOLCACHE = "act-toolcache"  # act keeps setup-python/uv/node downloads in this shared volume, outside the commit
 PREPARED = "/opt/unbidden-prepared"  # the job's workspace as it left it, inside the committed image
 ENV_FILE = "/opt/unbidden-job.env"
 WORKFLOW = ".unbidden-ci/job.yml"
 JOB_TIMEOUT_S = 3600.0
-RECORD_VERSION = "ci-env-9"  # part of the cache key: a record from an older layout is prepared again
+RECORD_VERSION = "ci-env-11"  # part of the cache key: a record from an older layout is prepared again
 Progress = Callable[[str], None]
 
 # A step that would reach outside the copy: coverage and test reports uploaded, releases, deploys, pushes,
@@ -105,6 +157,16 @@ def publishes(run_text: str) -> bool:
     (oauthlib, campaign 13: `pip install tox coveralls` was the step that installed tox)."""
     lines = [ln for ln in re.sub(r"\\\n\s*", " ", run_text).splitlines() if not _INSTALL_LINE.match(ln)]
     return bool(PUBLISH_RUN.search("\n".join(lines)))
+
+
+# A command that drives the host's Docker (archery, campaign 13: `docker cp my.cnf mysql:/etc/...` and `docker restart
+# mysql` to configure its service container). The job never gets the Docker socket, so the step cannot run; it is
+# left out and said, like a publishing step, and the service keeps its image's defaults.
+_DOCKER_RUN = re.compile(r"(?:^|[;&|(]\s*|\n\s*)(?:sudo\s+)?docker(?:-compose|\s+compose)?\s+\w", re.MULTILINE)
+
+
+def drives_docker(run_text: str) -> bool:
+    return bool(_DOCKER_RUN.search(run_text))
 
 
 def act_path() -> str | None:
@@ -168,7 +230,8 @@ def filtered_job(repo: Path, rev: str, workflow: str, job: str) -> tuple[str, di
         if not isinstance(step, dict):
             continue
         label = str(step.get("name") or step.get("uses") or str(step.get("run", ""))[:60])
-        if PUBLISH_USES.search(str(step.get("uses", ""))) or publishes(str(step.get("run", ""))):
+        run_text = str(step.get("run", ""))
+        if PUBLISH_USES.search(str(step.get("uses", ""))) or publishes(run_text) or drives_docker(run_text):
             skipped.append(label)
             continue
         if "astral-sh/setup-uv" in str(step.get("uses", "")):
@@ -189,11 +252,18 @@ def filtered_job(repo: Path, rev: str, workflow: str, job: str) -> tuple[str, di
     })  # fmt: skip
     definition["steps"] = steps
     definition["runs-on"] = "ubuntu-latest"
+    taken: list[str] = []
     for service in (definition.get("services") or {}).values():
-        # A fixed host port (`5432:5432`) collides with whatever else this machine runs (timetracker, campaign 13:
-        # the service never started); the container port stays, the host port is Docker's choice.
+        # act runs the job on the host's network, as GitHub does: a fixed host port (`3306:3306`) is how the job
+        # reaches its service at localhost (archery's settings: `127.0.0.1:3306`). It is kept when free; one this
+        # machine already uses (timetracker, campaign 13: its own Postgres on 5432) is left to Docker, and said.
         if isinstance(service, dict) and isinstance(service.get("ports"), list):
-            service["ports"] = [str(p).split(":")[-1] for p in service["ports"]]
+            service["ports"] = [_host_port(str(p), taken) for p in service["ports"]]
+        if isinstance(service, dict) and isinstance(service.get("options"), str):
+            # A fixed container name (archery: `--name=mysql`, for a `docker cp` step left out above): act names its
+            # service containers itself and refuses the flag; the service is still reached by its key.
+            service["options"] = re.sub(r"--name(?:=|\s+)\S+\s*", "", service["options"]).strip()
+    skipped += [f"host port {m} of a service (in use on this machine)" for m in taken]
     for key in ("needs", "if", "environment", "concurrency", "permissions"):
         definition.pop(key, None)
     out: dict[str, Any] = {"name": "unbidden-ci", "on": "push", "jobs": {job: definition}}
@@ -503,6 +573,7 @@ def prepare(
                + (f"; publishing steps left out: {', '.join(skipped)}" if skipped else ""),),
         mount=mount, volumes=(f"{TOOLCACHE}:/opt/hostedtoolcache",), runner_like=True,
         test_command=test_command(text, step_scripts(log)),
+        ci_tests_failed=any(not ok and _runs_tests(text, name) for name, ok in steps),
     )  # fmt: skip
     environment = CiEnvironment(image=image, workflow=workflow, job=job, matrix=matrix, skipped=skipped, steps=steps,
                                 job_ok=done.returncode == 0, seconds=seconds, log_tail=_tail(log))  # fmt: skip

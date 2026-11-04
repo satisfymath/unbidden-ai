@@ -53,6 +53,9 @@ class DependencyImage:
     # The job's own test steps, verbatim (matrix values filled in): what runs to measure, instead of Unbidden's
     # translation of them (humanize: `uvx --with tox-uv tox -e py`, whose pytest lives in tox's own environment).
     test_command: str | None = None
+    # Whether the team's own test step failed when its CI job ran here (None: not prepared by the job): the repository's
+    # failures, seen in its own CI, are what a repair may take on (lab/repair.py).
+    ci_tests_failed: bool | None = None
 
 
 class ProvisionError(RuntimeError):
