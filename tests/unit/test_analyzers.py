@@ -345,3 +345,27 @@ def test_findings_in_a_ci_jobs_workspace_are_relative_to_the_repository() -> Non
     result = SandboxResult(0, out, "", False, 0.1, False, False)
     report = TOOLS["ruff"].report(result, list(TOOLS["ruff"].argv), mount)
     assert [f.path for f in report.findings] == ["rich/console.py"]
+
+
+def test_the_fix_labs_mypy_runs_in_unbiddens_own_environment(tmp_path: Path) -> None:
+    """reader, final pass 0.18.5: the fix lab ran mypy in the CI job's image (no `/deps/.venv`), so every lint fix
+    was "cannot judge: incomplete reports from mypy". Tools reading `/deps/.venv` use Unbidden's own environment."""
+    from typing import Any
+
+    from unbidden.lab.fixlab import FixLab
+    from unbidden.sandbox.provision import DependencyImage
+    from unbidden.sandbox.runner import SandboxResult
+    from unbidden.sandbox.tools import TOOLS
+
+    own = DependencyImage("deps", "python", [], {}, {})
+    ci = DependencyImage("ci", "python", [], {}, {}, runner_like=True, own=own, mount="/ci/ws")
+    seen: dict[str, str] = {}
+
+    class Runner:
+        def run(self, spec: Any, work: Path) -> SandboxResult:
+            seen[spec.argv[0]] = spec.image
+            return SandboxResult(0, "[]" if spec.argv[0] == "ruff" else "", "", False, 0.1, False, False)
+
+    lab = FixLab(tmp_path, None, None, None, {"python": ci}, runner=Runner())  # type: ignore[arg-type]
+    lab._run_tools(tmp_path, [TOOLS["ruff"], TOOLS["mypy"]], ci)  # pyright: ignore[reportPrivateUsage]
+    assert seen[TOOLS["mypy"].argv[0]] == "deps" and seen[TOOLS["ruff"].argv[0]] == "ci"

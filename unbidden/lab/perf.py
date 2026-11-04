@@ -51,7 +51,7 @@ from unbidden.lab.testsuite import TestPlan, run_suite, test_plan
 from unbidden.observe.ci import ci_test_plan
 from unbidden.observe.stack import Stack
 from unbidden.provenance import provenance
-from unbidden.sandbox.provision import DependencyImage, link_dependencies, sandbox_spec
+from unbidden.sandbox.provision import DependencyImage, link_dependencies, own_image, sandbox_spec
 from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
 from unbidden.sandbox.sidecars import data_services
 from unbidden.sandbox.tools import tools_for
@@ -1253,8 +1253,11 @@ class PerfLab:
             for tool in tools_for(self.stack):
                 if tool.language != "python":
                     continue
-                result = self.runner.run(sandbox_spec(image, list(tool.argv), cwd=tool.cwd), work)
-                for f in tool.report(result, list(tool.argv), image.mount).findings:
+                used = (own_image(image) or image) if any("/deps/.venv" in a for a in tool.argv) else image
+                if used is not image:
+                    link_dependencies(work, used)
+                result = self.runner.run(sandbox_spec(used, list(tool.argv), cwd=tool.cwd), work)
+                for f in tool.report(result, list(tool.argv), used.mount).findings:
                     found[f"{f.tool} {f.rule} {f.path}: {f.message}"] += 1
             return found
         finally:

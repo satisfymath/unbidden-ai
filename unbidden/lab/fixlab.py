@@ -44,7 +44,14 @@ from unbidden.observe.ci import (
 )
 from unbidden.observe.stack import Stack
 from unbidden.provenance import provenance
-from unbidden.sandbox.provision import DependencyImage, ProvisionError, link_dependencies, provision, sandbox_spec
+from unbidden.sandbox.provision import (
+    DependencyImage,
+    ProvisionError,
+    link_dependencies,
+    own_image,
+    provision,
+    sandbox_spec,
+)
 from unbidden.sandbox.runner import SandboxRunner, discard, snapshot
 from unbidden.sandbox.tools import Tool, every_finding, tool_named, tools_for
 from unbidden.store import Store
@@ -168,9 +175,14 @@ class FixLab:
     def _run_tools(self, work: Path, tools: list[Tool], image: DependencyImage) -> list[AnalyzerReport]:
         reports: list[AnalyzerReport] = []
         for tool in tools:
-            result = self.runner.run(sandbox_spec(image, list(tool.argv), cwd=tool.cwd), work)
+            # A tool that reads `/deps/.venv` (mypy, pyright) runs in Unbidden's own environment beside a CI job's
+            # (reader, final pass 0.18.5: mypy failed there, so every fix was "cannot judge: incomplete reports").
+            used = (own_image(image) or image) if any("/deps/.venv" in a for a in tool.argv) else image
+            if used is not image:
+                link_dependencies(work, used)
+            result = self.runner.run(sandbox_spec(used, list(tool.argv), cwd=tool.cwd), work)
             with every_finding():  # compared before and after a fix: all of them, not the scan's capped list
-                reports.append(tool.report(result, list(tool.argv), image.mount))
+                reports.append(tool.report(result, list(tool.argv), used.mount))
         return reports
 
     # Candidates ----------------------------------------------------------------------------------------
