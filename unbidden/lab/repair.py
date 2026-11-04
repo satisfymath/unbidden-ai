@@ -52,6 +52,21 @@ _PY_PATH = re.compile(r"[\w./\\-]+\.py")
 _SKIPS = re.compile(r"^\+.*(?:pytest\.(?:skip|xfail|importorskip)|mark\.(?:skip|skipif|xfail)|unittest\.skip|"
                     r"SkipTest)", re.MULTILINE)  # fmt: skip
 _EXCEPT = re.compile(r"^\+\s*except\b", re.MULTILINE)
+# A report that names a missing piece of the environment, not a defect of the code: a browser or executable not
+# installed, a service not reachable, a module not installed, the network. Red in the team's CI too, these are its
+# runner's (recruitops-agent, campaign 13: Playwright's browser was never installed in its job); a code change
+# cannot fix them, so they are never repaired.
+ENVIRONMENT = re.compile(
+    r"Executable doesn't exist|playwright install|No such file or directory: '[\w.+-]+'|command not found|"
+    r"Connection refused|could not connect to server|Can't connect to|Name or service not known|"
+    r"Temporary failure in name resolution|getaddrinfo failed|Network is unreachable|ModuleNotFoundError|"
+    r"No module named|Permission denied|Read-only file system|No space left on device|Timeout(?:Error)?\b"
+)
+
+
+def environments(text: str) -> bool:
+    """Whether a failure's report is the environment's, not the code's."""
+    return bool(ENVIRONMENT.search(text))
 
 
 def is_test_path(path: str) -> bool:
@@ -130,7 +145,7 @@ def repair_opportunities(rev: str, record: dict[str, Any], tracked: list[str], e
     texts: dict[str, str] = record.get("failure_texts") or {}
     by_file: dict[str, list[str]] = {}
     for name in record.get("failed") or []:
-        if name == SUITE or name in lacking:
+        if name == SUITE or name in lacking or environments(texts.get(name, "")):
             continue
         test_file = test_file_of(name, tracked, texts.get(name, ""))
         if test_file is not None:
@@ -249,7 +264,9 @@ class RepairLab:
             return self._done(opp, result)
         self.progress(f"running the team's suite at the base, {self.rounds} rounds")
         base = self._suite(rev, plan, {})
-        targets = sorted(always_failing(base) & set(wanted))
+        targets = sorted(
+            n for n in always_failing(base) & set(wanted) if not environments(base.failure_texts.get(n, ""))
+        )
         if not targets:
             result.absent = (f"none of the {len(wanted)} test(s) fails in every one of {self.rounds} base rounds: "
                              "not a deterministic failure (a flaky test is another opportunity)")  # fmt: skip

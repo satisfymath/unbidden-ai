@@ -58,6 +58,19 @@ def test_one_opportunity_per_test_file_without_the_environments_failures() -> No
     assert opp.details["paths"] == ["src/calc/core.py"] and "red" in opp.summary
 
 
+def test_a_failure_the_environment_causes_is_never_repaired() -> None:
+    browser = ("E   playwright._impl._errors.Error: BrowserType.launch: Executable doesn't exist at "
+               "/home/runner/.cache/ms-playwright/chromium")  # fmt: skip
+    record = {
+        "failed": ["tests.test_core::test_ui", "tests.test_core::test_add"],
+        "failure_texts": {"tests.test_core::test_ui": browser, "tests.test_core::test_add": TRACEBACK},
+    }
+    (opp,) = repair_opportunities("c" * 40, record, TRACKED, "the team's CI on GitHub is red on this commit")
+    assert opp.details["tests"] == ["tests.test_core::test_add"]
+    only = {"failed": ["tests.test_core::test_ui"], "failure_texts": {"tests.test_core::test_ui": browser}}
+    assert repair_opportunities("c" * 40, only, TRACKED, "red") == []
+
+
 def test_a_repair_that_hides_the_failure_is_refused() -> None:
     assert weakening("+x = 1\n", {"tests/test_core.py": ""}) is not None
     assert weakening("+x = 1\n", {"src/calc/conftest.py": ""}) is not None
