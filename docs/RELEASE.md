@@ -6,6 +6,10 @@
   0.18.5: reproducing its lint findings, the fix lab ran mypy in the CI job's image (no `/deps/.venv`), so every
   fix ended "cannot judge: incomplete reports from mypy". A tool that reads `/deps/.venv` now runs beside, in
   Unbidden's own environment of the same revision (0.18.3); the others still run in the CI job's.
+- **A `uv.lock` with a git source relocks.** harlequin, the same pass: eight security bumps (aiohttp's eight
+  advisories among them) stopped at "uv lock failed", the reason lost; uv had said git was missing for a git source
+  (pytest-textual-snapshot from GitHub). The relock image now has git, and a failure keeps uv's own `error:` and
+  `cause:` lines. Real check: aiohttp relocked to 3.14.4.
 - **A team CI that never runs on pull requests is no CI to wait for.** dooit, the same pass: its workflows run
   only on pushes to `develop` (the `pull_request` trigger commented out), so the agent waited for checks that would
   never come and both security pull requests stayed open. When no workflow at the measured commit runs on a pull
