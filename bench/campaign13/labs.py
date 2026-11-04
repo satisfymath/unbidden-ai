@@ -229,11 +229,13 @@ def _wait(url: str, attempts: int = 120) -> bool:
     return False
 
 
-def up(app: str, lab: Path) -> dict[str, Any]:
+def up(app: str, lab: Path, ports: tuple[int, int] | None = None) -> dict[str, Any]:
     """Compose up (built from the repository), synthetic data, a read-only role; returns what the mandate needs
-    (deploy steps, check steps, health, connections, credentials) and what was prepared."""
+    (deploy steps, check steps, health, connections, credentials) and what was prepared. `ports` (app, database)
+    come from the worker's range (run_final.py); the defaults are campaign 12's. Everything later reads the ports
+    from the returned record, never from `PORTS`."""
     repo = lab / app
-    port, db_port = PORTS[app]
+    port, db_port = ports or PORTS[app]
     lab_id = LAB_IDS[app]
     labels = ownership.compose_labels(lab_id)
     vlabels = ownership.compose_labels(lab_id, indent="      ")
@@ -386,11 +388,11 @@ def _spoolman_seed_sql(vendors: int, filaments: int, spools: int, reader_pw: str
     )
 
 
-def observe(app: str, lab: Path) -> dict[str, Any]:
+def observe(app: str, lab: Path, port: int | None = None) -> dict[str, Any]:
     """What the lab shows, independently of Unbidden's records: health, the running image's build time, the
-    commit the backend container was built from (its label if any), the containers."""
+    commit the backend container was built from (its label if any), the containers. `port`: the one `up` used."""
     repo = lab / app
-    port, _ = PORTS[app]
+    port = port or PORTS[app][0]
     health = (
         f"http://127.0.0.1:{port}/api/v1/utils/health-check/"
         if app == "fst"

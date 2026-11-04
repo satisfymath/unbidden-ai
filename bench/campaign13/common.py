@@ -3,11 +3,17 @@ ledger, and sanitizing (no token, no key value ever reaches a record)."""
 
 from __future__ import annotations
 
+import contextlib
+import fcntl
+import hashlib
 import json
 import os
+import platform
 import re
+import shutil
 import subprocess
 import time
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -36,9 +42,82 @@ def env(envelope: str, run: str) -> dict[str, str]:
         UNBIDDEN_ENVELOPE=envelope,
         UNBIDDEN_RUN=run,
         DOCKER_CONFIG=str(REAL_HOME / ".docker"),
-        PATH=f"{HOME / 'bin'}:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        PATH=host_path(),
     )
     return e
+
+
+SYSTEM_PATH = ["/usr/local/bin", "/usr/bin", "/bin", "/usr/sbin", "/sbin"]
+OPTIONAL_PATH = ["/opt/homebrew/bin", "/home/linuxbrew/.linuxbrew/bin"]  # kept only where they exist
+
+
+def host_path() -> str:
+    """The campaign HOME's bin first, then the directories of the host's own tools (wherever `uv`, `gh`, `docker`,
+    `act`, `node` live here), then the system's. No directory is assumed to exist (macOS Homebrew, Linux, ...)."""
+    found = [str(Path(w).parent) for t in TOOLS if (w := shutil.which(t))]
+    extra = [d for d in OPTIONAL_PATH if Path(d).is_dir()]
+    parts = [str(HOME / "bin"), *found, *extra, *SYSTEM_PATH]
+    return ":".join(dict.fromkeys(parts))
+
+
+TOOLS = ("uv", "gh", "docker", "act", "node", "git")
+
+
+def tool_versions(which: Callable[[str], str | None] = shutil.which) -> dict[str, Any]:
+    """Each host tool the harness uses: its path and its version line, or None when it is not installed."""
+    out: dict[str, Any] = {}
+    for tool in TOOLS:
+        path = which(tool)
+        version = None
+        if path:
+            with contextlib.suppress(OSError, subprocess.SubprocessError):
+                done = subprocess.run([path, "--version"], capture_output=True, text=True, timeout=30, check=False)
+                version = (done.stdout or done.stderr).strip().splitlines()[0] if (done.stdout or done.stderr) else None
+        out[tool] = {"path": path, "version": version}
+    return out
+
+
+def host_header() -> dict[str, Any]:
+    return {
+        "host": platform.node(),
+        "system": platform.system(),
+        "machine": platform.machine(),
+        "python": platform.python_version(),
+        "tools": tool_versions(),
+        "path": host_path(),
+    }
+
+
+@contextlib.contextmanager
+def locked(path: Path) -> Iterator[None]:
+    """An exclusive lock beside `path` (fcntl, released when the block ends, or when the process dies)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path.with_name(path.name + ".lock"), "a") as handle:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+
+
+def update_summary(path: Path, line: dict[str, Any], keys: tuple[str, ...] = ("name",)) -> list[dict[str, Any]]:
+    """Read-modify-write of a summary file under its lock: the line replaces any with the same keys. Written to a
+    temporary file and renamed, so a reader never sees half a file. Safe across processes."""
+    with locked(path):
+        summary: list[dict[str, Any]] = json.loads(path.read_text()) if path.exists() else []
+        summary = [s for s in summary if any(s.get(k) != line.get(k) for k in keys)] + [line]
+        tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+        tmp.write_text(json.dumps(summary, indent=1, default=str))
+        tmp.replace(path)
+        return summary
+
+
+def sha256_of(path: Path) -> str:
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def envelope_for(phase: str) -> str:
