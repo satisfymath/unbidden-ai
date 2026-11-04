@@ -93,6 +93,38 @@ def frames(text: str, tracked: list[str]) -> list[str]:
     return seen
 
 
+def defined_by(test_source: str, test_name: str, tracked: list[str], read: Callable[[str], str]) -> list[str]:
+    """The repository's files that define what a failing test calls, within the packages the test file imports: an
+    assertion's traceback stops in the test (humanize: `assert ordinal(13) == "13th"` never shows `number.py`)."""
+    import ast
+
+    try:
+        tree = ast.parse(test_source)
+    except SyntaxError:
+        return []
+    name = test_name.split("::")[-1].split("[")[0]
+    test = next((n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef | ast.AsyncFunctionDef)
+                 and n.name == name), None)  # fmt: skip
+    if test is None:
+        return []
+    called = {n.func.id if isinstance(n.func, ast.Name) else n.func.attr for n in ast.walk(test)
+              if isinstance(n, ast.Call) and isinstance(n.func, ast.Name | ast.Attribute)}  # fmt: skip
+    roots = {a.name.split(".")[0] for n in tree.body if isinstance(n, ast.Import) for a in n.names}
+    roots |= {n.module.split(".")[0] for n in tree.body if isinstance(n, ast.ImportFrom) and n.module and not n.level}
+    imported = {a.asname or a.name for n in tree.body if isinstance(n, ast.ImportFrom) for a in n.names}
+    wanted = called - {"len", "str", "int", "float", "list", "dict", "set", "tuple", "print", "isinstance", "range"}
+    wanted = {w for w in wanted if not w.startswith("assert")}
+    found: list[str] = []
+    for path in dict.fromkeys(tracked):
+        if not path.endswith(".py") or is_test_path(path) or not set(path.split("/")) & roots:
+            continue
+        text = read(path)
+        if any(re.search(rf"^\s*(?:async\s+def|def|class)\s+{re.escape(w)}\b", text, re.MULTILINE)
+               for w in wanted if w in imported or w in called):  # fmt: skip
+            found.append(path)
+    return found
+
+
 def test_file_of(name: str, tracked: list[str], text: str = "") -> str | None:
     """The test file of a junit name (`tests.unit.test_x::test_a`, `tests.test_x.TestY::test_a`)."""
     dotted = name.split("::")[0].split(".")
@@ -216,6 +248,12 @@ class RepairLab:
             code: list[str] = []
             for name in targets:
                 code += [p for p in frames(texts.get(name, ""), tracked) if not is_test_path(p) and p not in code]
+            if not code:  # the traceback stops in the test: the code it calls, where it is defined
+                test_source = (base / str(opp.details["test_file"])).read_text(errors="replace")
+                for name in targets:
+                    code += [p for p in defined_by(test_source, name, tracked,
+                                                   lambda q: (base / q).read_text(errors="replace"))
+                             if p not in code]  # fmt: skip
             # The deepest frames are closest to the cause: the last files a traceback passes through.
             shown: dict[str, str] = {}
             for path in reversed(code):

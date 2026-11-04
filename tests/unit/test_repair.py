@@ -158,3 +158,16 @@ async def test_a_failure_that_does_not_reproduce_every_round_is_not_repaired(
     brain = Brain([])
     result = await RepairLab(tmp_path, store, brain, object(), object()).run(opp)  # type: ignore[arg-type]
     assert brain.asked == 0 and result.verdict is None and "deterministic" in (result.absent or "")
+
+
+def test_when_the_traceback_stops_in_the_test_the_called_code_is_found() -> None:
+    from unbidden.lab.repair import defined_by
+
+    test = (
+        "import pytest\nfrom calc import add, mul\n\n@pytest.mark.parametrize('a', [1])\n"
+        "def test_add(a):\n    assert add(a, 1) == 2\n"
+    )
+    code = {"src/calc/core.py": "def add(a, b):\n    return a - b\n", "src/calc/other.py": "def mul(a, b): ...\n",
+            "tools/add.py": "def add(): ...\n"}  # fmt: skip
+    found = defined_by(test, "tests.test_core::test_add[1]", [*TRACKED, *code], lambda p: code.get(p, ""))
+    assert found == ["src/calc/core.py"]
