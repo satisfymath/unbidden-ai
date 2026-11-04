@@ -69,7 +69,7 @@ export function FindingWidget({ widget }: { widget: WidgetSpec }) {
       <div style={{ fontWeight: 600, fontSize: 14, lineHeight: 1.35 }}>{String(o.title)}</div>
       <div className="small ink2" style={{ lineHeight: 1.45 }}>{String(o.summary)}</div>
       {decision.chosen ? (
-        <div className="small" style={{ padding: "8px 10px", background: "rgba(146,184,222,0.08)", borderRadius: 10 }}>
+        <div className="small" style={{ padding: "8px 10px", background: "rgba(243,241,236,0.08)", borderRadius: 10 }}>
           <span className="muted">Decisión</span> <b>{String(decision.chosen)}</b>
           <div className="muted" style={{ marginTop: 2 }}>{String(decision.reason ?? "")}</div>
         </div>
@@ -213,7 +213,7 @@ export function MinimalCaseWidget({ widget }: { widget: WidgetSpec }) {
         ))}
       </pre>
       {mc.error ? (
-        <div style={{ padding: "8px 10px", background: "var(--red-soft)", borderRadius: 10, border: "1px solid rgba(240,106,106,0.35)" }}>
+        <div style={{ padding: "8px 10px", background: "var(--red-soft)", borderRadius: 10, border: "1px solid rgba(224,119,111,0.35)" }}>
           <div className="row" style={{ color: "var(--red)", fontWeight: 600 }}>
             <span className="dot bad" /> {mc.error.split(":")[0]}
           </div>

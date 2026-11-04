@@ -222,7 +222,7 @@ function Inner() {
         proOptions={{ hideAttribution: true }}
         defaultViewport={presentation?.viewport}
       >
-        <MiniMap pannable zoomable position="bottom-right" style={{ marginBottom: 76, marginRight: 16, width: 180, height: 110 }} nodeColor={(n) => (n.selected ? "#3fd8c7" : "rgba(146,184,222,0.4)")} />
+        <MiniMap pannable zoomable position="bottom-right" style={{ marginBottom: 76, marginRight: 16, width: 180, height: 110 }} nodeColor={(n) => (n.selected ? "#f3f1ec" : "rgba(243,241,236,0.4)")} />
       </ReactFlow>
     </div>
   );

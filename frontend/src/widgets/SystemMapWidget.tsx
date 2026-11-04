@@ -54,7 +54,7 @@ export function SystemMapWidget({ widget }: { widget: WidgetSpec }) {
     <div className="map-wrap nowheel nodrag scroll" ref={wrap} style={{ height: "100%", overflow: "auto", position: "relative" }}>
       <svg width={layout.width} height={layout.height} style={{ display: "block", minWidth: "100%" }} role="img" aria-label="mapa del sistema">
         {layout.kinds.map((k, ci) => (
-          <text key={k} x={12 + ci * layout.colW} y={16} fill="#8ba1b8" fontSize={10.5} style={{ textTransform: "uppercase", letterSpacing: 1 }}>
+          <text key={k} x={12 + ci * layout.colW} y={16} fill="#8e8c87" fontSize={10.5} style={{ textTransform: "uppercase", letterSpacing: 1 }}>
             {KIND_LABEL[k] ?? k}
           </text>
         ))}
@@ -76,9 +76,9 @@ export function SystemMapWidget({ widget }: { widget: WidgetSpec }) {
           const inferred = r.status === "inferred" || r.status === "hypothesis";
           return (
             <g key={i} opacity={dim ? 0.15 : 1}>
-              <path d={d} fill="none" stroke={active ? "#3fd8c7" : "rgba(108,176,255,0.55)"} strokeWidth={active ? 2 : 1.2} strokeDasharray={inferred ? "4 4" : undefined} />
+              <path d={d} fill="none" stroke={active ? "#f3f1ec" : "rgba(243,241,236,0.32)"} strokeWidth={active ? 2 : 1.2} strokeDasharray={inferred ? "4 4" : undefined} />
               {active ? (
-                <text x={(sx + tx) / 2} y={(y1 + y2) / 2 - 4} fill="#3fd8c7" fontSize={10} textAnchor="middle">
+                <text x={(sx + tx) / 2} y={(y1 + y2) / 2 - 4} fill="#f3f1ec" fontSize={10} textAnchor="middle">
                   {String(r.predicate)}
                 </text>
               ) : null}
@@ -90,8 +90,8 @@ export function SystemMapWidget({ widget }: { widget: WidgetSpec }) {
           const active = hover === id || related.has(id);
           return (
             <g key={id} transform={`translate(${p.x},${p.y})`} onMouseEnter={() => setHover(id)} onMouseLeave={() => setHover(null)} style={{ cursor: "default" }}>
-              <rect width={p.w} height={24} rx={7} fill={active ? "rgba(63,216,199,0.18)" : hit ? "rgba(243,184,70,0.18)" : "rgba(12,30,52,0.9)"} stroke={active ? "#3fd8c7" : hit ? "#f3b846" : "rgba(146,184,222,0.3)"} />
-              <text x={9} y={16} fill="#e8f0f8" fontSize={11.5} fontFamily="var(--mono)">
+              <rect width={p.w} height={24} rx={7} fill={active ? "rgba(243,241,236,0.18)" : hit ? "rgba(217,183,121,0.18)" : "rgba(12,12,12,0.9)"} stroke={active ? "#f3f1ec" : hit ? "#d9b779" : "rgba(243,241,236,0.3)"} />
+              <text x={9} y={16} fill="#f3f1ec" fontSize={11.5} fontFamily="var(--mono)">
                 {name(id).length > Math.floor(p.w / 7.2) ? name(id).slice(0, Math.floor(p.w / 7.2) - 1) + "…" : name(id)}
                 <title>{id}</title>
               </text>

@@ -18,9 +18,9 @@ export function MobileView() {
     <div className="mobile">
       <div className="topbar glass" style={{ position: "fixed" }}>
         <Logo size={20} />
-        <b style={{ letterSpacing: "0.18em", fontSize: 12 }}>UNBIDDEN</b>
+        <span style={{ fontWeight: 300, letterSpacing: "0.42em", fontSize: 12 }}>UNBiDDEN</span>
         <span className="muted small ellipsis">/ {summary?.workspace.name}</span>
-        <select value={filter} onChange={(e) => setFilter(e.target.value)} className="field" style={{ marginLeft: "auto", background: "rgba(146,184,222,0.08)", border: "1px solid var(--line)", borderRadius: 8, padding: "4px 6px", color: "var(--ink)" }} aria-label="filtrar tarjetas">
+        <select value={filter} onChange={(e) => setFilter(e.target.value)} className="field" style={{ marginLeft: "auto", background: "rgba(243,241,236,0.08)", border: "1px solid var(--line)", borderRadius: 8, padding: "4px 6px", color: "var(--ink)" }} aria-label="filtrar tarjetas">
           <option value="">todas</option>
           {Object.entries(REGISTRY).map(([k, d]) => <option key={k} value={k}>{d.label}</option>)}
         </select>
