@@ -350,6 +350,7 @@ class Publisher:
         opp = self.store.get("opportunities", opportunity_id, Opportunity)
         if opp is None or opp.status is not OpportunityStatus.PROPOSED:
             return
+        self.store.set_value("sweep_due", True)  # the director measures it again (daemon.cycle.SWEEP_DUE)
         kept = {k: v for k, v in opp.details.items() if k not in ("experiment_id", "verdict", "candidate")}
         opp.details = {**kept, "rev": head, "superseded": [*kept.get("superseded", []), opp.details.get("rev")]}
         opp.status = OpportunityStatus.OPEN
