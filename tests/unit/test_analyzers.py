@@ -369,3 +369,36 @@ def test_the_fix_labs_mypy_runs_in_unbiddens_own_environment(tmp_path: Path) -> 
     lab = FixLab(tmp_path, None, None, None, {"python": ci}, runner=Runner())  # type: ignore[arg-type]
     lab._run_tools(tmp_path, [TOOLS["ruff"], TOOLS["mypy"]], ci)  # pyright: ignore[reportPrivateUsage]
     assert seen[TOOLS["mypy"].argv[0]] == "deps" and seen[TOOLS["ruff"].argv[0]] == "ci"
+
+
+def test_the_fix_lab_formats_with_the_teams_black_from_the_installed_project(tmp_path: Path) -> None:
+    """rich, final pass 0.18.5: black ran in the CI job's image, where it is not on the PATH; the candidate went out
+    unformatted and the team's `black --check` was red in every cell."""
+    import subprocess as sp
+    from typing import Any
+
+    from unbidden.lab.fixlab import Candidate, FixLab
+    from unbidden.sandbox.provision import DependencyImage
+    from unbidden.sandbox.runner import SandboxResult
+
+    repo = tmp_path / "r"
+    repo.mkdir()
+    (repo / "a.py").write_text("x=1\n")
+    git = ["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t"]
+    sp.run(["git", "init", "-q", str(repo)], check=True)
+    sp.run([*git, "add", "."], check=True)
+    sp.run([*git, "commit", "-qm", "x"], check=True)
+    own = DependencyImage("deps", "python", [], {}, {})
+    ci = DependencyImage("ci", "python", [], {}, {}, runner_like=True, own=own)
+    seen: list[str] = []
+
+    class Runner:
+        def run(self, spec: Any, work: Path) -> SandboxResult:
+            seen.append(spec.image)
+            (work / "a.py").write_text("x = 1\n")
+            return SandboxResult(0, "", "", False, 0.1, False, False)
+
+    lab = FixLab(repo, None, None, None, {"python": ci}, runner=Runner())  # type: ignore[arg-type]
+    notes: list[str] = []
+    out = lab._in_team_format("HEAD", Candidate("model", {"a.py": "x=2\n"}, ""), ci, ("black",), ".", notes)  # pyright: ignore[reportPrivateUsage]
+    assert seen == ["deps"] and out.files["a.py"] == "x = 1\n", (seen, notes)

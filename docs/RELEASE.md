@@ -1,11 +1,14 @@
 # Unbidden 0.18.0, experimental candidate: the terminal app on the product branch, not 1.0
 
-## 0.18.6 (2026-11-04): the labs' type checks run where the project is installed
+## 0.18.6 (2026-11-04): the labs' type checks and formatter run where the project is installed
 
 - **The fix lab and the performance lab run mypy and pyright in Unbidden's own environment.** reader, final pass on
   0.18.5: reproducing its lint findings, the fix lab ran mypy in the CI job's image (no `/deps/.venv`), so every
   fix ended "cannot judge: incomplete reports from mypy". A tool that reads `/deps/.venv` now runs beside, in
   Unbidden's own environment of the same revision (0.18.3); the others still run in the CI job's.
+- **The candidate goes through the team's formatter and type check from the installed project.** rich, the same
+  pass: two pull requests red on `black --check` in every CI cell, with the note "black: not in the project's
+  environment": the formatter ran in the CI job's image, where it is not on the PATH.
 
 ## 0.18.5 (2026-11-04): standing advisories are not new with a bump; findings relative to the repository
 

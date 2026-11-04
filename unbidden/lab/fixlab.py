@@ -306,6 +306,7 @@ class FixLab:
     ) -> int:
         """New errors the team's own type check reports with the candidate, against the base (counted once per
         commit). 0 when none, or when the check cannot run here (noted, never a rejection)."""
+        image = own_image(image) or image  # the team's mypy, from the installed project (beside a CI job's image)
         key = f"typecheck:{rev}:{' '.join(argv)}"
         base = self.store.get_value(key)
         if base is None:
@@ -342,6 +343,9 @@ class FixLab:
         files = sorted(p for p in candidate.files if p.endswith(".py"))
         if not files:
             return candidate
+        # The team's formatter is installed with the project, in Unbidden's own environment beside a CI job's image
+        # (rich, final pass 0.18.5: "black: not in the project's environment", two pull requests red on black).
+        image = own_image(image) or image
         work = self._work(rev, image, candidate.files)
         base = snapshot(self.repo, rev)
         try:
