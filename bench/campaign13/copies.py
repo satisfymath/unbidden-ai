@@ -219,7 +219,13 @@ def _prepare_commit(repo: dict[str, Any], slug: str, branch: str, human: list[di
     kept = [p.file + (f" (without {', '.join(p.removed_jobs)})" if p.action == "edit" else "")
             for p in plans if p.action != "remove"]  # fmt: skip
     removed, edited = apply_plan(tmp, plans)
-    subprocess.run([*git, "add", "-A", ".github/workflows"], check=True)
+    # Dependabot's version updates come from its config file, not a workflow the settings can disable in time (the
+    # 0.18.0 rehearsal: c13-rich, c13-fst and c13-codex-lb got bot pull requests minutes after the push): removed too.
+    bots = [str(f.relative_to(tmp)) for f in sorted((tmp / ".github").glob("dependabot.y*ml"))]
+    for path in bots:
+        (tmp / path).unlink()
+    removed = [*removed, *bots]
+    subprocess.run([*git, "add", "-A", ".github"], check=True)
     plan_record = [p.__dict__ for p in plans]
     staged = subprocess.run([*git, "diff", "--cached", "--quiet"], check=False).returncode == 1
     if not staged:
@@ -233,6 +239,7 @@ def _prepare_commit(repo: dict[str, Any], slug: str, branch: str, human: list[di
         "commit). Removed because they would deploy, release, publish or act as the project's bots from this copy",
         "(one general rule, bench/campaign13/workflows.py):",
     ]
+    why |= {f: "Dependabot's version updates: the project's bot, not its checks" for f in bots}
     lines += [f"  - {f}: {why.get(f, '')}" for f in removed]
     lines += [f"  - {e['file']}: jobs {', '.join(e['removed_jobs'])} cut out" for e in edited]
     lines += [
