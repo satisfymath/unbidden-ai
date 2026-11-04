@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:19000/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "sin datos",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "aiohttp 3.14.3: 8 known vulnerabilities, fixed in 3.14.4\tpropuesta\t4\tpropose_change",
+    "msgpack 1.2.1: 1 known vulnerability, fixed in 1.2.3\tpropuesta\t4\tpropose_change",
+    "multidict 6.7.1: 2 known vulnerabilities, fixed in 6.9.1\tpropuesta\t4\tpropose_change",
+    "pyarrow 21.0.0: 2 known vulnerabilities, fixed in 23.0.1\tabierta\t1\trun_experiment",
+    "urllib3 2.7.0: 6 known vulnerabilities, fixed in 2.8.0\tabierta\t1\trun_experiment",
+    "virtualenv 21.7.1: 19 known vulnerabilities, fixed in 21.14.9\tabierta\t1\trun_experiment",
+    "filelock 3.32.2: 12 known vulnerabilities, fixed in 4.2.1\tabierta\t1\twait",
+    ""
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "5 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "harlequin",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 95 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "decision.made",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "model.called",
+    "proposal.published",
+    "proposal.pushed",
+    "proposal.ready",
+    "verdict.recorded",
+    "Trabajo iniciado",
+    "19:31",
+    "doing: measuring a candidate in the sandbox · stage: measured · subject: opp_3d125e14b7504d28",
+    "Trabajo terminado",
+    "19:31",
+    "next: [] · outcome: ok · seconds: 4.9",
+    "Propuesta publicada",
+    "19:31",
+    "number: 4 · url: https://github.com/satisfymath/c13-harlequin/pull/4",
+    "Rama subida",
+    "19:31",
+    "branch: unbidden/multidict-6-7-1-2-known-vulnerabilities-5d4363 · commit: 7303b93f3b06e908b35c2977ab7b4a6cc393fd8e · slu",
+    "Salida permitida",
+    "19:31",
+    "→ github.com (2153 B)",
+    "Trabajo iniciado",
+    "19:31",
+    "doing: opening the pull request · stage: proposed · subject: prop_c0653b269faa47de",
+    "Trabajo terminado",
+    "19:31"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "harlequin",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 7 oportunidades, ordenadas por evidencia",
+    "L4 validado",
+    "aiohttp 3.14.3: 8 known vulnerabilities, fixed in 3.14.4",
+    "pypi-advisories · security · propose_change · 04 nov, 18:11",
+    "propuesta",
+    "—",
+    "L4 validado",
+    "msgpack 1.2.1: 1 known vulnerability, fixed in 1.2.3",
+    "pypi-advisories · security · propose_change · 04 nov, 18:11",
+    "propuesta",
+    "—",
+    "L4 validado",
+    "multidict 6.7.1: 2 known vulnerabilities, fixed in 6.9.1",
+    "pypi-advisories · security · propose_change · 04 nov, 18:11",
+    "propuesta",
+    "—",
+    "L1 sospecha",
+    "filelock 3.32.2: 12 known vulnerabilities, fixed in 4.2.1",
+    "pypi-advisories · security · wait · bloqueada · 04 nov, 18:11",
+    "abierta",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "5 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

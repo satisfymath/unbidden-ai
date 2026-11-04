@@ -1,0 +1,96 @@
+{
+  "autonomy": {
+    "act_on_connections": "deny",
+    "delegate_synthetic": "allow",
+    "deploy": "deny",
+    "merge_pull_requests": "allow",
+    "observe": "allow",
+    "open_pull_requests": "allow",
+    "provision_dependencies": "allow",
+    "rollback": "deny",
+    "run_experiments": "allow",
+    "use_new_capabilities": "allow"
+  },
+  "business_constraints": {
+    "destructive_operations": "deny",
+    "maximum_monthly_spend_usd": 2.0
+  },
+  "connections": [
+    {
+      "content_may_leave": false,
+      "credential_ref": "GITHUB_TOKEN",
+      "docs": null,
+      "environment": "production",
+      "id": "github",
+      "kind": "github",
+      "limits": {},
+      "location": "satisfymath/c13-sqlmodel",
+      "permissions": [
+        "read"
+      ],
+      "tls": "prefer",
+      "username": null
+    }
+  ],
+  "egress": {
+    "ci_environment": "auto",
+    "github": {
+      "base_branch": "main",
+      "max_open_pull_requests": 3,
+      "max_payload_bytes": 200000,
+      "repository": "satisfymath/c13-sqlmodel",
+      "token_env": "GITHUB_TOKEN"
+    },
+    "package_registries": [
+      "pypi.org",
+      "files.pythonhosted.org",
+      "deb.debian.org",
+      "registry.npmjs.org",
+      "ghcr.io",
+      "registry-1.docker.io",
+      "github.com",
+      "objects.githubusercontent.com"
+    ],
+    "remote_models": {
+      "destinations": [
+        "api.meta.ai"
+      ],
+      "max_payload_bytes": 20000,
+      "max_tokens_per_call": 16000
+    }
+  },
+  "evaluation": {
+    "alpha": 0.01,
+    "min_relative_effect": 0.2,
+    "minimum_evidence_for_proposal": 4,
+    "persistence_days": 7.0,
+    "value_hours": {}
+  },
+  "goals": [],
+  "models": {
+    "local_fallback": "deny",
+    "local_inference": "deny",
+    "private_code_to_frontier": "allow",
+    "profile": "frontier",
+    "screenshots_to_frontier": "allow"
+  },
+  "operations": {
+    "check_image": null,
+    "check_steps": [],
+    "deploy_steps": [],
+    "guard_samples": 15,
+    "health_url": null,
+    "max_deploys_per_hour": 2,
+    "max_merges_per_hour": 2,
+    "probe_auth": null,
+    "probe_every_s": 5.0,
+    "self_host": "auto",
+    "ui_capture_retention_days": 14.0
+  },
+  "priorities": [
+    "correctness",
+    "performance of reads as data grows",
+    "robustness"
+  ],
+  "workspace": "sqlmodel"
+}

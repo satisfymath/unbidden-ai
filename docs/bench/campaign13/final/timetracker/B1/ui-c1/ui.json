@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:19040/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "1 ruff-baseline F823 finding in app/integrations/\tabierta\t1\t—",
+    "2 ruff-baseline F811 findings in app/integrations/\tabierta\t1\t—",
+    "22 ruff-baseline F811 findings in app/routes/\tabierta\t1\t—",
+    "1 ruff-baseline F811 finding in app/services/\tabierta\t1\t—",
+    "3 ruff-baseline F811 findings in app/utils/\tabierta\t1\t—",
+    "1 ruff-baseline F821 finding in docker/\tabierta\t1\t—",
+    "1 ruff-baseline F811 finding in migrations/\tabierta\t1\t—",
+    "21 ruff-baseline F811 findings in tests/\tabierta\t1\t—",
+    "8 ruff-baseline F821 findings in tests/\tabierta\t1\t—"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "1 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "timetracker",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 119 eventos · en vivo",
+    "todos los tipos",
+    "analyzer.ran",
+    "decision.made",
+    "egress.blocked",
+    "job.finished",
+    "job.started",
+    "opportunity.opened",
+    "world.changed",
+    "Trabajo iniciado",
+    "19:58",
+    "doing: running the project's own checks · stage: found · subject: null",
+    "Trabajo terminado",
+    "19:58",
+    "next: [\"director.sweep\",\"observe.checks\",\"research.probe\"] · outcome: ok · seconds: 2892.6",
+    "Decisión tomada",
+    "19:58",
+    "investigate — probe app (80 public functions sampled)",
+    "Mapa actualizado",
+    "19:58",
+    "{\"carried\":[\"api:http_api:http://127.0.0.1:3000\",\"api:http_api:https://127.0.0.1",
+    "Salida bloqueada",
+    "19:17",
+    "world.endpoint_tables → api.meta.ai (113724 B)",
+    "Salida bloqueada",
+    "19:17",
+    "world.endpoint_tables → api.meta.ai (113237 B)",
+    "Salida bloqueada",
+    "19:17",
+    "world.endpoint_tables → api.meta.ai (113803 B)",
+    "Salida bloqueada",
+    "19:17"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "timetracker",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 63 oportunidades, ordenadas por evidencia",
+    "L1 sospecha",
+    "tasks.created_by is a foreign key without an index, filtered on by 17 endpoint(s)",
+    "world · performance · sin decisión · 04 nov, 18:31",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "time_entries.task_id is a foreign key without an index, filtered on by 19 endpoint(s)",
+    "world · performance · sin decisión · 04 nov, 18:32",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "invoice_items.time_entry_id is a foreign key without an index, filtered on by 2 endpoint(s)",
+    "world · performance · sin decisión · 04 nov, 18:32",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "invoices.created_by is a foreign key without an index, filtered on by 15 endpoint(s)",
+    "world · performance · sin decisión · 04 nov, 18:33",
+    "abierta",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "1 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

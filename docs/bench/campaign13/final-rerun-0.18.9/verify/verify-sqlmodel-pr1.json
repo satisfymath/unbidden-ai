@@ -1,0 +1,33 @@
+{
+ "slug": "satisfymath/c13-sqlmodel",
+ "number": 1,
+ "title": "fix(deps): bump anyio 4.12.0 → 4.14.2 (security)",
+ "base": "dadc5489ffd109b064acf280ad0e2e0829c439cf",
+ "head": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+ "claims": [],
+ "changed_files": [
+  "uv.lock"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [
+  {
+   "rule": "advisories (OSV)",
+   "file": "anyio",
+   "at_base": [
+    "CVE-2026-63374",
+    "CVE-2026-64847",
+    "GHSA-5p39-cfhj-2xmp",
+    "GHSA-82r6-8w77-94w6",
+    "PYSEC-2026-4024",
+    "PYSEC-2026-4025"
+   ],
+   "at_head": [],
+   "new_version_in_patch": true,
+   "only_dependency_files": true,
+   "verdict": "confirmed"
+  }
+ ],
+ "change_matches_problem": true,
+ "verdict": "verified"
+}

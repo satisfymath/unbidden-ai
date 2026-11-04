@@ -1,0 +1,29 @@
+{
+ "slug": "satisfymath/c13-fst",
+ "number": 17,
+ "title": "security: bump dnspython 2.8.0 → 2.9.0",
+ "base": "7276409913db1d2cfcbbc2c3a7f7566c93e6ea8f",
+ "head": "51cb21d06cef65938c1a9ee218601a252a75c1e4",
+ "claims": [],
+ "changed_files": [
+  "uv.lock"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [
+  {
+   "rule": "advisories (OSV)",
+   "file": "dnspython",
+   "at_base": [
+    "CVE-2026-114605",
+    "GHSA-45c3-73f7-pv4m"
+   ],
+   "at_head": [],
+   "new_version_in_patch": true,
+   "only_dependency_files": true,
+   "verdict": "confirmed"
+  }
+ ],
+ "change_matches_problem": true,
+ "verdict": "verified"
+}

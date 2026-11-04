@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18810/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "PyJWT 2.13.0: 29 known vulnerabilities, fixed in 2.15.0\tabierta\t1\trun_experiment",
+    "accelerate 1.13.0: 2 known vulnerabilities, no fix published\tabierta\t1\trun_experiment",
+    "chromadb 1.5.7: 8 known vulnerabilities, no fix published\tabierta\t1\trun_experiment",
+    "diskcache 5.6.3: 2 known vulnerabilities, no fix published\tabierta\t1\trun_experiment",
+    "nltk 3.10.2: 34 known vulnerabilities, fixed in 3.10.4\tabierta\t1\trun_experiment",
+    "opentelemetry-api 1.40.0: 1 known vulnerability, fixed in 1.45.1\tabierta\t1\trun_experiment",
+    "pillow 12.3.0: 55 known vulnerabilities, fixed in 13.0.0\tabierta\t1\trun_experiment",
+    "pypdf 6.15.0: 40 known vulnerabilities, fixed in 6.21.4\tabierta\t1\trun_experiment",
+    "ragas 0.4.3: 2 known vulnerabilities, no fix published\tabierta\t1\trun_experiment"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "1 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "mimirq",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 80 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "analyzer.ran",
+    "connection.changed",
+    "decision.made",
+    "egress.allowed",
+    "egress.blocked",
+    "job.finished",
+    "job.started",
+    "model.called",
+    "model.fallback",
+    "opportunity.opened",
+    "repo.head_moved",
+    "world.changed",
+    "Trabajo terminado",
+    "18:01",
+    "next: [] · outcome: ok · seconds: 125.4",
+    "Nota del agente",
+    "18:01",
+    "text: robustness probe of app: no model answered: EgressBlocked: payload is 29631 bytes, above the 20000-byte cap",
+    "Fallback de modelo",
+    "18:01",
+    "cause: EgressBlocked: payload is 29631 bytes, above the 20000-byte cap · from: code · purpose: research.robustness",
+    "Salida bloqueada",
+    "18:01",
+    "research.robustness → api.meta.ai (29631 B)",
+    "Trabajo iniciado",
+    "17:59",
+    "doing: probing for crashes · stage: found · subject: null",
+    "Trabajo terminado",
+    "17:59"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "mimirq",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 12 oportunidades, ordenadas por evidencia",
+    "L1 sospecha",
+    "PyJWT 2.13.0: 29 known vulnerabilities, fixed in 2.15.0",
+    "pypi-advisories · security · run_experiment · 04 nov, 17:52",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "accelerate 1.13.0: 2 known vulnerabilities, no fix published",
+    "pypi-advisories · security · run_experiment · 04 nov, 17:52",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "chromadb 1.5.7: 8 known vulnerabilities, no fix published",
+    "pypi-advisories · security · run_experiment · 04 nov, 17:52",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "diskcache 5.6.3: 2 known vulnerabilities, no fix published",
+    "pypi-advisories · security · run_experiment · 04 nov, 17:52",
+    "abierta",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "1 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

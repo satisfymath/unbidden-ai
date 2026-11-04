@@ -1,0 +1,2 @@
+2026-11-04T15:18:59-0300 [B1] worker 0 starts on ports {'dashboard': 18800, 'ui_a': 18801, 'lab': 18802, 'lab_db': 18803}
+2026-11-04T15:25:16-0300 [B1] done in 376 s: {"name": "conduit", "run": "B1", "mode": "custom", "deploy_target": "self_host", "self_host_ok": false, "export": true, "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/conduit/B1.json", "proposals_c1": 0, "proposals_c2": 0, "pulls_after": 0, "spent_usd": 0.0552, "blocks": [], "wall_s": 336.5}

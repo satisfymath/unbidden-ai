@@ -1,0 +1,142 @@
+[
+ {
+  "name": "spoolman",
+  "level": "B",
+  "run": 1,
+  "worker": 5,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "misago",
+  "level": "B",
+  "run": 1,
+  "worker": 5,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "brightbean-studio",
+  "level": "B",
+  "run": 1,
+  "worker": 5,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "traefik-manager",
+  "level": "B",
+  "run": 1,
+  "worker": 5,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "recruitops-agent",
+  "level": "B",
+  "run": 1,
+  "worker": 5,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "aiogramshopbot",
+  "level": "B",
+  "run": 1,
+  "worker": 5,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "gymhero",
+  "level": "B",
+  "run": 1,
+  "worker": 5,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "dinkydash",
+  "level": "B",
+  "run": 1,
+  "worker": 5,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "tracklater",
+  "level": "B",
+  "run": 1,
+  "worker": 5,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "librephotos",
+  "level": "B",
+  "run": 1,
+  "worker": 5,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "netbox",
+  "level": "B",
+  "run": 1,
+  "worker": 5,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "archery",
+  "level": "B",
+  "run": 1,
+  "worker": 5,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "resumeio-to-pdf",
+  "level": "B",
+  "run": 1,
+  "worker": 5,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "ai-avatar-system",
+  "level": "B",
+  "run": 1,
+  "worker": 5,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "weblate",
+  "level": "B",
+  "run": 1,
+  "worker": 5,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "zod",
+  "level": "A",
+  "run": 1,
+  "worker": 5,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "gin",
+  "level": "A",
+  "run": 1,
+  "worker": 5,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "harlequin",
+  "level": "B",
+  "run": 1,
+  "worker": 3,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "codex-lb",
+  "level": "B",
+  "run": 1,
+  "worker": 4,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ },
+ {
+  "name": "timetracker",
+  "level": "B",
+  "run": 1,
+  "worker": 2,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'"
+ }
+]

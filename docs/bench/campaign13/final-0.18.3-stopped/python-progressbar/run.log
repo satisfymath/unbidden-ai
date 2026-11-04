@@ -1,0 +1,2 @@
+2026-11-04T13:39:50-0300 [B1] worker 4 starts on ports {'dashboard': 18840, 'ui_a': 18841, 'lab': 18842, 'lab_db': 18843}
+2026-11-04T13:44:24-0300 [B1] done in 274 s: {"name": "python-progressbar", "run": "B1", "mode": "custom", "deploy_target": "none", "self_host_ok": null, "export": true, "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/python-progressbar/B1.json", "proposals_c1": 0, "proposals_c2": 0, "pulls_after": 0, "spent_usd": 0.0442, "blocks": [], "wall_s": 233.1}

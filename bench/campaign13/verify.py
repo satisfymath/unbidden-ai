@@ -41,6 +41,56 @@ def ruff_findings(repo: Path, rev: str, file: str, rule: str) -> list[str] | Non
     return [line for line in out.stdout.splitlines() if f" {rule} " in line or line.endswith(rule)]
 
 
+BUMP = re.compile(r"bump (?P<package>[\w.\-\[\]]+) (?P<old>[^\s→]+) → (?P<new>[^\s()]+)")
+DEPENDENCY_FILES = re.compile(
+    r"(^|/)(uv\.lock|poetry\.lock|pyproject\.toml|setup\.cfg|Pipfile(\.lock)?|requirements[^/]*\.(txt|in))$"
+)
+
+
+def osv_ids(package: str, version: str) -> set[str] | None:
+    """The advisories OSV (osv.dev, a source the product does not use) lists for a PyPI package at a version."""
+    import urllib.request
+
+    query = json.dumps({"package": {"name": package, "ecosystem": "PyPI"}, "version": version}).encode()
+    request = urllib.request.Request("https://api.osv.dev/v1/query", data=query,
+                                     headers={"Content-Type": "application/json"})  # fmt: skip
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            vulns = json.loads(response.read()).get("vulns") or []
+    except OSError:
+        return None
+    return {v["id"] for v in vulns} | {a for v in vulns for a in v.get("aliases") or []}
+
+
+def bump_check(title: str, files: list[dict[str, Any]], repo: Path, head: str) -> dict[str, Any] | None:
+    """A security bump, checked apart from the product: OSV lists advisories for the old version and none of them for
+    the new one; the pull request changes only dependency files, and its patch names the new version."""
+    found = BUMP.search(title)
+    if found is None:
+        return None
+    package, old, new = found["package"], found["old"], found["new"]
+    before, after = osv_ids(package, old), osv_ids(package, new)
+    patches = "\n".join(f.get("patch") or "" for f in files)
+    # GitHub leaves out the patch of a large file (a uv.lock): then the file itself, at the head, is read.
+    pinned = new in patches or any(
+        new
+        in subprocess.run(
+            ["git", "-C", str(repo), "show", f"{head}:{f['filename']}"], capture_output=True, text=True, check=False
+        ).stdout
+        for f in files
+        if not f.get("patch")
+    )
+    only_deps = all(DEPENDENCY_FILES.search(f["filename"]) for f in files)
+    if before is None or after is None:
+        verdict = "no independent confirmation"
+    elif before and not (before & after) and pinned and only_deps:
+        verdict = "confirmed"
+    else:
+        verdict = "NOT confirmed"
+    return {"rule": "advisories (OSV)", "file": package, "at_base": sorted(before or []), "at_head": sorted(after or []),
+            "new_version_in_patch": pinned, "only_dependency_files": only_deps, "verdict": verdict}  # fmt: skip
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("slug")
@@ -75,11 +125,17 @@ def main() -> None:
                 "at_base": before, "at_head": after,
                 "verdict": "confirmed" if before and not after else ("no independent confirmation" if before is None or after is None else "NOT confirmed"),
             })  # fmt: skip
+        bump = bump_check(pr["title"], files, repo, pr["head"]["sha"]) if not findings else None
+        if bump is not None:
+            checks.append(bump)
         record["finding_checks"] = checks
         named = {c["file"] for c in findings}
-        record["change_matches_problem"] = bool(named) and set(record["changed_files"]) <= named | {
-            f for f in record["changed_files"] if f.startswith("tests/")
-        }
+        record["change_matches_problem"] = (
+            bump["only_dependency_files"]
+            if bump is not None
+            else bool(named)
+            and set(record["changed_files"]) <= named | {f for f in record["changed_files"] if f.startswith("tests/")}
+        )
         if args.checks:
             from bench.checks_only import checks as project_checks
 

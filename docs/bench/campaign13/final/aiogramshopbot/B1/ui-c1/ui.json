@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:19230/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "2 ruff-baseline F811 findings in ./\tpropuesta\t4\tpropose_change",
+    "pillow 12.1.0: 92 known vulnerabilities, fixed in 13.0.0\tabierta\t4\trun_experiment",
+    "python-dotenv 1.0.1: 2 known vulnerabilities, fixed in 1.2.2\tabierta\t4\trun_experiment",
+    "python-multipart 0.0.21: 12 known vulnerabilities, fixed in 0.0.31\tdescartada\t3\tdecline",
+    "aiohttp 3.10.11: 74 known vulnerabilities, fixed in 3.14.4\tabierta\t1\twait",
+    "ecdsa 0.19.2: 2 known vulnerabilities, no fix published\tabierta\t1\twait",
+    "pytest 8.4.2: 2 known vulnerabilities, fixed in 9.0.3\tabierta\t1\twait",
+    "python-jose 3.5.0: 2 known vulnerabilities, no fix published\tabierta\t1\twait",
+    "sqladmin 0.22.0: 4 known vulnerabilities, fixed in 0.27.1\tabierta\t1\twait"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "1 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "aiogramshopbot",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 163 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "connection.changed",
+    "decision.made",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "operations.merged",
+    "proposal.published",
+    "proposal.pushed",
+    "proposal.ready",
+    "proposal.stale",
+    "verdict.recorded",
+    "world.changed",
+    "Trabajo terminado",
+    "19:56",
+    "next: [] · outcome: ok · seconds: 0",
+    "Trabajo iniciado",
+    "19:56",
+    "doing: measuring a candidate in the sandbox · stage: measured · subject: opp_f9180e4c452242dd",
+    "Trabajo terminado",
+    "19:56",
+    "next: [] · outcome: ok · seconds: 0",
+    "Trabajo iniciado",
+    "19:56",
+    "doing: measuring a candidate in the sandbox · stage: measured · subject: opp_ce20d2cd1bda41df",
+    "Trabajo terminado",
+    "19:56",
+    "next: [\"lab.experiment\"] · outcome: ok · seconds: 1.1",
+    "Decisión tomada",
+    "19:56"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "aiogramshopbot",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 10 oportunidades, ordenadas por evidencia",
+    "L4 validado",
+    "2 ruff-baseline F811 findings in ./",
+    "ruff-baseline · bugs · propose_change · 04 nov, 19:46",
+    "propuesta",
+    "—",
+    "L4 validado",
+    "pillow 12.1.0: 92 known vulnerabilities, fixed in 13.0.0",
+    "pypi-advisories · security · run_experiment · 04 nov, 19:46",
+    "abierta",
+    "—",
+    "L4 validado",
+    "python-dotenv 1.0.1: 2 known vulnerabilities, fixed in 1.2.2",
+    "pypi-advisories · security · run_experiment · 04 nov, 19:46",
+    "abierta",
+    "—",
+    "L3 lab",
+    "python-multipart 0.0.21: 12 known vulnerabilities, fixed in 0.0.31",
+    "pypi-advisories · security · decline · 04 nov, 19:46",
+    "descartada",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "1 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

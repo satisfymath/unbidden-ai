@@ -1,0 +1,10 @@
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 1, "summary": "GITHUB_TOKEN for connection:github: given", "ts": "2026-11-04T19:01:32.085335+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 2, "summary": "GITHUB_TOKEN for github: given", "ts": "2026-11-04T19:02:15.254294+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 3, "summary": "MODEL_API_KEY for model.remote: given", "ts": "2026-11-04T19:02:24.667397+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 4, "summary": "MODEL_API_KEY for model.remote: given", "ts": "2026-11-04T19:03:21.502963+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 5, "summary": "GITHUB_TOKEN for github: given", "ts": "2026-11-04T19:04:17.871304+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 6, "summary": "GITHUB_TOKEN for github: given", "ts": "2026-11-04T19:04:18.393506+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 7, "summary": "GITHUB_TOKEN for github: given", "ts": "2026-11-04T19:05:22.313988+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 8, "summary": "GITHUB_TOKEN for connection:github: given", "ts": "2026-11-04T19:05:25.055060+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 9, "summary": "GITHUB_TOKEN for github: given", "ts": "2026-11-04T19:10:51.520358+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 10, "summary": "GITHUB_TOKEN for connection:github: given", "ts": "2026-11-04T19:10:57.797892+00:00"}

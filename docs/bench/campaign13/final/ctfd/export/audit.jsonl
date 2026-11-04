@@ -1,0 +1,11 @@
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 1, "summary": "MODEL_API_KEY for model.remote: given", "ts": "2026-11-04T19:46:26.511986+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 2, "summary": "MODEL_API_KEY for model.remote: given", "ts": "2026-11-04T19:46:53.779914+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 3, "summary": "GITHUB_TOKEN for connection:github: given", "ts": "2026-11-04T19:47:08.190035+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 4, "summary": "GITHUB_TOKEN for github: given", "ts": "2026-11-04T19:56:34.505679+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 5, "summary": "MODEL_API_KEY for model.remote: given", "ts": "2026-11-04T19:57:04.975930+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 6, "summary": "GITHUB_TOKEN for github: given", "ts": "2026-11-04T21:09:19.688149+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 7, "summary": "GITHUB_TOKEN for github: given", "ts": "2026-11-04T21:09:20.577913+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 8, "summary": "GITHUB_TOKEN for github: given", "ts": "2026-11-04T21:09:21.108367+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 9, "summary": "GITHUB_TOKEN for github: given", "ts": "2026-11-04T21:18:50.928535+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 10, "summary": "GITHUB_TOKEN for connection:github: given", "ts": "2026-11-04T21:18:54.193129+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 11, "summary": "GITHUB_TOKEN for github: given", "ts": "2026-11-04T21:19:08.043904+00:00"}

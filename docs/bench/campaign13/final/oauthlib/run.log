@@ -1,1 +1,2 @@
-2026-11-04T12:15:54-0300 [B1] worker 5 starts on ports {'dashboard': 18850, 'ui_a': 18851, 'lab': 18852, 'lab_db': 18853}
+2026-11-04T16:00:34-0300 [B1] worker 5 starts on ports {'dashboard': 18850, 'ui_a': 18851, 'lab': 18852, 'lab_db': 18853}
+2026-11-04T16:13:17-0300 [B1] done in 763 s: {"name": "oauthlib", "run": "B1", "mode": "custom", "deploy_target": "none", "self_host_ok": null, "export": true, "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/oauthlib/B1.json", "proposals_c1": 1, "proposals_c2": 1, "pulls_after": 2, "spent_usd": 0.2676, "blocks": [], "wall_s": 714.4}

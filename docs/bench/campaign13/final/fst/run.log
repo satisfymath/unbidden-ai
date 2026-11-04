@@ -1,0 +1,2 @@
+2026-11-04T16:22:53-0300 [B1] worker 2 starts on ports {'dashboard': 18820, 'ui_a': 18821, 'lab': 18822, 'lab_db': 18823}
+2026-11-04T17:28:48-0300 [B1] done in 3955 s: {"name": "fst", "run": "B1", "mode": "autonomous", "deploy_target": "lab", "self_host_ok": null, "export": true, "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/fst/B1.json", "proposals_c1": 1, "proposals_c2": 1, "pulls_after": 17, "spent_usd": 0.4434, "blocks": [], "wall_s": 3859.3}

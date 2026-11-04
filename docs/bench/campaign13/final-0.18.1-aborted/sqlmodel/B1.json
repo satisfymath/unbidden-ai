@@ -1,0 +1,564 @@
+{
+ "repo": "sqlmodel",
+ "phase": "final",
+ "run": "B1",
+ "candidate": "700a5dac6beafa52825ae5772d75532d68e58430",
+ "wheel_sha256": "2c047581db8dbf02c35d0ece8d59d6192ff9bc02ebaba800f84a5d99d40b2568",
+ "started_at": "2026-11-04T12:15:54-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "autopilot",
+    "--budget",
+    "2",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--github-token-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 8.4,
+   "timed_out": false,
+   "stdout": "tonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": {\n    \"ok\": true,\n    \"rejected\": false,\n    \"model\": \"muse-spark-1.3\",\n    \"usd\": 0.000571,\n    \"why\": null\n  },\n  \"priorities\": [\n    \"correctness\",\n    \"maintainability\",\n    \"security\"\n  ],\n  \"github\": \"file\",\n  \"found\": {\n    \"repository\": \"satisfymath/c13-sqlmodel\",\n    \"branch\": \"HEAD\",\n    \"head\": \"dadc5489ffd109b064acf280ad0e2e0829c439cf\",\n    \"scope\": [\n      {\n        \"name\": \"scope: stack\",\n        \"in_scope\": true,\n        \"note\": \"Python 3.10 (pyproject.toml, uv.lock)\"\n      },\n      {\n        \"name\": \"scope: tests\",\n        \"in_scope\": true,\n        \"note\": \"test.yml > test (matrix entry 1 of 9 (os=ubuntu-latest, python-version=3.11, uv-resolution=highest)); 2 step(s) after the tests left out (they run no tests)\"\n      },\n      {\n        \"name\": \"scope: database\",\n        \"in_scope\": true,\n        \"note\": \"services in compose: postgres, mysql, mariadb\"\n      }\n    ],\n    \"machine\": \"Apple M5 Pro, 64 GB, 54 GB for a model\",\n    \"ollama\": {\n      \"url\": \"http://localhost:11434\",\n      \"present\": true,\n      \"models\": [\n        \"muse-glimmer:30b-mxfp8-dflash\",\n        \"nomic-embed-text:latest\"\n      ]\n    },\n    \"local_model\": {\n      \"tag\": \"muse-glimmer:30b-mxfp8-dflash\",\n      \"installed\": true\n    },\n    \"key\": {\n      \"name\": \"MODEL_API_KEY\",\n      \"present\": true\n    },\n    \"github\": \"file\",\n    \"github_check\": {\n      \"login\": \"satisfymath\",\n      \"can_push\": true,\n      \"detail\": \"can push to satisfymath/c13-sqlmodel\"\n    },\n    \"compose\": \"compose.yml\",\n    \"services\": [\n      {\n        \"name\": \"postgres\",\n        \"kind\": \"postgres\"\n      },\n      {\n        \"name\": \"mysql\",\n        \"kind\": \"mysql\"\n      },\n      {\n        \"name\": \"mariadb\",\n        \"kind\": \"mariadb\"\n      },\n      {\n        \"name\": \"adminer\",\n        \"kind\": null\n      }\n    ],\n    \"external\": [],\n    \"option\": \"mixed\",\n    \"option_why\": \"hay una clave y un modelo local\"\n  },\n  \"defaulted\": [\n    \"priorities\",\n    \"key\",\n    \"connections\",\n    \"private_code\",\n    \"language\"\n  ],\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c13/sqlmodel/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c13/sqlmodel/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 2.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -12,9 +12,10 @@\",\n    \"     provision_dependencies: allow\",\n    \"     delegate_synthetic: allow\",\n    \"-    open_pull_requests: require_approval\",\n    \"+    open_pull_requests: allow\",\n    \"     merge_pull_requests: deny\",\n    \"     deploy: deny\",\n    \"     rollback: deny\",\n    \"-    use_new_capabilities: require_approval\",\n    \"+    use_new_capabilities: allow\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,16 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\",\n    \"+  connections:\",\n    \"+  - id: github\",\n    \"+    kind: github\",\n    \"+    location: satisfymath/c13-sqlmodel\",\n    \"+    credential_ref: GITHUB_TOKEN\",\n    \"+    environment: production\",\n    \"+    permissions:\",\n    \"+    - read\",\n    \"+  operations: {}\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c13/sqlmodel/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "                    denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nCredenciales\nGuardadas en /Users/david/unbidden-lab/c13/home/.unbidden/.env (modo 600), \nreferidas por nombre; nunca escritas en el repositorio ni en registros.\nMODEL_API_KEY guardada.\nClave aceptada: muse-spark-1.3 respondió (US$0.0006).\nGITHUB_TOKEN guardada.\n\nPresupuesto\nLibro de la máquina: verified balance US$97.29 (stage 6 spend cap authorized by \nDavid on 2026-10-28: up to US$10 of free credits from this point (dev 3, \nevaluation 5, demo and contingency 2; the earlier US$3 reserve is included, not \nadded). Dashboard as reported by David 2026-10-28: Current balance US$0, free \ncredits in use US$144.98, a Visa card on file, content sent while on free \ncredits may be used to improve products. A cap, not a measured balance; no \nrecharge or card charge authorized (entered by david) | stage 9: US$30 \nadditional Meta API spend authorized by David on 2026-10-29, replacing the US$10\ncap; cumulative cap US$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval\n12, demo 6 (D-052). Dashboard as reported by David: free credits in use \nUS$137.96, balance US$0, a card on file. No recharge or card charge authorized \n(entered by david) | stage 10: the remaining US$20.30 of the US$37.29 cap split \nbefore any call (D-058), by David's stage 10 instruction of 2026-10-30 (entered \nby david) | stage 10 after the frozen evaluation: US$5 of the unspent s10-eval \nmoved to s10-dev for corrections and regressions, by David's instruction of \n2026-10-31; envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; spent at the transfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, \ns10-close 0) (entered by david) | product phase (A-E): s11-product US$4.00 \nauthorized by David on 2026-11-01, reassigned from s10-close (3.80, unspent, \nclosed) and US$0.20 of s10-dev; envelopes total US$20.30 and the cumulative cap \nUS$37.2945 unchanged; spent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval\n1.0010, s10-close 0) (entered by david) | product phase correction: David's \nauthorization of 2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken \nfrom s10-dev had no recorded authorization and goes back (s10-dev 13.00, \ns11-product 3.80); envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; s11-product spent 0 at the correction; spent at the correction \nUS$27.7199 (entered by david) | campaign 12 (installed-product validation): \nUS$60 additional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david) | envelopes s13-dev 15, \ns13-pass 15, s13-final 20, s13-confirm 5 authorized by David on 2026-11-03 \n('dale entonces empecemos con todo', campaign 13 to 1.0, within the cumulative \ncap US$97.2945, not amended); earlier envelopes unchanged; no transfers (entered\nby david)); permitido US$97.29 · gastado US$31.9691 · disponible US$65.3254\nsobres: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, s12-eval\n30.00, s12-dev 17.00, s12-confirm 5.00, s13-dev 15.00, s13-pass 15.00, s13-final\n20.00, s13-confirm 5.00\nLos créditos del proveedor y el gasto autorizado son cosas distintas: el tope \nque una persona ingresó con `unbidden spend --verified-balance` es lo que esta \nmáquina puede gastar; aquí nunca se sube ni se reinicia.\n\nPanel\nAbrir el panel, restaurar su disposición y mostrar registros no llama a ningún \nmodelo; chatear o pedir un análisis sí puede.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 6.8,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"2 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"act\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"found: the team's CI job prepares the environment when the mandate allows it\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key proven: muse-spark-1.3 answered\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"GITHUB_TOKEN set\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs allow\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"recon\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"incompleto: stack down; stack down, postgres unread\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.10 (pyproject.toml, uv.lock)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"test.yml > test (matrix entry 1 of 9 (os=ubuntu-latest, python-version=3.11, uv-resolution=highest)); 2 step(s) after the tests left out (they run no tests)\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"services in compose: postgres, mysql, mariadb\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "18840",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 4,
+   "seconds": 0.4,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": false,\n  \"refused\": [\n    {\n      \"check\": \"recon\",\n      \"detail\": \"incomplete: stack down, postgres unread\",\n      \"fix\": \"unbidden setup recon\"\n    }\n  ],\n  \"warnings\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": false,\n  \"reason\": \"not running\",\n  \"jobs_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "18840",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 4,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": false,\n  \"refused\": [\n    {\n      \"check\": \"recon\",\n      \"detail\": \"incomplete: stack down, postgres unread\",\n      \"fix\": \"unbidden setup recon\"\n    }\n  ],\n  \"warnings\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": false,\n  \"reason\": \"not running\",\n  \"jobs_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-final",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/sqlmodel\",\n  \"head\": \"dadc5489ffd109b064acf280ad0e2e0829c439cf\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c13/sqlmodel/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": null,\n  \"opportunities\": {},\n  \"asks\": [],\n  \"blocks\": [],\n  \"idle\": true\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "egress",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "egress",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.6,
+   "timed_out": false,
+   "stdout": "[]\n",
+   "stderr": ""
+  },
+  {
+   "name": "export",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "export",
+    "--out",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/sqlmodel/export"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "Evidence of sqlmodel written to \n/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/sqlmodel/export\n  events.jsonl                       3 lines  ae28abe98449\n  audit.jsonl                        0 lines  e3b0c44298fc\n  opportunities.jsonl                0 lines  e3b0c44298fc\n  hypotheses.jsonl                   0 lines  e3b0c44298fc\n  experiment_specs.jsonl             0 lines  e3b0c44298fc\n  experiments.jsonl                  0 lines  e3b0c44298fc\n  proposals.jsonl                    0 lines  e3b0c44298fc\n  decisions.jsonl                    0 lines  e3b0c44298fc\n  deploy_verdicts.jsonl              0 lines  e3b0c44298fc\n  deployments.jsonl                  0 lines  e3b0c44298fc\n  holds.jsonl                        0 lines  e3b0c44298fc\n  approvals.jsonl                    0 lines  e3b0c44298fc\n  acceptances.jsonl                  0 lines  e3b0c44298fc\n  actions.jsonl                      2 lines  edc9b5370fdc\n  goal_runs.jsonl                    0 lines  e3b0c44298fc\n  model_runs.jsonl                   0 lines  e3b0c44298fc\n  transcripts.jsonl                  0 lines  e3b0c44298fc\n  egress.jsonl                       0 lines  e3b0c44298fc\n  needs.jsonl                        0 lines  e3b0c44298fc\n  asks.jsonl                         0 lines  e3b0c44298fc\n  blocks.jsonl                       0 lines  e3b0c44298fc\n  deploy_ledger.jsonl                0 lines  e3b0c44298fc\n  spend.jsonl                        0 lines  e3b0c44298fc\n  mandate.json                      96 lines  6a9706579e7e\nevery file was scanned for secrets; manifest.json holds the sha256 of each\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/fastapi/sqlmodel",
+   "commit": "462b59d9cd1cc3d9072735435330ef9ab6d15cbf",
+   "family": "library",
+   "class": "dev",
+   "build": "uv",
+   "lab": null,
+   "copy_base_sha": "dadc5489ffd109b064acf280ad0e2e0829c439cf"
+  },
+  "ledger_before": {
+   "envelope": "s13-final",
+   "envelope_spent_usd": 0.0,
+   "available_usd": 65.3254,
+   "permitted_usd": 97.2945
+  },
+  "fork": {
+   "slug": "satisfymath/c13-sqlmodel",
+   "base": "main",
+   "upstream": "fastapi/sqlmodel",
+   "kind": "copy",
+   "created": true,
+   "prep": {
+    "applied": true,
+    "sha": "dadc5489ffd109b064acf280ad0e2e0829c439cf",
+    "removed": [
+     "add-to-project.yml",
+     "bump-pre-commit-hooks.yml",
+     "create-draft-release.yml",
+     "deploy-docs.yml",
+     "guard-dependencies.yml",
+     "issue-manager.yml",
+     "prepare-release.yml",
+     "publish.yml",
+     "smokeshow.yml",
+     ".github/dependabot.yml"
+    ],
+    "edited": [],
+    "plan": [
+     {
+      "file": "add-to-project.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "add-to-project"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by issues, pull_request_target: checks no code"
+     },
+     {
+      "file": "build-docs.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "changes",
+       "build-docs",
+       "docs-all-green"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "bump-pre-commit-hooks.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "bump-pre-commit-hooks"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by schedule, workflow_dispatch: checks no code"
+     },
+     {
+      "file": "create-draft-release.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "create-draft-release"
+      ],
+      "kept_jobs": [],
+      "why": "every job publishes, deploys or releases"
+     },
+     {
+      "file": "deploy-docs.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "deploy-docs"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by workflow_run: checks no code"
+     },
+     {
+      "file": "detect-conflicts.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "main"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "guard-dependencies.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "check-author"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by pull_request_target: checks no code"
+     },
+     {
+      "file": "issue-manager.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "issue-manager"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by issue_comment, issues, pull_request_target, schedule, workflow_dispatch: checks no code"
+     },
+     {
+      "file": "pre-commit.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "pre-commit",
+       "pre-commit-alls-green"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "prepare-release.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "prepare-release"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by workflow_dispatch: checks no code"
+     },
+     {
+      "file": "publish.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "publish"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by release, workflow_dispatch: checks no code"
+     },
+     {
+      "file": "smokeshow.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "smokeshow"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by workflow_run: checks no code"
+     },
+     {
+      "file": "test-redistribute.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "test-redistribute",
+       "test-redistribute-alls-green"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "test.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "test",
+       "coverage-combine",
+       "alls-green"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "zizmor.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "zizmor"
+      ],
+      "why": "the team's checks"
+     }
+    ],
+    "kept": [
+     "build-docs.yml",
+     "detect-conflicts.yml",
+     "pre-commit.yml",
+     "test-redistribute.yml",
+     "test.yml",
+     "zizmor.yml"
+    ]
+   },
+   "pin": "462b59d9cd1cc3d9072735435330ef9ab6d15cbf",
+   "restore": {
+    "expected": "dadc5489ffd109b064acf280ad0e2e0829c439cf",
+    "head_before": "dadc5489ffd109b064acf280ad0e2e0829c439cf",
+    "pin_in_history": true,
+    "closed": [],
+    "deleted": [],
+    "base_sha": "dadc5489ffd109b064acf280ad0e2e0829c439cf"
+   },
+   "base_sha": "dadc5489ffd109b064acf280ad0e2e0829c439cf",
+   "pin_in_history": true,
+   "dependabot_prs_closed": [],
+   "workflows_registered": [
+    "build-docs.yml",
+    "detect-conflicts.yml",
+    "pre-commit.yml",
+    "test-redistribute.yml",
+    "test.yml",
+    "zizmor.yml"
+   ],
+   "disabled_in_settings": [],
+   "kept": [
+    "build-docs.yml",
+    "detect-conflicts.yml",
+    "pre-commit.yml",
+    "test-redistribute.yml",
+    "test.yml",
+    "zizmor.yml"
+   ]
+  },
+  "fork_before": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "dadc5489ffd109b064acf280ad0e2e0829c439cf"
+  },
+  "deploy_target": "none",
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required"
+  },
+  "mode": {
+   "asked": "custom",
+   "got": "custom",
+   "why": "nothing to deploy: not an application"
+  },
+  "autonomy": {
+   "mode": "custom",
+   "why": "nothing to deploy: not an application",
+   "fields": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "delegate_synthetic": "allow",
+    "open_pull_requests": "allow",
+    "merge_pull_requests": "allow",
+    "deploy": "deny",
+    "rollback": "deny",
+    "use_new_capabilities": "allow",
+    "act_on_connections": "deny"
+   }
+  },
+  "mode_got": "custom",
+  "cycle1": {
+   "started": false,
+   "waited_s": 20.2,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": false,
+    "pid": null,
+    "started_at": null,
+    "command": null,
+    "log": "/Users/david/unbidden-lab/c13/sqlmodel/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "action.executed": 2,
+     "mandate.changed": 1
+    },
+    "docs": {
+     "actions": 2
+    },
+    "jobs": {},
+    "experiments": 0,
+    "opportunities": [],
+    "level_max": 0,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": []
+   }
+  },
+  "ui1": {
+   "opened": false,
+   "why": "no ui.json: the agent did not serve a dashboard"
+  },
+  "fork_after_c1": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "dadc5489ffd109b064acf280ad0e2e0829c439cf"
+  },
+  "cycle2": {
+   "started": false,
+   "waited_s": 20.2,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": false,
+    "pid": null,
+    "started_at": null,
+    "command": null,
+    "log": "/Users/david/unbidden-lab/c13/sqlmodel/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "action.executed": 2,
+     "mandate.changed": 1
+    },
+    "docs": {
+     "actions": 2
+    },
+    "jobs": {},
+    "experiments": 0,
+    "opportunities": [],
+    "level_max": 0,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": []
+   }
+  },
+  "asks_answered": [],
+  "fork_after_c2": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "dadc5489ffd109b064acf280ad0e2e0829c439cf"
+  },
+  "status_final": {
+   "running": false,
+   "pid": null,
+   "started_at": null,
+   "command": null,
+   "log": "/Users/david/unbidden-lab/c13/sqlmodel/.unbidden/logs/agent.log",
+   "stale": false,
+   "jobs_running": 0,
+   "jobs_queued": 0
+  },
+  "egress": {},
+  "checks": {
+   "status": null,
+   "why": "no baseline_checks record (the first cycle did not reach it in time)"
+  },
+  "ledger_after": {
+   "envelope": "s13-final",
+   "envelope_spent_usd": 0.0047,
+   "available_usd": 65.3208,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c13-final-B1-sqlmodel",
+   "calls": 0,
+   "usd": 0.0,
+   "tokens_in": 0,
+   "tokens_out": 0
+  },
+  "spent_usd": 0.0,
+  "export": {
+   "available": true,
+   "ok": true,
+   "code": 0,
+   "dir": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/sqlmodel/export",
+   "files": 25,
+   "answer": null
+  },
+  "archive": "/Users/david/unbidden-lab/c13/archive/sqlmodel-B1-final.tgz",
+  "archive_kept": {
+   "name": "sqlmodel-B1-final.tgz",
+   "bytes": 3628,
+   "sha256": "07ba187ba618f490b0aa36ce87b0ee56787e29a6b99c24ae8804e6baba3157f9",
+   "kept": true,
+   "where": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/sqlmodel/export/sqlmodel-B1-final.tgz"
+  }
+ },
+ "human": [
+  {
+   "step": "create the public copy satisfymath/c13-sqlmodel",
+   "minutes": 1,
+   "why": "pull requests, CI and merges off upstream"
+  },
+  {
+   "step": "push the pin 462b59d9cd1c to satisfymath/c13-sqlmodel:main",
+   "minutes": 1,
+   "why": "the copy's base"
+  },
+  {
+   "step": "campaign commit dadc5489ffd1 on satisfymath/c13-sqlmodel:main: 10 workflow file(s) removed, 0 cut",
+   "minutes": 5,
+   "why": "no deploy, release, package or bot runs from the copy; the checks stay as written"
+  },
+  {
+   "step": "mandate: fork, registries, operations, connections",
+   "minutes": 2,
+   "why": "a person's declaration"
+  },
+  {
+   "step": "mandate autonomy: merge on green CI, no deploy",
+   "minutes": 1,
+   "why": "nothing to deploy: not an application"
+  }
+ ],
+ "blocks": []
+}

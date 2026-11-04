@@ -1,0 +1,30 @@
+{
+ "slug": "satisfymath/c13-dooit",
+ "number": 4,
+ "title": "security: bump idna 3.10 → 3.15",
+ "base": "4d5a22e22f3cad7457797fef84797e00c4f0cbec",
+ "head": "e6e011953488b62e1c1245056e2ed295d5d3a926",
+ "claims": [],
+ "changed_files": [
+  "uv.lock"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [
+  {
+   "rule": "advisories (OSV)",
+   "file": "idna",
+   "at_base": [
+    "CVE-2026-45409",
+    "GHSA-65pc-fj4g-8rjx",
+    "PYSEC-2026-215"
+   ],
+   "at_head": [],
+   "new_version_in_patch": true,
+   "only_dependency_files": true,
+   "verdict": "confirmed"
+  }
+ ],
+ "change_matches_problem": true,
+ "verdict": "verified"
+}

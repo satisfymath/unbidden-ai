@@ -1,0 +1,353 @@
+{
+ "slug": "satisfymath/c13-reader",
+ "number": 1,
+ "title": "fix: 19 ruff-baseline F821 findings in tests/data/",
+ "base": "d92184774101ee122be52056143e133ffb5b22fb",
+ "head": "042d8d44aa4369720068ce42079032408faf257c",
+ "claims": [
+  {
+   "file": "tests/data/10.json.py",
+   "line": "9",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/empty.atom.py",
+   "line": "9",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/empty.json.py",
+   "line": "9",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/empty.rss.py",
+   "line": "8",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/full.atom.py",
+   "line": "11",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/full.json.py",
+   "line": "10",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/full.rss.py",
+   "line": "11",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/invalid.json.py",
+   "line": "10",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/relative.atom.py",
+   "line": "9",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/relative.atom.py",
+   "line": "10",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/relative.atom.py",
+   "line": "19",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/relative.atom.py",
+   "line": "20",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/relative.atom.py",
+   "line": "29",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/relative.rss.py",
+   "line": "9",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/relative.rss.py",
+   "line": "10",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/relative.rss.py",
+   "line": "17",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/relative.rss.py",
+   "line": "19",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/relative.rss.py",
+   "line": "20",
+   "rule": "F821"
+  },
+  {
+   "file": "tests/data/unknown.json.py",
+   "line": "9",
+   "rule": "F821"
+  }
+ ],
+ "changed_files": [
+  "tests/data/10.json.py",
+  "tests/data/empty.atom.py",
+  "tests/data/empty.json.py",
+  "tests/data/empty.rss.py",
+  "tests/data/full.atom.py",
+  "tests/data/full.json.py",
+  "tests/data/full.rss.py",
+  "tests/data/invalid.json.py",
+  "tests/data/relative.atom.py",
+  "tests/data/relative.rss.py",
+  "tests/data/unknown.json.py"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [
+  {
+   "file": "tests/data/10.json.py",
+   "line": "9",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/10.json.py:9:12: F821 Undefined name `url_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/empty.atom.py",
+   "line": "9",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/empty.atom.py:9:24: F821 Undefined name `url_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/empty.json.py",
+   "line": "9",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/empty.json.py:9:12: F821 Undefined name `url_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/empty.rss.py",
+   "line": "8",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/empty.rss.py:8:24: F821 Undefined name `url_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/full.atom.py",
+   "line": "11",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/full.atom.py:11:12: F821 Undefined name `url_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/full.json.py",
+   "line": "10",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/full.json.py:10:12: F821 Undefined name `url_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/full.rss.py",
+   "line": "11",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/full.rss.py:11:12: F821 Undefined name `url_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/invalid.json.py",
+   "line": "10",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/invalid.json.py:10:12: F821 Undefined name `url_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/relative.atom.py",
+   "line": "9",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/relative.atom.py:9:12: F821 Undefined name `url_base`",
+    "tests/data/relative.atom.py:10:13: F821 Undefined name `rel_base`",
+    "tests/data/relative.atom.py:19:17: F821 Undefined name `rel_base`",
+    "tests/data/relative.atom.py:20:33: F821 Undefined name `rel_base`",
+    "tests/data/relative.atom.py:29:31: F821 Undefined name `rel_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/relative.atom.py",
+   "line": "10",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/relative.atom.py:9:12: F821 Undefined name `url_base`",
+    "tests/data/relative.atom.py:10:13: F821 Undefined name `rel_base`",
+    "tests/data/relative.atom.py:19:17: F821 Undefined name `rel_base`",
+    "tests/data/relative.atom.py:20:33: F821 Undefined name `rel_base`",
+    "tests/data/relative.atom.py:29:31: F821 Undefined name `rel_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/relative.atom.py",
+   "line": "19",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/relative.atom.py:9:12: F821 Undefined name `url_base`",
+    "tests/data/relative.atom.py:10:13: F821 Undefined name `rel_base`",
+    "tests/data/relative.atom.py:19:17: F821 Undefined name `rel_base`",
+    "tests/data/relative.atom.py:20:33: F821 Undefined name `rel_base`",
+    "tests/data/relative.atom.py:29:31: F821 Undefined name `rel_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/relative.atom.py",
+   "line": "20",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/relative.atom.py:9:12: F821 Undefined name `url_base`",
+    "tests/data/relative.atom.py:10:13: F821 Undefined name `rel_base`",
+    "tests/data/relative.atom.py:19:17: F821 Undefined name `rel_base`",
+    "tests/data/relative.atom.py:20:33: F821 Undefined name `rel_base`",
+    "tests/data/relative.atom.py:29:31: F821 Undefined name `rel_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/relative.atom.py",
+   "line": "29",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/relative.atom.py:9:12: F821 Undefined name `url_base`",
+    "tests/data/relative.atom.py:10:13: F821 Undefined name `rel_base`",
+    "tests/data/relative.atom.py:19:17: F821 Undefined name `rel_base`",
+    "tests/data/relative.atom.py:20:33: F821 Undefined name `rel_base`",
+    "tests/data/relative.atom.py:29:31: F821 Undefined name `rel_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/relative.rss.py",
+   "line": "9",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/relative.rss.py:9:12: F821 Undefined name `url_base`",
+    "tests/data/relative.rss.py:10:13: F821 Undefined name `rel_base`",
+    "tests/data/relative.rss.py:17:15: F821 Undefined name `rel_base`",
+    "tests/data/relative.rss.py:19:17: F821 Undefined name `rel_base`",
+    "tests/data/relative.rss.py:20:33: F821 Undefined name `rel_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/relative.rss.py",
+   "line": "10",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/relative.rss.py:9:12: F821 Undefined name `url_base`",
+    "tests/data/relative.rss.py:10:13: F821 Undefined name `rel_base`",
+    "tests/data/relative.rss.py:17:15: F821 Undefined name `rel_base`",
+    "tests/data/relative.rss.py:19:17: F821 Undefined name `rel_base`",
+    "tests/data/relative.rss.py:20:33: F821 Undefined name `rel_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/relative.rss.py",
+   "line": "17",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/relative.rss.py:9:12: F821 Undefined name `url_base`",
+    "tests/data/relative.rss.py:10:13: F821 Undefined name `rel_base`",
+    "tests/data/relative.rss.py:17:15: F821 Undefined name `rel_base`",
+    "tests/data/relative.rss.py:19:17: F821 Undefined name `rel_base`",
+    "tests/data/relative.rss.py:20:33: F821 Undefined name `rel_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/relative.rss.py",
+   "line": "19",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/relative.rss.py:9:12: F821 Undefined name `url_base`",
+    "tests/data/relative.rss.py:10:13: F821 Undefined name `rel_base`",
+    "tests/data/relative.rss.py:17:15: F821 Undefined name `rel_base`",
+    "tests/data/relative.rss.py:19:17: F821 Undefined name `rel_base`",
+    "tests/data/relative.rss.py:20:33: F821 Undefined name `rel_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/relative.rss.py",
+   "line": "20",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/relative.rss.py:9:12: F821 Undefined name `url_base`",
+    "tests/data/relative.rss.py:10:13: F821 Undefined name `rel_base`",
+    "tests/data/relative.rss.py:17:15: F821 Undefined name `rel_base`",
+    "tests/data/relative.rss.py:19:17: F821 Undefined name `rel_base`",
+    "tests/data/relative.rss.py:20:33: F821 Undefined name `rel_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  },
+  {
+   "file": "tests/data/unknown.json.py",
+   "line": "9",
+   "rule": "F821",
+   "at_base": [
+    "tests/data/unknown.json.py:9:12: F821 Undefined name `url_base`"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  }
+ ],
+ "change_matches_problem": true,
+ "verdict": "verified"
+}

@@ -1,0 +1,27 @@
+2026-11-04T16:35:54-0300 [B1] worker 4 starts on ports {'dashboard': 18840, 'ui_a': 18841, 'lab': 18842, 'lab_db': 18843}
+2026-11-04T18:08:38-0300 [B1] FAILED: FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'
+Traceback (most recent call last):
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/run_final.py", line 130, in worker
+    line = run_one(job, repos[job.name], ports, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/run_final.py", line 106, in execute
+    line = level_b(repo, job.run, args["phase"], out, ports["dashboard"], args["candidate"], args["wheel"],
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/level_b.py", line 594, in level_b
+    rec.facts["ui1"] = ui_and_chat(repo_dir, e, rec, out_dir / name / f"B{run_no}", "c1")
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/level_b.py", line 504, in ui_and_chat
+    run(
+  File "/Users/david/unbidden-ai-v1b/bench/campaign13/common.py", line 176, in run
+    started = time.monotonic()
+              ^^^^^^^^^^^^^^^^
+  File "/Users/david/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/david/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/Users/david/.local/share/uv/python/cpython-3.12.15-macos-aarch64-none/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'
+
+2026-11-04T18:10:21-0300 [B1] worker 3 starts on ports {'dashboard': 19030, 'ui_a': 19031, 'lab': 19032, 'lab_db': 19033}

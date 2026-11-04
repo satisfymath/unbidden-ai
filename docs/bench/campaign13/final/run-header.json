@@ -1,165 +1,62 @@
 {
- "started_at": "2026-11-04T12:15:53-0300",
+ "started_at": "2026-11-04T19:41:49-0300",
  "phase": "final",
- "workers": 6,
+ "workers": 8,
  "order": "libraries-first",
  "all_python": true,
- "candidate": "700a5dac6beafa52825ae5772d75532d68e58430",
- "wheel_sha256": "2c047581db8dbf02c35d0ece8d59d6192ff9bc02ebaba800f84a5d99d40b2568",
+ "candidate": "5bbaaf39f8eaa65e31ca02d9ee70d894f6fd0e6d",
+ "wheel_sha256": "9615de540d10d7911abd337f1b692643232e9de799e502614df81a3d1fc97122",
  "ports": {
   "0": {
-   "dashboard": 18800,
-   "ui_a": 18801,
-   "lab": 18802,
-   "lab_db": 18803
+   "dashboard": 19200,
+   "ui_a": 19201,
+   "lab": 19202,
+   "lab_db": 19203
   },
   "1": {
-   "dashboard": 18810,
-   "ui_a": 18811,
-   "lab": 18812,
-   "lab_db": 18813
+   "dashboard": 19210,
+   "ui_a": 19211,
+   "lab": 19212,
+   "lab_db": 19213
   },
   "2": {
-   "dashboard": 18820,
-   "ui_a": 18821,
-   "lab": 18822,
-   "lab_db": 18823
+   "dashboard": 19220,
+   "ui_a": 19221,
+   "lab": 19222,
+   "lab_db": 19223
   },
   "3": {
-   "dashboard": 18830,
-   "ui_a": 18831,
-   "lab": 18832,
-   "lab_db": 18833
+   "dashboard": 19230,
+   "ui_a": 19231,
+   "lab": 19232,
+   "lab_db": 19233
   },
   "4": {
-   "dashboard": 18840,
-   "ui_a": 18841,
-   "lab": 18842,
-   "lab_db": 18843
+   "dashboard": 19240,
+   "ui_a": 19241,
+   "lab": 19242,
+   "lab_db": 19243
   },
   "5": {
-   "dashboard": 18850,
-   "ui_a": 18851,
-   "lab": 18852,
-   "lab_db": 18853
+   "dashboard": 19250,
+   "ui_a": 19251,
+   "lab": 19252,
+   "lab_db": 19253
+  },
+  "6": {
+   "dashboard": 19260,
+   "ui_a": 19261,
+   "lab": 19262,
+   "lab_db": 19263
+  },
+  "7": {
+   "dashboard": 19270,
+   "ui_a": 19271,
+   "lab": 19272,
+   "lab_db": 19273
   }
  },
  "jobs": [
-  {
-   "name": "rich",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "marshmallow",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "pyjwt",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "humanize",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "sqlmodel",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "oauthlib",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "rdflib",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "graphtage",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "python-progressbar",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "python-mss",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "reader",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "harlequin",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "dooit",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "pipx",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "fst",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "conduit",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "spoolman",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "codex-lb",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "aegra",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "ctfd",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "timetracker",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "mimirq",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "mediacms",
-   "level": "B",
-   "run": 1
-  },
   {
    "name": "misago",
    "level": "B",
@@ -273,121 +170,6 @@
  },
  "path": "/Users/david/unbidden-lab/c13/home/bin:/opt/homebrew/bin:/usr/local/bin:/Users/david/.local/state/fnm_multishells/44933_1793504603807/bin:/usr/bin:/bin:/usr/sbin:/sbin",
  "pending": [
-  {
-   "name": "rich",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "marshmallow",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "pyjwt",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "humanize",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "sqlmodel",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "oauthlib",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "rdflib",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "graphtage",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "python-progressbar",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "python-mss",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "reader",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "harlequin",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "dooit",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "pipx",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "fst",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "conduit",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "spoolman",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "codex-lb",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "aegra",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "ctfd",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "timetracker",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "mimirq",
-   "level": "B",
-   "run": 1
-  },
-  {
-   "name": "mediacms",
-   "level": "B",
-   "run": 1
-  },
   {
    "name": "misago",
    "level": "B",

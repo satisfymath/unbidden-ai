@@ -1,0 +1,33 @@
+{
+ "slug": "satisfymath/c13-oauthlib",
+ "number": 2,
+ "title": "fix: 1 ruff-baseline B006 finding in oauthlib/oauth2/rfc6749/endpoints/",
+ "base": "fdf407a404695355759a4061e6f3dd85ed51475f",
+ "head": "28d5548404ec9bebb639133fc46a5615cda209b8",
+ "claims": [
+  {
+   "file": "oauthlib/oauth2/rfc6749/endpoints/metadata.py",
+   "line": "40",
+   "rule": "B006"
+  }
+ ],
+ "changed_files": [
+  "oauthlib/oauth2/rfc6749/endpoints/metadata.py"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [
+  {
+   "file": "oauthlib/oauth2/rfc6749/endpoints/metadata.py",
+   "line": "40",
+   "rule": "B006",
+   "at_base": [
+    "oauthlib/oauth2/rfc6749/endpoints/metadata.py:40:42: B006 Do not use mutable data structures for argument defaults"
+   ],
+   "at_head": [],
+   "verdict": "confirmed"
+  }
+ ],
+ "change_matches_problem": true,
+ "verdict": "verified"
+}

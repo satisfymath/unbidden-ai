@@ -1,0 +1,29 @@
+{
+ "slug": "satisfymath/c13-marshmallow",
+ "number": 3,
+ "title": "security: bump certifi 2026.7.22 → 2026.10.18",
+ "base": "140f22879700941e02a9bc3bf998476e984edbe4",
+ "head": "1c6824186d88dc9f4a4de735fa3155bd8c2ae64c",
+ "claims": [],
+ "changed_files": [
+  "uv.lock"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [
+  {
+   "rule": "advisories (OSV)",
+   "file": "certifi",
+   "at_base": [
+    "GHSA-6q48-6c7w-9gw2",
+    "PYSEC-2026-4320"
+   ],
+   "at_head": [],
+   "new_version_in_patch": true,
+   "only_dependency_files": true,
+   "verdict": "confirmed"
+  }
+ ],
+ "change_matches_problem": true,
+ "verdict": "verified"
+}
