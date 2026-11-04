@@ -1682,7 +1682,13 @@ class PerfLab:
                 ("a way to run the project's tests", plan is not None),
                 ("a single Alembic head", head is not None),
                 (f"the schema of table {table} (a model, or the migration that creates it)", models_file is not None),
-                ("the handlers of the endpoints that read it", bool(handlers)),
+                # Campaign 12 (spoolman): "no the handlers ...". A whole-table read with no endpoint handler reading the
+                # table is the seeded workload's, not a request a person makes: said so.
+                (
+                    f"handler of an endpoint that reads {table} (the whole-table reads come from no endpoint the map "
+                    "knows)",
+                    bool(handlers),
+                ),
             )
             if not have
         ]
@@ -1690,7 +1696,7 @@ class PerfLab:
             re.match(r"(.*/)?(postgres|postgis|mysql|mariadb)\b", s.image or "") for s in plan.services
         )
         if missing:
-            return blocked("environment_ready", "no " + ", no ".join(missing))
+            return blocked("environment_ready", "missing: " + "; ".join(missing))
         assert plan is not None and head is not None and models_file is not None
         ready("environment_ready", True, f"dependency image built; tests run by {plan.source}; migrations at {head[0]}")
         checks = self.store.get_value("baseline_checks") or {}

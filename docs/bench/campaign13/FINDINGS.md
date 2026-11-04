@@ -20,3 +20,12 @@ Dated lines, newest last. Each says what was seen, where (record or log), and wh
 - 2026-11-03 · WS7 real · graphtage checks: passed, 289 tests (campaign 12: infra_failed at `make`, then at
   `sphinx-build`); harlequin with Debian allowed: passed, 8 tests (campaign 12: blocked on git, then locale errors).
   No model spend.
+- 2026-11-03 · pivot · David: environment preparation was being done wrong, the answer is simpler, stop the long
+  run. Level A dev on 0.15.0 stopped at 18/39: every campaign-12 failure failed again for an environment reason.
+  0.16.0 prepares the environment with the team's own CI job (act) and measures offline in its snapshot. Verified on
+  15 corpus repositories (US$0): humanize, graphtage, oauthlib, codex-lb pass for the first time; harlequin,
+  traefik-manager, pipx, timetracker run their full (or CI-scoped) suites; rich and fst unchanged; rdflib prepared
+  but its own validation fails in its job; mediacms (tests in its own compose), conduit (CI broken upstream), mimirq
+  (self-hosted) recorded. Each defect found on the way was general and has its test (matrix of objects, shell form
+  of act's commands, step names with durations, runner locale, setup-uv cache prune, host ports, publishing vs
+  installing, the network rerun).

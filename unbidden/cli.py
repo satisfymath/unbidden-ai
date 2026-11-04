@@ -1293,6 +1293,10 @@ def doctor_checks(
     checks.append(("docker", bool(docker), "running" if docker else "not running: the sandbox needs Docker"))
     for name, ok, detail in docker_plugins(bool(docker)):
         checks.append((name, ok, detail))
+    act = shutil.which("act")
+    checks.append(("act", bool(act), "found: the team's CI job prepares the environment when the mandate allows it"
+                   if act else "not installed: Unbidden's own image is used (`brew install act` lets the team's CI "
+                   "job prepare it)"))  # fmt: skip
     checks.append(("meta api", *meta_api_check(ws)))
     checks.append(
         (

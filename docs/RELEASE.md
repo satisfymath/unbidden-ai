@@ -1,4 +1,46 @@
-# Unbidden 0.15.0, experimental candidate: the terminal app on the product branch, not 1.0
+# Unbidden 0.16.0, experimental candidate: the terminal app on the product branch, not 1.0
+
+## 0.16.0 (2026-11-03): the environment the team's own CI job prepares
+
+Campaign 13 changed course here (`docs/ROAD-TO-1.0.md` §3, dimension 2). Unbidden used to reconstruct a project's
+CI job: read the workflow, drop its actions, build its own image with a guessed toolset, strip lines, run offline.
+Every repository broke a different assumption and each fix only showed the next one. Now the team's own test job
+runs once, as GitHub runs it, and what it prepared is what everything is measured in (`sandbox/ci_env.py`).
+
+- **Prepare**: the test job (found by the team's own naming across the workflows that run on push or pull
+  request; else the CI plan's choice) runs through `act` in a GitHub-runner-like image, with the network: its actions
+  (setup-python, setup-uv, setup-task, caches), its `env:`, its service containers. Nothing else runs: other jobs,
+  publishing steps (coverage uploads, releases, deploys, pushes; installing such a tool is not publishing), the
+  host's Docker socket, secrets. One Linux matrix combination is written into the job; conditions on other jobs are
+  lifted; fixed host ports of services are dropped (they collided with this machine's own databases).
+- **Keep**: the job's container is committed with its workspace (virtualenvs, `.tox`, `node_modules`), the step
+  scripts act wrote (GitHub expressions already resolved) and a layer with Unbidden's pinned analyzers; cached per
+  commit, job and filtered workflow.
+- **Measure**: the job's own test steps, verbatim, offline, at the job's workspace path, with a runner's size
+  (4 CPUs, 8 GB). A run that stopped for something the network would have given is rerun with the network and said
+  so. Without `act`, without a test job, with a self-hosted or non-Linux job, or when the job failed before its
+  tests, Unbidden's own image is used and the reason recorded on it.
+- **When**: mandate `egress.ci_environment`, `auto` (the default: allowed in autonomous mode), `allow` or `deny`.
+  `doctor` lists `act` as optional.
+
+Measured on campaign 12's corpus (US$0, no model call), the project's checks through this path:
+
+| Repository | Campaign 12 | 0.16.0 |
+|---|---|---|
+| humanize | environment failure (`msgfmt`) | passed, 878 tests |
+| graphtage | environment failure (`make`) | passed, 289 |
+| oauthlib | blocked (requirements include) | passed, 902 |
+| codex-lb | 30 tests could not run (`git`) | passed, 6422 |
+| harlequin | blocked (git dependency) | 2203 of 2214 pass (the failures read a workflow the campaign copy removed) |
+| traefik-manager | environment failure | 2192 run (its own suite is nondeterministic: 0 to 50 failures run to run) |
+| pipx | crash (TOML date) | 2224 run, 50 failures (tests that install packages) |
+| timetracker | pytest-xdist crash | its CI's quick tests: 166 of 169 pass |
+| rich, fst | passed | passed, 981 and 58 |
+| rdflib | environment failure (`task`) | prepared; its `task gha:validate` fails in its own job too, under study |
+| mediacms, conduit, mimirq | — | not prepared by their CI: tests inside their own compose (next), CI broken upstream (ubuntu-18.04, Poetry 1.1.12), a self-hosted runner |
+
+Also: an alias that keeps a redefined test is not a fix (rich's F811 pull requests); the message for missing
+measurement preconditions reads correctly; the snapshot's repository runs no git maintenance.
 
 ## 0.15.0 (2026-11-03): the environment funnel; the campaign 13 harness
 

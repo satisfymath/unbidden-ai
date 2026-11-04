@@ -104,6 +104,23 @@ def added_suppressions(patch: str) -> list[str]:
     ]
 
 
+# A redefinition (ruff F811) "fixed" by keeping both definitions under an alias (`_test_x = test_x`): the shadowed
+# code is still never run (rich, campaign 12: three pull requests did this).
+_ALIAS = re.compile(r"^\+\s*_?\w+\s*=\s*(?P<name>\w+)\s*(?:#.*)?$")
+
+
+def shallow_redefinition_fix(patch: str, rules: set[str]) -> str | None:
+    """The alias line, when a fix for a redefinition only binds the shadowed name to another one."""
+    if not rules & {"F811"}:
+        return None
+    for line in patch.splitlines():
+        if line.startswith("+++"):
+            continue
+        if (m := _ALIAS.match(line)) is not None and m.group("name").startswith(("test", "Test")):
+            return line[1:].strip()
+    return None
+
+
 def _fingerprints(reports: list[AnalyzerReport]) -> list[str]:
     return [f.fingerprint for r in reports for f in r.findings]
 
@@ -431,6 +448,14 @@ class FixLab:
                 if candidate is None:
                     feedback = "the answer had no usable `file:` blocks for the listed files"
                     continue
+            alias = shallow_redefinition_fix(candidate.patch, {f.rule for f in findings})
+            if alias:
+                result.notes.append(f"{candidate.origin} candidate quarantined: keeps the shadowed test under an alias "
+                                    f"({alias!r})")  # fmt: skip
+                feedback = ("you kept the redefined test under another name; it still never runs. Rename the second "
+                            "definition so both run, or remove the duplicate")  # fmt: skip
+                candidate = None
+                continue
             suppressions = added_suppressions(candidate.patch)
             if suppressions:
                 result.notes.append(f"{candidate.origin} candidate quarantined: adds {suppressions[0]!r}")

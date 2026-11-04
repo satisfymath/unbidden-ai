@@ -45,6 +45,14 @@ class DependencyImage:
     links: dict[str, str]  # path inside /work -> target inside the image, created as symlinks in each snapshot
     setup: tuple[str, ...] = ()  # shell steps run in the container before each command
     notes: tuple[str, ...] = ()  # what the install had to do differently from the repository's own instructions
+    # An environment the team's CI job prepared (sandbox/ci_env.py): the workspace path the job ran at, the tool cache
+    # volume, and that it runs like the runner. Empty for Unbidden's own images.
+    mount: str = "/work"
+    volumes: tuple[str, ...] = ()
+    runner_like: bool = False
+    # The job's own test steps, verbatim (matrix values filled in): what runs to measure, instead of Unbidden's
+    # translation of them (humanize: `uvx --with tox-uv tox -e py`, whose pytest lives in tox's own environment).
+    test_command: str | None = None
 
 
 class ProvisionError(RuntimeError):
@@ -534,6 +542,43 @@ def missing_packages(error: str) -> list[str]:
     return sorted({HEADER_PACKAGES[n] for n in names if n in HEADER_PACKAGES})
 
 
+def _noted(image: DependencyImage, note: str | None) -> DependencyImage:
+    from dataclasses import replace
+
+    return replace(image, notes=(*image.notes, note)) if note and isinstance(image, DependencyImage) else image
+
+
+def ci_environment_allowed(policy: PolicyEngine) -> bool:
+    """The mandate lets the team's CI job run with the network to prepare the environment."""
+    from unbidden.contracts.guardian import Autonomy
+
+    mandate = getattr(policy, "mandate", None)
+    if mandate is None:
+        return False
+    choice = mandate.egress.ci_environment
+    if choice == "auto":
+        return mandate.autonomy.merge_pull_requests is Autonomy.ALLOW
+    return choice == "allow"
+
+
+def _from_ci_job(repo: Path, rev: str, policy: PolicyEngine) -> tuple[DependencyImage | None, str | None]:
+    """The environment the team's test job prepares (campaign 13), or None and why it was not used."""
+    if not ci_environment_allowed(policy):
+        return None, ("the team's CI job could prepare this environment; the mandate does not allow it yet "
+                      "(egress.ci_environment: allow)")  # fmt: skip
+    from unbidden.observe.ci import ci_test_plan
+    from unbidden.sandbox.ci_env import NotPreparable, prepare, test_job
+
+    plan = ci_test_plan(repo, rev, "python")
+    chosen = test_job(repo, rev, (plan.workflow, plan.job) if plan is not None else None)
+    if chosen is None:
+        return None, "no CI test job to prepare the environment with"
+    try:
+        return prepare(repo, rev, *chosen).image, None
+    except NotPreparable as exc:
+        return None, f"the team's CI job did not prepare the environment: {str(exc)[:300]}"
+
+
 def provision(
     repo: Path,
     rev: str,
@@ -565,9 +610,14 @@ def provision(
             "node dependencies were not installed: the lockfile depends on .pnpmfile.cjs, repository code that pnpm "
             "runs during install with network access; Unbidden does not run repository code outside the sandbox"
         )
+    ci_note: str | None = None
+    if isinstance(stack, PythonStack) and docker == "docker":
+        prepared, ci_note = _from_ci_job(repo, rev, policy)
+        if prepared is not None:
+            return prepared
     wanted = system_packages_wanted(stack, allowed=system_build_tools)
     try:
-        return _provision(repo, rev, stack, docker=docker, system_build_tools=False, headers=wanted)
+        return _noted(_provision(repo, rev, stack, docker=docker, system_build_tools=False, headers=wanted), ci_note)
     except ProvisionError as exc:
         if isinstance(stack, PythonStack) and needs_system_build(str(exc)):
             if not system_build_tools:
@@ -585,7 +635,7 @@ def provision(
 
                     why = "build-essential" + (f", {', '.join(headers)}" if headers else "")
                     note = f"a package is built from source: system build tools installed from Debian ({why})"
-                    return replace(built, notes=(*built.notes, note))
+                    return _noted(replace(built, notes=(*built.notes, note)), ci_note)
                 except ProvisionError as again:
                     more = [p for p in missing_packages(str(again)) if p not in headers]
                     if not more:
@@ -682,6 +732,10 @@ def link_dependencies(work: Path, image: DependencyImage) -> None:
 NODE_HEAP_MB = 4096
 NODE_MEMORY = "6g"
 DEFAULT_MEMORY = "2g"
+# An environment the team's CI job prepared runs with what a GitHub-hosted Linux runner has (4 CPUs, 16 GB), memory
+# bounded lower: `pytest -n auto` counts the host's CPUs and was killed for memory in 2 GB (pipx, campaign 13).
+RUNNER_CPUS = 4.0
+RUNNER_MEMORY = "8g"
 
 
 def sandbox_spec(
@@ -696,13 +750,15 @@ def sandbox_spec(
     """The one way to run something against a dependency image: its setup, its environment, and for a workspace
     package, that package's directory with its own node_modules/.bin first on PATH."""
     env = dict(image.env)
+    if image.runner_like:
+        env.setdefault("PYTEST_XDIST_AUTO_NUM_WORKERS", str(int(RUNNER_CPUS)))
     # Pyright runs on Node in a Python image too: on a large project (Prefect, stage 10) it ran out of Node's default
     # heap (about 1 GB) and its report was lost.
     node = image.language == "node" or any("pyright" in a for a in argv[:3])
     if node:
         # Type checks of large monorepos exhaust Node's default heap; the container gets room for a larger one.
         env.setdefault("NODE_OPTIONS", f"--max-old-space-size={NODE_HEAP_MB}")
-    workdir = "/work" if cwd in (".", "") else f"/work/{cwd}"
+    workdir = image.mount if cwd in (".", "") else f"{image.mount}/{cwd}"
     if cwd not in (".", "") and "PATH" in env:
         env["PATH"] = f"{workdir}/node_modules/.bin:{env['PATH']}"
     return SandboxSpec(
@@ -714,5 +770,9 @@ def sandbox_spec(
         timeout_s=timeout_s,
         public_env=public_env or {},
         network=network,
-        memory=NODE_MEMORY if node else DEFAULT_MEMORY,
+        memory=RUNNER_MEMORY if image.runner_like else (NODE_MEMORY if node else DEFAULT_MEMORY),
+        cpus=RUNNER_CPUS if image.runner_like else 2.0,
+        mount=image.mount,
+        volumes=image.volumes,
+        runner_like=image.runner_like,
     )

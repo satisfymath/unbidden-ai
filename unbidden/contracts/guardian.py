@@ -76,6 +76,9 @@ class RemoteModelPolicy(Contract):
 
 class EgressPolicy(Contract):
     package_registries: list[str] = Field(default_factory=list)
+    # Whether the team's own CI job may run, with the network, to prepare the environment the sandbox measures in
+    # (sandbox/ci_env.py). "auto": in autonomous mode (merges allowed) yes, otherwise not until a person allows it.
+    ci_environment: Literal["auto", "allow", "deny"] = "auto"
     remote_models: RemoteModelPolicy = Field(default_factory=RemoteModelPolicy)
     github: GitHubPolicy = Field(default_factory=GitHubPolicy)
 
