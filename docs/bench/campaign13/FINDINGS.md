@@ -42,3 +42,10 @@ Dated lines, newest last. Each says what was seen, where (record or log), and wh
   defect, the test passes 3/3, no regression in 878 tests, L4. Two defects found on the way: an assertion's
   traceback never shows the code (the code the test calls is now found), and a 17 KB file exceeds the 20 KB
   per-call cap (excerpts, as FixLab). Spend: US$0.007 from s13-dev.
+- 2026-11-04 · cleanup and regressions · Disk nearly full: Level A on 0.16.0 stopped at 15/39 (and an orphaned
+  `unbidden watch` daemon of its home). Removed Unbidden's containers, images, build cache, named volumes, the CI
+  environment cache and the campaign copies; 229 orphaned anonymous volumes identified (database data of CI services
+  and sidecars, 26 Oct to 3 Nov, unused) and removed; Hosli's non-main stacks removed on David's word, ~/hosli main
+  kept. 75 GB free -> 305 GB. The 15 records showed three regressions (marshmallow, pyjwt, timetracker), all in the
+  measurement of the CI-job environment; fixed in 0.17.1 (marshmallow 1192, pyjwt 476, timetracker 169, humanize 878
+  as control). US$0.
