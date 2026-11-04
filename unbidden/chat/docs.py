@@ -41,7 +41,9 @@ write through connections) are granted separately in the mandate."""
 
 LEVELS = """Evidence levels: L1 reasonable suspicion (a finding, a rule); L2 reproduction (the problem reproduced
 in the sandbox); L3 lab improvement (a candidate measured better, offline); L4 functional validation (the project's
-own checks pass on the candidate and the improvement holds); L5 operational result (observed after a deploy); L6
+own checks pass on the candidate and the improvement holds); L5 operational result (after a deploy: an effect
+measured under criteria fixed before, or, for security, quality and correctness fixes, a verified deploy,
+`verified-deploy-v1`: deployed, healthy, the fix is in the running version, no measured effect claimed); L6
 persistence (the result held over time). A proposal needs the level the mandate asks (L4 by default)."""
 
 KEYS = """A Meta API key (MODEL_API_KEY) lets heavy work go to Meta's API; it is pasted in the setup or with

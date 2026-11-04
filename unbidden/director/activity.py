@@ -21,6 +21,23 @@ from unbidden.lab.revoke import pending
 from unbidden.store import Store
 
 LEVELS = {1: "suspicion", 2: "reproduced", 3: "lab", 4: "validated", 5: "operational", 6: "persistent"}
+
+
+def live_criteria(o: Opportunity) -> str | None:
+    """The criteria a live outcome was recorded under: `verified-deploy-v1` (deployed, healthy, the fix running; no
+    effect claimed) or the measured ones (`v2`, ...); None without an outcome."""
+    criteria = (o.details.get("outcome") or {}).get("criteria")
+    return str(criteria.get("criteria_version") or "v1") if isinstance(criteria, dict) else None
+
+
+def level_name(o: Opportunity) -> str:
+    """The level's short name; level 5 reached by a verified deploy says so, apart from a measured result."""
+    level = int(o.evidence_level)
+    if level == 5 and (o.details.get("outcome") or {}).get("basis") == "verified-deploy":
+        return "operational (verified deploy)"
+    return LEVELS[level]
+
+
 TOP = 8
 
 
@@ -83,8 +100,9 @@ def build(store: Store, workspace: str, spend_rows: list[dict[str, Any]] | None 
         "proven": [
             {
                 **_brief(o),
-                "level_name": LEVELS[int(o.evidence_level)],
+                "level_name": level_name(o),
                 "outcome": (o.details.get("outcome") or {}).get("result"),
+                "criteria": live_criteria(o),
                 "held_checks": len(o.details.get("rechecks", [])),
                 "current_rules": _rejudged(store, o),
                 "pending_revalidation": pending(o),

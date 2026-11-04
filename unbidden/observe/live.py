@@ -18,6 +18,7 @@ from unbidden.contracts.experiment import Proposal, ProposalStatus
 from unbidden.contracts.guardian import Autonomy, Mandate
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
 from unbidden.contracts.world import Deployment, WorldModel
+from unbidden.observe import advisories
 from unbidden.observe.impact import (
     CRITERIA,
     SUSTAINED_CRITERIA,
@@ -35,6 +36,7 @@ from unbidden.observe.probe import Prober
 from unbidden.operate import ledger
 from unbidden.operate.deploy import OperationRefused, deploy
 from unbidden.operate.holds import place
+from unbidden.publish.proposal import LIVE_LEVELS
 from unbidden.store import Store
 from unbidden.world.scope import scope
 
@@ -60,7 +62,23 @@ class DeployVerdict(Contract):
     scope: list[dict[str, Any]] = Field(default_factory=list)  # components behind what went wrong
 
 
-OutcomeResult = Literal["positive", "negative", "inconclusive", "invalid"]
+OutcomeResult = Literal["positive", "negative", "inconclusive", "invalid", "verified"]
+
+# Level 5 for fixes whose effect the probes cannot measure (0.18.0): what is claimed is that the change runs
+# in a healthy, attributable deploy, never that something measured better. Kept apart from the measured criteria
+# (`CRITERIA`) in every record: the outcome's result is `verified`, not `positive`, and its criteria say so.
+VERIFIED_DEPLOY = "verified-deploy-v1"
+VERIFIED_DEPLOY_CLASSES = ("security", "quality", "correctness")
+VERIFIED_DEPLOY_CRITERIA: dict[str, float | int | str] = {
+    "criteria_version": VERIFIED_DEPLOY,
+    "basis": "verified-deploy",
+    "claim": LIVE_LEVELS["verified-deploy"],
+    "deploy_verdict": "the deploy that first contains the change is judged healthy or improved",
+    "errors": "no endpoint's failed share is higher after the deploy (95% Wilson intervals apart)",
+    "attribution": "the baseline and candidate deploys are both attributable (verified or observed), none external",
+    "security": "the fixed version of the package is installed in a running container of the deploy (docker exec)",
+    "classes": ", ".join(VERIFIED_DEPLOY_CLASSES) + " (correctness only without a failing endpoint)",
+}
 
 
 def classify_outcome(
@@ -353,14 +371,34 @@ class LiveWatcher:
                 "impact": [e.as_dict() for e in judged],
                 "confounders": confounders,
                 "criteria": CRITERIA,
+                "basis": "measured-effect",
             }
-            if result == "positive" and opp.evidence_level < EvidenceLevel.FUNCTIONAL_VALIDATION:
+            cls = improvement_class(opp)
+            if result == "inconclusive" and cls in VERIFIED_DEPLOY_CLASSES and not (cls == "correctness" and judged):
+                conditions = self._verified_deploy(opp, cls, current, errors)
+                met = all(c["met"] for c in conditions)
+                outcome["verified_deploy"] = {"criteria_version": VERIFIED_DEPLOY, "met": met, "conditions": conditions}
+                if met:
+                    measured = {"result": "inconclusive", "why": why, "criteria": CRITERIA}
+                    result, why = "verified", [c["detail"] for c in conditions]
+                    outcome.update(
+                        result=result,
+                        why=why,
+                        criteria=VERIFIED_DEPLOY_CRITERIA,
+                        basis="verified-deploy",
+                        measured=measured,
+                    )
+                else:
+                    why = [*why, *(f"no verified deploy: {c['detail']}" for c in conditions if not c["met"])]
+                    outcome["why"] = why
+            promotes = result in ("positive", "verified")
+            if promotes and opp.evidence_level < EvidenceLevel.FUNCTIONAL_VALIDATION:
                 # A live result is level 5 on top of a validated change, never in its place.
                 why = [*why, f"the lab evidence is L{int(opp.evidence_level)}, below L4: no promotion to L5"]
                 outcome["why"] = why
                 outcome["promoted"] = False
             opp.details = {**opp.details, "outcome": outcome}
-            if result == "positive" and opp.evidence_level >= EvidenceLevel.FUNCTIONAL_VALIDATION:
+            if promotes and opp.evidence_level >= EvidenceLevel.FUNCTIONAL_VALIDATION:
                 opp.evidence_level = EvidenceLevel.OPERATIONAL_RESULT
                 opp.status = OpportunityStatus.VERIFIED
                 opp.evidence = [
@@ -379,6 +417,67 @@ class LiveWatcher:
             )
             self.log(f"{opp.id}: outcome after deploy {current} is {result}: {'; '.join(why)[:300]}")
 
+    def _verified_deploy(
+        self, opp: Opportunity, cls: str, current: int, errors: list[Any] | None
+    ) -> list[dict[str, Any]]:
+        """Each condition of `verified-deploy-v1` beyond attribution (which `classify_outcome` already required for an
+        inconclusive result), met or not, with what was seen. Nothing unread counts as met."""
+        verdict = self.store.get_value(f"verdict_of:{current}")
+        healthy = verdict in (Impact.HEALTHY.value, Impact.IMPROVED.value)
+        conditions: list[dict[str, Any]] = [
+            {"name": "attribution", "met": True,
+             "detail": f"deploys attributable: {self._commit_status(current)}, none external in between"},
+            {"name": "deploy_verdict", "met": healthy,
+             "detail": f"deploy {current} judged {verdict or 'not yet'}" + ("" if healthy else ", not healthy")},
+        ]  # fmt: skip
+        if errors is None:
+            conditions.append({"name": "errors", "met": False, "detail": "failed requests were not judged"})
+        else:
+            worse = [e for e in errors if e.impact is Impact.DEGRADED]
+            short = sum(1 for e in errors if e.impact is Impact.INSUFFICIENT)
+            detail = (
+                "more failed requests after the deploy: " + "; ".join(f"{e.target} {e.reasons[0]}" for e in worse)
+                if worse
+                else f"no endpoint fails more after the deploy ({len(errors)} judged"
+                + (f", {short} with too few requests to tell" if short else "")
+                + ")"
+            )
+            conditions.append({"name": "errors", "met": not worse, "detail": detail})
+        if cls == "security":
+            met, detail = self._fix_installed(opp, current)
+            conditions.append({"name": "installed", "met": met, "detail": detail})
+        return conditions
+
+    def _fix_installed(self, opp: Opportunity, current: int) -> tuple[bool, str]:
+        """The bumped package at its fixed version inside the deploy's running containers (the ledger's record of
+        this compose project's containers), read with `docker exec`; a container that cannot be read is said so."""
+        extra = ((opp.details.get("findings") or [{}])[0] or {}).get("extra") or {}
+        package, fix = extra.get("package"), extra.get("lowest_fix")
+        if not package or not fix:
+            return False, "the opportunity names no package and fixed version to look for"
+        deployment = self._deployment(current)
+        containers = deployment.containers if deployment else []
+        if not containers:
+            return False, f"deploy {current} has no containers on record: the installed {package} cannot be read"
+        unread: list[str] = []
+        held: list[tuple[str, str]] = []
+        for c in containers:
+            rows = advisories.installed_in_container(c.container_id or c.name)
+            if rows is None:
+                unread.append(c.service)
+            elif (version := advisories.version_of(rows, package)) is not None:
+                held.append((c.service, version))
+        if not held:
+            seen = f"; unreadable: {', '.join(unread)}" if unread else ""
+            return False, f"{package} could not be read in any running container of deploy {current}{seen}"
+        for service, version in held:
+            fixed = advisories.at_least(version, fix)
+            if fixed is None:
+                return False, f"{service} runs {package} {version}, which cannot be compared with the fix {fix}"
+            if not fixed:
+                return False, f"{service} still runs {package} {version}, below the fix {fix}"
+        return True, f"{package} " + ", ".join(f"{v} in {s}" for s, v in held) + f" (fixed in {fix})"
+
     def _recheck(self, history: list[str], now: datetime | None = None) -> None:
         """Each positive live result, checked again about once a day against the same baseline and criteria: it holds,
         or it is invalidated (the change is no longer deployed, or its effect is gone) and its level goes back to L4.
@@ -388,7 +487,7 @@ class LiveWatcher:
         current = len(history) - 1
         for opp in self.store.list("opportunities", Opportunity, status=OpportunityStatus.VERIFIED.value):
             outcome: dict[str, Any] = opp.details.get("outcome") or {}
-            if outcome.get("result") != "positive" or opp.evidence_level >= EvidenceLevel.PERSISTENCE:
+            if outcome.get("result") not in ("positive", "verified") or opp.evidence_level >= EvidenceLevel.PERSISTENCE:
                 continue
             checks: list[dict[str, Any]] = opp.details.get("rechecks", [])
             recorded = datetime.fromisoformat(outcome.get("at") or opp.updated_at.isoformat())
@@ -400,6 +499,8 @@ class LiveWatcher:
             if shipped is None or current < 0 or not contains(self.repo, history[current], shipped):
                 self._invalidate(opp, f"no longer deployed: deploy {current} runs {history[current][:12]}", now)
                 continue
+            if outcome.get("result") == "verified":
+                continue  # a verified deploy claims no effect: there is nothing to measure again, and no L6
             baseline = int(str(outcome["baseline"]).split(":")[0])
             judged = []
             for target in opp.details.get("endpoints", []):

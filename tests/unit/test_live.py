@@ -9,10 +9,13 @@ import pytest
 
 from unbidden.contracts.common import EpistemicStatus, EvidenceLevel, EvidenceRef
 from unbidden.contracts.experiment import Proposal, ProposalStatus
-from unbidden.contracts.guardian import Autonomy, Mandate
+from unbidden.contracts.guardian import Autonomy, Mandate, OperationsPolicy
 from unbidden.contracts.opportunity import Opportunity, OpportunityStatus
-from unbidden.contracts.world import Deployment, Relation, Resource, WorldModel
+from unbidden.contracts.world import Deployment, Relation, Resource, RunningContainer, WorldModel
+from unbidden.director.activity import level_name, live_criteria
+from unbidden.observe import advisories
 from unbidden.observe import live as live_module
+from unbidden.observe.impact import Impact, Round, judge_errors
 from unbidden.observe.live import DeployVerdict, LiveWatcher
 from unbidden.operate.deploy import DeployResult
 from unbidden.operate.holds import active
@@ -355,3 +358,194 @@ def test_a_positive_live_result_on_lab_evidence_below_l4_is_recorded_but_not_pro
     watcher(store, mandate, repo)._judge([v0, v1], 1, 0)  # pyright: ignore[reportPrivateUsage]
     level, outcome = outcome_of(store, opp)
     assert level is EvidenceLevel.LAB_IMPROVEMENT and outcome["result"] == "positive" and outcome["promoted"] is False
+
+
+# Verified-deploy L5 (0.18.0): security, quality and correctness fixes whose effect the probes cannot measure.
+
+METRICS = {
+    "security": {"name": "advisories", "improvement": "security"},
+    "quality": {"name": "findings", "improvement": "quality"},
+    "correctness": {"name": "failing_tests", "improvement": "correctness"},
+}
+APP = RunningContainer(service="app", container_id="c-app", name="shop-app-1", image_id="sha256:1")
+DB = RunningContainer(service="db", container_id="c-db", name="shop-db-1", image_id="sha256:2")
+
+
+def fix_change(store: Store, base: str, merge: str, cls: str) -> Opportunity:
+    opp = merged_change(store, base, merge)
+    opp.category = cls
+    opp.details = {
+        "verdict": {"measurements": [{"metric": METRICS[cls]}]},
+        **(
+            {"findings": [{"extra": {"package": "Jinja2", "version": "3.1.2", "lowest_fix": "3.1.6"}}]}
+            if cls == "security"
+            else {}
+        ),
+    }
+    store.put("opportunities", opp)
+    return opp
+
+
+def deployed(store: Store, v0: str, v1: str, status: str = "verified", by: str = "unbidden") -> None:
+    ledger_entry(store, 0, v0)
+    ledger_entry(store, 1, v1, status=status, by=by)
+    d = store.get("deployments", "1", Deployment)
+    assert d is not None
+    d.containers = [DB, APP]
+    store.put("deployments", d)
+    add_rounds(store, 0, v0, 20, 20, 1)
+    add_rounds(store, 1, v1, 20, 20, 2)
+
+
+def in_containers(monkeypatch: pytest.MonkeyPatch, rows: dict[str, list[tuple[str, str]] | None]) -> list[str]:
+    asked: list[str] = []
+
+    def fake(container: str, docker: str = "docker", timeout_s: float = 60.0) -> list[tuple[str, str]] | None:
+        asked.append(container)
+        return rows.get(container)
+
+    monkeypatch.setattr(advisories, "installed_in_container", fake)
+    return asked
+
+
+@pytest.mark.parametrize("cls", ["security", "quality", "correctness"])
+def test_a_fix_whose_effect_traffic_cannot_show_reaches_l5_by_a_verified_deploy(
+    store: Store, mandate: Mandate, history_repo: tuple[Path, list[str]], monkeypatch: pytest.MonkeyPatch, cls: str
+) -> None:
+    repo, (v0, v1, _v2) = history_repo
+    opp = fix_change(store, v0, v1, cls)
+    deployed(store, v0, v1)
+    asked = in_containers(monkeypatch, {"c-db": None, "c-app": [("jinja2", "3.1.6"), ("flask", "3.0.0")]})
+    watcher(store, mandate, repo)._judge([v0, v1], 1, 0)  # pyright: ignore[reportPrivateUsage]
+    level, outcome = outcome_of(store, opp)
+    assert level is EvidenceLevel.OPERATIONAL_RESULT
+    assert outcome["result"] == "verified" and outcome["basis"] == "verified-deploy"
+    assert outcome["criteria"]["criteria_version"] == "verified-deploy-v1"
+    measured = outcome["measured"]
+    assert measured["result"] == "inconclusive" and measured["criteria"]["criteria_version"] == "v2"
+    assert "no measured effect claimed" in str(outcome["criteria"]["claim"])
+    names = {c["name"] for c in outcome["verified_deploy"]["conditions"]}
+    assert names == {"attribution", "deploy_verdict", "errors", *({"installed"} if cls == "security" else set())}
+    assert asked == (["c-db", "c-app"] if cls == "security" else [])
+    if cls == "security":
+        assert any("3.1.6 in app" in w for w in outcome["why"])
+    stored = store.get("opportunities", opp.id, Opportunity)
+    assert stored is not None and level_name(stored) == "operational (verified deploy)"
+    assert live_criteria(stored) == "verified-deploy-v1"
+
+
+def test_a_measured_latency_l5_keeps_its_own_criteria(
+    store: Store, mandate: Mandate, history_repo: tuple[Path, list[str]]
+) -> None:
+    repo, (v0, v1, _v2) = history_repo
+    _, opp = _l5(store, mandate, repo, v0, v1)
+    _, outcome = outcome_of(store, opp)
+    assert outcome["result"] == "positive" and outcome["basis"] == "measured-effect"
+    assert "verified_deploy" not in outcome
+    stored = store.get("opportunities", opp.id, Opportunity)
+    assert stored is not None and level_name(stored) == "operational" and live_criteria(stored) == "v2"
+
+
+def test_an_endpoint_failing_more_after_the_deploy_blocks_a_verified_deploy(
+    store: Store, mandate: Mandate, history_repo: tuple[Path, list[str]]
+) -> None:
+    repo, (v0, v1, _v2) = history_repo
+    opp = fix_change(store, v0, v1, "quality")
+    deployed(store, v0, v1)
+    store.set_value("verdict_of:1", "healthy")
+    worse = judge_errors("GET /items/", [Round(v0, (200,) * 2000, ())], [Round(v1, (200,) * 990 + (500,) * 10, ())] * 3)
+    assert worse.impact is Impact.DEGRADED
+    watcher(store, mandate, repo)._outcomes([v0, v1], 1, 0, [], [worse])  # pyright: ignore[reportPrivateUsage]
+    level, outcome = outcome_of(store, opp)
+    assert level is EvidenceLevel.FUNCTIONAL_VALIDATION and outcome["result"] == "inconclusive"
+    assert outcome["verified_deploy"]["met"] is False
+    assert any(w.startswith("no verified deploy: more failed requests") for w in outcome["why"])
+
+
+def test_a_deploy_not_judged_healthy_blocks_a_verified_deploy(
+    store: Store, mandate: Mandate, history_repo: tuple[Path, list[str]]
+) -> None:
+    repo, (v0, v1, _v2) = history_repo
+    opp = fix_change(store, v0, v1, "correctness")
+    deployed(store, v0, v1)
+    store.set_value("verdict_of:1", "insufficient")
+    watcher(store, mandate, repo)._outcomes([v0, v1], 1, 0, [], [])  # pyright: ignore[reportPrivateUsage]
+    level, outcome = outcome_of(store, opp)
+    assert level is EvidenceLevel.FUNCTIONAL_VALIDATION and outcome["result"] == "inconclusive"
+    assert any("judged insufficient, not healthy" in w for w in outcome["why"])
+
+
+def test_an_unattributable_deploy_blocks_a_verified_deploy(
+    store: Store, mandate: Mandate, history_repo: tuple[Path, list[str]], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repo, (v0, v1, _v2) = history_repo
+    opp = fix_change(store, v0, v1, "security")
+    deployed(store, v0, v1, status="inferred", by="external")
+    in_containers(monkeypatch, {"c-app": [("jinja2", "3.1.6")]})
+    watcher(store, mandate, repo)._judge([v0, v1], 1, 0)  # pyright: ignore[reportPrivateUsage]
+    level, outcome = outcome_of(store, opp)
+    assert level is EvidenceLevel.FUNCTIONAL_VALIDATION and outcome["result"] == "invalid"
+    assert "verified_deploy" not in outcome and outcome["criteria"]["criteria_version"] == "v2"
+
+
+def test_the_vulnerable_version_still_running_blocks_a_verified_deploy(
+    store: Store, mandate: Mandate, history_repo: tuple[Path, list[str]], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repo, (v0, v1, _v2) = history_repo
+    opp = fix_change(store, v0, v1, "security")
+    deployed(store, v0, v1)
+    in_containers(monkeypatch, {"c-app": [("Jinja2", "3.1.2")]})
+    watcher(store, mandate, repo)._judge([v0, v1], 1, 0)  # pyright: ignore[reportPrivateUsage]
+    level, outcome = outcome_of(store, opp)
+    assert level is EvidenceLevel.FUNCTIONAL_VALIDATION and outcome["result"] == "inconclusive"
+    assert any("app still runs Jinja2 3.1.2, below the fix 3.1.6" in w for w in outcome["why"])
+
+
+def test_a_container_that_cannot_be_read_leaves_a_security_fix_inconclusive(
+    store: Store, mandate: Mandate, history_repo: tuple[Path, list[str]], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repo, (v0, v1, _v2) = history_repo
+    opp = fix_change(store, v0, v1, "security")
+    deployed(store, v0, v1)
+    in_containers(monkeypatch, {})
+    watcher(store, mandate, repo)._judge([v0, v1], 1, 0)  # pyright: ignore[reportPrivateUsage]
+    level, outcome = outcome_of(store, opp)
+    assert level is EvidenceLevel.FUNCTIONAL_VALIDATION and outcome["result"] == "inconclusive"
+    installed = next(c for c in outcome["verified_deploy"]["conditions"] if c["name"] == "installed")
+    assert installed["met"] is False and "unreadable: db, app" in installed["detail"]
+
+
+def test_a_verified_deploy_rolled_back_is_invalidated(
+    store: Store, mandate: Mandate, history_repo: tuple[Path, list[str]]
+) -> None:
+    from datetime import timedelta
+
+    from unbidden.contracts.common import utc_now
+
+    repo, (v0, v1, _v2) = history_repo
+    opp = fix_change(store, v0, v1, "quality")
+    deployed(store, v0, v1)
+    w = watcher(store, mandate, repo)
+    w._judge([v0, v1], 1, 0)  # pyright: ignore[reportPrivateUsage]
+    assert outcome_of(store, opp)[0] is EvidenceLevel.OPERATIONAL_RESULT
+    w._recheck([v0, v1], utc_now() + timedelta(days=9))  # pyright: ignore[reportPrivateUsage]
+    assert outcome_of(store, opp)[0] is EvidenceLevel.OPERATIONAL_RESULT  # still deployed; no effect, so no L6
+    w._recheck([v0, v1, v0], utc_now() + timedelta(days=10))  # pyright: ignore[reportPrivateUsage]
+    level, outcome = outcome_of(store, opp)
+    assert level is EvidenceLevel.FUNCTIONAL_VALIDATION and "no longer deployed" in outcome["invalidated"]["why"]
+
+
+def test_installed_packages_are_read_from_a_running_container(tmp_path: Path) -> None:
+    fake = tmp_path / "docker"
+    fake.write_text('#!/bin/sh\n[ "$3" = python3 ] && echo \'[["Jinja2", "3.1.6"], ["", "0"]]\' && exit 0\nexit 127\n')
+    fake.chmod(0o755)
+    assert advisories.installed_in_container("c-app", docker=str(fake)) == [("Jinja2", "3.1.6")]
+    assert advisories.installed_in_container("c-app", docker=str(tmp_path / "missing")) is None
+    assert advisories.version_of([("jinja2", "3.1.6")], "Jinja_2") is None
+    assert advisories.version_of([("zope.interface", "7.0")], "Zope-Interface") == "7.0"
+    assert advisories.at_least("3.1.10", "3.1.6") is True and advisories.at_least("3.1.2", "3.1.6") is False
+    assert advisories.at_least("1.0rc1", "1.0.1") is None
+
+
+def test_the_probe_interval_may_be_as_short_as_one_second() -> None:
+    assert OperationsPolicy(probe_every_s=1.0).probe_every_s == 1.0

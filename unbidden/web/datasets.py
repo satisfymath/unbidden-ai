@@ -19,7 +19,7 @@ from unbidden.contracts.experiment import Experiment, Proposal
 from unbidden.contracts.llm import ModelRun
 from unbidden.contracts.opportunity import Opportunity
 from unbidden.contracts.world import Deployment, WorldModel
-from unbidden.director.activity import LEVELS
+from unbidden.director.activity import level_name, live_criteria
 from unbidden.web.contracts import Column, DataRef, DataResult, Transform
 
 if TYPE_CHECKING:
@@ -230,6 +230,7 @@ def _iso(value: datetime | str | None) -> str | None:
         ("status", "string", None),
         ("level", "number", "L"),
         ("level_name", "string", None),
+        ("live_criteria", "string", None),
         ("decision", "string", None),
         ("reason", "string", None),
         ("experiment_id", "string", None),
@@ -249,7 +250,8 @@ def _opportunities(source: Source, params: dict[str, Any]) -> tuple[list[Column]
                 "category": o.category,
                 "status": o.status.value,
                 "level": int(o.evidence_level),
-                "level_name": LEVELS[int(o.evidence_level)],
+                "level_name": level_name(o),
+                "live_criteria": live_criteria(o),
                 "decision": d.get("chosen"),
                 "reason": d.get("reason"),
                 "experiment_id": (o.details.get("verdict") or {}).get("experiment_id")
