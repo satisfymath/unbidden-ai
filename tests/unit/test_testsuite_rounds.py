@@ -113,8 +113,7 @@ def test_each_round_of_the_teams_own_step_starts_from_the_measured_revision(tmp_
     work.mkdir()
     (work / "app.py").write_text("x = 1\n")
     subprocess.run(["git", "init", "-q", str(work)], check=True)
-    ci = DependencyImage(tag="ci", language="python", registries=[], env={}, links={}, runner_like=True,
-                         test_command="mkdir coverage && pytest")  # fmt: skip
+    ci = DependencyImage(tag="ci", language="python", registries=[], env={}, links={}, runner_like=True)
 
     class Runner(FakeRunner):
         def run(self, spec: SandboxSpec, work: Path) -> SandboxResult:

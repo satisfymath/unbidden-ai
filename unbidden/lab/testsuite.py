@@ -444,9 +444,10 @@ def run_suite(
     with_git(work, "the measured revision", exclude=links)
     n = 0
     for index in range(rounds):
-        if index and command:
-            # The team's own test step may write into the tree (sqlmodel's `mkdir coverage`, final pass 0.18.5: rounds 2
-            # and 3 failed on "File exists"); each round starts from the measured revision, as each CI run does.
+        if index:
+            # A test step may write into the tree (sqlmodel's `mkdir coverage`, from its CI steps as translated, final
+            # pass 0.18.5 and 0.18.6: rounds 2 and 3 failed on "File exists"); every round starts from the measured
+            # revision, as each CI run does.
             reset_tree(work, keep=[*links, ".unbidden-junit"])
         result = Round(None, INFRA_FAILED, None)
         first_why = None
