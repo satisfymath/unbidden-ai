@@ -642,7 +642,7 @@ def _drill(args: argparse.Namespace, ws: Workspace) -> int:
     from unbidden.operate.deploy import drill, health_url
 
     store = ws.store()
-    url = health_url(store)
+    url = health_url(store, ws.mandate())
     if url is None:
         err.print("no live health endpoint is known; run `unbidden map` while the system runs")
         return 2
@@ -659,6 +659,76 @@ def _drill(args: argparse.Namespace, ws: Workspace) -> int:
     mark = "[green]passed[/]" if record["passed"] else "[red]failed[/]"
     console.print(f"rollback drill {mark}: back {record['back']}, forth {record['forth']}")
     return 0 if record["passed"] else 1
+
+
+def cmd_host(args: argparse.Namespace) -> int:
+    """Bring the application up from the repository's own compose file (operate/bringup.py), or take it down."""
+    import subprocess
+
+    import yaml
+
+    from unbidden.contracts.events import Event, EventType
+    from unbidden.contracts.guardian import Autonomy
+    from unbidden.guardian.mandate_edit import write_mandate
+    from unbidden.operate import bringup
+
+    ws = Workspace.find()
+    store = ws.store()
+    if args.action == "down":
+        record = bringup.down(ws.repo)
+        store.append_event(Event(type=EventType.DEPLOYED, actor="operator", payload={"self_host": "down", **record}))
+        if not _emit(args, record):
+            console.print(f"{record['project']}: {'down' if record['ok'] else record['why']}")
+        return 0 if record["ok"] else 1
+    if args.action == "status":
+        state = {k: v for k, v in bringup.load_state(ws.repo).items() if k != "env"}  # values stay on this machine
+        if not _emit(args, state):
+            console.print(state or "nothing brought up here")
+        return 0
+    mandate = ws.mandate()
+    policy = mandate.operations.self_host
+    autonomous = mandate.autonomy.merge_pull_requests is Autonomy.ALLOW
+    if policy == "deny" or (policy == "auto" and not (autonomous or args.yes or args.deploy)):
+        why = ("the mandate does not let Unbidden bring the application up (operations.self_host: deny)"
+               if policy == "deny" else "bringing the application up runs its build and containers: pass --yes, or "
+               "set operations.self_host: allow")  # fmt: skip
+        if not _emit(args, {"ok": False, "why": why}):
+            err.print(why)
+        return 2
+    with console.status("bringing the application up from its compose file"):
+        result = bringup.up(ws.repo, deploy=args.deploy, build=args.build or not args.deploy)
+    if result.ok and not args.deploy:
+        raw = yaml.safe_load(ws.mandate_path.read_text())
+        ops = raw["mandate"].setdefault("operations", {})
+        ops["deploy_steps"] = result.deploy_steps
+        ops["health_url"] = result.health_url
+        ops["probe_every_s"] = bringup.PROBE_EVERY_S  # the ≥100 requests per side a deploy is judged on, in minutes
+        change = {"project": result.project, "health_url": result.health_url, "deploy_steps": result.deploy_steps}
+        write_mandate(ws.mandate_path, raw, store, {"self_host": change}, actor="unbidden")
+        if not args.no_drill:
+            from unbidden.operate.deploy import drill
+
+            previous = subprocess.run(["git", "-C", str(ws.repo), "rev-parse", "HEAD~1"], capture_output=True,
+                                      text=True, check=False).stdout.strip()  # fmt: skip
+            if previous and result.health_url:
+                with console.status(f"rollback drill: {previous[:12]} and back"):
+                    result.drill = drill(ws.repo, store, ws.mandate(), previous, result.health_url)
+            else:
+                result.drill = {"passed": False, "why": "no previous commit to roll back to"}
+    record = result.as_dict()
+    store.set_value("self_host", record)
+    store.append_event(Event(type=EventType.DEPLOYED, actor="operator",
+                             payload={"self_host": "deploy" if args.deploy else "up", "ok": result.ok,
+                                      "health_url": result.health_url, "why": result.why}))  # fmt: skip
+    if _emit(args, record):
+        return 0 if result.ok else 1
+    if result.ok:
+        drilled = (result.drill or {}).get("passed")
+        console.print(f"[green]{result.project} is up[/]: {result.health_url}"
+                      + (f"; rollback drill {'passed' if drilled else 'failed'}" if result.drill else ""))  # fmt: skip
+    else:
+        err.print(f"{result.project}: {result.why}")
+    return 0 if result.ok else 1
 
 
 def cmd_hold(args: argparse.Namespace) -> int:
@@ -2374,6 +2444,12 @@ def build_parser() -> argparse.ArgumentParser:
     deploy_.add_argument("--reason", help="recorded with the deploy")
     drill_ = command("drill", cmd_drill, "prove rollback works before autonomy relies on it")
     drill_.add_argument("previous", nargs="?", help="the version to roll back to (default HEAD~1)")
+    host = command("host", cmd_host, "bring the application up from the repository's own compose file")
+    host.add_argument("action", nargs="?", choices=["up", "down", "status"], default="status")
+    host.add_argument("--yes", action="store_true", help="a person allows running the build and its containers")
+    host.add_argument("--deploy", action="store_true", help="rebuild and restart as brought up (the deploy step)")
+    host.add_argument("--build", action="store_true", help="rebuild the images")
+    host.add_argument("--no-drill", action="store_true", help="do not run the rollback drill after bringing it up")
     hold = command("hold", cmd_hold, "list holds, or release one (people only)")
     hold.add_argument("action", nargs="?", choices=["list", "release"], default="list")
     hold.add_argument("id", nargs="?")

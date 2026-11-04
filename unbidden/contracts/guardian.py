@@ -46,6 +46,10 @@ class OperationsPolicy(Contract):
     check_steps: list[list[str]] = Field(default_factory=list[list[str]])
     check_image: str | None = None
     probe_every_s: float = Field(default=5.0, gt=0)
+    # Whether Unbidden may bring the application up by itself from the repository's own compose file
+    # (`unbidden host up`, operate/bringup.py): "auto" allows it in autonomous mode or when a person runs the command.
+    self_host: Literal["auto", "allow", "deny"] = "auto"
+    health_url: str | None = None  # the application's health URL when the map cannot name one (a self-hosted app)
     probe_auth: ProbeAuth | None = None
     max_merges_per_hour: int = Field(default=2, ge=0)
     max_deploys_per_hour: int = Field(default=2, ge=0)
