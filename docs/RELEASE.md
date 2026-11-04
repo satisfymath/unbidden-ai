@@ -1,5 +1,12 @@
 # Unbidden 0.18.0, experimental candidate: the terminal app on the product branch, not 1.0
 
+## 0.18.7 (2026-11-04): a crash fix and its regression test in the team's format
+
+- **The robustness lab puts its candidate through the team's formatter.** rich, final pass on 0.18.6: two crash
+  fixes found by the probe (`ZeroDivisionError` and `IndexError` in `_split_text`) were red on `black --check` in
+  every CI cell, only for the regression test file they add. The formatting step the fix lab has (0.18.6) is now one
+  function both labs use.
+
 ## 0.18.6 (2026-11-04): the labs' type checks and formatter run where the project is installed
 
 - **The fix lab and the performance lab run mypy and pyright in Unbidden's own environment.** reader, final pass on

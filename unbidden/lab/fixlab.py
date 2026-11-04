@@ -338,36 +338,7 @@ class FixLab:
         self, rev: str, candidate: Candidate, image: DependencyImage, formatter: tuple[str, ...], cwd: str,
         notes: list[str],
     ) -> Candidate:  # fmt: skip
-        """The candidate's Python files as the team's formatter leaves them, run in the sandbox from the project's
-        own environment. A formatter the environment lacks is noted and the candidate kept as it is."""
-        files = sorted(p for p in candidate.files if p.endswith(".py"))
-        if not files:
-            return candidate
-        # The team's formatter is installed with the project, in Unbidden's own environment beside a CI job's image
-        # (rich, final pass 0.18.5: "black: not in the project's environment", two pull requests red on black).
-        image = own_image(image) or image
-        work = self._work(rev, image, candidate.files)
-        base = snapshot(self.repo, rev)
-        try:
-            inside = [p.removeprefix(f"{cwd}/") if cwd not in (".", "") else p for p in files]
-            result = self.runner.run(sandbox_spec(image, [*formatter, *inside], cwd=cwd), work)
-            if result.exit_code == 127 or "not found" in result.stderr[-300:].lower():
-                notes.append(f"{formatter[0]}: not in the project's environment; the candidate was not formatted")
-                return candidate
-            if not result.ok:
-                notes.append(f"{formatter[0]} did not format the candidate: {result.stderr.strip()[-200:]}")
-                return candidate
-            formatted = {p: (work / p).read_text() for p in candidate.files if (work / p).exists()}
-            if formatted == candidate.files:
-                return candidate
-            changed = [p for p in files if formatted.get(p) != candidate.files[p]]
-            notes.append(f"candidate formatted with the team's {' '.join(formatter)}: {', '.join(changed)}")
-            kept = {p: text for p, text in formatted.items()
-                    if not (base / p).exists() or (base / p).read_text() != text}  # fmt: skip
-            return Candidate(candidate.origin, kept or formatted, unified_patch(base, kept or formatted))
-        finally:
-            discard(work)
-            discard(base)
+        return in_team_format(self.runner, self.repo, rev, candidate, image, formatter, cwd, notes)
 
     async def run(self, opp: Opportunity) -> LabResult:
         tool = tool_named(self.stack, opp.source)
@@ -638,3 +609,43 @@ def findings_measurement(experiment: Experiment, improved: bool, tool: str) -> M
     base, head = float(len(experiment.findings_before)), float(len(experiment.findings_after))
     return Measurement(metric=metric, base=base, head=head, effect=relative(base, head, "lower"),
                        n_base=1, n_head=1, met=improved)  # fmt: skip
+
+
+def in_team_format(
+    runner: SandboxRunner, repo: Path, rev: str, candidate: Candidate, image: DependencyImage,
+    formatter: tuple[str, ...], cwd: str, notes: list[str],
+) -> Candidate:  # fmt: skip
+    """The candidate's Python files as the team's formatter leaves them, run in the sandbox from the project's own
+    environment (Unbidden's, beside a CI job's: rich, final pass 0.18.5). A formatter the environment lacks is noted
+    and the candidate kept as it is. Shared by every lab that writes Python (the robustness lab's regression test:
+    rich, final pass 0.18.6, red on `black --check`)."""
+    files = sorted(p for p in candidate.files if p.endswith(".py"))
+    if not files:
+        return candidate
+    image = own_image(image) or image
+    work = snapshot(repo, rev)
+    for path, content in candidate.files.items():
+        (work / path).parent.mkdir(parents=True, exist_ok=True)
+        (work / path).write_text(content)
+    link_dependencies(work, image)
+    base = snapshot(repo, rev)
+    try:
+        inside = [p.removeprefix(f"{cwd}/") if cwd not in (".", "") else p for p in files]
+        result = runner.run(sandbox_spec(image, [*formatter, *inside], cwd=cwd), work)
+        if result.exit_code == 127 or "not found" in result.stderr[-300:].lower():
+            notes.append(f"{formatter[0]}: not in the project's environment; the candidate was not formatted")
+            return candidate
+        if not result.ok:
+            notes.append(f"{formatter[0]} did not format the candidate: {result.stderr.strip()[-200:]}")
+            return candidate
+        formatted = {p: (work / p).read_text() for p in candidate.files if (work / p).exists()}
+        if formatted == candidate.files:
+            return candidate
+        changed = [p for p in files if formatted.get(p) != candidate.files[p]]
+        notes.append(f"candidate formatted with the team's {' '.join(formatter)}: {', '.join(changed)}")
+        kept = {p: text for p, text in formatted.items()
+                if not (base / p).exists() or (base / p).read_text() != text}  # fmt: skip
+        return Candidate(candidate.origin, kept or formatted, unified_patch(base, kept or formatted))
+    finally:
+        discard(work)
+        discard(base)

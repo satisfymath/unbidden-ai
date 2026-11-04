@@ -189,6 +189,16 @@ class RobustLab:
             candidate = Candidate(
                 candidate.origin, files, candidate.patch + unified_patch(snapshot(self.repo, rev), {test_file: test})
             )
+            # The fix and its regression test as the team's formatter leaves them (rich, final pass 0.18.6: the test
+            # file was red on `black --check` in every CI cell).
+            from unbidden.lab.fixlab import in_team_format
+            from unbidden.observe.ci import ci_commands, team_formatter
+
+            formatter = team_formatter(ci_commands(self.repo, rev))
+            if formatter is not None:
+                candidate = in_team_format(self.runner, self.repo, rev, candidate, self.image, formatter, ".",
+                                           result.notes)  # fmt: skip
+                files = candidate.files
             experiment = Experiment(
                 opportunity_id=opp.id,
                 base_sha=rev,
