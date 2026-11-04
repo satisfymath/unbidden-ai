@@ -227,7 +227,12 @@ class DepsLab:
             after = installed(self.runner, self.repo, sha, own) if own is not None else None
             report = advisory_report(after or [], manifest, self.fetch)
             remaining = {str(f.extra.get("advisory")) for f in report.findings}
-            before_all = {f["extra"]["advisory"] for f in opp.details.get("all_advisories", [])} or targeted
+            # Every advisory at the base, of every package: one another package already had is not new with the bump
+            # (marshmallow: certifi's fix counted virtualenv's 25 standing advisories as new, and was declined).
+            base_own = own_image(self.image)
+            base_pkgs = installed(self.runner, self.repo, rev, base_own) if base_own is not None else None
+            standing = advisory_report(base_pkgs or [], manifest, self.fetch).findings
+            before_all = {str(f.extra.get("advisory")) for f in standing} | targeted
             plan = test_plan(self.repo, rev, self.stack, "python")
             sides = []
             if plan is not None:
@@ -259,7 +264,10 @@ class DepsLab:
         if new:
             reasons.append(f"new advisories with the bump: {', '.join(sorted(str(n) for n in new))}")
         if after is None:
-            reasons.append("the candidate's installed packages could not be read: nothing is claimed")
+            why = next((n for n in reversed(image.notes) if "own environment" in n), "") if image is not None else ""
+            reasons.append(
+                f"the candidate's installed packages could not be read: nothing is claimed{'; ' + why if why else ''}"
+            )
         if not report.can_resolve:
             reasons.append(f"the advisories at the candidate could not all be read: {report.error}")
         verdict = Verdict(

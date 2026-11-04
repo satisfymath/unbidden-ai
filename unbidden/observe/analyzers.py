@@ -38,7 +38,7 @@ def run_tool(
             link_dependencies(work, image)
         argv = list(tool.argv)
         result = runner.run(sandbox_spec(image, argv, cwd=tool.cwd, timeout_s=timeout_s), work)
-        return tool.report(result, argv)
+        return tool.report(result, argv, image.mount)
     finally:
         if prepared is None:
             discard(work)

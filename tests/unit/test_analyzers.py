@@ -329,3 +329,19 @@ def test_beside_the_ci_jobs_environment_unbiddens_own_holds_the_project(
     monkeypatch.setattr(prov, "_provision", fails)
     image = prov.provision(tmp_path, "HEAD", stack, policy=PolicyEngine(mandate))
     assert prov.own_image(image) is None and any("own environment could not be installed" in n for n in image.notes)
+
+
+def test_findings_in_a_ci_jobs_workspace_are_relative_to_the_repository() -> None:
+    """rich, campaign 13: ruff ran at the CI job's workspace path and reported absolute paths there; the model's
+    answer naming one was refused as unsafe, so no quality fix could land."""
+    import json as _json
+
+    from unbidden.sandbox.runner import SandboxResult
+    from unbidden.sandbox.tools import TOOLS
+
+    mount = "/Users/x/.unbidden/ci-env/abc/ws"
+    out = _json.dumps([{"code": "F821", "message": "undefined", "filename": f"{mount}/rich/console.py",
+                        "location": {"row": 3, "column": 1}}])  # fmt: skip
+    result = SandboxResult(0, out, "", False, 0.1, False, False)
+    report = TOOLS["ruff"].report(result, list(TOOLS["ruff"].argv), mount)
+    assert [f.path for f in report.findings] == ["rich/console.py"]

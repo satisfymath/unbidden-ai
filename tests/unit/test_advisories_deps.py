@@ -168,7 +168,7 @@ async def test_beside_a_ci_jobs_environment_the_bump_is_read_from_unbiddens_own(
     lab = DepsLab(repo, store, detect_stack(repo, rev), ci, PolicyEngine(mandate), runner=Seen(),  # type: ignore[arg-type]
                   fetch=fetch, rounds=1)  # fmt: skip
     result = await lab.run(opp)
-    assert result.verdict is not None and result.verdict.improved and read == ["deps"], (result, read)
+    assert result.verdict is not None and result.verdict.improved and set(read) == {"deps"}, (result, read)
     monkeypatch.setattr(deps_mod, "provision", lambda *a, **k: replace(ci, own=None))
     result = await DepsLab(repo, store, detect_stack(repo, rev), ci, PolicyEngine(mandate), runner=Seen(),  # type: ignore[arg-type]
                            fetch=fetch, rounds=1).run(opp)  # fmt: skip
@@ -198,3 +198,29 @@ def test_the_relock_builds_from_the_whole_tree(tmp_path: Path) -> None:
     )
     docker.chmod(0o755)
     assert relock_uv(repo, rev, ["uv.lock"], "requests", "2.32.0", docker=str(docker)).strip() == "relocked"
+
+
+async def test_another_packages_standing_advisories_are_not_new_with_the_bump(
+    store: Store, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mandate: Any
+) -> None:
+    """marshmallow, campaign 13: certifi's fix was declined because virtualenv's standing advisories, there before the
+    bump, were counted as new with it."""
+    from unbidden.guardian.policy import PolicyEngine
+
+    flask_advisory = {**ADVISORY, "id": "GHSA-flask-0000", "aliases": [], "fixed_in": ["3.1.0"]}
+
+    def both(name: str, version: str) -> list[dict[str, Any]] | None:
+        return fetch(name, version) or ([flask_advisory] if name == "flask" else [])
+
+    repo, rev = _repo(tmp_path)
+    image = DependencyImage(tag="deps", language="python", registries=[], env={}, links={})
+    monkeypatch.setattr(deps_mod, "provision", lambda *a, **k: image)
+    suite = TestSummary(rounds=1, failed_per_round=[[]], round_status=["ran"], collected_per_round=[1])
+    monkeypatch.setattr(deps_mod, "run_suite", lambda *a, **k: suite)
+    report = advisory_report([("requests", "2.31.0")], "requirements.txt", fetch)
+    (opp,) = record_report(store, report, rev).opened
+    lab = DepsLab(repo, store, detect_stack(repo, rev), image, PolicyEngine(mandate), runner=Runner(),  # type: ignore[arg-type]
+                  fetch=both, rounds=1)  # fmt: skip
+    result = await lab.run(opp)
+    assert result.verdict is not None and result.verdict.improved, result.verdict
+    assert not any("new advisories" in r for r in result.verdict.reasons)
