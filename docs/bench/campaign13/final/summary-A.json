@@ -23,5 +23,30 @@
   "ui": true,
   "spent_usd": 0.0,
   "wall_s": 23.4
+ },
+ {
+  "name": "gin",
+  "class": "frontier",
+  "family": "go",
+  "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/gin/A.json",
+  "setup": true,
+  "doctor_ok": true,
+  "scan_ok": true,
+  "checks": "out_of_scope",
+  "collected": null,
+  "opps": 0,
+  "lifecycle": {
+   "started": true,
+   "running_after_checks": true,
+   "second_start_refused": true,
+   "stopped": true,
+   "jobs_left_running": 0,
+   "stale_after": false,
+   "kill_file": false,
+   "status0_ok": true
+  },
+  "ui": true,
+  "spent_usd": 0.0,
+  "wall_s": 83.8
  }
 ]

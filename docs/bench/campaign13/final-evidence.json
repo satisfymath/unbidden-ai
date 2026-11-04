@@ -1,14 +1,14 @@
 {
  "title": "Unbidden campaign 13, final pass: what the agent did on 39 repositories, autonomously",
- "generated_at": "2026-11-04T23:26+00:00",
+ "generated_at": "2026-11-04T23:30+00:00",
  "where": "copies of the repositories under github.com/satisfymath (c13-<name>); nothing upstream",
  "rule": "merged only by the product, on the team's own CI green on the pull request's exact head",
  "runs": [
   {
    "label": "final",
    "version": "0.18.6",
-   "records": 28,
-   "spent_usd": 3.567
+   "records": 31,
+   "spent_usd": 3.7677
   },
   {
    "label": "final-rerun-0.18.9",
@@ -18,22 +18,27 @@
   }
  ],
  "totals": {
-  "repositories_run": 28,
-  "runs": 32,
-  "pull_requests": 37,
-  "pull_requests_ci_green": 26,
-  "merges": 13,
-  "merged_by_unbidden": 12,
-  "merged_verified_independently": 12,
+  "repositories_run": 31,
+  "runs": 35,
+  "pull_requests": 44,
+  "pull_requests_ci_green": 30,
+  "merges": 14,
+  "merged_by_unbidden": 13,
+  "merged_verified_independently": 13,
   "merged_by_kind": {
    "quality": 5,
-   "security": 7
+   "security": 8
   },
-  "repositories_with_a_merge": 12,
+  "repositories_with_a_merge": 13,
   "l5": [
    {
     "repo": "fst",
     "level": "L5 (verified-deploy-v1; verified after deploy 1:c2d276ddc4497c36663019687d3960f9e03a83e2)",
+    "version": "0.18.6"
+   },
+   {
+    "repo": "spoolman",
+    "level": "L5 (verified-deploy-v1; verified after deploy 1:eacd90b80dcb98290cff75c0c3547df87bc6c1fd)",
     "version": "0.18.6"
    },
    {
@@ -43,11 +48,11 @@
    }
   ],
   "highest_levels": {
-   "-": 5,
+   "-": 6,
    "L1": 9,
    "L3": 2,
-   "L4": 14,
-   "L5": 2
+   "L4": 15,
+   "L5": 3
   }
  },
  "pull_requests": [
@@ -180,6 +185,45 @@
    "merged_at": "2026-11-04T20:05:52Z",
    "state": "closed",
    "verified_independently": "verified"
+  },
+  {
+   "repo": "harlequin",
+   "version": "0.18.6",
+   "number": 4,
+   "title": "security: bump multidict 6.7.1 \u2192 6.9.1",
+   "url": "https://github.com/satisfymath/c13-harlequin/pull/4",
+   "kind": "security",
+   "ci": "red",
+   "merged": false,
+   "merged_at": null,
+   "state": "open",
+   "verified_independently": "not run"
+  },
+  {
+   "repo": "harlequin",
+   "version": "0.18.6",
+   "number": 3,
+   "title": "security: bump msgpack 1.2.1 \u2192 1.2.3",
+   "url": "https://github.com/satisfymath/c13-harlequin/pull/3",
+   "kind": "security",
+   "ci": "red",
+   "merged": false,
+   "merged_at": null,
+   "state": "open",
+   "verified_independently": "not run"
+  },
+  {
+   "repo": "harlequin",
+   "version": "0.18.6",
+   "number": 2,
+   "title": "security: bump aiohttp 3.14.3 \u2192 3.14.4",
+   "url": "https://github.com/satisfymath/c13-harlequin/pull/2",
+   "kind": "security",
+   "ci": "red",
+   "merged": false,
+   "merged_at": null,
+   "state": "open",
+   "verified_independently": "not run"
   },
   {
    "repo": "marshmallow",
@@ -373,6 +417,58 @@
    "ci": "green",
    "merged": true,
    "merged_at": "2026-11-04T19:14:54Z",
+   "state": "closed",
+   "verified_independently": "verified"
+  },
+  {
+   "repo": "spoolman",
+   "version": "0.18.6",
+   "number": 12,
+   "title": "security: bump urllib3 2.7.0 \u2192 2.8.0",
+   "url": "https://github.com/satisfymath/c13-spoolman/pull/12",
+   "kind": "security",
+   "ci": "green",
+   "merged": false,
+   "merged_at": null,
+   "state": "closed",
+   "verified_independently": "not run"
+  },
+  {
+   "repo": "spoolman",
+   "version": "0.18.6",
+   "number": 11,
+   "title": "security: bump msgpack 1.2.1 \u2192 1.2.3",
+   "url": "https://github.com/satisfymath/c13-spoolman/pull/11",
+   "kind": "security",
+   "ci": "green",
+   "merged": false,
+   "merged_at": null,
+   "state": "closed",
+   "verified_independently": "not run"
+  },
+  {
+   "repo": "spoolman",
+   "version": "0.18.6",
+   "number": 10,
+   "title": "security: bump certifi 2026.6.17 \u2192 2026.10.18",
+   "url": "https://github.com/satisfymath/c13-spoolman/pull/10",
+   "kind": "security",
+   "ci": "green",
+   "merged": false,
+   "merged_at": null,
+   "state": "closed",
+   "verified_independently": "not run"
+  },
+  {
+   "repo": "spoolman",
+   "version": "0.18.6",
+   "number": 9,
+   "title": "security: bump anyio 4.14.1 \u2192 4.14.2",
+   "url": "https://github.com/satisfymath/c13-spoolman/pull/9",
+   "kind": "security",
+   "ci": "green",
+   "merged": true,
+   "merged_at": "2026-11-04T21:30:16Z",
    "state": "closed",
    "verified_independently": "verified"
   },
@@ -603,29 +699,52 @@
   },
   {
    "name": "spoolman",
-   "run": "A",
+   "run": "B1",
    "class": "dev",
    "family": "api-postgres",
-   "mode": "A only",
-   "checks": null,
-   "collected": null,
-   "opportunities": {},
-   "experiments": null,
-   "proposals": [],
-   "pulls": [],
-   "ci": [],
-   "merged": 0,
-   "deploys": null,
-   "level": "-",
-   "verify": [],
-   "spent_usd": 0.0,
-   "cost_per_pr": null,
-   "first_pr_min": null,
-   "asks": 0,
-   "ask_rules": {},
-   "export": "-",
+   "mode": "autonomous",
+   "checks": "passed",
+   "collected": 278,
+   "opportunities": {
+    "bugs": 1,
+    "performance": 1,
+    "security": 5
+   },
+   "experiments": 7,
+   "proposals": [
+    "L4",
+    "L4",
+    "L4",
+    "L4"
+   ],
+   "pulls": [
+    "#12",
+    "#11",
+    "#10",
+    "#9"
+   ],
+   "ci": [
+    "green",
+    "green",
+    "green",
+    "green"
+   ],
+   "merged": 1,
+   "deploys": 2,
+   "level": "L5 (verified-deploy-v1; verified after deploy 1:eacd90b80dcb98290cff75c0c3547df87bc6c1fd)",
+   "verify": [
+    "verified"
+   ],
+   "spent_usd": 0.0567,
+   "cost_per_pr": 0.0142,
+   "first_pr_min": 3.6,
+   "asks": 2,
+   "ask_rules": {
+    "raise to the final pass's per-repository cap": 2
+   },
+   "export": "ok",
    "version": "0.18.6",
-   "status": "running or not run"
+   "status": "done"
   },
   {
    "name": "codex-lb",
@@ -1258,29 +1377,43 @@
   },
   {
    "name": "harlequin",
-   "run": "A",
+   "run": "B1",
    "class": "independent",
    "family": "cli",
-   "mode": "A only",
-   "checks": null,
-   "collected": null,
-   "opportunities": {},
-   "experiments": null,
-   "proposals": [],
-   "pulls": [],
-   "ci": [],
+   "mode": "custom",
+   "checks": "failed",
+   "collected": 2214,
+   "opportunities": {
+    "security": 7
+   },
+   "experiments": 4,
+   "proposals": [
+    "L4",
+    "L4",
+    "L4"
+   ],
+   "pulls": [
+    "#4",
+    "#3",
+    "#2"
+   ],
+   "ci": [
+    "red",
+    "red",
+    "red"
+   ],
    "merged": 0,
-   "deploys": null,
-   "level": "-",
+   "deploys": 0,
+   "level": "L4",
    "verify": [],
-   "spent_usd": 0.0,
-   "cost_per_pr": null,
-   "first_pr_min": null,
+   "spent_usd": 0.144,
+   "cost_per_pr": 0.048,
+   "first_pr_min": 30.8,
    "asks": 0,
    "ask_rules": {},
-   "export": "-",
+   "export": "ok",
    "version": "0.18.6",
-   "status": "running or not run"
+   "status": "done"
   },
   {
    "name": "dooit",
@@ -1698,7 +1831,7 @@
    "class": "frontier",
    "family": "go",
    "mode": "A only",
-   "checks": null,
+   "checks": "out_of_scope",
    "collected": null,
    "opportunities": {},
    "experiments": null,
@@ -1716,7 +1849,7 @@
    "ask_rules": {},
    "export": "-",
    "version": "0.18.6",
-   "status": "running or not run"
+   "status": "done"
   },
   {
    "name": "weblate",
@@ -2033,5 +2166,5 @@
    "merged": 3
   }
  ],
- "spent_usd": 3.8345
+ "spent_usd": 4.0352
 }

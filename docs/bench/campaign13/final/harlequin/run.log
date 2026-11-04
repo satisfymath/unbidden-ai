@@ -26,3 +26,4 @@ Traceback (most recent call last):
 FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'
 
 2026-11-04T18:10:21-0300 [B1] worker 0 starts on ports {'dashboard': 19000, 'ui_a': 19001, 'lab': 19002, 'lab_db': 19003}
+2026-11-04T20:29:22-0300 [B1] done in 8342 s: {"name": "harlequin", "run": "B1", "mode": "custom", "deploy_target": "none", "self_host_ok": null, "export": true, "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/harlequin/B1.json", "proposals_c1": 3, "proposals_c2": 3, "pulls_after": 4, "spent_usd": 0.144, "blocks": [], "wall_s": 8284.9}

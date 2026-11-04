@@ -1,0 +1,36 @@
+{
+ "slug": "satisfymath/c13-spoolman",
+ "number": 9,
+ "title": "security: bump anyio 4.14.1 → 4.14.2",
+ "base": "9564c11671fc24c0f9b395c2d967400e3fa3bbfe",
+ "head": "f31213ca16f7b3e7e0c16de482f39aa386b69cee",
+ "claims": [],
+ "changed_files": [
+  "uv.lock"
+ ],
+ "tests_deleted": [],
+ "skips_added": [],
+ "finding_checks": [
+  {
+   "rule": "advisories (OSV)",
+   "file": "anyio",
+   "at_base": [
+    "CVE-2026-63349",
+    "CVE-2026-63374",
+    "CVE-2026-64847",
+    "GHSA-3w57-8xmc-8v26",
+    "GHSA-5p39-cfhj-2xmp",
+    "GHSA-82r6-8w77-94w6",
+    "PYSEC-2026-4023",
+    "PYSEC-2026-4024",
+    "PYSEC-2026-4025"
+   ],
+   "at_head": [],
+   "new_version_in_patch": true,
+   "only_dependency_files": true,
+   "verdict": "confirmed"
+  }
+ ],
+ "change_matches_problem": true,
+ "verdict": "verified"
+}

@@ -26,3 +26,4 @@ Traceback (most recent call last):
 FileNotFoundError: [Errno 2] No such file or directory: '/Users/david/unbidden-lab/c13/home/bin/unbidden'
 
 2026-11-04T18:10:21-0300 [B1] worker 1 starts on ports {'dashboard': 19010, 'ui_a': 19011, 'lab': 19012, 'lab_db': 19013}
+2026-11-04T20:28:03-0300 [B1] done in 8262 s: {"name": "spoolman", "run": "B1", "mode": "autonomous", "deploy_target": "lab", "self_host_ok": null, "export": true, "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/spoolman/B1.json", "proposals_c1": 4, "proposals_c2": 4, "pulls_after": 12, "spent_usd": 0.0567, "blocks": [], "wall_s": 8170.7}

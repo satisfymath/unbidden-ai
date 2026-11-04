@@ -1,6 +1,6 @@
 # Campaign 13, final pass
 
-Generated 2026-11-04T23:26+00:00 from the records in this directory (`bench/campaign13/evidence.py`).
+Generated 2026-11-04T23:30+00:00 from the records in this directory (`bench/campaign13/evidence.py`).
 
 Unbidden ran on its own, frontier models only, over the 39 repositories of the corpus. It worked on copies
 under `github.com/satisfymath`, and nothing went upstream. It found improvements and measured them, opened pull
@@ -11,12 +11,12 @@ The apps it brought up itself it then deployed and verified.
 
 | | |
 |---|---|
-| Repositories with a record | 28 of 39 |
-| Pull requests opened by the agent | 37 (26 green on the team's CI) |
-| Improvements merged by the product, autonomously | **12** in 12 repositories (5 quality, 7 security; 13 merges, one fix merged in two runs) |
-| Merges verified independently (`verify.py`: ruff, or OSV advisories) | 12 of 12 |
-| L5, verified after the agent's own deploy | 2: fst, aegra |
-| Model spend | US$3.83 |
+| Repositories with a record | 31 of 39 |
+| Pull requests opened by the agent | 44 (30 green on the team's CI) |
+| Improvements merged by the product, autonomously | **13** in 13 repositories (5 quality, 8 security; 14 merges, one fix merged in two runs) |
+| Merges verified independently (`verify.py`: ruff, or OSV advisories) | 13 of 13 |
+| L5, verified after the agent's own deploy | 3: fst, spoolman, aegra |
+| Model spend | US$4.04 |
 
 ## Every merge
 
@@ -31,6 +31,7 @@ The apps it brought up itself it then deployed and verified.
 | reader | [#1](https://github.com/satisfymath/c13-reader/pull/1) fix: 19 ruff-baseline F821 findings in tests/data/ | quality | green | verified | 0.18.6 |
 | resumeio-to-pdf | [#1](https://github.com/satisfymath/c13-resumeio-to-pdf/pull/1) security: bump anyio 4.10.0 → 4.14.2 | security | green | verified | 0.18.6 |
 | rich | [#18](https://github.com/satisfymath/c13-rich/pull/18) fix: 1 ruff-baseline F821 finding in examples/ | quality | green | verified | 0.18.6 |
+| spoolman | [#9](https://github.com/satisfymath/c13-spoolman/pull/9) security: bump anyio 4.14.1 → 4.14.2 | security | green | verified | 0.18.6 |
 | tracklater | [#1](https://github.com/satisfymath/c13-tracklater/pull/1) fix: 2 ruff-baseline F811 findings in tracklater/tests/ | quality | green | verified | 0.18.6 |
 | aegra | [#7](https://github.com/satisfymath/c13-aegra/pull/7) fix(deps): bump certifi 2026.1.4 → 2026.10.18 (security) | security | green | verified | 0.18.9 |
 | rich | [#23](https://github.com/satisfymath/c13-rich/pull/23) fix: 1 ruff-baseline F821 finding in examples/ | quality | green | verified | 0.18.9 |
@@ -39,6 +40,7 @@ The apps it brought up itself it then deployed and verified.
 ## L5
 
 - **fst** (0.18.6): L5 (verified-deploy-v1; verified after deploy 1:c2d276ddc4497c36663019687d3960f9e03a83e2)
+- **spoolman** (0.18.6): L5 (verified-deploy-v1; verified after deploy 1:eacd90b80dcb98290cff75c0c3547df87bc6c1fd)
 - **aegra** (0.18.9): L5 (verified-deploy-v1; verified after deploy 1:600c12eaa65e24d074a6b29f31cc76ea594e6c72)
 
 A verified-deploy L5 claims no measured effect. It says four things about the change: it was deployed by the
@@ -61,6 +63,9 @@ That deferral is by design: noise never becomes a result.
 | dooit | [#4](https://github.com/satisfymath/c13-dooit/pull/4) security: bump idna 3.10 → 3.15 | security | none | yes | 0.18.6 |
 | dooit | [#3](https://github.com/satisfymath/c13-dooit/pull/3) security: bump Pygments 2.19.2 → 2.20.0 | security | none | no | 0.18.6 |
 | fst | [#17](https://github.com/satisfymath/c13-fst/pull/17) security: bump dnspython 2.8.0 → 2.9.0 | security | green | yes | 0.18.6 |
+| harlequin | [#4](https://github.com/satisfymath/c13-harlequin/pull/4) security: bump multidict 6.7.1 → 6.9.1 | security | red | no | 0.18.6 |
+| harlequin | [#3](https://github.com/satisfymath/c13-harlequin/pull/3) security: bump msgpack 1.2.1 → 1.2.3 | security | red | no | 0.18.6 |
+| harlequin | [#2](https://github.com/satisfymath/c13-harlequin/pull/2) security: bump aiohttp 3.14.3 → 3.14.4 | security | red | no | 0.18.6 |
 | marshmallow | [#3](https://github.com/satisfymath/c13-marshmallow/pull/3) security: bump certifi 2026.7.22 → 2026.10.18 | security | green | yes | 0.18.6 |
 | oauthlib | [#2](https://github.com/satisfymath/c13-oauthlib/pull/2) fix: 1 ruff-baseline B006 finding in oauthlib/oauth2/rfc6749/endpoints/ | quality | green | yes | 0.18.6 |
 | python-mss | [#1](https://github.com/satisfymath/c13-python-mss/pull/1) fix: AttributeError in as_region (src/mss/models.py) | correctness | red | no | 0.18.6 |
@@ -76,6 +81,10 @@ That deferral is by design: noise never becomes a result.
 | rich | [#20](https://github.com/satisfymath/c13-rich/pull/20) fix: 2 ruff-baseline F821 findings in tests/ | quality | green | no | 0.18.6 |
 | rich | [#19](https://github.com/satisfymath/c13-rich/pull/19) fix: 2 ruff-baseline F821 findings in rich/ | quality | green | no | 0.18.6 |
 | rich | [#18](https://github.com/satisfymath/c13-rich/pull/18) fix: 1 ruff-baseline F821 finding in examples/ | quality | green | yes | 0.18.6 |
+| spoolman | [#12](https://github.com/satisfymath/c13-spoolman/pull/12) security: bump urllib3 2.7.0 → 2.8.0 | security | green | no | 0.18.6 |
+| spoolman | [#11](https://github.com/satisfymath/c13-spoolman/pull/11) security: bump msgpack 1.2.1 → 1.2.3 | security | green | no | 0.18.6 |
+| spoolman | [#10](https://github.com/satisfymath/c13-spoolman/pull/10) security: bump certifi 2026.6.17 → 2026.10.18 | security | green | no | 0.18.6 |
+| spoolman | [#9](https://github.com/satisfymath/c13-spoolman/pull/9) security: bump anyio 4.14.1 → 4.14.2 | security | green | yes | 0.18.6 |
 | tracklater | [#1](https://github.com/satisfymath/c13-tracklater/pull/1) fix: 2 ruff-baseline F811 findings in tracklater/tests/ | quality | green | yes | 0.18.6 |
 | aegra | [#9](https://github.com/satisfymath/c13-aegra/pull/9) fix(deps): bump langgraph-sdk 0.4.2 → 0.4.6 (security) | security | green | no | 0.18.9 |
 | aegra | [#8](https://github.com/satisfymath/c13-aegra/pull/8) fix(deps): bump filelock 4.0.9 → 4.2.1 (security) | security | green | no | 0.18.9 |
@@ -102,7 +111,7 @@ These are listed in `REPORT-aggregate.md`, one row each with its reason. The rea
 propose, the team's CI does not run the tool, no proven fix, a stack that does not build here, no compose
 file, or out of scope (TypeScript, Go, a monorepo subdirectory).
 
-Still running when this page was generated: brightbean-studio, codex-lb, gin, gymhero, harlequin, misago, recruitops-agent, spoolman, timetracker, traefik-manager, weblate.
+Still running when this page was generated: brightbean-studio, codex-lb, gymhero, misago, recruitops-agent, timetracker, traefik-manager, weblate.
 
 ## How this pass got here
 
