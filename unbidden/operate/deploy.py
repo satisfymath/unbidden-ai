@@ -130,7 +130,9 @@ def deploy(
 def healthy(url: str, *, attempts: int = 30, every_s: float = 2.0) -> bool:
     for _ in range(attempts):
         try:
-            if httpx.get(url, timeout=5).status_code == 200:
+            # A local health URL may sit behind the app's own proxy with a self-signed certificate (TimeTracker).
+            local = httpx.URL(url).host in ("127.0.0.1", "localhost")
+            if httpx.get(url, timeout=5, verify=not local).status_code == 200:
                 return True
         except httpx.HTTPError:
             pass

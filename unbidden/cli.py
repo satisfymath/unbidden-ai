@@ -663,7 +663,6 @@ def _drill(args: argparse.Namespace, ws: Workspace) -> int:
 
 def cmd_host(args: argparse.Namespace) -> int:
     """Bring the application up from the repository's own compose file (operate/bringup.py), or take it down."""
-    import subprocess
 
     import yaml
 
@@ -708,13 +707,12 @@ def cmd_host(args: argparse.Namespace) -> int:
         if not args.no_drill:
             from unbidden.operate.deploy import drill
 
-            previous = subprocess.run(["git", "-C", str(ws.repo), "rev-parse", "HEAD~1"], capture_output=True,
-                                      text=True, check=False).stdout.strip()  # fmt: skip
+            previous = bringup.same_schema_previous(ws.repo)
             if previous and result.health_url:
                 with console.status(f"rollback drill: {previous[:12]} and back"):
                     result.drill = drill(ws.repo, store, ws.mandate(), previous, result.health_url)
             else:
-                result.drill = {"passed": False, "why": "no previous commit to roll back to"}
+                result.drill = {"passed": False, "why": "no earlier commit with the same migrations to roll back to"}
     record = result.as_dict()
     store.set_value("self_host", record)
     store.append_event(Event(type=EventType.DEPLOYED, actor="operator",
