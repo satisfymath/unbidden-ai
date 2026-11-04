@@ -1,5 +1,12 @@
 # Unbidden 0.18.0, experimental candidate: the terminal app on the product branch, not 1.0
 
+## 0.18.8 (2026-11-04): the web workspace wears the brand sheet
+
+- **The dashboard is monochrome in its source.** Deep black and bone white replace petrol blue and turquoise. Amber,
+  red and green keep their meaning, desaturated. Primary buttons are solid bone; code highlighting is grey.
+- **The real mark.** A fine open ring with a separate dot, in the logo and the favicon, and the `UNBiDDEN` wordmark.
+  The demo video recorded these same values injected at capture time; the product now carries them itself.
+
 ## 0.18.7 (2026-11-04): a crash fix and its regression test the team's CI can run
 
 - **The robustness lab puts its candidate through the team's formatter.** rich, final pass on 0.18.6: two crash
