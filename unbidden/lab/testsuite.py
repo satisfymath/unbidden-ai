@@ -301,6 +301,11 @@ def _round(
             timeout_s=timeout_s,
             network=network or (sidecars.network if sidecars else "none"),
         )
+        if network == "bridge":
+            # The rerun with the network: pip and uv may use it (the prepared image keeps them offline otherwise).
+            from dataclasses import replace
+
+            spec = replace(spec, env={**spec.env, "PIP_NO_INDEX": "0", "UV_OFFLINE": "false"})
         result = runner.run(spec, work)
     if plan.report == "go-test-json":
         from unbidden.languages.golang import go_test_count, go_test_failures

@@ -224,3 +224,13 @@ def test_a_round_that_missed_the_network_runs_again_with_it(tmp_path: Path) -> N
     assert seen[:2] == ["none", "bridge"]
     assert summary.status(0) == "ran" and summary.collected_per_round == [2]
     assert "rerun with the network" in (summary.infra_why[0] or "")
+
+
+def test_the_internet_is_refused_except_for_a_ci_prepared_rerun() -> None:
+    from unbidden.sandbox.runner import SandboxError, SandboxSpec, docker_argv
+
+    with pytest.raises(SandboxError):
+        docker_argv(SandboxSpec(image="x", argv=["true"], network="bridge"), Path("/w"), "n")
+    argv = docker_argv(SandboxSpec(image="x", argv=["true"], network="bridge", runner_like=True, mount="/ws"),
+                       Path("/w"), "n")  # fmt: skip
+    assert argv[argv.index("--network") + 1] == "bridge" and "--cap-drop" in argv and "-v" in argv

@@ -148,7 +148,7 @@ class SandboxRunner:
     def run(self, spec: SandboxSpec, work: Path) -> SandboxResult:
         if secret_hits(scan_many([*spec.argv, *(f"{k}={v}" for k, v in spec.env.items())])):
             raise SandboxError("refusing to pass a secret into the sandbox")
-        if spec.network != "none":
+        if spec.network != "none" and not (spec.runner_like and spec.network == "bridge"):
             inspect = subprocess.run(
                 [self.docker, "network", "inspect", "-f", "{{.Internal}}", spec.network],
                 capture_output=True, text=True, check=False,
