@@ -176,9 +176,11 @@ def start_checks(ws: Any, *, docker_timeout_s: float = 5.0) -> StartVerdict:
             )
         )
     elif not recon.get("complete"):
-        autonomous = mandate.autonomy.deploy is Autonomy.ALLOW or mandate.autonomy.merge_pull_requests is Autonomy.ALLOW
-        check = StartCheck("recon", False, f"incomplete: {incomplete_why(recon)}", "unbidden setup recon", autonomous)
-        (verdict.refused if autonomous else verdict.warnings).append(check)
+        # Only a deploy needs the running stack and its database; a merge on the team's green CI does not (a library
+        # with a compose file for its tests: sqlmodel, campaign 13), so there an incomplete recon is a warning.
+        deploys = mandate.autonomy.deploy is Autonomy.ALLOW
+        check = StartCheck("recon", False, f"incomplete: {incomplete_why(recon)}", "unbidden setup recon", deploys)
+        (verdict.refused if deploys else verdict.warnings).append(check)
     github = mandate.autonomy.open_pull_requests is not Autonomy.DENY
     if github and not broker().has(mandate.egress.github.token_env):
         verdict.warnings.append(

@@ -270,3 +270,27 @@ def test_a_grant_already_in_the_mandate_counts_in_a_scripted_recon(repo: Path) -
     assert run(Workspace(repo), opts, out, io=Scripted({}, {}), containers=lambda r: [{"Name": "x"}],
                mapper=lambda ws: unread, checker=ok) == 0  # fmt: skip
     assert recon.status(Workspace(repo).store())["databases"] == {"db": "granted"}  # type: ignore[index]
+
+
+def test_an_incomplete_recon_refuses_a_deploying_start_only(repo: Path) -> None:
+    """Campaign 13: sqlmodel, a library with a compose file for its tests, was refused although its mandate allowed
+    merges only; a merge on the team's green CI needs no running stack, a deploy does."""
+    import yaml
+
+    from unbidden.setup.requirements import start_checks
+
+    out, _ = _console()
+    opts = Options(non_interactive=True, yes=True, models="local", mode="supervised", budget=1.0, dashboard="never")
+    scripted = Scripted({"models": "local", "mode": "supervised", "dashboard": "never"}, {})
+    assert run(Workspace(repo), opts, out, io=scripted) == 0
+    path = repo / ".unbidden" / "mandate.yaml"
+
+    def autonomy(merge: str, deploy: str) -> tuple[bool, bool]:
+        raw = yaml.safe_load(path.read_text())
+        raw["mandate"].setdefault("autonomy", {}).update({"merge_pull_requests": merge, "deploy": deploy})
+        path.write_text(yaml.safe_dump(raw, sort_keys=False))
+        verdict = start_checks(Workspace(repo), docker_timeout_s=0.1)
+        return (any(c.name == "recon" for c in verdict.refused), any(c.name == "recon" for c in verdict.warnings))
+
+    assert autonomy("allow", "deny") == (False, True)
+    assert autonomy("allow", "allow") == (True, False)
