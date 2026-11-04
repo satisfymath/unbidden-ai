@@ -335,7 +335,7 @@ behind it.
 |---|---|
 | the installer, `unbidden --version`, `update`, `uninstall` | none |
 | `unbidden setup`, `unbidden key set` | one short inference call (8 tokens) when a key is pasted, and once for a key saved earlier that was never proven; a refused key (401) costs nothing |
-| `unbidden` (home), `status`, `route`, `spend`, `egress`, `key` | none |
+| `unbidden` (home), `status`, `route`, `spend`, `egress`, `export`, `key` | none |
 | `unbidden doctor`, `unbidden start` | none, except the same one short call for a saved key that was never proven |
 | `unbidden ui`: opening, restoring the layout, showing records, widgets created by the rules | none |
 | `chat`, informing (counts, status, tables, charts, explain a block, change a chart, compare two runs, undo) | none remote: the deterministic rules answer; when the option allows local inference the local model may plan the same tool calls (`chat.inform` is light and local-only) |
@@ -347,6 +347,30 @@ The monthly cap is one for every process of a workspace: the dashboard and the e
 (`SpendLedger.workspace_month_spend`). Every remote call reserves its worst cost in `~/.unbidden/spend.db` before it
 is sent and settles after; `unbidden spend` shows the cap a person entered, what was spent and the envelopes. The
 ledger is never reset by an install, update or uninstall.
+
+## Evidence: `unbidden export`
+
+Every model call, local or remote, leaves a **transcript** beside its model run (collection `transcripts` of
+`.unbidden/state.db`): the messages exactly as sent (role, source, content; pictures by their sha256 only), the tools
+and response schema, the answer (and its parsed JSON when JSON was asked), tokens, cost, the caller's `prompt_sha256`
+and the sha256 of the exact payload. It is written through the store, so every secret pattern is masked like in any
+record; each text field is cut at 200 000 characters and the cut is listed in `truncated`. No key, header or provider
+URL is ever part of it.
+
+```sh
+unbidden export                    # into .unbidden/export/<UTC timestamp>/
+unbidden export --out evidence/    # a new or empty directory; --json prints the manifest
+```
+
+The bundle is JSON Lines, one file per record kind: `events`, `audit`, `opportunities`, `hypotheses`,
+`experiment_specs`, `experiments`, `proposals`, `decisions`, `deploy_verdicts`, `deployments`, `holds`, `approvals`,
+`acceptances`, `actions`, `goal_runs`, `model_runs`, `transcripts`, `egress`, `needs`, `asks`, `blocks`,
+`deploy_ledger` (the store's deploy keys) and `spend` (this workspace's rows of `~/.unbidden/spend.db`, no content);
+plus `mandate.json` and `manifest.json` (Unbidden's version, the workspace, and each file's name, lines, bytes and
+sha256). Only records are read: never `.env`, credentials, `ui.json` or a database file. Every record is redacted
+again on its way out and every written file is scanned by the guardian's secret scanner; if anything is found, the
+whole bundle is deleted and the command exits 1 naming the file and the rule, never the value. Records of a dashboard
+served apart (`~/.unbidden/web`) are not part of the bundle.
 
 ## The dashboard: persistence and provenance
 

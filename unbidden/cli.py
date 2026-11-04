@@ -1253,6 +1253,35 @@ def cmd_egress(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_export(args: argparse.Namespace) -> int:
+    """The workspace's evidence as files to publish: records, model transcripts, spend, mandate and a manifest."""
+    from pathlib import Path
+
+    from unbidden.export import ExportRefused, default_out, export_bundle
+
+    ws = Workspace.find()
+    ws.require()
+    out = Path(args.out).expanduser().resolve() if args.out else default_out(ws.dir)
+    store = ws.store()
+    try:
+        manifest = export_bundle(store, ws.mandate(), out)
+    except ExportRefused as exc:
+        err.print(f"[red]unbidden export:[/] {exc}")
+        return 1
+    except FileExistsError as exc:
+        err.print(f"[red]unbidden export:[/] {exc}")
+        return 2
+    finally:
+        store.close()
+    if _emit(args, {"out": str(out), **manifest}):
+        return 0
+    console.print(f"[bold]Evidence of {manifest['workspace']}[/] written to {out}")
+    for f in manifest["files"]:
+        console.print(f"  {f['name']:28} {f['lines']:>7} lines  {f['sha256'][:12]}")
+    console.print("[dim]every file was scanned for secrets; manifest.json holds the sha256 of each[/]")
+    return 0
+
+
 def doctor_checks(
     ws: Workspace, *, fix: bool = False, say: Any = None
 ) -> tuple[list[tuple[str, bool, str]], set[str], str]:
@@ -2408,6 +2437,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     spend.add_argument("--envelopes", metavar="NAME=USD,...", help="split the authorization into capped envelopes")
     spend.add_argument("--envelopes-total", type=float, metavar="USD", help="what the envelopes may add up to")
+    export = command("export", cmd_export, "the evidence bundle of this workspace: records, transcripts, spend")
+    export.add_argument("--out", help="where the bundle goes (default: .unbidden/export/<timestamp>)")
     egress = command("egress", cmd_egress, "everything that left this machine, with the exact payloads")
     egress.add_argument("--payload", action="store_true")
     egress.add_argument("--last", type=int, default=30)

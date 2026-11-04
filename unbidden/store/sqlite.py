@@ -331,6 +331,22 @@ class Store:
         row = self._conn.execute("SELECT value FROM kv WHERE key = ?", (key,)).fetchone()
         return default if row is None else json.loads(row["value"])
 
+    # Raw records, for the evidence export ------------------------------------------------------------------
+
+    def event_rows(self) -> Iterator[dict[str, Any]]:
+        for row in self._conn.execute("SELECT * FROM events ORDER BY seq"):
+            yield dict(row) | {"payload": json.loads(row["payload"])}
+
+    def audit_rows(self) -> Iterator[dict[str, Any]]:
+        for row in self._conn.execute("SELECT * FROM audit ORDER BY seq"):
+            yield dict(row) | {"data": json.loads(row["data"])}
+
+    def documents(self, collection: str) -> Iterator[dict[str, Any]]:
+        """A collection's documents as stored (already redacted), oldest change first."""
+        sql = "SELECT doc FROM docs WHERE collection = ? ORDER BY updated_at, id"
+        for row in self._conn.execute(sql, (collection,)):
+            yield json.loads(row["doc"])
+
     # Used by the secret-plant test: everything that was ever written, as text.
     def dump_all_text(self) -> Iterator[str]:
         for table in ("events", "audit", "docs", "jobs", "kv"):
