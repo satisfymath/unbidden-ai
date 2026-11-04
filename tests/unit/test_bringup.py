@@ -173,3 +173,43 @@ def test_the_command_is_refused_unless_allowed(tmp_path: Path, monkeypatch: pyte
     called.clear()
     assert run({"workspace": "w", "operations": {"self_host": "deny"}}, yes=True) == 2 and not called
     assert run({"workspace": "w", "autonomy": {"merge_pull_requests": "allow"}}) == 1 and called
+
+
+def test_an_example_secret_is_never_run_with() -> None:
+    # TimeTracker refuses to start with its example SECRET_KEY.
+    assert bringup.placeholder("your-secret-key-here") and bringup.placeholder("<generate>")
+    assert bringup.placeholder("short") and not bringup.placeholder("9f2c4e1a7b3d5f60c8e2a4b6d8f01357")
+
+
+def test_flask_migrate_and_the_applications_own_service(tmp_path: Path) -> None:
+    repo = _repo(tmp_path, {"migrations/alembic.ini": "", "migrations/env.py": "", "requirements.txt": "flask\n"})
+    assert bringup.migration_command(repo) == "flask db upgrade"
+    config = {"services": {"nginx": {"build": {"context": "nginx"}}, "app": {"build": {"context": "."}},
+                           "db": {"image": "postgres:16"}}}  # fmt: skip
+    assert bringup.built_service(config) == "app"
+
+
+def test_a_proxy_that_only_answers_tls_is_reached_on_https() -> None:
+    def get(url: str) -> httpx.Response | None:
+        return httpx.Response(200) if url == "https://127.0.0.1:443/health" else httpx.Response(400)
+
+    assert bringup.find_health([("nginx", 443)], get) == "https://127.0.0.1:443/health"
+
+
+def test_the_drill_rolls_back_to_the_latest_commit_with_the_same_migrations(tmp_path: Path) -> None:
+    repo = _repo(tmp_path, {"app.py": "v1\n", "migrations/versions/001.py": "a\n"})
+    git = ["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t"]
+    (repo / "app.py").write_text("v2\n")
+    subprocess.run([*git, "commit", "-qam", "code"], check=True)
+    safe = subprocess.run([*git, "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+    (repo / "migrations/versions/002.py").write_text("b\n")
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "migration"], check=True)
+    (repo / "app.py").write_text("v3\n")
+    subprocess.run([*git, "commit", "-qam", "code again"], check=True)
+    migrated = subprocess.run([*git, "rev-parse", "HEAD~1"], capture_output=True, text=True, check=True).stdout.strip()
+    assert bringup.same_schema_previous(repo) == migrated  # HEAD~1 already has migration 002: same schema
+    (repo / "migrations/versions/003.py").write_text("c\n")
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "another migration"], check=True)
+    assert bringup.same_schema_previous(repo) is None or bringup.same_schema_previous(repo) != safe

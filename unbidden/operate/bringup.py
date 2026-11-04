@@ -57,7 +57,20 @@ SEED_OWNERS = 500
 SEED_PLANS = 6
 PROBE_EVERY_S = 1.0
 PLACEHOLDERS = ("", "changeme", "change_me", "secret", "password", "your-secret-key", "changethis")
-PSQL = 'psql -v ON_ERROR_STOP=1 -q -At -U "${POSTGRES_USER:-postgres}" -d "${POSTGRES_DB:-${POSTGRES_USER:-postgres}}"'
+_PLACEHOLDER = re.compile(r"change|your|example|here|xxx|dummy|todo|replace|insert|generate|[<>]|^secret$", re.I)
+
+
+def placeholder(value: str) -> bool:
+    """An example file's stand-in for a secret (`your-secret-key-here`, `<generate>`, a short word): TimeTracker
+    refuses to start with its example SECRET_KEY, and nobody should run with one."""
+    v = value.strip().strip("'\"")
+    return v.lower() in PLACEHOLDERS or bool(_PLACEHOLDER.search(v)) or len(v) < 16
+
+
+PSQL = (
+    'psql -v ON_ERROR_STOP=1 -q -At -F "$(printf "\\t")" '
+    '-U "${POSTGRES_USER:-postgres}" -d "${POSTGRES_DB:-${POSTGRES_USER:-postgres}}"'
+)  # tab-separated rows
 Run = Callable[..., subprocess.CompletedProcess[str]]
 Get = Callable[[str], "httpx.Response | None"]
 
@@ -145,7 +158,7 @@ def env_values(repo: Path, texts: list[str], kept: dict[str, str]) -> tuple[dict
         values[name] = secrets.token_hex(16) if SECRET_NAME.search(name) else "unbidden"
         generated.append(name)
     for name, value in list(values.items()):
-        if SECRET_NAME.search(name) and name not in kept and value.lower() in PLACEHOLDERS:
+        if SECRET_NAME.search(name) and name not in kept and placeholder(value):
             values[name] = secrets.token_hex(16)  # an example placeholder is never a secret anyone should run with
             generated.append(name)
     return {**values, **kept}, generated
@@ -182,7 +195,7 @@ def create_env_files(repo: Path, paths: list[str]) -> list[str]:
         lines = []
         for line in text.splitlines():
             key, sep, value = line.partition("=")
-            if sep and SECRET_NAME.search(key) and value.strip().strip("'\"").lower() in ("", "changeme", "secret"):
+            if sep and SECRET_NAME.search(key) and not key.strip().startswith("#") and placeholder(value):
                 line = f"{key}={secrets.token_hex(16)}"
             lines.append(line)
         target.write_text("\n".join(lines) + ("\n" if lines else ""))
@@ -274,15 +287,23 @@ def find_health(candidates: list[tuple[str, int]], get: Get) -> str | None:
                         return base + path
     for path in HEALTH_PATHS:
         for _, port in candidates:
-            hit = get(f"http://127.0.0.1:{port}{path}")
-            if hit is not None and hit.status_code < 400:
-                return f"http://127.0.0.1:{port}{path}"
+            for scheme in ("http", "https"):  # a proxy that only answers TLS on its published 443 (TimeTracker)
+                hit = get(f"{scheme}://127.0.0.1:{port}{path}")
+                if hit is not None and hit.status_code < 400:
+                    return f"{scheme}://127.0.0.1:{port}{path}"
     return None
 
 
 def http_get(url: str) -> httpx.Response | None:
+    """A GET on this machine's own published port. Certificates are not checked (a local proxy's self-signed one:
+    TimeTracker's nginx); a redirect is followed only when it stays on this machine."""
     try:
-        return httpx.get(url, timeout=5, follow_redirects=True)
+        response = httpx.get(url, timeout=5, follow_redirects=False, verify=False)
+        if response.status_code in (301, 302, 307, 308):
+            target = httpx.URL(response.headers.get("location", ""))
+            if target.host in ("", "127.0.0.1", "localhost"):
+                return httpx.get(response.url.join(target), timeout=5, verify=False, follow_redirects=True)
+        return response
     except httpx.HTTPError:
         return None
 
@@ -291,6 +312,10 @@ def migration_command(repo: Path) -> str | None:
     """How the repository migrates its database, when it says (a file the tool needs is tracked)."""
     listed = subprocess.run(["git", "-C", str(repo), "ls-files"], capture_output=True, text=True, check=False).stdout
     files = listed.split()
+    # Flask-Migrate's layout: alembic.ini and env.py inside migrations/ (TimeTracker); Django has no alembic.ini.
+    flask_migrate = any(re.match(r"(.*/)?migrations/alembic\.ini$", f) for f in files)
+    if flask_migrate:
+        return "flask db upgrade"  # Flask-Migrate keeps alembic.ini inside migrations/ (TimeTracker)
     if any(f.endswith("alembic.ini") for f in files):
         where = next(f for f in files if f.endswith("alembic.ini"))
         directory = str(Path(where).parent)
@@ -303,6 +328,15 @@ def migration_command(repo: Path) -> str | None:
     if any(re.match(r"(.*/)?migrations/env\.py$", f) for f in files) and "flask" in listed.lower():
         return "flask db upgrade"
     return None
+
+
+def built_service(config: dict[str, Any]) -> str | None:
+    """The service built from the repository itself (the application, not its proxy): where migrations run."""
+    services = config.get("services") or {}
+    built = [name for name, spec in services.items() if spec.get("build")]
+    proxies = re.compile(r"nginx|proxy|caddy|traefik|certgen|cert", re.I)
+    app = [name for name in built if not proxies.search(name)]
+    return (app or built or [None])[0]
 
 
 def database_service(config: dict[str, Any]) -> str | None:
@@ -415,7 +449,7 @@ def up(repo: Path, *, deploy: bool = False, build: bool = True, run: Run = subpr
                 empty = False  # the database is not accepting connections yet
             if empty or deploy:
                 attempts += 1
-                service = candidates[0][0]
+                service = built_service(config) or candidates[0][0]
                 mig = run([*compose_argv(repo, result.project), "exec", "-T", service, "sh", "-c", command],
                           cwd=repo, capture_output=True, text=True, timeout=1800)  # fmt: skip
                 migrated_once = mig.returncode == 0
@@ -434,9 +468,11 @@ def up(repo: Path, *, deploy: bool = False, build: bool = True, run: Run = subpr
     result.step("health", result.health_url is not None, result.health_url or "no URL answered on the app's ports",
                 time.monotonic() - t0)  # fmt: skip
     if result.health_url is None:
-        logs = run([*compose_argv(repo, result.project), "logs", "--tail", "40"], cwd=repo, capture_output=True,
-                   text=True, timeout=120)  # fmt: skip
-        result.why = f"the application did not answer on {candidates or 'any published port'}: {logs.stdout[-600:]}"
+        app = built_service(config)
+        logs = run([*compose_argv(repo, result.project), "logs", "--tail", "30", *([app] if app else [])], cwd=repo,
+                   capture_output=True, text=True, timeout=120)  # fmt: skip
+        result.why = (f"the application did not answer on {candidates or 'any published port'}; "
+                      f"the last lines of {app or 'the project'}: {logs.stdout[-900:]}")  # fmt: skip
         return result
     if psql is not None and not deploy and not state.get("seeded"):
         t0 = time.monotonic()
@@ -463,3 +499,20 @@ def down(repo: Path, *, run: Run = subprocess.run) -> dict[str, Any]:
         state = load_state(repo)
         save_state(repo, {k: v for k, v in state.items() if k not in ("seeded", "health_url")})
     return {"ok": done.returncode == 0, "project": project, "why": None if done.returncode == 0 else done.stderr[-400:]}
+
+
+_SCHEMA = re.compile(r"(^|/)(migrations?|alembic|versions)/|alembic\.ini$|schema\.(sql|prisma)$", re.IGNORECASE)
+
+
+def same_schema_previous(repo: Path, depth: int = 30) -> str | None:
+    """The latest earlier commit with the same database migrations as HEAD: rolling code back across a migration
+    leaves the database ahead of the code (TimeTracker: the older app does not start on the newer schema), so the
+    rollback drill proves the rollback that is safe, and says which one it was."""
+    revs = subprocess.run(["git", "-C", str(repo), "rev-list", f"--max-count={depth}", "HEAD~1"], capture_output=True,
+                          text=True, check=False).stdout.split()  # fmt: skip
+    for rev in revs:
+        changed = subprocess.run(["git", "-C", str(repo), "diff", "--name-only", rev, "HEAD"], capture_output=True,
+                                 text=True, check=False).stdout.split()  # fmt: skip
+        if not any(_SCHEMA.search(path) for path in changed):
+            return rev
+    return None
