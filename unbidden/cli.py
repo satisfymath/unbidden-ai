@@ -661,6 +661,25 @@ def _drill(args: argparse.Namespace, ws: Workspace) -> int:
     return 0 if record["passed"] else 1
 
 
+def _recon_after_host(store: Any, repo: Any) -> None:
+    """The reconnaissance a bring-up settles: the stack is up (started by Unbidden) and its databases are the ones
+    this project runs, read in their containers. A database the compose file keeps behind a profile that was not
+    started is not part of what runs (codex-lb's optional Postgres); before 0.18.0 it kept `start` refused."""
+    import yaml as _yaml
+
+    from unbidden.operate import bringup
+    from unbidden.setup.recon import KEY, status
+
+    rendered = repo / bringup.RENDERED
+    config = _yaml.safe_load(rendered.read_text()) if rendered.exists() else {}
+    record = dict(status(store) or {})
+    databases = {name: "container" for name, spec in (config.get("services") or {}).items()
+                 if str(spec.get("image") or "").split(":")[0].endswith("postgres")}  # fmt: skip
+    record.update(stack="started", databases=databases, by="unbidden host up")
+    record["complete"] = record.get("github") != "no_push"
+    store.set_value(KEY, record)
+
+
 def cmd_host(args: argparse.Namespace) -> int:
     """Bring the application up from the repository's own compose file (operate/bringup.py), or take it down."""
 
@@ -713,6 +732,8 @@ def cmd_host(args: argparse.Namespace) -> int:
                     result.drill = drill(ws.repo, store, ws.mandate(), previous, result.health_url)
             else:
                 result.drill = {"passed": False, "why": "no earlier commit with the same migrations to roll back to"}
+    if result.ok:
+        _recon_after_host(store, ws.repo)
     record = result.as_dict()
     store.set_value("self_host", record)
     store.append_event(Event(type=EventType.DEPLOYED, actor="operator",

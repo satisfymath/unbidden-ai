@@ -56,6 +56,7 @@ SEED_ROWS = 20_000  # rows of the referencing table per foreign key seeded, spre
 SEED_OWNERS = 500
 SEED_PLANS = 6
 PROBE_EVERY_S = 1.0
+DOCUMENTED_GRACE_S = 60.0  # how long a documented health route is waited for
 PLACEHOLDERS = ("", "changeme", "change_me", "secret", "password", "your-secret-key", "changethis")
 _PLACEHOLDER = re.compile(r"change|your|example|here|xxx|dummy|todo|replace|insert|generate|[<>]|^secret$", re.I)
 
@@ -266,7 +267,7 @@ def app_ports(config: dict[str, Any], ports: dict[str, int]) -> list[tuple[str, 
     return found
 
 
-def find_health(candidates: list[tuple[str, int]], get: Get) -> str | None:
+def find_health(candidates: list[tuple[str, int]], get: Get, *, documented_only: bool = False) -> str | None:
     """The first health URL that answers below 400 on an application port: an OpenAPI route named health on any
     port first (the API itself, not a frontend that proxies it: codex-lb), then the usual paths, Django's admin
     login, `/`."""
@@ -285,6 +286,8 @@ def find_health(candidates: list[tuple[str, int]], get: Get) -> str | None:
                     hit = get(base + path)
                     if hit is not None and hit.status_code < 400:
                         return base + path
+    if documented_only:
+        return None
     for path in HEALTH_PATHS:
         for _, port in candidates:
             for scheme in ("http", "https"):  # a proxy that only answers TLS on its published 443 (TimeTracker)
@@ -460,7 +463,11 @@ def up(repo: Path, *, deploy: bool = False, build: bool = True, run: Run = subpr
             if hit is not None and hit.status_code < 400:
                 break
         else:
-            health = find_health(candidates, get)
+            # An API's documented health route first: a frontend answering `/ping` before the API it proxies is up
+            # is not the application's health (codex-lb, 0.18.0 rehearsal); a plain path only after a minute.
+            health = find_health(
+                candidates, get, documented_only=time.monotonic() - t0 < min(DOCUMENTED_GRACE_S, wait_s / 2)
+            )
             if health is not None:
                 break
         time.sleep(3)
