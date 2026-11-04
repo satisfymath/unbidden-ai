@@ -1,5 +1,16 @@
 # Unbidden 0.18.0, experimental candidate: the terminal app on the product branch, not 1.0
 
+## 0.18.1 (2026-11-04): a tool beside the application is never its health; the development runs as evidence
+
+- **Health on the application's own port.** misago's bring-up took mailpit's web page (`/` on its 8025) for the
+  forum's health. The candidates for health are now the services built from the repository first, then the rest; a
+  database, a mail catcher, a database console or a tracing UI is never one. Real check: misago's health is now
+  `/login` on misago's own port.
+- **The development runs, kept as evidence** (`docs/bench/campaign13/DEV-EVIDENCE.md`, `dev-evidence.json`): 23
+  corpus repositories exercised while 0.16.0 to 0.18.0 were built; 15 team suites pass under Unbidden's measurement
+  (18,734 tests); 3 apps brought up by Unbidden itself, 2 rollback drills passed; 1 L5 by verified deploy (fst);
+  US$0.34 of model spend. Failures and declared repositories listed with the rest.
+
 ## 0.18.0 (2026-11-04): Unbidden brings an app up by itself, L5 beyond latency, every model answer kept
 
 What a large autonomous run over many repositories needs, proven on a rehearsal before it.

@@ -1,0 +1,2 @@
+{"repo": "archery", "status": "passed", "collected": 1521, "failed": [], "ci_tests_failed": false, "texts": 0, "s": 523}
+{"repo": "archery", "opened": 0, "why": "no evidence the team's CI fails them"}

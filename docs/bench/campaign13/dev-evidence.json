@@ -1,0 +1,178 @@
+{
+ "title": "Unbidden campaign 13: what the development runs measured",
+ "as_of": "2026-11-04",
+ "versions": "0.15.0 to 0.18.0",
+ "note": "Runs made while building 0.16.0 to 0.18.0, on copies under satisfymath; not the final pass. Nothing upstream.",
+ "totals": {
+  "repositories": 23,
+  "suites_passing": 15,
+  "tests_passing": 18734,
+  "apps_brought_up_by_unbidden": 3,
+  "rollback_drills_passed": 2,
+  "L5_verified_deploy": 1,
+  "model_spend_usd": 0.34
+ },
+ "repositories": [
+  {
+   "name": "fst",
+   "kind": "app (FastAPI, Postgres)",
+   "tests_passing": 58,
+   "outcome": "Security bump (dnspython 2.8.0 to 2.9.0) opened, the copy's CI green, merged, deployed, L5 by verified deploy: the first L5 that is not latency. Latency L5 in campaign 12.",
+   "record": "docs/bench/campaign13/rehearsal-0.18/fst/B1.json"
+  },
+  {
+   "name": "codex-lb",
+   "kind": "app (FastAPI, Postgres)",
+   "tests_passing": 6422,
+   "outcome": "Passes all 6422 tests for the first time (campaign 12: failed for the environment). Brought up by Unbidden itself (`unbidden host up`), rollback drill passed, ran autonomous on it.",
+   "record": "docs/bench/campaign13/dev-host/codex-lb.json"
+  },
+  {
+   "name": "misago",
+   "kind": "app (Django, Postgres)",
+   "tests_passing": null,
+   "outcome": "Brought up by Unbidden itself, rollback drill passed. Its suite (8977 tests collected) fails under 0.15.0 for the environment; not re-run since.",
+   "record": "docs/bench/campaign13/dev-host/misago-final.json"
+  },
+  {
+   "name": "timetracker",
+   "kind": "app (Flask, nginx, Postgres)",
+   "tests_passing": 169,
+   "outcome": "All 169 of its CI tests pass (campaign 12: 3 failures, the environment's). Brought up by Unbidden itself behind its TLS proxy, 500 users and 20000 activities seeded. Rollback drill declared: its head adds a migration.",
+   "record": "docs/bench/campaign13/dev-host/timetracker-final.json"
+  },
+  {
+   "name": "spoolman",
+   "kind": "app (FastAPI, SQLAlchemy)",
+   "tests_passing": 278,
+   "outcome": "Suite passes. Latency L5 in campaign 12.",
+   "record": "docs/bench/campaign13/dev-0.16/spoolman/A.json"
+  },
+  {
+   "name": "aegra",
+   "kind": "app (FastAPI, Postgres)",
+   "tests_passing": 2429,
+   "outcome": "Suite passes; 6 opportunities found.",
+   "record": "docs/bench/campaign13/dev-0.16/aegra/A.json"
+  },
+  {
+   "name": "ctfd",
+   "kind": "app (Flask)",
+   "tests_passing": 679,
+   "outcome": "Suite passes; 10 opportunities found.",
+   "record": "docs/bench/campaign13/dev-0.16/ctfd/A.json"
+  },
+  {
+   "name": "archery",
+   "kind": "app (Django)",
+   "tests_passing": 1521,
+   "outcome": "Red on GitHub, all 1521 tests pass in its own CI job here: nothing to repair, nothing opened (the rule).",
+   "record": "docs/bench/campaign13/dev-ci-env/repair_archery4.log"
+  },
+  {
+   "name": "humanize",
+   "kind": "library",
+   "tests_passing": 878,
+   "outcome": "Passes for the first time (campaign 12: environment). Seeded calibration: a broken `ordinal(13)` repaired by the model, 3/3 rounds, no regression in 878 tests, L4, US$0.007 (labelled seeded, not evidence of a real fix).",
+   "record": "docs/bench/campaign13/dev-ci-env/repair_humanize4.log"
+  },
+  {
+   "name": "rich",
+   "kind": "library",
+   "tests_passing": 981,
+   "outcome": "Suite passes. In the autonomous rehearsal it proposed nothing: its lint findings are already gated by the team's CI (a correct abstention).",
+   "record": "docs/bench/campaign13/rehearsal-0.18/rich/B1.json"
+  },
+  {
+   "name": "graphtage",
+   "kind": "library",
+   "tests_passing": 289,
+   "outcome": "Passes for the first time (campaign 12: environment).",
+   "record": "docs/bench/campaign13/dev-ci-env/ci_real-v6.jsonl"
+  },
+  {
+   "name": "oauthlib",
+   "kind": "library",
+   "tests_passing": 902,
+   "outcome": "Passes in 0.15.0 and the first CI-job runs; later offline runs need the network to build (recorded).",
+   "record": "docs/bench/campaign13/dev-0.15/oauthlib/A.json"
+  },
+  {
+   "name": "marshmallow",
+   "kind": "library",
+   "tests_passing": 1192,
+   "outcome": "Passes; a 0.16.0 regression in reading its CI was found by this run and fixed in 0.17.1.",
+   "record": "docs/bench/campaign13/dev-0.15/marshmallow/A.json"
+  },
+  {
+   "name": "pyjwt",
+   "kind": "library",
+   "tests_passing": 476,
+   "outcome": "Passes; a 0.16.0 regression was found and fixed in 0.17.1.",
+   "record": "docs/bench/campaign13/dev-0.15/pyjwt/A.json"
+  },
+  {
+   "name": "sqlmodel",
+   "kind": "library",
+   "tests_passing": 268,
+   "outcome": "Suite passes; 5 opportunities found.",
+   "record": "docs/bench/campaign13/dev-0.16/sqlmodel/A.json"
+  },
+  {
+   "name": "traefik-manager",
+   "kind": "app (Flask)",
+   "tests_passing": 2192,
+   "outcome": "Passed all 2192 once; its own suite is flaky (other runs 1 and 50 failures).",
+   "record": "docs/bench/campaign13/dev-ci-env/ci_real-v5.jsonl"
+  },
+  {
+   "name": "harlequin",
+   "kind": "app (TUI)",
+   "tests_passing": null,
+   "outcome": "Runs its full suite (2214 collected) with 4 to 6 failures (campaign 12: blocked on git, then locale).",
+   "record": "docs/bench/campaign13/dev-ci-env/ci_real-v6.jsonl"
+  },
+  {
+   "name": "pipx",
+   "kind": "CLI",
+   "tests_passing": null,
+   "outcome": "Runs its full suite (2224 collected), 50 failures.",
+   "record": "docs/bench/campaign13/dev-ci-env/ci_real-v7.jsonl"
+  },
+  {
+   "name": "brightbean-studio",
+   "kind": "app (Django)",
+   "tests_passing": null,
+   "outcome": "Suite runs (2737 collected), 50 failures.",
+   "record": "docs/bench/campaign13/dev-ci-env/ci_real-v6.jsonl"
+  },
+  {
+   "name": "rdflib",
+   "kind": "library",
+   "tests_passing": null,
+   "outcome": "Declared: its own CI job's validation fails here without naming a test.",
+   "record": "docs/bench/campaign13/dev-ci-env/ci_real-v8.jsonl"
+  },
+  {
+   "name": "mediacms",
+   "kind": "app (Django)",
+   "tests_passing": null,
+   "outcome": "Declared: its CI runs the tests inside its own compose (not yet supported).",
+   "record": "docs/bench/campaign13/dev-0.16/mediacms/A.json"
+  },
+  {
+   "name": "conduit",
+   "kind": "app",
+   "tests_passing": null,
+   "outcome": "Declared: its CI is broken upstream.",
+   "record": "docs/bench/campaign13/dev-0.16/conduit/A.json"
+  },
+  {
+   "name": "mimirq",
+   "kind": "app",
+   "tests_passing": null,
+   "outcome": "Declared: its CI needs a self-hosted runner.",
+   "record": "docs/bench/campaign13/dev-0.16/mimirq/A.json"
+  }
+ ]
+}

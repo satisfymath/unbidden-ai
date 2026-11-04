@@ -1,0 +1,378 @@
+{
+ "repo": "brightbean-studio",
+ "phase": "dev-A",
+ "run": "A",
+ "candidate": "db5c79b182bafbe580bc6e1c6b48904fef2a1f21",
+ "wheel_sha256": "0761f2122ed4e6b53b6226e979808ffd5353bc690213e23c14986dda9fd6ed52",
+ "started_at": "2026-11-03T15:25:22-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "supervised",
+    "--budget",
+    "0",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 3.8,
+   "timed_out": false,
+   "stdout": "lity.use\",\n      \"decision\": \"require_approval\",\n      \"rule\": \"autonomy.use_new_capabilities\"\n    },\n    {\n      \"what\": \"open pull requests\",\n      \"capability\": \"github.open_pull_request\",\n      \"decision\": \"require_approval\",\n      \"rule\": \"autonomy.open_pull_requests\"\n    },\n    {\n      \"what\": \"merge pull requests\",\n      \"capability\": \"github.merge_pull_request\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": {\n    \"ok\": true,\n    \"rejected\": false,\n    \"model\": \"muse-spark-1.3\",\n    \"usd\": 0.000435,\n    \"why\": null\n  },\n  \"priorities\": [\n    \"correctness\",\n    \"maintainability\",\n    \"security\"\n  ],\n  \"github\": null,\n  \"found\": {\n    \"repository\": \"brightbeanxyz/brightbean-studio\",\n    \"branch\": \"HEAD\",\n    \"head\": \"1d11c52007a3f714979ff1b071d153e69a8c274a\",\n    \"scope\": [\n      {\n        \"name\": \"scope: stack\",\n        \"in_scope\": true,\n        \"note\": \"Python 3.12 (requirements.txt, requirements.txt)\"\n      },\n      {\n        \"name\": \"scope: tests\",\n        \"in_scope\": true,\n        \"note\": \"no CI job that runs pytest was read; pytest files found: the default command is used, partially\"\n      },\n      {\n        \"name\": \"scope: database\",\n        \"in_scope\": true,\n        \"note\": \"services in compose: postgres\"\n      },\n      {\n        \"name\": \"scope: node\",\n        \"in_scope\": false,\n        \"note\": \"analyzed for findings only; no full cycle in v1.0\"\n      }\n    ],\n    \"machine\": \"Apple M5 Pro, 64 GB, 54 GB for a model\",\n    \"ollama\": {\n      \"url\": \"http://localhost:11434\",\n      \"present\": true,\n      \"models\": [\n        \"llama3.1:8b\",\n        \"muse-glimmer:30b-mlx\",\n        \"muse-glimmer:30b-mxfp8-dflash\",\n        \"nomic-embed-text:latest\"\n      ]\n    },\n    \"local_model\": {\n      \"tag\": \"muse-glimmer:30b-mxfp8-dflash\",\n      \"installed\": true\n    },\n    \"key\": {\n      \"name\": \"MODEL_API_KEY\",\n      \"present\": true\n    },\n    \"github\": null,\n    \"github_check\": null,\n    \"compose\": \"docker-compose.yml\",\n    \"services\": [\n      {\n        \"name\": \"migrate\",\n        \"kind\": null\n      },\n      {\n        \"name\": \"app\",\n        \"kind\": null\n      },\n      {\n        \"name\": \"worker\",\n        \"kind\": null\n      },\n      {\n        \"name\": \"postgres\",\n        \"kind\": \"postgres\"\n      }\n    ],\n    \"external\": [],\n    \"option\": \"mixed\",\n    \"option_why\": \"hay una clave y un modelo local\"\n  },\n  \"defaulted\": [\n    \"priorities\",\n    \"credentials\",\n    \"key\",\n    \"connections\",\n    \"private_code\",\n    \"language\"\n  ],\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c13/repos/c13-brightbean-studio/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c13/repos/c13-brightbean-studio/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 0.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -17,4 +17,5 @@\",\n    \"     rollback: deny\",\n    \"     use_new_capabilities: require_approval\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,8 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\",\n    \"+  operations: {}\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c13/repos/c13-brightbean-studio/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "ntent to remote models    allowed\n  use capabilities it built for itself                 asks first\n  open pull requests                                   asks first\n  merge pull requests                                  denied\n  deploy with the team's steps                         denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nPresupuesto\nLibro de la máquina: verified balance US$97.29 (stage 6 spend cap authorized by \nDavid on 2026-10-28: up to US$10 of free credits from this point (dev 3, \nevaluation 5, demo and contingency 2; the earlier US$3 reserve is included, not \nadded). Dashboard as reported by David 2026-10-28: Current balance US$0, free \ncredits in use US$144.98, a Visa card on file, content sent while on free \ncredits may be used to improve products. A cap, not a measured balance; no \nrecharge or card charge authorized (entered by david) | stage 9: US$30 \nadditional Meta API spend authorized by David on 2026-10-29, replacing the US$10\ncap; cumulative cap US$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval\n12, demo 6 (D-052). Dashboard as reported by David: free credits in use \nUS$137.96, balance US$0, a card on file. No recharge or card charge authorized \n(entered by david) | stage 10: the remaining US$20.30 of the US$37.29 cap split \nbefore any call (D-058), by David's stage 10 instruction of 2026-10-30 (entered \nby david) | stage 10 after the frozen evaluation: US$5 of the unspent s10-eval \nmoved to s10-dev for corrections and regressions, by David's instruction of \n2026-10-31; envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; spent at the transfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, \ns10-close 0) (entered by david) | product phase (A-E): s11-product US$4.00 \nauthorized by David on 2026-11-01, reassigned from s10-close (3.80, unspent, \nclosed) and US$0.20 of s10-dev; envelopes total US$20.30 and the cumulative cap \nUS$37.2945 unchanged; spent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval\n1.0010, s10-close 0) (entered by david) | product phase correction: David's \nauthorization of 2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken \nfrom s10-dev had no recorded authorization and goes back (s10-dev 13.00, \ns11-product 3.80); envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; s11-product spent 0 at the correction; spent at the correction \nUS$27.7199 (entered by david) | campaign 12 (installed-product validation): \nUS$60 additional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david) | envelopes s13-dev 15, \ns13-pass 15, s13-final 20, s13-confirm 5 authorized by David on 2026-11-03 \n('dale entonces empecemos con todo', campaign 13 to 1.0, within the cumulative \ncap US$97.2945, not amended); earlier envelopes unchanged; no transfers (entered\nby david)); permitido US$97.29 · gastado US$31.6331 · disponible US$65.6614\nsobres: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, s12-eval\n30.00, s12-dev 17.00, s12-confirm 5.00, s13-dev 15.00, s13-pass 15.00, s13-final\n20.00, s13-confirm 5.00\nLos créditos del proveedor y el gasto autorizado son cosas distintas: el tope \nque una persona ingresó con `unbidden spend --verified-balance` es lo que esta \nmáquina puede gastar; aquí nunca se sube ni se reinicia.\n\nPanel\nAbrir el panel, restaurar su disposición y mostrar registros no llama a ningún \nmodelo; chatear o pedir un análisis sí puede.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 3.5,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"4 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key proven: muse-spark-1.3 answered\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"no GITHUB_TOKEN: proposals stay local branches\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs require_approval\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"recon\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"incompleto: stack down; stack down, postgres unread\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.12 (requirements.txt, requirements.txt)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"no CI job that runs pytest was read; pytest files found: the default command is used, partially\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"services in compose: postgres\"\n    },\n    {\n      \"check\": \"scope: node\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"analyzed for findings only; no full cycle in v1.0\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "scan",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "scan",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 99.7,
+   "timed_out": false,
+   "stdout": "{\n  \"rev\": \"1d11c52007a3f714979ff1b071d153e69a8c274a\",\n  \"languages\": [\n    \"node\",\n    \"python\"\n  ],\n  \"blind_spots\": [\n    \"package.json without a lockfile: dependencies resolved at provisioning time\",\n    \"python 3.12: where the CI runs the checks and the project's Dockerfile both use it\",\n    \"the CI's python-version: 3.12\",\n    \"the project's Dockerfile: 3.12\",\n    \".python-version: 3.13\",\n    \"conflict: concrete sources disagree: the CI's python-version 3.12; the project's Dockerfile 3.12; .python-version 3.13\",\n    \"image unbidden-deps-python:62ea37426d17b93b on linux/arm64\"\n  ],\n  \"problems\": [],\n  \"reports\": [\n    {\n      \"tool\": \"ruff-baseline\",\n      \"completeness\": \"complete\",\n      \"findings\": 0,\n      \"error\": null\n    },\n    {\n      \"tool\": \"pypi-advisories\",\n      \"completeness\": \"complete\",\n      \"findings\": 99,\n      \"error\": null\n    }\n  ],\n  \"opened\": 4,\n  \"resolved\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "inbox",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "inbox",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "77bdfc546c2\",\n    \"source\": \"pypi-advisories\",\n    \"category\": \"security\",\n    \"title\": \"pillow 10.4.0: 77 known vulnerabilities, fixed in 13.0.0\",\n    \"summary\": \"pillow: pillow 10.4.0: GHSA-22hg-r758-rrw9 (CVE-2026-112390); fixed in 13.0.0: ```\\n============================================================================\\nInfinite loop in MIC n_frames when the embedded TIFF has 3+ IFDs\\nLocation: src/PIL/MicImagePlugin.py:86  in MicImageFil; pillow: pillow 10.4.0: GHSA-24rc-8hj2-v98c (CVE-2026-96638); fixed in 13.0.0: ## Summary\\nBmpRleDecoder can be forced to allocate gigabytes of memory from a kilobyte-sized crafted BMP file via unbounded growth in the delta escape and absolute mode branches.\\n\\n## Affected versions; pillow: pillow 10.4.0: GHSA-254f-3936-288h (CVE-2026-112391); fixed in 13.0.0: ### Summary\\n`PdfParser`'s `get_value()` can recurse without any limit and crash with an uncaught `RecursionError`. It is reachable through `Image.save(im, fp=<pdf>, format=\\\"PDF\\\", append=True)` when th; pillow: pillow 10.4.0: GHSA-27h8-gf7j-v5hc (CVE-2026-112392); fixed in 13.0.0: ```\\n============================================================================\\nNULL dereference in ImagingExpand via rank filters on zero-size images\\nLocation: src/libImaging/Filter.c:79  in Imaging; pillow: pillow 10.4.0: GHSA-332p-7hrc-92wf (CVE-2026-112393); fixed in 13.0.0: ```\\n============================================================================\\nHeap buffer overflow in _tiffWriteProc when saving TIFF to BytesIO\\nLocation: src/libImaging/TiffDecode.c:94  in _tiffWr; pillow: pillow 10.4.0: GHSA-3j72-p6qg-6xp7 (CVE-2026-96642); fixed in 13.0.0: ### Summary\\n`TarIO.__init__` does not check that a tar header's size field is positive. A crafted header with a negative size makes it seek backward onto itself. This causes an infinite loop that uses; pillow: pillow 10.4.0: GHSA-45hq-cxwh-f6vc (BIT-pillow-2026-55379, CVE-2026-55379); fixed in 12.3.0: ### Summary\\n`PIL/BdfFontFile.py` `bdf_char()` (lines 84\\u201388) reads the `BBX width height` field from a BDF font file and passes the dimensions directly to `Image.new()` without calling `Image._decompre; pillow: pillo\",\n    \"dedup_key\": \"pypi-advisories:pillow:.\",\n    \"evidence_level\": 1,\n    \"status\": \"open\",\n    \"evidence\": [\n      {\n        \"kind\": \"analyzer_report\",\n        \"locator\": \"pypi-advisories@1d11c52007a3f714979ff1b071d153e69a8c274a\",\n        \"sha256\": \"e3da240db57d9aeec77157615eb595cd02b75ac41543770f7fa6524ac1c1f589\",\n        \"note\": null,\n        \"captured_at\": \"2026-11-03T18:27:12.463302Z\"\n      }\n    ],\n    \"priority_score\": 0.0,\n    \"created_at\": \"2026-11-03T18:27:12.466167Z\",\n    \"updated_at\": \"2026-11-03T18:27:12.466168Z\"\n  },\n  {\n    \"id\": \"opp_407fbb76b46f49c4\",\n    \"source\": \"pypi-advisories\",\n    \"category\": \"security\",\n    \"title\": \"pytest 8.4.2: 2 known vulnerabilities, fixed in 9.0.3\",\n    \"summary\": \"pytest: pytest 8.4.2: GHSA-6w46-j5rx-g56g (CVE-2025-71176, PYSEC-2026-1845); fixed in 9.0.3: pytest through 9.0.2 on UNIX relies on directories with the `/tmp/pytest-of-{user}` name pattern, which allows local users to cause a denial of service or possibly gain privileges.; pytest: pytest 8.4.2: PYSEC-2026-1845 (CVE-2025-71176, GHSA-6w46-j5rx-g56g); fixed in 9.0.3: pytest through 9.0.2 on UNIX relies on directories with the `/tmp/pytest-of-{user}` name pattern, which allows local users to cause a denial of service or possibly gain privileges.\",\n    \"dedup_key\": \"pypi-advisories:pytest:.\",\n    \"evidence_level\": 1,\n    \"status\": \"open\",\n    \"evidence\": [\n      {\n        \"kind\": \"analyzer_report\",\n        \"locator\": \"pypi-advisories@1d11c52007a3f714979ff1b071d153e69a8c274a\",\n        \"sha256\": \"e3da240db57d9aeec77157615eb595cd02b75ac41543770f7fa6524ac1c1f589\",\n        \"note\": null,\n        \"captured_at\": \"2026-11-03T18:27:12.463302Z\"\n      }\n    ],\n    \"priority_score\": 0.0,\n    \"created_at\": \"2026-11-03T18:27:12.469784Z\",\n    \"updated_at\": \"2026-11-03T18:27:12.469784Z\"\n  }\n]\n",
+   "stderr": ""
+  },
+  {
+   "name": "status0",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/repos/c13-brightbean-studio\",\n  \"head\": \"1d11c52007a3f714979ff1b071d153e69a8c274a\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-brightbean-studio/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"1d11c52007a3f714979ff1b071d153e69a8c274a\",\n    \"tools\": [\n      \"ruff-baseline\",\n      \"pypi-advisories\"\n    ],\n    \"languages\": [\n      \"node\",\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"package.json without a lockfile: dependencies resolved at provisioning time\",\n      \"python 3.12: where the CI runs the checks and the project's Dockerfile both use it\",\n      \"the CI's python-version: 3.12\",\n      \"the project's Dockerfile: 3.12\",\n      \".python-version: 3.13\",\n      \"conflict: concrete sources disagree: the CI's python-version 3.12; the project's Dockerfile 3.12; .python-version 3.13\",\n      \"image unbidden-deps-python:62ea37426d17b93b on linux/arm64\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff-baseline\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"pypi-advisories\",\n        \"completeness\": \"complete\",\n        \"findings\": 99,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"open\": 4\n  },\n  \"asks\": [],\n  \"blocks\": [],\n  \"idle\": true\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--interval",
+    "3600",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 87501,\n  \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-brightbean-studio/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/repos/c13-brightbean-studio\",\n  \"head\": \"1d11c52007a3f714979ff1b071d153e69a8c274a\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": true,\n    \"pid\": 87501,\n    \"started_at\": \"2026-11-03T18:27:13.328255+00:00\",\n    \"command\": \"watch\",\n    \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-brightbean-studio/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 1,\n    \"jobs_queued\": 2\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"1d11c52007a3f714979ff1b071d153e69a8c274a\",\n    \"tools\": [\n      \"ruff-baseline\",\n      \"pypi-advisories\"\n    ],\n    \"languages\": [\n      \"node\",\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"package.json without a lockfile: dependencies resolved at provisioning time\",\n      \"python 3.12: where the CI runs the checks and the project's Dockerfile both use it\",\n      \"the CI's python-version: 3.12\",\n      \"the project's Dockerfile: 3.12\",\n      \".python-version: 3.13\",\n      \"conflict: concrete sources disagree: the CI's python-version 3.12; the project's Dockerfile 3.12; .python-version 3.13\",\n      \"image unbidden-deps-python:62ea37426d17b93b on linux/arm64\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff-baseline\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"pypi-advisories\",\n        \"completeness\": \"complete\",\n        \"findings\": 99,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"open\": 4\n  },\n  \"asks\": [],\n  \"blocks\": [],\n  \"idle\": false\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "start-again",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--interval",
+    "3600",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.4,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": false,\n  \"already\": {\n    \"pid\": 87501,\n    \"host\": \"MacBook-Pro-de-David.local\",\n    \"started_at\": \"2026-11-03T18:27:13.328255+00:00\",\n    \"command\": \"watch\",\n    \"version\": \"0.15.0\",\n    \"argv_hint\": \"cli.py watch --interval 3600.0\"\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 5.5,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 87501,\n  \"waited_s\": 5.4,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-after",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/repos/c13-brightbean-studio\",\n  \"head\": \"1d11c52007a3f714979ff1b071d153e69a8c274a\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-brightbean-studio/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 5\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"1d11c52007a3f714979ff1b071d153e69a8c274a\",\n    \"tools\": [\n      \"ruff-baseline\",\n      \"pypi-advisories\"\n    ],\n    \"languages\": [\n      \"node\",\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"package.json without a lockfile: dependencies resolved at provisioning time\",\n      \"python 3.12: where the CI runs the checks and the project's Dockerfile both use it\",\n      \"the CI's python-version: 3.12\",\n      \"the project's Dockerfile: 3.12\",\n      \".python-version: 3.13\",\n      \"conflict: concrete sources disagree: the CI's python-version 3.12; the project's Dockerfile 3.12; .python-version 3.13\",\n      \"image unbidden-deps-python:62ea37426d17b93b on linux/arm64\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff-baseline\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"pypi-advisories\",\n        \"completeness\": \"complete\",\n        \"findings\": 99,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"open\": 4\n  },\n  \"asks\": [],\n  \"blocks\": [],\n  \"idle\": false\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "ui",
+    "--json",
+    "--port",
+    "8800"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"url\": \"http://127.0.0.1:8800/?s=<token>\",\n  \"host\": \"127.0.0.1\",\n  \"port\": 8800,\n  \"pid\": 91774,\n  \"started_at\": \"2026-11-03T15:29:50-0300\",\n  \"in_daemon\": false,\n  \"reused\": false,\n  \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-brightbean-studio/.unbidden/logs/ui.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "ui",
+    "--stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 91774\n}\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/brightbeanxyz/brightbean-studio",
+   "commit": "1d11c52007a3f714979ff1b071d153e69a8c274a",
+   "family": "web-django",
+   "class": "independent",
+   "build": "pip",
+   "license": "AGPL-3.0"
+  },
+  "ledger_before": {
+   "envelope": "s13-dev",
+   "envelope_spent_usd": 0.0004,
+   "available_usd": 65.6614,
+   "permitted_usd": 97.2945
+  },
+  "clone": {
+   "path": "/Users/david/unbidden-lab/c13/repos/c13-brightbean-studio",
+   "head": "1d11c52007a3f714979ff1b071d153e69a8c274a",
+   "seconds": 2.5,
+   "fetch_code": 0
+  },
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required",
+   "scope": {
+    "scope: stack": [
+     true,
+     "Python 3.12 (requirements.txt, requirements.txt)"
+    ],
+    "scope: tests": [
+     true,
+     "no CI job that runs pytest was read; pytest files found: the default command is used, partially"
+    ],
+    "scope: database": [
+     true,
+     "services in compose: postgres"
+    ],
+    "scope: node": [
+     false,
+     "analyzed for findings only; no full cycle in v1.0"
+    ]
+   }
+  },
+  "scan": {
+   "ok": true,
+   "timed_out": false,
+   "seconds": 99.7,
+   "languages": [
+    "node",
+    "python"
+   ],
+   "reports": [
+    {
+     "tool": "ruff-baseline",
+     "completeness": "complete",
+     "findings": 0,
+     "error": null
+    },
+    {
+     "tool": "pypi-advisories",
+     "completeness": "complete",
+     "findings": 99,
+     "error": null
+    }
+   ],
+   "opened": 4,
+   "problems": [],
+   "blind_spots": [
+    "package.json without a lockfile: dependencies resolved at provisioning time",
+    "python 3.12: where the CI runs the checks and the project's Dockerfile both use it",
+    "the CI's python-version: 3.12",
+    "the project's Dockerfile: 3.12",
+    ".python-version: 3.13",
+    "conflict: concrete sources disagree: the CI's python-version 3.12; the project's Dockerfile 3.12; .python-version 3.13",
+    "image unbidden-deps-python:62ea37426d17b93b on linux/arm64"
+   ]
+  },
+  "inbox": {
+   "total": 4,
+   "by_source": {
+    "pypi-advisories": 4
+   }
+  },
+  "checks": {
+   "status": "failed",
+   "collected": 2737,
+   "why": "exit 1: b_cursor\n    with conn.cursor() as cursor:\n         ^^^^^^^^^^^^^\n/deps/.venv/lib/python3.12/site-packages/django/utils/asyncio.py:26: in inner\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n/deps/.venv/lib/python3.12/site-packages/django/db/backends/base/base.py:319: in cursor\n    return self._cursor()\n           ^^^^^^^^^^^^^^\n/deps/.venv/lib/python3.12/site-packages/django/db/backends/base/base.py:295: in _cursor\n    self.ensure_connection()\n/deps/.venv/lib/python3.12/site-packages/django/utils/asyncio.py:26: in inner\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n/deps/.venv/lib/python3.12/site-packages/django/db/backends/base/base.py:277: in ensure_connection\n    with self.wrap_database_errors:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^\n/deps/.venv/lib/python3.12/site-packages/django/db/utils.py:91: in __exit__\n    raise dj_exc_value.with_traceback(traceback) from exc_value\n/deps/.venv/lib/python3.12/site-packages/django/db/backends/base/base.py:278: in ensure_connection\n    self.connect()\n/deps/.venv/lib/python3.12/site-packages/django/utils/asyncio.py:26: in inner\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n/deps/.venv/lib/python3.12/site-packages/django/db/backends/base/base.py:255: in connect\n    self.connection = self.get_new_connection(conn_params)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/deps/.venv/lib/python3.12/site-packages/django/utils/asyncio.py:26: in inner\n    return func(*args, **kwargs",
+   "scope": "the whole job",
+   "partial": false,
+   "command": "python -m pytest -q -p no:cacheprovider",
+   "rev": "1d11c52007a3f714979ff1b071d153e69a8c274a",
+   "could_not_run": {
+    "tests": 0,
+    "lacks": []
+   },
+   "failed": 50,
+   "image_notes": [
+    "python 3.12: where the CI runs the checks and the project's Dockerfile both use it",
+    "the CI's python-version: 3.12",
+    "the project's Dockerfile: 3.12",
+    ".python-version: 3.13",
+    "conflict: concrete sources disagree: the CI's python-version 3.12; the project's Dockerfile 3.12; .python-version 3.13",
+    "image unbidden-deps-python:62ea37426d17b93b on linux/arm64"
+   ],
+   "python": "3.12",
+   "waited_s": 150.1,
+   "image_age": {
+    "tag": "unbidden-deps-python:62ea37426d17b93b",
+    "created": "2026-11-03T15:26:41.62518158-03:00",
+    "built_in_this_run": false
+   }
+  },
+  "lifecycle": {
+   "started": true,
+   "running_after_checks": true,
+   "second_start_refused": true,
+   "stopped": true,
+   "jobs_left_running": 0,
+   "stale_after": false,
+   "kill_file": false,
+   "status0_ok": true
+  },
+  "ui": {
+   "opened": true,
+   "session_ok": true,
+   "source_mode": "live",
+   "freshness": "current",
+   "counts": {
+    "opportunities": 4,
+    "experiments": 0,
+    "proposals": 0,
+    "events": 44,
+    "model_runs": 0,
+    "connections": 1,
+    "deployments": 0,
+    "needs": 0,
+    "blocks": 0,
+    "spend_calls": 0,
+    "world": 1
+   },
+   "agent": {
+    "running": false,
+    "detail": "agent not running: `unbidden start`"
+   },
+   "route": "frontier",
+   "key_present": true,
+   "opportunities_total": 4,
+   "events": 44,
+   "built_index": true,
+   "secret_in_summary": false,
+   "stopped": true
+  },
+  "ledger_after": {
+   "envelope": "s13-dev",
+   "envelope_spent_usd": 0.0004,
+   "available_usd": 65.6614,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c13-dev-A-A-brightbean-studio",
+   "calls": 0,
+   "usd": 0.0,
+   "tokens_in": 0,
+   "tokens_out": 0
+  },
+  "spent_usd": 0.0,
+  "refused_by_cap": 0,
+  "events": {
+   "action.executed": 10,
+   "analyzer.ran": 4,
+   "connection.changed": 1,
+   "decision.made": 5,
+   "job.finished": 8,
+   "job.started": 8,
+   "mandate.changed": 1,
+   "opportunity.opened": 4,
+   "repo.head_moved": 1,
+   "world.changed": 2
+  },
+  "archive": "/Users/david/unbidden-lab/c13/archive/brightbean-studio-A-dev-A.tgz"
+ },
+ "human": [
+  {
+   "step": "clone at the pin",
+   "minutes": 0.0,
+   "why": "harness"
+  }
+ ],
+ "blocks": []
+}

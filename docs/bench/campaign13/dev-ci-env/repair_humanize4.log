@@ -1,0 +1,6 @@
+{"repo": "humanize-seeded", "status": "failed", "collected": 878, "failed": ["tests.test_number::test_ordinal[13-13th]"], "ci_tests_failed": true, "texts": 1, "s": 6}
+{"repo": "humanize-seeded", "opened": [["1 failing test(s) in tests/test_number.py", ["tests/test_number.py"]]]}
+  .. running the team's suite at the base, 3 rounds
+  .. asking the model at api.meta.ai (muse-spark-1.3) to repair 1 test(s) (attempt 1)
+  .. running the team's suite with the repair, 3 rounds
+{"repo": "humanize-seeded", "opp": "1 failing test(s) in tests/test_number.py", "improved": true, "tests": "pre_existing", "reasons": ["1 of 1 test(s) of tests/test_number.py failed in 3 of 3 base rounds and pass in 3 of 3 with the change", "why the failure is the repository's: the team's own CI job, run here as GitHub runs it, fails at its test step"], "caveats": ["no test, conftest, skip or assertion was changed; only code the tracebacks pass through"], "notes": [], "absent": null, "blocked": null, "files": ["src/humanize/number.py"], "s": 29}

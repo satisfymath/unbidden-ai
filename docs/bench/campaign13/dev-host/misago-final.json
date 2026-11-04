@@ -1,0 +1,61 @@
+{
+  "ok": true,
+  "project": "unbidden-misago",
+  "health_url": "http://127.0.0.1:61027/",
+  "ports": {
+    "mailpit:1025": 61026,
+    "mailpit:8025": 61027,
+    "misago:8000": 61028,
+    "postgres:5432": 61029
+  },
+  "deploy_steps": [
+    [
+      "/Users/david/unbidden-ai-w2/.venv/bin/python",
+      "-m",
+      "unbidden.cli",
+      "host",
+      "up",
+      "--deploy",
+      "--build",
+      "--json"
+    ]
+  ],
+  "drill": {
+    "at": "2026-11-04T05:42:53.625210+00:00",
+    "from": "4a37d19d3d9f74064c75cdda6856350b2daea5df",
+    "to": "89f4c70501ebcfd35f40adfd2642504aeba0853e",
+    "back": true,
+    "forth": true,
+    "passed": true
+  },
+  "why": null,
+  "steps": [
+    {
+      "step": "render the compose file",
+      "ok": true,
+      "detail": "docker-compose.yaml; 5 services",
+      "seconds": 0.1
+    },
+    {
+      "step": "docker compose up",
+      "ok": true,
+      "detail": "tainer unbidden-misago-mailpit-1 Created \n Container unbidden-misago-redis-1 Created \n Container unbidden-misago-postgres-1 Created \n Container unbidden-misago-misago-1 Creating \n Container unbidden-misago-celery-worker-1 Creating \n Container unbidden-misago-misago-1 Created \n Container unbidden-misago-celery-worker-1 Created \n Container unbidden-misago-redis-1 Starting \n Container unbidden-misago-mailpit-1 Starting \n Container unbidden-misago-postgres-1 Starting \n Container unbidden-misago-mailpit-1 Started \n Container unbidden-misago-redis-1 Started \n Container unbidden-misago-postgres-1 Started \n Container unbidden-misago-misago-1 Starting \n Container unbidden-misago-celery-worker-1 Starting \n Container unbidden-misago-celery-worker-1 Started \n Container unbidden-misago-misago-1 Started",
+      "seconds": 56.9
+    },
+    {
+      "step": "health",
+      "ok": true,
+      "detail": "http://127.0.0.1:61027/",
+      "seconds": 70.4
+    },
+    {
+      "step": "seed synthetic rows",
+      "ok": true,
+      "detail": "{}",
+      "seconds": 0.3
+    }
+  ],
+  "migrated": null,
+  "seeded": {},
+  "generated_env": []
+}
