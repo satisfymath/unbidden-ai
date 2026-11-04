@@ -104,6 +104,26 @@ def running_containers(repo: Path) -> list[dict[str, Any]]:
     return rows
 
 
+def _self_hosted_health(repo: Path, service: str, published: list[int]) -> tuple[str, int] | None:
+    """`GET <path>` and port of the health URL `unbidden host up` recorded, when it is on this service's ports."""
+    import json
+    from urllib.parse import urlparse
+
+    path = repo / ".unbidden" / "host" / "state.json"
+    if not path.exists():
+        return None
+    try:
+        url = json.loads(path.read_text()).get("health_url")
+    except ValueError:
+        return None
+    if not url:
+        return None
+    parsed = urlparse(str(url))
+    if parsed.port not in published:
+        return None
+    return f"GET {parsed.path or '/'}", int(parsed.port or 0)
+
+
 def host_ports(container: dict[str, Any]) -> list[int]:
     ports: list[int] = []
     for publisher in container.get("Publishers") or []:
@@ -536,8 +556,24 @@ def discover_runtime(repo: Path, world: WorldModel, rev: str = "HEAD", files: li
                     attrs["web_page"] = f"http://127.0.0.1:{port}/"
                 for found in text_metrics(port):
                     world.resources[f"container:{name}"].attributes.setdefault("text_endpoints", []).append(found)
-            if any(r.kind == "endpoint" and r.attributes.get("framework") == "flask" for r in world.resources.values()):
-                pass  # a Flask application: its routes were read from the code (`world/flask_routes.py`)
+            flask = [r for r in world.resources.values()
+                     if r.kind == "endpoint" and r.attributes.get("framework") == "flask"]  # fmt: skip
+            hosted = _self_hosted_health(repo, service, published)
+            if hosted is not None and f"endpoint:{hosted[0]}" not in world.resources:
+                # The health route `unbidden host up` found on this service's port (a Django or Flask app with no
+                # OpenAPI): probed and judged like a documented one.
+                world.add(Resource(id=f"endpoint:{hosted[0]}", kind="endpoint", name=hosted[0],
+                                   attributes={"service": service, "port": hosted[1], "source": "self_host"},
+                                   status=OBSERVED, confidence=1.0, evidence=[_ref("config", "operations.health_url")],
+                                   source="self_host"))  # fmt: skip
+            if flask:
+                # A Flask application: its routes were read from the code (`world/flask_routes.py`); the GET ones
+                # without parameters are reached on the service's first published port, so they can be probed.
+                for endpoint in flask:
+                    method, _, path = endpoint.name.partition(" ")
+                    if method == "GET" and "{" not in path:
+                        endpoint.attributes.setdefault("port", published[0])
+                        endpoint.attributes.setdefault("service", service)
             else:
                 world.blind_spots.append(
                     BlindSpot(

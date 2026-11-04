@@ -906,7 +906,7 @@ class Cycle:
         from unbidden.operate.deploy import drill, health_url
 
         repo = self.runtime.workspace.repo
-        url = health_url(self.store)
+        url = health_url(self.store, self.runtime.workspace.mandate())
         if url is None:
             self.say("drill not run: no live health endpoint is known on the map", correlation_id=j.id)
             return
