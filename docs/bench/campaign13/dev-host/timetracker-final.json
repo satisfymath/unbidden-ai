@@ -1,0 +1,49 @@
+{
+  "ok": true,
+  "project": "unbidden-timetracker",
+  "health_url": "https://127.0.0.1:59423/health",
+  "ports": {
+    "nginx:80": 59422,
+    "nginx:443": 59423
+  },
+  "deploy_steps": [
+    [
+      "/Users/david/unbidden-ai-w2/.venv/bin/python",
+      "-m",
+      "unbidden.cli",
+      "host",
+      "up",
+      "--deploy",
+      "--build",
+      "--json"
+    ]
+  ],
+  "drill": {
+    "passed": false,
+    "why": "no earlier commit with the same migrations to roll back to"
+  },
+  "why": null,
+  "steps": [
+    {
+      "step": "render the compose file",
+      "ok": true,
+      "detail": "docker-compose.yml; 5 services",
+      "seconds": 0.1
+    },
+    {
+      "step": "docker compose up",
+      "ok": true,
+      "detail": "-timetracker-certgen Building \n Image unbidden-timetracker-certgen Built \n Image unbidden-timetracker-peppol-bridge Built \n Image unbidden-timetracker-app Built \n Container unbidden-timetracker-db-1 Running \n Container unbidden-timetracker-nginx-1 Running \n Container unbidden-timetracker-peppol-bridge-1 Running \n Container unbidden-timetracker-app-1 Recreate \n Container unbidden-timetracker-app-1 Recreated \n Container unbidden-timetracker-certgen-1 Starting \n Container unbidden-timetracker-db-1 Waiting \n Container unbidden-timetracker-certgen-1 Started \n Container unbidden-timetracker-db-1 Healthy \n Container unbidden-timetracker-app-1 Starting \n Container unbidden-timetracker-app-1 Started \n Container unbidden-timetracker-certgen-1 Waiting \n Container unbidden-timetracker-certgen-1 Exited",
+      "seconds": 9.5
+    },
+    {
+      "step": "health",
+      "ok": true,
+      "detail": "https://127.0.0.1:59423/health",
+      "seconds": 3.4
+    }
+  ],
+  "migrated": null,
+  "seeded": {},
+  "generated_env": []
+}

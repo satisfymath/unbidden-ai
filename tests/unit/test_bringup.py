@@ -213,3 +213,11 @@ def test_the_drill_rolls_back_to_the_latest_commit_with_the_same_migrations(tmp_
     subprocess.run([*git, "add", "."], check=True)
     subprocess.run([*git, "commit", "-qm", "another migration"], check=True)
     assert bringup.same_schema_previous(repo) is None or bringup.same_schema_previous(repo) != safe
+
+
+def test_a_tool_beside_the_application_is_never_its_health() -> None:
+    """misago: mailpit's web page answered `/` and was taken for the forum's health."""
+    config = {"services": {"mailpit": {"image": "axllent/mailpit"}, "misago": {"build": {"context": "."}},
+                           "postgres": {"image": "postgres:17"}, "web": {"image": "example/frontend"}}}  # fmt: skip
+    ports = {"mailpit:8025": 1, "misago:8000": 2, "postgres:5432": 3, "web:80": 4}
+    assert bringup.app_ports(config, ports) == [("misago", 2), ("web", 4)]

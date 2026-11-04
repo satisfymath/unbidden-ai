@@ -1,0 +1,62 @@
+{
+  "ok": true,
+  "project": "unbidden-codex-lb",
+  "health_url": "http://127.0.0.1:49332/ping",
+  "ports": {
+    "frontend:5173": 49332,
+    "server:2455": 49333,
+    "server:1455": 49334
+  },
+  "deploy_steps": [
+    [
+      "/Users/david/unbidden-ai-w2/.venv/bin/python",
+      "-m",
+      "unbidden.cli",
+      "host",
+      "up",
+      "--deploy",
+      "--build",
+      "--json"
+    ]
+  ],
+  "drill": {
+    "at": "2026-11-04T04:44:50.608648+00:00",
+    "from": "84fde5a1ed5e0d5a58ccb3ec4b82938b059bf8c5",
+    "to": "cedc05f95a46fe062eaf8ff35eceea1a91735a2a",
+    "back": true,
+    "forth": true,
+    "passed": true
+  },
+  "why": null,
+  "steps": [
+    {
+      "step": "env files created from their examples",
+      "ok": true,
+      "detail": ".env.local (from .env.example)",
+      "seconds": 0.0
+    },
+    {
+      "step": "render the compose file",
+      "ok": true,
+      "detail": "docker-compose.yml; 2 services",
+      "seconds": 0.1
+    },
+    {
+      "step": "docker compose up",
+      "ok": true,
+      "detail": "n-codex-lb-frontend Building \n Image unbidden-codex-lb-frontend Built \n Image unbidden-codex-lb-server Built \n Network unbidden-codex-lb_default Creating \n Network unbidden-codex-lb_default Creating \n Volume codex-lb-data Creating \n Volume codex-lb-data Creating \n Volume codex-lb-data Created \n Volume codex-lb-data Created \n Network unbidden-codex-lb_default Created \n Network unbidden-codex-lb_default Created \n Container unbidden-codex-lb-server-1 Creating \n Container unbidden-codex-lb-frontend-1 Creating \n Container unbidden-codex-lb-server-1 Created \n Container unbidden-codex-lb-frontend-1 Created \n Container unbidden-codex-lb-frontend-1 Starting \n Container unbidden-codex-lb-server-1 Starting \n Container unbidden-codex-lb-server-1 Started \n Container unbidden-codex-lb-frontend-1 Started",
+      "seconds": 32.6
+    },
+    {
+      "step": "health",
+      "ok": true,
+      "detail": "http://127.0.0.1:49332/ping",
+      "seconds": 3.8
+    }
+  ],
+  "migrated": null,
+  "seeded": {},
+  "generated_env": [
+    "pg_major"
+  ]
+}

@@ -1,0 +1,388 @@
+{
+ "repo": "timetracker",
+ "phase": "dev-A",
+ "run": "A",
+ "candidate": "db5c79b182bafbe580bc6e1c6b48904fef2a1f21",
+ "wheel_sha256": "0761f2122ed4e6b53b6226e979808ffd5353bc690213e23c14986dda9fd6ed52",
+ "started_at": "2026-11-03T14:27:01-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "supervised",
+    "--budget",
+    "0",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 7.9,
+   "timed_out": false,
+   "stdout": "rejected\": false,\n    \"model\": \"muse-spark-1.3\",\n    \"usd\": 0.000435,\n    \"why\": null\n  },\n  \"priorities\": [\n    \"correctness\",\n    \"maintainability\",\n    \"security\"\n  ],\n  \"github\": null,\n  \"found\": {\n    \"repository\": \"DRYTRIX/TimeTracker\",\n    \"branch\": \"HEAD\",\n    \"head\": \"7ae6440d1b0930196609c6cefe3cf13948513f5b\",\n    \"scope\": [\n      {\n        \"name\": \"scope: stack\",\n        \"in_scope\": true,\n        \"note\": \"Python 3.11 (requirements.txt, requirements.txt)\"\n      },\n      {\n        \"name\": \"scope: tests\",\n        \"in_scope\": true,\n        \"note\": \"ci.yml > test (the whole job)\"\n      },\n      {\n        \"name\": \"scope: database\",\n        \"in_scope\": true,\n        \"note\": \"services in compose: db, redis\"\n      },\n      {\n        \"name\": \"scope: node\",\n        \"in_scope\": false,\n        \"note\": \"analyzed for findings only; no full cycle in v1.0\"\n      }\n    ],\n    \"machine\": \"Apple M5 Pro, 64 GB, 54 GB for a model\",\n    \"ollama\": {\n      \"url\": \"http://localhost:11434\",\n      \"present\": true,\n      \"models\": [\n        \"llama3.1:8b\",\n        \"muse-glimmer:30b-mlx\",\n        \"muse-glimmer:30b-mxfp8-dflash\",\n        \"nomic-embed-text:latest\"\n      ]\n    },\n    \"local_model\": {\n      \"tag\": \"muse-glimmer:30b-mxfp8-dflash\",\n      \"installed\": true\n    },\n    \"key\": {\n      \"name\": \"MODEL_API_KEY\",\n      \"present\": true\n    },\n    \"github\": null,\n    \"github_check\": null,\n    \"compose\": \"docker-compose.yml\",\n    \"services\": [\n      {\n        \"name\": \"certgen\",\n        \"kind\": null\n      },\n      {\n        \"name\": \"nginx\",\n        \"kind\": null\n      },\n      {\n        \"name\": \"app\",\n        \"kind\": null\n      },\n      {\n        \"name\": \"peppol-bridge\",\n        \"kind\": null\n      },\n      {\n        \"name\": \"ollama\",\n        \"kind\": null\n      },\n      {\n        \"name\": \"ollama-init\",\n        \"kind\": null\n      },\n      {\n        \"name\": \"db\",\n        \"kind\": \"postgres\"\n      },\n      {\n        \"name\": \"redis\",\n        \"kind\": \"redis\"\n      },\n      {\n        \"name\": \"prometheus\",\n        \"kind\": null\n      },\n      {\n        \"name\": \"grafana\",\n        \"kind\": null\n      }\n    ],\n    \"external\": [\n      {\n        \"kind\": \"http_api\",\n        \"location\": \"https://127.0.0.1:443\",\n        \"evidence\": \"docker-compose.yml service app WTF_CSRF_TRUSTED_ORIGINS\"\n      },\n      {\n        \"kind\": \"http_api\",\n        \"location\": \"https://api.e-invoice.be:443\",\n        \"evidence\": \"docker-compose.yml service peppol-bridge EINVOICE_BASE_URL\"\n      },\n      {\n        \"kind\": \"http_api\",\n        \"location\": \"https://api.peppyrus.be:443\",\n        \"evidence\": \"docker-compose.yml service peppol-bridge PEPPYRUS_BASE_URL\"\n      },\n      {\n        \"kind\": \"http_api\",\n        \"location\": \"http://127.0.0.1:3000\",\n        \"evidence\": \"docker-compose.yml service grafana GF_SERVER_ROOT_URL\"\n      }\n    ],\n    \"option\": \"mixed\",\n    \"option_why\": \"hay una clave y un modelo local\"\n  },\n  \"defaulted\": [\n    \"priorities\",\n    \"credentials\",\n    \"key\",\n    \"connections\",\n    \"private_code\",\n    \"language\"\n  ],\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c13/repos/c13-timetracker/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c13/repos/c13-timetracker/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 0.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -17,4 +17,5 @@\",\n    \"     rollback: deny\",\n    \"     use_new_capabilities: require_approval\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,8 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\",\n    \"+  operations: {}\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c13/repos/c13-timetracker/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "ntent to remote models    allowed\n  use capabilities it built for itself                 asks first\n  open pull requests                                   asks first\n  merge pull requests                                  denied\n  deploy with the team's steps                         denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nPresupuesto\nLibro de la máquina: verified balance US$97.29 (stage 6 spend cap authorized by \nDavid on 2026-10-28: up to US$10 of free credits from this point (dev 3, \nevaluation 5, demo and contingency 2; the earlier US$3 reserve is included, not \nadded). Dashboard as reported by David 2026-10-28: Current balance US$0, free \ncredits in use US$144.98, a Visa card on file, content sent while on free \ncredits may be used to improve products. A cap, not a measured balance; no \nrecharge or card charge authorized (entered by david) | stage 9: US$30 \nadditional Meta API spend authorized by David on 2026-10-29, replacing the US$10\ncap; cumulative cap US$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval\n12, demo 6 (D-052). Dashboard as reported by David: free credits in use \nUS$137.96, balance US$0, a card on file. No recharge or card charge authorized \n(entered by david) | stage 10: the remaining US$20.30 of the US$37.29 cap split \nbefore any call (D-058), by David's stage 10 instruction of 2026-10-30 (entered \nby david) | stage 10 after the frozen evaluation: US$5 of the unspent s10-eval \nmoved to s10-dev for corrections and regressions, by David's instruction of \n2026-10-31; envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; spent at the transfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, \ns10-close 0) (entered by david) | product phase (A-E): s11-product US$4.00 \nauthorized by David on 2026-11-01, reassigned from s10-close (3.80, unspent, \nclosed) and US$0.20 of s10-dev; envelopes total US$20.30 and the cumulative cap \nUS$37.2945 unchanged; spent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval\n1.0010, s10-close 0) (entered by david) | product phase correction: David's \nauthorization of 2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken \nfrom s10-dev had no recorded authorization and goes back (s10-dev 13.00, \ns11-product 3.80); envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; s11-product spent 0 at the correction; spent at the correction \nUS$27.7199 (entered by david) | campaign 12 (installed-product validation): \nUS$60 additional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david) | envelopes s13-dev 15, \ns13-pass 15, s13-final 20, s13-confirm 5 authorized by David on 2026-11-03 \n('dale entonces empecemos con todo', campaign 13 to 1.0, within the cumulative \ncap US$97.2945, not amended); earlier envelopes unchanged; no transfers (entered\nby david)); permitido US$97.29 · gastado US$31.6331 · disponible US$65.6614\nsobres: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, s12-eval\n30.00, s12-dev 17.00, s12-confirm 5.00, s13-dev 15.00, s13-pass 15.00, s13-final\n20.00, s13-confirm 5.00\nLos créditos del proveedor y el gasto autorizado son cosas distintas: el tope \nque una persona ingresó con `unbidden spend --verified-balance` es lo que esta \nmáquina puede gastar; aquí nunca se sube ni se reinicia.\n\nPanel\nAbrir el panel, restaurar su disposición y mostrar registros no llama a ningún \nmodelo; chatear o pedir un análisis sí puede.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 7.4,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"4 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key proven: muse-spark-1.3 answered\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"no GITHUB_TOKEN: proposals stay local branches\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs require_approval\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"recon\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"incompleto: stack down; stack down, db unread\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.11 (requirements.txt, requirements.txt)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"ci.yml > test (the whole job)\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"services in compose: db, redis\"\n    },\n    {\n      \"check\": \"scope: node\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"analyzed for findings only; no full cycle in v1.0\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "scan",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "scan",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 72.3,
+   "timed_out": false,
+   "stdout": "{\n  \"rev\": \"7ae6440d1b0930196609c6cefe3cf13948513f5b\",\n  \"languages\": [\n    \"node\",\n    \"python\"\n  ],\n  \"blind_spots\": [\n    \"package.json without a lockfile: dependencies resolved at provisioning time\",\n    \"Java/Kotlin (build.gradle) is not analyzed: no checks, probes or experiments for that code\",\n    \"Dart (pubspec.yaml) is not analyzed: no checks, probes or experiments for that code\",\n    \"python 3.11: where the CI runs the checks and the project's Dockerfile both use it\",\n    \"the CI's python-version: 3.11\",\n    \"the project's Dockerfile: 3.11, 3.12\",\n    \"conflict: concrete sources disagree: the CI's python-version 3.11; the project's Dockerfile 3.11, 3.12\",\n    \"image unbidden-deps-python:5d2548edaab0cc7c on linux/arm64\",\n    \"the environment is seeded with pip and setuptools as of 2026-10-30T13:18:09+01:00 (the lockfile's era), as virtualenvs on Python 3.11 were\"\n  ],\n  \"problems\": [],\n  \"reports\": [\n    {\n      \"tool\": \"ruff-baseline\",\n      \"completeness\": \"complete\",\n      \"findings\": 61,\n      \"error\": null\n    },\n    {\n      \"tool\": \"pypi-advisories\",\n      \"completeness\": \"complete\",\n      \"findings\": 13,\n      \"error\": null\n    },\n    {\n      \"tool\": \"ruff-baseline@peppol_bridge\",\n      \"completeness\": \"complete\",\n      \"findings\": 0,\n      \"error\": null\n    }\n  ],\n  \"opened\": 11,\n  \"resolved\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "inbox",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "inbox",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "\"status\": \"open\",\n    \"evidence\": [\n      {\n        \"kind\": \"analyzer_report\",\n        \"locator\": \"ruff-baseline@7ae6440d1b0930196609c6cefe3cf13948513f5b\",\n        \"sha256\": \"c40c546577d682d6353e445f68590ece51eb0152d33c8ca6193301e8dfde42cb\",\n        \"note\": null,\n        \"captured_at\": \"2026-11-03T17:27:54.018963Z\"\n      }\n    ],\n    \"priority_score\": 0.0,\n    \"created_at\": \"2026-11-03T17:27:54.023979Z\",\n    \"updated_at\": \"2026-11-03T17:27:54.023979Z\"\n  },\n  {\n    \"id\": \"opp_6125a86a792742f9\",\n    \"source\": \"ruff-baseline\",\n    \"category\": \"bugs\",\n    \"title\": \"1 ruff-baseline F811 finding in tests/test_routes/\",\n    \"summary\": \"F811: Redefinition of unused `TimeEntry` from line 10: `TimeEntry` redefined here\",\n    \"dedup_key\": \"ruff-baseline:F811:tests/test_routes\",\n    \"evidence_level\": 1,\n    \"status\": \"open\",\n    \"evidence\": [\n      {\n        \"kind\": \"analyzer_report\",\n        \"locator\": \"ruff-baseline@7ae6440d1b0930196609c6cefe3cf13948513f5b\",\n        \"sha256\": \"c40c546577d682d6353e445f68590ece51eb0152d33c8ca6193301e8dfde42cb\",\n        \"note\": null,\n        \"captured_at\": \"2026-11-03T17:27:54.018963Z\"\n      }\n    ],\n    \"priority_score\": 0.0,\n    \"created_at\": \"2026-11-03T17:27:54.024489Z\",\n    \"updated_at\": \"2026-11-03T17:27:54.024490Z\"\n  },\n  {\n    \"id\": \"opp_4e3e93ca6bd54cfc\",\n    \"source\": \"pypi-advisories\",\n    \"category\": \"security\",\n    \"title\": \"filelock 3.32.7: 13 known vulnerabilities, fixed in 4.2.1\",\n    \"summary\": \"filelock: filelock 3.32.7: GHSA-567q-5qvw-pf92 (CVE-2026-112907); fixed in 4.2.1: On Windows the soft locks (`SoftFileLock`, `MarkerSoftFileLock`, `SoftFileLease`, their async forms, and a `FileLock` that fell back to a soft lock) read their marker by path. The marker is the lock f; filelock: filelock 3.32.7: GHSA-6627-m3xw-93mp (CVE-2026-112908); fixed in 4.2.1: `StrictSoftFileLock` and `AsyncStrictSoftFileLock` apply the caller's `mode` to the sentinel (the lock file at `<path>`) and to both claim files (the files whose presence says a process wants or holds; filelock: filelock 3.32.7: GHSA-69hj-f68j-2879 (CVE-2026-112909); fixed in 4.2.1: `UnixFileLock`, the backend of `FileLock` and `AsyncFileLock` on Unix, empties whatever regular file it finds at the lock path once it holds the `flock` (a kernel lock on an open file). With an explic; filelock: filelock 3.32.7: GHSA-8mx5-7m5m-r77g (CVE-2026-112910); fixed in 4.2.1: filelock on Windows ignores the `mode` argument. `FileLock(path, mode=0o600)` creates the same file as `FileLock(path)`: one with no security descriptor of its own (the Windows record that says who ma; filelock: filelock 3.32.7: GHSA-9c4x-gm8v-wgc4 (CVE-2026-112911); fixed in 4.2.1: `StrictSoftFileLock`, `AsyncStrictSoftFileLock`, `SoftReadWriteLock` and `AsyncSoftReadWriteLock` keep their whole ownership state as files in a directory derived from the lock path (`<path>.filelock/; filelock: filelock 3.32.7: GHSA-9j6q-wvj5-jgjg (CVE-2026-112912); fixed in 4.2.1: `raise_on_not_writable_file()` is the check that `SoftFileLock` and the locks sharing its acquire path run before every attempt. It looks at the lock path with `os.lstat`, so that it judges a planted ; filelock: filelock 3.32.7: GHSA-9vhv-jxww-xfm5 (CVE-2026-112913); fixed in 4.2.1: On Windows, `ReadWriteLock` and `AsyncReadWriteLock` (the SQLite-backed reader/writer lock) connect SQLite to the lock database by its path, in every directory. SQLite derives three side files from th; filelock: fi\",\n    \"dedup_key\": \"pypi-advisories:filelock:.\",\n    \"evidence_level\": 1,\n    \"status\": \"open\",\n    \"evidence\": [\n      {\n        \"kind\": \"analyzer_report\",\n        \"locator\": \"pypi-advisories@7ae6440d1b0930196609c6cefe3cf13948513f5b\",\n        \"sha256\": \"a603d004677cb1784ca14110f67f26679607f8ae8c69541db82d302aa8c9af73\",\n        \"note\": null,\n        \"captured_at\": \"2026-11-03T17:28:29.441009Z\"\n      }\n    ],\n    \"priority_score\": 0.0,\n    \"created_at\": \"2026-11-03T17:28:29.441105Z\",\n    \"updated_at\": \"2026-11-03T17:28:29.441106Z\"\n  }\n]\n",
+   "stderr": ""
+  },
+  {
+   "name": "status0",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/repos/c13-timetracker\",\n  \"head\": \"7ae6440d1b0930196609c6cefe3cf13948513f5b\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-timetracker/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"7ae6440d1b0930196609c6cefe3cf13948513f5b\",\n    \"tools\": [\n      \"ruff-baseline\",\n      \"pypi-advisories\",\n      \"ruff-baseline@peppol_bridge\"\n    ],\n    \"languages\": [\n      \"node\",\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"package.json without a lockfile: dependencies resolved at provisioning time\",\n      \"Java/Kotlin (build.gradle) is not analyzed: no checks, probes or experiments for that code\",\n      \"Dart (pubspec.yaml) is not analyzed: no checks, probes or experiments for that code\",\n      \"python 3.11: where the CI runs the checks and the project's Dockerfile both use it\",\n      \"the CI's python-version: 3.11\",\n      \"the project's Dockerfile: 3.11, 3.12\",\n      \"conflict: concrete sources disagree: the CI's python-version 3.11; the project's Dockerfile 3.11, 3.12\",\n      \"image unbidden-deps-python:5d2548edaab0cc7c on linux/arm64\",\n      \"the environment is seeded with pip and setuptools as of 2026-10-30T13:18:09+01:00 (the lockfile's era), as virtualenvs on Python 3.11 were\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff-baseline\",\n        \"completeness\": \"complete\",\n        \"findings\": 61,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"pypi-advisories\",\n        \"completeness\": \"complete\",\n        \"findings\": 13,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"ruff-baseline@peppol_bridge\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"open\": 11\n  },\n  \"asks\": [],\n  \"blocks\": [],\n  \"idle\": true\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--interval",
+    "3600",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.7,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 3820,\n  \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-timetracker/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/repos/c13-timetracker\",\n  \"head\": \"7ae6440d1b0930196609c6cefe3cf13948513f5b\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": true,\n    \"pid\": 3820,\n    \"started_at\": \"2026-11-03T17:28:34.107363+00:00\",\n    \"command\": \"watch\",\n    \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-timetracker/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 1,\n    \"jobs_queued\": 2\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"7ae6440d1b0930196609c6cefe3cf13948513f5b\",\n    \"tools\": [\n      \"ruff-baseline\",\n      \"pypi-advisories\",\n      \"ruff-baseline@peppol_bridge\"\n    ],\n    \"languages\": [\n      \"node\",\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"package.json without a lockfile: dependencies resolved at provisioning time\",\n      \"Java/Kotlin (build.gradle) is not analyzed: no checks, probes or experiments for that code\",\n      \"Dart (pubspec.yaml) is not analyzed: no checks, probes or experiments for that code\",\n      \"python 3.11: where the CI runs the checks and the project's Dockerfile both use it\",\n      \"the CI's python-version: 3.11\",\n      \"the project's Dockerfile: 3.11, 3.12\",\n      \"conflict: concrete sources disagree: the CI's python-version 3.11; the project's Dockerfile 3.11, 3.12\",\n      \"image unbidden-deps-python:5d2548edaab0cc7c on linux/arm64\",\n      \"the environment is seeded with pip and setuptools as of 2026-10-30T13:18:09+01:00 (the lockfile's era), as virtualenvs on Python 3.11 were\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff-baseline\",\n        \"completeness\": \"complete\",\n        \"findings\": 61,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"pypi-advisories\",\n        \"completeness\": \"complete\",\n        \"findings\": 13,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"ruff-baseline@peppol_bridge\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"open\": 11\n  },\n  \"asks\": [\n    {\n      \"id\": \"ask_f56ea54ba227438f\",\n      \"kind\": \"spend\",\n      \"title\": \"The monthly cap (US$0.00) is reached. Raise it?\",\n      \"why\": \"US$0.00 was spent this month; remote calls are refused until the cap is raised or the month turns. Credits and the cap are different things: the cap is what this project may spend.\",\n      \"options\": [\n        {\n          \"key\": \"raise\",\n          \"label\": \"raise: a new monthly cap in US$\",\n          \"input\": \"text\"\n        },\n        {\n          \"key\": \"later\",\n          \"label\": \"later: local work continues\",\n          \"input\": \"none\"\n        }\n      ],\n      \"default\": \"later\",\n      \"status\": \"open\",\n      \"subject\": null,\n      \"cli\": \"unbidden setup budget --budget <USD>\",\n      \"created_at\": \"2026-11-03T17:30:03.774920+00:00\",\n      \"answer\": null,\n      \"outcome\": null\n    }\n  ],\n  \"blocks\": [],\n  \"idle\": false\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "start-again",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--interval",
+    "3600",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.4,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": false,\n  \"already\": {\n    \"pid\": 3820,\n    \"host\": \"MacBook-Pro-de-David.local\",\n    \"started_at\": \"2026-11-03T17:28:34.107363+00:00\",\n    \"command\": \"watch\",\n    \"version\": \"0.15.0\",\n    \"argv_hint\": \"cli.py watch --interval 3600.0\"\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 12.0,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 3820,\n  \"waited_s\": 11.8,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-after",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/repos/c13-timetracker\",\n  \"head\": \"7ae6440d1b0930196609c6cefe3cf13948513f5b\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-timetracker/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 7\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"7ae6440d1b0930196609c6cefe3cf13948513f5b\",\n    \"tools\": [\n      \"ruff-baseline\",\n      \"pypi-advisories\",\n      \"ruff-baseline@peppol_bridge\"\n    ],\n    \"languages\": [\n      \"node\",\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"package.json without a lockfile: dependencies resolved at provisioning time\",\n      \"Java/Kotlin (build.gradle) is not analyzed: no checks, probes or experiments for that code\",\n      \"Dart (pubspec.yaml) is not analyzed: no checks, probes or experiments for that code\",\n      \"python 3.11: where the CI runs the checks and the project's Dockerfile both use it\",\n      \"the CI's python-version: 3.11\",\n      \"the project's Dockerfile: 3.11, 3.12\",\n      \"conflict: concrete sources disagree: the CI's python-version 3.11; the project's Dockerfile 3.11, 3.12\",\n      \"image unbidden-deps-python:5d2548edaab0cc7c on linux/arm64\",\n      \"the environment is seeded with pip and setuptools as of 2026-10-30T13:18:09+01:00 (the lockfile's era), as virtualenvs on Python 3.11 were\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff-baseline\",\n        \"completeness\": \"complete\",\n        \"findings\": 61,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"pypi-advisories\",\n        \"completeness\": \"complete\",\n        \"findings\": 13,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"ruff-baseline@peppol_bridge\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"open\": 11\n  },\n  \"asks\": [\n    {\n      \"id\": \"ask_f56ea54ba227438f\",\n      \"kind\": \"spend\",\n      \"title\": \"The monthly cap (US$0.00) is reached. Raise it?\",\n      \"why\": \"US$0.00 was spent this month; remote calls are refused until the cap is raised or the month turns. Credits and the cap are different things: the cap is what this project may spend.\",\n      \"options\": [\n        {\n          \"key\": \"raise\",\n          \"label\": \"raise: a new monthly cap in US$\",\n          \"input\": \"text\"\n        },\n        {\n          \"key\": \"later\",\n          \"label\": \"later: local work continues\",\n          \"input\": \"none\"\n        }\n      ],\n      \"default\": \"later\",\n      \"status\": \"open\",\n      \"subject\": null,\n      \"cli\": \"unbidden setup budget --budget <USD>\",\n      \"created_at\": \"2026-11-03T17:30:03.774920+00:00\",\n      \"answer\": null,\n      \"outcome\": null\n    }\n  ],\n  \"blocks\": [],\n  \"idle\": false\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "ui",
+    "--json",
+    "--port",
+    "8800"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"url\": \"http://127.0.0.1:8800/?s=<token>\",\n  \"host\": \"127.0.0.1\",\n  \"port\": 8800,\n  \"pid\": 17206,\n  \"started_at\": \"2026-11-03T14:43:38-0300\",\n  \"in_daemon\": false,\n  \"reused\": false,\n  \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-timetracker/.unbidden/logs/ui.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "ui",
+    "--stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 17206\n}\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/DRYTRIX/TimeTracker",
+   "commit": "7ae6440d1b0930196609c6cefe3cf13948513f5b",
+   "family": "web-flask",
+   "class": "dev",
+   "build": "pip",
+   "license": "GPL-3.0"
+  },
+  "ledger_before": {
+   "envelope": "s13-dev",
+   "envelope_spent_usd": 0.0004,
+   "available_usd": 65.6614,
+   "permitted_usd": 97.2945
+  },
+  "clone": {
+   "path": "/Users/david/unbidden-lab/c13/repos/c13-timetracker",
+   "head": "7ae6440d1b0930196609c6cefe3cf13948513f5b",
+   "seconds": 3.7,
+   "fetch_code": 0
+  },
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required",
+   "scope": {
+    "scope: stack": [
+     true,
+     "Python 3.11 (requirements.txt, requirements.txt)"
+    ],
+    "scope: tests": [
+     true,
+     "ci.yml > test (the whole job)"
+    ],
+    "scope: database": [
+     true,
+     "services in compose: db, redis"
+    ],
+    "scope: node": [
+     false,
+     "analyzed for findings only; no full cycle in v1.0"
+    ]
+   }
+  },
+  "scan": {
+   "ok": true,
+   "timed_out": false,
+   "seconds": 72.3,
+   "languages": [
+    "node",
+    "python"
+   ],
+   "reports": [
+    {
+     "tool": "ruff-baseline",
+     "completeness": "complete",
+     "findings": 61,
+     "error": null
+    },
+    {
+     "tool": "pypi-advisories",
+     "completeness": "complete",
+     "findings": 13,
+     "error": null
+    },
+    {
+     "tool": "ruff-baseline@peppol_bridge",
+     "completeness": "complete",
+     "findings": 0,
+     "error": null
+    }
+   ],
+   "opened": 11,
+   "problems": [],
+   "blind_spots": [
+    "package.json without a lockfile: dependencies resolved at provisioning time",
+    "Java/Kotlin (build.gradle) is not analyzed: no checks, probes or experiments for that code",
+    "Dart (pubspec.yaml) is not analyzed: no checks, probes or experiments for that code",
+    "python 3.11: where the CI runs the checks and the project's Dockerfile both use it",
+    "the CI's python-version: 3.11",
+    "the project's Dockerfile: 3.11, 3.12",
+    "conflict: concrete sources disagree: the CI's python-version 3.11; the project's Dockerfile 3.11, 3.12",
+    "image unbidden-deps-python:5d2548edaab0cc7c on linux/arm64",
+    "the environment is seeded with pip and setuptools as of 2026-10-30T13:18:09+01:00 (the lockfile's era), as virtualenvs on Python 3.11 were"
+   ]
+  },
+  "inbox": {
+   "total": 11,
+   "by_source": {
+    "ruff-baseline": 10,
+    "pypi-advisories": 1
+   }
+  },
+  "checks": {
+   "status": "failed",
+   "collected": 560,
+   "why": "first attempt told nothing (exit 3: INTERNALERROR> Traceback (most recent call last):\nINTERNALERROR>   File \"/deps/.venv/lib/python3.11/site-packages/execnet/gateway_base.py\", line 1190, in _send\nINTERNALERROR>     message.to_io(self._io)\nINTERNALERROR>   File \"/deps/.venv/lib/python3.11/site-packages/execnet/gateway_base.py\",); retried with one xdist worker",
+   "scope": "the whole job",
+   "partial": false,
+   "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nflask db upgrade\ncd /work\npytest -n auto --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing tests/",
+   "rev": "7ae6440d1b0930196609c6cefe3cf13948513f5b",
+   "could_not_run": {
+    "tests": 0,
+    "lacks": []
+   },
+   "failed": 28,
+   "image_notes": [
+    "python 3.11: where the CI runs the checks and the project's Dockerfile both use it",
+    "the CI's python-version: 3.11",
+    "the project's Dockerfile: 3.11, 3.12",
+    "conflict: concrete sources disagree: the CI's python-version 3.11; the project's Dockerfile 3.11, 3.12",
+    "image unbidden-deps-python:5d2548edaab0cc7c on linux/arm64",
+    "the environment is seeded with pip and setuptools as of 2026-10-30T13:18:09+01:00 (the lockfile's era), as virtualenvs on Python 3.11 were"
+   ],
+   "python": "3.11",
+   "waited_s": 890.8,
+   "image_age": {
+    "tag": "unbidden-deps-python:5d2548edaab0cc7c",
+    "created": "2026-11-03T14:27:33.267371836-03:00",
+    "built_in_this_run": false
+   }
+  },
+  "lifecycle": {
+   "started": true,
+   "running_after_checks": true,
+   "second_start_refused": true,
+   "stopped": true,
+   "jobs_left_running": 0,
+   "stale_after": false,
+   "kill_file": false,
+   "status0_ok": true
+  },
+  "ui": {
+   "opened": true,
+   "session_ok": true,
+   "source_mode": "live",
+   "freshness": "current",
+   "counts": {
+    "opportunities": 11,
+    "experiments": 0,
+    "proposals": 0,
+    "events": 68,
+    "model_runs": 0,
+    "connections": 5,
+    "deployments": 0,
+    "needs": 0,
+    "blocks": 0,
+    "spend_calls": 0,
+    "world": 1
+   },
+   "agent": {
+    "running": false,
+    "detail": "agent not running: `unbidden start`"
+   },
+   "route": "frontier",
+   "key_present": true,
+   "opportunities_total": 11,
+   "events": 68,
+   "built_index": true,
+   "secret_in_summary": false,
+   "stopped": true
+  },
+  "ledger_after": {
+   "envelope": "s13-dev",
+   "envelope_spent_usd": 0.0004,
+   "available_usd": 65.6614,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c13-dev-A-A-timetracker",
+   "calls": 0,
+   "usd": 0.0,
+   "tokens_in": 0,
+   "tokens_out": 0
+  },
+  "spent_usd": 0.0,
+  "refused_by_cap": 0,
+  "events": {
+   "action.executed": 13,
+   "analyzer.ran": 6,
+   "ask.opened": 1,
+   "connection.changed": 5,
+   "decision.made": 12,
+   "job.finished": 8,
+   "job.started": 8,
+   "mandate.changed": 1,
+   "opportunity.opened": 11,
+   "repo.head_moved": 1,
+   "world.changed": 2
+  },
+  "archive": "/Users/david/unbidden-lab/c13/archive/timetracker-A-dev-A.tgz"
+ },
+ "human": [
+  {
+   "step": "clone at the pin",
+   "minutes": 0.1,
+   "why": "harness"
+  }
+ ],
+ "blocks": []
+}

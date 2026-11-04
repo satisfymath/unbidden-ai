@@ -255,16 +255,24 @@ def render(repo: Path, files: list[str], project: str, run: Run) -> dict[str, An
 
 
 def app_ports(config: dict[str, Any], ports: dict[str, int]) -> list[tuple[str, int]]:
-    """(service, host port) of the services that are not databases, in the compose file's order."""
+    """(service, host port) of the services that may be the application: not a database, not a tool beside it (a
+    mail catcher, a database console: misago's mailpit answered `/` before misago did); the services built from the
+    repository first, then the others in the compose file's order."""
     data = re.compile(r"(postgres|mysql|mariadb|redis|mongo|valkey|rabbitmq|memcached|minio|elasticsearch)", re.I)
-    found = []
+    tools = re.compile(
+        r"(mailpit|mailhog|maildev|mailcatcher|smtp4dev|adminer|pgadmin|phpmyadmin|redis-?commander"
+        r"|redisinsight|mongo-express|jaeger|zipkin|otel|grafana|prometheus|portainer|flower)",
+        re.I,
+    )
+    built, other = [], []
     for name, spec in (config.get("services") or {}).items():
-        if data.search(str(spec.get("image") or "")) and not spec.get("build"):
+        image = str(spec.get("image") or "")
+        if not spec.get("build") and (data.search(image) or tools.search(image) or tools.search(name)):
             continue
         for key, port in ports.items():
             if key.split(":")[0] == name:
-                found.append((name, port))
-    return found
+                (built if spec.get("build") else other).append((name, port))
+    return built + other
 
 
 def find_health(candidates: list[tuple[str, int]], get: Get, *, documented_only: bool = False) -> str | None:

@@ -1,0 +1,337 @@
+{
+ "repo": "conduit",
+ "phase": "dev-A",
+ "run": "A",
+ "candidate": "db5c79b182bafbe580bc6e1c6b48904fef2a1f21",
+ "wheel_sha256": "0761f2122ed4e6b53b6226e979808ffd5353bc690213e23c14986dda9fd6ed52",
+ "started_at": "2026-11-03T14:08:16-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "supervised",
+    "--budget",
+    "0",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 1.5,
+   "timed_out": false,
+   "stdout": "box.provision\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.provision_dependencies\"\n    },\n    {\n      \"what\": \"send synthetic or public content to remote models\",\n      \"capability\": \"model.remote.synthetic\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.delegate_synthetic\"\n    },\n    {\n      \"what\": \"use capabilities it built for itself\",\n      \"capability\": \"capability.use\",\n      \"decision\": \"require_approval\",\n      \"rule\": \"autonomy.use_new_capabilities\"\n    },\n    {\n      \"what\": \"open pull requests\",\n      \"capability\": \"github.open_pull_request\",\n      \"decision\": \"require_approval\",\n      \"rule\": \"autonomy.open_pull_requests\"\n    },\n    {\n      \"what\": \"merge pull requests\",\n      \"capability\": \"github.merge_pull_request\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": {\n    \"ok\": true,\n    \"rejected\": false,\n    \"model\": \"muse-spark-1.3\",\n    \"usd\": 0.000435,\n    \"why\": null\n  },\n  \"priorities\": [\n    \"correctness\",\n    \"maintainability\",\n    \"security\"\n  ],\n  \"github\": null,\n  \"found\": {\n    \"repository\": \"nsidnev/fastapi-realworld-example-app\",\n    \"branch\": \"HEAD\",\n    \"head\": \"029eb7781c60d5f563ee8990a0cbfb79b244538c\",\n    \"scope\": [\n      {\n        \"name\": \"scope: stack\",\n        \"in_scope\": true,\n        \"note\": \"Python 3.9 (poetry.lock, poetry.lock)\"\n      },\n      {\n        \"name\": \"scope: tests\",\n        \"in_scope\": true,\n        \"note\": \"tests.yml > lint (the whole job)\"\n      },\n      {\n        \"name\": \"scope: database\",\n        \"in_scope\": true,\n        \"note\": \"services in compose: db\"\n      }\n    ],\n    \"machine\": \"Apple M5 Pro, 64 GB, 54 GB for a model\",\n    \"ollama\": {\n      \"url\": \"http://localhost:11434\",\n      \"present\": true,\n      \"models\": [\n        \"llama3.1:8b\",\n        \"muse-glimmer:30b-mlx\",\n        \"muse-glimmer:30b-mxfp8-dflash\",\n        \"nomic-embed-text:latest\"\n      ]\n    },\n    \"local_model\": {\n      \"tag\": \"muse-glimmer:30b-mxfp8-dflash\",\n      \"installed\": true\n    },\n    \"key\": {\n      \"name\": \"MODEL_API_KEY\",\n      \"present\": true\n    },\n    \"github\": null,\n    \"github_check\": null,\n    \"compose\": \"docker-compose.yml\",\n    \"services\": [\n      {\n        \"name\": \"app\",\n        \"kind\": null\n      },\n      {\n        \"name\": \"db\",\n        \"kind\": \"postgres\"\n      }\n    ],\n    \"external\": [],\n    \"option\": \"mixed\",\n    \"option_why\": \"hay una clave y un modelo local\"\n  },\n  \"defaulted\": [\n    \"priorities\",\n    \"credentials\",\n    \"key\",\n    \"connections\",\n    \"private_code\",\n    \"language\"\n  ],\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c13/repos/c13-conduit/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c13/repos/c13-conduit/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 0.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -17,4 +17,5 @@\",\n    \"     rollback: deny\",\n    \"     use_new_capabilities: require_approval\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,8 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\",\n    \"+  operations: {}\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c13/repos/c13-conduit/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "ntent to remote models    allowed\n  use capabilities it built for itself                 asks first\n  open pull requests                                   asks first\n  merge pull requests                                  denied\n  deploy with the team's steps                         denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nPresupuesto\nLibro de la máquina: verified balance US$97.29 (stage 6 spend cap authorized by \nDavid on 2026-10-28: up to US$10 of free credits from this point (dev 3, \nevaluation 5, demo and contingency 2; the earlier US$3 reserve is included, not \nadded). Dashboard as reported by David 2026-10-28: Current balance US$0, free \ncredits in use US$144.98, a Visa card on file, content sent while on free \ncredits may be used to improve products. A cap, not a measured balance; no \nrecharge or card charge authorized (entered by david) | stage 9: US$30 \nadditional Meta API spend authorized by David on 2026-10-29, replacing the US$10\ncap; cumulative cap US$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval\n12, demo 6 (D-052). Dashboard as reported by David: free credits in use \nUS$137.96, balance US$0, a card on file. No recharge or card charge authorized \n(entered by david) | stage 10: the remaining US$20.30 of the US$37.29 cap split \nbefore any call (D-058), by David's stage 10 instruction of 2026-10-30 (entered \nby david) | stage 10 after the frozen evaluation: US$5 of the unspent s10-eval \nmoved to s10-dev for corrections and regressions, by David's instruction of \n2026-10-31; envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; spent at the transfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, \ns10-close 0) (entered by david) | product phase (A-E): s11-product US$4.00 \nauthorized by David on 2026-11-01, reassigned from s10-close (3.80, unspent, \nclosed) and US$0.20 of s10-dev; envelopes total US$20.30 and the cumulative cap \nUS$37.2945 unchanged; spent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval\n1.0010, s10-close 0) (entered by david) | product phase correction: David's \nauthorization of 2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken \nfrom s10-dev had no recorded authorization and goes back (s10-dev 13.00, \ns11-product 3.80); envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; s11-product spent 0 at the correction; spent at the correction \nUS$27.7199 (entered by david) | campaign 12 (installed-product validation): \nUS$60 additional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david) | envelopes s13-dev 15, \ns13-pass 15, s13-final 20, s13-confirm 5 authorized by David on 2026-11-03 \n('dale entonces empecemos con todo', campaign 13 to 1.0, within the cumulative \ncap US$97.2945, not amended); earlier envelopes unchanged; no transfers (entered\nby david)); permitido US$97.29 · gastado US$31.6331 · disponible US$65.6614\nsobres: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, s12-eval\n30.00, s12-dev 17.00, s12-confirm 5.00, s13-dev 15.00, s13-pass 15.00, s13-final\n20.00, s13-confirm 5.00\nLos créditos del proveedor y el gasto autorizado son cosas distintas: el tope \nque una persona ingresó con `unbidden spend --verified-balance` es lo que esta \nmáquina puede gastar; aquí nunca se sube ni se reinicia.\n\nPanel\nAbrir el panel, restaurar su disposición y mostrar registros no llama a ningún \nmodelo; chatear o pedir un análisis sí puede.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 1.2,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"4 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key proven: muse-spark-1.3 answered\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"no GITHUB_TOKEN: proposals stay local branches\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs require_approval\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"recon\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"incompleto: stack down; stack down, db unread\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.9 (poetry.lock, poetry.lock)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"tests.yml > lint (the whole job)\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"services in compose: db\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "scan",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "scan",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 3.6,
+   "timed_out": false,
+   "stdout": "{\n  \"rev\": \"029eb7781c60d5f563ee8990a0cbfb79b244538c\",\n  \"languages\": [\n    \"python\"\n  ],\n  \"blind_spots\": [],\n  \"problems\": [\n    \"dependency image for python failed to build:\\nerror: Failed to build `asyncpg==0.26.0`\\n  cause: The build backend returned an error\\n  cause: Call to `setuptools.build_meta.build_wheel` failed (exit status: 1)\\n\\n         [stdout]\\n         running bdist_wheel\\n         running build\\n         running build_py\\n         creating build/lib.linux-aarch64-cpython-39/asyncpg\\n         copying asyncpg/__init__.py -> build/lib.linux-aarch64-cpython-39/asyncpg\\n         copying asyncpg/_version.py -> build/lib.linux-aarch64-cpython-39/asyncpg\\n         copying asyncpg/cluster.py -> build/lib.linux-aarch64-cpython-39/asyncpg\\n         error: command 'gcc' failed: No such file or directory\\nERROR: process \\\"/bin/sh -c uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: fastapi-realworld-example-app\\\\\\\\nVersion: 0.0.0\\\\\\\\n' > \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_fastapi_realworld_example_app.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\\n1.781          error: command 'gcc' failed: No such file or directory\\n--------------------\\nERROR: failed to build: failed to solve: process \\\"/bin/sh -c uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: fastapi-realworld-example-app\\\\\\\\nVersion: 0.0.0\\\\\\\\n' > \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_fastapi_realworld_example_app.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\\nA package is built from source and needs a C compiler; system packages come from deb.debian.org, which the mandate's package registries do not list.\"\n  ],\n  \"reports\": [],\n  \"opened\": 0,\n  \"resolved\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "inbox",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "inbox",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.1,
+   "timed_out": false,
+   "stdout": "[]\n",
+   "stderr": ""
+  },
+  {
+   "name": "status0",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "fb79b244538c\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-conduit/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"029eb7781c60d5f563ee8990a0cbfb79b244538c\",\n    \"tools\": [],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [],\n    \"problems\": [\n      \"dependency image for python failed to build:\\nerror: Failed to build `asyncpg==0.26.0`\\n  cause: The build backend returned an error\\n  cause: Call to `setuptools.build_meta.build_wheel` failed (exit status: 1)\\n\\n         [stdout]\\n         running bdist_wheel\\n         running build\\n         running build_py\\n         creating build/lib.linux-aarch64-cpython-39/asyncpg\\n         copying asyncpg/__init__.py -> build/lib.linux-aarch64-cpython-39/asyncpg\\n         copying asyncpg/_version.py -> build/lib.linux-aarch64-cpython-39/asyncpg\\n         copying asyncpg/cluster.py -> build/lib.linux-aarch64-cpython-39/asyncpg\\n         error: command 'gcc' failed: No such file or directory\\nERROR: process \\\"/bin/sh -c uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: fastapi-realworld-example-app\\\\\\\\nVersion: 0.0.0\\\\\\\\n' > \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_fastapi_realworld_example_app.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\\n1.781          error: command 'gcc' failed: No such file or directory\\n--------------------\\nERROR: failed to build: failed to solve: process \\\"/bin/sh -c uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: fastapi-realworld-example-app\\\\\\\\nVersion: 0.0.0\\\\\\\\n' > \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_fastapi_realworld_example_app.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\\nA package is built from source and needs a C compiler; system packages come from deb.debian.org, which the mandate's package registries do not list.\"\n    ],\n    \"reports\": []\n  },\n  \"opportunities\": {},\n  \"asks\": [],\n  \"blocks\": [],\n  \"idle\": true\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--interval",
+    "3600",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 60823,\n  \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-conduit/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "ss \\\"/bin/sh -c uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: fastapi-realworld-example-app\\\\\\\\nVersion: 0.0.0\\\\\\\\n' > \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_fastapi_realworld_example_app.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\\n1.810          error: command 'gcc' failed: No such file or directory\\n--------------------\\nERROR: failed to build: failed to solve: process \\\"/bin/sh -c uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: fastapi-realworld-example-app\\\\\\\\nVersion: 0.0.0\\\\\\\\n' > \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_fastapi_realworld_example_app.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\\nA package is built from source and needs a C compiler; system packages come from deb.debian.org, which the mandate's package registries do not list.\"\n    ],\n    \"reports\": []\n  },\n  \"opportunities\": {},\n  \"asks\": [\n    {\n      \"id\": \"ask_8d252dedf8cd49ea\",\n      \"kind\": \"registry\",\n      \"title\": \"Allow the sandbox to reach deb.debian.org?\",\n      \"why\": \"observe.checks stopped: add deb.debian.org to egress.package_registries (system build tools: a compiler and the C headers a package builds against). The mandate lists where builds may fetch from.\",\n      \"options\": [\n        {\n          \"key\": \"allow\",\n          \"label\": \"allow: add deb.debian.org to egress.package_registries\",\n          \"input\": \"none\"\n        },\n        {\n          \"key\": \"later\",\n          \"label\": \"later: the work stays parked\",\n          \"input\": \"none\"\n        }\n      ],\n      \"default\": \"allow\",\n      \"status\": \"open\",\n      \"subject\": \"blk_7c4d64b7bf092444\",\n      \"cli\": \"edit .unbidden/mandate.yaml: egress.package_registries += ['deb.debian.org']\",\n      \"created_at\": \"2026-11-03T17:08:32.851625+00:00\",\n      \"answer\": null,\n      \"outcome\": null\n    }\n  ],\n  \"blocks\": [\n    {\n      \"id\": \"blk_7c4d64b7bf092444\",\n      \"kind\": \"pending_person\",\n      \"needs\": \"add deb.debian.org to egress.package_registries (system build tools: a compiler and the C headers a package builds against)\",\n      \"waiting\": [\n        \"observe.checks\"\n      ]\n    }\n  ],\n  \"idle\": false\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "start-again",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--interval",
+    "3600",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": false,\n  \"already\": {\n    \"pid\": 60823,\n    \"host\": \"MacBook-Pro-de-David.local\",\n    \"started_at\": \"2026-11-03T17:08:24.862739+00:00\",\n    \"command\": \"watch\",\n    \"version\": \"0.15.0\",\n    \"argv_hint\": \"cli.py watch --interval 3600.0\"\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 1.8,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 60823,\n  \"waited_s\": 1.7,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-after",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "ss \\\"/bin/sh -c uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: fastapi-realworld-example-app\\\\\\\\nVersion: 0.0.0\\\\\\\\n' > \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_fastapi_realworld_example_app.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\\n1.810          error: command 'gcc' failed: No such file or directory\\n--------------------\\nERROR: failed to build: failed to solve: process \\\"/bin/sh -c uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt && SP=$(/deps/.venv/bin/python -c \\\\\\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\\\\\") && mkdir -p \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\" && printf 'Metadata-Version: 2.1\\\\\\\\nName: fastapi-realworld-example-app\\\\\\\\nVersion: 0.0.0\\\\\\\\n' > \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\"/METADATA && echo unbidden > \\\\\\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\\\\\"/INSTALLER && printf '/work/src\\\\\\\\n/work\\\\\\\\n' > \\\\\\\"$SP/_unbidden_fastapi_realworld_example_app.pth\\\\\\\"  && (/deps/.venv/bin/python -c \\\\\\\"import pytest\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\\\\\"import hypothesis\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\" did not complete successfully: exit code: 1\\nA package is built from source and needs a C compiler; system packages come from deb.debian.org, which the mandate's package registries do not list.\"\n    ],\n    \"reports\": []\n  },\n  \"opportunities\": {},\n  \"asks\": [\n    {\n      \"id\": \"ask_8d252dedf8cd49ea\",\n      \"kind\": \"registry\",\n      \"title\": \"Allow the sandbox to reach deb.debian.org?\",\n      \"why\": \"observe.checks stopped: add deb.debian.org to egress.package_registries (system build tools: a compiler and the C headers a package builds against). The mandate lists where builds may fetch from.\",\n      \"options\": [\n        {\n          \"key\": \"allow\",\n          \"label\": \"allow: add deb.debian.org to egress.package_registries\",\n          \"input\": \"none\"\n        },\n        {\n          \"key\": \"later\",\n          \"label\": \"later: the work stays parked\",\n          \"input\": \"none\"\n        }\n      ],\n      \"default\": \"allow\",\n      \"status\": \"open\",\n      \"subject\": \"blk_7c4d64b7bf092444\",\n      \"cli\": \"edit .unbidden/mandate.yaml: egress.package_registries += ['deb.debian.org']\",\n      \"created_at\": \"2026-11-03T17:08:32.851625+00:00\",\n      \"answer\": null,\n      \"outcome\": null\n    }\n  ],\n  \"blocks\": [\n    {\n      \"id\": \"blk_7c4d64b7bf092444\",\n      \"kind\": \"pending_person\",\n      \"needs\": \"add deb.debian.org to egress.package_registries (system build tools: a compiler and the C headers a package builds against)\",\n      \"waiting\": [\n        \"observe.checks\"\n      ]\n    }\n  ],\n  \"idle\": false\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "ui",
+    "--json",
+    "--port",
+    "8800"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"url\": \"http://127.0.0.1:8800/?s=<token>\",\n  \"host\": \"127.0.0.1\",\n  \"port\": 8800,\n  \"pid\": 61477,\n  \"started_at\": \"2026-11-03T14:08:38-0300\",\n  \"in_daemon\": false,\n  \"reused\": false,\n  \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-conduit/.unbidden/logs/ui.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "ui",
+    "--stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 61477\n}\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/nsidnev/fastapi-realworld-example-app",
+   "commit": "029eb7781c60d5f563ee8990a0cbfb79b244538c",
+   "family": "api-postgres",
+   "class": "dev",
+   "build": "poetry",
+   "license": "MIT"
+  },
+  "ledger_before": {
+   "envelope": "s13-dev",
+   "envelope_spent_usd": 0.0004,
+   "available_usd": 65.6614,
+   "permitted_usd": 97.2945
+  },
+  "clone": {
+   "path": "/Users/david/unbidden-lab/c13/repos/c13-conduit",
+   "head": "029eb7781c60d5f563ee8990a0cbfb79b244538c",
+   "seconds": 1.2,
+   "fetch_code": 0
+  },
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required",
+   "scope": {
+    "scope: stack": [
+     true,
+     "Python 3.9 (poetry.lock, poetry.lock)"
+    ],
+    "scope: tests": [
+     true,
+     "tests.yml > lint (the whole job)"
+    ],
+    "scope: database": [
+     true,
+     "services in compose: db"
+    ]
+   }
+  },
+  "scan": {
+   "ok": true,
+   "timed_out": false,
+   "seconds": 3.6,
+   "languages": [
+    "python"
+   ],
+   "reports": [],
+   "opened": 0,
+   "problems": [
+    "dependency image for python failed to build:\nerror: Failed to build `asyncpg==0.26.0`\n  cause: The build backend returned an error\n  cause: Call to `setuptools.build_meta.build_wheel` failed (exit status: 1)\n\n         [stdout]\n         running bdist_wheel\n         running build\n         running build_py\n         creating build/lib.linux-aarch64-cpython-39/asyncpg\n         copying asyncpg/__init__.py -> build/lib.linux-aarch64-cpython-39/asyncpg\n         copying asyncpg/_version.py -> build/lib.linux-aarch64-cpython-39/asyncpg\n         copying asyncpg/cluster.py -> build/lib.linux-aarch64-cpython-39/asyncpg\n         error: command 'gcc' failed: No such file or directory\nERROR: process \"/bin/sh -c uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt && SP=$(/deps/.venv/bin/python -c \\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\") && mkdir -p \\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\" && printf 'Metadata-Version: 2.1\\\\nName: fastapi-realworld-example-app\\\\nVersion: 0.0.0\\\\n' > \\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\"/METADATA && echo unbidden > \\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\"/INSTALLER && printf '/work/src\\\\n/work\\\\n' > \\\"$SP/_unbidden_fastapi_realworld_example_app.pth\\\"  && (/deps/.venv/bin/python -c \\\"import pytest\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\"import hypothesis\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\" did not complete successfully: exit code: 1\n1.781          error: command 'gcc' failed: No such file or directory\n--------------------\nERROR: failed to build: failed to solve: process \"/bin/sh -c uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt && SP=$(/deps/.venv/bin/python -c \\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\") && mkdir -p \\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\" && printf 'Metadata-Version: 2.1\\\\nName: fastapi-realworld-example-app\\\\nVersion: 0.0.0\\\\n' > \\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\"/METADATA && echo unbidden > \\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\"/INSTALLER && printf '/work/src\\\\n/work\\\\n' > \\\"$SP/_unbidden_fastapi_realworld_example_app.pth\\\"  && (/deps/.venv/bin/python -c \\\"import pytest\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\"import hypothesis\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\" did not complete successfully: exit code: 1\nA package is built from source and needs a C compiler; system packages come from deb.debian.org, which the mandate's package registries do not list."
+   ],
+   "blind_spots": []
+  },
+  "inbox": {
+   "total": 0,
+   "by_source": {}
+  },
+  "checks": {
+   "status": "blocked",
+   "collected": null,
+   "why": "ProvisionError: hypothesis)\" did not complete successfully: exit code: 1\n1.785          error: command 'gcc' failed: No such file or directory\n--------------------\nERROR: failed to build: failed to solve: process \"/bin/sh -c uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python --exclude-newer 2022-08-21T02:23:41Z setuptools pip && uv pip install --python /deps/.venv/bin/python -r /deps/unbidden-requirements.txt && SP=$(/deps/.venv/bin/python -c \\\"import sysconfig; print(sysconfig.get_paths()['purelib'])\\\") && mkdir -p \\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\" && printf 'Metadata-Version: 2.1\\\\nName: fastapi-realworld-example-app\\\\nVersion: 0.0.0\\\\n' > \\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\"/METADATA && echo unbidden > \\\"$SP/fastapi_realworld_example_app-0.0.0.dist-info\\\"/INSTALLER && printf '/work/src\\\\n/work\\\\n' > \\\"$SP/_unbidden_fastapi_realworld_example_app.pth\\\"  && (/deps/.venv/bin/python -c \\\"import pytest\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\"import hypothesis\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\" did not complete successfully: exit code: 1\nA package is built from source and needs a C compiler; system packages come from deb.debian.org, which the mandate's package registries do not list.",
+   "scope": null,
+   "partial": null,
+   "command": null,
+   "rev": "029eb7781c60d5f563ee8990a0cbfb79b244538c",
+   "could_not_run": null,
+   "failed": null,
+   "image_notes": null,
+   "python": "3.9",
+   "waited_s": 10.0,
+   "image_age": null
+  },
+  "lifecycle": {
+   "started": true,
+   "running_after_checks": true,
+   "second_start_refused": true,
+   "stopped": true,
+   "jobs_left_running": 0,
+   "stale_after": false,
+   "kill_file": false,
+   "status0_ok": true
+  },
+  "ui": {
+   "opened": true,
+   "session_ok": true,
+   "source_mode": "live",
+   "freshness": "current",
+   "counts": {
+    "opportunities": 0,
+    "experiments": 0,
+    "proposals": 0,
+    "events": 27,
+    "model_runs": 0,
+    "connections": 1,
+    "deployments": 0,
+    "needs": 0,
+    "blocks": 1,
+    "spend_calls": 0,
+    "world": 1
+   },
+   "agent": {
+    "running": false,
+    "detail": "agent not running: `unbidden start`"
+   },
+   "route": "frontier",
+   "key_present": true,
+   "opportunities_total": 0,
+   "events": 27,
+   "built_index": true,
+   "secret_in_summary": false,
+   "stopped": true
+  },
+  "ledger_after": {
+   "envelope": "s13-dev",
+   "envelope_spent_usd": 0.0004,
+   "available_usd": 65.6614,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c13-dev-A-A-conduit",
+   "calls": 0,
+   "usd": 0.0,
+   "tokens_in": 0,
+   "tokens_out": 0
+  },
+  "spent_usd": 0.0,
+  "refused_by_cap": 0,
+  "events": {
+   "analyzer.ran": 2,
+   "ask.opened": 1,
+   "connection.changed": 1,
+   "decision.made": 1,
+   "job.finished": 9,
+   "job.started": 9,
+   "mandate.changed": 1,
+   "repo.head_moved": 1,
+   "world.changed": 2
+  },
+  "archive": "/Users/david/unbidden-lab/c13/archive/conduit-A-dev-A.tgz"
+ },
+ "human": [
+  {
+   "step": "clone at the pin",
+   "minutes": 0.0,
+   "why": "harness"
+  }
+ ],
+ "blocks": []
+}
