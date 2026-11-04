@@ -68,3 +68,10 @@ Dated lines, newest last. Each says what was seen, where (record or log), and wh
   (0.18.3); on marshmallow: mypy 3 findings, advisories 29, 6 opportunities where there were none, the probe runs.
   The partial records are kept (`final-0.18.1-aborted`, `final-0.18.2-stopped`, about US$0.23 of s13-final). The
   0.18.1 partial records were committed to main by mistake with 0.18.2 and are moved there.
+- 2026-11-04 · final pass on 0.18.3, stopped after 13 libraries · Every library opened nothing; the records showed
+  three more general causes, all in the security class: a requirement in `pyproject.toml` could not be bumped
+  (pyjwt), the candidate's packages were read from the CI job's image and an unread list declined silently
+  (marshmallow: advisories gone, suite 3/3 green, "no proven fix"), and `uv lock --upgrade-package` was given only the
+  manifests (sqlmodel: pdm needs the licence and the package). The robustness lab's reproduction had the 0.18.3 cause
+  too. Fixed in 0.18.4 with tests; conduit's own Dockerfile does not build (poetry 1.1), recorded. Records kept in
+  `final-0.18.3-stopped`.

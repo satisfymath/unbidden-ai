@@ -1,0 +1,705 @@
+{
+ "repo": "marshmallow",
+ "phase": "final",
+ "run": "B1",
+ "candidate": "f425758af073e5071fd02dd03456c52087f75c6a",
+ "wheel_sha256": "e1ffbbb9d4533449115866aa047301d01c200351de4b99dda1e6266b19bda925",
+ "started_at": "2026-11-04T13:29:53-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "autopilot",
+    "--budget",
+    "2",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--github-token-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 4.7,
+   "timed_out": false,
+   "stdout": ": \"open pull requests\",\n      \"capability\": \"github.open_pull_request\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.open_pull_requests\"\n    },\n    {\n      \"what\": \"merge pull requests\",\n      \"capability\": \"github.merge_pull_request\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": {\n    \"ok\": true,\n    \"rejected\": false,\n    \"model\": \"muse-spark-1.3\",\n    \"usd\": 0.000571,\n    \"why\": null\n  },\n  \"priorities\": [\n    \"correctness\",\n    \"maintainability\",\n    \"security\"\n  ],\n  \"github\": \"file\",\n  \"found\": {\n    \"repository\": \"satisfymath/c13-marshmallow\",\n    \"branch\": \"HEAD\",\n    \"head\": \"140f22879700941e02a9bc3bf998476e984edbe4\",\n    \"scope\": [\n      {\n        \"name\": \"scope: stack\",\n        \"in_scope\": true,\n        \"note\": \"Python 3.10 (pyproject.toml, uv.lock)\"\n      },\n      {\n        \"name\": \"scope: tests\",\n        \"in_scope\": true,\n        \"note\": \"build-release.yml > tests (matrix entry 1 of 4 (the job))\"\n      },\n      {\n        \"name\": \"scope: database\",\n        \"in_scope\": false,\n        \"note\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n      }\n    ],\n    \"machine\": \"Apple M5 Pro, 64 GB, 54 GB for a model\",\n    \"ollama\": {\n      \"url\": \"http://localhost:11434\",\n      \"present\": true,\n      \"models\": [\n        \"muse-glimmer:30b-mxfp8-dflash\",\n        \"nomic-embed-text:latest\"\n      ]\n    },\n    \"local_model\": {\n      \"tag\": \"muse-glimmer:30b-mxfp8-dflash\",\n      \"installed\": true\n    },\n    \"key\": {\n      \"name\": \"MODEL_API_KEY\",\n      \"present\": true\n    },\n    \"github\": \"file\",\n    \"github_check\": {\n      \"login\": \"satisfymath\",\n      \"can_push\": true,\n      \"detail\": \"can push to satisfymath/c13-marshmallow\"\n    },\n    \"compose\": null,\n    \"services\": [],\n    \"external\": [],\n    \"option\": \"mixed\",\n    \"option_why\": \"hay una clave y un modelo local\"\n  },\n  \"defaulted\": [\n    \"priorities\",\n    \"key\",\n    \"connections\",\n    \"private_code\",\n    \"language\"\n  ],\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c13/marshmallow/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c13/marshmallow/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 2.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -12,9 +12,10 @@\",\n    \"     provision_dependencies: allow\",\n    \"     delegate_synthetic: allow\",\n    \"-    open_pull_requests: require_approval\",\n    \"+    open_pull_requests: allow\",\n    \"     merge_pull_requests: deny\",\n    \"     deploy: deny\",\n    \"     rollback: deny\",\n    \"-    use_new_capabilities: require_approval\",\n    \"+    use_new_capabilities: allow\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,16 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\",\n    \"+  connections:\",\n    \"+  - id: github\",\n    \"+    kind: github\",\n    \"+    location: satisfymath/c13-marshmallow\",\n    \"+    credential_ref: GITHUB_TOKEN\",\n    \"+    environment: production\",\n    \"+    permissions:\",\n    \"+    - read\",\n    \"+  operations: {}\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c13/marshmallow/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "                    denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nCredenciales\nGuardadas en /Users/david/unbidden-lab/c13/home/.unbidden/.env (modo 600), \nreferidas por nombre; nunca escritas en el repositorio ni en registros.\nMODEL_API_KEY guardada.\nClave aceptada: muse-spark-1.3 respondió (US$0.0006).\nGITHUB_TOKEN guardada.\n\nPresupuesto\nLibro de la máquina: verified balance US$97.29 (stage 6 spend cap authorized by \nDavid on 2026-10-28: up to US$10 of free credits from this point (dev 3, \nevaluation 5, demo and contingency 2; the earlier US$3 reserve is included, not \nadded). Dashboard as reported by David 2026-10-28: Current balance US$0, free \ncredits in use US$144.98, a Visa card on file, content sent while on free \ncredits may be used to improve products. A cap, not a measured balance; no \nrecharge or card charge authorized (entered by david) | stage 9: US$30 \nadditional Meta API spend authorized by David on 2026-10-29, replacing the US$10\ncap; cumulative cap US$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval\n12, demo 6 (D-052). Dashboard as reported by David: free credits in use \nUS$137.96, balance US$0, a card on file. No recharge or card charge authorized \n(entered by david) | stage 10: the remaining US$20.30 of the US$37.29 cap split \nbefore any call (D-058), by David's stage 10 instruction of 2026-10-30 (entered \nby david) | stage 10 after the frozen evaluation: US$5 of the unspent s10-eval \nmoved to s10-dev for corrections and regressions, by David's instruction of \n2026-10-31; envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; spent at the transfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, \ns10-close 0) (entered by david) | product phase (A-E): s11-product US$4.00 \nauthorized by David on 2026-11-01, reassigned from s10-close (3.80, unspent, \nclosed) and US$0.20 of s10-dev; envelopes total US$20.30 and the cumulative cap \nUS$37.2945 unchanged; spent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval\n1.0010, s10-close 0) (entered by david) | product phase correction: David's \nauthorization of 2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken \nfrom s10-dev had no recorded authorization and goes back (s10-dev 13.00, \ns11-product 3.80); envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; s11-product spent 0 at the correction; spent at the correction \nUS$27.7199 (entered by david) | campaign 12 (installed-product validation): \nUS$60 additional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david) | envelopes s13-dev 15, \ns13-pass 15, s13-final 20, s13-confirm 5 authorized by David on 2026-11-03 \n('dale entonces empecemos con todo', campaign 13 to 1.0, within the cumulative \ncap US$97.2945, not amended); earlier envelopes unchanged; no transfers (entered\nby david)); permitido US$97.29 · gastado US$32.5294 · disponible US$64.7651\nsobres: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, s12-eval\n30.00, s12-dev 17.00, s12-confirm 5.00, s13-dev 15.00, s13-pass 15.00, s13-final\n20.00, s13-confirm 5.00\nLos créditos del proveedor y el gasto autorizado son cosas distintas: el tope \nque una persona ingresó con `unbidden spend --verified-balance` es lo que esta \nmáquina puede gastar; aquí nunca se sube ni se reinicia.\n\nPanel\nAbrir el panel, restaurar su disposición y mostrar registros no llama a ningún \nmodelo; chatear o pedir un análisis sí puede.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 1.9,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"2 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"act\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"found: the team's CI job prepares the environment when the mandate allows it\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key proven: muse-spark-1.3 answered\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"GITHUB_TOKEN set\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs allow\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"recon\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"completo (2026-11-04T16:30); stack absent\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.10 (pyproject.toml, uv.lock)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"build-release.yml > tests (matrix entry 1 of 4 (the job))\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "18820",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 43001,\n  \"log\": \"/Users/david/unbidden-lab/c13/marshmallow/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-browser",
+   "argv": [
+    "node",
+    "/Users/david/unbidden-ai-v1b/frontend/scripts/c13_ui_check.mjs",
+    "http://127.0.0.1:18820/?s=<token>",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/marshmallow/B1/ui-c1"
+   ],
+   "code": 0,
+   "seconds": 18.8,
+   "timed_out": false,
+   "stdout": "{\"ok\":true,\"steps\":5,\"console_errors\":2}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-status",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué ha hecho el agente hasta ahora y cuántas oportunidades hay?"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_508648e2ee764fc1\",\n  \"role\": \"assistant\",\n  \"content\": \"Registro de marshmallow (live, head 140f22879700): 8 oportunidades, 6 experimentos, 0 propuestas, 107 eventos, 2 llamadas a modelos, 0 bloqueos.\\nJobs: done 27\\nAgente: agent running, pid 43001.\\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.\",\n  \"created_at\": \"2026-11-04T16:37:22.386564Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"rule\",\n  \"model\": null,\n  \"route\": {\n    \"intent\": \"inform\",\n    \"purpose\": null,\n    \"tier\": null,\n    \"model\": null,\n    \"reason\": \"the mandate denies local inference; reading records needs no model: answered by rules\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-analyze",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué hallazgo priorizarías y por qué? Di qué falta en el registro."
+   ],
+   "code": 0,
+   "seconds": 10.8,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_31d7adc6e3b347b6\",\n  \"role\": \"assistant\",\n  \"content\": \"Con el digest solo no priorizo ningún hallazgo:\\n\\n- Los 4 destacados son level 1 y `declined`: `opp_f265be32e8bc4e98`, `opp_cdf89be0c38741db`, `opp_c4489a586dfe4331`, `opp_3bd485e7a29849cb`.\\n- Conteo: 8 oportunidades, 5 `declined` y 3 `open`; 6 experimentos; 0 propuestas.\\n\\nLo que falta en el registro y por eso no doy un porqué:\\nno contiene criterio de priorización, severidad, impacto, explotabilidad, ni ids/títulos de las 3 `open`.\\n\\nSi quieres decidir, revísalo tú en la tabla Oportunidades.\",\n  \"created_at\": \"2026-11-04T16:37:33.193005Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"brain\",\n  \"model\": \"muse-spark-1.3\",\n  \"route\": {\n    \"intent\": \"analyze\",\n    \"purpose\": \"chat.analyze\",\n    \"tier\": \"code\",\n    \"model\": \"muse-spark-1.3\",\n    \"reason\": \"profile frontier; public_code may leave; label public_code\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 1.8,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 43001,\n  \"waited_s\": 1.7,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "18820",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 82474,\n  \"log\": \"/Users/david/unbidden-lab/c13/marshmallow/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.6,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 82474,\n  \"waited_s\": 0.4,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-final",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/marshmallow\",\n  \"head\": \"140f22879700941e02a9bc3bf998476e984edbe4\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c13/marshmallow/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"140f22879700941e02a9bc3bf998476e984edbe4\",\n    \"tools\": [\n      \"ruff\",\n      \"mypy\",\n      \"pypi-advisories\"\n    ],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"environment prepared by the team's CI job build-release.yml:tests (name=3.10, tox=py310)\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff\",\n        \"completeness\": \"complete\",\n        \"findings\": 2,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"mypy\",\n        \"completeness\": \"complete\",\n        \"findings\": 3,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"pypi-advisories\",\n        \"completeness\": \"complete\",\n        \"findings\": 29,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"declined\": 5,\n    \"open\": 3\n  },\n  \"asks\": [],\n  \"blocks\": [],\n  \"idle\": true\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "egress",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "egress",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "    \"matched\": [],\n      \"payload_sha256\": \"0cda56bca9caa555faf73d11801e8a960ca5381d30032b0039de82b77d650b37\",\n      \"payload_bytes\": 3245\n    },\n    \"payload\": \"{\\\"messages\\\": [{\\\"content\\\": \\\"You are the analyst of Unbidden's dashboard. You receive a digest of Unbidden's own records\\\\n(counts, levels, statuses, titles, ids, medians) and a question. Answer in the language the question is written in,\\\\nbriefly, from the digest alone: cite the ids and numbers you rely on, say what the digest does not contain instead\\\\nof guessing, and never invent a metric, a finding or an improvement. You cannot act: do not promise to approve,\\\\ndeploy, merge, run or stop anything; name the command or button when the person should decide something.\\\", \\\"role\\\": \\\"system\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ade una tabla con las oportunidades\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ado una tabla con las oportunidades.\\\\na\\u00f1adido \\u00abOportunidades\\u00bb\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 ha hecho el agente hasta ahora y cu\\u00e1ntas oportunidades hay?\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"Registro de marshmallow (live, head 140f22879700): 8 oportunidades, 6 experimentos, 0 propuestas, 107 eventos, 2 llamadas a modelos, 0 bloqueos.\\\\nJobs: done 27\\\\nAgente: agent running, pid 43001.\\\\nPara un porqu\\u00e9 o una recomendaci\\u00f3n pide un an\\u00e1lisis; para ver algo, una tabla o un gr\\u00e1fico.\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"Records digest:\\\\nworkspace marshmallow (live record); head 140f22879700; observed 2026-11-04T16:37:23.122237+00:00; freshness current\\\\ncounts: {\\\\\\\"opportunities\\\\\\\":8,\\\\\\\"experiments\\\\\\\":6,\\\\\\\"proposals\\\\\\\":0,\\\\\\\"events\\\\\\\":107,\\\\\\\"model_runs\\\\\\\":2,\\\\\\\"connections\\\\\\\":1,\\\\\\\"deployments\\\\\\\":0,\\\\\\\"needs\\\\\\\":0,\\\\\\\"blocks\\\\\\\":0,\\\\\\\"spend_calls\\\\\\\":24,\\\\\\\"world\\\\\\\":1}\\\\njobs: {\\\\\\\"done\\\\\\\":27}\\\\ndiscovered: {\\\\\\\"total\\\\\\\":8,\\\\\\\"by_status\\\\\\\":{\\\\\\\"declined\\\\\\\":5,\\\\\\\"open\\\\\\\":3}}\\\\ninvalidated: []\\\\nproposals: {}\\\\nblocks: []\\\\nlearned: {\\\\\\\"pypi-advisories \\u00b7 security \\u00b7 -\\\\\\\":{\\\\\\\"successes\\\\\\\":0,\\\\\\\"failures\\\\\\\":6,\\\\\\\"p\\\\\\\":0.15,\\\\\\\"prior\\\\\\\":0.6}}\\\\nconnections: [{\\\\\\\"id\\\\\\\":\\\\\\\"github:satisfymath/c13-marshmallow\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"github\\\\\\\",\\\\\\\"environment\\\\\\\":\\\\\\\"production\\\\\\\",\\\\\\\"state\\\\\\\":\\\\\\\"connected\\\\\\\",\\\\\\\"read\\\\\\\":[\\\\\\\"repository\\\\\\\",\\\\\\\"check runs\\\\\\\",\\\\\\\"pull requests\\\\\\\"],\\\\\\\"write\\\\\\\":[\\\\\\\"push branch\\\\\\\",\\\\\\\"pull request\\\\\\\"],\\\\\\\"requested\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"effective\\\\\\\":[\\\\\\\"read\\\\\\\",\\\\\\\"write\\\\\\\"],\\\\\\\"blocked\\\\\\\":null,\\\\\\\"next_step\\\\\\\":null,\\\\\\\"found_by\\\\\\\":[\\\\\\\"mandate grant\\\\\\\"],\\\\\\\"checked_at\\\\\\\":\\\\\\\"2026-11-04T16:30:52.587725+00:00\\\\\\\"}]\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_f265be32e8bc4e98\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"certifi 2026.7.22: 2 known vulnerabilities, fixed in 2026.10.18\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"declined\\\\\\\",\\\\\\\"has_experiment\\\\\\\":true}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_cdf89be0c38741db\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"uv 0.12.18: 2 known vulnerabilities, fixed in 0.13.4\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"declined\\\\\\\",\\\\\\\"has_experiment\\\\\\\":true}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_c4489a586dfe4331\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"virtualenv 21.11.1: 11 known vulnerabilities, fixed in 21.14.9\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"declined\\\\\\\",\\\\\\\"has_experiment\\\\\\\":true}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_3bd485e7a29849cb\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"1 ruff ICN001 finding in /Users/david/.unbidden/ci-env/3e56cc6f0a8a266a/ws/examples/\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"declined\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 hallazgo priorizar\\u00edas y por qu\\u00e9? Di qu\\u00e9 falta en el registro.\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}], \\\"response_schema\\\": null, \\\"tools\\\": []}\",\n    \"created_at\": \"2026-11-04T16:37:23.130090Z\",\n    \"origin\": \"dashboard apart\"\n  }\n]\n",
+   "stderr": ""
+  },
+  {
+   "name": "export",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "export",
+    "--out",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/marshmallow/export"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "Evidence of marshmallow written to \n/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/marshmallow/export\n  events.jsonl                     118 lines  45b6f9765ad9\n  audit.jsonl                        5 lines  3a9f511a8a3b\n  opportunities.jsonl                8 lines  42fe08302bf5\n  hypotheses.jsonl                   0 lines  e3b0c44298fc\n  experiment_specs.jsonl             0 lines  e3b0c44298fc\n  experiments.jsonl                  6 lines  841d105b6003\n  proposals.jsonl                    0 lines  e3b0c44298fc\n  decisions.jsonl                   17 lines  e7fd8612eef8\n  deploy_verdicts.jsonl              0 lines  e3b0c44298fc\n  deployments.jsonl                  0 lines  e3b0c44298fc\n  holds.jsonl                        0 lines  e3b0c44298fc\n  approvals.jsonl                    0 lines  e3b0c44298fc\n  acceptances.jsonl                  0 lines  e3b0c44298fc\n  actions.jsonl                      0 lines  e3b0c44298fc\n  goal_runs.jsonl                    0 lines  e3b0c44298fc\n  model_runs.jsonl                   2 lines  03c03308067c\n  transcripts.jsonl                  2 lines  a9ecc18dcfe5\n  egress.jsonl                       2 lines  61e08d202925\n  needs.jsonl                        0 lines  e3b0c44298fc\n  asks.jsonl                         0 lines  e3b0c44298fc\n  blocks.jsonl                       0 lines  e3b0c44298fc\n  deploy_ledger.jsonl                0 lines  e3b0c44298fc\n  spend.jsonl                        3 lines  47052a46a298\n  mandate.json                      96 lines  9bad886d7ddf\nevery file was scanned for secrets; manifest.json holds the sha256 of each\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/marshmallow-code/marshmallow",
+   "commit": "b762ea2d59ca52fe5df76b90de14bed7e5ec5607",
+   "family": "library",
+   "class": "dev",
+   "build": "tox",
+   "lab": null,
+   "copy_base_sha": "140f22879700941e02a9bc3bf998476e984edbe4"
+  },
+  "ledger_before": {
+   "envelope": "s13-final",
+   "envelope_spent_usd": 0.5604,
+   "available_usd": 64.7651,
+   "permitted_usd": 97.2945
+  },
+  "fork": {
+   "slug": "satisfymath/c13-marshmallow",
+   "base": "dev",
+   "upstream": "marshmallow-code/marshmallow",
+   "kind": "copy",
+   "created": false,
+   "prep": {
+    "applied": false,
+    "why": "nothing to change (already prepared, or nothing publishes)",
+    "plan": [
+     {
+      "file": "build-release.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "tests",
+       "build",
+       "lint-pre-release"
+      ],
+      "why": "the team's checks"
+     }
+    ],
+    "kept": [
+     "build-release.yml"
+    ]
+   },
+   "pin": "b762ea2d59ca52fe5df76b90de14bed7e5ec5607",
+   "restore": {
+    "expected": "140f22879700941e02a9bc3bf998476e984edbe4",
+    "head_before": "140f22879700941e02a9bc3bf998476e984edbe4",
+    "pin_in_history": true,
+    "closed": [],
+    "deleted": [],
+    "base_sha": "140f22879700941e02a9bc3bf998476e984edbe4"
+   },
+   "base_sha": "140f22879700941e02a9bc3bf998476e984edbe4",
+   "pin_in_history": true,
+   "dependabot_prs_closed": [],
+   "workflows_registered": [
+    "build-release.yml"
+   ],
+   "disabled_in_settings": [],
+   "kept": [
+    "build-release.yml"
+   ]
+  },
+  "fork_before": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "140f22879700941e02a9bc3bf998476e984edbe4"
+  },
+  "deploy_target": "none",
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required"
+  },
+  "mode": {
+   "asked": "custom",
+   "got": "custom",
+   "why": "nothing to deploy: not an application"
+  },
+  "autonomy": {
+   "mode": "custom",
+   "why": "nothing to deploy: not an application",
+   "fields": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "delegate_synthetic": "allow",
+    "open_pull_requests": "allow",
+    "merge_pull_requests": "allow",
+    "deploy": "deny",
+    "rollback": "deny",
+    "use_new_capabilities": "allow",
+    "act_on_connections": "deny"
+   }
+  },
+  "mode_got": "custom",
+  "cycle1": {
+   "started": true,
+   "waited_s": 386.5,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 43001,
+    "started_at": "2026-11-04T16:30:36.137150+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/marshmallow/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "agent.note": 9,
+     "analyzer.ran": 3,
+     "connection.changed": 1,
+     "decision.made": 18,
+     "egress.allowed": 2,
+     "job.finished": 27,
+     "job.started": 27,
+     "mandate.changed": 1,
+     "model.called": 2,
+     "opportunity.opened": 8,
+     "repo.head_moved": 1,
+     "verdict.recorded": 6,
+     "world.changed": 2
+    },
+    "docs": {
+     "connections": 1,
+     "decisions": 17,
+     "egress": 2,
+     "experiments": 6,
+     "model_runs": 2,
+     "opportunities": 8,
+     "transcripts": 2,
+     "world": 1
+    },
+    "jobs": {
+     "done": 27
+    },
+    "experiments": 6,
+    "opportunities": [
+     {
+      "id": "opp_3bd485e7a29849cb",
+      "source": "ruff",
+      "category": "lint",
+      "evidence_level": 1,
+      "status": "declined"
+     },
+     {
+      "id": "opp_e3c8672324ce4211",
+      "source": "ruff",
+      "category": "lint",
+      "evidence_level": 1,
+      "status": "declined"
+     },
+     {
+      "id": "opp_f265be32e8bc4e98",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "declined"
+     },
+     {
+      "id": "opp_cdf89be0c38741db",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "declined"
+     },
+     {
+      "id": "opp_c4489a586dfe4331",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "declined"
+     },
+     {
+      "id": "opp_ba224b38ef604d9e",
+      "source": "mypy",
+      "category": "types",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_0d76663d7b1c4e1a",
+      "source": "mypy",
+      "category": "types",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_e42aaa50035a4b98",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     }
+    ],
+    "level_max": 1,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": []
+   }
+  },
+  "ui1": {
+   "opened": true,
+   "in_daemon": true,
+   "summary": {
+    "mode": "live",
+    "freshness": "current",
+    "counts": {
+     "opportunities": 8,
+     "experiments": 6,
+     "proposals": 0,
+     "events": 107,
+     "model_runs": 2,
+     "connections": 1,
+     "deployments": 0,
+     "needs": 0,
+     "blocks": 0,
+     "spend_calls": 24,
+     "world": 1
+    },
+    "agent": {
+     "running": true,
+     "pid": 43001,
+     "started_at": "2026-11-04T16:30:36.137150+00:00",
+     "command": "watch",
+     "detail": "agent running, pid 43001"
+    },
+    "key_present": true
+   },
+   "opportunities_total": 8,
+   "widgets": [
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:marshmallow"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:marshmallow"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:marshmallow"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:marshmallow"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:marshmallow"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:marshmallow"
+    }
+   ],
+   "browser": {
+    "ok": true,
+    "steps": 5,
+    "console_errors": 2
+   },
+   "chat_status": {
+    "planner": "rule",
+    "route": {
+     "intent": "inform",
+     "purpose": null,
+     "tier": null,
+     "model": null,
+     "reason": "the mandate denies local inference; reading records needs no model: answered by rules",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Registro de marshmallow (live, head 140f22879700): 8 oportunidades, 6 experimentos, 0 propuestas, 107 eventos, 2 llamadas a modelos, 0 bloqueos.\nJobs: done 27\nAgente: agent running, pid 43001.\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico."
+   },
+   "chat_analyze": {
+    "planner": "brain",
+    "route": {
+     "intent": "analyze",
+     "purpose": "chat.analyze",
+     "tier": "code",
+     "model": "muse-spark-1.3",
+     "reason": "profile frontier; public_code may leave; label public_code",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Con el digest solo no priorizo ningún hallazgo:\n\n- Los 4 destacados son level 1 y `declined`: `opp_f265be32e8bc4e98`, `opp_cdf89be0c38741db`, `opp_c4489a586dfe4331`, `opp_3bd485e7a29849cb`.\n- Conteo: 8 oportunidades, 5 `declined` y 3 `open`; 6 experimentos; 0 propuestas.\n\nLo que falta en el registro y por eso no doy un porqué:\nno contiene criterio de priorización, severidad, impacto, explotabilida"
+   }
+  },
+  "fork_after_c1": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "140f22879700941e02a9bc3bf998476e984edbe4"
+  },
+  "cycle2": {
+   "started": true,
+   "waited_s": 42.5,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 82474,
+    "started_at": "2026-11-04T16:37:37.727078+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/marshmallow/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "agent.note": 9,
+     "analyzer.ran": 3,
+     "connection.changed": 1,
+     "decision.made": 18,
+     "egress.allowed": 2,
+     "job.finished": 32,
+     "job.started": 32,
+     "mandate.changed": 1,
+     "model.called": 2,
+     "opportunity.opened": 8,
+     "repo.head_moved": 1,
+     "verdict.recorded": 6,
+     "world.changed": 3
+    },
+    "docs": {
+     "connections": 1,
+     "decisions": 17,
+     "egress": 2,
+     "experiments": 6,
+     "model_runs": 2,
+     "opportunities": 8,
+     "transcripts": 2,
+     "world": 1
+    },
+    "jobs": {
+     "done": 32
+    },
+    "experiments": 6,
+    "opportunities": [
+     {
+      "id": "opp_3bd485e7a29849cb",
+      "source": "ruff",
+      "category": "lint",
+      "evidence_level": 1,
+      "status": "declined"
+     },
+     {
+      "id": "opp_e3c8672324ce4211",
+      "source": "ruff",
+      "category": "lint",
+      "evidence_level": 1,
+      "status": "declined"
+     },
+     {
+      "id": "opp_f265be32e8bc4e98",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "declined"
+     },
+     {
+      "id": "opp_cdf89be0c38741db",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "declined"
+     },
+     {
+      "id": "opp_c4489a586dfe4331",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "declined"
+     },
+     {
+      "id": "opp_ba224b38ef604d9e",
+      "source": "mypy",
+      "category": "types",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_0d76663d7b1c4e1a",
+      "source": "mypy",
+      "category": "types",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_e42aaa50035a4b98",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 1,
+      "status": "open"
+     }
+    ],
+    "level_max": 1,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": []
+   }
+  },
+  "asks_answered": [],
+  "fork_after_c2": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "140f22879700941e02a9bc3bf998476e984edbe4"
+  },
+  "status_final": {
+   "running": false,
+   "pid": null,
+   "started_at": null,
+   "command": null,
+   "log": "/Users/david/unbidden-lab/c13/marshmallow/.unbidden/logs/agent.log",
+   "stale": false,
+   "jobs_running": 0,
+   "jobs_queued": 0
+  },
+  "egress": {
+   "api.meta.ai:chat.analyze:allowed_sent": 5,
+   "api.meta.ai:world.endpoint_tables:allowed_sent": 1,
+   "api.meta.ai:research.robustness:allowed_sent": 1
+  },
+  "checks": {
+   "status": "passed",
+   "collected": 1192,
+   "why": null,
+   "scope": "matrix entry 1 of 4 (the job)",
+   "partial": true,
+   "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\n(pytest)",
+   "rev": "140f22879700941e02a9bc3bf998476e984edbe4",
+   "could_not_run": {
+    "tests": 0,
+    "lacks": [],
+    "by_test": []
+   },
+   "failed": 0,
+   "image_notes": [
+    "environment prepared by the team's CI job build-release.yml:tests (name=3.10, tox=py310)"
+   ],
+   "python": "3.10"
+  },
+  "ledger_after": {
+   "envelope": "s13-final",
+   "envelope_spent_usd": 0.9497,
+   "available_usd": 64.3757,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c13-final-B1-marshmallow",
+   "calls": 8,
+   "usd": 0.0742,
+   "tokens_in": 9699,
+   "tokens_out": 14617
+  },
+  "spent_usd": 0.0742,
+  "export": {
+   "available": true,
+   "ok": true,
+   "code": 0,
+   "dir": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/marshmallow/export",
+   "files": 25,
+   "answer": null
+  },
+  "archive": "/Users/david/unbidden-lab/c13/archive/marshmallow-B1-final.tgz",
+  "archive_kept": {
+   "name": "marshmallow-B1-final.tgz",
+   "bytes": 46718,
+   "sha256": "b998a1494e127aed03a2006a2fd3d74668f235e89c2a25778f3c06eb15a4d18e",
+   "kept": true,
+   "where": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/marshmallow/export/marshmallow-B1-final.tgz"
+  }
+ },
+ "human": [
+  {
+   "step": "mandate: fork, registries, operations, connections",
+   "minutes": 2,
+   "why": "a person's declaration"
+  },
+  {
+   "step": "mandate autonomy: merge on green CI, no deploy",
+   "minutes": 1,
+   "why": "nothing to deploy: not an application"
+  }
+ ],
+ "blocks": []
+}

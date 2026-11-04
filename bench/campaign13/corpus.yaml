@@ -15,8 +15,8 @@ confirm_candidate: 726009d5225adf38d80cfb21b269d21d497754c2  # phase 7 (2026-11-
 confirm_wheel_sha256: 5c088f3ee878afd58bf7cbfdad5fac56081677883e806c88fb0b0b14752cd0c6
 rehearsal_candidate: 357fb64cb2d07cbf9a9f878efe28736e46d7aff0  # 0.18.0 rehearsal (2026-11-04): rich, fst, codex-lb, two workers
 rehearsal_wheel_sha256: e7d9e6b54ad3615b682eab6944af0aa5a5443461e4be80995e31576b21339525
-final_candidate: f425758af073e5071fd02dd03456c52087f75c6a  # 0.18.3 (2026-11-04): the final pass, released wheel v0.18.3 (0.18.1 aborted, 0.18.2 stopped: FINDINGS)
-final_wheel_sha256: e1ffbbb9d4533449115866aa047301d01c200351de4b99dda1e6266b19bda925
+final_candidate: 92612d49c7bd5b8b25f29d4ec0d85d3d81bdcddb  # 0.18.4 (2026-11-04): the final pass, released wheel v0.18.4 (0.18.1-0.18.3 starts stopped: FINDINGS)
+final_wheel_sha256: a6e238b4f88bfe57d6d8b2bfdd047e6638be4c116f3ea0b7d2e90856e982f60f
 repos:
 - name: fst
   url: https://github.com/fastapi/full-stack-fastapi-template

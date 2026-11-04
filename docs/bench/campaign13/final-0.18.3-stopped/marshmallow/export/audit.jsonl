@@ -1,0 +1,5 @@
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 1, "summary": "GITHUB_TOKEN for connection:github: given", "ts": "2026-11-04T16:30:51.972027+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 2, "summary": "MODEL_API_KEY for model.remote: given", "ts": "2026-11-04T16:31:08.334301+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 3, "summary": "GITHUB_TOKEN for github: given", "ts": "2026-11-04T16:31:20.287946+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 4, "summary": "MODEL_API_KEY for model.remote: given", "ts": "2026-11-04T16:31:25.379047+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 5, "summary": "GITHUB_TOKEN for connection:github: given", "ts": "2026-11-04T16:37:30.702200+00:00"}
