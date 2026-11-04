@@ -159,12 +159,18 @@ jobs:
       postgres:
         image: postgres:16-alpine
         ports: ["5432:5432"]
+        options: --name=pg --health-cmd pg_isready
     steps:
       - run: pytest -q
 """
     repo, rev = _repo(tmp_path, {".github/workflows/ci.yml": workflow})
     text, _, _ = filtered_job(repo, rev, "ci.yml", "quick-tests")
-    assert yaml.safe_load(text)["jobs"]["quick-tests"]["services"]["postgres"]["ports"] == ["5432"]
+    job = yaml.safe_load(text)["jobs"]["quick-tests"]
+    # localhost reaches the service, as on GitHub's runner
+    assert job["steps"][0]["name"] == "unbidden: the job's services on localhost"
+    assert "TCP-LISTEN:5432" in job["steps"][0]["run"] and "TCP:postgres:5432" in job["steps"][0]["run"]
+    service = job["services"]["postgres"]
+    assert service["ports"] == ["5432"] and service["options"] == "--health-cmd pg_isready"
 
 
 def test_installing_a_publishing_tool_is_not_publishing() -> None:

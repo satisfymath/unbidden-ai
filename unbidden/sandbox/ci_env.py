@@ -34,7 +34,7 @@ from unbidden.sandbox.provision import DependencyImage
 from unbidden.sandbox.runner import snapshot, with_git
 
 RUNNER_BASE = "catthehacker/ubuntu:act-22.04"
-RUNNER_IMAGE = "unbidden-runner:22.04-2"
+RUNNER_IMAGE = "unbidden-runner:22.04-3"
 # What GitHub's hosted runner has and the act image lacks: the apt index, apt answering yes, en_US.UTF-8 (harlequin),
 # git trusting any checkout (the workspace is mounted from the host, owned by another uid).
 RUNNER_DOCKERFILE = (
@@ -43,14 +43,39 @@ RUNNER_DOCKERFILE = (
     " && apt-get update \\\n"
     " && (apt-get install -y --no-install-recommends locales >/dev/null || true) \\\n"
     " && sed -i 's/^# *en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen && locale-gen en_US.UTF-8 \\\n"
-    " && git config --system --add safe.directory '*'\n"
+    " && git config --system --add safe.directory '*' \\\n"
+    # GitHub's runner has the database clients (archery: `mysql -h127.0.0.1 -e "CREATE DATABASE ..."`); socat
+    # gives localhost the job's services, as the runner's mapped ports do (`localhost_forwards`).
+    " && (apt-get install -y --no-install-recommends socat default-mysql-client postgresql-client redis-tools "
+    ">/dev/null || true)\n"
 )
+
+
+def localhost_forwards(pairs: list[tuple[str, str]]) -> str:
+    """A shell line that makes each service's port answer on localhost, as on GitHub's runner, where a job reaches
+    its service containers at 127.0.0.1 on their mapped ports (archery's settings: `mysql://root:@127.0.0.1:3306`).
+    Here services are containers reached by name, so socat forwards; ports below 1024 are left (no privilege)."""
+    lines = [f"(setsid nohup socat TCP-LISTEN:{port},fork,reuseaddr,bind=127.0.0.1 TCP:{host}:{port} >/dev/null 2>&1 &)"
+             for host, port in pairs if port.isdigit() and int(port) >= 1024]  # fmt: skip
+    return ("if command -v socat >/dev/null; then " + "; ".join(lines) + "; sleep 1; fi") if lines else ""
+
+
+def service_ports(services: Any) -> list[tuple[str, str]]:
+    """(service, container port) of a job's `services:` mapping."""
+    pairs: list[tuple[str, str]] = []
+    for name, service in (services or {}).items():
+        if isinstance(service, dict):
+            for port in service.get("ports") or []:
+                pairs.append((str(name), str(port).split(":")[-1].split("/")[0]))
+    return pairs
+
+
 TOOLCACHE = "act-toolcache"  # act keeps setup-python/uv/node downloads in this shared volume, outside the commit
 PREPARED = "/opt/unbidden-prepared"  # the job's workspace as it left it, inside the committed image
 ENV_FILE = "/opt/unbidden-job.env"
 WORKFLOW = ".unbidden-ci/job.yml"
 JOB_TIMEOUT_S = 3600.0
-RECORD_VERSION = "ci-env-10"  # part of the cache key: a record from an older layout is prepared again
+RECORD_VERSION = "ci-env-11"  # part of the cache key: a record from an older layout is prepared again
 Progress = Callable[[str], None]
 
 # A step that would reach outside the copy: coverage and test reports uploaded, releases, deploys, pushes,
@@ -198,6 +223,9 @@ def filtered_job(repo: Path, rev: str, workflow: str, job: str) -> tuple[str, di
         "run": f"env -0 > {ENV_FILE}; mkdir -p {PREPARED} {SCRIPTS}; cp -a . {PREPARED}/; "
                f"cp -a /var/run/act/workflow/. {SCRIPTS}/ 2>/dev/null || true",
     })  # fmt: skip
+    forwards = localhost_forwards(service_ports(definition.get("services")))
+    if forwards:
+        steps.insert(0, {"name": "unbidden: the job's services on localhost", "run": forwards})
     definition["steps"] = steps
     definition["runs-on"] = "ubuntu-latest"
     for service in (definition.get("services") or {}).values():
@@ -205,6 +233,10 @@ def filtered_job(repo: Path, rev: str, workflow: str, job: str) -> tuple[str, di
         # the service never started); the container port stays, the host port is Docker's choice.
         if isinstance(service, dict) and isinstance(service.get("ports"), list):
             service["ports"] = [str(p).split(":")[-1] for p in service["ports"]]
+        if isinstance(service, dict) and isinstance(service.get("options"), str):
+            # A fixed container name (archery: `--name=mysql`, for a `docker cp` step left out above): act names its
+            # service containers itself and refuses the flag; the service is still reached by its key.
+            service["options"] = re.sub(r"--name(?:=|\s+)\S+\s*", "", service["options"]).strip()
     for key in ("needs", "if", "environment", "concurrency", "permissions"):
         definition.pop(key, None)
     out: dict[str, Any] = {"name": "unbidden-ci", "on": "push", "jobs": {job: definition}}

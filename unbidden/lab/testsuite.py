@@ -419,8 +419,14 @@ def run_suite(
         # its environments clean, so it is told to pass pytest's report option through.
         from dataclasses import replace
 
+        from unbidden.sandbox.ci_env import localhost_forwards
+
         env = {**dict(plan.env), "TOX_OVERRIDE": "testenv.pass_env+=PYTEST_ADDOPTS"}
-        plan = replace(plan, argv=("bash", "-c", f"set -e\n{command}"), pytest=True, env=env,
+        # The job's services answer on localhost, as in its CI (they run as sidecars, reached by name).
+        forwards = localhost_forwards([(s.name, str(p).split(":")[-1].split("/")[0]) for s in plan.services
+                                       for p in s.ports])  # fmt: skip
+        script = f"{forwards}\n{command}" if forwards else command
+        plan = replace(plan, argv=("bash", "-c", f"set -e\n{script}"), pytest=True, env=env,
                        source=f"the team's CI job, verbatim: {command[:200]}")  # fmt: skip
 
     with_git(work, "the measured revision", exclude=list(getattr(image, "links", None) or {}))
