@@ -15,7 +15,7 @@ curl -fsSL https://unbidden.cl/install.sh | sh
 ```
 
 The script is the repository's `install.sh`, served from [unbidden.cl](https://unbidden.cl) (Cloudflare Pages, published
-from `main` by the `Site` workflow); the same file is attached to every GitHub release
+with the landing from `satisfymath/unbidden-landing`, which takes this file from `main` within 6 hours); the same file is attached to every GitHub release
 (`https://github.com/satisfymath/unbidden-ai/releases/latest/download/install.sh`) and shipped inside the wheel. Without a
 published release it stops with "no published release found": the [local-artifact procedure](#installing-from-local-artifacts-today)
 below installs an unreleased build and is how the installer is tested.
