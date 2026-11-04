@@ -5,12 +5,12 @@ import type { DataResult, WidgetSpec } from "@/contracts";
 import { useDataRef } from "./useData";
 import { DataFrame, Empty, Loading, fmtNum } from "./common";
 
-const PALETTE = ["#3fd8c7", "#6cb0ff", "#f3b846", "#a78bfa", "#3fd38f", "#f06a6a", "#ff9f6e"];
+const PALETTE = ["#f3f1ec", "#77756f", "#d9b779", "#bdb6c9", "#a9c9a4", "#e0776f", "#c9a98f"];
 const MAX_POINTS = 1500;
-const SERIES_COLORS: Record<string, string> = { before: "#6cb0ff", after: "#3fd8c7", base: "#6cb0ff", candidate: "#3fd8c7", antes: "#6cb0ff", después: "#3fd8c7" };
+const SERIES_COLORS: Record<string, string> = { before: "#77756f", after: "#f3f1ec", base: "#77756f", candidate: "#f3f1ec", antes: "#77756f", después: "#f3f1ec" };
 
 function colorFor(name: string, i: number): string {
-  return SERIES_COLORS[name] ?? PALETTE[i % PALETTE.length] ?? "#3fd8c7";
+  return SERIES_COLORS[name] ?? PALETTE[i % PALETTE.length] ?? "#f3f1ec";
 }
 
 function labelFor(name: string): string {
@@ -52,8 +52,8 @@ function pivot(result: DataResult, x: string, y: string, seriesField: string | n
   return { data: [...byX.values()], series };
 }
 
-const tooltipStyle = { background: "rgba(8,21,38,0.96)", border: "1px solid var(--line-strong)", borderRadius: 10, fontSize: 12, color: "var(--ink)" };
-const axisStyle = { fill: "#8ba1b8", fontSize: 11 };
+const tooltipStyle = { background: "rgba(10,10,10,0.96)", border: "1px solid var(--line-strong)", borderRadius: 10, fontSize: 12, color: "var(--ink)" };
+const axisStyle = { fill: "#8e8c87", fontSize: 11 };
 
 export function ChartBody({ widget, result }: { widget: WidgetSpec; result: DataResult }) {
   const view = widget.view;
@@ -80,7 +80,7 @@ export function ChartBody({ widget, result }: { widget: WidgetSpec; result: Data
       <ResponsiveContainer width="100%" height="100%">
         {chart.kind === "distribution" ? (
           <BarChart data={chart.data} {...common}>
-            <CartesianGrid stroke="rgba(146,184,222,0.1)" vertical={false} />
+            <CartesianGrid stroke="rgba(243,241,236,0.1)" vertical={false} />
             <XAxis dataKey="label" tick={axisStyle} tickLine={false} axisLine={false} minTickGap={24} />
             <YAxis tick={axisStyle} tickLine={false} axisLine={false} width={34} />
             {tip}
@@ -91,7 +91,7 @@ export function ChartBody({ widget, result }: { widget: WidgetSpec; result: Data
           </BarChart>
         ) : chart.kind === "bar" ? (
           <BarChart data={chart.data} {...common}>
-            <CartesianGrid stroke="rgba(146,184,222,0.1)" vertical={false} />
+            <CartesianGrid stroke="rgba(243,241,236,0.1)" vertical={false} />
             <XAxis dataKey={chart.x} tick={axisStyle} tickLine={false} axisLine={false} tickFormatter={fmtX} minTickGap={16} />
             <YAxis tick={axisStyle} tickLine={false} axisLine={false} width={44} tickFormatter={fmtY} />
             {tip}
@@ -102,7 +102,7 @@ export function ChartBody({ widget, result }: { widget: WidgetSpec; result: Data
           </BarChart>
         ) : chart.kind === "scatter" ? (
           <ScatterChart {...common}>
-            <CartesianGrid stroke="rgba(146,184,222,0.1)" />
+            <CartesianGrid stroke="rgba(243,241,236,0.1)" />
             <XAxis dataKey={chart.x} name={chart.x} tick={axisStyle} tickLine={false} axisLine={false} tickFormatter={fmtX} />
             <YAxis dataKey={chart.y} name={chart.y} tick={axisStyle} tickLine={false} axisLine={false} width={44} tickFormatter={fmtY} />
             {tip}
@@ -113,7 +113,7 @@ export function ChartBody({ widget, result }: { widget: WidgetSpec; result: Data
           </ScatterChart>
         ) : (
           <LineChart data={chart.data} {...common}>
-            <CartesianGrid stroke="rgba(146,184,222,0.1)" vertical={false} />
+            <CartesianGrid stroke="rgba(243,241,236,0.1)" vertical={false} />
             <XAxis dataKey={chart.x} tick={axisStyle} tickLine={false} axisLine={false} tickFormatter={fmtX} minTickGap={28} />
             <YAxis tick={axisStyle} tickLine={false} axisLine={false} width={44} tickFormatter={fmtY} domain={["auto", "auto"]} />
             {tip}

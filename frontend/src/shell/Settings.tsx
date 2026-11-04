@@ -73,7 +73,7 @@ export function SettingsPopover() {
         </div>
         {cap != null ? (
           <>
-            <div style={{ height: 6, borderRadius: 4, background: "rgba(146,184,222,0.12)", marginTop: 6 }}>
+            <div style={{ height: 6, borderRadius: 4, background: "rgba(243,241,236,0.12)", marginTop: 6 }}>
               <div style={{ height: 6, borderRadius: 4, width: `${Math.min(100, ((spent.usd ?? 0) / Math.max(cap, 0.0001)) * 100)}%`, background: "var(--accent)" }} />
             </div>
             <div className="tiny muted" style={{ marginTop: 4 }}>tope mensual del mandato US$ {fmtNum(cap)} · {spent.basis ?? ""}</div>

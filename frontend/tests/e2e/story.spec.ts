@@ -27,7 +27,7 @@ test("the page refuses to work without the session token and says so", async ({ 
 
 test("open → understand → select → ask a chart → see it → evidence → reload keeps the space", async ({ page }) => {
   await open(page);
-  await expect(page.locator(".topbar").getByText("UNBIDDEN")).toBeVisible();
+  await expect(page.locator(".topbar").getByText("UNBiDDEN")).toBeVisible();
   await expect(page.getByText("Demostración · datos ficticios")).toBeVisible();
   await expect(page.locator(".widget", { hasText: "Unbidden ahora" })).toBeVisible();
   const before = await cardCount(page);

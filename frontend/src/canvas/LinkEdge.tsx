@@ -5,7 +5,7 @@ import type { Edge as CanvasEdge } from "@/contracts";
 
 export type LinkEdgeType = Edge<{ edge: CanvasEdge }, "link">;
 
-const STROKE: Record<string, string> = { trace: "#3fd8c7", evidence: "#6cb0ff", annotation: "rgba(183,199,216,0.7)" };
+const STROKE: Record<string, string> = { trace: "rgba(243,241,236,0.45)", evidence: "rgba(243,241,236,0.28)", annotation: "rgba(201,199,193,0.7)" };
 
 export function LinkEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data, selected }: EdgeProps<LinkEdgeType>) {
   const kind = data?.edge.kind ?? "annotation";
@@ -17,8 +17,8 @@ export function LinkEdge({ id, sourceX, sourceY, targetX, targetY, sourcePositio
     <>
       {kind === "trace" ? <BaseEdge id={`${id}-glow`} path={path} style={{ stroke, strokeWidth: 6, opacity: 0.15 }} /> : null}
       <BaseEdge id={id} path={path} style={{ stroke, strokeWidth: selected ? 2.5 : 1.8, strokeDasharray: kind === "annotation" ? "6 5" : undefined, opacity: 0.95 }} />
-      <circle cx={sourceX} cy={sourceY} r={4} fill="#0a1a2e" stroke={stroke} strokeWidth={2} />
-      <circle cx={targetX} cy={targetY} r={4} fill="#0a1a2e" stroke={stroke} strokeWidth={2} />
+      <circle cx={sourceX} cy={sourceY} r={4} fill="#0c0c0c" stroke={stroke} strokeWidth={2} />
+      <circle cx={targetX} cy={targetY} r={4} fill="#0c0c0c" stroke={stroke} strokeWidth={2} />
       {label ? (
         <EdgeLabelRenderer>
           <div className={`edge-label ${kind}`} style={{ left: lx, top: ly }} title={title}>

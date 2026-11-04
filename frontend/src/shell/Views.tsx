@@ -104,7 +104,7 @@ export function ActivityView() {
       <div className="pane glass glass-2" style={{ flex: 1.4 }}>
         <header>
           <span className="grow">Actividad en vivo <span className="muted" style={{ fontWeight: 400 }}>· {summary?.counts.events ?? 0} eventos · {({ live: "en vivo", stale: "desactualizado", disconnected: "desconectado", connecting: "conectando", closed: "cerrado" } as Record<string, string>)[stream] ?? stream}</span></span>
-          <select className="field" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="filtrar por tipo" style={{ background: "rgba(146,184,222,0.08)", border: "1px solid var(--line)", borderRadius: 8, padding: "4px 8px", color: "var(--ink)" }}>
+          <select className="field" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="filtrar por tipo" style={{ background: "rgba(243,241,236,0.08)", border: "1px solid var(--line)", borderRadius: 8, padding: "4px 8px", color: "var(--ink)" }}>
             <option value="">todos los tipos</option>
             {types.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
