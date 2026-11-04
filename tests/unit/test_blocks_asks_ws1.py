@@ -127,3 +127,15 @@ def test_idle_means_only_housekeeping_is_due(store: Store) -> None:
     assert idle(store)  # not due yet
     store.enqueue(Job(type="lab.experiment", idempotency_key="l:2"))
     assert not idle(store)
+
+
+def test_a_lab_result_not_yet_swept_is_not_idle(store: Store) -> None:
+    """rich, final pass 0.18.9: two green pull requests went stale on a merge and were measured again; the agent
+    read as idle before the director's next sweep (up to a minute away) proposed them again, and the cycle ended."""
+    from unbidden.daemon.cycle import SWEEP_DUE
+
+    assert idle(store)
+    store.set_value(SWEEP_DUE, True)  # a lab experiment finished, or a stale proposal reopened its opportunity
+    assert not idle(store)
+    store.set_value(SWEEP_DUE, False)  # the director swept
+    assert idle(store)

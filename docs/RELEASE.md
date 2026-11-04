@@ -1,5 +1,12 @@
 # Unbidden 0.18.0, experimental candidate: the terminal app on the product branch, not 1.0
 
+## 0.18.10 (2026-11-04): a result the director has not swept is work to come
+
+- **The agent is not idle while a lab result or a reopened opportunity waits for the director.** rich, the 0.18.9
+  rerun: after a merge, two green pull requests went stale and were measured again; the agent read as idle before
+  the director's next sweep (up to a minute away) could propose them again, and the observed cycle ended there. A
+  lab experiment or a stale proposal now marks a sweep as due; the sweep clears it; `idle` waits for it.
+
 ## 0.18.9 (2026-11-04): pull request titles a team's title check accepts
 
 - **Security bumps are titled as Conventional Commits.** aegra, final pass on 0.18.6: three security bumps were red

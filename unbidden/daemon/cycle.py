@@ -331,6 +331,7 @@ class Cycle:
                        f"{str(record.get('why') or '')[:200]})")  # fmt: skip
 
     async def director_sweep(self, _: Job) -> None:
+        self.store.set_value(SWEEP_DUE, False)  # this sweep reads every result written before it
         self._queue_needs()
         mandate = self.runtime.workspace.mandate()
         open_prs = len(self.store.list("proposals", Proposal, status=ProposalStatus.PR_OPENED.value))
@@ -554,6 +555,7 @@ class Cycle:
         self.log(f"{opp.id}: {decision.chosen.value} ({decision.reason})")
 
     async def lab_experiment(self, j: Job) -> None:
+        self.store.set_value(SWEEP_DUE, True)  # its result is decided on by the next sweep
         opp = self.store.get("opportunities", j.payload["id"], Opportunity)
         if opp is None or opp.status is not OpportunityStatus.OPEN:
             return
@@ -1060,6 +1062,7 @@ def timeout_for(job_type: str) -> float:
 
 
 # Jobs the agent schedules for itself every few minutes whatever happens: a queue holding only these is idle.
+SWEEP_DUE = "sweep_due"  # set by a lab result or a reopened opportunity, cleared by the director's sweep
 HOUSEKEEPING = ("world.refresh", "connect.survey", "observe.head", "observe.live", "github.poll", "director.sweep")
 
 
@@ -1070,6 +1073,11 @@ def idle(store: Any) -> bool:
     from unbidden.contracts.jobs import JobStatus
 
     if store.jobs(status=JobStatus.RUNNING):
+        return False
+    # A lab result or a reopened opportunity the director has not swept yet is work to come, though its sweep is
+    # not due for up to a minute (rich, final pass 0.18.9: two green pull requests went stale on a merge, were
+    # measured again, and the cycle was read as finished before the sweep proposed them again).
+    if store.get_value(SWEEP_DUE):
         return False
     due = [j for j in store.jobs(status=JobStatus.QUEUED) if j.run_at <= utc_now()]
     return all(j.type in HOUSEKEEPING for j in due)
