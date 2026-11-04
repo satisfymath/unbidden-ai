@@ -234,3 +234,11 @@ def test_the_internet_is_refused_except_for_a_ci_prepared_rerun() -> None:
     argv = docker_argv(SandboxSpec(image="x", argv=["true"], network="bridge", runner_like=True, mount="/ws"),
                        Path("/w"), "n")  # fmt: skip
     assert argv[argv.index("--network") + 1] == "bridge" and "--cap-drop" in argv and "-v" in argv
+
+
+def test_a_step_that_drives_the_hosts_docker_is_left_out() -> None:
+    from unbidden.sandbox.ci_env import drives_docker
+
+    assert drives_docker("cat << EOF > my.cnf\nx\nEOF\ndocker cp my.cnf mysql:/etc/mysql/conf.d/\ndocker restart mysql")
+    assert drives_docker("sudo docker compose up -d") and drives_docker("cd x && docker run --rm y")
+    assert not drives_docker("pip install docker\npytest tests/test_docker.py") and not drives_docker("echo dockerfile")

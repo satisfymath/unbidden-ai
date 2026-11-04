@@ -38,6 +38,12 @@ def isolated_copy(source: str, into: Path, rev: str | None) -> tuple[Path, str]:
     return into, commit
 
 
+def ends(text: str, head: int = 1200, tail: int = 600) -> str:
+    """A long error kept by both ends: the installer's first error leads it, Docker's summary closes it (P3-12,
+    campaign 12: the last 1500 characters were only the failed command, twice, and never the cause)."""
+    return text if len(text) <= head + tail else f"{text[:head]}\n[…]\n{text[-tail:]}"
+
+
 def checks_record(repo: Path, rev: str, mandate: Mandate, *, timeout_s: float = CHECKS_TIMEOUT_S) -> dict[str, Any]:
     """The record `observe.checks` keeps: the stack (with why each version was chosen), the image and its notes,
     the plan (its source, scope, what was left out and why), and the checks' outcome with the evidence (tests
@@ -90,7 +96,7 @@ def checks_record(repo: Path, rev: str, mandate: Mandate, *, timeout_s: float = 
                 },
             }
     except Exception as exc:  # the environment could not be built: that is the finding
-        record |= {"status": "blocked", "why": f"{type(exc).__name__}: {str(exc)[-1500:]}"}
+        record |= {"status": "blocked", "why": f"{type(exc).__name__}: {ends(str(exc))}"}
     record["wall_s"] = round(time.monotonic() - started, 1)
     return record
 

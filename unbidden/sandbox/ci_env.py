@@ -107,6 +107,16 @@ def publishes(run_text: str) -> bool:
     return bool(PUBLISH_RUN.search("\n".join(lines)))
 
 
+# A command that drives the host's Docker (archery, campaign 13: `docker cp my.cnf mysql:/etc/...` and `docker restart
+# mysql` to configure its service container). The job never gets the Docker socket, so the step cannot run; it is
+# left out and said, like a publishing step, and the service keeps its image's defaults.
+_DOCKER_RUN = re.compile(r"(?:^|[;&|(]\s*|\n\s*)(?:sudo\s+)?docker(?:-compose|\s+compose)?\s+\w", re.MULTILINE)
+
+
+def drives_docker(run_text: str) -> bool:
+    return bool(_DOCKER_RUN.search(run_text))
+
+
 def act_path() -> str | None:
     return shutil.which("act")
 
@@ -168,7 +178,8 @@ def filtered_job(repo: Path, rev: str, workflow: str, job: str) -> tuple[str, di
         if not isinstance(step, dict):
             continue
         label = str(step.get("name") or step.get("uses") or str(step.get("run", ""))[:60])
-        if PUBLISH_USES.search(str(step.get("uses", ""))) or publishes(str(step.get("run", ""))):
+        run_text = str(step.get("run", ""))
+        if PUBLISH_USES.search(str(step.get("uses", ""))) or publishes(run_text) or drives_docker(run_text):
             skipped.append(label)
             continue
         if "astral-sh/setup-uv" in str(step.get("uses", "")):
