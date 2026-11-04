@@ -121,7 +121,9 @@ def worker(index: int, jobs: Any, repos: dict[str, dict[str, Any]], args: dict[s
     out = Path(args["out"])
     while True:
         try:
-            job: Job = jobs.get_nowait()
+            # A short wait, not get_nowait: a worker that asks before the queue's feeder thread has handed the items
+            # over sees it empty and leaves (final pass 2026-11-04: one of five workers, two of three, left at once).
+            job: Job = jobs.get(timeout=5)
         except queue.Empty:
             return
         log_line(out, job, f"worker {index} starts on ports {ports}")
