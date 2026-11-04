@@ -75,3 +75,11 @@ Dated lines, newest last. Each says what was seen, where (record or log), and wh
   manifests (sqlmodel: pdm needs the licence and the package). The robustness lab's reproduction had the 0.18.3 cause
   too. Fixed in 0.18.4 with tests; conduit's own Dockerfile does not build (poetry 1.1), recorded. Records kept in
   `final-0.18.3-stopped`.
+- 2026-11-04 · final pass on 0.18.4, stopped after 15 repositories · The first pull request of the pass:
+  python-progressbar, a security bump (certifi), its copy's 18 checks green; the merge was never seen because the
+  harness ended the cycle a minute after GitHub finished the CI (the harness now gives a 12-minute grace to an open,
+  green pull request). Two more product causes: another package's standing advisories counted as new with a bump
+  (marshmallow, sqlmodel: declined although the targeted advisories were gone and the suite green), and lint/type
+  findings carried the CI job's absolute workspace path, so every model answer naming one was refused as unsafe
+  (rich). pyjwt's pytest fix needs Python 3.10 while pyjwt supports 3.9: not applicable, now said in the verdict.
+  Fixed in 0.18.5. Records kept in `final-0.18.4-stopped`.

@@ -1,0 +1,2 @@
+2026-11-04T14:05:55-0300 [B1] worker 0 starts on ports {'dashboard': 18800, 'ui_a': 18801, 'lab': 18802, 'lab_db': 18803}
+2026-11-04T14:14:24-0300 [B1] done in 509 s: {"name": "marshmallow", "run": "B1", "mode": "custom", "deploy_target": "none", "self_host_ok": null, "export": true, "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/marshmallow/B1.json", "proposals_c1": 0, "proposals_c2": 0, "pulls_after": 0, "spent_usd": 0.0958, "blocks": [], "wall_s": 468.9}
