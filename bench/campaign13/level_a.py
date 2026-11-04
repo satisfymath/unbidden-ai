@@ -1,4 +1,4 @@
-"""Campaign 12, Level A: the installed product on every repository of the corpus, no model spend.
+"""Campaign 13, Level A: the installed product on every repository of the corpus, no model spend.
 
     uv run python -m bench.campaign13.level_a bench/campaign13/corpus.yaml --phase pilot \
         --out docs/bench/campaign13/pilot [--only a,b] [--port 8800]
@@ -39,6 +39,7 @@ from bench.campaign13.common import (
     run_spend,
     scrub,
     unbidden,
+    update_summary,
 )
 
 CHECKS_TIMEOUT_S = 3600
@@ -129,7 +130,14 @@ def ui_read(repo_dir: Path, port: int, e: dict[str, str], rec: Record) -> dict[s
 
 
 def level_a(
-    repo: dict[str, Any], phase: str, out_dir: Path, port: int, candidate: str, wheel: str, *, debian: bool = False,
+    repo: dict[str, Any],
+    phase: str,
+    out_dir: Path,
+    port: int,
+    candidate: str,
+    wheel: str,
+    *,
+    debian: bool = False,
     ci_env: bool = False,
 ) -> dict[str, Any]:
     name = repo["name"]
@@ -302,10 +310,10 @@ def _checks_record(repo_dir: Path) -> dict[str, Any]:
     out = {k: v.get(k) for k in ("status", "collected", "why", "scope", "partial", "command", "rev", "could_not_run")}
     failed = v.get("failed")
     out["failed"] = len(failed) if isinstance(failed, list) else failed
-    image = v.get("image") if isinstance(v.get("image"), dict) else {}
-    out["image_notes"] = image.get("notes")
-    stack = v.get("stack") if isinstance(v.get("stack"), dict) else {}
-    out["python"] = stack.get("python")
+    image = v.get("image")
+    out["image_notes"] = image.get("notes") if isinstance(image, dict) else None
+    stack = v.get("stack")
+    out["python"] = stack.get("python") if isinstance(stack, dict) else None
     return out
 
 
@@ -385,8 +393,7 @@ def main() -> None:
             f"== {repo['name']} ({repo.get('class')}, {repo.get('family')}) load {os.getloadavg()[0]:.1f}", flush=True
         )
         line = level_a(repo, args.phase, out, args.port, candidate, wheel, debian=args.debian, ci_env=args.ci_env)
-        summary = [s for s in summary if s["name"] != repo["name"]] + [line]
-        summary_path.write_text(json.dumps(summary, indent=1, default=str))
+        update_summary(summary_path, line)  # locked: parallel workers (run_final.py) share this file
         print(scrub(json.dumps(line, default=str))[:700], flush=True)
 
 
