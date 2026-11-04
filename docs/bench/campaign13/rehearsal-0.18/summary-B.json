@@ -1,0 +1,47 @@
+[
+ {
+  "name": "rich",
+  "run": "B1",
+  "mode": "custom",
+  "deploy_target": "none",
+  "self_host_ok": null,
+  "export": true,
+  "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/rehearsal-0.18/rich/B1.json",
+  "proposals_c1": 0,
+  "proposals_c2": 0,
+  "pulls_after": 9,
+  "spent_usd": 0.1925,
+  "blocks": [],
+  "wall_s": 1444.8
+ },
+ {
+  "name": "fst",
+  "run": "B1",
+  "mode": "autonomous",
+  "deploy_target": "lab",
+  "self_host_ok": null,
+  "export": true,
+  "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/rehearsal-0.18/fst/B1.json",
+  "proposals_c1": 2,
+  "proposals_c2": 2,
+  "pulls_after": 5,
+  "spent_usd": 0.1208,
+  "blocks": [],
+  "wall_s": 1726.3
+ },
+ {
+  "name": "codex-lb",
+  "run": "B1",
+  "mode": "autonomous",
+  "deploy_target": "self_host",
+  "self_host_ok": true,
+  "export": true,
+  "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/rehearsal-0.18/codex-lb/B1.json",
+  "proposals_c1": 0,
+  "proposals_c2": 0,
+  "pulls_after": 16,
+  "spent_usd": 0.0159,
+  "blocks": [],
+  "wall_s": 1160.6
+ }
+]

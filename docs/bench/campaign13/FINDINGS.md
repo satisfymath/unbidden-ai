@@ -49,3 +49,12 @@ Dated lines, newest last. Each says what was seen, where (record or log), and wh
   kept. 75 GB free -> 305 GB. The 15 records showed three regressions (marshmallow, pyjwt, timetracker), all in the
   measurement of the CI-job environment; fixed in 0.17.1 (marshmallow 1192, pyjwt 476, timetracker 169, humanize 878
   as control). US$0.
+- 2026-11-04 · 0.18.0 · Built for the large autonomous run (David: many PRs, merges and L5, not only latency; every
+  model answer as evidence). Unbidden brings an app up by itself (`unbidden host up`), L5 by verified deploy for
+  security/quality/correctness, transcripts and `unbidden export`, the harness at scale. Real bring-ups on codex-lb,
+  misago and TimeTracker taught seven general fixes (placeholder secrets, migrations in the app service,
+  Flask-Migrate, local TLS, the seeder's separator, the drill across migrations, recon after a bring-up). Rehearsal on
+  fst, rich, codex-lb (US$0.33, s13-dev): fst merged and deployed a security bump to L5 by verified deploy — the
+  first L5 that is not latency; rich correctly proposed nothing; codex-lb ran autonomous on its own bring-up. Four
+  defects found and fixed: Dependabot on the copies, a stale proposal never measured again, the exported spend of
+  other campaigns, the tests' environment taken before the last test step.

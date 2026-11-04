@@ -1,0 +1,2 @@
+2026-11-04T02:45:46-0300 [B1] worker 1 starts on ports {'dashboard': 18810, 'ui_a': 18811, 'lab': 18812, 'lab_db': 18813}
+2026-11-04T02:49:16-0300 [B1] done in 210 s: {"name": "codex-lb", "run": "B1", "mode": "autonomous", "deploy_target": "self_host", "self_host_ok": true, "export": true, "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/rehearsal-0.18/codex-lb/B1.json", "proposals_c1": 0, "proposals_c2": 0, "pulls_after": 4, "spent_usd": 0.0006, "blocks": [], "wall_s": 120.4}

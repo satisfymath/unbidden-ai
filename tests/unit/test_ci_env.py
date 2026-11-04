@@ -280,3 +280,24 @@ def test_a_step_without_a_name_is_found_by_its_resolved_command() -> None:
     # pyjwt: a name with an expression
     assert shown_as({"name": "Run tox targets for ${{ matrix.python-version }}", "run": "python -m tox"},
                     "Run tox targets for 3.12")  # fmt: skip
+
+
+def test_the_tests_environment_is_the_one_their_last_step_saw(tmp_path: Path) -> None:
+    """codex-lb (0.18.0 rehearsal): bun is set up between its Python tests and its frontend tests."""
+    workflow = """
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Python tests
+        run: pytest -q
+      - uses: oven-sh/setup-bun@v2
+      - name: Frontend tests
+        run: make test-frontend
+"""
+    repo, rev = _repo(tmp_path, {".github/workflows/ci.yml": workflow})
+    text, _, _ = filtered_job(repo, rev, "ci.yml", "test")
+    names = [s.get("name") or s.get("uses") for s in yaml.safe_load(text)["jobs"]["test"]["steps"]]
+    last = names.index("Frontend tests")
+    assert names[last - 1] == "unbidden: the tests' environment"  # written after bun was set up

@@ -1,0 +1,1684 @@
+{
+ "repo": "codex-lb",
+ "phase": "dev-rehearsal",
+ "run": "B1",
+ "candidate": "d671cfb61741317b3eadbd3dbb59aa6053a1cc51",
+ "wheel_sha256": "e1dece36e9d7bc0f2fc479b988ba4efe5def24a200a1dcd419a37441c0880227",
+ "started_at": "2026-11-04T02:45:46-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "autopilot",
+    "--budget",
+    "2",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--github-token-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 21.9,
+   "timed_out": false,
+   "stdout": "\n    {\n      \"what\": \"merge pull requests\",\n      \"capability\": \"github.merge_pull_request\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": {\n    \"ok\": true,\n    \"rejected\": false,\n    \"model\": \"muse-spark-1.3\",\n    \"usd\": 0.000571,\n    \"why\": null\n  },\n  \"priorities\": [\n    \"correctness\",\n    \"maintainability\",\n    \"security\"\n  ],\n  \"github\": null,\n  \"found\": {\n    \"repository\": \"satisfymath/c13-codex-lb\",\n    \"branch\": \"HEAD\",\n    \"head\": \"827f7c557e7c5895c4a623ee091870c0534bd938\",\n    \"scope\": [\n      {\n        \"name\": \"scope: stack\",\n        \"in_scope\": true,\n        \"note\": \"Python 3.13 (pyproject.toml, uv.lock)\"\n      },\n      {\n        \"name\": \"scope: tests\",\n        \"in_scope\": true,\n        \"note\": \"ci.yml > test (matrix entry 1 of 3 (slice=unit)); condition `needs.changes.outputs.backend=='true'` is not known outside GitHub: the branch that runs the tests is taken, its negation (1 step(s)) left out; left out, a JavaScript build in a Python job (2 line(s), e.g. (cd frontend && bun install --frozen-lockfile)): tests that read its output fail and say so\"\n      },\n      {\n        \"name\": \"scope: database\",\n        \"in_scope\": true,\n        \"note\": \"services in compose: postgres\"\n      }\n    ],\n    \"machine\": \"Apple M5 Pro, 64 GB, 54 GB for a model\",\n    \"ollama\": {\n      \"url\": \"http://localhost:11434\",\n      \"present\": true,\n      \"models\": [\n        \"muse-glimmer:30b-mxfp8-dflash\",\n        \"nomic-embed-text:latest\"\n      ]\n    },\n    \"local_model\": {\n      \"tag\": \"muse-glimmer:30b-mxfp8-dflash\",\n      \"installed\": true\n    },\n    \"key\": {\n      \"name\": \"MODEL_API_KEY\",\n      \"present\": false\n    },\n    \"github\": null,\n    \"github_check\": null,\n    \"compose\": \"docker-compose.yml\",\n    \"services\": [\n      {\n        \"name\": \"server\",\n        \"kind\": null\n      },\n      {\n        \"name\": \"frontend\",\n        \"kind\": null\n      },\n      {\n        \"name\": \"postgres\",\n        \"kind\": \"postgres\"\n      },\n      {\n        \"name\": \"postgres-upgrade\",\n        \"kind\": null\n      }\n    ],\n    \"external\": [],\n    \"option\": \"local\",\n    \"option_why\": \"hay un modelo local instalado y ninguna clave guardada\"\n  },\n  \"defaulted\": [\n    \"priorities\",\n    \"key\",\n    \"connections\",\n    \"private_code\",\n    \"language\"\n  ],\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c13/codex-lb/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c13/codex-lb/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 2.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -12,9 +12,10 @@\",\n    \"     provision_dependencies: allow\",\n    \"     delegate_synthetic: allow\",\n    \"-    open_pull_requests: require_approval\",\n    \"+    open_pull_requests: allow\",\n    \"     merge_pull_requests: deny\",\n    \"     deploy: deny\",\n    \"     rollback: deny\",\n    \"-    use_new_capabilities: require_approval\",\n    \"+    use_new_capabilities: allow\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,8 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\",\n    \"+  operations: {}\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c13/codex-lb/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "                    denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nCredenciales\nGuardadas en /Users/david/unbidden-lab/c13/home/.unbidden/.env (modo 600), \nreferidas por nombre; nunca escritas en el repositorio ni en registros.\nMODEL_API_KEY guardada.\nClave aceptada: muse-spark-1.3 respondió (US$0.0006).\nGITHUB_TOKEN guardada.\n\nPresupuesto\nLibro de la máquina: verified balance US$97.29 (stage 6 spend cap authorized by \nDavid on 2026-10-28: up to US$10 of free credits from this point (dev 3, \nevaluation 5, demo and contingency 2; the earlier US$3 reserve is included, not \nadded). Dashboard as reported by David 2026-10-28: Current balance US$0, free \ncredits in use US$144.98, a Visa card on file, content sent while on free \ncredits may be used to improve products. A cap, not a measured balance; no \nrecharge or card charge authorized (entered by david) | stage 9: US$30 \nadditional Meta API spend authorized by David on 2026-10-29, replacing the US$10\ncap; cumulative cap US$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval\n12, demo 6 (D-052). Dashboard as reported by David: free credits in use \nUS$137.96, balance US$0, a card on file. No recharge or card charge authorized \n(entered by david) | stage 10: the remaining US$20.30 of the US$37.29 cap split \nbefore any call (D-058), by David's stage 10 instruction of 2026-10-30 (entered \nby david) | stage 10 after the frozen evaluation: US$5 of the unspent s10-eval \nmoved to s10-dev for corrections and regressions, by David's instruction of \n2026-10-31; envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; spent at the transfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, \ns10-close 0) (entered by david) | product phase (A-E): s11-product US$4.00 \nauthorized by David on 2026-11-01, reassigned from s10-close (3.80, unspent, \nclosed) and US$0.20 of s10-dev; envelopes total US$20.30 and the cumulative cap \nUS$37.2945 unchanged; spent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval\n1.0010, s10-close 0) (entered by david) | product phase correction: David's \nauthorization of 2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken \nfrom s10-dev had no recorded authorization and goes back (s10-dev 13.00, \ns11-product 3.80); envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; s11-product spent 0 at the correction; spent at the correction \nUS$27.7199 (entered by david) | campaign 12 (installed-product validation): \nUS$60 additional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david) | envelopes s13-dev 15, \ns13-pass 15, s13-final 20, s13-confirm 5 authorized by David on 2026-11-03 \n('dale entonces empecemos con todo', campaign 13 to 1.0, within the cumulative \ncap US$97.2945, not amended); earlier envelopes unchanged; no transfers (entered\nby david)); permitido US$97.29 · gastado US$31.6403 · disponible US$65.6542\nsobres: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, s12-eval\n30.00, s12-dev 17.00, s12-confirm 5.00, s13-dev 15.00, s13-pass 15.00, s13-final\n20.00, s13-confirm 5.00\nLos créditos del proveedor y el gasto autorizado son cosas distintas: el tope \nque una persona ingresó con `unbidden spend --verified-balance` es lo que esta \nmáquina puede gastar; aquí nunca se sube ni se reinicia.\n\nPanel\nAbrir el panel, restaurar su disposición y mostrar registros no llama a ningún \nmodelo; chatear o pedir un análisis sí puede.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 17.2,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"2 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"act\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"found: the team's CI job prepares the environment when the mandate allows it\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key proven: muse-spark-1.3 answered\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"GITHUB_TOKEN set\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs allow\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"recon\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"incompleto: stack down; stack down, postgres unread\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.13 (pyproject.toml, uv.lock)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"ci.yml > test (matrix entry 1 of 3 (slice=unit)); condition `needs.changes.outputs.backend=='true'` is not known outside GitHub: the branch that runs the tests is taken, its negation (1 step(s)) left out; left out, a JavaScript build in a Python job (2 line(s), e.g. (cd frontend && bun install --frozen-lockfile)): tests that read its output fail and say so\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"services in compose: postgres\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "host-up",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "host",
+    "up",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 14.5,
+   "timed_out": false,
+   "stdout": "{\n  \"ok\": true,\n  \"project\": \"unbidden-codex-lb\",\n  \"health_url\": \"http://127.0.0.1:61673/ping\",\n  \"ports\": {\n    \"frontend:5173\": 61673,\n    \"server:2455\": 61674,\n    \"server:1455\": 61675\n  },\n  \"deploy_steps\": [\n    [\n      \"/Users/david/unbidden-lab/c13/home/tools/unbidden-ai/bin/python\",\n      \"-m\",\n      \"unbidden.cli\",\n      \"host\",\n      \"up\",\n      \"--deploy\",\n      \"--build\",\n      \"--json\"\n    ]\n  ],\n  \"drill\": {\n    \"at\": \"2026-11-04T05:48:00.574285+00:00\",\n    \"from\": \"827f7c557e7c5895c4a623ee091870c0534bd938\",\n    \"to\": \"84fde5a1ed5e0d5a58ccb3ec4b82938b059bf8c5\",\n    \"back\": true,\n    \"forth\": true,\n    \"passed\": true\n  },\n  \"why\": null,\n  \"steps\": [\n    {\n      \"step\": \"env files created from their examples\",\n      \"ok\": true,\n      \"detail\": \".env.local (from .env.example)\",\n      \"seconds\": 0.0\n    },\n    {\n      \"step\": \"render the compose file\",\n      \"ok\": true,\n      \"detail\": \"docker-compose.yml; 2 services\",\n      \"seconds\": 0.1\n    },\n    {\n      \"step\": \"docker compose up\",\n      \"ok\": true,\n      \"detail\": \"den-codex-lb-server Building \\n Image unbidden-codex-lb-server Built \\n Image unbidden-codex-lb-frontend Built \\n Network unbidden-codex-lb_default Creating \\n Volume codex-lb-data Creating \\n Network unbidden-codex-lb_default Creating \\n Volume codex-lb-data Creating \\n Volume codex-lb-data Created \\n Volume codex-lb-data Created \\n Network unbidden-codex-lb_default Created \\n Network unbidden-codex-lb_default Created \\n Container unbidden-codex-lb-server-1 Creating \\n Container unbidden-codex-lb-frontend-1 Creating \\n Container unbidden-codex-lb-frontend-1 Created \\n Container unbidden-codex-lb-server-1 Created \\n Container unbidden-codex-lb-frontend-1 Starting \\n Container unbidden-codex-lb-server-1 Starting \\n Container unbidden-codex-lb-frontend-1 Started \\n Container unbidden-codex-lb-server-1 Started\",\n      \"seconds\": 3.4\n    },\n    {\n      \"step\": \"health\",\n      \"ok\": true,\n      \"detail\": \"http://127.0.0.1:61673/ping\",\n      \"seconds\": 3.7\n    }\n  ],\n  \"migrated\": null,\n  \"seeded\": {},\n  \"generated_env\": [\n    \"pg_major\"\n  ]\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "map",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "map",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 23.2,
+   "timed_out": false,
+   "stdout": "on\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-11-04T05:48:23.048404Z\"\n        }\n      ],\n      \"source\": \"openapi-http@1\",\n      \"observed_at\": \"2026-11-04T05:48:23.048405Z\",\n      \"environment\": \"local-compose\",\n      \"valid_for\": \"deployment:0\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"service:server\",\n      \"dst\": \"endpoint:POST /v1/warmup\",\n      \"predicate\": \"serves\"\n    },\n    {\n      \"status\": \"observed\",\n      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"config\",\n          \"locator\": \"http://127.0.0.1:61674/openapi.json\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-11-04T05:48:23.048477Z\"\n        }\n      ],\n      \"source\": \"openapi-http@1\",\n      \"observed_at\": \"2026-11-04T05:48:23.048478Z\",\n      \"environment\": \"local-compose\",\n      \"valid_for\": \"deployment:0\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"service:server\",\n      \"dst\": \"endpoint:POST /v1/warmup/{mode}\",\n      \"predicate\": \"serves\"\n    },\n    {\n      \"status\": \"observed\",\n      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"config\",\n          \"locator\": \"docker inspect unbidden-codex-lb-frontend-1\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-11-04T05:48:23.266943Z\"\n        }\n      ],\n      \"source\": \"compose-docker@1\",\n      \"observed_at\": \"2026-11-04T05:48:23.266946Z\",\n      \"environment\": \"local-compose\",\n      \"valid_for\": \"deployment:0\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"container:unbidden-codex-lb-frontend-1\",\n      \"dst\": \"image:d370921da02b\",\n      \"predicate\": \"runs_image\"\n    },\n    {\n      \"status\": \"observed\",\n      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"config\",\n          \"locator\": \"deployments/0\",\n          \"sha256\": null,\n          \"note\": \"images built by Unbidden's deploy of this commit\",\n          \"captured_at\": \"2026-11-04T05:48:23.266902Z\"\n        }\n      ],\n      \"source\": \"deploy-ledger@1\",\n      \"observed_at\": \"2026-11-04T05:48:23.267058Z\",\n      \"environment\": \"local-compose\",\n      \"valid_for\": \"deployment:0\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"deployment:0\",\n      \"dst\": \"service:frontend\",\n      \"predicate\": \"deploys\"\n    },\n    {\n      \"status\": \"observed\",\n      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"config\",\n          \"locator\": \"docker inspect unbidden-codex-lb-server-1\",\n          \"sha256\": null,\n          \"note\": null,\n          \"captured_at\": \"2026-11-04T05:48:23.267106Z\"\n        }\n      ],\n      \"source\": \"compose-docker@1\",\n      \"observed_at\": \"2026-11-04T05:48:23.267108Z\",\n      \"environment\": \"local-compose\",\n      \"valid_for\": \"deployment:0\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"container:unbidden-codex-lb-server-1\",\n      \"dst\": \"image:9d7867747ff4\",\n      \"predicate\": \"runs_image\"\n    },\n    {\n      \"status\": \"observed\",\n      \"confidence\": 1.0,\n      \"evidence\": [\n        {\n          \"kind\": \"config\",\n          \"locator\": \"deployments/0\",\n          \"sha256\": null,\n          \"note\": \"images built by Unbidden's deploy of this commit\",\n          \"captured_at\": \"2026-11-04T05:48:23.266902Z\"\n        }\n      ],\n      \"source\": \"deploy-ledger@1\",\n      \"observed_at\": \"2026-11-04T05:48:23.267147Z\",\n      \"environment\": \"local-compose\",\n      \"valid_for\": \"deployment:0\",\n      \"expires_at\": null,\n      \"obsolete_since\": null,\n      \"src\": \"deployment:0\",\n      \"dst\": \"service:server\",\n      \"predicate\": \"deploys\"\n    }\n  ],\n  \"blind_spots\": [\n    {\n      \"what\": \"frontend\",\n      \"why\": \"its JavaScript package was not analyzed\"\n    },\n    {\n      \"what\": \"endpoints of frontend\",\n      \"why\": \"ports 61673 are published but describe no OpenAPI; its interface (HTTP, gRPC, GraphQL...) is unknown\"\n    }\n  ],\n  \"updated_at\": \"2026-11-04T05:48:00.953917Z\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "mode-autonomous",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "mode",
+    "autonomous",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "mode: autonomous (was autopilot)\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "18810",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 4,
+   "seconds": 0.4,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": false,\n  \"refused\": [\n    {\n      \"check\": \"recon\",\n      \"detail\": \"incomplete: stack down, postgres unread\",\n      \"fix\": \"unbidden setup recon\"\n    }\n  ],\n  \"warnings\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": false,\n  \"reason\": \"not running\",\n  \"jobs_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "18810",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 4,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": false,\n  \"refused\": [\n    {\n      \"check\": \"recon\",\n      \"detail\": \"incomplete: stack down, postgres unread\",\n      \"fix\": \"unbidden setup recon\"\n    }\n  ],\n  \"warnings\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.1,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": false,\n  \"reason\": \"not running\",\n  \"jobs_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-final",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/codex-lb\",\n  \"head\": \"827f7c557e7c5895c4a623ee091870c0534bd938\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c13/codex-lb/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": null,\n  \"opportunities\": {\n    \"open\": 10\n  },\n  \"asks\": [],\n  \"blocks\": [],\n  \"idle\": true\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "egress",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "egress",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "384b61d5432c996e74\",\n      \"payload_bytes\": 219\n    },\n    \"payload\": \"{\\\"messages\\\": [{\\\"content\\\": \\\"You are a connectivity check.\\\", \\\"role\\\": \\\"system\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"Reply with the single word OK.\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}], \\\"response_schema\\\": null, \\\"tools\\\": []}\",\n    \"created_at\": \"2026-11-04T05:47:26.042516Z\",\n    \"origin\": \"engine\"\n  },\n  {\n    \"id\": \"egr_8bad12ad531c4ed8\",\n    \"status\": \"blocked\",\n    \"purpose\": \"world.endpoint_tables\",\n    \"destination\": \"api.meta.ai\",\n    \"provider\": \"meta\",\n    \"model\": \"muse-spark-1.3\",\n    \"verdict\": {\n      \"allowed\": false,\n      \"kind\": \"synthetic_task\",\n      \"destination\": \"api.meta.ai\",\n      \"reasons\": [\n        \"payload is 58280 bytes, above the 20000-byte cap\"\n      ],\n      \"matched\": [],\n      \"payload_sha256\": \"5bdba83f97464b2d01e260e99f1a4b103e02a3f88520d10d565ca1c8aa3d7074\",\n      \"payload_bytes\": 58280\n    },\n    \"payload\": \"sha256:5bdba83f97464b2d01e260e99f1a4b103e02a3f88520d10d565ca1c8aa3d7074\",\n    \"created_at\": \"2026-11-04T05:48:23.630937Z\",\n    \"origin\": \"engine\"\n  },\n  {\n    \"id\": \"egr_4b00ab3d03da4596\",\n    \"status\": \"blocked\",\n    \"purpose\": \"world.endpoint_tables\",\n    \"destination\": \"api.meta.ai\",\n    \"provider\": \"meta\",\n    \"model\": \"muse-spark-1.3\",\n    \"verdict\": {\n      \"allowed\": false,\n      \"kind\": \"synthetic_task\",\n      \"destination\": \"api.meta.ai\",\n      \"reasons\": [\n        \"payload is 58768 bytes, above the 20000-byte cap\"\n      ],\n      \"matched\": [],\n      \"payload_sha256\": \"56f7079c7a171f73523bc323e92387cdfeb226840eba9f3a340cc8fc1e3824f0\",\n      \"payload_bytes\": 58768\n    },\n    \"payload\": \"sha256:56f7079c7a171f73523bc323e92387cdfeb226840eba9f3a340cc8fc1e3824f0\",\n    \"created_at\": \"2026-11-04T05:48:23.656958Z\",\n    \"origin\": \"engine\"\n  },\n  {\n    \"id\": \"egr_7ac0e356e6d44ae9\",\n    \"status\": \"blocked\",\n    \"purpose\": \"world.endpoint_tables\",\n    \"destination\": \"api.meta.ai\",\n    \"provider\": \"meta\",\n    \"model\": \"muse-spark-1.3\",\n    \"verdict\": {\n      \"allowed\": false,\n      \"kind\": \"synthetic_task\",\n      \"destination\": \"api.meta.ai\",\n      \"reasons\": [\n        \"payload is 59238 bytes, above the 20000-byte cap\"\n      ],\n      \"matched\": [],\n      \"payload_sha256\": \"ab20ce1f07c2424a33e091c19c7bf7be2e028b45806ed566b2206a73be23c542\",\n      \"payload_bytes\": 59238\n    },\n    \"payload\": \"sha256:ab20ce1f07c2424a33e091c19c7bf7be2e028b45806ed566b2206a73be23c542\",\n    \"created_at\": \"2026-11-04T05:48:23.682576Z\",\n    \"origin\": \"engine\"\n  },\n  {\n    \"id\": \"egr_60f58ace058f426a\",\n    \"status\": \"blocked\",\n    \"purpose\": \"world.endpoint_tables\",\n    \"destination\": \"api.meta.ai\",\n    \"provider\": \"meta\",\n    \"model\": \"muse-spark-1.3\",\n    \"verdict\": {\n      \"allowed\": false,\n      \"kind\": \"synthetic_task\",\n      \"destination\": \"api.meta.ai\",\n      \"reasons\": [\n        \"payload is 61035 bytes, above the 20000-byte cap\"\n      ],\n      \"matched\": [],\n      \"payload_sha256\": \"74be1ff02996359da28363394aecd8bb4fa078ede70f977325756de66207b654\",\n      \"payload_bytes\": 61035\n    },\n    \"payload\": \"sha256:74be1ff02996359da28363394aecd8bb4fa078ede70f977325756de66207b654\",\n    \"created_at\": \"2026-11-04T05:48:23.708958Z\",\n    \"origin\": \"engine\"\n  },\n  {\n    \"id\": \"egr_7eb6e1d30e004e5e\",\n    \"status\": \"blocked\",\n    \"purpose\": \"world.endpoint_tables\",\n    \"destination\": \"api.meta.ai\",\n    \"provider\": \"meta\",\n    \"model\": \"muse-spark-1.3\",\n    \"verdict\": {\n      \"allowed\": false,\n      \"kind\": \"synthetic_task\",\n      \"destination\": \"api.meta.ai\",\n      \"reasons\": [\n        \"payload is 57895 bytes, above the 20000-byte cap\",\n        \"payload contains 2 secret(s)\"\n      ],\n      \"matched\": [\n        \"credential_assignment\"\n      ],\n      \"payload_sha256\": \"688bff59065acc73a2e6de1f25797a5cb59c9871029c92f44d67eb6f3fd905c8\",\n      \"payload_bytes\": 57895\n    },\n    \"payload\": \"sha256:688bff59065acc73a2e6de1f25797a5cb59c9871029c92f44d67eb6f3fd905c8\",\n    \"created_at\": \"2026-11-04T05:48:23.733967Z\",\n    \"origin\": \"engine\"\n  }\n]\n",
+   "stderr": ""
+  },
+  {
+   "name": "export",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "export",
+    "--out",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/rehearsal-0.18/codex-lb/export"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "Evidence of codex-lb written to \n/Users/david/unbidden-ai-v1b/docs/bench/campaign13/rehearsal-0.18/codex-lb/expor\nt\n  events.jsonl                      28 lines  16605e78ef94\n  audit.jsonl                        3 lines  4faa5e5410fe\n  opportunities.jsonl               10 lines  9dc1747af77b\n  hypotheses.jsonl                   0 lines  e3b0c44298fc\n  experiment_specs.jsonl             0 lines  e3b0c44298fc\n  experiments.jsonl                  0 lines  e3b0c44298fc\n  proposals.jsonl                    0 lines  e3b0c44298fc\n  decisions.jsonl                    0 lines  e3b0c44298fc\n  deploy_verdicts.jsonl              0 lines  e3b0c44298fc\n  deployments.jsonl                  1 lines  af67fce19dff\n  holds.jsonl                        0 lines  e3b0c44298fc\n  approvals.jsonl                    0 lines  e3b0c44298fc\n  acceptances.jsonl                  0 lines  e3b0c44298fc\n  actions.jsonl                      0 lines  e3b0c44298fc\n  goal_runs.jsonl                    0 lines  e3b0c44298fc\n  model_runs.jsonl                   1 lines  4f4641efb10d\n  transcripts.jsonl                  1 lines  17add796265d\n  egress.jsonl                       6 lines  a89c892ba3b7\n  needs.jsonl                        0 lines  e3b0c44298fc\n  asks.jsonl                         0 lines  e3b0c44298fc\n  blocks.jsonl                       0 lines  e3b0c44298fc\n  deploy_ledger.jsonl                5 lines  74a4379b22e3\n  spend.jsonl                        6 lines  fbedcb4aaa8b\n  mandate.json                      91 lines  fa78973b2e15\nevery file was scanned for secrets; manifest.json holds the sha256 of each\n",
+   "stderr": ""
+  },
+  {
+   "name": "host-down",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "host",
+    "down",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 1.1,
+   "timed_out": false,
+   "stdout": "{\n  \"ok\": true,\n  \"project\": \"unbidden-codex-lb\",\n  \"why\": null\n}\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/Soju06/codex-lb",
+   "commit": "84fde5a1ed5e0d5a58ccb3ec4b82938b059bf8c5",
+   "family": "api-postgres",
+   "class": "dev",
+   "build": "make",
+   "lab": null,
+   "copy_base_sha": "827f7c557e7c5895c4a623ee091870c0534bd938"
+  },
+  "ledger_before": {
+   "envelope": "s13-dev",
+   "envelope_spent_usd": 0.0072,
+   "available_usd": 65.6547,
+   "permitted_usd": 97.2945
+  },
+  "fork": {
+   "slug": "satisfymath/c13-codex-lb",
+   "base": "main",
+   "upstream": "Soju06/codex-lb",
+   "kind": "copy",
+   "created": true,
+   "prep": {
+    "applied": true,
+    "sha": "827f7c557e7c5895c4a623ee091870c0534bd938",
+    "removed": [
+     "docs.yml",
+     "pr-labeler.yml",
+     "prepare-beta-release.yml",
+     "publish-beta-release.yml",
+     "release-please.yml",
+     "release.yml",
+     "stale.yml",
+     "windows-startup.yml"
+    ],
+    "edited": [
+     {
+      "file": ".github/workflows/ci.yml",
+      "removed_jobs": [
+       "stable-release-guard"
+      ],
+      "lines": [
+       861,
+       838
+      ]
+     }
+    ],
+    "plan": [
+     {
+      "file": "ci.yml",
+      "action": "edit",
+      "removed_jobs": [
+       "stable-release-guard"
+      ],
+      "kept_jobs": [
+       "changes",
+       "contributors",
+       "beta-release-guard",
+       "frontend-lint",
+       "frontend-typecheck",
+       "frontend-test",
+       "frontend-build",
+       "dashboard-browser-smoke",
+       "lint",
+       "typecheck",
+       "test",
+       "test-integration-core",
+       "test-integration-core-required",
+       "test-postgres",
+       "migration-check",
+       "migration-check-postgres",
+       "package",
+       "docker",
+       "helm-lint",
+       "helm-smoke-kind",
+       "ci-required"
+      ],
+      "why": "publishing jobs cut out; the checks stay byte for byte"
+     },
+     {
+      "file": "docs.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "build",
+       "deploy"
+      ],
+      "kept_jobs": [],
+      "why": "every job publishes, deploys or releases"
+     },
+     {
+      "file": "pr-labeler.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "label"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by pull_request_target: checks no code"
+     },
+     {
+      "file": "prepare-beta-release.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "sync-beta-release-pr"
+      ],
+      "kept_jobs": [],
+      "why": "every job publishes, deploys or releases"
+     },
+     {
+      "file": "publish-beta-release.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "publish-beta-release"
+      ],
+      "kept_jobs": [],
+      "why": "every job publishes, deploys or releases"
+     },
+     {
+      "file": "release-please.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "release-please"
+      ],
+      "kept_jobs": [],
+      "why": "every job publishes, deploys or releases"
+     },
+     {
+      "file": "release.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "build",
+       "create-github-release",
+       "docker-image",
+       "helm-chart",
+       "publish-to-pypi",
+       "release-metadata",
+       "withdraw-failed-release"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by release, workflow_dispatch: checks no code"
+     },
+     {
+      "file": "simplicity-budgets.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "budgets"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "stale.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "stale"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by schedule, workflow_dispatch: checks no code"
+     },
+     {
+      "file": "windows-startup.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "test-windows-startup"
+      ],
+      "kept_jobs": [],
+      "why": "triggered only by workflow_dispatch: checks no code"
+     }
+    ],
+    "kept": [
+     "ci.yml (without stable-release-guard)",
+     "simplicity-budgets.yml"
+    ]
+   },
+   "pin": "84fde5a1ed5e0d5a58ccb3ec4b82938b059bf8c5",
+   "restore": {
+    "expected": "827f7c557e7c5895c4a623ee091870c0534bd938",
+    "head_before": "827f7c557e7c5895c4a623ee091870c0534bd938",
+    "pin_in_history": true,
+    "closed": [],
+    "deleted": [],
+    "base_sha": "827f7c557e7c5895c4a623ee091870c0534bd938"
+   },
+   "base_sha": "827f7c557e7c5895c4a623ee091870c0534bd938",
+   "pin_in_history": true,
+   "dependabot_prs_closed": [],
+   "workflows_registered": [
+    "ci.yml",
+    "simplicity-budgets.yml"
+   ],
+   "disabled_in_settings": [],
+   "kept": [
+    "ci.yml (without stable-release-guard)",
+    "simplicity-budgets.yml"
+   ]
+  },
+  "fork_before": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "827f7c557e7c5895c4a623ee091870c0534bd938"
+  },
+  "deploy_target": "self_host",
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required"
+  },
+  "self_host": {
+   "ok": true,
+   "project": "unbidden-codex-lb",
+   "health_url": "http://127.0.0.1:61673/ping",
+   "ports": {
+    "frontend:5173": 61673,
+    "server:2455": 61674,
+    "server:1455": 61675
+   },
+   "deploy_steps": [
+    [
+     "/Users/david/unbidden-lab/c13/home/tools/unbidden-ai/bin/python",
+     "-m",
+     "unbidden.cli",
+     "host",
+     "up",
+     "--deploy",
+     "--build",
+     "--json"
+    ]
+   ],
+   "drill": {
+    "at": "2026-11-04T05:48:00.574285+00:00",
+    "from": "827f7c557e7c5895c4a623ee091870c0534bd938",
+    "to": "84fde5a1ed5e0d5a58ccb3ec4b82938b059bf8c5",
+    "back": true,
+    "forth": true,
+    "passed": true
+   },
+   "why": null,
+   "steps": [
+    {
+     "step": "env files created from their examples",
+     "ok": true,
+     "detail": ".env.local (from .env.example)",
+     "seconds": 0.0
+    },
+    {
+     "step": "render the compose file",
+     "ok": true,
+     "detail": "docker-compose.yml; 2 services",
+     "seconds": 0.1
+    },
+    {
+     "step": "docker compose up",
+     "ok": true,
+     "detail": "den-codex-lb-server Building \n Image unbidden-codex-lb-server Built \n Image unbidden-codex-lb-frontend Built \n Network unbidden-codex-lb_default Creating \n Volume codex-lb-data Creating \n Network unbidden-codex-lb_default Creating \n Volume codex-lb-data Creating \n Volume codex-lb-data Created \n Volume codex-lb-data Created \n Network unbidden-codex-lb_default Created \n Network unbidden-codex-lb_default Created \n Container unbidden-codex-lb-server-1 Creating \n Container unbidden-codex-lb-frontend-1 Creating \n Container unbidden-codex-lb-frontend-1 Created \n Container unbidden-codex-lb-server-1 Created \n Container unbidden-codex-lb-frontend-1 Starting \n Container unbidden-codex-lb-server-1 Starting \n Container unbidden-codex-lb-frontend-1 Started \n Container unbidden-codex-lb-server-1 Started",
+     "seconds": 3.4
+    },
+    {
+     "step": "health",
+     "ok": true,
+     "detail": "http://127.0.0.1:61673/ping",
+     "seconds": 3.7
+    }
+   ],
+   "migrated": null,
+   "seeded": {},
+   "generated_env": [
+    "pg_major"
+   ],
+   "code": 0
+  },
+  "mode": {
+   "asked": "autonomous",
+   "got": "autonomous",
+   "drill_code": 1
+  },
+  "autonomy": {
+   "mode": "autonomous",
+   "deploy_target": "self_host",
+   "fields": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "delegate_synthetic": "allow",
+    "open_pull_requests": "allow",
+    "merge_pull_requests": "allow",
+    "deploy": "allow",
+    "rollback": "allow",
+    "use_new_capabilities": "allow",
+    "act_on_connections": "deny"
+   }
+  },
+  "mode_got": "autonomous",
+  "cycle1": {
+   "started": false,
+   "waited_s": 20.2,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": false,
+    "pid": null,
+    "started_at": null,
+    "command": null,
+    "log": "/Users/david/unbidden-lab/c13/codex-lb/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "deployment.observed": 1,
+     "egress.allowed": 1,
+     "egress.blocked": 5,
+     "guardian.values_masked": 2,
+     "mandate.changed": 3,
+     "model.called": 1,
+     "operations.deployed": 4,
+     "opportunity.opened": 10,
+     "workspace.initialized": 1
+    },
+    "docs": {
+     "deployments": 1,
+     "egress": 6,
+     "model_runs": 1,
+     "opportunities": 10,
+     "transcripts": 1,
+     "world": 1
+    },
+    "jobs": {},
+    "experiments": 0,
+    "opportunities": [
+     {
+      "id": "opp_7d34cc26e9864a2d",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_cf3ac6a2bcdf4831",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_d22e71148b5a42d0",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_34a19793a2724f98",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_0ac34952ef62428c",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_25e78986f3504e8b",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_0403f7a805744a67",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_d3e03b8e7cca45e0",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_94ef68bce01e4149",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_7a7fbb38644d4605",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     }
+    ],
+    "level_max": 1,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": []
+   }
+  },
+  "ui1": {
+   "opened": false,
+   "why": "no ui.json: the agent did not serve a dashboard"
+  },
+  "fork_after_c1": {
+   "pulls": [
+    {
+     "created_at": "2026-11-04T05:48:36Z",
+     "head": "dependabot/docker/oven/bun-1.4.4-alpine",
+     "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+     "merge_commit_sha": "8b5b3e76ec09c542398228b71f3e3c8744884939",
+     "merged_at": null,
+     "number": 2,
+     "state": "open",
+     "title": "chore(docker): bump oven/bun from 1.3.14-alpine to 1.4.4-alpine",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781518134/job/126413911985",
+       "name": "Simplicity budgets",
+       "started_at": "2026-11-04T05:48:44Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413911865",
+       "name": "Beta release guard",
+       "started_at": "2026-11-04T05:48:44Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413911792",
+       "name": "Detect changes",
+       "started_at": "2026-11-04T05:48:44Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413911719",
+       "name": "Contributors attribution",
+       "started_at": "2026-11-04T05:48:44Z",
+       "status": "in_progress"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T05:48:30Z",
+     "head": "dependabot/docker_compose/oven/bun-1.4.4-alpine",
+     "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+     "merge_commit_sha": "4d567de98170af097ebf1a33265078b6548ed35f",
+     "merged_at": null,
+     "number": 1,
+     "state": "open",
+     "title": "chore(docker): bump oven/bun from 1.3.14-alpine to 1.4.4-alpine",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413931667",
+       "name": "Frontend type check (tsc)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413931654",
+       "name": "Migration check (alembic)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413931373",
+       "name": "Helm smoke install (kind)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413931325",
+       "name": "Frontend tests (vitest + coverage)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413931201",
+       "name": "Frontend lint (eslint)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413931190",
+       "name": "Lint (ruff)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413931119",
+       "name": "Package (build)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413930832",
+       "name": "Type check (ty)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413930827",
+       "name": "Migration check (alembic, PostgreSQL)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413930600",
+       "name": "Dashboard browser smoke (Playwright)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413930540",
+       "name": "Frontend build (vite)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413930496",
+       "name": "Helm lint + template + kubeconform",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413930102",
+       "name": "Tests (pytest, integration-core-1)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "queued"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413929666",
+       "name": "Tests (pytest, integration-bridge)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "queued"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413929554",
+       "name": "Tests (pytest, unit)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "queued"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413929551",
+       "name": "Tests (pytest, e2e)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "queued"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413929469",
+       "name": "Tests (pytest, integration-core-3)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "queued"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413929411",
+       "name": "Docker build",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "queued"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413929406",
+       "name": "Tests (pytest, integration-core-2)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "queued"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413929340",
+       "name": "Tests (pytest, PostgreSQL)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "queued"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413880069",
+       "name": "Beta release guard",
+       "started_at": "2026-11-04T05:48:39Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413879916",
+       "name": "Contributors attribution",
+       "started_at": "2026-11-04T05:48:38Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "success",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413879844",
+       "name": "Detect changes",
+       "started_at": "2026-11-04T05:48:38Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "success",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508178/job/126413879651",
+       "name": "Simplicity budgets",
+       "started_at": "2026-11-04T05:48:38Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [],
+   "base_head": "827f7c557e7c5895c4a623ee091870c0534bd938"
+  },
+  "cycle2": {
+   "started": false,
+   "waited_s": 20.2,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": false,
+    "pid": null,
+    "started_at": null,
+    "command": null,
+    "log": "/Users/david/unbidden-lab/c13/codex-lb/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "deployment.observed": 1,
+     "egress.allowed": 1,
+     "egress.blocked": 5,
+     "guardian.values_masked": 2,
+     "mandate.changed": 3,
+     "model.called": 1,
+     "operations.deployed": 4,
+     "opportunity.opened": 10,
+     "workspace.initialized": 1
+    },
+    "docs": {
+     "deployments": 1,
+     "egress": 6,
+     "model_runs": 1,
+     "opportunities": 10,
+     "transcripts": 1,
+     "world": 1
+    },
+    "jobs": {},
+    "experiments": 0,
+    "opportunities": [
+     {
+      "id": "opp_7d34cc26e9864a2d",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_cf3ac6a2bcdf4831",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_d22e71148b5a42d0",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_34a19793a2724f98",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_0ac34952ef62428c",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_25e78986f3504e8b",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_0403f7a805744a67",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_d3e03b8e7cca45e0",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_94ef68bce01e4149",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_7a7fbb38644d4605",
+      "source": "world",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     }
+    ],
+    "level_max": 1,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": []
+   }
+  },
+  "asks_answered": [],
+  "fork_after_c2": {
+   "pulls": [
+    {
+     "created_at": "2026-11-04T05:49:01Z",
+     "head": "dependabot/docker/python-3.15-slim-bookworm",
+     "head_sha": "f1cca2459a4d2d7b12351864295835bd7fb4f177",
+     "merge_commit_sha": "d7c209547f1414992df87918902883a2f298a91f",
+     "merged_at": null,
+     "number": 4,
+     "state": "open",
+     "title": "chore(docker): bump python from 3.14-slim-bookworm to 3.15-slim-bookworm",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "f1cca2459a4d2d7b12351864295835bd7fb4f177",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781561013/job/126414047998",
+       "name": "Contributors attribution",
+       "started_at": "2026-11-04T05:49:10Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "f1cca2459a4d2d7b12351864295835bd7fb4f177",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781561013/job/126414047985",
+       "name": "Detect changes",
+       "started_at": "2026-11-04T05:49:10Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "f1cca2459a4d2d7b12351864295835bd7fb4f177",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781561013/job/126414047928",
+       "name": "Beta release guard",
+       "started_at": "2026-11-04T05:49:10Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "f1cca2459a4d2d7b12351864295835bd7fb4f177",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781561045/job/126414047489",
+       "name": "Simplicity budgets",
+       "started_at": "2026-11-04T05:49:10Z",
+       "status": "in_progress"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T05:48:57Z",
+     "head": "dependabot/docker/astral-sh/uv-0.13.7",
+     "head_sha": "e08a60086ec695f58bf6f49c9f43dd434805a852",
+     "merge_commit_sha": "85c5f70efd20edf0271cdd38edb21ab73766b67e",
+     "merged_at": null,
+     "number": 3,
+     "state": "open",
+     "title": "chore(docker): bump astral-sh/uv from 0.12.5 to 0.13.7",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "e08a60086ec695f58bf6f49c9f43dd434805a852",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781553052/job/126414023538",
+       "name": "Contributors attribution",
+       "started_at": "2026-11-04T05:49:05Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "e08a60086ec695f58bf6f49c9f43dd434805a852",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781553052/job/126414023381",
+       "name": "Detect changes",
+       "started_at": "2026-11-04T05:49:03Z",
+       "status": "queued"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "e08a60086ec695f58bf6f49c9f43dd434805a852",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781553052/job/126414023263",
+       "name": "Beta release guard",
+       "started_at": "2026-11-04T05:49:06Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "e08a60086ec695f58bf6f49c9f43dd434805a852",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781553086/job/126414022672",
+       "name": "Simplicity budgets",
+       "started_at": "2026-11-04T05:49:05Z",
+       "status": "in_progress"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T05:48:36Z",
+     "head": "dependabot/docker/oven/bun-1.4.4-alpine",
+     "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+     "merge_commit_sha": "8b5b3e76ec09c542398228b71f3e3c8744884939",
+     "merged_at": null,
+     "number": 2,
+     "state": "open",
+     "title": "chore(docker): bump oven/bun from 1.3.14-alpine to 1.4.4-alpine",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T05:49:04Z",
+       "conclusion": "success",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413998633",
+       "name": "Tests (pytest, integration-core)",
+       "started_at": "2026-11-04T05:49:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:50Z",
+       "conclusion": "skipped",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413957543",
+       "name": "Helm lint + template + kubeconform",
+       "started_at": "2026-11-04T05:48:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:50Z",
+       "conclusion": "skipped",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413957524",
+       "name": "Lint (ruff)",
+       "started_at": "2026-11-04T05:48:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:50Z",
+       "conclusion": "skipped",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413957442",
+       "name": "Frontend lint (eslint)",
+       "started_at": "2026-11-04T05:48:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:50Z",
+       "conclusion": "skipped",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413957418",
+       "name": "Migration check (alembic)",
+       "started_at": "2026-11-04T05:48:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:50Z",
+       "conclusion": "skipped",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413957363",
+       "name": "Migration check (alembic, PostgreSQL)",
+       "started_at": "2026-11-04T05:48:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:50Z",
+       "conclusion": "skipped",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413957352",
+       "name": "Frontend type check (tsc)",
+       "started_at": "2026-11-04T05:48:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:50Z",
+       "conclusion": "skipped",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413957308",
+       "name": "Frontend build (vite)",
+       "started_at": "2026-11-04T05:48:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:50Z",
+       "conclusion": "skipped",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413957237",
+       "name": "Dashboard browser smoke (Playwright)",
+       "started_at": "2026-11-04T05:48:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:50Z",
+       "conclusion": "skipped",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413957234",
+       "name": "Package (build)",
+       "started_at": "2026-11-04T05:48:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:50Z",
+       "conclusion": "skipped",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413956982",
+       "name": "Type check (ty)",
+       "started_at": "2026-11-04T05:48:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:50Z",
+       "conclusion": "skipped",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413956939",
+       "name": "Frontend tests (vitest + coverage)",
+       "started_at": "2026-11-04T05:48:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:50Z",
+       "conclusion": "skipped",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413956745",
+       "name": "Helm smoke install (kind)",
+       "started_at": "2026-11-04T05:48:50Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:58Z",
+       "conclusion": "success",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413955410",
+       "name": "Tests (pytest, unit)",
+       "started_at": "2026-11-04T05:48:54Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:57Z",
+       "conclusion": "success",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413955350",
+       "name": "Tests (pytest, integration-core-3)",
+       "started_at": "2026-11-04T05:48:53Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413955343",
+       "name": "Tests (pytest, PostgreSQL)",
+       "started_at": "2026-11-04T05:48:53Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413955302",
+       "name": "Docker build",
+       "started_at": "2026-11-04T05:48:52Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:58Z",
+       "conclusion": "success",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413955284",
+       "name": "Tests (pytest, e2e)",
+       "started_at": "2026-11-04T05:48:53Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:58Z",
+       "conclusion": "success",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413955275",
+       "name": "Tests (pytest, integration-core-1)",
+       "started_at": "2026-11-04T05:48:53Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:58Z",
+       "conclusion": "success",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413955268",
+       "name": "Tests (pytest, integration-core-2)",
+       "started_at": "2026-11-04T05:48:53Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:58Z",
+       "conclusion": "success",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413955258",
+       "name": "Tests (pytest, integration-bridge)",
+       "started_at": "2026-11-04T05:48:53Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:52Z",
+       "conclusion": "success",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781518134/job/126413911985",
+       "name": "Simplicity budgets",
+       "started_at": "2026-11-04T05:48:44Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:53Z",
+       "conclusion": "success",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413911865",
+       "name": "Beta release guard",
+       "started_at": "2026-11-04T05:48:44Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:50Z",
+       "conclusion": "success",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413911792",
+       "name": "Detect changes",
+       "started_at": "2026-11-04T05:48:44Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:52Z",
+       "conclusion": "failure",
+       "head_sha": "52b210b63e863a22b722b23843dcade764f593f9",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781517984/job/126413911719",
+       "name": "Contributors attribution",
+       "started_at": "2026-11-04T05:48:44Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T05:48:30Z",
+     "head": "dependabot/docker_compose/oven/bun-1.4.4-alpine",
+     "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+     "merge_commit_sha": "4d567de98170af097ebf1a33265078b6548ed35f",
+     "merged_at": null,
+     "number": 1,
+     "state": "open",
+     "title": "chore(docker): bump oven/bun from 1.3.14-alpine to 1.4.4-alpine",
+     "user": "dependabot[bot]",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T05:49:00Z",
+       "conclusion": "success",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413981249",
+       "name": "Tests (pytest, integration-core)",
+       "started_at": "2026-11-04T05:48:57Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413931667",
+       "name": "Frontend type check (tsc)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413931654",
+       "name": "Migration check (alembic)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413931373",
+       "name": "Helm smoke install (kind)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413931325",
+       "name": "Frontend tests (vitest + coverage)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413931201",
+       "name": "Frontend lint (eslint)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413931190",
+       "name": "Lint (ruff)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413931119",
+       "name": "Package (build)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413930832",
+       "name": "Type check (ty)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413930827",
+       "name": "Migration check (alembic, PostgreSQL)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413930600",
+       "name": "Dashboard browser smoke (Playwright)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413930540",
+       "name": "Frontend build (vite)",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "skipped",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413930496",
+       "name": "Helm lint + template + kubeconform",
+       "started_at": "2026-11-04T05:48:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:52Z",
+       "conclusion": "success",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413930102",
+       "name": "Tests (pytest, integration-core-1)",
+       "started_at": "2026-11-04T05:48:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:52Z",
+       "conclusion": "success",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413929666",
+       "name": "Tests (pytest, integration-bridge)",
+       "started_at": "2026-11-04T05:48:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:55Z",
+       "conclusion": "success",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413929554",
+       "name": "Tests (pytest, unit)",
+       "started_at": "2026-11-04T05:48:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:51Z",
+       "conclusion": "success",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413929551",
+       "name": "Tests (pytest, e2e)",
+       "started_at": "2026-11-04T05:48:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:52Z",
+       "conclusion": "success",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413929469",
+       "name": "Tests (pytest, integration-core-3)",
+       "started_at": "2026-11-04T05:48:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413929411",
+       "name": "Docker build",
+       "started_at": "2026-11-04T05:48:47Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:55Z",
+       "conclusion": "success",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413929406",
+       "name": "Tests (pytest, integration-core-2)",
+       "started_at": "2026-11-04T05:48:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413929340",
+       "name": "Tests (pytest, PostgreSQL)",
+       "started_at": "2026-11-04T05:48:48Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:48Z",
+       "conclusion": "success",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413880069",
+       "name": "Beta release guard",
+       "started_at": "2026-11-04T05:48:39Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:48Z",
+       "conclusion": "failure",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413879916",
+       "name": "Contributors attribution",
+       "started_at": "2026-11-04T05:48:38Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "success",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508217/job/126413879844",
+       "name": "Detect changes",
+       "started_at": "2026-11-04T05:48:38Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T05:48:45Z",
+       "conclusion": "success",
+       "head_sha": "1f0a93e9a7bd77c762cc14b730799ef0d0c74fde",
+       "html_url": "https://github.com/satisfymath/c13-codex-lb/actions/runs/41781508178/job/126413879651",
+       "name": "Simplicity budgets",
+       "started_at": "2026-11-04T05:48:38Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [],
+   "base_head": "827f7c557e7c5895c4a623ee091870c0534bd938"
+  },
+  "status_final": {
+   "running": false,
+   "pid": null,
+   "started_at": null,
+   "command": null,
+   "log": "/Users/david/unbidden-lab/c13/codex-lb/.unbidden/logs/agent.log",
+   "stale": false,
+   "jobs_running": 0,
+   "jobs_queued": 0
+  },
+  "egress": {
+   "api.meta.ai:setup.probe:allowed_sent": 1,
+   "api.meta.ai:world.endpoint_tables:blocked": 5
+  },
+  "checks": {
+   "status": null,
+   "why": "no baseline_checks record (the first cycle did not reach it in time)"
+  },
+  "ledger_after": {
+   "envelope": "s13-dev",
+   "envelope_spent_usd": 0.033,
+   "available_usd": 65.6289,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c13-dev-rehearsal-B1-codex-lb",
+   "calls": 6,
+   "usd": 0.0006,
+   "tokens_in": 25,
+   "tokens_out": 127
+  },
+  "spent_usd": 0.0006,
+  "export": {
+   "available": true,
+   "ok": true,
+   "code": 0,
+   "dir": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/rehearsal-0.18/codex-lb/export",
+   "files": 25,
+   "answer": null
+  },
+  "archive": "/Users/david/unbidden-lab/c13/archive/codex-lb-B1-dev-rehearsal.tgz",
+  "archive_kept": {
+   "name": "codex-lb-B1-dev-rehearsal.tgz",
+   "bytes": 28295,
+   "sha256": "59798e3f586d26b0e660a97dece441b31aa8f5a26be71768cfe48f1e3f5d2c87",
+   "kept": true,
+   "where": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/rehearsal-0.18/codex-lb/export/codex-lb-B1-dev-rehearsal.tgz"
+  },
+  "self_host_down": {
+   "code": 0,
+   "answer": {
+    "ok": true,
+    "project": "unbidden-codex-lb",
+    "why": null
+   }
+  }
+ },
+ "human": [
+  {
+   "step": "create the public copy satisfymath/c13-codex-lb",
+   "minutes": 1,
+   "why": "pull requests, CI and merges off upstream"
+  },
+  {
+   "step": "push the pin 84fde5a1ed5e to satisfymath/c13-codex-lb:main",
+   "minutes": 1,
+   "why": "the copy's base"
+  },
+  {
+   "step": "campaign commit 827f7c557e7c on satisfymath/c13-codex-lb:main: 8 workflow file(s) removed, 1 cut",
+   "minutes": 5,
+   "why": "no deploy, release, package or bot runs from the copy; the checks stay as written"
+  },
+  {
+   "step": "mandate: fork, registries, operations, connections",
+   "minutes": 2,
+   "why": "a person's declaration"
+  }
+ ],
+ "blocks": []
+}

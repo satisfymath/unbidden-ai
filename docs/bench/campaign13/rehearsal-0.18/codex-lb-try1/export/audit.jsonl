@@ -1,0 +1,3 @@
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 1, "summary": "MODEL_API_KEY for model.remote: given", "ts": "2026-11-04T05:47:26.046190+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 2, "summary": "MODEL_API_KEY for model.remote: given", "ts": "2026-11-04T05:47:28.823193+00:00"}
+{"actor": "guardian", "correlation_id": null, "data": {}, "kind": "credential.use", "seq": 3, "summary": "MODEL_API_KEY for model.remote: given", "ts": "2026-11-04T05:47:28.823601+00:00"}
