@@ -1,0 +1,37 @@
+name: Bug report
+description: Something Unbidden did, or claimed, that is wrong
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Remove secrets, tokens and private code from everything you paste. Report vulnerabilities through SECURITY.md, not here.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: Commands, repository (if public), model option and autonomy mode
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The output of `unbidden --version`
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `unbidden doctor`
+      render: text
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log or record
+      render: text

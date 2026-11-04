@@ -20,6 +20,9 @@ build/
 # OS
 .DS_Store
 
+# Cloudflare Pages cache
+.wrangler/
+
 # web workspace (feat/61)
 frontend/node_modules/
 frontend/dist/

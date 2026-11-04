@@ -1,0 +1,22 @@
+name: Feature request
+description: Something Unbidden should be able to do
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to do, and where Unbidden falls short today
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you propose
+    validations:
+      required: true
+  - type: textarea
+    id: measure
+    attributes:
+      label: How it would be measured
+      description: What result would show that this works

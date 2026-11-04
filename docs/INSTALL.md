@@ -5,7 +5,7 @@ web workspace already built inside. The installer puts it in its own environment
 [uv](https://docs.astral.sh/uv/); nothing else on the machine changes. The end user needs no Node and no Python of
 their own.
 
-Verified by hand on macOS on Apple Silicon (arm64) only. Linux x86-64 runs in GitHub Actions (CI jobs `check`,
+The one-line install was run by hand on macOS on Apple Silicon (two machines) and on Linux x86-64 (Fedora), 2026-11-02. Linux x86-64 also runs in GitHub Actions (CI jobs `check`,
 `frontend`, `installed`; CI run [41333127432](https://github.com/satisfymath/unbidden-ai/actions/runs/41333127432) on `2d72ce4`, 2026-11-01: `check`, `frontend`, `installed` and `secrets` all green).
 
 ## One line
