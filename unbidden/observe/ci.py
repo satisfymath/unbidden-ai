@@ -1848,3 +1848,43 @@ def environment_equivalence(
     if not defaults:
         return DIFFERS, f"the team's CI runs {tool} with {covering[0].config}, not the configuration Unbidden used"
     return SAME, ""
+
+
+def runs_on_pull_requests(workflows: dict[str, str], base: str, head: str) -> bool:
+    """Whether any of these workflow files (path -> text) runs on a pull request from `head` into `base`: a
+    `pull_request` or `pull_request_target` trigger whose branch filters let `base` through, or a `push` trigger whose
+    filters let `head` through. dooit (campaign 13): its workflows run only on pushes to `develop`, their
+    `pull_request` trigger commented out; the agent waited for a CI that would never come."""
+    import fnmatch
+
+    def passes(spec: object, branch: str) -> bool:
+        if not isinstance(spec, dict):
+            return True  # `on: [push]` or `pull_request:` with no filter
+        only = spec.get("branches")
+        ignored = spec.get("branches-ignore")
+        if only is not None:
+            return any(fnmatch.fnmatch(branch, str(b)) for b in (only if isinstance(only, list) else [only]))
+        if ignored is not None:
+            return not any(
+                fnmatch.fnmatch(branch, str(b)) for b in (ignored if isinstance(ignored, list) else [ignored])
+            )
+        return True
+
+    for text in workflows.values():
+        try:
+            data = yaml.safe_load(text) or {}
+        except yaml.YAMLError:
+            return True  # unreadable: assume it runs, never a merge without the team's CI by a parsing slip
+        if not isinstance(data, dict):
+            continue
+        on = data.get("on", data.get(True))
+        events: dict[str, object] = (
+            {on: None} if isinstance(on, str) else {str(e): None for e in on} if isinstance(on, list)
+            else {str(k): v for k, v in on.items()} if isinstance(on, dict) else {}
+        )  # fmt: skip
+        for event in ("pull_request", "pull_request_target"):
+            if event in events and passes(events[event], base):
+                return True
+        if "push" in events and passes(events["push"], head):
+            return True
+    return False

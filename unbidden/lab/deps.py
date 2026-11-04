@@ -127,13 +127,17 @@ def relock_uv(repo: Path, rev: str, files: list[str], package: str, version: str
             (ctx / "p" / path).parent.mkdir(parents=True, exist_ok=True)
             (ctx / "p" / path).write_bytes(data)
         (ctx / "Dockerfile").write_text(
-            "FROM python:3.12-slim\nRUN pip install --no-cache-dir uv\nCOPY p/ /p/\nWORKDIR /p\n"
+            # Not -slim: a lock may pin a git source (harlequin: pytest-textual-snapshot from GitHub) and uv needs git.
+            "FROM python:3.12\nRUN pip install --no-cache-dir uv\nCOPY p/ /p/\nWORKDIR /p\n"
             f"RUN uv lock --upgrade-package '{package}=={version}'\n"
         )
         tag = f"unbidden-relock:{_norm(package)}-{version}".replace("+", "-")[:120]
-        built = subprocess.run([docker, "build", "-q", "-t", tag, str(ctx)], capture_output=True, text=True)
+        built = subprocess.run([docker, "build", "--progress=plain", "-t", tag, str(ctx)], capture_output=True,
+                               text=True)  # fmt: skip
         if built.returncode != 0:
-            said = [ln for ln in built.stderr.splitlines() if "error" in ln.lower() or "Error:" in ln]
+            # uv's own `error:` and `cause:` lines say why; the build's last line only that the step failed
+            said = [re.sub(r"^#\d+ [\d.]+ ", "", ln) for ln in built.stderr.splitlines()
+                    if re.search(r"\b(error|cause):", ln)]  # fmt: skip
             raise ProvisionError(f"uv lock --upgrade-package {package}=={version} failed:\n"
                                  f"{chr(10).join(said[-6:])[-1200:] or built.stderr[-1200:]}")  # fmt: skip
         out = subprocess.run([docker, "run", "--rm", "--network", "none", tag, "cat", "/p/uv.lock"],

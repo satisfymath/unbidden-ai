@@ -1,5 +1,27 @@
 # Unbidden 0.18.0, experimental candidate: the terminal app on the product branch, not 1.0
 
+## 0.18.6 (2026-11-04): the labs' type checks and formatter run where the project is installed
+
+- **The fix lab and the performance lab run mypy and pyright in Unbidden's own environment.** reader, final pass on
+  0.18.5: reproducing its lint findings, the fix lab ran mypy in the CI job's image (no `/deps/.venv`), so every
+  fix ended "cannot judge: incomplete reports from mypy". A tool that reads `/deps/.venv` now runs beside, in
+  Unbidden's own environment of the same revision (0.18.3); the others still run in the CI job's.
+- **A `uv.lock` with a git source relocks.** harlequin, the same pass: eight security bumps (aiohttp's eight
+  advisories among them) stopped at "uv lock failed", the reason lost; uv had said git was missing for a git source
+  (pytest-textual-snapshot from GitHub). The relock image now has git, and a failure keeps uv's own `error:` and
+  `cause:` lines. Real check: aiohttp relocked to 3.14.4.
+- **A team CI that never runs on pull requests is no CI to wait for.** dooit, the same pass: its workflows run
+  only on pushes to `develop` (the `pull_request` trigger commented out), so the agent waited for checks that would
+  never come and both security pull requests stayed open. When no workflow at the measured commit runs on a pull
+  request into the base (`pull_request`, `pull_request_target`, or a `push` that matches the branch), the merge rests
+  on the lab's evidence, as for a repository with no workflow; an unreadable workflow is assumed to run.
+- **Each round of the team's own test step starts from the measured revision.** sqlmodel, the same pass: its CI
+  step runs `mkdir coverage`; rounds 2 and 3 failed on "File exists" in the tree round 1 left, and all five
+  security bumps (their advisories gone) were declined as infrastructure failures.
+- **The candidate goes through the team's formatter and type check from the installed project.** rich, the same
+  pass: two pull requests red on `black --check` in every CI cell, with the note "black: not in the project's
+  environment": the formatter ran in the CI job's image, where it is not on the PATH.
+
 ## 0.18.5 (2026-11-04): standing advisories are not new with a bump; findings relative to the repository
 
 - **The base's advisories are read, every package's.** marshmallow, final pass on 0.18.4: certifi's bump removed its

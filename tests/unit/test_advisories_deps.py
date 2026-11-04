@@ -17,7 +17,7 @@ from unbidden.lab.deps import DepsLab, bump_requirements
 from unbidden.observe.advisories import TOOL, advisory_report, lowest_fix
 from unbidden.observe.analyzers import record_report
 from unbidden.observe.stack import detect_stack
-from unbidden.sandbox.provision import DependencyImage
+from unbidden.sandbox.provision import DependencyImage, ProvisionError
 from unbidden.sandbox.runner import SandboxResult, SandboxSpec
 from unbidden.store import Store
 
@@ -224,3 +224,23 @@ async def test_another_packages_standing_advisories_are_not_new_with_the_bump(
     result = await lab.run(opp)
     assert result.verdict is not None and result.verdict.improved, result.verdict
     assert not any("new advisories" in r for r in result.verdict.reasons)
+
+
+def test_a_failed_relock_says_uvs_own_reason(tmp_path: Path) -> None:
+    """harlequin, final pass 0.18.5: the recorded reason was only "did not complete successfully"; uv had said that
+    git was missing for a git source. Its `error:` and `cause:` lines are kept."""
+    from unbidden.lab.deps import relock_uv
+
+    repo, rev = _repo(tmp_path)
+    docker = tmp_path / "docker"
+    docker.write_text(
+        "#!/bin/sh\n"
+        'echo "#9 1.49 error: Failed to download and build pkg" >&2\n'
+        'echo "#9 1.49   cause: Git executable not found." >&2\n'
+        'echo "#9 ERROR: process did not complete successfully: exit code: 1" >&2\n'
+        "exit 1\n"
+    )
+    docker.chmod(0o755)
+    with pytest.raises(ProvisionError) as raised:
+        relock_uv(repo, rev, ["requirements.txt"], "requests", "2.32.0", docker=str(docker))
+    assert "Git executable not found" in str(raised.value)
