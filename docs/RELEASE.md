@@ -1,5 +1,11 @@
 # Unbidden 0.18.0, experimental candidate: the terminal app on the product branch, not 1.0
 
+## 0.18.9 (2026-11-04): pull request titles a team's title check accepts
+
+- **Security bumps are titled as Conventional Commits.** aegra, final pass on 0.18.6: three security bumps were red
+  only on its pull request title check ("Unknown release type `security`"). They are now `fix(deps): bump certifi
+  2026.1.4 → 2026.10.18 (security)`; every title Unbidden writes starts with a Conventional Commits type.
+
 ## 0.18.8 (2026-11-04): the web workspace wears the brand sheet
 
 - **The dashboard is monochrome in its source.** Deep black and bone white replace petrol blue and turquoise. Amber,
