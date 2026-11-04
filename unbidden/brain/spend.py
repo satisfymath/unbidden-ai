@@ -305,9 +305,14 @@ class SpendLedger:
                 (_iso(utc_now()), note, rid),
             )
 
-    def rows(self, *, run: str | None = None, since: datetime | None = None) -> list[dict[str, Any]]:
+    def rows(
+        self, *, run: str | None = None, since: datetime | None = None, workspace: str | None = None
+    ) -> list[dict[str, Any]]:
         query = f"SELECT *, {CHARGED} AS charged FROM requests WHERE 1=1"
         params: list[Any] = []
+        if workspace is not None:
+            query += " AND workspace = ?"
+            params.append(workspace)
         if run is not None:
             query += " AND run = ?"
             params.append(run)

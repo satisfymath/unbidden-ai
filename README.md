@@ -83,7 +83,9 @@ production data stay on the machine; private code leaves only renamed by the pri
 `private_code_to_frontier: allow`; code counts as public only when GitHub confirms the repository is public. The
 egress gate re-checks the label and scans every payload before it leaves, whatever the router decided.
 `unbidden route` explains where each task would go without calling any model; `unbidden egress --payload` shows,
-byte for byte, everything that left.
+byte for byte, everything that left. `unbidden export` writes the workspace's evidence (records, the redacted transcript of every
+model call, spend, a manifest of sha256s) as files to publish, refusing if its secret scan finds anything
+([INSTALL.md](docs/INSTALL.md#evidence-unbidden-export)).
 
 ## Autonomy
 

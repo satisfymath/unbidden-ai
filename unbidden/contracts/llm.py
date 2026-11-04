@@ -148,3 +148,47 @@ class ModelRun(Contract):
     correlation_id: str | None = None
     route_reason: str | None = None  # why this model served the call
     created_at: datetime = Field(default_factory=utc_now)
+
+
+class TranscriptMessage(Contract):
+    """One message of a model call, as it was sent: pictures by their digest only."""
+
+    role: str
+    source: str | None = None
+    content: str
+    images: list[str] = Field(default_factory=list[str])  # sha256 of each picture; the bytes are never kept
+    tool_calls: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
+    tool_call_id: str | None = None
+
+
+class Transcript(Contract):
+    """The full record of one model attempt: the request as sent and the answer as received, redacted by the store
+    like every document. Kept beside its `ModelRun` (`model_run_id`), never in place of it. No key, header or
+    provider URL is ever part of it."""
+
+    id: str = Field(default_factory=lambda: new_id("tr"))
+    at: datetime = Field(default_factory=utc_now)
+    model_run_id: str
+    purpose: str
+    tier: Tier
+    provider: str
+    model: str
+    attempt: int
+    ok: bool
+    problem: str | None = None
+    correlation_id: str | None = None
+    messages: list[TranscriptMessage]
+    tools: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
+    response_schema: dict[str, Any] | None = None
+    max_tokens: int
+    answer: str | None = None  # None: no answer came back (the provider failed)
+    answer_json: Any = None  # the parsed answer, when the request asked for JSON and it parsed
+    answer_tool_calls: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
+    thinking: str | None = None
+    done_reason: str | None = None
+    tokens_in: int = 0
+    tokens_out: int = 0
+    usd: float = 0.0
+    prompt_sha256: str | None = None  # the caller's fingerprint of its prompt, as in the model run
+    payload_sha256: str  # sha256 of the exact payload (`_payload`) of this attempt
+    truncated: list[str] = Field(default_factory=list[str])  # fields cut at TRANSCRIPT_FIELD_CAP characters

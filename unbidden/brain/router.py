@@ -8,6 +8,7 @@ tokens, time and money whatever happens.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from datetime import datetime
@@ -30,7 +31,18 @@ from unbidden.config import Config, Route
 from unbidden.contracts.common import Cost
 from unbidden.contracts.events import Event, EventType
 from unbidden.contracts.guardian import ActionRequest, EgressAttempt, EgressVerdict, Mandate
-from unbidden.contracts.llm import ContentLabel, LLMRequest, LLMResponse, Message, ModelRun, Source, Tier, Usage
+from unbidden.contracts.llm import (
+    ContentLabel,
+    LLMRequest,
+    LLMResponse,
+    Message,
+    ModelRun,
+    Source,
+    Tier,
+    Transcript,
+    TranscriptMessage,
+    Usage,
+)
 from unbidden.guardian.classify import Classification, classify
 from unbidden.guardian.egress import evaluate_screenshots, evaluate_synthetic
 from unbidden.guardian.killswitch import KillSwitch, checkpoint
@@ -40,6 +52,7 @@ from unbidden.store import Store
 
 ACTOR = "brain"
 KEY_REJECTED = "key rejected"  # the `problem` of a model run the service refused for its key (401/403): never billed
+TRANSCRIPT_FIELD_CAP = 200_000  # characters kept of each text field of a transcript; the rest is cut and said so
 
 
 class BrainError(RuntimeError):
@@ -128,6 +141,63 @@ def _payload(request: LLMRequest) -> str:
         },
         sort_keys=True,
         ensure_ascii=False,
+    )
+
+
+def _cap(text: str | None, field: str, cut: list[str]) -> str | None:
+    if text is None or len(text) <= TRANSCRIPT_FIELD_CAP:
+        return text
+    cut.append(field)
+    return text[:TRANSCRIPT_FIELD_CAP] + f"\n[... {len(text) - TRANSCRIPT_FIELD_CAP} more characters cut]"
+
+
+def transcript_of(request: LLMRequest, run: ModelRun, response: LLMResponse | None) -> Transcript:
+    """The full record of one attempt: what was sent (the request after masking, exactly as the provider got it) and
+    what came back. Only the request and the answer: a provider's key, headers and URL are never part of either."""
+    cut: list[str] = []
+    messages = [
+        TranscriptMessage(
+            role=m.role,
+            source=m.source,
+            content=_cap(m.content, f"messages[{i}].content", cut) or "",
+            images=[image.sha256 for image in m.images],
+            tool_calls=[c.model_dump(mode="json") for c in m.tool_calls],
+            tool_call_id=m.tool_call_id,
+        )
+        for i, m in enumerate(request.messages)
+    ]
+    answer_json: Any = None
+    if response is not None and request.response_schema is not None and not response.tool_calls:
+        try:
+            answer_json = parse_json(response.content)
+        except json.JSONDecodeError:
+            answer_json = None
+    return Transcript(
+        model_run_id=run.id,
+        at=run.created_at,
+        purpose=run.purpose,
+        tier=run.tier,
+        provider=run.provider,
+        model=run.model,
+        attempt=run.attempt,
+        ok=run.ok,
+        problem=run.problem,
+        correlation_id=run.correlation_id,
+        messages=messages,
+        tools=[t.model_dump(mode="json") for t in request.tools],
+        response_schema=request.response_schema,
+        max_tokens=request.max_tokens,
+        answer=None if response is None else _cap(response.content, "answer", cut),
+        answer_json=answer_json if "answer" not in cut else None,
+        answer_tool_calls=[] if response is None else [c.model_dump(mode="json") for c in response.tool_calls],
+        thinking=None if response is None else _cap(response.thinking, "thinking", cut),
+        done_reason=None if response is None else response.done_reason,
+        tokens_in=run.cost.tokens_in,
+        tokens_out=run.cost.tokens_out,
+        usd=round(run.cost.usd, 8),
+        prompt_sha256=run.prompt_sha256,
+        payload_sha256=hashlib.sha256(_payload(request).encode()).hexdigest(),
+        truncated=cut,
     )
 
 
@@ -552,6 +622,8 @@ class Brain:
             route_reason=why,
         )
         self.store.put("model_runs", run)
+        # The full exchange beside the run, through the store so it is redacted like every document.
+        self.store.put("transcripts", transcript_of(request, run, response))
         if run.ok:
             self.served_by[run.purpose] = run
         if egress_id is not None:
