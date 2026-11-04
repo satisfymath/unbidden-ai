@@ -393,6 +393,24 @@ def ci_pending(slug: str, base: str) -> bool:
     return False
 
 
+def green_unmerged(slug: str, base: str) -> bool:
+    """Whether an open pull request against the base has its CI finished and green, not merged yet: the agent merges
+    it on its next poll (every few minutes), so the harness keeps observing a while (final pass, 0.18.4:
+    python-progressbar's CI turned green one minute before the cycle ended, and the merge was never seen)."""
+    state = copy_state(slug, base)
+    for pr in state.get("pulls", []):
+        runs = pr.get("checks") or []
+        if pr.get("state") != "open" or not runs:
+            continue
+        done = all(r.get("status") == "completed" for r in runs)
+        failed = any(
+            r.get("conclusion") in ("failure", "timed_out", "action_required", "startup_failure") for r in runs
+        )
+        if done and not failed:
+            return True
+    return False
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("corpus")

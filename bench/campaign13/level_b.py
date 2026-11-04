@@ -53,11 +53,12 @@ from bench.campaign13.common import (
     unbidden,
     update_summary,
 )
-from bench.campaign13.copies import ci_pending, copy_state, ensure_copy
+from bench.campaign13.copies import ci_pending, copy_state, ensure_copy, green_unmerged
 from bench.campaign13.level_a import _checks_record, archive, key_from_machine  # pyright: ignore[reportPrivateUsage]
 
 CYCLE_BOUND_S = 5400
 IDLE_POLL_S = 20
+MERGE_GRACE_S = 720  # an open pull request with green CI: the agent's poll is every few minutes
 HOST_UP_S = 3600
 GH = "satisfymath"
 FRONTEND = Path(__file__).resolve().parents[2] / "frontend"
@@ -399,6 +400,7 @@ def cycle(
     idle_ticks = 0
     last: dict[str, Any] = {}
     answered: list[dict[str, Any]] = []
+    green_since: float | None = None
     while time.monotonic() - began < bound_s:
         time.sleep(IDLE_POLL_S)
         st = run("status", [unbidden(), "status", "--json"], cwd=repo_dir, env_=e, timeout_s=120).json() or {}
@@ -419,6 +421,12 @@ def cycle(
                 if copy and ci_pending(copy["slug"], copy["base"]):
                     idle_ticks = 0
                     continue
+                # Green and open: the agent's next poll merges it; a grace from the first time it is seen so.
+                if copy and green_unmerged(copy["slug"], copy["base"]):
+                    green_since = green_since or time.monotonic()
+                    if time.monotonic() - green_since < MERGE_GRACE_S:
+                        idle_ticks = 0
+                        continue
                 break
         else:
             idle_ticks = 0

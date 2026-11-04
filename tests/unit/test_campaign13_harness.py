@@ -367,3 +367,20 @@ def test_comparison_with_campaign_12_cites_its_source_and_says_what_is_missing()
     assert "| Level B runs with a pull request | dev | 3/8 (38%, 95% CI 14-69%) | 2/4 (50%, 95% CI 15-85%) |" in joined
     assert "| Level B runs with a pull request | independent | 1/16 (6%, 95% CI 1-28%) | no record |" in joined
     assert "US$2.1 over 24 runs" in joined and "US$0.4 over 1 runs" in joined
+
+
+def test_an_open_pull_request_with_green_ci_keeps_the_cycle_observed(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Final pass, 0.18.4: python-progressbar's CI turned green a minute before the cycle ended; the agent merges on
+    its next poll, so the harness waits a grace for it, and never for a red or merged one."""
+    from bench.campaign13 import copies
+
+    def state(checks: list[dict[str, str]], pr_state: str = "open") -> dict[str, Any]:
+        return {"pulls": [{"state": pr_state, "checks": checks, "created_at": "2026-11-04T17:17:00Z"}]}
+
+    green = [{"status": "completed", "conclusion": "success"}, {"status": "completed", "conclusion": "skipped"}]
+    monkeypatch.setattr(copies, "copy_state", lambda *a: state(green))
+    assert copies.green_unmerged("o/r", "main")
+    monkeypatch.setattr(copies, "copy_state", lambda *a: state([{"status": "completed", "conclusion": "failure"}]))
+    assert not copies.green_unmerged("o/r", "main")
+    monkeypatch.setattr(copies, "copy_state", lambda *a: state(green, "closed"))
+    assert not copies.green_unmerged("o/r", "main")
