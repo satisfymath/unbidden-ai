@@ -1,0 +1,151 @@
+{
+  "created_at": "2026-11-04T18:04:17.239523+00:00",
+  "files": [
+    {
+      "bytes": 21329,
+      "lines": 69,
+      "name": "events.jsonl",
+      "sha256": "893750585c67dd2726684c066cfb799b3d4e51cab35621ae16c244b8e8bad289"
+    },
+    {
+      "bytes": 2043,
+      "lines": 11,
+      "name": "audit.jsonl",
+      "sha256": "342c42fb793504ae8fa6aaf499c26720ac08a6d175e3f4b3f34aecbd9f870937"
+    },
+    {
+      "bytes": 13731,
+      "lines": 1,
+      "name": "opportunities.jsonl",
+      "sha256": "695e95181a2b5f691d8491f8ce6a6b5f8187dbd27bd6c46fc4b3270d98808caf"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "hypotheses.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "experiment_specs.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1806,
+      "lines": 1,
+      "name": "experiments.jsonl",
+      "sha256": "9dac839ef4cbd6ebd19552df480343238eca0024d94d9bb21229583da2a9cf6b"
+    },
+    {
+      "bytes": 1874,
+      "lines": 1,
+      "name": "proposals.jsonl",
+      "sha256": "b329269103bba5306fc3478ea2ac8a8c861bb5372ea941a880d13faae79c8f0c"
+    },
+    {
+      "bytes": 1175,
+      "lines": 2,
+      "name": "decisions.jsonl",
+      "sha256": "8a1dd2a8b4a9270aea6d743ecd33bde682d70384cd58a4f0bc2ff99e9d01e6db"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "deploy_verdicts.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "deployments.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "holds.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "approvals.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "acceptances.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "actions.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "goal_runs.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2644,
+      "lines": 4,
+      "name": "model_runs.jsonl",
+      "sha256": "3ff26b804b95fabe17f0ac5c2c3bedb8de068d914ec5a093d96f6749ba097c7e"
+    },
+    {
+      "bytes": 34665,
+      "lines": 4,
+      "name": "transcripts.jsonl",
+      "sha256": "2d6f892cbc321669f700a8a7f0f0ad271b4b837b5f00e697273fe0cb08953260"
+    },
+    {
+      "bytes": 29724,
+      "lines": 5,
+      "name": "egress.jsonl",
+      "sha256": "00eea9ad7da533cbf9992a1b38312f3975eed9fe401b0c35649b1bb81f04c30d"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "needs.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "asks.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "blocks.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "deploy_ledger.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2479,
+      "lines": 5,
+      "name": "spend.jsonl",
+      "sha256": "7384b00a1d3a675382d6f57cc61df3d6de7994e24d1475a2f67cd4d6cc8b43fa"
+    },
+    {
+      "bytes": 2282,
+      "lines": 96,
+      "name": "mandate.json",
+      "sha256": "00bf57d4fd40de0dfcf57be26dd7871cb06932fdc9fe3f4fc480c07f1daaedb9"
+    }
+  ],
+  "unbidden_version": "0.18.5",
+  "workspace": "oauthlib"
+}

@@ -1,0 +1,151 @@
+{
+  "created_at": "2026-11-04T18:17:33.428791+00:00",
+  "files": [
+    {
+      "bytes": 35797,
+      "lines": 118,
+      "name": "events.jsonl",
+      "sha256": "dac97da2dc56f58596590feffcfc2d41c347dc1d2b58d2bbb8cd21a38f8bb05e"
+    },
+    {
+      "bytes": 2215,
+      "lines": 12,
+      "name": "audit.jsonl",
+      "sha256": "6e0631eb92425a591cc111c8fb76ac8e2f9bf28a91ff51b0721e5920ff08a34b"
+    },
+    {
+      "bytes": 255303,
+      "lines": 2,
+      "name": "opportunities.jsonl",
+      "sha256": "a504ef71fb8f0a7d1faa9c8ca408eb4fd6501036caf8a416e739faecedc4381a"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "hypotheses.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "experiment_specs.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1488,
+      "lines": 1,
+      "name": "experiments.jsonl",
+      "sha256": "85692a8adf7bf4576fe3460b4a38e55c7b62800eac1bcd91c2a5b6abb7d7c371"
+    },
+    {
+      "bytes": 2295,
+      "lines": 1,
+      "name": "proposals.jsonl",
+      "sha256": "bc9e997d451754b54555f70a4d08ae8c9fc540954f9dae359fe75192c0af6467"
+    },
+    {
+      "bytes": 2995,
+      "lines": 5,
+      "name": "decisions.jsonl",
+      "sha256": "4dd224871f140ad9a79159e3a7a1596ab0cb1d4d77c8741a30b73974912ae9d0"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "deploy_verdicts.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "deployments.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "holds.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "approvals.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "acceptances.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "actions.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "goal_runs.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 660,
+      "lines": 1,
+      "name": "model_runs.jsonl",
+      "sha256": "c710b6e53678295d14b5ade94432a6250f9b0da4c78bfb76d5441034e7d091f4"
+    },
+    {
+      "bytes": 13480,
+      "lines": 1,
+      "name": "transcripts.jsonl",
+      "sha256": "bda224e5d71f2c21c5a5d40840f37e312f1cf519e0f0bcdbf6991d1237c514a3"
+    },
+    {
+      "bytes": 14519,
+      "lines": 6,
+      "name": "egress.jsonl",
+      "sha256": "2527bf6b961f9dc391a7099c0e14ecd774248e7247a27bb784550ba17137db31"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "needs.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "asks.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "blocks.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "lines": 0,
+      "name": "deploy_ledger.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3164,
+      "lines": 6,
+      "name": "spend.jsonl",
+      "sha256": "c313c22228fdd32c51c99c261e7d4bbadd3146db9fa613301130834f613fc516"
+    },
+    {
+      "bytes": 2313,
+      "lines": 96,
+      "name": "mandate.json",
+      "sha256": "bae7fd6d51736abd75b4f4d095ba49ecf147e0664f7650ed9be4d7d76321a45a"
+    }
+  ],
+  "unbidden_version": "0.18.5",
+  "workspace": "python-progressbar"
+}

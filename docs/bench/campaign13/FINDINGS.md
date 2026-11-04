@@ -83,3 +83,12 @@ Dated lines, newest last. Each says what was seen, where (record or log), and wh
   findings carried the CI job's absolute workspace path, so every model answer naming one was refused as unsafe
   (rich). pyjwt's pytest fix needs Python 3.10 while pyjwt supports 3.9: not applicable, now said in the verdict.
   Fixed in 0.18.5. Records kept in `final-0.18.4-stopped`.
+- 2026-11-04 · final pass on 0.18.5, stopped after 20 repositories · The first autonomous merges of the pass, each on
+  the copy's green CI: marshmallow #1 (certifi, security), python-progressbar #2 (certifi, security), rich #15
+  (F821 in examples). oauthlib #1 (B006) was red only on `dependency-review`, the copy's missing dependency graph
+  (the agent rightly left it to a person; the graph is now on for every copy). Six more general causes, fixed in
+  0.18.6 with tests: the labs ran mypy and the team's black in the CI job's image (reader: "incomplete reports from
+  mypy"; rich: two pull requests red on `black --check`), rounds 2-3 of the team's own test step reused round 1's
+  tree (sqlmodel: `mkdir coverage`, five bumps declined), a team CI that never runs on pull requests was waited for
+  (dooit: two open security pull requests), and a `uv.lock` with a git source could not relock (harlequin: eight
+  bumps; the image had no git, and the reason was lost). Records kept in `final-0.18.5-stopped`.

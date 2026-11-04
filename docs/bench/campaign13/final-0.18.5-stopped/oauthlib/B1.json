@@ -1,0 +1,1076 @@
+{
+ "repo": "oauthlib",
+ "phase": "final",
+ "run": "B1",
+ "candidate": "f43fcc195adda64f0a8d9fbd9b9faeabd6587b02",
+ "wheel_sha256": "fea3f5b0d7facab86352c6309813f6968e6920372082ca947a5708c1057bcc85",
+ "started_at": "2026-11-04T14:57:33-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "autopilot",
+    "--budget",
+    "2",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--github-token-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 5.9,
+   "timed_out": false,
+   "stdout": "ests\",\n      \"capability\": \"github.open_pull_request\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.open_pull_requests\"\n    },\n    {\n      \"what\": \"merge pull requests\",\n      \"capability\": \"github.merge_pull_request\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": {\n    \"ok\": true,\n    \"rejected\": false,\n    \"model\": \"muse-spark-1.3\",\n    \"usd\": 0.000571,\n    \"why\": null\n  },\n  \"priorities\": [\n    \"correctness\",\n    \"maintainability\",\n    \"security\"\n  ],\n  \"github\": \"file\",\n  \"found\": {\n    \"repository\": \"satisfymath/c13-oauthlib\",\n    \"branch\": \"HEAD\",\n    \"head\": \"fdf407a404695355759a4061e6f3dd85ed51475f\",\n    \"scope\": [\n      {\n        \"name\": \"scope: stack\",\n        \"in_scope\": true,\n        \"note\": \"Python 3.11 (pyproject.toml)\"\n      },\n      {\n        \"name\": \"scope: tests\",\n        \"in_scope\": true,\n        \"note\": \"lint_python.yml > lint_python (the whole job); 1 step(s) after the tests left out (they run no tests)\"\n      },\n      {\n        \"name\": \"scope: database\",\n        \"in_scope\": false,\n        \"note\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n      }\n    ],\n    \"machine\": \"Apple M5 Pro, 64 GB, 54 GB for a model\",\n    \"ollama\": {\n      \"url\": \"http://localhost:11434\",\n      \"present\": true,\n      \"models\": [\n        \"muse-glimmer:30b-mxfp8-dflash\",\n        \"nomic-embed-text:latest\"\n      ]\n    },\n    \"local_model\": {\n      \"tag\": \"muse-glimmer:30b-mxfp8-dflash\",\n      \"installed\": true\n    },\n    \"key\": {\n      \"name\": \"MODEL_API_KEY\",\n      \"present\": true\n    },\n    \"github\": \"file\",\n    \"github_check\": {\n      \"login\": \"satisfymath\",\n      \"can_push\": true,\n      \"detail\": \"can push to satisfymath/c13-oauthlib\"\n    },\n    \"compose\": null,\n    \"services\": [],\n    \"external\": [],\n    \"option\": \"mixed\",\n    \"option_why\": \"hay una clave y un modelo local\"\n  },\n  \"defaulted\": [\n    \"priorities\",\n    \"key\",\n    \"connections\",\n    \"private_code\",\n    \"language\"\n  ],\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c13/oauthlib/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c13/oauthlib/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 2.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -12,9 +12,10 @@\",\n    \"     provision_dependencies: allow\",\n    \"     delegate_synthetic: allow\",\n    \"-    open_pull_requests: require_approval\",\n    \"+    open_pull_requests: allow\",\n    \"     merge_pull_requests: deny\",\n    \"     deploy: deny\",\n    \"     rollback: deny\",\n    \"-    use_new_capabilities: require_approval\",\n    \"+    use_new_capabilities: allow\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,16 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\",\n    \"+  connections:\",\n    \"+  - id: github\",\n    \"+    kind: github\",\n    \"+    location: satisfymath/c13-oauthlib\",\n    \"+    credential_ref: GITHUB_TOKEN\",\n    \"+    environment: production\",\n    \"+    permissions:\",\n    \"+    - read\",\n    \"+  operations: {}\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c13/oauthlib/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "                    denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nCredenciales\nGuardadas en /Users/david/unbidden-lab/c13/home/.unbidden/.env (modo 600), \nreferidas por nombre; nunca escritas en el repositorio ni en registros.\nMODEL_API_KEY guardada.\nClave aceptada: muse-spark-1.3 respondió (US$0.0006).\nGITHUB_TOKEN guardada.\n\nPresupuesto\nLibro de la máquina: verified balance US$97.29 (stage 6 spend cap authorized by \nDavid on 2026-10-28: up to US$10 of free credits from this point (dev 3, \nevaluation 5, demo and contingency 2; the earlier US$3 reserve is included, not \nadded). Dashboard as reported by David 2026-10-28: Current balance US$0, free \ncredits in use US$144.98, a Visa card on file, content sent while on free \ncredits may be used to improve products. A cap, not a measured balance; no \nrecharge or card charge authorized (entered by david) | stage 9: US$30 \nadditional Meta API spend authorized by David on 2026-10-29, replacing the US$10\ncap; cumulative cap US$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval\n12, demo 6 (D-052). Dashboard as reported by David: free credits in use \nUS$137.96, balance US$0, a card on file. No recharge or card charge authorized \n(entered by david) | stage 10: the remaining US$20.30 of the US$37.29 cap split \nbefore any call (D-058), by David's stage 10 instruction of 2026-10-30 (entered \nby david) | stage 10 after the frozen evaluation: US$5 of the unspent s10-eval \nmoved to s10-dev for corrections and regressions, by David's instruction of \n2026-10-31; envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; spent at the transfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, \ns10-close 0) (entered by david) | product phase (A-E): s11-product US$4.00 \nauthorized by David on 2026-11-01, reassigned from s10-close (3.80, unspent, \nclosed) and US$0.20 of s10-dev; envelopes total US$20.30 and the cumulative cap \nUS$37.2945 unchanged; spent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval\n1.0010, s10-close 0) (entered by david) | product phase correction: David's \nauthorization of 2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken \nfrom s10-dev had no recorded authorization and goes back (s10-dev 13.00, \ns11-product 3.80); envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; s11-product spent 0 at the correction; spent at the correction \nUS$27.7199 (entered by david) | campaign 12 (installed-product validation): \nUS$60 additional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david) | envelopes s13-dev 15, \ns13-pass 15, s13-final 20, s13-confirm 5 authorized by David on 2026-11-03 \n('dale entonces empecemos con todo', campaign 13 to 1.0, within the cumulative \ncap US$97.2945, not amended); earlier envelopes unchanged; no transfers (entered\nby david)); permitido US$97.29 · gastado US$33.9763 · disponible US$63.3182\nsobres: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, s12-eval\n30.00, s12-dev 17.00, s12-confirm 5.00, s13-dev 15.00, s13-pass 15.00, s13-final\n20.00, s13-confirm 5.00\nLos créditos del proveedor y el gasto autorizado son cosas distintas: el tope \nque una persona ingresó con `unbidden spend --verified-balance` es lo que esta \nmáquina puede gastar; aquí nunca se sube ni se reinicia.\n\nPanel\nAbrir el panel, restaurar su disposición y mostrar registros no llama a ningún \nmodelo; chatear o pedir un análisis sí puede.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 3.1,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"2 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"act\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"found: the team's CI job prepares the environment when the mandate allows it\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key proven: muse-spark-1.3 answered\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"GITHUB_TOKEN set\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs allow\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"recon\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"completo (2026-11-04T17:58); stack absent\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.11 (pyproject.toml)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"lint_python.yml > lint_python (the whole job); 1 step(s) after the tests left out (they run no tests)\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "18850",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 92377,\n  \"log\": \"/Users/david/unbidden-lab/c13/oauthlib/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-browser",
+   "argv": [
+    "node",
+    "/Users/david/unbidden-ai-v1b/frontend/scripts/c13_ui_check.mjs",
+    "http://127.0.0.1:18850/?s=<token>",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/oauthlib/B1/ui-c1"
+   ],
+   "code": 0,
+   "seconds": 19.1,
+   "timed_out": false,
+   "stdout": "{\"ok\":true,\"steps\":5,\"console_errors\":2}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-status",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué ha hecho el agente hasta ahora y cuántas oportunidades hay?"
+   ],
+   "code": 0,
+   "seconds": 0.9,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_45dd26c527454abf\",\n  \"role\": \"assistant\",\n  \"content\": \"Registro de oauthlib (live, head fdf407a40469): 1 oportunidades, 1 experimentos, 1 propuestas, 52 eventos, 4 llamadas a modelos, 0 bloqueos.\\nJobs: done 13\\nAgente: agent running, pid 92377.\\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.\",\n  \"created_at\": \"2026-11-04T18:02:27.357446Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"rule\",\n  \"model\": null,\n  \"route\": {\n    \"intent\": \"inform\",\n    \"purpose\": null,\n    \"tier\": null,\n    \"model\": null,\n    \"reason\": \"the mandate denies local inference; reading records needs no model: answered by rules\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-analyze",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué hallazgo priorizarías y por qué? Di qué falta en el registro."
+   ],
+   "code": 0,
+   "seconds": 10.1,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_887174ce702c4773\",\n  \"role\": \"assistant\",\n  \"content\": \"Priorizaría `opp_41ade3a1f6644983` — “1 ruff-baseline B006 finding in oauthlib/oauth2/rfc6749/endpoints/” — porque es la única en el registro:\\n\\n- counts `opportunities:1`, discovered `total:1` en `proposed:1`\\n- `level:4`, `status:proposed`, `has_experiment:true`\\n- proposals `pr_opened:1` con ese título\\n- learned `ruff-baseline · bugs · python: successes:1, p:0.73`\\n\\nQué falta en el registro para justificar un porqué:\\n- no contiene descripción, evidencia, impacto ni esfuerzo del hallazgo\\n- no contiene otras oportunidades para comparar\\n- no contiene `blocks:0`, `needs:0`, `invalidated:[]` más allá del conteo\",\n  \"created_at\": \"2026-11-04T18:02:37.463538Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"brain\",\n  \"model\": \"muse-spark-1.3\",\n  \"route\": {\n    \"intent\": \"analyze\",\n    \"purpose\": \"chat.analyze\",\n    \"tier\": \"code\",\n    \"model\": \"muse-spark-1.3\",\n    \"reason\": \"profile frontier; public_code may leave; label public_code\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 92377,\n  \"waited_s\": 0.6,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "18850",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.6,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 15566,\n  \"log\": \"/Users/david/unbidden-lab/c13/oauthlib/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 15566,\n  \"waited_s\": 0.6,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-final",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/oauthlib\",\n  \"head\": \"fdf407a404695355759a4061e6f3dd85ed51475f\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c13/oauthlib/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"fdf407a404695355759a4061e6f3dd85ed51475f\",\n    \"tools\": [\n      \"ruff-baseline\",\n      \"pypi-advisories\"\n    ],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"pyproject.toml without uv.lock: dependencies resolved at provisioning time\",\n      \"environment prepared by the team's CI job python-build.yml:tests (python=3.12); publishing steps left out: Coveralls\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff-baseline\",\n        \"completeness\": \"complete\",\n        \"findings\": 1,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"pypi-advisories\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"proposed\": 1\n  },\n  \"asks\": [],\n  \"blocks\": [],\n  \"idle\": true\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "egress",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "egress",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.6,
+   "timed_out": false,
+   "stdout": "           claims = {}\\n         assert isinstance(claims, dict)  # noqa: S101\\n         for endpoint in endpoints:\\n             assert isinstance(endpoint, BaseEndpoint)  # noqa: S101\\n\",\n    \"created_at\": \"2026-11-04T18:01:34.122494Z\",\n    \"origin\": \"engine\"\n  },\n  {\n    \"id\": \"egr_5b58d7bad63e450a\",\n    \"status\": \"allowed_sent\",\n    \"purpose\": \"chat.analyze\",\n    \"destination\": \"api.meta.ai\",\n    \"provider\": \"meta\",\n    \"model\": \"muse-spark-1.3\",\n    \"verdict\": {\n      \"allowed\": true,\n      \"kind\": \"synthetic_task\",\n      \"destination\": \"api.meta.ai\",\n      \"reasons\": [],\n      \"matched\": [],\n      \"payload_sha256\": \"1cde2d05eb4e1f2af6bf74498222b49abe478e65a585087d0403bfb2993fbfd8\",\n      \"payload_bytes\": 2754\n    },\n    \"payload\": \"{\\\"messages\\\": [{\\\"content\\\": \\\"You are the analyst of Unbidden's dashboard. You receive a digest of Unbidden's own records\\\\n(counts, levels, statuses, titles, ids, medians) and a question. Answer in the language the question is written in,\\\\nbriefly, from the digest alone: cite the ids and numbers you rely on, say what the digest does not contain instead\\\\nof guessing, and never invent a metric, a finding or an improvement. You cannot act: do not promise to approve,\\\\ndeploy, merge, run or stop anything; name the command or button when the person should decide something.\\\", \\\"role\\\": \\\"system\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ade una tabla con las oportunidades\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ado una tabla con las oportunidades.\\\\na\\u00f1adido \\u00abOportunidades\\u00bb\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 ha hecho el agente hasta ahora y cu\\u00e1ntas oportunidades hay?\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"Registro de oauthlib (live, head fdf407a40469): 1 oportunidades, 1 experimentos, 1 propuestas, 52 eventos, 4 llamadas a modelos, 0 bloqueos.\\\\nJobs: done 13\\\\nAgente: agent running, pid 92377.\\\\nPara un porqu\\u00e9 o una recomendaci\\u00f3n pide un an\\u00e1lisis; para ver algo, una tabla o un gr\\u00e1fico.\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"Records digest:\\\\nworkspace oauthlib (live record); head fdf407a40469; observed 2026-11-04T18:02:28.092848+00:00; freshness current\\\\ncounts: {\\\\\\\"opportunities\\\\\\\":1,\\\\\\\"experiments\\\\\\\":1,\\\\\\\"proposals\\\\\\\":1,\\\\\\\"events\\\\\\\":52,\\\\\\\"model_runs\\\\\\\":4,\\\\\\\"connections\\\\\\\":1,\\\\\\\"deployments\\\\\\\":0,\\\\\\\"needs\\\\\\\":0,\\\\\\\"blocks\\\\\\\":0,\\\\\\\"spend_calls\\\\\\\":33,\\\\\\\"world\\\\\\\":1}\\\\njobs: {\\\\\\\"done\\\\\\\":13}\\\\ndiscovered: {\\\\\\\"total\\\\\\\":1,\\\\\\\"by_status\\\\\\\":{\\\\\\\"proposed\\\\\\\":1}}\\\\ninvalidated: []\\\\nproposals: {\\\\\\\"pr_opened\\\\\\\":[\\\\\\\"fix: 1 ruff-baseline B006 finding in oauthlib/oauth2/rfc6749/endpoints/\\\\\\\"]}\\\\nblocks: []\\\\nlearned: {\\\\\\\"ruff-baseline \\u00b7 bugs \\u00b7 python\\\\\\\":{\\\\\\\"successes\\\\\\\":1,\\\\\\\"failures\\\\\\\":0,\\\\\\\"p\\\\\\\":0.73,\\\\\\\"prior\\\\\\\":0.6}}\\\\nconnections: [{\\\\\\\"id\\\\\\\":\\\\\\\"github:satisfymath/c13-oauthlib\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"github\\\\\\\",\\\\\\\"environment\\\\\\\":\\\\\\\"production\\\\\\\",\\\\\\\"state\\\\\\\":\\\\\\\"connected\\\\\\\",\\\\\\\"read\\\\\\\":[\\\\\\\"repository\\\\\\\",\\\\\\\"check runs\\\\\\\",\\\\\\\"pull requests\\\\\\\"],\\\\\\\"write\\\\\\\":[\\\\\\\"push branch\\\\\\\",\\\\\\\"pull request\\\\\\\"],\\\\\\\"requested\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"effective\\\\\\\":[\\\\\\\"read\\\\\\\",\\\\\\\"write\\\\\\\"],\\\\\\\"blocked\\\\\\\":null,\\\\\\\"next_step\\\\\\\":null,\\\\\\\"found_by\\\\\\\":[\\\\\\\"mandate grant\\\\\\\"],\\\\\\\"checked_at\\\\\\\":\\\\\\\"2026-11-04T17:58:32.635863+00:00\\\\\\\"}]\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_41ade3a1f6644983\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"1 ruff-baseline B006 finding in oauthlib/oauth2/rfc6749/endpoints/\\\\\\\",\\\\\\\"level\\\\\\\":4,\\\\\\\"status\\\\\\\":\\\\\\\"proposed\\\\\\\",\\\\\\\"has_experiment\\\\\\\":true}\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 hallazgo priorizar\\u00edas y por qu\\u00e9? Di qu\\u00e9 falta en el registro.\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}], \\\"response_schema\\\": null, \\\"tools\\\": []}\",\n    \"created_at\": \"2026-11-04T18:02:28.100484Z\",\n    \"origin\": \"dashboard apart\"\n  }\n]\n",
+   "stderr": ""
+  },
+  {
+   "name": "export",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "export",
+    "--out",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/oauthlib/export"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "Evidence of oauthlib written to \n/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/oauthlib/export\n  events.jsonl                      69 lines  893750585c67\n  audit.jsonl                       11 lines  342c42fb7935\n  opportunities.jsonl                1 lines  695e95181a2b\n  hypotheses.jsonl                   0 lines  e3b0c44298fc\n  experiment_specs.jsonl             0 lines  e3b0c44298fc\n  experiments.jsonl                  1 lines  9dac839ef4cb\n  proposals.jsonl                    1 lines  b329269103bb\n  decisions.jsonl                    2 lines  8a1dd2a8b4a9\n  deploy_verdicts.jsonl              0 lines  e3b0c44298fc\n  deployments.jsonl                  0 lines  e3b0c44298fc\n  holds.jsonl                        0 lines  e3b0c44298fc\n  approvals.jsonl                    0 lines  e3b0c44298fc\n  acceptances.jsonl                  0 lines  e3b0c44298fc\n  actions.jsonl                      0 lines  e3b0c44298fc\n  goal_runs.jsonl                    0 lines  e3b0c44298fc\n  model_runs.jsonl                   4 lines  3ff26b804b95\n  transcripts.jsonl                  4 lines  2d6f892cbc32\n  egress.jsonl                       5 lines  00eea9ad7da5\n  needs.jsonl                        0 lines  e3b0c44298fc\n  asks.jsonl                         0 lines  e3b0c44298fc\n  blocks.jsonl                       0 lines  e3b0c44298fc\n  deploy_ledger.jsonl                0 lines  e3b0c44298fc\n  spend.jsonl                        5 lines  7384b00a1d3a\n  mandate.json                      96 lines  00bf57d4fd40\nevery file was scanned for secrets; manifest.json holds the sha256 of each\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/oauthlib/oauthlib",
+   "commit": "179287a5f9067aac7b1c0d71c4c5e083ccbf58f2",
+   "family": "library",
+   "class": "independent",
+   "build": "tox",
+   "lab": null,
+   "copy_base_sha": "fdf407a404695355759a4061e6f3dd85ed51475f"
+  },
+  "ledger_before": {
+   "envelope": "s13-final",
+   "envelope_spent_usd": 2.0072,
+   "available_usd": 63.3182,
+   "permitted_usd": 97.2945
+  },
+  "fork": {
+   "slug": "satisfymath/c13-oauthlib",
+   "base": "master",
+   "upstream": "oauthlib/oauthlib",
+   "kind": "copy",
+   "created": false,
+   "prep": {
+    "applied": false,
+    "why": "nothing to change (already prepared, or nothing publishes)",
+    "plan": [
+     {
+      "file": "dependency-review.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "dependency-review"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "lint_python.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "lint_python"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "python-build.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "tests",
+       "coveralls",
+       "docs",
+       "build"
+      ],
+      "why": "the team's checks"
+     }
+    ],
+    "kept": [
+     "dependency-review.yml",
+     "lint_python.yml",
+     "python-build.yml"
+    ]
+   },
+   "pin": "179287a5f9067aac7b1c0d71c4c5e083ccbf58f2",
+   "restore": {
+    "expected": "fdf407a404695355759a4061e6f3dd85ed51475f",
+    "head_before": "fdf407a404695355759a4061e6f3dd85ed51475f",
+    "pin_in_history": true,
+    "closed": [],
+    "deleted": [],
+    "base_sha": "fdf407a404695355759a4061e6f3dd85ed51475f"
+   },
+   "base_sha": "fdf407a404695355759a4061e6f3dd85ed51475f",
+   "pin_in_history": true,
+   "dependabot_prs_closed": [],
+   "workflows_registered": [
+    "lint_python.yml",
+    "python-build.yml"
+   ],
+   "disabled_in_settings": [],
+   "kept": [
+    "dependency-review.yml",
+    "lint_python.yml",
+    "python-build.yml"
+   ]
+  },
+  "fork_before": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "fdf407a404695355759a4061e6f3dd85ed51475f"
+  },
+  "deploy_target": "none",
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required"
+  },
+  "mode": {
+   "asked": "custom",
+   "got": "custom",
+   "why": "nothing to deploy: not an application"
+  },
+  "autonomy": {
+   "mode": "custom",
+   "why": "nothing to deploy: not an application",
+   "fields": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "delegate_synthetic": "allow",
+    "open_pull_requests": "allow",
+    "merge_pull_requests": "allow",
+    "deploy": "deny",
+    "rollback": "deny",
+    "use_new_capabilities": "allow",
+    "act_on_connections": "deny"
+   }
+  },
+  "mode_got": "custom",
+  "cycle1": {
+   "started": true,
+   "waited_s": 228.2,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 92377,
+    "started_at": "2026-11-04T17:58:19.078108+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/oauthlib/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "agent.note": 1,
+     "analyzer.ran": 2,
+     "connection.changed": 1,
+     "decision.made": 3,
+     "egress.allowed": 5,
+     "experiment.started": 1,
+     "job.finished": 13,
+     "job.started": 13,
+     "mandate.changed": 1,
+     "model.called": 4,
+     "opportunity.opened": 1,
+     "proposal.published": 1,
+     "proposal.pushed": 1,
+     "proposal.ready": 1,
+     "repo.head_moved": 1,
+     "verdict.recorded": 1,
+     "world.changed": 2
+    },
+    "docs": {
+     "connections": 1,
+     "decisions": 2,
+     "egress": 5,
+     "experiments": 1,
+     "model_runs": 4,
+     "opportunities": 1,
+     "proposals": 1,
+     "transcripts": 4,
+     "world": 1
+    },
+    "jobs": {
+     "done": 13
+    },
+    "experiments": 1,
+    "opportunities": [
+     {
+      "id": "opp_41ade3a1f6644983",
+      "source": "ruff-baseline",
+      "category": "bugs",
+      "evidence_level": 4,
+      "status": "proposed"
+     }
+    ],
+    "level_max": 4,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": [
+     {
+      "id": "prop_d3a311d5d9944d18",
+      "opportunity_id": "opp_41ade3a1f6644983",
+      "experiment_id": "exp_12e326bd6a9547ae",
+      "status": "pr_opened",
+      "branch": "unbidden/1-ruff-baseline-b006-finding-in-oauthlib-644983",
+      "evidence_level": 4,
+      "title": "fix: 1 ruff-baseline B006 finding in oauthlib/oauth2/rfc6749/endpoints/",
+      "pr": "https://github.com/satisfymath/c13-oauthlib/pull/1",
+      "criteria": null
+     }
+    ]
+   }
+  },
+  "ui1": {
+   "opened": true,
+   "in_daemon": true,
+   "summary": {
+    "mode": "live",
+    "freshness": "current",
+    "counts": {
+     "opportunities": 1,
+     "experiments": 1,
+     "proposals": 1,
+     "events": 52,
+     "model_runs": 4,
+     "connections": 1,
+     "deployments": 0,
+     "needs": 0,
+     "blocks": 0,
+     "spend_calls": 33,
+     "world": 1
+    },
+    "agent": {
+     "running": true,
+     "pid": 92377,
+     "started_at": "2026-11-04T17:58:19.078108+00:00",
+     "command": "watch",
+     "detail": "agent running, pid 92377"
+    },
+    "key_present": true
+   },
+   "opportunities_total": 1,
+   "widgets": [
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:oauthlib"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:oauthlib"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:oauthlib"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:oauthlib"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:oauthlib"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:oauthlib"
+    }
+   ],
+   "browser": {
+    "ok": true,
+    "steps": 5,
+    "console_errors": 2
+   },
+   "chat_status": {
+    "planner": "rule",
+    "route": {
+     "intent": "inform",
+     "purpose": null,
+     "tier": null,
+     "model": null,
+     "reason": "the mandate denies local inference; reading records needs no model: answered by rules",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Registro de oauthlib (live, head fdf407a40469): 1 oportunidades, 1 experimentos, 1 propuestas, 52 eventos, 4 llamadas a modelos, 0 bloqueos.\nJobs: done 13\nAgente: agent running, pid 92377.\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico."
+   },
+   "chat_analyze": {
+    "planner": "brain",
+    "route": {
+     "intent": "analyze",
+     "purpose": "chat.analyze",
+     "tier": "code",
+     "model": "muse-spark-1.3",
+     "reason": "profile frontier; public_code may leave; label public_code",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Priorizaría `opp_41ade3a1f6644983` — “1 ruff-baseline B006 finding in oauthlib/oauth2/rfc6749/endpoints/” — porque es la única en el registro:\n\n- counts `opportunities:1`, discovered `total:1` en `proposed:1`\n- `level:4`, `status:proposed`, `has_experiment:true`\n- proposals `pr_opened:1` con ese título\n- learned `ruff-baseline · bugs · python: successes:1, p:0.73`\n\nQué falta en el registro para ju"
+   }
+  },
+  "fork_after_c1": {
+   "pulls": [
+    {
+     "created_at": "2026-11-04T18:01:37Z",
+     "head": "unbidden/1-ruff-baseline-b006-finding-in-oauthlib-644983",
+     "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+     "merge_commit_sha": "ffc1f47dce7c7095862e14e703e7a39725905431",
+     "merged_at": null,
+     "number": 1,
+     "state": "open",
+     "title": "fix: 1 ruff-baseline B006 finding in oauthlib/oauth2/rfc6749/endpoints/",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760151145",
+       "name": "tests (3.14)",
+       "started_at": "2026-11-04T18:02:30Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760151067",
+       "name": "docs (readme)",
+       "started_at": "2026-11-04T18:02:29Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760151060",
+       "name": "tests (3.10)",
+       "started_at": "2026-11-04T18:02:29Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760150801",
+       "name": "tests (3.13)",
+       "started_at": "2026-11-04T18:02:29Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760150730",
+       "name": "tests (3.11)",
+       "started_at": "2026-11-04T18:02:31Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760150566",
+       "name": "tests (3.12)",
+       "started_at": "2026-11-04T18:02:29Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760150526",
+       "name": "tests (3.9)",
+       "started_at": "2026-11-04T18:02:29Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760150162",
+       "name": "docs (docs)",
+       "started_at": "2026-11-04T18:02:32Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": "2026-11-04T18:02:36Z",
+       "conclusion": "failure",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039278/job/126760148665",
+       "name": "dependency-review",
+       "started_at": "2026-11-04T18:02:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883038894/job/126760147855",
+       "name": "lint_python",
+       "started_at": "2026-11-04T18:02:29Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760061164",
+       "name": "tests (3.10)",
+       "started_at": "2026-11-04T18:02:24Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760061034",
+       "name": "tests (3.12)",
+       "started_at": "2026-11-04T18:02:21Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760060693",
+       "name": "tests (3.14)",
+       "started_at": "2026-11-04T18:02:21Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760060666",
+       "name": "tests (3.13)",
+       "started_at": "2026-11-04T18:02:20Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760060619",
+       "name": "docs (docs)",
+       "started_at": "2026-11-04T18:02:21Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760060537",
+       "name": "tests (3.9)",
+       "started_at": "2026-11-04T18:02:21Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760060513",
+       "name": "tests (3.11)",
+       "started_at": "2026-11-04T18:02:20Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760059954",
+       "name": "docs (readme)",
+       "started_at": "2026-11-04T18:02:21Z",
+       "status": "in_progress"
+      },
+      {
+       "completed_at": null,
+       "conclusion": null,
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013599/job/126760058658",
+       "name": "lint_python",
+       "started_at": "2026-11-04T18:02:20Z",
+       "status": "in_progress"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [
+    "unbidden/1-ruff-baseline-b006-finding-in-oauthlib-644983"
+   ],
+   "base_head": "fdf407a404695355759a4061e6f3dd85ed51475f"
+  },
+  "cycle2": {
+   "started": true,
+   "waited_s": 89.8,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 15566,
+    "started_at": "2026-11-04T18:02:41.895034+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/oauthlib/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "agent.note": 3,
+     "analyzer.ran": 2,
+     "connection.changed": 1,
+     "decision.made": 3,
+     "egress.allowed": 5,
+     "experiment.started": 1,
+     "job.finished": 20,
+     "job.started": 20,
+     "mandate.changed": 1,
+     "model.called": 4,
+     "opportunity.opened": 1,
+     "proposal.published": 1,
+     "proposal.pushed": 1,
+     "proposal.ready": 1,
+     "repo.head_moved": 1,
+     "verdict.recorded": 1,
+     "world.changed": 3
+    },
+    "docs": {
+     "connections": 1,
+     "decisions": 2,
+     "egress": 5,
+     "experiments": 1,
+     "model_runs": 4,
+     "opportunities": 1,
+     "proposals": 1,
+     "transcripts": 4,
+     "world": 1
+    },
+    "jobs": {
+     "done": 20
+    },
+    "experiments": 1,
+    "opportunities": [
+     {
+      "id": "opp_41ade3a1f6644983",
+      "source": "ruff-baseline",
+      "category": "bugs",
+      "evidence_level": 4,
+      "status": "proposed"
+     }
+    ],
+    "level_max": 4,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": [
+     {
+      "id": "prop_d3a311d5d9944d18",
+      "opportunity_id": "opp_41ade3a1f6644983",
+      "experiment_id": "exp_12e326bd6a9547ae",
+      "status": "pr_opened",
+      "branch": "unbidden/1-ruff-baseline-b006-finding-in-oauthlib-644983",
+      "evidence_level": 4,
+      "title": "fix: 1 ruff-baseline B006 finding in oauthlib/oauth2/rfc6749/endpoints/",
+      "pr": "https://github.com/satisfymath/c13-oauthlib/pull/1",
+      "criteria": null
+     }
+    ]
+   }
+  },
+  "asks_answered": [],
+  "fork_after_c2": {
+   "pulls": [
+    {
+     "created_at": "2026-11-04T18:01:37Z",
+     "head": "unbidden/1-ruff-baseline-b006-finding-in-oauthlib-644983",
+     "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+     "merge_commit_sha": "ffc1f47dce7c7095862e14e703e7a39725905431",
+     "merged_at": null,
+     "number": 1,
+     "state": "open",
+     "title": "fix: 1 ruff-baseline B006 finding in oauthlib/oauth2/rfc6749/endpoints/",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T18:03:55Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760883021",
+       "name": "Build oauthlib distribution",
+       "started_at": "2026-11-04T18:03:41Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:03:38Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760696687",
+       "name": "Indicate completion to coveralls.io",
+       "started_at": "2026-11-04T18:03:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:03:34Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760689398",
+       "name": "Build oauthlib distribution",
+       "started_at": "2026-11-04T18:03:22Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:03:19Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760522911",
+       "name": "Indicate completion to coveralls.io",
+       "started_at": "2026-11-04T18:03:06Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:03:17Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760151145",
+       "name": "tests (3.14)",
+       "started_at": "2026-11-04T18:02:30Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:03:18Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760151067",
+       "name": "docs (readme)",
+       "started_at": "2026-11-04T18:02:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:03:20Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760151060",
+       "name": "tests (3.10)",
+       "started_at": "2026-11-04T18:02:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:03:01Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760150801",
+       "name": "tests (3.13)",
+       "started_at": "2026-11-04T18:02:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:03:06Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760150730",
+       "name": "tests (3.11)",
+       "started_at": "2026-11-04T18:02:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:03:01Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760150566",
+       "name": "tests (3.12)",
+       "started_at": "2026-11-04T18:02:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:03:01Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760150526",
+       "name": "tests (3.9)",
+       "started_at": "2026-11-04T18:02:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:03:20Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039207/job/126760150162",
+       "name": "docs (docs)",
+       "started_at": "2026-11-04T18:02:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:02:36Z",
+       "conclusion": "failure",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883039278/job/126760148665",
+       "name": "dependency-review",
+       "started_at": "2026-11-04T18:02:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:03:32Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883038894/job/126760147855",
+       "name": "lint_python",
+       "started_at": "2026-11-04T18:02:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:03:01Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760061164",
+       "name": "tests (3.10)",
+       "started_at": "2026-11-04T18:02:24Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:02:56Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760061034",
+       "name": "tests (3.12)",
+       "started_at": "2026-11-04T18:02:21Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:02:55Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760060693",
+       "name": "tests (3.14)",
+       "started_at": "2026-11-04T18:02:21Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:02:51Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760060666",
+       "name": "tests (3.13)",
+       "started_at": "2026-11-04T18:02:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:03:09Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760060619",
+       "name": "docs (docs)",
+       "started_at": "2026-11-04T18:02:21Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:03:02Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760060537",
+       "name": "tests (3.9)",
+       "started_at": "2026-11-04T18:02:21Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:03:03Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760060513",
+       "name": "tests (3.11)",
+       "started_at": "2026-11-04T18:02:20Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:02:50Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013665/job/126760059954",
+       "name": "docs (readme)",
+       "started_at": "2026-11-04T18:02:21Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T18:03:23Z",
+       "conclusion": "success",
+       "head_sha": "66b0537745fb2ccd6cb2d46116226bce3d1fab9f",
+       "html_url": "https://github.com/satisfymath/c13-oauthlib/actions/runs/41883013599/job/126760058658",
+       "name": "lint_python",
+       "started_at": "2026-11-04T18:02:20Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [
+    "unbidden/1-ruff-baseline-b006-finding-in-oauthlib-644983"
+   ],
+   "base_head": "fdf407a404695355759a4061e6f3dd85ed51475f"
+  },
+  "status_final": {
+   "running": false,
+   "pid": null,
+   "started_at": null,
+   "command": null,
+   "log": "/Users/david/unbidden-lab/c13/oauthlib/.unbidden/logs/agent.log",
+   "stale": false,
+   "jobs_running": 0,
+   "jobs_queued": 0
+  },
+  "egress": {
+   "api.meta.ai:chat.analyze:allowed_sent": 6,
+   "api.meta.ai:research.robustness:allowed_sent": 3,
+   "api.meta.ai:lab.fix_candidate:allowed_sent": 1,
+   "github.com:github.pull_request:allowed_sent": 1
+  },
+  "checks": {
+   "status": "passed",
+   "collected": 902,
+   "why": "rerun with the network: the offline run needed it",
+   "scope": "the whole job",
+   "partial": false,
+   "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nmkdir --parents --verbose .mypy_cache\ncd /work\npytest",
+   "rev": "fdf407a404695355759a4061e6f3dd85ed51475f",
+   "could_not_run": {
+    "tests": 0,
+    "lacks": [],
+    "by_test": []
+   },
+   "failed": 0,
+   "image_notes": [
+    "environment prepared by the team's CI job python-build.yml:tests (python=3.12); publishing steps left out: Coveralls"
+   ],
+   "python": "3.11"
+  },
+  "ledger_after": {
+   "envelope": "s13-final",
+   "envelope_spent_usd": 2.1975,
+   "available_usd": 63.128,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c13-final-B1-oauthlib",
+   "calls": 32,
+   "usd": 0.2438,
+   "tokens_in": 35824,
+   "tokens_out": 39073
+  },
+  "spent_usd": 0.2438,
+  "export": {
+   "available": true,
+   "ok": true,
+   "code": 0,
+   "dir": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/oauthlib/export",
+   "files": 25,
+   "answer": null
+  },
+  "archive": "/Users/david/unbidden-lab/c13/archive/oauthlib-B1-final.tgz",
+  "archive_kept": {
+   "name": "oauthlib-B1-final.tgz",
+   "bytes": 35102,
+   "sha256": "0928387f2c49ecfd6fbbba3e42539f991bdbcf8d2a2a5927bdc0cd2796f5201b",
+   "kept": true,
+   "where": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/oauthlib/export/oauthlib-B1-final.tgz"
+  }
+ },
+ "human": [
+  {
+   "step": "mandate: fork, registries, operations, connections",
+   "minutes": 2,
+   "why": "a person's declaration"
+  },
+  {
+   "step": "mandate autonomy: merge on green CI, no deploy",
+   "minutes": 1,
+   "why": "nothing to deploy: not an application"
+  }
+ ],
+ "blocks": []
+}

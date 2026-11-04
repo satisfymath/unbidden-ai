@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18800/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "GitPython 3.1.26: 64 known vulnerabilities, fixed in 3.2.1\tabierta\t1\twait",
+    "Mako 1.1.6: 4 known vulnerabilities, fixed in 1.3.12\tabierta\t1\twait",
+    "PyJWT 2.4.0: 25 known vulnerabilities, fixed in 2.15.0\tabierta\t1\twait",
+    "Pygments 2.11.2: 4 known vulnerabilities, fixed in 2.20.0\tabierta\t1\twait",
+    "anyio 3.5.0: 4 known vulnerabilities, fixed in 4.14.2\tabierta\t1\twait",
+    "black 22.6.0: 5 known vulnerabilities, fixed in 26.10.1\tabierta\t1\twait",
+    "certifi 2021.10.8: 8 known vulnerabilities, fixed in 2026.10.18\tabierta\t1\twait",
+    "dnspython 2.2.0: 2 known vulnerabilities, fixed in 2.9.0\tabierta\t1\twait",
+    "fastapi 0.79.1: 1 known vulnerability, fixed in 0.109.1\tabierta\t1\twait"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "3 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "conduit",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 165 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "decision.made",
+    "job.finished",
+    "job.started",
+    "Trabajo terminado",
+    "15:23",
+    "next: [] · outcome: ok · seconds: 0.6",
+    "Decisión tomada",
+    "15:23",
+    "wait — not measurable at this commit: cannot write the bump: bumping a dependency in poetry.lock is not supported yet (declared)",
+    "Trabajo iniciado",
+    "15:23",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "15:23",
+    "next: [\"director.sweep\"] · outcome: ok · seconds: 0",
+    "Nota del agente",
+    "15:23",
+    "text: opp_9be6e65c2ef94832: not measured (cannot write the bump: bumping a dependency in poetry.lock is not supported ye",
+    "Trabajo iniciado",
+    "15:23",
+    "doing: measuring a candidate in the sandbox · stage: measured · subject: opp_9be6e65c2ef94832",
+    "Trabajo terminado",
+    "15:23",
+    "next: [] · outcome: ok · seconds: 0.6",
+    "Decisión tomada",
+    "15:23",
+    "wait — not measurable at this commit: cannot write the bump: bumping a dependency in poetry.lock is not supported yet (declared)",
+    "Trabajo iniciado",
+    "15:23"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "conduit",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 17 oportunidades, ordenadas por evidencia",
+    "L1 sospecha",
+    "GitPython 3.1.26: 64 known vulnerabilities, fixed in 3.2.1",
+    "pypi-advisories · security · wait · bloqueada · 04 nov, 15:20",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "Mako 1.1.6: 4 known vulnerabilities, fixed in 1.3.12",
+    "pypi-advisories · security · wait · bloqueada · 04 nov, 15:20",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "PyJWT 2.4.0: 25 known vulnerabilities, fixed in 2.15.0",
+    "pypi-advisories · security · wait · bloqueada · 04 nov, 15:20",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "Pygments 2.11.2: 4 known vulnerabilities, fixed in 2.20.0",
+    "pypi-advisories · security · wait · bloqueada · 04 nov, 15:20",
+    "abierta",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "3 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}
