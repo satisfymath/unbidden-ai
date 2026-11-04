@@ -179,8 +179,10 @@ def proposal_title(opp: Opportunity, verdict: Verdict) -> str:
         headline = verdict.reasons[0].split(", one-sided")[0]
         return f"perf: index {opp.details.get('table')}.{opp.details.get('column')} · {headline}"[:120]
     if opp.source == "pypi-advisories" and verdict.reasons:
-        # "dnspython 2.8.0 → 2.9.0: advisories GHSA-… gone" is the headline.
-        return f"security: bump {verdict.reasons[0].split(': advisories')[0]}"[:120]
+        # "dnspython 2.8.0 → 2.9.0: advisories GHSA-… gone" is the headline. A Conventional Commits type: a team that
+        # lints pull request titles accepts `fix(deps)`, not `security` (aegra, final pass 0.18.6: three bumps red on
+        # its title check alone).
+        return f"fix(deps): bump {verdict.reasons[0].split(': advisories')[0]} (security)"[:120]
     if opp.source == "repair":
         return f"fix: repair {opp.title}"[:120]
     return f"fix: {opp.title}"[:120]

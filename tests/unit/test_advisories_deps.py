@@ -126,7 +126,7 @@ def test_a_security_opportunity_and_its_pull_request_say_what_they_are(store: St
     verdict = Verdict(experiment_id="e", improved=True, evidence_level=EvidenceLevel.FUNCTIONAL_VALIDATION,
                       criteria={}, tests=TestOutcome.PASSED,
                       reasons=["requests 2.31.0 → 2.32.0: advisories GHSA-xxxx gone"])  # fmt: skip
-    assert proposal_title(opp, verdict) == "security: bump requests 2.31.0 → 2.32.0"
+    assert proposal_title(opp, verdict) == "fix(deps): bump requests 2.31.0 → 2.32.0 (security)"
 
 
 def test_a_requirement_in_pyproject_is_raised_to_the_fixed_version() -> None:
@@ -244,3 +244,28 @@ def test_a_failed_relock_says_uvs_own_reason(tmp_path: Path) -> None:
     with pytest.raises(ProvisionError) as raised:
         relock_uv(repo, rev, ["requirements.txt"], "requests", "2.32.0", docker=str(docker))
     assert "Git executable not found" in str(raised.value)
+
+
+def test_every_pull_request_title_is_a_conventional_commit() -> None:
+    """aegra, final pass 0.18.6: its CI lints pull request titles; `security:` is no Conventional Commits type."""
+    import re
+
+    from unbidden.contracts.common import EvidenceLevel, EvidenceRef
+    from unbidden.contracts.experiment import TestOutcome, Verdict
+    from unbidden.publish.proposal import proposal_title
+
+    kinds = r"^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([\w-]+\))?!?: \S"
+    verdict = Verdict(
+        experiment_id="e",
+        improved=True,
+        evidence_level=EvidenceLevel.FUNCTIONAL_VALIDATION,
+        criteria={},
+        tests=TestOutcome.PASSED,
+        reasons=["certifi 1 → 2: advisories X gone"],
+    )
+    evidence = [EvidenceRef(kind="analyzer_report", locator="x")]
+    for source, category in (("pypi-advisories", "security"), ("repair", "bugs"), ("ruff", "lint")):
+        opp = Opportunity(
+            source=source, category=category, title="t", summary="s", dedup_key=source, details={}, evidence=evidence
+        )
+        assert re.match(kinds, proposal_title(opp, verdict)), proposal_title(opp, verdict)
