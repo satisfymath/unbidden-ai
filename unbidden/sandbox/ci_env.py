@@ -51,13 +51,40 @@ RUNNER_DOCKERFILE = (
 )
 
 
+def port_free(port: int) -> bool:
+    """Whether this machine can listen on a port (a published container port holds it too)."""
+    import socket
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        try:
+            sock.bind(("0.0.0.0", port))
+        except OSError:
+            return False
+    return True
+
+
+def _host_port(mapping: str, taken: list[str]) -> str:
+    parts = mapping.split(":")
+    if len(parts) < 2:
+        return mapping
+    host, container = parts[-2], parts[-1]
+    if host.isdigit() and port_free(int(host)):
+        return f"{host}:{container}"
+    taken.append(mapping)
+    return container
+
+
 def localhost_forwards(pairs: list[tuple[str, str]]) -> str:
     """A shell line that makes each service's port answer on localhost, as on GitHub's runner, where a job reaches
     its service containers at 127.0.0.1 on their mapped ports (archery's settings: `mysql://root:@127.0.0.1:3306`).
     Here services are containers reached by name, so socat forwards; ports below 1024 are left (no privilege)."""
     lines = [f"(setsid nohup socat TCP-LISTEN:{port},fork,reuseaddr,bind=127.0.0.1 TCP:{host}:{port} >/dev/null 2>&1 &)"
              for host, port in pairs if port.isdigit() and int(port) >= 1024]  # fmt: skip
-    return ("if command -v socat >/dev/null; then " + "; ".join(lines) + "; sleep 1; fi") if lines else ""
+    # GitHub starts the steps once the services are healthy; here each port is awaited (up to 2 minutes) first.
+    ready = [f"for _ in $(seq 120); do (exec 3<>/dev/tcp/{host}/{port}) 2>/dev/null && break; sleep 1; done"
+             for host, port in pairs if port.isdigit() and int(port) >= 1024]  # fmt: skip
+    return ("; ".join(ready) + "; if command -v socat >/dev/null; then " + "; ".join(lines) + "; sleep 1; fi"
+            if lines else "")  # fmt: skip
 
 
 def service_ports(services: Any) -> list[tuple[str, str]]:
@@ -223,20 +250,20 @@ def filtered_job(repo: Path, rev: str, workflow: str, job: str) -> tuple[str, di
         "run": f"env -0 > {ENV_FILE}; mkdir -p {PREPARED} {SCRIPTS}; cp -a . {PREPARED}/; "
                f"cp -a /var/run/act/workflow/. {SCRIPTS}/ 2>/dev/null || true",
     })  # fmt: skip
-    forwards = localhost_forwards(service_ports(definition.get("services")))
-    if forwards:
-        steps.insert(0, {"name": "unbidden: the job's services on localhost", "run": forwards})
     definition["steps"] = steps
     definition["runs-on"] = "ubuntu-latest"
+    taken: list[str] = []
     for service in (definition.get("services") or {}).values():
-        # A fixed host port (`5432:5432`) collides with whatever else this machine runs (timetracker, campaign 13:
-        # the service never started); the container port stays, the host port is Docker's choice.
+        # act runs the job on the host's network, as GitHub does: a fixed host port (`3306:3306`) is how the job
+        # reaches its service at localhost (archery's settings: `127.0.0.1:3306`). It is kept when free; one this
+        # machine already uses (timetracker, campaign 13: its own Postgres on 5432) is left to Docker, and said.
         if isinstance(service, dict) and isinstance(service.get("ports"), list):
-            service["ports"] = [str(p).split(":")[-1] for p in service["ports"]]
+            service["ports"] = [_host_port(str(p), taken) for p in service["ports"]]
         if isinstance(service, dict) and isinstance(service.get("options"), str):
             # A fixed container name (archery: `--name=mysql`, for a `docker cp` step left out above): act names its
             # service containers itself and refuses the flag; the service is still reached by its key.
             service["options"] = re.sub(r"--name(?:=|\s+)\S+\s*", "", service["options"]).strip()
+    skipped += [f"host port {m} of a service (in use on this machine)" for m in taken]
     for key in ("needs", "if", "environment", "concurrency", "permissions"):
         definition.pop(key, None)
     out: dict[str, Any] = {"name": "unbidden-ci", "on": "push", "jobs": {job: definition}}

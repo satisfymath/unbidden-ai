@@ -149,7 +149,11 @@ jobs:
     )
 
 
-def test_a_service_keeps_its_container_port_but_not_a_fixed_host_port(tmp_path: Path) -> None:
+def test_a_service_keeps_a_free_fixed_host_port_and_leaves_a_taken_one_to_docker(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from unbidden.sandbox import ci_env
+
     workflow = """
 on: push
 jobs:
@@ -164,13 +168,15 @@ jobs:
       - run: pytest -q
 """
     repo, rev = _repo(tmp_path, {".github/workflows/ci.yml": workflow})
-    text, _, _ = filtered_job(repo, rev, "ci.yml", "quick-tests")
-    job = yaml.safe_load(text)["jobs"]["quick-tests"]
-    # localhost reaches the service, as on GitHub's runner
-    assert job["steps"][0]["name"] == "unbidden: the job's services on localhost"
-    assert "TCP-LISTEN:5432" in job["steps"][0]["run"] and "TCP:postgres:5432" in job["steps"][0]["run"]
-    service = job["services"]["postgres"]
-    assert service["ports"] == ["5432"] and service["options"] == "--health-cmd pg_isready"
+    monkeypatch.setattr(ci_env, "port_free", lambda port: True)
+    text, _, skipped = filtered_job(repo, rev, "ci.yml", "quick-tests")
+    service = yaml.safe_load(text)["jobs"]["quick-tests"]["services"]["postgres"]
+    # act runs the job on the host's network, as GitHub: the fixed port is how localhost reaches the service
+    assert service["ports"] == ["5432:5432"] and service["options"] == "--health-cmd pg_isready" and not skipped
+    monkeypatch.setattr(ci_env, "port_free", lambda port: False)
+    text, _, skipped = filtered_job(repo, rev, "ci.yml", "quick-tests")
+    assert yaml.safe_load(text)["jobs"]["quick-tests"]["services"]["postgres"]["ports"] == ["5432"]
+    assert skipped == ["host port 5432:5432 of a service (in use on this machine)"]
 
 
 def test_installing_a_publishing_tool_is_not_publishing() -> None:
@@ -248,3 +254,11 @@ def test_a_step_that_drives_the_hosts_docker_is_left_out() -> None:
     assert drives_docker("cat << EOF > my.cnf\nx\nEOF\ndocker cp my.cnf mysql:/etc/mysql/conf.d/\ndocker restart mysql")
     assert drives_docker("sudo docker compose up -d") and drives_docker("cd x && docker run --rm y")
     assert not drives_docker("pip install docker\npytest tests/test_docker.py") and not drives_docker("echo dockerfile")
+
+
+def test_at_measurement_localhost_reaches_the_jobs_services_by_name() -> None:
+    from unbidden.sandbox.ci_env import localhost_forwards
+
+    line = localhost_forwards([("mysql", "3306"), ("web", "80")])
+    assert "TCP-LISTEN:3306" in line and "TCP:mysql:3306" in line and "/dev/tcp/mysql/3306" in line
+    assert ":80" not in line and localhost_forwards([]) == ""
