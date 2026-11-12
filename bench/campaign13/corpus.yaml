@@ -13,6 +13,8 @@ copy_test_candidate: 69b0702258523e814cc42e0dfcb57eadf19fb7f5  # the fst copy te
 copy_test_wheel_sha256: cffdf7ac7f49b39fef525e3452a9fc2008a48faba0fefb9378014fd9a2aa910f
 confirm_candidate: 726009d5225adf38d80cfb21b269d21d497754c2  # phase 7 (2026-11-03): the phase 6 fixes, built with `make dist`, served from dist-confirm
 confirm_wheel_sha256: 5c088f3ee878afd58bf7cbfdad5fac56081677883e806c88fb0b0b14752cd0c6
+dev_candidate: b8fe69e909b14726ac5db508e7fb44200410b094  # campaign 13 dev runs: v0.16.0 (the CI's own environment)
+dev_wheel_sha256: 9e8f7164e3a6a7fc470e84f3097225df8915b3423a35090519b328bdef45dedb
 repos:
 - name: fst
   url: https://github.com/fastapi/full-stack-fastapi-template

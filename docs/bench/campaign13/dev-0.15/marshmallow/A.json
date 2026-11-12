@@ -1,0 +1,374 @@
+{
+ "repo": "marshmallow",
+ "phase": "dev-A",
+ "run": "A",
+ "candidate": "db5c79b182bafbe580bc6e1c6b48904fef2a1f21",
+ "wheel_sha256": "0761f2122ed4e6b53b6226e979808ffd5353bc690213e23c14986dda9fd6ed52",
+ "started_at": "2026-11-03T14:45:05-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "supervised",
+    "--budget",
+    "0",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 2.3,
+   "timed_out": false,
+   "stdout": "ability\": \"sandbox.provision\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.provision_dependencies\"\n    },\n    {\n      \"what\": \"send synthetic or public content to remote models\",\n      \"capability\": \"model.remote.synthetic\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.delegate_synthetic\"\n    },\n    {\n      \"what\": \"use capabilities it built for itself\",\n      \"capability\": \"capability.use\",\n      \"decision\": \"require_approval\",\n      \"rule\": \"autonomy.use_new_capabilities\"\n    },\n    {\n      \"what\": \"open pull requests\",\n      \"capability\": \"github.open_pull_request\",\n      \"decision\": \"require_approval\",\n      \"rule\": \"autonomy.open_pull_requests\"\n    },\n    {\n      \"what\": \"merge pull requests\",\n      \"capability\": \"github.merge_pull_request\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": {\n    \"ok\": true,\n    \"rejected\": false,\n    \"model\": \"muse-spark-1.3\",\n    \"usd\": 0.000435,\n    \"why\": null\n  },\n  \"priorities\": [\n    \"correctness\",\n    \"maintainability\",\n    \"security\"\n  ],\n  \"github\": null,\n  \"found\": {\n    \"repository\": \"marshmallow-code/marshmallow\",\n    \"branch\": \"HEAD\",\n    \"head\": \"b762ea2d59ca52fe5df76b90de14bed7e5ec5607\",\n    \"scope\": [\n      {\n        \"name\": \"scope: stack\",\n        \"in_scope\": true,\n        \"note\": \"Python 3.10 (pyproject.toml, uv.lock)\"\n      },\n      {\n        \"name\": \"scope: tests\",\n        \"in_scope\": true,\n        \"note\": \"build-release.yml > tests (matrix entry 1 of 4 (the job))\"\n      },\n      {\n        \"name\": \"scope: database\",\n        \"in_scope\": false,\n        \"note\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n      }\n    ],\n    \"machine\": \"Apple M5 Pro, 64 GB, 54 GB for a model\",\n    \"ollama\": {\n      \"url\": \"http://localhost:11434\",\n      \"present\": true,\n      \"models\": [\n        \"llama3.1:8b\",\n        \"muse-glimmer:30b-mlx\",\n        \"muse-glimmer:30b-mxfp8-dflash\",\n        \"nomic-embed-text:latest\"\n      ]\n    },\n    \"local_model\": {\n      \"tag\": \"muse-glimmer:30b-mxfp8-dflash\",\n      \"installed\": true\n    },\n    \"key\": {\n      \"name\": \"MODEL_API_KEY\",\n      \"present\": true\n    },\n    \"github\": null,\n    \"github_check\": null,\n    \"compose\": null,\n    \"services\": [],\n    \"external\": [],\n    \"option\": \"mixed\",\n    \"option_why\": \"hay una clave y un modelo local\"\n  },\n  \"defaulted\": [\n    \"priorities\",\n    \"credentials\",\n    \"key\",\n    \"connections\",\n    \"private_code\",\n    \"language\"\n  ],\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c13/repos/c13-marshmallow/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c13/repos/c13-marshmallow/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 0.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -17,4 +17,5 @@\",\n    \"     rollback: deny\",\n    \"     use_new_capabilities: require_approval\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,8 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\",\n    \"+  operations: {}\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c13/repos/c13-marshmallow/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "ntent to remote models    allowed\n  use capabilities it built for itself                 asks first\n  open pull requests                                   asks first\n  merge pull requests                                  denied\n  deploy with the team's steps                         denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nPresupuesto\nLibro de la máquina: verified balance US$97.29 (stage 6 spend cap authorized by \nDavid on 2026-10-28: up to US$10 of free credits from this point (dev 3, \nevaluation 5, demo and contingency 2; the earlier US$3 reserve is included, not \nadded). Dashboard as reported by David 2026-10-28: Current balance US$0, free \ncredits in use US$144.98, a Visa card on file, content sent while on free \ncredits may be used to improve products. A cap, not a measured balance; no \nrecharge or card charge authorized (entered by david) | stage 9: US$30 \nadditional Meta API spend authorized by David on 2026-10-29, replacing the US$10\ncap; cumulative cap US$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval\n12, demo 6 (D-052). Dashboard as reported by David: free credits in use \nUS$137.96, balance US$0, a card on file. No recharge or card charge authorized \n(entered by david) | stage 10: the remaining US$20.30 of the US$37.29 cap split \nbefore any call (D-058), by David's stage 10 instruction of 2026-10-30 (entered \nby david) | stage 10 after the frozen evaluation: US$5 of the unspent s10-eval \nmoved to s10-dev for corrections and regressions, by David's instruction of \n2026-10-31; envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; spent at the transfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, \ns10-close 0) (entered by david) | product phase (A-E): s11-product US$4.00 \nauthorized by David on 2026-11-01, reassigned from s10-close (3.80, unspent, \nclosed) and US$0.20 of s10-dev; envelopes total US$20.30 and the cumulative cap \nUS$37.2945 unchanged; spent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval\n1.0010, s10-close 0) (entered by david) | product phase correction: David's \nauthorization of 2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken \nfrom s10-dev had no recorded authorization and goes back (s10-dev 13.00, \ns11-product 3.80); envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; s11-product spent 0 at the correction; spent at the correction \nUS$27.7199 (entered by david) | campaign 12 (installed-product validation): \nUS$60 additional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david) | envelopes s13-dev 15, \ns13-pass 15, s13-final 20, s13-confirm 5 authorized by David on 2026-11-03 \n('dale entonces empecemos con todo', campaign 13 to 1.0, within the cumulative \ncap US$97.2945, not amended); earlier envelopes unchanged; no transfers (entered\nby david)); permitido US$97.29 · gastado US$31.6331 · disponible US$65.6614\nsobres: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, s12-eval\n30.00, s12-dev 17.00, s12-confirm 5.00, s13-dev 15.00, s13-pass 15.00, s13-final\n20.00, s13-confirm 5.00\nLos créditos del proveedor y el gasto autorizado son cosas distintas: el tope \nque una persona ingresó con `unbidden spend --verified-balance` es lo que esta \nmáquina puede gastar; aquí nunca se sube ni se reinicia.\n\nPanel\nAbrir el panel, restaurar su disposición y mostrar registros no llama a ningún \nmodelo; chatear o pedir un análisis sí puede.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 2.1,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"4 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key proven: muse-spark-1.3 answered\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"no GITHUB_TOKEN: proposals stay local branches\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs require_approval\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"recon\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"completo (2026-11-03T17:45); stack absent\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.10 (pyproject.toml, uv.lock)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"build-release.yml > tests (matrix entry 1 of 4 (the job))\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "scan",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "scan",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 90.7,
+   "timed_out": false,
+   "stdout": "{\n  \"rev\": \"b762ea2d59ca52fe5df76b90de14bed7e5ec5607\",\n  \"languages\": [\n    \"python\"\n  ],\n  \"blind_spots\": [\n    \"python 3.10: no concrete version declared; the oldest the constraints admit (a choice, not something the project names)\",\n    \"pyproject requires-python: >=3.10\",\n    \"image unbidden-deps-python:5410d6765d69c405 on linux/arm64\"\n  ],\n  \"problems\": [],\n  \"reports\": [\n    {\n      \"tool\": \"ruff\",\n      \"completeness\": \"complete\",\n      \"findings\": 2,\n      \"error\": null\n    },\n    {\n      \"tool\": \"mypy\",\n      \"completeness\": \"complete\",\n      \"findings\": 3,\n      \"error\": null\n    },\n    {\n      \"tool\": \"pypi-advisories\",\n      \"completeness\": \"complete\",\n      \"findings\": 29,\n      \"error\": null\n    }\n  ],\n  \"opened\": 8,\n  \"resolved\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "inbox",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "inbox",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "  \"id\": \"opp_a401b733881e41ca\",\n    \"source\": \"pypi-advisories\",\n    \"category\": \"security\",\n    \"title\": \"uv 0.12.18: 2 known vulnerabilities, fixed in 0.13.4\",\n    \"summary\": \"uv: uv 0.12.18: GHSA-hq85-5cpj-mr62; fixed in 0.13.4: By default, uv verifies TLS connections against a vendored copy of the `webpki-root-certs` bundle. Versions before 0.13.4 include the `emSign ECC Root CA - G3` root. Eight eMudhra intermediate CA cert; uv: uv 0.12.18: PYSEC-2026-4321 (GHSA-hq85-5cpj-mr62); fixed in 0.13.4: By default, uv verifies TLS connections against a vendored copy of the `webpki-root-certs` bundle. Versions before 0.13.4 include the `emSign ECC Root CA - G3` root. Eight eMudhra intermediate CA cert\",\n    \"dedup_key\": \"pypi-advisories:uv:.\",\n    \"evidence_level\": 1,\n    \"status\": \"open\",\n    \"evidence\": [\n      {\n        \"kind\": \"analyzer_report\",\n        \"locator\": \"pypi-advisories@b762ea2d59ca52fe5df76b90de14bed7e5ec5607\",\n        \"sha256\": \"5a3de223382dc92c4401a5b484b9bb6102f1b0978af47c9ac5598ab22c28b676\",\n        \"note\": null,\n        \"captured_at\": \"2026-11-03T17:46:42.359320Z\"\n      }\n    ],\n    \"priority_score\": 0.0,\n    \"created_at\": \"2026-11-03T17:46:42.361208Z\",\n    \"updated_at\": \"2026-11-03T17:46:42.361209Z\"\n  },\n  {\n    \"id\": \"opp_18c10dfc43dc442d\",\n    \"source\": \"pypi-advisories\",\n    \"category\": \"security\",\n    \"title\": \"virtualenv 21.11.1: 11 known vulnerabilities, fixed in 21.14.9\",\n    \"summary\": \"virtualenv: virtualenv 21.11.1: GHSA-394h-qwmc-48pf (CVE-2026-113718); fixed in 21.14.9: ## Summary\\n\\nCaller-supplied prompt text can become executable syntax in the xonsh activation script. An attacker must influence the\\nvalue passed to virtualenv, and a user must subsequently activate th; virtualenv: virtualenv 21.11.1: GHSA-494p-63j8-28p3 (CVE-2026-113714); fixed in 21.14.9: ## Summary\\n\\nWheel downloads go directly into the reusable wheelhouse, while the verification target is selected from pip's textual\\noutput. A verification failure does not remove the downloaded file fr; virtualenv: virtualenv 21.11.1: GHSA-5vjq-rrrf-7h2q (CVE-2026-113726); fixed in 21.14.4: ### Impact\\n\\nzsh users activate an environment with the bash `activate` script, which puts the environment name into `PS1`. Since\\n21.13.0 the script escapes backslashes, dollar signs and backticks in t; virtualenv: virtualenv 21.11.1: GHSA-6w3r-xr62-4xcp (CVE-2026-113723); fixed in 21.14.9: ## Summary\\n\\nCaller-supplied prompt text can become executable syntax in the bash activation prompt. An attacker must influence the\\nvalue passed to virtualenv, and a user must subsequently activate the; virtualenv: virtualenv 21.11.1: GHSA-8rjx-v5ww-45pp (CVE-2026-113776); fixed in 21.14.2: ### Impact\\n\\n`ViaTemplateActivator.instantiate_template` replaces the placeholders in an activation template one key at a time, each across the whole text. When a value that it already substituted and ; virtualenv: virtualenv 21.11.1: GHSA-c947-3pg5-gm8q (CVE-2026-113732); fixed in 21.14.2: ### Impact\\n\\n`FishActivator` defines no `quote()`, so it inherits `ViaTemplateActivator.quote`, which returns `shlex.quote(string)`. That function follows POSIX `sh` rules, where a backslash inside sin; virtualenv: virtualenv 21.11.1: GHSA-c978-59m8-c77v (CVE-2026-113722); fixed in 21.14.9: ## Summary\\n\\nA destination path supplied to virtualenv can be interpreted as shell syntax by a generated POSIX console launcher. The\\napp-data seeder and pip delegate \",\n    \"dedup_key\": \"pypi-advisories:virtualenv:.\",\n    \"evidence_level\": 1,\n    \"status\": \"open\",\n    \"evidence\": [\n      {\n        \"kind\": \"analyzer_report\",\n        \"locator\": \"pypi-advisories@b762ea2d59ca52fe5df76b90de14bed7e5ec5607\",\n        \"sha256\": \"5a3de223382dc92c4401a5b484b9bb6102f1b0978af47c9ac5598ab22c28b676\",\n        \"note\": null,\n        \"captured_at\": \"2026-11-03T17:46:42.359320Z\"\n      }\n    ],\n    \"priority_score\": 0.0,\n    \"created_at\": \"2026-11-03T17:46:42.361644Z\",\n    \"updated_at\": \"2026-11-03T17:46:42.361645Z\"\n  }\n]\n",
+   "stderr": ""
+  },
+  {
+   "name": "status0",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/repos/c13-marshmallow\",\n  \"head\": \"b762ea2d59ca52fe5df76b90de14bed7e5ec5607\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-marshmallow/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"b762ea2d59ca52fe5df76b90de14bed7e5ec5607\",\n    \"tools\": [\n      \"ruff\",\n      \"mypy\",\n      \"pypi-advisories\"\n    ],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"python 3.10: no concrete version declared; the oldest the constraints admit (a choice, not something the project names)\",\n      \"pyproject requires-python: >=3.10\",\n      \"image unbidden-deps-python:5410d6765d69c405 on linux/arm64\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff\",\n        \"completeness\": \"complete\",\n        \"findings\": 2,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"mypy\",\n        \"completeness\": \"complete\",\n        \"findings\": 3,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"pypi-advisories\",\n        \"completeness\": \"complete\",\n        \"findings\": 29,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"open\": 8\n  },\n  \"asks\": [],\n  \"blocks\": [],\n  \"idle\": true\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--interval",
+    "3600",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.6,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 19742,\n  \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-marshmallow/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/repos/c13-marshmallow\",\n  \"head\": \"b762ea2d59ca52fe5df76b90de14bed7e5ec5607\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": true,\n    \"pid\": 19742,\n    \"started_at\": \"2026-11-03T17:46:43.414021+00:00\",\n    \"command\": \"watch\",\n    \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-marshmallow/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 1,\n    \"jobs_queued\": 4\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"b762ea2d59ca52fe5df76b90de14bed7e5ec5607\",\n    \"tools\": [\n      \"ruff\",\n      \"mypy\",\n      \"pypi-advisories\"\n    ],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"python 3.10: no concrete version declared; the oldest the constraints admit (a choice, not something the project names)\",\n      \"pyproject requires-python: >=3.10\",\n      \"image unbidden-deps-python:5410d6765d69c405 on linux/arm64\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff\",\n        \"completeness\": \"complete\",\n        \"findings\": 2,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"mypy\",\n        \"completeness\": \"complete\",\n        \"findings\": 3,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"pypi-advisories\",\n        \"completeness\": \"complete\",\n        \"findings\": 29,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"open\": 4,\n    \"declined\": 4\n  },\n  \"asks\": [\n    {\n      \"id\": \"ask_e6531c05769046d7\",\n      \"kind\": \"spend\",\n      \"title\": \"The monthly cap (US$0.00) is reached. Raise it?\",\n      \"why\": \"US$0.00 was spent this month; remote calls are refused until the cap is raised or the month turns. Credits and the cap are different things: the cap is what this project may spend.\",\n      \"options\": [\n        {\n          \"key\": \"raise\",\n          \"label\": \"raise: a new monthly cap in US$\",\n          \"input\": \"text\"\n        },\n        {\n          \"key\": \"later\",\n          \"label\": \"later: local work continues\",\n          \"input\": \"none\"\n        }\n      ],\n      \"default\": \"later\",\n      \"status\": \"open\",\n      \"subject\": null,\n      \"cli\": \"unbidden setup budget --budget <USD>\",\n      \"created_at\": \"2026-11-03T17:46:55.962150+00:00\",\n      \"answer\": null,\n      \"outcome\": null\n    }\n  ],\n  \"blocks\": [],\n  \"idle\": false\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "start-again",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--interval",
+    "3600",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.6,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": false,\n  \"already\": {\n    \"pid\": 19742,\n    \"host\": \"MacBook-Pro-de-David.local\",\n    \"started_at\": \"2026-11-03T17:46:43.414021+00:00\",\n    \"command\": \"watch\",\n    \"version\": \"0.15.0\",\n    \"argv_hint\": \"cli.py watch --interval 3600.0\"\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 1.6,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 19742,\n  \"waited_s\": 1.4,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-after",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.2,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/repos/c13-marshmallow\",\n  \"head\": \"b762ea2d59ca52fe5df76b90de14bed7e5ec5607\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-marshmallow/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 5\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"b762ea2d59ca52fe5df76b90de14bed7e5ec5607\",\n    \"tools\": [\n      \"ruff\",\n      \"mypy\",\n      \"pypi-advisories\"\n    ],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"python 3.10: no concrete version declared; the oldest the constraints admit (a choice, not something the project names)\",\n      \"pyproject requires-python: >=3.10\",\n      \"image unbidden-deps-python:5410d6765d69c405 on linux/arm64\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff\",\n        \"completeness\": \"complete\",\n        \"findings\": 2,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"mypy\",\n        \"completeness\": \"complete\",\n        \"findings\": 3,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"pypi-advisories\",\n        \"completeness\": \"complete\",\n        \"findings\": 29,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"open\": 4,\n    \"declined\": 4\n  },\n  \"asks\": [\n    {\n      \"id\": \"ask_e6531c05769046d7\",\n      \"kind\": \"spend\",\n      \"title\": \"The monthly cap (US$0.00) is reached. Raise it?\",\n      \"why\": \"US$0.00 was spent this month; remote calls are refused until the cap is raised or the month turns. Credits and the cap are different things: the cap is what this project may spend.\",\n      \"options\": [\n        {\n          \"key\": \"raise\",\n          \"label\": \"raise: a new monthly cap in US$\",\n          \"input\": \"text\"\n        },\n        {\n          \"key\": \"later\",\n          \"label\": \"later: local work continues\",\n          \"input\": \"none\"\n        }\n      ],\n      \"default\": \"later\",\n      \"status\": \"open\",\n      \"subject\": null,\n      \"cli\": \"unbidden setup budget --budget <USD>\",\n      \"created_at\": \"2026-11-03T17:46:55.962150+00:00\",\n      \"answer\": null,\n      \"outcome\": null\n    }\n  ],\n  \"blocks\": [],\n  \"idle\": false\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "ui",
+    "--json",
+    "--port",
+    "8800"
+   ],
+   "code": 0,
+   "seconds": 1.0,
+   "timed_out": false,
+   "stdout": "{\n  \"url\": \"http://127.0.0.1:8800/?s=<token>\",\n  \"host\": \"127.0.0.1\",\n  \"port\": 8800,\n  \"pid\": 21111,\n  \"started_at\": \"2026-11-03T14:47:06-0300\",\n  \"in_daemon\": false,\n  \"reused\": false,\n  \"log\": \"/Users/david/unbidden-lab/c13/repos/c13-marshmallow/.unbidden/logs/ui.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "ui",
+    "--stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 21111\n}\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/marshmallow-code/marshmallow",
+   "commit": "b762ea2d59ca52fe5df76b90de14bed7e5ec5607",
+   "family": "library",
+   "class": "dev",
+   "build": "tox",
+   "license": "MIT"
+  },
+  "ledger_before": {
+   "envelope": "s13-dev",
+   "envelope_spent_usd": 0.0004,
+   "available_usd": 65.6614,
+   "permitted_usd": 97.2945
+  },
+  "clone": {
+   "path": "/Users/david/unbidden-lab/c13/repos/c13-marshmallow",
+   "head": "b762ea2d59ca52fe5df76b90de14bed7e5ec5607",
+   "seconds": 1.4,
+   "fetch_code": 0
+  },
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required",
+   "scope": {
+    "scope: stack": [
+     true,
+     "Python 3.10 (pyproject.toml, uv.lock)"
+    ],
+    "scope: tests": [
+     true,
+     "build-release.yml > tests (matrix entry 1 of 4 (the job))"
+    ],
+    "scope: database": [
+     false,
+     "no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)"
+    ]
+   }
+  },
+  "scan": {
+   "ok": true,
+   "timed_out": false,
+   "seconds": 90.7,
+   "languages": [
+    "python"
+   ],
+   "reports": [
+    {
+     "tool": "ruff",
+     "completeness": "complete",
+     "findings": 2,
+     "error": null
+    },
+    {
+     "tool": "mypy",
+     "completeness": "complete",
+     "findings": 3,
+     "error": null
+    },
+    {
+     "tool": "pypi-advisories",
+     "completeness": "complete",
+     "findings": 29,
+     "error": null
+    }
+   ],
+   "opened": 8,
+   "problems": [],
+   "blind_spots": [
+    "python 3.10: no concrete version declared; the oldest the constraints admit (a choice, not something the project names)",
+    "pyproject requires-python: >=3.10",
+    "image unbidden-deps-python:5410d6765d69c405 on linux/arm64"
+   ]
+  },
+  "inbox": {
+   "total": 8,
+   "by_source": {
+    "ruff": 2,
+    "mypy": 2,
+    "pypi-advisories": 4
+   }
+  },
+  "checks": {
+   "status": "passed",
+   "collected": 1192,
+   "why": null,
+   "scope": "matrix entry 1 of 4 (the job)",
+   "partial": true,
+   "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\n(pytest)",
+   "rev": "b762ea2d59ca52fe5df76b90de14bed7e5ec5607",
+   "could_not_run": {
+    "tests": 0,
+    "lacks": []
+   },
+   "failed": 0,
+   "image_notes": [
+    "python 3.10: no concrete version declared; the oldest the constraints admit (a choice, not something the project names)",
+    "pyproject requires-python: >=3.10",
+    "image unbidden-deps-python:5410d6765d69c405 on linux/arm64"
+   ],
+   "python": "3.10",
+   "waited_s": 20.0,
+   "image_age": {
+    "tag": "unbidden-deps-python:5410d6765d69c405",
+    "created": "2026-11-03T14:46:18.701939975-03:00",
+    "built_in_this_run": false
+   }
+  },
+  "lifecycle": {
+   "started": true,
+   "running_after_checks": true,
+   "second_start_refused": true,
+   "stopped": true,
+   "jobs_left_running": 0,
+   "stale_after": false,
+   "kill_file": false,
+   "status0_ok": true
+  },
+  "ui": {
+   "opened": true,
+   "session_ok": true,
+   "source_mode": "live",
+   "freshness": "current",
+   "counts": {
+    "opportunities": 8,
+    "experiments": 0,
+    "proposals": 0,
+    "events": 47,
+    "model_runs": 0,
+    "connections": 1,
+    "deployments": 0,
+    "needs": 0,
+    "blocks": 0,
+    "spend_calls": 0,
+    "world": 1
+   },
+   "agent": {
+    "running": false,
+    "detail": "agent not running: `unbidden start`"
+   },
+   "route": "frontier",
+   "key_present": true,
+   "opportunities_total": 8,
+   "events": 47,
+   "built_index": true,
+   "secret_in_summary": false,
+   "stopped": true
+  },
+  "ledger_after": {
+   "envelope": "s13-dev",
+   "envelope_spent_usd": 0.0004,
+   "available_usd": 65.6614,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c13-dev-A-A-marshmallow",
+   "calls": 0,
+   "usd": 0.0,
+   "tokens_in": 0,
+   "tokens_out": 0
+  },
+  "spent_usd": 0.0,
+  "refused_by_cap": 0,
+  "events": {
+   "analyzer.ran": 6,
+   "ask.opened": 1,
+   "connection.changed": 1,
+   "decision.made": 9,
+   "job.finished": 9,
+   "job.started": 9,
+   "mandate.changed": 1,
+   "opportunity.opened": 8,
+   "repo.head_moved": 1,
+   "world.changed": 2
+  },
+  "archive": "/Users/david/unbidden-lab/c13/archive/marshmallow-A-dev-A.tgz"
+ },
+ "human": [
+  {
+   "step": "clone at the pin",
+   "minutes": 0.0,
+   "why": "harness"
+  }
+ ],
+ "blocks": []
+}
