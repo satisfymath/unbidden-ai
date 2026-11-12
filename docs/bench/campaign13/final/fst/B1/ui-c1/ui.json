@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18820/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "dnspython 2.8.0: 1 known vulnerability, fixed in 2.9.0\tverificada\t5\tpropose_change",
+    "1 ruff I001 finding in hooks/\tdescartada\t1\tdecline",
+    "3 ruff DTZ011 findings in scripts/\tdescartada\t1\tdecline",
+    "1 ruff FURB167 finding in scripts/\tdescartada\t1\tdecline",
+    "item.owner_id is a foreign key without an index, filtered on by 2 endpoint(s)\tabierta\t1\twait",
+    "GET /api/v1/items/ reports count: unverified against the stored data\tabierta\t1\twait",
+    "GET /api/v1/users/ reports count: unverified against the stored data\tabierta\t1\twait",
+    "",
+    "7 fila(s)"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "7 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "fst",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 181 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "analyzer.ran",
+    "connection.changed",
+    "decision.made",
+    "deployment.observed",
+    "egress.allowed",
+    "impact.judged",
+    "job.finished",
+    "job.started",
+    "model.called",
+    "operations.deployed",
+    "operations.merged",
+    "opportunity.resolved",
+    "outcome.recorded",
+    "repo.head_moved",
+    "world.changed",
+    "Trabajo terminado",
+    "17:26",
+    "next: [] · outcome: ok · seconds: 2",
+    "Trabajo iniciado",
+    "17:26",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "17:26",
+    "next: [] · outcome: ok · seconds: 4.1",
+    "Mapa actualizado",
+    "17:26",
+    "{\"carried\":[\"api:http_api:http://127.0.0.1:18822\",\"database:postgres:127.0.0.1:1",
+    "Trabajo iniciado",
+    "17:26"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "fst",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 7 oportunidades, ordenadas por evidencia",
+    "L5 operativo",
+    "dnspython 2.8.0: 1 known vulnerability, fixed in 2.9.0",
+    "pypi-advisories · security · propose_change · 04 nov, 16:26",
+    "verificada",
+    "—",
+    "L1 sospecha",
+    "item.owner_id is a foreign key without an index, filtered on by 2 endpoint(s)",
+    "world · performance · wait · bloqueada · 04 nov, 16:24",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "GET /api/v1/items/ reports count: unverified against the stored data",
+    "world · bugs · wait · 04 nov, 16:24",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "GET /api/v1/users/ reports count: unverified against the stored data",
+    "world · bugs · wait · 04 nov, 16:24",
+    "abierta",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "7 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

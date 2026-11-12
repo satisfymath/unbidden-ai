@@ -1,0 +1,2898 @@
+{
+ "repo": "sqlmodel",
+ "phase": "confirm-rerun",
+ "run": "B1",
+ "candidate": "0230c67cbe2cad21c74d0e3ac768900d30c68a57",
+ "wheel_sha256": "4b8477f4e4e484c84401fcfb676169795497894f14772376d7815b6e809f1036",
+ "started_at": "2026-11-04T18:10:49-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "autopilot",
+    "--budget",
+    "2",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--github-token-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 10.7,
+   "timed_out": false,
+   "stdout": "tonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": {\n    \"ok\": true,\n    \"rejected\": false,\n    \"model\": \"muse-spark-1.3\",\n    \"usd\": 0.000571,\n    \"why\": null\n  },\n  \"priorities\": [\n    \"correctness\",\n    \"maintainability\",\n    \"security\"\n  ],\n  \"github\": \"file\",\n  \"found\": {\n    \"repository\": \"satisfymath/c13-sqlmodel\",\n    \"branch\": \"HEAD\",\n    \"head\": \"dadc5489ffd109b064acf280ad0e2e0829c439cf\",\n    \"scope\": [\n      {\n        \"name\": \"scope: stack\",\n        \"in_scope\": true,\n        \"note\": \"Python 3.10 (pyproject.toml, uv.lock)\"\n      },\n      {\n        \"name\": \"scope: tests\",\n        \"in_scope\": true,\n        \"note\": \"test.yml > test (matrix entry 1 of 9 (os=ubuntu-latest, python-version=3.11, uv-resolution=highest)); 2 step(s) after the tests left out (they run no tests)\"\n      },\n      {\n        \"name\": \"scope: database\",\n        \"in_scope\": true,\n        \"note\": \"services in compose: postgres, mysql, mariadb\"\n      }\n    ],\n    \"machine\": \"Apple M5 Pro, 64 GB, 54 GB for a model\",\n    \"ollama\": {\n      \"url\": \"http://localhost:11434\",\n      \"present\": true,\n      \"models\": [\n        \"muse-glimmer:30b-mxfp8-dflash\",\n        \"nomic-embed-text:latest\"\n      ]\n    },\n    \"local_model\": {\n      \"tag\": \"muse-glimmer:30b-mxfp8-dflash\",\n      \"installed\": true\n    },\n    \"key\": {\n      \"name\": \"MODEL_API_KEY\",\n      \"present\": true\n    },\n    \"github\": \"file\",\n    \"github_check\": {\n      \"login\": \"satisfymath\",\n      \"can_push\": true,\n      \"detail\": \"can push to satisfymath/c13-sqlmodel\"\n    },\n    \"compose\": \"compose.yml\",\n    \"services\": [\n      {\n        \"name\": \"postgres\",\n        \"kind\": \"postgres\"\n      },\n      {\n        \"name\": \"mysql\",\n        \"kind\": \"mysql\"\n      },\n      {\n        \"name\": \"mariadb\",\n        \"kind\": \"mariadb\"\n      },\n      {\n        \"name\": \"adminer\",\n        \"kind\": null\n      }\n    ],\n    \"external\": [],\n    \"option\": \"mixed\",\n    \"option_why\": \"hay una clave y un modelo local\"\n  },\n  \"defaulted\": [\n    \"priorities\",\n    \"key\",\n    \"connections\",\n    \"private_code\",\n    \"language\"\n  ],\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c13/sqlmodel/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c13/sqlmodel/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 2.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -12,9 +12,10 @@\",\n    \"     provision_dependencies: allow\",\n    \"     delegate_synthetic: allow\",\n    \"-    open_pull_requests: require_approval\",\n    \"+    open_pull_requests: allow\",\n    \"     merge_pull_requests: deny\",\n    \"     deploy: deny\",\n    \"     rollback: deny\",\n    \"-    use_new_capabilities: require_approval\",\n    \"+    use_new_capabilities: allow\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,16 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\",\n    \"+  connections:\",\n    \"+  - id: github\",\n    \"+    kind: github\",\n    \"+    location: satisfymath/c13-sqlmodel\",\n    \"+    credential_ref: GITHUB_TOKEN\",\n    \"+    environment: production\",\n    \"+    permissions:\",\n    \"+    - read\",\n    \"+  operations: {}\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c13/sqlmodel/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "            denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nCredenciales\nGuardadas en /Users/david/unbidden-lab/c13/home-confirm/.unbidden/.env (modo \n600), referidas por nombre; nunca escritas en el repositorio ni en registros.\nMODEL_API_KEY guardada.\nClave aceptada: muse-spark-1.3 respondió (US$0.0006).\nGITHUB_TOKEN guardada.\n\nPresupuesto\nLibro de la máquina: verified balance US$97.29 (stage 6 spend cap authorized by \nDavid on 2026-10-28: up to US$10 of free credits from this point (dev 3, \nevaluation 5, demo and contingency 2; the earlier US$3 reserve is included, not \nadded). Dashboard as reported by David 2026-10-28: Current balance US$0, free \ncredits in use US$144.98, a Visa card on file, content sent while on free \ncredits may be used to improve products. A cap, not a measured balance; no \nrecharge or card charge authorized (entered by david) | stage 9: US$30 \nadditional Meta API spend authorized by David on 2026-10-29, replacing the US$10\ncap; cumulative cap US$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval\n12, demo 6 (D-052). Dashboard as reported by David: free credits in use \nUS$137.96, balance US$0, a card on file. No recharge or card charge authorized \n(entered by david) | stage 10: the remaining US$20.30 of the US$37.29 cap split \nbefore any call (D-058), by David's stage 10 instruction of 2026-10-30 (entered \nby david) | stage 10 after the frozen evaluation: US$5 of the unspent s10-eval \nmoved to s10-dev for corrections and regressions, by David's instruction of \n2026-10-31; envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; spent at the transfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, \ns10-close 0) (entered by david) | product phase (A-E): s11-product US$4.00 \nauthorized by David on 2026-11-01, reassigned from s10-close (3.80, unspent, \nclosed) and US$0.20 of s10-dev; envelopes total US$20.30 and the cumulative cap \nUS$37.2945 unchanged; spent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval\n1.0010, s10-close 0) (entered by david) | product phase correction: David's \nauthorization of 2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken \nfrom s10-dev had no recorded authorization and goes back (s10-dev 13.00, \ns11-product 3.80); envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; s11-product spent 0 at the correction; spent at the correction \nUS$27.7199 (entered by david) | campaign 12 (installed-product validation): \nUS$60 additional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david) | envelopes s13-dev 15, \ns13-pass 15, s13-final 20, s13-confirm 5 authorized by David on 2026-11-03 \n('dale entonces empecemos con todo', campaign 13 to 1.0, within the cumulative \ncap US$97.2945, not amended); earlier envelopes unchanged; no transfers (entered\nby david)); permitido US$97.29 · gastado US$35.5293 · disponible US$61.7652\nsobres: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, s12-eval\n30.00, s12-dev 17.00, s12-confirm 5.00, s13-dev 15.00, s13-pass 15.00, s13-final\n20.00, s13-confirm 5.00\nLos créditos del proveedor y el gasto autorizado son cosas distintas: el tope \nque una persona ingresó con `unbidden spend --verified-balance` es lo que esta \nmáquina puede gastar; aquí nunca se sube ni se reinicia.\n\nPanel\nAbrir el panel, restaurar su disposición y mostrar registros no llama a ningún \nmodelo; chatear o pedir un análisis sí puede.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 6.9,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"2 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"act\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"found: the team's CI job prepares the environment when the mandate allows it\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key proven: muse-spark-1.3 answered\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"GITHUB_TOKEN set\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs allow\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"recon\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"incompleto: stack down; stack down, postgres unread\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.10 (pyproject.toml, uv.lock)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"test.yml > test (matrix entry 1 of 9 (os=ubuntu-latest, python-version=3.11, uv-resolution=highest)); 2 step(s) after the tests left out (they run no tests)\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"services in compose: postgres, mysql, mariadb\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "19100",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.6,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 25541,\n  \"log\": \"/Users/david/unbidden-lab/c13/sqlmodel/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-browser",
+   "argv": [
+    "node",
+    "/Users/david/unbidden-ai-v1b/frontend/scripts/c13_ui_check.mjs",
+    "http://127.0.0.1:19100/?s=<token>",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final-rerun-0.18.9/sqlmodel/B1/ui-c1"
+   ],
+   "code": 0,
+   "seconds": 18.7,
+   "timed_out": false,
+   "stdout": "{\"ok\":true,\"steps\":5,\"console_errors\":2}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-status",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué ha hecho el agente hasta ahora y cuántas oportunidades hay?"
+   ],
+   "code": 0,
+   "seconds": 1.5,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_8eb6869192b94ef3\",\n  \"role\": \"assistant\",\n  \"content\": \"Registro de sqlmodel (live, head dadc5489ffd1): 5 oportunidades, 5 experimentos, 5 propuestas, 177 eventos, 3 llamadas a modelos, 0 bloqueos.\\nJobs: done 48, running 1\\nAgente: agent running, pid 25541.\\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.\",\n  \"created_at\": \"2026-11-04T21:52:40.585241Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"rule\",\n  \"model\": null,\n  \"route\": {\n    \"intent\": \"inform\",\n    \"purpose\": null,\n    \"tier\": null,\n    \"model\": null,\n    \"reason\": \"the mandate denies local inference; reading records needs no model: answered by rules\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-analyze",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué hallazgo priorizarías y por qué? Di qué falta en el registro."
+   ],
+   "code": 0,
+   "seconds": 11.3,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_4994d0d77a6e456d\",\n  \"role\": \"assistant\",\n  \"content\": \"Priorizaría `opp_278db9e14288481c` — \\\"anyio 4.12.0: 4 known vulnerabilities, fixed in 4.14.2\\\", level 4, status `proposed`, con experimento.\\n\\nPor qué, solo con el digest: cita 4 vulnerabilidades conocidas, frente a 2 en `opp_7b69e01a499f4eea` (certifi), 2 en `opp_2523875ab0bf4b0a` (idna) y 1 en `opp_f1ae05dce14e4ddd` (black); y su propuesta aparece en `proposals.merged: 1`.\\n\\nLo que falta en el registro: el digest cuenta 5 oportunidades pero solo detalla 4 highlights; no incluye la 5ª, no incluye severidad, explotabilidad, impacto ni criterio de priorización. Para decidir, usa tú el botón/comando correspondiente; no puedo aprobar ni fusionar nada.\",\n  \"created_at\": \"2026-11-04T21:52:51.881841Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"brain\",\n  \"model\": \"muse-spark-1.3\",\n  \"route\": {\n    \"intent\": \"analyze\",\n    \"purpose\": \"chat.analyze\",\n    \"tier\": \"code\",\n    \"model\": \"muse-spark-1.3\",\n    \"reason\": \"profile frontier; public_code may leave; label public_code\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.7,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 25541,\n  \"waited_s\": 0.4,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "19100",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 61518,\n  \"log\": \"/Users/david/unbidden-lab/c13/sqlmodel/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 61518,\n  \"waited_s\": 0.2,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-final",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.4,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/sqlmodel\",\n  \"head\": \"dadc5489ffd109b064acf280ad0e2e0829c439cf\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c13/sqlmodel/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"dadc5489ffd109b064acf280ad0e2e0829c439cf\",\n    \"tools\": [\n      \"ruff\",\n      \"pypi-advisories\"\n    ],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"python 3.10: from the CI's python-version (the oldest in its matrix)\",\n      \"pyproject requires-python: >=3.10\",\n      \"the CI's python-version: 3.10, 3.11, 3.12, 3.13, 3.14\",\n      \".python-version: 3.11\",\n      \"conflict: concrete sources disagree: the CI's python-version 3.10, 3.11, 3.12, 3.13, 3.14; .python-version 3.11\",\n      \"image unbidden-deps-python:f5db0c07f39a8b0e on linux/arm64\",\n      \"the team's CI job did not prepare the environment: the CI job failed at `Test` before its tests: code '1': failure\\n[unbidden-ci/Test (ubuntu-latest, Python 3.14, highest, postgres)] \\u2b50 Run Main unbidden: keep the prepared environment\\n[unbidden-ci/Test (ubuntu-latest, Python 3.14, highest, postgres)]   \\ud83d\\udc33  docker exec cmd=[bash --noprofile --norc -e -o\"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff\",\n        \"completeness\": \"complete\",\n        \"findings\": 0,\n        \"error\": \"\"\n      },\n      {\n        \"tool\": \"pypi-advisories\",\n        \"completeness\": \"complete\",\n        \"findings\": 19,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"proposed\": 1,\n    \"open\": 4\n  },\n  \"asks\": [],\n  \"blocks\": [],\n  \"idle\": true\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "egress",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "egress",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 1.0,
+   "timed_out": false,
+   "stdout": "vels, statuses, titles, ids, medians) and a question. Answer in the language the question is written in,\\\\nbriefly, from the digest alone: cite the ids and numbers you rely on, say what the digest does not contain instead\\\\nof guessing, and never invent a metric, a finding or an improvement. You cannot act: do not promise to approve,\\\\ndeploy, merge, run or stop anything; name the command or button when the person should decide something.\\\", \\\"role\\\": \\\"system\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ade una tabla con las oportunidades\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ado una tabla con las oportunidades.\\\\na\\u00f1adido \\u00abOportunidades\\u00bb\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 ha hecho el agente hasta ahora y cu\\u00e1ntas oportunidades hay?\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"Registro de sqlmodel (live, head dadc5489ffd1): 5 oportunidades, 5 experimentos, 5 propuestas, 177 eventos, 3 llamadas a modelos, 0 bloqueos.\\\\nJobs: done 48, running 1\\\\nAgente: agent running, pid 25541.\\\\nPara un porqu\\u00e9 o una recomendaci\\u00f3n pide un an\\u00e1lisis; para ver algo, una tabla o un gr\\u00e1fico.\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"Records digest:\\\\nworkspace sqlmodel (live record); head dadc5489ffd1; observed 2026-11-04T21:52:41.752191+00:00; freshness current\\\\ncounts: {\\\\\\\"opportunities\\\\\\\":5,\\\\\\\"experiments\\\\\\\":5,\\\\\\\"proposals\\\\\\\":5,\\\\\\\"events\\\\\\\":178,\\\\\\\"model_runs\\\\\\\":3,\\\\\\\"connections\\\\\\\":1,\\\\\\\"deployments\\\\\\\":0,\\\\\\\"needs\\\\\\\":0,\\\\\\\"blocks\\\\\\\":0,\\\\\\\"spend_calls\\\\\\\":23,\\\\\\\"world\\\\\\\":1}\\\\njobs: {\\\\\\\"done\\\\\\\":49}\\\\ndiscovered: {\\\\\\\"total\\\\\\\":5,\\\\\\\"by_status\\\\\\\":{\\\\\\\"proposed\\\\\\\":1,\\\\\\\"open\\\\\\\":4}}\\\\ninvalidated: []\\\\nproposals: {\\\\\\\"merged\\\\\\\":[\\\\\\\"fix(deps): bump anyio 4.12.0 \\u2192 4.14.2 (security)\\\\\\\"],\\\\\\\"stale\\\\\\\":[\\\\\\\"fix(deps): bump black 26.5.1 \\u2192 26.10.1 (security)\\\\\\\",\\\\\\\"fix(deps): bump certifi 2025.11.12 \\u2192 2026.10.18 (security)\\\\\\\",\\\\\\\"fix(deps): bump idna 3.11 \\u2192 3.15 (security)\\\\\\\",\\\\\\\"fix(deps): bump starlette 0.50.0 \\u2192 1.3.1 (security)\\\\\\\"]}\\\\nblocks: []\\\\nlearned: {\\\\\\\"pypi-advisories \\u00b7 security \\u00b7 -\\\\\\\":{\\\\\\\"successes\\\\\\\":1,\\\\\\\"failures\\\\\\\":0,\\\\\\\"p\\\\\\\":0.73,\\\\\\\"prior\\\\\\\":0.6}}\\\\nconnections: [{\\\\\\\"id\\\\\\\":\\\\\\\"github:satisfymath/c13-sqlmodel\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"github\\\\\\\",\\\\\\\"environment\\\\\\\":\\\\\\\"production\\\\\\\",\\\\\\\"state\\\\\\\":\\\\\\\"connected\\\\\\\",\\\\\\\"read\\\\\\\":[\\\\\\\"repository\\\\\\\",\\\\\\\"check runs\\\\\\\",\\\\\\\"pull requests\\\\\\\"],\\\\\\\"write\\\\\\\":[\\\\\\\"push branch\\\\\\\",\\\\\\\"pull request\\\\\\\"],\\\\\\\"requested\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"effective\\\\\\\":[\\\\\\\"read\\\\\\\",\\\\\\\"write\\\\\\\"],\\\\\\\"blocked\\\\\\\":null,\\\\\\\"next_step\\\\\\\":null,\\\\\\\"found_by\\\\\\\":[\\\\\\\"mandate grant\\\\\\\"],\\\\\\\"checked_at\\\\\\\":\\\\\\\"2026-11-04T21:51:11.088196+00:00\\\\\\\"}]\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_278db9e14288481c\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"anyio 4.12.0: 4 known vulnerabilities, fixed in 4.14.2\\\\\\\",\\\\\\\"level\\\\\\\":4,\\\\\\\"status\\\\\\\":\\\\\\\"proposed\\\\\\\",\\\\\\\"has_experiment\\\\\\\":true}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_f1ae05dce14e4ddd\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"black 26.5.1: 1 known vulnerability, fixed in 26.10.1\\\\\\\",\\\\\\\"level\\\\\\\":4,\\\\\\\"status\\\\\\\":\\\\\\\"open\\\\\\\",\\\\\\\"has_experiment\\\\\\\":true}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_7b69e01a499f4eea\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"certifi 2025.11.12: 2 known vulnerabilities, fixed in 2026.10.18\\\\\\\",\\\\\\\"level\\\\\\\":4,\\\\\\\"status\\\\\\\":\\\\\\\"open\\\\\\\",\\\\\\\"has_experiment\\\\\\\":true}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_2523875ab0bf4b0a\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"idna 3.11: 2 known vulnerabilities, fixed in 3.15\\\\\\\",\\\\\\\"level\\\\\\\":4,\\\\\\\"status\\\\\\\":\\\\\\\"open\\\\\\\",\\\\\\\"has_experiment\\\\\\\":true}\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 hallazgo priorizar\\u00edas y por qu\\u00e9? Di qu\\u00e9 falta en el registro.\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}], \\\"response_schema\\\": null, \\\"tools\\\": []}\",\n    \"created_at\": \"2026-11-04T21:52:41.764521Z\",\n    \"origin\": \"dashboard apart\"\n  }\n]\n",
+   "stderr": ""
+  },
+  {
+   "name": "export",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home-confirm/bin/unbidden",
+    "export",
+    "--out",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final-rerun-0.18.9/sqlmodel/export"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "Evidence of sqlmodel written to \n/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final-rerun-0.18.9/sqlmodel/e\nxport\n  events.jsonl                     182 lines  8728a259a7f5\n  audit.jsonl                       20 lines  1a4aba087d6b\n  opportunities.jsonl                5 lines  11bce77022f6\n  hypotheses.jsonl                   0 lines  e3b0c44298fc\n  experiment_specs.jsonl             0 lines  e3b0c44298fc\n  experiments.jsonl                  5 lines  eee48131448d\n  proposals.jsonl                    5 lines  2c4755c519e0\n  decisions.jsonl                   16 lines  9b4c485db8cc\n  deploy_verdicts.jsonl              0 lines  e3b0c44298fc\n  deployments.jsonl                  0 lines  e3b0c44298fc\n  holds.jsonl                        0 lines  e3b0c44298fc\n  approvals.jsonl                    0 lines  e3b0c44298fc\n  acceptances.jsonl                  0 lines  e3b0c44298fc\n  actions.jsonl                      2 lines  0cbca9434de8\n  goal_runs.jsonl                    0 lines  e3b0c44298fc\n  model_runs.jsonl                   3 lines  86f6d80be8cd\n  transcripts.jsonl                  3 lines  6b252f882941\n  egress.jsonl                       8 lines  15aea84fcd37\n  needs.jsonl                        0 lines  e3b0c44298fc\n  asks.jsonl                         0 lines  e3b0c44298fc\n  blocks.jsonl                       0 lines  e3b0c44298fc\n  deploy_ledger.jsonl                0 lines  e3b0c44298fc\n  spend.jsonl                        4 lines  459776703fa8\n  mandate.json                      96 lines  6a9706579e7e\nevery file was scanned for secrets; manifest.json holds the sha256 of each\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/fastapi/sqlmodel",
+   "commit": "462b59d9cd1cc3d9072735435330ef9ab6d15cbf",
+   "family": "library",
+   "class": "dev",
+   "build": "uv",
+   "lab": null,
+   "copy_base_sha": "dadc5489ffd109b064acf280ad0e2e0829c439cf"
+  },
+  "ledger_before": {
+   "envelope": "s13-confirm",
+   "envelope_spent_usd": 0.0,
+   "available_usd": 61.7334,
+   "permitted_usd": 97.2945
+  },
+  "fork": {
+   "slug": "satisfymath/c13-sqlmodel",
+   "base": "main",
+   "upstream": "fastapi/sqlmodel",
+   "kind": "copy",
+   "created": false,
+   "prep": {
+    "applied": false,
+    "why": "nothing to change (already prepared, or nothing publishes)",
+    "plan": [
+     {
+      "file": "build-docs.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "changes",
+       "build-docs",
+       "docs-all-green"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "detect-conflicts.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "main"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "pre-commit.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "pre-commit",
+       "pre-commit-alls-green"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "test-redistribute.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "test-redistribute",
+       "test-redistribute-alls-green"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "test.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "test",
+       "coverage-combine",
+       "alls-green"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "zizmor.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "zizmor"
+      ],
+      "why": "the team's checks"
+     }
+    ],
+    "kept": [
+     "build-docs.yml",
+     "detect-conflicts.yml",
+     "pre-commit.yml",
+     "test-redistribute.yml",
+     "test.yml",
+     "zizmor.yml"
+    ]
+   },
+   "pin": "462b59d9cd1cc3d9072735435330ef9ab6d15cbf",
+   "restore": {
+    "expected": "dadc5489ffd109b064acf280ad0e2e0829c439cf",
+    "head_before": "dadc5489ffd109b064acf280ad0e2e0829c439cf",
+    "pin_in_history": true,
+    "closed": [],
+    "deleted": [],
+    "base_sha": "dadc5489ffd109b064acf280ad0e2e0829c439cf"
+   },
+   "base_sha": "dadc5489ffd109b064acf280ad0e2e0829c439cf",
+   "pin_in_history": true,
+   "dependency_graph": true,
+   "dependabot_prs_closed": [],
+   "workflows_registered": [
+    "build-docs.yml",
+    "detect-conflicts.yml",
+    "pre-commit.yml",
+    "test-redistribute.yml",
+    "test.yml",
+    "update-graph",
+    "zizmor.yml"
+   ],
+   "disabled_in_settings": [],
+   "kept": [
+    "build-docs.yml",
+    "detect-conflicts.yml",
+    "pre-commit.yml",
+    "test-redistribute.yml",
+    "test.yml",
+    "zizmor.yml"
+   ]
+  },
+  "fork_before": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "dadc5489ffd109b064acf280ad0e2e0829c439cf"
+  },
+  "deploy_target": "none",
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required"
+  },
+  "mode": {
+   "asked": "custom",
+   "got": "custom",
+   "why": "nothing to deploy: not an application"
+  },
+  "autonomy": {
+   "mode": "custom",
+   "why": "nothing to deploy: not an application",
+   "fields": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "delegate_synthetic": "allow",
+    "open_pull_requests": "allow",
+    "merge_pull_requests": "allow",
+    "deploy": "deny",
+    "rollback": "deny",
+    "use_new_capabilities": "allow",
+    "act_on_connections": "deny"
+   }
+  },
+  "mode_got": "custom",
+  "cycle1": {
+   "started": true,
+   "waited_s": 2435.2,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 25541,
+    "started_at": "2026-11-04T21:11:45.066776+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/sqlmodel/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "action.executed": 2,
+     "agent.note": 11,
+     "analyzer.ran": 2,
+     "connection.changed": 1,
+     "decision.made": 17,
+     "egress.allowed": 8,
+     "job.finished": 47,
+     "job.started": 47,
+     "mandate.changed": 1,
+     "model.called": 3,
+     "operations.merged": 1,
+     "opportunity.opened": 5,
+     "proposal.published": 5,
+     "proposal.pushed": 5,
+     "proposal.ready": 5,
+     "proposal.stale": 4,
+     "repo.head_moved": 1,
+     "verdict.recorded": 5,
+     "world.changed": 4
+    },
+    "docs": {
+     "actions": 2,
+     "connections": 1,
+     "decisions": 16,
+     "egress": 8,
+     "experiments": 5,
+     "model_runs": 3,
+     "opportunities": 5,
+     "proposals": 5,
+     "transcripts": 3,
+     "world": 1
+    },
+    "jobs": {
+     "done": 47
+    },
+    "experiments": 5,
+    "opportunities": [
+     {
+      "id": "opp_f1ae05dce14e4ddd",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "open"
+     },
+     {
+      "id": "opp_7b69e01a499f4eea",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "open"
+     },
+     {
+      "id": "opp_2523875ab0bf4b0a",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "open"
+     },
+     {
+      "id": "opp_26a7c36bc60f4ef8",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "open"
+     },
+     {
+      "id": "opp_278db9e14288481c",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "proposed"
+     }
+    ],
+    "level_max": 4,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": [
+     {
+      "id": "prop_eeb292087d7b4240",
+      "opportunity_id": "opp_278db9e14288481c",
+      "experiment_id": "exp_9930041e04f040f8",
+      "status": "merged",
+      "branch": "unbidden/anyio-4-12-0-4-known-vulnerabilities-fix-88481c",
+      "evidence_level": 4,
+      "title": "fix(deps): bump anyio 4.12.0 → 4.14.2 (security)",
+      "pr": "https://github.com/satisfymath/c13-sqlmodel/pull/1",
+      "criteria": null
+     },
+     {
+      "id": "prop_498fdd4989fa4645",
+      "opportunity_id": "opp_f1ae05dce14e4ddd",
+      "experiment_id": "exp_5446cce7a01441f1",
+      "status": "stale",
+      "branch": "unbidden/black-26-5-1-1-known-vulnerability-fixed-4e4ddd",
+      "evidence_level": 4,
+      "title": "fix(deps): bump black 26.5.1 → 26.10.1 (security)",
+      "pr": "https://github.com/satisfymath/c13-sqlmodel/pull/2",
+      "criteria": null
+     },
+     {
+      "id": "prop_8e5914c6266d4bc0",
+      "opportunity_id": "opp_7b69e01a499f4eea",
+      "experiment_id": "exp_1b49b9a538444e00",
+      "status": "stale",
+      "branch": "unbidden/certifi-2025-11-12-2-known-vulnerabiliti-9f4eea",
+      "evidence_level": 4,
+      "title": "fix(deps): bump certifi 2025.11.12 → 2026.10.18 (security)",
+      "pr": "https://github.com/satisfymath/c13-sqlmodel/pull/3",
+      "criteria": null
+     },
+     {
+      "id": "prop_69bddb3bd0f94aa9",
+      "opportunity_id": "opp_2523875ab0bf4b0a",
+      "experiment_id": "exp_83f8f544ab0d4db1",
+      "status": "stale",
+      "branch": "unbidden/idna-3-11-2-known-vulnerabilities-fixed-bf4b0a",
+      "evidence_level": 4,
+      "title": "fix(deps): bump idna 3.11 → 3.15 (security)",
+      "pr": "https://github.com/satisfymath/c13-sqlmodel/pull/4",
+      "criteria": null
+     },
+     {
+      "id": "prop_e46b2727d2b8435e",
+      "opportunity_id": "opp_26a7c36bc60f4ef8",
+      "experiment_id": "exp_577dc7d615f94562",
+      "status": "stale",
+      "branch": "unbidden/starlette-0-50-0-10-known-vulnerabilitie-0f4ef8",
+      "evidence_level": 4,
+      "title": "fix(deps): bump starlette 0.50.0 → 1.3.1 (security)",
+      "pr": "https://github.com/satisfymath/c13-sqlmodel/pull/5",
+      "criteria": null
+     }
+    ]
+   }
+  },
+  "ui1": {
+   "opened": true,
+   "in_daemon": true,
+   "summary": {
+    "mode": "live",
+    "freshness": "current",
+    "counts": {
+     "opportunities": 5,
+     "experiments": 5,
+     "proposals": 5,
+     "events": 174,
+     "model_runs": 3,
+     "connections": 1,
+     "deployments": 0,
+     "needs": 0,
+     "blocks": 0,
+     "spend_calls": 23,
+     "world": 1
+    },
+    "agent": {
+     "running": true,
+     "pid": 25541,
+     "started_at": "2026-11-04T21:11:45.066776+00:00",
+     "command": "watch",
+     "detail": "agent running, pid 25541"
+    },
+    "key_present": true
+   },
+   "opportunities_total": 5,
+   "widgets": [
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:sqlmodel"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:sqlmodel"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:sqlmodel"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:sqlmodel"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:sqlmodel"
+    },
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:sqlmodel"
+    }
+   ],
+   "browser": {
+    "ok": true,
+    "steps": 5,
+    "console_errors": 2
+   },
+   "chat_status": {
+    "planner": "rule",
+    "route": {
+     "intent": "inform",
+     "purpose": null,
+     "tier": null,
+     "model": null,
+     "reason": "the mandate denies local inference; reading records needs no model: answered by rules",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Registro de sqlmodel (live, head dadc5489ffd1): 5 oportunidades, 5 experimentos, 5 propuestas, 177 eventos, 3 llamadas a modelos, 0 bloqueos.\nJobs: done 48, running 1\nAgente: agent running, pid 25541.\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico."
+   },
+   "chat_analyze": {
+    "planner": "brain",
+    "route": {
+     "intent": "analyze",
+     "purpose": "chat.analyze",
+     "tier": "code",
+     "model": "muse-spark-1.3",
+     "reason": "profile frontier; public_code may leave; label public_code",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Priorizaría `opp_278db9e14288481c` — \"anyio 4.12.0: 4 known vulnerabilities, fixed in 4.14.2\", level 4, status `proposed`, con experimento.\n\nPor qué, solo con el digest: cita 4 vulnerabilidades conocidas, frente a 2 en `opp_7b69e01a499f4eea` (certifi), 2 en `opp_2523875ab0bf4b0a` (idna) y 1 en `opp_f1ae05dce14e4ddd` (black); y su propuesta aparece en `proposals.merged: 1`.\n\nLo que falta en el regi"
+   }
+  },
+  "fork_after_c1": {
+   "pulls": [
+    {
+     "created_at": "2026-11-04T21:47:45Z",
+     "head": "unbidden/starlette-0-50-0-10-known-vulnerabilitie-0f4ef8",
+     "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+     "merge_commit_sha": "b4081258008265e502def3193cbd02c65ed42f96",
+     "merged_at": null,
+     "number": 5,
+     "state": "closed",
+     "title": "fix(deps): bump starlette 0.50.0 → 1.3.1 (security)",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:50:06Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126888718956",
+       "name": "alls-green",
+       "started_at": "2026-11-04T21:50:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:49:58Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126888498299",
+       "name": "coverage-combine",
+       "started_at": "2026-11-04T21:49:35Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:34Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399041/job/126887949000",
+       "name": "test-redistribute-alls-green",
+       "started_at": "2026-11-04T21:48:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:32Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919398938/job/126887893605",
+       "name": "docs-all-green",
+       "started_at": "2026-11-04T21:48:26Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:24Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919398971/job/126887830009",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-04T21:48:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:03Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/runs/126887691498",
+       "name": "zizmor",
+       "started_at": "2026-11-04T21:48:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:23Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919398938/job/126887675955",
+       "name": "build-docs",
+       "started_at": "2026-11-04T21:48:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:49:32Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887589430",
+       "name": "Test (windows-latest, Python 3.12, lowest-direct, sqlite)",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:45Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887589305",
+       "name": "Test (ubuntu-latest, Python 3.13, highest, mariadb)",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:49:00Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887589286",
+       "name": "Test (ubuntu-latest, Python 3.10, lowest-direct, mysql)",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:44Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887589274",
+       "name": "Test (ubuntu-latest, Python 3.14, highest, postgres)",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:41Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887589237",
+       "name": "Test (windows-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:49:23Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887589196",
+       "name": "Test (macos-latest, Python 3.13, highest, sqlite)",
+       "started_at": "2026-11-04T21:48:37Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:49:05Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887589178",
+       "name": "Test (macos-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:48:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:25Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887589156",
+       "name": "Test (ubuntu-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:32Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887588784",
+       "name": "Test (macos-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:47:57Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:09Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399038/job/126887588764",
+       "name": "Run zizmor",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:16Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919398971/job/126887588752",
+       "name": "pre-commit",
+       "started_at": "2026-11-04T21:47:53Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:29Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399041/job/126887588568",
+       "name": "test-redistribute",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:47:58Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919398938/job/126887587268",
+       "name": "changes",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:47:55Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919391190/job/126887560635",
+       "name": "main",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T21:47:40Z",
+     "head": "unbidden/idna-3-11-2-known-vulnerabilities-fixed-bf4b0a",
+     "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+     "merge_commit_sha": "ddc096e4dc2773573223d6519b7467b25173f965",
+     "merged_at": null,
+     "number": 4,
+     "state": "closed",
+     "title": "fix(deps): bump idna 3.11 → 3.15 (security)",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:49:49Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126888599574",
+       "name": "alls-green",
+       "started_at": "2026-11-04T21:49:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:49:44Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126888431162",
+       "name": "coverage-combine",
+       "started_at": "2026-11-04T21:49:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:36Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390182/job/126887930018",
+       "name": "docs-all-green",
+       "started_at": "2026-11-04T21:48:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:32Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390282/job/126887922695",
+       "name": "test-redistribute-alls-green",
+       "started_at": "2026-11-04T21:48:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:18Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390190/job/126887796342",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-04T21:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:02Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/runs/126887678194",
+       "name": "zizmor",
+       "started_at": "2026-11-04T21:47:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:27Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390182/job/126887635087",
+       "name": "build-docs",
+       "started_at": "2026-11-04T21:47:57Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:49:24Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559609",
+       "name": "Test (windows-latest, Python 3.12, lowest-direct, sqlite)",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:37Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559536",
+       "name": "Test (ubuntu-latest, Python 3.13, highest, mariadb)",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:36Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559501",
+       "name": "Test (windows-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:17Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559459",
+       "name": "Test (ubuntu-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:55Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559440",
+       "name": "Test (ubuntu-latest, Python 3.10, lowest-direct, mysql)",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:43Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559375",
+       "name": "Test (macos-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:47:55Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:40Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559323",
+       "name": "Test (macos-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:47:53Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:19Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559275",
+       "name": "Test (macos-latest, Python 3.13, highest, sqlite)",
+       "started_at": "2026-11-04T21:47:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:28Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559163",
+       "name": "Test (ubuntu-latest, Python 3.14, highest, postgres)",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:12Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390190/job/126887559143",
+       "name": "pre-commit",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:47:54Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390182/job/126887559069",
+       "name": "changes",
+       "started_at": "2026-11-04T21:47:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:26Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390282/job/126887558781",
+       "name": "test-redistribute",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:07Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390068/job/126887558707",
+       "name": "Run zizmor",
+       "started_at": "2026-11-04T21:47:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:47:50Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919381887/job/126887526898",
+       "name": "main",
+       "started_at": "2026-11-04T21:47:45Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T21:36:38Z",
+     "head": "unbidden/certifi-2025-11-12-2-known-vulnerabiliti-9f4eea",
+     "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+     "merge_commit_sha": "86f4ff321c34fb1b8307f0521709397f02ee5388",
+     "merged_at": null,
+     "number": 3,
+     "state": "closed",
+     "title": "fix(deps): bump certifi 2025.11.12 → 2026.10.18 (security)",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:38:46Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126882699729",
+       "name": "alls-green",
+       "started_at": "2026-11-04T21:38:43Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:38:40Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126882522580",
+       "name": "coverage-combine",
+       "started_at": "2026-11-04T21:38:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:28Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703389/job/126882000729",
+       "name": "test-redistribute-alls-green",
+       "started_at": "2026-11-04T21:37:25Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:26Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703478/job/126881976386",
+       "name": "docs-all-green",
+       "started_at": "2026-11-04T21:37:22Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:20Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703333/job/126881914522",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-04T21:37:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:36:55Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/runs/126881740346",
+       "name": "zizmor",
+       "started_at": "2026-11-04T21:36:53Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:19Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703478/job/126881730346",
+       "name": "build-docs",
+       "started_at": "2026-11-04T21:36:54Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:33Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881643856",
+       "name": "Test (macos-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:36:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:34Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881643598",
+       "name": "Test (ubuntu-latest, Python 3.13, highest, mariadb)",
+       "started_at": "2026-11-04T21:36:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:43Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881643456",
+       "name": "Test (ubuntu-latest, Python 3.10, lowest-direct, mysql)",
+       "started_at": "2026-11-04T21:36:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:31Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881643394",
+       "name": "Test (ubuntu-latest, Python 3.14, highest, postgres)",
+       "started_at": "2026-11-04T21:36:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:21Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881643265",
+       "name": "Test (macos-latest, Python 3.13, highest, sqlite)",
+       "started_at": "2026-11-04T21:36:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:38:20Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881642419",
+       "name": "Test (windows-latest, Python 3.12, lowest-direct, sqlite)",
+       "started_at": "2026-11-04T21:36:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:19Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881642395",
+       "name": "Test (macos-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:36:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:36Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881642119",
+       "name": "Test (windows-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:36:44Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:01Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703482/job/126881642104",
+       "name": "Run zizmor",
+       "started_at": "2026-11-04T21:36:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:09Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881641778",
+       "name": "Test (ubuntu-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:36:44Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:22Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703389/job/126881641731",
+       "name": "test-redistribute",
+       "started_at": "2026-11-04T21:36:44Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:36:51Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703478/job/126881641608",
+       "name": "changes",
+       "started_at": "2026-11-04T21:36:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:12Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703333/job/126881641068",
+       "name": "pre-commit",
+       "started_at": "2026-11-04T21:36:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:36:48Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917698994/job/126881626223",
+       "name": "main",
+       "started_at": "2026-11-04T21:36:44Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T21:31:52Z",
+     "head": "unbidden/black-26-5-1-1-known-vulnerability-fixed-4e4ddd",
+     "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+     "merge_commit_sha": "63522625ae9f0eb906db3f0b4bf17878b2771c00",
+     "merged_at": null,
+     "number": 2,
+     "state": "closed",
+     "title": "fix(deps): bump black 26.5.1 → 26.10.1 (security)",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:34:24Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126880341085",
+       "name": "alls-green",
+       "started_at": "2026-11-04T21:34:22Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:34:19Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126880160896",
+       "name": "coverage-combine",
+       "started_at": "2026-11-04T21:34:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:51Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955835/job/126879493968",
+       "name": "test-redistribute-alls-green",
+       "started_at": "2026-11-04T21:32:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:41Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955789/job/126879395563",
+       "name": "docs-all-green",
+       "started_at": "2026-11-04T21:32:38Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:30Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955934/job/126879274103",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-04T21:32:25Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:10Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/runs/126879149568",
+       "name": "zizmor",
+       "started_at": "2026-11-04T21:32:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:35Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955789/job/126879131132",
+       "name": "build-docs",
+       "started_at": "2026-11-04T21:32:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:33:32Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879046080",
+       "name": "Test (windows-latest, Python 3.12, lowest-direct, sqlite)",
+       "started_at": "2026-11-04T21:32:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:33:19Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879045411",
+       "name": "Test (ubuntu-latest, Python 3.10, lowest-direct, mysql)",
+       "started_at": "2026-11-04T21:31:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:34:00Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879045354",
+       "name": "Test (windows-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:32:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:35Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879045180",
+       "name": "Test (macos-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:32:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:45Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879045175",
+       "name": "Test (macos-latest, Python 3.13, highest, sqlite)",
+       "started_at": "2026-11-04T21:32:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:38Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879045160",
+       "name": "Test (macos-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:32:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:25Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879045146",
+       "name": "Test (ubuntu-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:31:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:45Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879045143",
+       "name": "Test (ubuntu-latest, Python 3.14, highest, postgres)",
+       "started_at": "2026-11-04T21:31:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:33:01Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879045105",
+       "name": "Test (ubuntu-latest, Python 3.13, highest, mariadb)",
+       "started_at": "2026-11-04T21:32:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:46Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955835/job/126879045023",
+       "name": "test-redistribute",
+       "started_at": "2026-11-04T21:31:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:21Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955934/job/126879044908",
+       "name": "pre-commit",
+       "started_at": "2026-11-04T21:31:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:06Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955789/job/126879044770",
+       "name": "changes",
+       "started_at": "2026-11-04T21:31:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:17Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955775/job/126879044219",
+       "name": "Run zizmor",
+       "started_at": "2026-11-04T21:31:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:00Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916948067/job/126879017754",
+       "name": "main",
+       "started_at": "2026-11-04T21:31:56Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T21:26:55Z",
+     "head": "unbidden/anyio-4-12-0-4-known-vulnerabilities-fix-88481c",
+     "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+     "merge_commit_sha": "990ac82032ce585cd62a85dceb6937a347e37a7c",
+     "merged_at": "2026-11-04T21:47:09Z",
+     "number": 1,
+     "state": "closed",
+     "title": "fix(deps): bump anyio 4.12.0 → 4.14.2 (security)",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:29:03Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126877430965",
+       "name": "alls-green",
+       "started_at": "2026-11-04T21:29:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:28:57Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126877279969",
+       "name": "coverage-combine",
+       "started_at": "2026-11-04T21:28:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:52Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916186661/job/126876779604",
+       "name": "test-redistribute-alls-green",
+       "started_at": "2026-11-04T21:27:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:36Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184424/job/126876636278",
+       "name": "docs-all-green",
+       "started_at": "2026-11-04T21:27:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:31Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184903/job/126876583447",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-04T21:27:26Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:13Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/runs/126876462597",
+       "name": "zizmor",
+       "started_at": "2026-11-04T21:27:10Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:29Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184424/job/126876444861",
+       "name": "build-docs",
+       "started_at": "2026-11-04T21:27:11Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:44Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916186661/job/126876367025",
+       "name": "test-redistribute",
+       "started_at": "2026-11-04T21:27:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:51Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876357125",
+       "name": "Test (windows-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:27:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:23Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184903/job/126876357095",
+       "name": "pre-commit",
+       "started_at": "2026-11-04T21:27:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:51Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876357027",
+       "name": "Test (ubuntu-latest, Python 3.13, highest, mariadb)",
+       "started_at": "2026-11-04T21:27:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:32Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876356959",
+       "name": "Test (macos-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:27:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:08Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184424/job/126876356912",
+       "name": "changes",
+       "started_at": "2026-11-04T21:27:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:29Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876356871",
+       "name": "Test (ubuntu-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:27:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:28:00Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876356868",
+       "name": "Test (ubuntu-latest, Python 3.10, lowest-direct, mysql)",
+       "started_at": "2026-11-04T21:27:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:28:40Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876356831",
+       "name": "Test (windows-latest, Python 3.12, lowest-direct, sqlite)",
+       "started_at": "2026-11-04T21:27:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:56Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876356823",
+       "name": "Test (ubuntu-latest, Python 3.14, highest, postgres)",
+       "started_at": "2026-11-04T21:27:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:34Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876356807",
+       "name": "Test (macos-latest, Python 3.13, highest, sqlite)",
+       "started_at": "2026-11-04T21:27:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:47Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876356670",
+       "name": "Test (macos-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:27:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:18Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184295/job/126876356219",
+       "name": "Run zizmor",
+       "started_at": "2026-11-04T21:27:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:04Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916179193/job/126876337965",
+       "name": "main",
+       "started_at": "2026-11-04T21:26:59Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [
+    "unbidden/anyio-4-12-0-4-known-vulnerabilities-fix-88481c",
+    "unbidden/black-26-5-1-1-known-vulnerability-fixed-4e4ddd",
+    "unbidden/certifi-2025-11-12-2-known-vulnerabiliti-9f4eea",
+    "unbidden/idna-3-11-2-known-vulnerabilities-fixed-bf4b0a",
+    "unbidden/starlette-0-50-0-10-known-vulnerabilitie-0f4ef8"
+   ],
+   "base_head": "990ac82032ce585cd62a85dceb6937a347e37a7c"
+  },
+  "cycle2": {
+   "started": true,
+   "waited_s": 53.3,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 61518,
+    "started_at": "2026-11-04T21:52:59.594158+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/sqlmodel/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "action.executed": 2,
+     "agent.note": 11,
+     "analyzer.ran": 2,
+     "connection.changed": 1,
+     "decision.made": 17,
+     "egress.allowed": 8,
+     "job.finished": 51,
+     "job.started": 51,
+     "mandate.changed": 1,
+     "model.called": 3,
+     "operations.merged": 1,
+     "opportunity.opened": 5,
+     "proposal.published": 5,
+     "proposal.pushed": 5,
+     "proposal.ready": 5,
+     "proposal.stale": 4,
+     "repo.head_moved": 1,
+     "verdict.recorded": 5,
+     "world.changed": 4
+    },
+    "docs": {
+     "actions": 2,
+     "connections": 1,
+     "decisions": 16,
+     "egress": 8,
+     "experiments": 5,
+     "model_runs": 3,
+     "opportunities": 5,
+     "proposals": 5,
+     "transcripts": 3,
+     "world": 1
+    },
+    "jobs": {
+     "done": 51
+    },
+    "experiments": 5,
+    "opportunities": [
+     {
+      "id": "opp_f1ae05dce14e4ddd",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "open"
+     },
+     {
+      "id": "opp_7b69e01a499f4eea",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "open"
+     },
+     {
+      "id": "opp_2523875ab0bf4b0a",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "open"
+     },
+     {
+      "id": "opp_26a7c36bc60f4ef8",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "open"
+     },
+     {
+      "id": "opp_278db9e14288481c",
+      "source": "pypi-advisories",
+      "category": "security",
+      "evidence_level": 4,
+      "status": "proposed"
+     }
+    ],
+    "level_max": 4,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": [
+     {
+      "id": "prop_eeb292087d7b4240",
+      "opportunity_id": "opp_278db9e14288481c",
+      "experiment_id": "exp_9930041e04f040f8",
+      "status": "merged",
+      "branch": "unbidden/anyio-4-12-0-4-known-vulnerabilities-fix-88481c",
+      "evidence_level": 4,
+      "title": "fix(deps): bump anyio 4.12.0 → 4.14.2 (security)",
+      "pr": "https://github.com/satisfymath/c13-sqlmodel/pull/1",
+      "criteria": null
+     },
+     {
+      "id": "prop_498fdd4989fa4645",
+      "opportunity_id": "opp_f1ae05dce14e4ddd",
+      "experiment_id": "exp_5446cce7a01441f1",
+      "status": "stale",
+      "branch": "unbidden/black-26-5-1-1-known-vulnerability-fixed-4e4ddd",
+      "evidence_level": 4,
+      "title": "fix(deps): bump black 26.5.1 → 26.10.1 (security)",
+      "pr": "https://github.com/satisfymath/c13-sqlmodel/pull/2",
+      "criteria": null
+     },
+     {
+      "id": "prop_8e5914c6266d4bc0",
+      "opportunity_id": "opp_7b69e01a499f4eea",
+      "experiment_id": "exp_1b49b9a538444e00",
+      "status": "stale",
+      "branch": "unbidden/certifi-2025-11-12-2-known-vulnerabiliti-9f4eea",
+      "evidence_level": 4,
+      "title": "fix(deps): bump certifi 2025.11.12 → 2026.10.18 (security)",
+      "pr": "https://github.com/satisfymath/c13-sqlmodel/pull/3",
+      "criteria": null
+     },
+     {
+      "id": "prop_69bddb3bd0f94aa9",
+      "opportunity_id": "opp_2523875ab0bf4b0a",
+      "experiment_id": "exp_83f8f544ab0d4db1",
+      "status": "stale",
+      "branch": "unbidden/idna-3-11-2-known-vulnerabilities-fixed-bf4b0a",
+      "evidence_level": 4,
+      "title": "fix(deps): bump idna 3.11 → 3.15 (security)",
+      "pr": "https://github.com/satisfymath/c13-sqlmodel/pull/4",
+      "criteria": null
+     },
+     {
+      "id": "prop_e46b2727d2b8435e",
+      "opportunity_id": "opp_26a7c36bc60f4ef8",
+      "experiment_id": "exp_577dc7d615f94562",
+      "status": "stale",
+      "branch": "unbidden/starlette-0-50-0-10-known-vulnerabilitie-0f4ef8",
+      "evidence_level": 4,
+      "title": "fix(deps): bump starlette 0.50.0 → 1.3.1 (security)",
+      "pr": "https://github.com/satisfymath/c13-sqlmodel/pull/5",
+      "criteria": null
+     }
+    ]
+   }
+  },
+  "asks_answered": [],
+  "fork_after_c2": {
+   "pulls": [
+    {
+     "created_at": "2026-11-04T21:47:45Z",
+     "head": "unbidden/starlette-0-50-0-10-known-vulnerabilitie-0f4ef8",
+     "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+     "merge_commit_sha": "b4081258008265e502def3193cbd02c65ed42f96",
+     "merged_at": null,
+     "number": 5,
+     "state": "closed",
+     "title": "fix(deps): bump starlette 0.50.0 → 1.3.1 (security)",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:50:06Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126888718956",
+       "name": "alls-green",
+       "started_at": "2026-11-04T21:50:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:49:58Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126888498299",
+       "name": "coverage-combine",
+       "started_at": "2026-11-04T21:49:35Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:34Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399041/job/126887949000",
+       "name": "test-redistribute-alls-green",
+       "started_at": "2026-11-04T21:48:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:32Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919398938/job/126887893605",
+       "name": "docs-all-green",
+       "started_at": "2026-11-04T21:48:26Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:24Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919398971/job/126887830009",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-04T21:48:19Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:03Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/runs/126887691498",
+       "name": "zizmor",
+       "started_at": "2026-11-04T21:48:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:23Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919398938/job/126887675955",
+       "name": "build-docs",
+       "started_at": "2026-11-04T21:48:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:49:32Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887589430",
+       "name": "Test (windows-latest, Python 3.12, lowest-direct, sqlite)",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:45Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887589305",
+       "name": "Test (ubuntu-latest, Python 3.13, highest, mariadb)",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:49:00Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887589286",
+       "name": "Test (ubuntu-latest, Python 3.10, lowest-direct, mysql)",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:44Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887589274",
+       "name": "Test (ubuntu-latest, Python 3.14, highest, postgres)",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:41Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887589237",
+       "name": "Test (windows-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:49:23Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887589196",
+       "name": "Test (macos-latest, Python 3.13, highest, sqlite)",
+       "started_at": "2026-11-04T21:48:37Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:49:05Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887589178",
+       "name": "Test (macos-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:48:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:25Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887589156",
+       "name": "Test (ubuntu-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:32Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399121/job/126887588784",
+       "name": "Test (macos-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:47:57Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:09Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399038/job/126887588764",
+       "name": "Run zizmor",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:16Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919398971/job/126887588752",
+       "name": "pre-commit",
+       "started_at": "2026-11-04T21:47:53Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:29Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919399041/job/126887588568",
+       "name": "test-redistribute",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:47:58Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919398938/job/126887587268",
+       "name": "changes",
+       "started_at": "2026-11-04T21:47:52Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:47:55Z",
+       "conclusion": "success",
+       "head_sha": "a25b0fb6ffc09fd31db9426462aec699e091bdc4",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919391190/job/126887560635",
+       "name": "main",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T21:47:40Z",
+     "head": "unbidden/idna-3-11-2-known-vulnerabilities-fixed-bf4b0a",
+     "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+     "merge_commit_sha": "ddc096e4dc2773573223d6519b7467b25173f965",
+     "merged_at": null,
+     "number": 4,
+     "state": "closed",
+     "title": "fix(deps): bump idna 3.11 → 3.15 (security)",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:49:49Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126888599574",
+       "name": "alls-green",
+       "started_at": "2026-11-04T21:49:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:49:44Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126888431162",
+       "name": "coverage-combine",
+       "started_at": "2026-11-04T21:49:27Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:36Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390182/job/126887930018",
+       "name": "docs-all-green",
+       "started_at": "2026-11-04T21:48:31Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:32Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390282/job/126887922695",
+       "name": "test-redistribute-alls-green",
+       "started_at": "2026-11-04T21:48:29Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:18Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390190/job/126887796342",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-04T21:48:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:02Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/runs/126887678194",
+       "name": "zizmor",
+       "started_at": "2026-11-04T21:47:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:27Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390182/job/126887635087",
+       "name": "build-docs",
+       "started_at": "2026-11-04T21:47:57Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:49:24Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559609",
+       "name": "Test (windows-latest, Python 3.12, lowest-direct, sqlite)",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:37Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559536",
+       "name": "Test (ubuntu-latest, Python 3.13, highest, mariadb)",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:36Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559501",
+       "name": "Test (windows-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:17Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559459",
+       "name": "Test (ubuntu-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:55Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559440",
+       "name": "Test (ubuntu-latest, Python 3.10, lowest-direct, mysql)",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:43Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559375",
+       "name": "Test (macos-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:47:55Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:40Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559323",
+       "name": "Test (macos-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:47:53Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:19Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559275",
+       "name": "Test (macos-latest, Python 3.13, highest, sqlite)",
+       "started_at": "2026-11-04T21:47:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:28Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390131/job/126887559163",
+       "name": "Test (ubuntu-latest, Python 3.14, highest, postgres)",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:12Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390190/job/126887559143",
+       "name": "pre-commit",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:47:54Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390182/job/126887559069",
+       "name": "changes",
+       "started_at": "2026-11-04T21:47:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:26Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390282/job/126887558781",
+       "name": "test-redistribute",
+       "started_at": "2026-11-04T21:47:49Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:48:07Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919390068/job/126887558707",
+       "name": "Run zizmor",
+       "started_at": "2026-11-04T21:47:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:47:50Z",
+       "conclusion": "success",
+       "head_sha": "0f2933c1d985e3f52a9105840888f3d86dddc5d2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41919381887/job/126887526898",
+       "name": "main",
+       "started_at": "2026-11-04T21:47:45Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T21:36:38Z",
+     "head": "unbidden/certifi-2025-11-12-2-known-vulnerabiliti-9f4eea",
+     "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+     "merge_commit_sha": "86f4ff321c34fb1b8307f0521709397f02ee5388",
+     "merged_at": null,
+     "number": 3,
+     "state": "closed",
+     "title": "fix(deps): bump certifi 2025.11.12 → 2026.10.18 (security)",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:38:46Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126882699729",
+       "name": "alls-green",
+       "started_at": "2026-11-04T21:38:43Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:38:40Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126882522580",
+       "name": "coverage-combine",
+       "started_at": "2026-11-04T21:38:23Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:28Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703389/job/126882000729",
+       "name": "test-redistribute-alls-green",
+       "started_at": "2026-11-04T21:37:25Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:26Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703478/job/126881976386",
+       "name": "docs-all-green",
+       "started_at": "2026-11-04T21:37:22Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:20Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703333/job/126881914522",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-04T21:37:15Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:36:55Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/runs/126881740346",
+       "name": "zizmor",
+       "started_at": "2026-11-04T21:36:53Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:19Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703478/job/126881730346",
+       "name": "build-docs",
+       "started_at": "2026-11-04T21:36:54Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:33Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881643856",
+       "name": "Test (macos-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:36:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:34Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881643598",
+       "name": "Test (ubuntu-latest, Python 3.13, highest, mariadb)",
+       "started_at": "2026-11-04T21:36:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:43Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881643456",
+       "name": "Test (ubuntu-latest, Python 3.10, lowest-direct, mysql)",
+       "started_at": "2026-11-04T21:36:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:31Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881643394",
+       "name": "Test (ubuntu-latest, Python 3.14, highest, postgres)",
+       "started_at": "2026-11-04T21:36:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:21Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881643265",
+       "name": "Test (macos-latest, Python 3.13, highest, sqlite)",
+       "started_at": "2026-11-04T21:36:46Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:38:20Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881642419",
+       "name": "Test (windows-latest, Python 3.12, lowest-direct, sqlite)",
+       "started_at": "2026-11-04T21:36:47Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:19Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881642395",
+       "name": "Test (macos-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:36:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:36Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881642119",
+       "name": "Test (windows-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:36:44Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:01Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703482/job/126881642104",
+       "name": "Run zizmor",
+       "started_at": "2026-11-04T21:36:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:09Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703470/job/126881641778",
+       "name": "Test (ubuntu-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:36:44Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:22Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703389/job/126881641731",
+       "name": "test-redistribute",
+       "started_at": "2026-11-04T21:36:44Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:36:51Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703478/job/126881641608",
+       "name": "changes",
+       "started_at": "2026-11-04T21:36:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:37:12Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917703333/job/126881641068",
+       "name": "pre-commit",
+       "started_at": "2026-11-04T21:36:45Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:36:48Z",
+       "conclusion": "success",
+       "head_sha": "145e41a8eef1634b1e488fa210b3dd923c2a23e2",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41917698994/job/126881626223",
+       "name": "main",
+       "started_at": "2026-11-04T21:36:44Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T21:31:52Z",
+     "head": "unbidden/black-26-5-1-1-known-vulnerability-fixed-4e4ddd",
+     "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+     "merge_commit_sha": "63522625ae9f0eb906db3f0b4bf17878b2771c00",
+     "merged_at": null,
+     "number": 2,
+     "state": "closed",
+     "title": "fix(deps): bump black 26.5.1 → 26.10.1 (security)",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:34:24Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126880341085",
+       "name": "alls-green",
+       "started_at": "2026-11-04T21:34:22Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:34:19Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126880160896",
+       "name": "coverage-combine",
+       "started_at": "2026-11-04T21:34:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:51Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955835/job/126879493968",
+       "name": "test-redistribute-alls-green",
+       "started_at": "2026-11-04T21:32:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:41Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955789/job/126879395563",
+       "name": "docs-all-green",
+       "started_at": "2026-11-04T21:32:38Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:30Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955934/job/126879274103",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-04T21:32:25Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:10Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/runs/126879149568",
+       "name": "zizmor",
+       "started_at": "2026-11-04T21:32:08Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:35Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955789/job/126879131132",
+       "name": "build-docs",
+       "started_at": "2026-11-04T21:32:09Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:33:32Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879046080",
+       "name": "Test (windows-latest, Python 3.12, lowest-direct, sqlite)",
+       "started_at": "2026-11-04T21:32:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:33:19Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879045411",
+       "name": "Test (ubuntu-latest, Python 3.10, lowest-direct, mysql)",
+       "started_at": "2026-11-04T21:31:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:34:00Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879045354",
+       "name": "Test (windows-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:32:03Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:35Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879045180",
+       "name": "Test (macos-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:32:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:45Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879045175",
+       "name": "Test (macos-latest, Python 3.13, highest, sqlite)",
+       "started_at": "2026-11-04T21:32:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:38Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879045160",
+       "name": "Test (macos-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:32:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:25Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879045146",
+       "name": "Test (ubuntu-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:31:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:45Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879045143",
+       "name": "Test (ubuntu-latest, Python 3.14, highest, postgres)",
+       "started_at": "2026-11-04T21:31:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:33:01Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955871/job/126879045105",
+       "name": "Test (ubuntu-latest, Python 3.13, highest, mariadb)",
+       "started_at": "2026-11-04T21:32:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:46Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955835/job/126879045023",
+       "name": "test-redistribute",
+       "started_at": "2026-11-04T21:31:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:21Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955934/job/126879044908",
+       "name": "pre-commit",
+       "started_at": "2026-11-04T21:31:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:06Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955789/job/126879044770",
+       "name": "changes",
+       "started_at": "2026-11-04T21:31:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:17Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916955775/job/126879044219",
+       "name": "Run zizmor",
+       "started_at": "2026-11-04T21:31:59Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:32:00Z",
+       "conclusion": "success",
+       "head_sha": "66ade51ceab8385406c106176fe2207269bbf7b8",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916948067/job/126879017754",
+       "name": "main",
+       "started_at": "2026-11-04T21:31:56Z",
+       "status": "completed"
+      }
+     ]
+    },
+    {
+     "created_at": "2026-11-04T21:26:55Z",
+     "head": "unbidden/anyio-4-12-0-4-known-vulnerabilities-fix-88481c",
+     "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+     "merge_commit_sha": "990ac82032ce585cd62a85dceb6937a347e37a7c",
+     "merged_at": "2026-11-04T21:47:09Z",
+     "number": 1,
+     "state": "closed",
+     "title": "fix(deps): bump anyio 4.12.0 → 4.14.2 (security)",
+     "user": "satisfymath",
+     "checks": [
+      {
+       "completed_at": "2026-11-04T21:29:03Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126877430965",
+       "name": "alls-green",
+       "started_at": "2026-11-04T21:29:00Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:28:57Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126877279969",
+       "name": "coverage-combine",
+       "started_at": "2026-11-04T21:28:42Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:52Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916186661/job/126876779604",
+       "name": "test-redistribute-alls-green",
+       "started_at": "2026-11-04T21:27:48Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:36Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184424/job/126876636278",
+       "name": "docs-all-green",
+       "started_at": "2026-11-04T21:27:32Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:31Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184903/job/126876583447",
+       "name": "pre-commit-alls-green",
+       "started_at": "2026-11-04T21:27:26Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:13Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/runs/126876462597",
+       "name": "zizmor",
+       "started_at": "2026-11-04T21:27:10Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:29Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184424/job/126876444861",
+       "name": "build-docs",
+       "started_at": "2026-11-04T21:27:11Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:44Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916186661/job/126876367025",
+       "name": "test-redistribute",
+       "started_at": "2026-11-04T21:27:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:51Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876357125",
+       "name": "Test (windows-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:27:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:23Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184903/job/126876357095",
+       "name": "pre-commit",
+       "started_at": "2026-11-04T21:27:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:51Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876357027",
+       "name": "Test (ubuntu-latest, Python 3.13, highest, mariadb)",
+       "started_at": "2026-11-04T21:27:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:32Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876356959",
+       "name": "Test (macos-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:27:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:08Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184424/job/126876356912",
+       "name": "changes",
+       "started_at": "2026-11-04T21:27:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:29Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876356871",
+       "name": "Test (ubuntu-latest, Python 3.11, highest, sqlite)",
+       "started_at": "2026-11-04T21:27:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:28:00Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876356868",
+       "name": "Test (ubuntu-latest, Python 3.10, lowest-direct, mysql)",
+       "started_at": "2026-11-04T21:27:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:28:40Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876356831",
+       "name": "Test (windows-latest, Python 3.12, lowest-direct, sqlite)",
+       "started_at": "2026-11-04T21:27:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:56Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876356823",
+       "name": "Test (ubuntu-latest, Python 3.14, highest, postgres)",
+       "started_at": "2026-11-04T21:27:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:34Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876356807",
+       "name": "Test (macos-latest, Python 3.13, highest, sqlite)",
+       "started_at": "2026-11-04T21:27:02Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:47Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184303/job/126876356670",
+       "name": "Test (macos-latest, Python 3.14, highest, sqlite)",
+       "started_at": "2026-11-04T21:27:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:18Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916184295/job/126876356219",
+       "name": "Run zizmor",
+       "started_at": "2026-11-04T21:27:01Z",
+       "status": "completed"
+      },
+      {
+       "completed_at": "2026-11-04T21:27:04Z",
+       "conclusion": "success",
+       "head_sha": "39e13b623808de43b7b9688fc89f65dd05fcbdbf",
+       "html_url": "https://github.com/satisfymath/c13-sqlmodel/actions/runs/41916179193/job/126876337965",
+       "name": "main",
+       "started_at": "2026-11-04T21:26:59Z",
+       "status": "completed"
+      }
+     ]
+    }
+   ],
+   "unbidden_branches": [
+    "unbidden/anyio-4-12-0-4-known-vulnerabilities-fix-88481c",
+    "unbidden/black-26-5-1-1-known-vulnerability-fixed-4e4ddd",
+    "unbidden/certifi-2025-11-12-2-known-vulnerabiliti-9f4eea",
+    "unbidden/idna-3-11-2-known-vulnerabilities-fixed-bf4b0a",
+    "unbidden/starlette-0-50-0-10-known-vulnerabilitie-0f4ef8"
+   ],
+   "base_head": "990ac82032ce585cd62a85dceb6937a347e37a7c"
+  },
+  "status_final": {
+   "running": false,
+   "pid": null,
+   "started_at": null,
+   "command": null,
+   "log": "/Users/david/unbidden-lab/c13/sqlmodel/.unbidden/logs/agent.log",
+   "stale": false,
+   "jobs_running": 0,
+   "jobs_queued": 0
+  },
+  "egress": {
+   "api.meta.ai:chat.analyze:allowed_sent": 6,
+   "api.meta.ai:world.endpoint_tables:allowed_sent": 2,
+   "api.meta.ai:research.robustness:allowed_sent": 1,
+   "github.com:github.pull_request:allowed_sent": 5
+  },
+  "checks": {
+   "status": "passed",
+   "collected": 268,
+   "why": null,
+   "scope": "matrix entry 1 of 9 (os=ubuntu-latest, python-version=3.11, uv-resolution=highest)",
+   "partial": true,
+   "command": "bash -c set -e\nexport GITHUB_ACTIONS=true CI=true GITHUB_OUTPUT=/tmp/github_output GITHUB_ENV=/tmp/github_env GITHUB_STEP_SUMMARY=/tmp/github_step_summary GITHUB_PATH=/tmp/github_path\ncd /work\nmkdir coverage\ncd /work\nbash scripts/test.sh",
+   "rev": "dadc5489ffd109b064acf280ad0e2e0829c439cf",
+   "could_not_run": {
+    "tests": 0,
+    "lacks": [],
+    "by_test": []
+   },
+   "failed": 0,
+   "image_notes": [
+    "python 3.10: from the CI's python-version (the oldest in its matrix)",
+    "pyproject requires-python: >=3.10",
+    "the CI's python-version: 3.10, 3.11, 3.12, 3.13, 3.14",
+    ".python-version: 3.11",
+    "conflict: concrete sources disagree: the CI's python-version 3.10, 3.11, 3.12, 3.13, 3.14; .python-version 3.11",
+    "image unbidden-deps-python:f5db0c07f39a8b0e on linux/arm64",
+    "the team's CI job did not prepare the environment: the CI job failed at `Test` before its tests: code '1': failure\n[unbidden-ci/Test (ubuntu-latest, Python 3.14, highest, postgres)] ⭐ Run Main unbidden: keep the prepared environment\n[unbidden-ci/Test (ubuntu-latest, Python 3.14, highest, postgres)]   🐳  docker exec cmd=[bash --noprofile --norc -e -o"
+   ],
+   "python": "3.10"
+  },
+  "ledger_after": {
+   "envelope": "s13-confirm",
+   "envelope_spent_usd": 0.2467,
+   "available_usd": 61.4819,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c13-confirm-rerun-B1-sqlmodel",
+   "calls": 4,
+   "usd": 0.0211,
+   "tokens_in": 5843,
+   "tokens_out": 3239
+  },
+  "spent_usd": 0.0211,
+  "export": {
+   "available": true,
+   "ok": true,
+   "code": 0,
+   "dir": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final-rerun-0.18.9/sqlmodel/export",
+   "files": 25,
+   "answer": null
+  },
+  "archive": "/Users/david/unbidden-lab/c13/archive/sqlmodel-B1-confirm-rerun.tgz",
+  "archive_kept": {
+   "name": "sqlmodel-B1-confirm-rerun.tgz",
+   "bytes": 809304,
+   "sha256": "d5f114b0dd1bb1c6f8a28e2b383615d6d30a3a1621b7efde683851d4d40efb84",
+   "kept": true,
+   "where": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final-rerun-0.18.9/sqlmodel/export/sqlmodel-B1-confirm-rerun.tgz"
+  }
+ },
+ "human": [
+  {
+   "step": "mandate: fork, registries, operations, connections",
+   "minutes": 2,
+   "why": "a person's declaration"
+  },
+  {
+   "step": "mandate autonomy: merge on green CI, no deploy",
+   "minutes": 1,
+   "why": "nothing to deploy: not an application"
+  }
+ ],
+ "blocks": []
+}

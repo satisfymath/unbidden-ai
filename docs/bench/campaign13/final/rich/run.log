@@ -1,0 +1,2 @@
+2026-11-04T16:00:34-0300 [B1] worker 0 starts on ports {'dashboard': 18800, 'ui_a': 18801, 'lab': 18802, 'lab_db': 18803}
+2026-11-04T16:20:13-0300 [B1] done in 1180 s: {"name": "rich", "run": "B1", "mode": "custom", "deploy_target": "none", "self_host_ok": null, "export": true, "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/rich/B1.json", "proposals_c1": 5, "proposals_c2": 5, "pulls_after": 22, "spent_usd": 1.0042, "blocks": [], "wall_s": 1089.5}

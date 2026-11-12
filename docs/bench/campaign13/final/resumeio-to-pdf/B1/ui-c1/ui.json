@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:19260/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "anyio 4.10.0: 4 known vulnerabilities, fixed in 4.14.2\tpropuesta\t4\tpropose_change",
+    "certifi 2025.8.3: 2 known vulnerabilities, fixed in 2026.10.18\tabierta\t4\trun_experiment",
+    "idna 3.10: 2 known vulnerabilities, fixed in 3.15\tabierta\t4\trun_experiment",
+    "starlette 0.47.3: 12 known vulnerabilities, fixed in 1.3.1\tpropuesta\t4\tpropose_change",
+    "urllib3 2.5.0: 12 known vulnerabilities, fixed in 2.8.0\tpropuesta\t4\tpropose_change",
+    "black 26.3.1: 1 known vulnerability, fixed in 26.10.1\tabierta\t1\twait",
+    "",
+    "6 fila(s)",
+    "actual"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "1 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "resumeio-to-pdf",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 148 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "decision.made",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "operations.merged",
+    "proposal.published",
+    "proposal.pushed",
+    "proposal.ready",
+    "proposal.stale",
+    "verdict.recorded",
+    "world.changed",
+    "Trabajo terminado",
+    "20:15",
+    "next: [] · outcome: ok · seconds: 0",
+    "Trabajo iniciado",
+    "20:15",
+    "doing: measuring a candidate in the sandbox · stage: measured · subject: opp_dbb19bb762c44760",
+    "Trabajo terminado",
+    "20:15",
+    "next: [] · outcome: ok · seconds: 0",
+    "Trabajo iniciado",
+    "20:15",
+    "doing: measuring a candidate in the sandbox · stage: measured · subject: opp_da32adb1e4424588",
+    "Trabajo terminado",
+    "20:15",
+    "next: [] · outcome: ok · seconds: 4.5",
+    "Propuesta publicada",
+    "20:15",
+    "number: 5 · url: https://github.com/satisfymath/c13-resumeio-to-pdf/pull/5"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "resumeio-to-pdf",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 6 oportunidades, ordenadas por evidencia",
+    "L4 validado",
+    "anyio 4.10.0: 4 known vulnerabilities, fixed in 4.14.2",
+    "pypi-advisories · security · propose_change · 04 nov, 20:07",
+    "propuesta",
+    "—",
+    "L4 validado",
+    "certifi 2025.8.3: 2 known vulnerabilities, fixed in 2026.10.18",
+    "pypi-advisories · security · run_experiment · 04 nov, 20:07",
+    "abierta",
+    "—",
+    "L4 validado",
+    "idna 3.10: 2 known vulnerabilities, fixed in 3.15",
+    "pypi-advisories · security · run_experiment · 04 nov, 20:07",
+    "abierta",
+    "—",
+    "L4 validado",
+    "starlette 0.47.3: 12 known vulnerabilities, fixed in 1.3.1",
+    "pypi-advisories · security · propose_change · 04 nov, 20:07",
+    "propuesta",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "1 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

@@ -1,0 +1,2 @@
+2026-11-04T18:15:53-0300 [B1] worker 2 starts on ports {'dashboard': 19120, 'ui_a': 19121, 'lab': 19122, 'lab_db': 19123}
+2026-11-04T19:34:44-0300 [B1] done in 4731 s: {"name": "aegra", "run": "B1", "mode": "autonomous", "deploy_target": "self_host", "self_host_ok": true, "export": true, "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final-rerun-0.18.9/aegra/B1.json", "proposals_c1": 3, "proposals_c2": 3, "pulls_after": 9, "spent_usd": 0.0824, "blocks": [], "wall_s": 4653.8}

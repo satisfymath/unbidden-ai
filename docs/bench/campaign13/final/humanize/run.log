@@ -1,0 +1,2 @@
+2026-11-04T16:00:34-0300 [B1] worker 3 starts on ports {'dashboard': 18830, 'ui_a': 18831, 'lab': 18832, 'lab_db': 18833}
+2026-11-04T16:04:22-0300 [B1] done in 229 s: {"name": "humanize", "run": "B1", "mode": "custom", "deploy_target": "none", "self_host_ok": null, "export": true, "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/humanize/B1.json", "proposals_c1": 0, "proposals_c2": 0, "pulls_after": 0, "spent_usd": 0.1078, "blocks": [], "wall_s": 188.3}

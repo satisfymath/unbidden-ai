@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18850/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "sin datos",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "1 ruff-baseline B006 finding in oauthlib/oauth2/rfc6749/endpoints/\tpropuesta\t4\tpropose_change",
+    "",
+    "1 fila(s)",
+    "actual",
+    "workspace",
+    "04 nov, 16:11",
+    "opportunities",
+    "Oportunidades"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "7 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "oauthlib",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 91 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "decision.made",
+    "egress.allowed",
+    "experiment.started",
+    "job.finished",
+    "job.started",
+    "model.called",
+    "operations.merged",
+    "proposal.published",
+    "proposal.pushed",
+    "proposal.ready",
+    "verdict.recorded",
+    "world.changed",
+    "Trabajo terminado",
+    "16:11",
+    "next: [] · outcome: ok · seconds: 3.9",
+    "Trabajo iniciado",
+    "16:11",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "16:11",
+    "next: [] · outcome: ok · seconds: 4.8",
+    "Mapa actualizado",
+    "16:11",
+    "{\"carried\":[\"repo:github:satisfymath/c13-oauthlib\"],\"n_added\":0,\"n_carried\":1,\"n",
+    "Trabajo iniciado",
+    "16:10",
+    "doing: mapping the running system · stage: found · subject: null",
+    "Trabajo terminado",
+    "16:10"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "oauthlib",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 1 oportunidades, ordenadas por evidencia",
+    "L4 validado",
+    "1 ruff-baseline B006 finding in oauthlib/oauth2/rfc6749/endpoints/",
+    "ruff-baseline · bugs · propose_change · 04 nov, 16:01",
+    "propuesta",
+    "—",
+    "1 ruff-baseline B006 finding in oauthlib/oauth2/rfc6749/endpoints/",
+    "hallazgo al lienzo",
+    "experimento al lienzo",
+    "L4 validado",
+    "propuesta",
+    "ruff-baseline · bugs",
+    "1 ruff-baseline B006 finding in oauthlib/oauth2/rfc6749/endpoints/",
+    "B006: Do not use mutable data structures for argument defaults",
+    "Decisión propose_change",
+    "evidence L4 meets the mandate's L4",
+    "analyzer_report: ruff-baseline@fdf407a404695355759a4061e6f3dd85ed51475f",
+    "experiment: exp_6c039e8c06f04b09",
+    "improved",
+    "L4 validado",
+    "06f04b09"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "7 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

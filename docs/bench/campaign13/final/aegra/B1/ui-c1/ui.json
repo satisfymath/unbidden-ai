@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18810/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "certifi 2026.1.4: 2 known vulnerabilities, fixed in 2026.10.18\tpropuesta\t4\tpropose_change",
+    "filelock 4.0.9: 13 known vulnerabilities, fixed in 4.2.1\tpropuesta\t4\tpropose_change",
+    "langgraph-checkpoint-postgres 3.1.2: 1 known vulnerability, fixed in 3.1.3\tpropuesta\t4\tpropose_change",
+    "langgraph-sdk 0.4.2: 3 known vulnerabilities, fixed in 0.4.6\texperimentando\t4\twait",
+    "GET /assistants reports total: unverified against the stored data\tabierta\t1\twait",
+    "GET /threads reports total: unverified against the stored data\tabierta\t1\twait",
+    "opentelemetry-api 1.39.1: 1 known vulnerability, fixed in 1.45.1\tdescartada\t1\tdecline",
+    "virtualenv 21.14.5: 8 known vulnerabilities, fixed in 21.14.9\tdescartada\t1\tdecline",
+    ""
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "1 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "aegra",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 183 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "decision.made",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "proposal.published",
+    "proposal.pushed",
+    "proposal.ready",
+    "verdict.recorded",
+    "Trabajo terminado",
+    "17:32",
+    "next: [] · outcome: ok · seconds: 11.6",
+    "Decisión tomada",
+    "17:32",
+    "decline — 2 experiments found no proven fix",
+    "Trabajo iniciado",
+    "17:32",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "17:32",
+    "next: [\"director.sweep\"] · outcome: ok · seconds: 368.9",
+    "Nota del agente",
+    "17:32",
+    "text: opp_78ecf47442e44172: no proven fix (virtualenv 21.14.5 → 21.14.9: advisories GHSA-394h-qwmc-48pf, GHSA-494p-63j8-",
+    "Veredicto registrado",
+    "17:32",
+    "sin mejora · L",
+    "Trabajo iniciado",
+    "17:25",
+    "doing: measuring a candidate in the sandbox · stage: measured · subject: opp_78ecf47442e44172"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "aegra",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 8 oportunidades, ordenadas por evidencia",
+    "L4 validado",
+    "certifi 2026.1.4: 2 known vulnerabilities, fixed in 2026.10.18",
+    "pypi-advisories · security · propose_change · 04 nov, 16:40",
+    "propuesta",
+    "—",
+    "L4 validado",
+    "filelock 4.0.9: 13 known vulnerabilities, fixed in 4.2.1",
+    "pypi-advisories · security · propose_change · 04 nov, 16:40",
+    "propuesta",
+    "—",
+    "L4 validado",
+    "langgraph-checkpoint-postgres 3.1.2: 1 known vulnerability, fixed in 3.1.3",
+    "pypi-advisories · security · propose_change · 04 nov, 16:40",
+    "propuesta",
+    "—",
+    "L4 validado",
+    "langgraph-sdk 0.4.2: 3 known vulnerabilities, fixed in 0.4.6",
+    "pypi-advisories · security · wait · 04 nov, 16:40",
+    "experimentando",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "1 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

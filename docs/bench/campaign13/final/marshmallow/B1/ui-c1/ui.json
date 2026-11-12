@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18810/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "certifi 2026.7.22: 2 known vulnerabilities, fixed in 2026.10.18\tpropuesta\t4\tpropose_change",
+    "uv 0.12.18: 2 known vulnerabilities, fixed in 0.13.4\tdescartada\t3\tdecline",
+    "1 ruff ICN001 finding in examples/\tdescartada\t1\tdecline",
+    "1 ruff ICN001 finding in performance/\tdescartada\t1\tdecline",
+    "1 mypy error in src/marshmallow/fields.py\tdescartada\t1\tdecline",
+    "2 mypy errors in tests/test_fields.py\tdescartada\t1\tdecline",
+    "filelock 4.0.3: 14 known vulnerabilities, fixed in 4.2.1\tabierta\t1\twait",
+    "virtualenv 21.11.1: 11 known vulnerabilities, fixed in 21.14.9\tdescartada\t1\tdecline",
+    ""
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "9 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "marshmallow",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 105 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "decision.made",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "model.called",
+    "operations.merged",
+    "proposal.published",
+    "proposal.pushed",
+    "proposal.ready",
+    "verdict.recorded",
+    "world.changed",
+    "Trabajo terminado",
+    "16:08",
+    "next: [] · outcome: ok · seconds: 1.9",
+    "Trabajo iniciado",
+    "16:08",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "16:08",
+    "next: [] · outcome: ok · seconds: 1.9",
+    "Mapa actualizado",
+    "16:08",
+    "{\"carried\":[\"repo:github:satisfymath/c13-marshmallow\",\"endpoint:GET /authors -re",
+    "Trabajo iniciado",
+    "16:08",
+    "doing: mapping the running system · stage: found · subject: null",
+    "Trabajo terminado",
+    "16:08",
+    "next: [] · outcome: ok · seconds: 0.7"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "marshmallow",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 8 oportunidades, ordenadas por evidencia",
+    "L4 validado",
+    "certifi 2026.7.22: 2 known vulnerabilities, fixed in 2026.10.18",
+    "pypi-advisories · security · propose_change · 04 nov, 16:01",
+    "propuesta",
+    "—",
+    "L3 lab",
+    "uv 0.12.18: 2 known vulnerabilities, fixed in 0.13.4",
+    "pypi-advisories · security · decline · 04 nov, 16:01",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "1 ruff ICN001 finding in examples/",
+    "ruff · lint · decline · 04 nov, 16:01",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "1 ruff ICN001 finding in performance/",
+    "ruff · lint · decline · 04 nov, 16:01",
+    "descartada",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "9 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18810/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "19 ruff-baseline F821 findings in tests/data/\tpropuesta\t4\tpropose_change",
+    "7 ruff-baseline F811 findings in tests/\tdescartada\t3\tdecline",
+    "",
+    "2 fila(s)",
+    "actual",
+    "workspace",
+    "04 nov, 16:36",
+    "opportunities",
+    "Oportunidades"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "4 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "reader",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 124 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "job.finished",
+    "job.started",
+    "operations.merged",
+    "world.changed",
+    "Trabajo terminado",
+    "16:35",
+    "next: [] · outcome: ok · seconds: 4",
+    "Trabajo iniciado",
+    "16:35",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "16:35",
+    "next: [] · outcome: ok · seconds: 4.5",
+    "Mapa actualizado",
+    "16:35",
+    "{\"carried\":[\"repo:github:satisfymath/c13-reader\"],\"n_added\":0,\"n_carried\":1,\"n_c",
+    "Trabajo iniciado",
+    "16:35",
+    "doing: mapping the running system · stage: found · subject: null",
+    "Trabajo terminado",
+    "16:35",
+    "next: [] · outcome: ok · seconds: 0.8",
+    "Trabajo iniciado",
+    "16:35",
+    "doing: checking the connections · stage: found · subject: null",
+    "Trabajo terminado",
+    "16:35",
+    "next: [] · outcome: ok · seconds: 0",
+    "Trabajo iniciado"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "reader",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 2 oportunidades, ordenadas por evidencia",
+    "L4 validado",
+    "19 ruff-baseline F821 findings in tests/data/",
+    "ruff-baseline · bugs · propose_change · 04 nov, 16:15",
+    "propuesta",
+    "—",
+    "L3 lab",
+    "7 ruff-baseline F811 findings in tests/",
+    "ruff-baseline · bugs · decline · 04 nov, 16:15",
+    "descartada",
+    "—",
+    "19 ruff-baseline F821 findings in tests/data/",
+    "hallazgo al lienzo",
+    "experimento al lienzo",
+    "L4 validado",
+    "propuesta",
+    "ruff-baseline · bugs",
+    "19 ruff-baseline F821 findings in tests/data/",
+    "F821: Undefined name `rel_base`; F821: Undefined name `url_base`",
+    "Decisión propose_change",
+    "evidence L4 meets the mandate's L4"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "4 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

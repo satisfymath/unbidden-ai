@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:19270/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "3 eslint@frontend react-hooks/exhaustive-deps findings in frontend/components/\tabierta\t1\twait",
+    "2 eslint@frontend @next/next/no-img-element findings in frontend/components/\tabierta\t1\twait",
+    "",
+    "2 fila(s)",
+    "actual",
+    "workspace",
+    "04 nov, 20:19",
+    "opportunities",
+    "UNBIDDEN"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "1 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "ai-avatar-system",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 47 eventos · en vivo",
+    "todos los tipos",
+    "action.executed",
+    "analyzer.ran",
+    "connection.changed",
+    "decision.made",
+    "egress.allowed",
+    "guardian.values_masked",
+    "job.finished",
+    "job.started",
+    "mandate.changed",
+    "model.called",
+    "opportunity.opened",
+    "repo.head_moved",
+    "world.changed",
+    "Trabajo terminado",
+    "20:18",
+    "next: [] · outcome: ok · seconds: 0.5",
+    "Trabajo iniciado",
+    "20:18",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "20:18",
+    "next: [] · outcome: ok · seconds: 1.2",
+    "Decisión tomada",
+    "20:18",
+    "wait — found in a service analyzed in isolation: the lab cannot reproduce it inside the repository yet",
+    "Decisión tomada",
+    "20:18",
+    "wait — found in a service analyzed in isolation: the lab cannot reproduce it inside the repository yet",
+    "Trabajo iniciado",
+    "20:18"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "ai-avatar-system",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 2 oportunidades, ordenadas por evidencia",
+    "L1 sospecha",
+    "3 eslint@frontend react-hooks/exhaustive-deps findings in frontend/components/",
+    "eslint@frontend · lint · wait · 04 nov, 20:17",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "2 eslint@frontend @next/next/no-img-element findings in frontend/components/",
+    "eslint@frontend · lint · wait · 04 nov, 20:17",
+    "abierta",
+    "—",
+    "3 eslint@frontend react-hooks/exhaustive-deps findings in frontend/components/",
+    "hallazgo al lienzo",
+    "experimento al lienzo",
+    "L1 sospecha",
+    "abierta",
+    "eslint@frontend · lint",
+    "3 eslint@frontend react-hooks/exhaustive-deps findings in frontend/components/",
+    "react-hooks/exhaustive-deps: React Hook useCallback has a missing dependency: 'processFile'. Either include it or remove the dependency array.; react-hooks/exhaustive-deps: React Hook useCallback has a missing dependency: 'stopRecording'. Either include it or remove the dependency array.",
+    "Decisión wait",
+    "found in a service analyzed in isolation: the lab cannot reproduce it inside the repository yet"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "1 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

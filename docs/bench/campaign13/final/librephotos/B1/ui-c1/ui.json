@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:19270/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "2 eslint:packages/api-client parse-error findings in packages/api-client/\tdescartada\t1\tdecline",
+    "3 eslint:apps/mobile react-hooks/immutability findings in apps/mobile/src/compon…\tdescartada\t1\tdecline",
+    "1 eslint:apps/mobile react-hooks/set-state-in-effect finding in apps/mobile/src/…\tdescartada\t1\tdecline",
+    "7 eslint:apps/mobile react-hooks/refs findings in apps/mobile/src/db/\tdescartada\t1\tdecline",
+    "4 eslint:apps/mobile react-hooks/set-state-in-effect findings in apps/mobile/src…\tdescartada\t1\tdecline",
+    "1 eslint:apps/mobile react-hooks/refs finding in apps/mobile/src/features/viewer…\tdescartada\t1\tdecline",
+    "1 eslint:apps/mobile react-hooks/set-state-in-effect finding in apps/mobile/src/…\tdescartada\t1\tdecline",
+    "1 eslint:apps/mobile react-hooks/refs finding in apps/mobile/src/providers/\tdescartada\t1\tdecline",
+    ""
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "1 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "librephotos",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 43 eventos · en vivo",
+    "todos los tipos",
+    "action.executed",
+    "analyzer.ran",
+    "connection.changed",
+    "decision.made",
+    "job.finished",
+    "job.started",
+    "mandate.changed",
+    "opportunity.opened",
+    "repo.head_moved",
+    "world.changed",
+    "Trabajo terminado",
+    "19:59",
+    "next: [] · outcome: ok · seconds: 0.5",
+    "Trabajo iniciado",
+    "19:59",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "19:59",
+    "next: [] · outcome: ok · seconds: 1.5",
+    "Decisión tomada",
+    "19:59",
+    "decline — the team's CI does not run eslint: its style is not the team's standard",
+    "Decisión tomada",
+    "19:59",
+    "decline — the team's CI does not run eslint: its style is not the team's standard",
+    "Decisión tomada",
+    "19:59",
+    "decline — the team's CI does not run eslint: its style is not the team's standard",
+    "Decisión tomada",
+    "19:59"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "librephotos",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 8 oportunidades, ordenadas por evidencia",
+    "L1 sospecha",
+    "2 eslint:packages/api-client parse-error findings in packages/api-client/",
+    "eslint:packages/api-client · config · decline · 04 nov, 19:57",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "3 eslint:apps/mobile react-hooks/immutability findings in apps/mobile/src/components/",
+    "eslint:apps/mobile · lint · decline · 04 nov, 19:59",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "1 eslint:apps/mobile react-hooks/set-state-in-effect finding in apps/mobile/src/components/",
+    "eslint:apps/mobile · lint · decline · 04 nov, 19:59",
+    "descartada",
+    "—",
+    "L1 sospecha",
+    "7 eslint:apps/mobile react-hooks/refs findings in apps/mobile/src/db/",
+    "eslint:apps/mobile · lint · decline · 04 nov, 19:59",
+    "descartada",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "1 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

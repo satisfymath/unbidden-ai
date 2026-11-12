@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18800/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "idna 3.10: 2 known vulnerabilities, fixed in 3.15\tpropuesta\t4\tpropose_change",
+    "pillow 12.2.0: 80 known vulnerabilities, fixed in 13.0.0\tabierta\t1\trun_experiment",
+    "pydantic 1.6.2: 2 known vulnerabilities, fixed in 1.10.13\tabierta\t1\trun_experiment",
+    "pytest 8.4.2: 2 known vulnerabilities, fixed in 9.0.3\tabierta\t1\trun_experiment",
+    "python-dotenv 0.13.0: 2 known vulnerabilities, fixed in 1.2.2\tabierta\t1\trun_experiment",
+    "requests 2.32.4: 2 known vulnerabilities, fixed in 2.33.0\tabierta\t1\trun_experiment",
+    "urllib3 2.6.0: 10 known vulnerabilities, fixed in 2.8.0\tabierta\t1\trun_experiment",
+    "Flask 2.1.3: 4 known vulnerabilities, fixed in 3.1.3\tabierta\t1\twait",
+    "Werkzeug 2.2.3: 16 known vulnerabilities, fixed in 3.1.9\tabierta\t1\trun_experiment"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "1 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "ctfd",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 122 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "capability.need_changed",
+    "decision.made",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "model.called",
+    "proposal.published",
+    "proposal.pushed",
+    "proposal.ready",
+    "verdict.recorded",
+    "Trabajo iniciado",
+    "18:09",
+    "doing: measuring a candidate in the sandbox · stage: measured · subject: opp_94768e10d7d54e2d",
+    "Trabajo terminado",
+    "18:09",
+    "next: [] · outcome: ok · seconds: 5.1",
+    "Propuesta publicada",
+    "18:09",
+    "number: 1 · url: https://github.com/satisfymath/c13-ctfd/pull/1",
+    "Rama subida",
+    "18:09",
+    "branch: unbidden/idna-3-10-2-known-vulnerabilities-fixed-7246c0 · commit: 2b0bac842dbc48fc3b78df53c342fb5ad7a97325 · slu",
+    "Salida permitida",
+    "18:09",
+    "→ github.com (1599 B)",
+    "Trabajo iniciado",
+    "18:09",
+    "doing: opening the pull request · stage: proposed · subject: prop_aff4638b81b74607",
+    "Trabajo terminado"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "ctfd",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 10 oportunidades, ordenadas por evidencia",
+    "L4 validado",
+    "idna 3.10: 2 known vulnerabilities, fixed in 3.15",
+    "pypi-advisories · security · propose_change · 04 nov, 16:47",
+    "propuesta",
+    "—",
+    "L1 sospecha",
+    "Flask 2.1.3: 4 known vulnerabilities, fixed in 3.1.3",
+    "pypi-advisories · security · wait · bloqueada · 04 nov, 16:47",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "Werkzeug 2.2.3: 16 known vulnerabilities, fixed in 3.1.9",
+    "pypi-advisories · security · run_experiment · 04 nov, 16:47",
+    "abierta",
+    "—",
+    "L1 sospecha",
+    "cryptography 45.0.6: 13 known vulnerabilities, fixed in 50.0.0",
+    "pypi-advisories · security · wait · bloqueada · 04 nov, 16:47",
+    "abierta",
+    "—"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "1 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

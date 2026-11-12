@@ -1,0 +1,737 @@
+{
+ "repo": "archery",
+ "phase": "final",
+ "run": "B1",
+ "candidate": "5bbaaf39f8eaa65e31ca02d9ee70d894f6fd0e6d",
+ "wheel_sha256": "9615de540d10d7911abd337f1b692643232e9de799e502614df81a3d1fc97122",
+ "started_at": "2026-11-04T20:01:07-0300",
+ "steps": [
+  {
+   "name": "setup",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "setup",
+    "--non-interactive",
+    "--models",
+    "api",
+    "--mode",
+    "autopilot",
+    "--budget",
+    "2",
+    "--dashboard",
+    "later",
+    "--model-key-stdin",
+    "--github-token-stdin",
+    "--yes",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 5.0,
+   "timed_out": false,
+   "stdout": "hat\": \"open pull requests\",\n      \"capability\": \"github.open_pull_request\",\n      \"decision\": \"allow\",\n      \"rule\": \"autonomy.open_pull_requests\"\n    },\n    {\n      \"what\": \"merge pull requests\",\n      \"capability\": \"github.merge_pull_request\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.merge_pull_requests\"\n    },\n    {\n      \"what\": \"deploy with the team's steps\",\n      \"capability\": \"deploy.run\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.deploy\"\n    },\n    {\n      \"what\": \"roll back a deploy\",\n      \"capability\": \"deploy.rollback\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.rollback\"\n    },\n    {\n      \"what\": \"write through connections (typed, limited actions)\",\n      \"capability\": \"connection.write\",\n      \"decision\": \"deny\",\n      \"rule\": \"autonomy.act_on_connections\"\n    }\n  ],\n  \"notes\": [],\n  \"probe\": {\n    \"ok\": true,\n    \"rejected\": false,\n    \"model\": \"muse-spark-1.3\",\n    \"usd\": 0.000571,\n    \"why\": null\n  },\n  \"priorities\": [\n    \"correctness\",\n    \"maintainability\",\n    \"security\"\n  ],\n  \"github\": \"file\",\n  \"found\": {\n    \"repository\": \"satisfymath/c13-archery\",\n    \"branch\": \"HEAD\",\n    \"head\": \"a3532bf2ec9820bdf8f005042d18abb98110e5e7\",\n    \"scope\": [\n      {\n        \"name\": \"scope: stack\",\n        \"in_scope\": true,\n        \"note\": \"Python 3.11 (requirements.txt, requirements.txt)\"\n      },\n      {\n        \"name\": \"scope: tests\",\n        \"in_scope\": true,\n        \"note\": \"django.yml > django_ci (matrix entry 1 of 2 (python-version=3.11))\"\n      },\n      {\n        \"name\": \"scope: database\",\n        \"in_scope\": false,\n        \"note\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n      }\n    ],\n    \"machine\": \"Apple M5 Pro, 64 GB, 54 GB for a model\",\n    \"ollama\": {\n      \"url\": \"http://localhost:11434\",\n      \"present\": true,\n      \"models\": [\n        \"muse-glimmer:30b-mxfp8-dflash\",\n        \"nomic-embed-text:latest\"\n      ]\n    },\n    \"local_model\": {\n      \"tag\": \"muse-glimmer:30b-mxfp8-dflash\",\n      \"installed\": true\n    },\n    \"key\": {\n      \"name\": \"MODEL_API_KEY\",\n      \"present\": true\n    },\n    \"github\": \"file\",\n    \"github_check\": {\n      \"login\": \"satisfymath\",\n      \"can_push\": true,\n      \"detail\": \"can push to satisfymath/c13-archery\"\n    },\n    \"compose\": null,\n    \"services\": [],\n    \"external\": [],\n    \"option\": \"mixed\",\n    \"option_why\": \"hay una clave y un modelo local\"\n  },\n  \"defaulted\": [\n    \"priorities\",\n    \"key\",\n    \"connections\",\n    \"private_code\",\n    \"language\"\n  ],\n  \"diff\": [\n    \"--- /Users/david/unbidden-lab/c13/archery/.unbidden/mandate.yaml\",\n    \"+++ /Users/david/unbidden-lab/c13/archery/.unbidden/mandate.yaml\",\n    \"@@ -6,5 +6,5 @@\",\n    \"   - security\",\n    \"   business_constraints:\",\n    \"-    maximum_monthly_spend_usd: 10\",\n    \"+    maximum_monthly_spend_usd: 2.0\",\n    \"   autonomy:\",\n    \"     observe: allow\",\n    \"@@ -12,9 +12,10 @@\",\n    \"     provision_dependencies: allow\",\n    \"     delegate_synthetic: allow\",\n    \"-    open_pull_requests: require_approval\",\n    \"+    open_pull_requests: allow\",\n    \"     merge_pull_requests: deny\",\n    \"     deploy: deny\",\n    \"     rollback: deny\",\n    \"-    use_new_capabilities: require_approval\",\n    \"+    use_new_capabilities: allow\",\n    \"+    act_on_connections: deny\",\n    \"   egress:\",\n    \"     package_registries:\",\n    \"@@ -34,2 +35,16 @@\",\n    \"   evaluation:\",\n    \"     minimum_evidence_for_proposal: 4\",\n    \"+  models:\",\n    \"+    profile: frontier\",\n    \"+    private_code_to_frontier: deny\",\n    \"+    local_inference: deny\",\n    \"+    local_fallback: deny\",\n    \"+  connections:\",\n    \"+  - id: github\",\n    \"+    kind: github\",\n    \"+    location: satisfymath/c13-archery\",\n    \"+    credential_ref: GITHUB_TOKEN\",\n    \"+    environment: production\",\n    \"+    permissions:\",\n    \"+    - read\",\n    \"+  operations: {}\"\n  ],\n  \"applied\": true,\n  \"mandate\": \"/Users/david/unbidden-lab/c13/archery/.unbidden/mandate.yaml\"\n}\n",
+   "stderr": "                    denied\n  roll back a deploy                                   denied\n  write through connections (typed, limited actions)   denied\n\nCredenciales\nGuardadas en /Users/david/unbidden-lab/c13/home/.unbidden/.env (modo 600), \nreferidas por nombre; nunca escritas en el repositorio ni en registros.\nMODEL_API_KEY guardada.\nClave aceptada: muse-spark-1.3 respondió (US$0.0006).\nGITHUB_TOKEN guardada.\n\nPresupuesto\nLibro de la máquina: verified balance US$97.29 (stage 6 spend cap authorized by \nDavid on 2026-10-28: up to US$10 of free credits from this point (dev 3, \nevaluation 5, demo and contingency 2; the earlier US$3 reserve is included, not \nadded). Dashboard as reported by David 2026-10-28: Current balance US$0, free \ncredits in use US$144.98, a Visa card on file, content sent while on free \ncredits may be used to improve products. A cap, not a measured balance; no \nrecharge or card charge authorized (entered by david) | stage 9: US$30 \nadditional Meta API spend authorized by David on 2026-10-29, replacing the US$10\ncap; cumulative cap US$37.2945 = US$7.2945 spent + US$30; envelopes dev 12, eval\n12, demo 6 (D-052). Dashboard as reported by David: free credits in use \nUS$137.96, balance US$0, a card on file. No recharge or card charge authorized \n(entered by david) | stage 10: the remaining US$20.30 of the US$37.29 cap split \nbefore any call (D-058), by David's stage 10 instruction of 2026-10-30 (entered \nby david) | stage 10 after the frozen evaluation: US$5 of the unspent s10-eval \nmoved to s10-dev for corrections and regressions, by David's instruction of \n2026-10-31; envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; spent at the transfer US$25.2986 (s10-dev 7.3082, s10-eval 1.0010, \ns10-close 0) (entered by david) | product phase (A-E): s11-product US$4.00 \nauthorized by David on 2026-11-01, reassigned from s10-close (3.80, unspent, \nclosed) and US$0.20 of s10-dev; envelopes total US$20.30 and the cumulative cap \nUS$37.2945 unchanged; spent at the transfer US$27.7199 (s10-dev 9.7294, s10-eval\n1.0010, s10-close 0) (entered by david) | product phase correction: David's \nauthorization of 2026-11-01 covered s10-close only (US$3.80); the US$0.20 taken \nfrom s10-dev had no recorded authorization and goes back (s10-dev 13.00, \ns11-product 3.80); envelopes total US$20.30 and the cumulative cap US$37.2945 \nunchanged; s11-product spent 0 at the correction; spent at the correction \nUS$27.7199 (entered by david) | campaign 12 (installed-product validation): \nUS$60 additional Meta API spend authorized by David on 2026-11-01 on top of the \ncumulative cap (37.2945 -> 97.2945); envelopes s12-pilot 8 (pilot and harness \ncalibration), s12-eval 30 (frozen evaluation), s12-dev 17 (development and \nregressions), s12-confirm 5 (final confirmation); earlier envelopes and spend \nkept (spent at the amendment US$27.8551: s10-dev 9.7294, s10-eval 1.0010, \ns11-product 0.1352); no transfers between envelopes; dashboard as reported by \nDavid: US$118.36 free credits (a provider reference, not this budget); no \nrecharge or card change authorized (entered by david) | envelopes s13-dev 15, \ns13-pass 15, s13-final 20, s13-confirm 5 authorized by David on 2026-11-03 \n('dale entonces empecemos con todo', campaign 13 to 1.0, within the cumulative \ncap US$97.2945, not amended); earlier envelopes unchanged; no transfers (entered\nby david)); permitido US$97.29 · gastado US$36.0368 · disponible US$61.2577\nsobres: s10-dev 13.00, s10-eval 3.50, s11-product 3.80, s12-pilot 8.00, s12-eval\n30.00, s12-dev 17.00, s12-confirm 5.00, s13-dev 15.00, s13-pass 15.00, s13-final\n20.00, s13-confirm 5.00\nLos créditos del proveedor y el gasto autorizado son cosas distintas: el tope \nque una persona ingresó con `unbidden spend --verified-balance` es lo que esta \nmáquina puede gastar; aquí nunca se sube ni se reinicia.\n\nPanel\nAbrir el panel, restaurar su disposición y mostrar registros no llama a ningún \nmodelo; chatear o pedir un análisis sí puede.\n"
+  },
+  {
+   "name": "doctor",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "doctor",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 2.0,
+   "timed_out": false,
+   "stdout": "{\n  \"checks\": [\n    {\n      \"check\": \"ollama\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"2 model(s) at http://localhost:11434\"\n    },\n    {\n      \"check\": \"machine\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Apple M5 Pro, 64 GB, 54 GB for a model\"\n    },\n    {\n      \"check\": \"local model\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"muse-glimmer:30b-mxfp8-dflash (fits in 54 GB: 8-bit: the best local quality measured)\"\n    },\n    {\n      \"check\": \"docker\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"running\"\n    },\n    {\n      \"check\": \"docker buildx\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"github.com/docker/buildx v0.37.2 2d379c0c3f22da0d2759d132a0e\"\n    },\n    {\n      \"check\": \"docker compose\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"Docker Compose version v5.5.0\"\n    },\n    {\n      \"check\": \"act\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"found: the team's CI job prepares the environment when the mandate allows it\"\n    },\n    {\n      \"check\": \"meta api\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"key proven: muse-spark-1.3 answered\"\n    },\n    {\n      \"check\": \"github\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"GITHUB_TOKEN set\"\n    },\n    {\n      \"check\": \"mandate\",\n      \"ok\": true,\n      \"required\": true,\n      \"detail\": \"profile frontier, PRs allow\"\n    },\n    {\n      \"check\": \"repository\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"public (confirmed)\"\n    },\n    {\n      \"check\": \"recon\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"completo (2026-11-04T23:02); stack absent\"\n    },\n    {\n      \"check\": \"scope: stack\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"Python 3.11 (requirements.txt, requirements.txt)\"\n    },\n    {\n      \"check\": \"scope: tests\",\n      \"ok\": true,\n      \"required\": false,\n      \"detail\": \"django.yml > django_ci (matrix entry 1 of 2 (python-version=3.11))\"\n    },\n    {\n      \"check\": \"scope: database\",\n      \"ok\": false,\n      \"required\": false,\n      \"detail\": \"no database service declared: consistency and performance work need one (the project's checks and robustness probes still run)\"\n    }\n  ],\n  \"requirements\": \"option api: Ollama and a local model are optional; the Meta API key is required\",\n  \"ok\": true,\n  \"failed_required\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "host-up",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "host",
+    "up",
+    "--yes",
+    "--json"
+   ],
+   "code": 1,
+   "seconds": 0.4,
+   "timed_out": false,
+   "stdout": "{\n  \"ok\": false,\n  \"project\": \"unbidden-archery\",\n  \"health_url\": null,\n  \"ports\": {},\n  \"deploy_steps\": [],\n  \"drill\": null,\n  \"why\": \"the repository tracks no compose file (compose.yml, docker-compose.yml)\",\n  \"steps\": [],\n  \"migrated\": null,\n  \"seeded\": {},\n  \"generated_env\": []\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "19270",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.9,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 55664,\n  \"log\": \"/Users/david/unbidden-lab/c13/archery/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "ui-browser",
+   "argv": [
+    "node",
+    "/Users/david/unbidden-ai-v1b/frontend/scripts/c13_ui_check.mjs",
+    "http://127.0.0.1:19270/?s=<token>",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/archery/B1/ui-c1"
+   ],
+   "code": 0,
+   "seconds": 19.6,
+   "timed_out": false,
+   "stdout": "{\"ok\":true,\"steps\":5,\"console_errors\":2}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-status",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué ha hecho el agente hasta ahora y cuántas oportunidades hay?"
+   ],
+   "code": 0,
+   "seconds": 1.6,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_fb9c01980f964432\",\n  \"role\": \"assistant\",\n  \"content\": \"Registro de archery (live, head a3532bf2ec98): 5 oportunidades, 0 experimentos, 0 propuestas, 44 eventos, 0 llamadas a modelos, 1 bloqueos.\\nJobs: done 11, failed 1, queued 1, running 1\\nBloqueo compatibility en «observe.checks»: & uv pip install --python /deps/.venv/bin/python -r /deps/requirements.txt && uv pip install --python /deps/.venv/bin/python -r /deps/dev-re\\nAgente: agent running, pid 55664.\\nPara un porqué o una recomendación pide un análisis; para ver algo, una tabla o un gráfico.\",\n  \"created_at\": \"2026-11-04T23:11:29.073153Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"rule\",\n  \"model\": null,\n  \"route\": {\n    \"intent\": \"inform\",\n    \"purpose\": null,\n    \"tier\": null,\n    \"model\": null,\n    \"reason\": \"the mandate denies local inference; reading records needs no model: answered by rules\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "chat-analyze",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "chat",
+    "--json",
+    "¿Qué hallazgo priorizarías y por qué? Di qué falta en el registro."
+   ],
+   "code": 0,
+   "seconds": 8.8,
+   "timed_out": false,
+   "stdout": "{\n  \"schema\": 1,\n  \"id\": \"msg_bedd64fc919b4c19\",\n  \"role\": \"assistant\",\n  \"content\": \"Con el digest solo no priorizo ninguno:\\n\\n- Hay 5 oportunidades `open:5`, pero solo 4 detalladas, todas iguales: `level:1`, `status:open`, `has_experiment:false`:\\n  - `opp_99b3dc5599294867` — 1 F821 en `common/utils/`\\n  - `opp_f9b12e8cce28419f` — 1 F821 en `sql/engines/cloud/`\\n  - `opp_72b495b680ca45fa` — 1 F811 en `sql/engines/`\\n  - `opp_5950dcfe36e44ec9` — 2 F811 en `sql/utils/`\\n- `experiments:0`, `proposals:0`, `proposals:{}`, `learned:{}`\\n\\nFalta en el registro:\\n- 1 oportunidad sin detallar para llegar a 5.\\n- Criterios para priorizar: el digest no contiene severidad comparada, impacto, esfuerzo, riesgo, dependencias ni evidencia de causa.\\n- Para decidir pide un análisis; para ver algo, una tabla o un gráfico.\",\n  \"created_at\": \"2026-11-04T23:11:37.768623Z\",\n  \"context\": {\n    \"selected\": []\n  },\n  \"state\": \"done\",\n  \"tool_calls\": [],\n  \"results\": [],\n  \"planner\": \"brain\",\n  \"model\": \"muse-spark-1.3\",\n  \"route\": {\n    \"intent\": \"analyze\",\n    \"purpose\": \"chat.analyze\",\n    \"tier\": \"code\",\n    \"model\": \"muse-spark-1.3\",\n    \"reason\": \"profile frontier; public_code may leave; label public_code\",\n    \"blocked\": null,\n    \"hint\": null,\n    \"action\": null\n  }\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c1-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.4,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 55664,\n  \"waited_s\": 0.2,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-start",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "start",
+    "--ui",
+    "--port",
+    "19270",
+    "--interval",
+    "60",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.8,
+   "timed_out": false,
+   "stdout": "{\n  \"started\": true,\n  \"pid\": 31105,\n  \"log\": \"/Users/david/unbidden-lab/c13/archery/.unbidden/logs/agent.log\"\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "c2-stop",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "stop",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.5,
+   "timed_out": false,
+   "stdout": "{\n  \"stopped\": true,\n  \"pid\": 31105,\n  \"waited_s\": 0.2,\n  \"forced\": false,\n  \"timeout_s\": 60,\n  \"jobs_left_running\": 0\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "status-final",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "status",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"repo\": \"/Users/david/unbidden-lab/c13/archery\",\n  \"head\": \"a3532bf2ec9820bdf8f005042d18abb98110e5e7\",\n  \"kill_switch\": false,\n  \"agent\": {\n    \"running\": false,\n    \"pid\": null,\n    \"started_at\": null,\n    \"command\": null,\n    \"log\": \"/Users/david/unbidden-lab/c13/archery/.unbidden/logs/agent.log\",\n    \"stale\": false,\n    \"jobs_running\": 0,\n    \"jobs_queued\": 0\n  },\n  \"stale\": false,\n  \"dashboard\": null,\n  \"last_scan\": {\n    \"rev\": \"a3532bf2ec9820bdf8f005042d18abb98110e5e7\",\n    \"tools\": [\n      \"ruff-baseline\"\n    ],\n    \"languages\": [\n      \"python\"\n    ],\n    \"blind_spots\": [\n      \"environment prepared by the team's CI job django.yml:django_ci (python-version=3.12); publishing steps left out: SET MySQL Cnf, Upload coverage to Codecov\",\n      \"Unbidden's own environment could not be installed (types, advisories, probes): dependency image for python failed to build:\\nerror: Failed to build `python-ldap==3.4.8`\\n  cause: The build backend returned an error\\n  cause: Call to `setuptools.build_meta.build_wheel` failed (exit \"\n    ],\n    \"problems\": [],\n    \"reports\": [\n      {\n        \"tool\": \"ruff-baseline\",\n        \"completeness\": \"complete\",\n        \"findings\": 7,\n        \"error\": \"\"\n      }\n    ]\n  },\n  \"opportunities\": {\n    \"open\": 5\n  },\n  \"asks\": [],\n  \"blocks\": [\n    {\n      \"id\": \"blk_d867528cbf146243\",\n      \"kind\": \"compatibility\",\n      \"needs\": \"nothing a person can grant: the project's dependencies do not build here as declared (the cause is in the evidence)\",\n      \"waiting\": [\n        \"observe.checks\"\n      ]\n    }\n  ],\n  \"idle\": true\n}\n",
+   "stderr": ""
+  },
+  {
+   "name": "egress",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "egress",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 1.1,
+   "timed_out": false,
+   "stdout": "not act: do not promise to approve,\\\\ndeploy, merge, run or stop anything; name the command or button when the person should decide something.\\\", \\\"role\\\": \\\"system\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ade una tabla con las oportunidades\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"A\\u00f1ado una tabla con las oportunidades.\\\\na\\u00f1adido \\u00abOportunidades\\u00bb\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 ha hecho el agente hasta ahora y cu\\u00e1ntas oportunidades hay?\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}, {\\\"content\\\": \\\"Registro de archery (live, head a3532bf2ec98): 5 oportunidades, 0 experimentos, 0 propuestas, 44 eventos, 0 llamadas a modelos, 1 bloqueos.\\\\nJobs: done 11, failed 1, queued 1, running 1\\\\nBloqueo compatibility en \\u00abobserve.checks\\u00bb: & uv pip install --python /deps/.venv/bin/python -r /deps/requirements.txt && uv pip install --python /deps/.venv/bin/python -r /deps/dev-re\\\\nAgente: agent running, pid 55664.\\\\nPara un porqu\\u00e9 o una recomendaci\\u00f3n pide un an\\u00e1lisis; para ver algo, una tabla o un gr\\u00e1fico.\\\", \\\"role\\\": \\\"assistant\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"Records digest:\\\\nworkspace archery (live record); head a3532bf2ec98; observed 2026-11-04T23:11:30.107671+00:00; freshness current\\\\ncounts: {\\\\\\\"opportunities\\\\\\\":5,\\\\\\\"experiments\\\\\\\":0,\\\\\\\"proposals\\\\\\\":0,\\\\\\\"events\\\\\\\":44,\\\\\\\"model_runs\\\\\\\":0,\\\\\\\"connections\\\\\\\":1,\\\\\\\"deployments\\\\\\\":0,\\\\\\\"needs\\\\\\\":0,\\\\\\\"blocks\\\\\\\":1,\\\\\\\"spend_calls\\\\\\\":0,\\\\\\\"world\\\\\\\":1}\\\\njobs: {\\\\\\\"done\\\\\\\":11,\\\\\\\"failed\\\\\\\":1,\\\\\\\"queued\\\\\\\":1,\\\\\\\"running\\\\\\\":1}\\\\ndiscovered: {\\\\\\\"total\\\\\\\":5,\\\\\\\"by_status\\\\\\\":{\\\\\\\"open\\\\\\\":5}}\\\\ninvalidated: []\\\\nproposals: {}\\\\nblocks: [{\\\\\\\"operation\\\\\\\":\\\\\\\"observe.checks\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"compatibility\\\\\\\",\\\\\\\"needs\\\\\\\":\\\\\\\"nothing a person can grant: the project's dependencies do not build here as declared (the cause is in the evidence)\\\\\\\",\\\\\\\"continues\\\\\\\":\\\\\\\"observe.checks runs again\\\\\\\",\\\\\\\"evidence\\\\\\\":\\\\\\\"venv/bin/python -c \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"import hypothesis\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\\\\\\\\\\\\\\\" did not complete successfully: exit code: 1\\\\\\\"}]\\\\nlearned: {}\\\\nconnections: [{\\\\\\\"id\\\\\\\":\\\\\\\"github:satisfymath/c13-archery\\\\\\\",\\\\\\\"kind\\\\\\\":\\\\\\\"github\\\\\\\",\\\\\\\"environment\\\\\\\":\\\\\\\"production\\\\\\\",\\\\\\\"state\\\\\\\":\\\\\\\"connected\\\\\\\",\\\\\\\"read\\\\\\\":[\\\\\\\"repository\\\\\\\",\\\\\\\"check runs\\\\\\\",\\\\\\\"pull requests\\\\\\\"],\\\\\\\"write\\\\\\\":[\\\\\\\"push branch\\\\\\\",\\\\\\\"pull request\\\\\\\"],\\\\\\\"requested\\\\\\\":[\\\\\\\"read\\\\\\\"],\\\\\\\"effective\\\\\\\":[\\\\\\\"read\\\\\\\",\\\\\\\"write\\\\\\\"],\\\\\\\"blocked\\\\\\\":null,\\\\\\\"next_step\\\\\\\":null,\\\\\\\"found_by\\\\\\\":[\\\\\\\"mandate grant\\\\\\\"],\\\\\\\"checked_at\\\\\\\":\\\\\\\"2026-11-04T23:11:26.883121+00:00\\\\\\\"}]\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_99b3dc5599294867\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"1 ruff-baseline F821 finding in common/utils/\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"open\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_f9b12e8cce28419f\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"1 ruff-baseline F821 finding in sql/engines/cloud/\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"open\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_72b495b680ca45fa\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"1 ruff-baseline F811 finding in sql/engines/\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"open\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\\nhighlight: {\\\\\\\"id\\\\\\\":\\\\\\\"opp_5950dcfe36e44ec9\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"2 ruff-baseline F811 findings in sql/utils/\\\\\\\",\\\\\\\"level\\\\\\\":1,\\\\\\\"status\\\\\\\":\\\\\\\"open\\\\\\\",\\\\\\\"has_experiment\\\\\\\":false}\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"record\\\"}, {\\\"content\\\": \\\"\\u00bfQu\\u00e9 hallazgo priorizar\\u00edas y por qu\\u00e9? Di qu\\u00e9 falta en el registro.\\\", \\\"role\\\": \\\"user\\\", \\\"source\\\": \\\"prompt\\\"}], \\\"response_schema\\\": null, \\\"tools\\\": []}\",\n    \"created_at\": \"2026-11-04T23:11:30.119827Z\",\n    \"origin\": \"dashboard apart\"\n  }\n]\n",
+   "stderr": ""
+  },
+  {
+   "name": "export",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "export",
+    "--out",
+    "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/archery/export"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "Evidence of archery written to \n/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/archery/export\n  events.jsonl                      48 lines  72dd3ec0a02b\n  audit.jsonl                        3 lines  b7811ce550f9\n  opportunities.jsonl                5 lines  cb9d28c0da05\n  hypotheses.jsonl                   0 lines  e3b0c44298fc\n  experiment_specs.jsonl             0 lines  e3b0c44298fc\n  experiments.jsonl                  0 lines  e3b0c44298fc\n  proposals.jsonl                    0 lines  e3b0c44298fc\n  decisions.jsonl                    5 lines  30f731512c3e\n  deploy_verdicts.jsonl              0 lines  e3b0c44298fc\n  deployments.jsonl                  0 lines  e3b0c44298fc\n  holds.jsonl                        0 lines  e3b0c44298fc\n  approvals.jsonl                    0 lines  e3b0c44298fc\n  acceptances.jsonl                  0 lines  e3b0c44298fc\n  actions.jsonl                      0 lines  e3b0c44298fc\n  goal_runs.jsonl                    0 lines  e3b0c44298fc\n  model_runs.jsonl                   0 lines  e3b0c44298fc\n  transcripts.jsonl                  0 lines  e3b0c44298fc\n  egress.jsonl                       0 lines  e3b0c44298fc\n  needs.jsonl                        0 lines  e3b0c44298fc\n  asks.jsonl                         0 lines  e3b0c44298fc\n  blocks.jsonl                       1 lines  0790d86bc1e8\n  deploy_ledger.jsonl                0 lines  e3b0c44298fc\n  spend.jsonl                        1 lines  9666ab203f30\n  mandate.json                      96 lines  16c21eaaebde\nevery file was scanned for secrets; manifest.json holds the sha256 of each\n",
+   "stderr": ""
+  },
+  {
+   "name": "host-down",
+   "argv": [
+    "/Users/david/unbidden-lab/c13/home/bin/unbidden",
+    "host",
+    "down",
+    "--json"
+   ],
+   "code": 0,
+   "seconds": 0.3,
+   "timed_out": false,
+   "stdout": "{\n  \"ok\": true,\n  \"project\": \"unbidden-archery\",\n  \"why\": \"nothing brought up here\"\n}\n",
+   "stderr": ""
+  }
+ ],
+ "facts": {
+  "repo": {
+   "url": "https://github.com/hhyo/Archery",
+   "commit": "a2675e236da8395940d7316483cdc54b177d2702",
+   "family": "web-django-mysql",
+   "class": "frontier",
+   "build": "pip",
+   "lab": null,
+   "copy_base_sha": "a3532bf2ec9820bdf8f005042d18abb98110e5e7"
+  },
+  "ledger_before": {
+   "envelope": "s13-final",
+   "envelope_spent_usd": 3.8003,
+   "available_usd": 61.2577,
+   "permitted_usd": 97.2945
+  },
+  "fork": {
+   "slug": "satisfymath/c13-archery",
+   "base": "master",
+   "upstream": "hhyo/Archery",
+   "kind": "copy",
+   "created": true,
+   "prep": {
+    "applied": true,
+    "sha": "a3532bf2ec9820bdf8f005042d18abb98110e5e7",
+    "removed": [
+     "docker-base-image.yml",
+     "docker-image.yml"
+    ],
+    "edited": [],
+    "plan": [
+     {
+      "file": "black.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "lint"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "codeql-analysis.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "analyze"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "django.yml",
+      "action": "keep",
+      "removed_jobs": [],
+      "kept_jobs": [
+       "django_ci"
+      ],
+      "why": "the team's checks"
+     },
+     {
+      "file": "docker-base-image.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "push_to_registries"
+      ],
+      "kept_jobs": [],
+      "why": "every job publishes, deploys or releases"
+     },
+     {
+      "file": "docker-image.yml",
+      "action": "remove",
+      "removed_jobs": [
+       "push_to_registries"
+      ],
+      "kept_jobs": [],
+      "why": "every job publishes, deploys or releases"
+     }
+    ],
+    "kept": [
+     "black.yml",
+     "codeql-analysis.yml",
+     "django.yml"
+    ]
+   },
+   "pin": "a2675e236da8395940d7316483cdc54b177d2702",
+   "restore": {
+    "expected": "a3532bf2ec9820bdf8f005042d18abb98110e5e7",
+    "head_before": "a3532bf2ec9820bdf8f005042d18abb98110e5e7",
+    "pin_in_history": true,
+    "closed": [],
+    "deleted": [],
+    "base_sha": "a3532bf2ec9820bdf8f005042d18abb98110e5e7"
+   },
+   "base_sha": "a3532bf2ec9820bdf8f005042d18abb98110e5e7",
+   "pin_in_history": true,
+   "dependency_graph": true,
+   "dependabot_prs_closed": [],
+   "workflows_registered": [
+    "update-graph"
+   ],
+   "disabled_in_settings": [],
+   "kept": [
+    "black.yml",
+    "codeql-analysis.yml",
+    "django.yml"
+   ]
+  },
+  "fork_before": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "a3532bf2ec9820bdf8f005042d18abb98110e5e7"
+  },
+  "deploy_target": "self_host",
+  "setup": {
+   "ok": true,
+   "applied": true
+  },
+  "doctor": {
+   "ok": true,
+   "failed_required": [],
+   "requirements": "option api: Ollama and a local model are optional; the Meta API key is required"
+  },
+  "self_host": {
+   "ok": false,
+   "project": "unbidden-archery",
+   "health_url": null,
+   "ports": {},
+   "deploy_steps": [],
+   "drill": null,
+   "why": "the repository tracks no compose file (compose.yml, docker-compose.yml)",
+   "steps": [],
+   "migrated": null,
+   "seeded": {},
+   "generated_env": [],
+   "code": 1
+  },
+  "mode": {
+   "asked": "custom",
+   "got": "custom",
+   "why": "nothing to deploy: `unbidden host up` did not bring it up (the repository tracks no compose file (compose.yml, docker-compose.yml))"
+  },
+  "autonomy": {
+   "mode": "custom",
+   "why": "nothing to deploy: `unbidden host up` did not bring it up (the repository tracks no compose file (compose.yml, docker-compose.yml))",
+   "fields": {
+    "observe": "allow",
+    "run_experiments": "allow",
+    "provision_dependencies": "allow",
+    "delegate_synthetic": "allow",
+    "open_pull_requests": "allow",
+    "merge_pull_requests": "allow",
+    "deploy": "deny",
+    "rollback": "deny",
+    "use_new_capabilities": "allow",
+    "act_on_connections": "deny"
+   }
+  },
+  "mode_got": "custom",
+  "cycle1": {
+   "started": true,
+   "waited_s": 514.4,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 55664,
+    "started_at": "2026-11-04T23:02:33.177442+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/archery/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [
+    {
+     "kind": "compatibility",
+     "needs": "nothing a person can grant: the project's dependencies do not build here as declared (the cause is in the evidence)"
+    }
+   ],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "agent.note": 1,
+     "analyzer.ran": 1,
+     "connection.changed": 1,
+     "decision.made": 6,
+     "job.finished": 9,
+     "job.started": 9,
+     "mandate.changed": 1,
+     "operations.deployed": 1,
+     "opportunity.opened": 5,
+     "repo.head_moved": 1,
+     "world.changed": 2
+    },
+    "docs": {
+     "blocks": 1,
+     "connections": 1,
+     "decisions": 5,
+     "opportunities": 5,
+     "world": 1
+    },
+    "jobs": {
+     "done": 8,
+     "failed": 1
+    },
+    "experiments": 0,
+    "opportunities": [
+     {
+      "id": "opp_99b3dc5599294867",
+      "source": "ruff-baseline",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_f9b12e8cce28419f",
+      "source": "ruff-baseline",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_72b495b680ca45fa",
+      "source": "ruff-baseline",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_5950dcfe36e44ec9",
+      "source": "ruff-baseline",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_706fc46191524291",
+      "source": "ruff-baseline",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     }
+    ],
+    "level_max": 1,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": []
+   }
+  },
+  "ui1": {
+   "opened": true,
+   "in_daemon": true,
+   "summary": {
+    "mode": "live",
+    "freshness": "current",
+    "counts": {
+     "opportunities": 5,
+     "experiments": 0,
+     "proposals": 0,
+     "events": 37,
+     "model_runs": 0,
+     "connections": 1,
+     "deployments": 0,
+     "needs": 0,
+     "blocks": 1,
+     "spend_calls": 0,
+     "world": 1
+    },
+    "agent": {
+     "running": true,
+     "pid": 55664,
+     "started_at": "2026-11-04T23:02:33.177442+00:00",
+     "command": "watch",
+     "detail": "agent running, pid 55664"
+    },
+    "key_present": true
+   },
+   "opportunities_total": 5,
+   "widgets": [
+    {
+     "type": "table",
+     "title": "Oportunidades",
+     "provenance": "complete",
+     "source": "live:archery"
+    }
+   ],
+   "browser": {
+    "ok": true,
+    "steps": 5,
+    "console_errors": 2
+   },
+   "chat_status": {
+    "planner": "rule",
+    "route": {
+     "intent": "inform",
+     "purpose": null,
+     "tier": null,
+     "model": null,
+     "reason": "the mandate denies local inference; reading records needs no model: answered by rules",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Registro de archery (live, head a3532bf2ec98): 5 oportunidades, 0 experimentos, 0 propuestas, 44 eventos, 0 llamadas a modelos, 1 bloqueos.\nJobs: done 11, failed 1, queued 1, running 1\nBloqueo compatibility en «observe.checks»: & uv pip install --python /deps/.venv/bin/python -r /deps/requirements.txt && uv pip install --python /deps/.venv/bin/python -r /deps/dev-re\nAgente: agent running, pid 5566"
+   },
+   "chat_analyze": {
+    "planner": "brain",
+    "route": {
+     "intent": "analyze",
+     "purpose": "chat.analyze",
+     "tier": "code",
+     "model": "muse-spark-1.3",
+     "reason": "profile frontier; public_code may leave; label public_code",
+     "blocked": null,
+     "hint": null,
+     "action": null
+    },
+    "state": "done",
+    "content": "Con el digest solo no priorizo ninguno:\n\n- Hay 5 oportunidades `open:5`, pero solo 4 detalladas, todas iguales: `level:1`, `status:open`, `has_experiment:false`:\n  - `opp_99b3dc5599294867` — 1 F821 en `common/utils/`\n  - `opp_f9b12e8cce28419f` — 1 F821 en `sql/engines/cloud/`\n  - `opp_72b495b680ca45fa` — 1 F811 en `sql/engines/`\n  - `opp_5950dcfe36e44ec9` — 2 F811 en `sql/utils/`\n- `experiments:0`"
+   }
+  },
+  "fork_after_c1": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "a3532bf2ec9820bdf8f005042d18abb98110e5e7"
+  },
+  "cycle2": {
+   "started": true,
+   "waited_s": 44.9,
+   "bound_hit": false,
+   "status_at_end": {
+    "running": true,
+    "pid": 31105,
+    "started_at": "2026-11-04T23:11:41.865432+00:00",
+    "command": "watch",
+    "log": "/Users/david/unbidden-lab/c13/archery/.unbidden/logs/agent.log",
+    "stale": false,
+    "jobs_running": 0,
+    "jobs_queued": 0
+   },
+   "open_asks_at_end": 0,
+   "open_blocks_at_end": [
+    {
+     "kind": "compatibility",
+     "needs": "nothing a person can grant: the project's dependencies do not build here as declared (the cause is in the evidence)"
+    }
+   ],
+   "asks_answered": [],
+   "counts": {
+    "events": {
+     "agent.note": 1,
+     "analyzer.ran": 1,
+     "connection.changed": 1,
+     "decision.made": 6,
+     "job.finished": 14,
+     "job.started": 14,
+     "mandate.changed": 1,
+     "operations.deployed": 1,
+     "opportunity.opened": 5,
+     "repo.head_moved": 1,
+     "world.changed": 3
+    },
+    "docs": {
+     "blocks": 1,
+     "connections": 1,
+     "decisions": 5,
+     "opportunities": 5,
+     "world": 1
+    },
+    "jobs": {
+     "done": 13,
+     "failed": 1
+    },
+    "experiments": 0,
+    "opportunities": [
+     {
+      "id": "opp_99b3dc5599294867",
+      "source": "ruff-baseline",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_f9b12e8cce28419f",
+      "source": "ruff-baseline",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_72b495b680ca45fa",
+      "source": "ruff-baseline",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_5950dcfe36e44ec9",
+      "source": "ruff-baseline",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     },
+     {
+      "id": "opp_706fc46191524291",
+      "source": "ruff-baseline",
+      "category": "bugs",
+      "evidence_level": 1,
+      "status": "open"
+     }
+    ],
+    "level_max": 1,
+    "level_max_criteria": null,
+    "level_max_outcome": null,
+    "proposals": []
+   }
+  },
+  "asks_answered": [],
+  "fork_after_c2": {
+   "pulls": [],
+   "unbidden_branches": [],
+   "base_head": "a3532bf2ec9820bdf8f005042d18abb98110e5e7"
+  },
+  "status_final": {
+   "running": false,
+   "pid": null,
+   "started_at": null,
+   "command": null,
+   "log": "/Users/david/unbidden-lab/c13/archery/.unbidden/logs/agent.log",
+   "stale": false,
+   "jobs_running": 0,
+   "jobs_queued": 0
+  },
+  "egress": {
+   "api.meta.ai:chat.analyze:allowed_sent": 1
+  },
+  "checks": {
+   "status": "blocked",
+   "collected": null,
+   "why": "ProvisionError: dependency image for python failed to build:\nerror: Failed to build `mysqlclient==2.3.0`\n  cause: The build backend returned an error\n  cause: Call to `setuptools.build_meta.get_requires_for_build_wheel` failed (exit status: 1)\n\n         [stdout]\n         Trying pkg-config --exists mysqlclient\n         Command 'pkg-config --exists mysqlclient' returned non-zero exit status 127.\n         Trying pkg-config --exists mariadb\n         Command 'pkg-config --exists mariadb' returned non-zero exit status 127.\n         Trying pkg-config --exists libmariadb\n         Command 'pkg-config --exists libmariadb' returned non-zero exit status 127.\n         Trying pkg-config --exists perconaserverclient\n         /bin/sh: 1: pkg-config: not found\nERROR: process \"/bin/sh -c uv venv /deps/.venv && uv pip install --python /deps/.venv/bin/python --exclude-newer 2026-08-15T19:55:07+08:00 setuptools pip && uv pip install --python /deps/.venv/bin/python -r /deps/requirements.txt && uv pip install --python /deps/.venv/bin/python -r /deps/dev-requirements.txt  && (/deps/.venv/bin/python -c \\\"import pytest\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install\n[…]\n& uv pip install --python /deps/.venv/bin/python -r /deps/requirements.txt && uv pip install --python /deps/.venv/bin/python -r /deps/dev-requirements.txt  && (/deps/.venv/bin/python -c \\\"import pytest\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python pytest==9.1.1      || uv pip install --python /deps/.venv/bin/python pytest)  && (/deps/.venv/bin/python -c \\\"import hypothesis\\\" 2>/dev/null      || uv pip install --python /deps/.venv/bin/python hypothesis==6.170.12      || uv pip install --python /deps/.venv/bin/python hypothesis)\" did not complete successfully: exit code: 1",
+   "scope": null,
+   "partial": null,
+   "command": null,
+   "rev": "a3532bf2ec9820bdf8f005042d18abb98110e5e7",
+   "could_not_run": null,
+   "failed": null,
+   "image_notes": null,
+   "python": "3.11"
+  },
+  "ledger_after": {
+   "envelope": "s13-final",
+   "envelope_spent_usd": 3.8836,
+   "available_usd": 61.1745,
+   "permitted_usd": 97.2945
+  },
+  "run_spend": {
+   "run": "c13-final-B1-archery",
+   "calls": 1,
+   "usd": 0.0053,
+   "tokens_in": 889,
+   "tokens_out": 983
+  },
+  "spent_usd": 0.0053,
+  "export": {
+   "available": true,
+   "ok": true,
+   "code": 0,
+   "dir": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/archery/export",
+   "files": 25,
+   "answer": null
+  },
+  "archive": "/Users/david/unbidden-lab/c13/archive/archery-B1-final.tgz",
+  "archive_kept": {
+   "name": "archery-B1-final.tgz",
+   "bytes": 17299,
+   "sha256": "db51097c4a19c8b98be95774ad241e0e1b0f04ede9677cb7dd54ec1cadc71276",
+   "kept": true,
+   "where": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final/archery/export/archery-B1-final.tgz"
+  },
+  "self_host_down": {
+   "code": 0,
+   "answer": {
+    "ok": true,
+    "project": "unbidden-archery",
+    "why": "nothing brought up here"
+   }
+  }
+ },
+ "human": [
+  {
+   "step": "create the public copy satisfymath/c13-archery",
+   "minutes": 1,
+   "why": "pull requests, CI and merges off upstream"
+  },
+  {
+   "step": "push the pin a2675e236da8 to satisfymath/c13-archery:master",
+   "minutes": 1,
+   "why": "the copy's base"
+  },
+  {
+   "step": "campaign commit a3532bf2ec98 on satisfymath/c13-archery:master: 2 workflow file(s) removed, 0 cut",
+   "minutes": 5,
+   "why": "no deploy, release, package or bot runs from the copy; the checks stay as written"
+  },
+  {
+   "step": "mandate: fork, registries, operations, connections",
+   "minutes": 2,
+   "why": "a person's declaration"
+  },
+  {
+   "step": "mandate autonomy: merge on green CI, no deploy",
+   "minutes": 1,
+   "why": "nothing to deploy: `unbidden host up` did not bring it up (the repository tracks no compose file (compose.yml, docker-compose.yml))"
+  }
+ ],
+ "blocks": []
+}

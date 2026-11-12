@@ -1,0 +1,62 @@
+[
+ {
+  "name": "python-mss",
+  "run": "B1",
+  "mode": "custom",
+  "deploy_target": "none",
+  "self_host_ok": null,
+  "export": true,
+  "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final-rerun-0.18.9/python-mss/B1.json",
+  "proposals_c1": 0,
+  "proposals_c2": 0,
+  "pulls_after": 1,
+  "spent_usd": 0.0293,
+  "blocks": [],
+  "wall_s": 256.1
+ },
+ {
+  "name": "rich",
+  "run": "B1",
+  "mode": "custom",
+  "deploy_target": "none",
+  "self_host_ok": null,
+  "export": true,
+  "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final-rerun-0.18.9/rich/B1.json",
+  "proposals_c1": 3,
+  "proposals_c2": 3,
+  "pulls_after": 25,
+  "spent_usd": 0.1347,
+  "blocks": [],
+  "wall_s": 983.5
+ },
+ {
+  "name": "sqlmodel",
+  "run": "B1",
+  "mode": "custom",
+  "deploy_target": "none",
+  "self_host_ok": null,
+  "export": true,
+  "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final-rerun-0.18.9/sqlmodel/B1.json",
+  "proposals_c1": 5,
+  "proposals_c2": 5,
+  "pulls_after": 5,
+  "spent_usd": 0.0211,
+  "blocks": [],
+  "wall_s": 2542.1
+ },
+ {
+  "name": "aegra",
+  "run": "B1",
+  "mode": "autonomous",
+  "deploy_target": "self_host",
+  "self_host_ok": true,
+  "export": true,
+  "record": "/Users/david/unbidden-ai-v1b/docs/bench/campaign13/final-rerun-0.18.9/aegra/B1.json",
+  "proposals_c1": 3,
+  "proposals_c2": 3,
+  "pulls_after": 9,
+  "spent_usd": 0.0824,
+  "blocks": [],
+  "wall_s": 4653.8
+ }
+]

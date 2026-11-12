@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:19100/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "anyio 4.12.0: 4 known vulnerabilities, fixed in 4.14.2\tpropuesta\t4\tpropose_change",
+    "black 26.5.1: 1 known vulnerability, fixed in 26.10.1\tabierta\t4\trun_experiment",
+    "certifi 2025.11.12: 2 known vulnerabilities, fixed in 2026.10.18\tabierta\t4\trun_experiment",
+    "idna 3.11: 2 known vulnerabilities, fixed in 3.15\tabierta\t4\trun_experiment",
+    "starlette 0.50.0: 10 known vulnerabilities, fixed in 1.3.1\tabierta\t4\trun_experiment",
+    "",
+    "5 fila(s)",
+    "actual",
+    "workspace"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "6 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBiDDEN",
+    "/",
+    "sqlmodel",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 174 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "decision.made",
+    "egress.allowed",
+    "job.finished",
+    "job.started",
+    "proposal.published",
+    "proposal.pushed",
+    "proposal.ready",
+    "proposal.stale",
+    "world.changed",
+    "Trabajo terminado",
+    "18:51",
+    "next: [] · outcome: ok · seconds: 0",
+    "Trabajo iniciado",
+    "18:51",
+    "doing: measuring a candidate in the sandbox · stage: measured · subject: opp_26a7c36bc60f4ef8",
+    "Trabajo terminado",
+    "18:51",
+    "next: [] · outcome: ok · seconds: 0",
+    "Trabajo iniciado",
+    "18:51",
+    "doing: measuring a candidate in the sandbox · stage: measured · subject: opp_2523875ab0bf4b0a",
+    "Trabajo terminado",
+    "18:51",
+    "next: [\"lab.experiment\"] · outcome: ok · seconds: 9",
+    "Decisión tomada",
+    "18:51",
+    "run_experiment — reproduce it and measure a candidate offline (p 0.73 from the lab's history of this kind)",
+    "Decisión tomada",
+    "18:51"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBiDDEN",
+    "/",
+    "sqlmodel",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "3",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 5 oportunidades, ordenadas por evidencia",
+    "L4 validado",
+    "anyio 4.12.0: 4 known vulnerabilities, fixed in 4.14.2",
+    "pypi-advisories · security · propose_change · 04 nov, 18:14",
+    "propuesta",
+    "—",
+    "L4 validado",
+    "black 26.5.1: 1 known vulnerability, fixed in 26.10.1",
+    "pypi-advisories · security · run_experiment · 04 nov, 18:14",
+    "abierta",
+    "—",
+    "L4 validado",
+    "certifi 2025.11.12: 2 known vulnerabilities, fixed in 2026.10.18",
+    "pypi-advisories · security · run_experiment · 04 nov, 18:14",
+    "abierta",
+    "—",
+    "L4 validado",
+    "idna 3.11: 2 known vulnerabilities, fixed in 3.15",
+    "pypi-advisories · security · run_experiment · 04 nov, 18:14",
+    "abierta"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "6 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}

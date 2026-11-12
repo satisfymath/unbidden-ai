@@ -1,0 +1,104 @@
+{
+ "started_at": "2026-11-04T18:10:49-0300",
+ "phase": "confirm-rerun",
+ "workers": 3,
+ "order": "libraries-first",
+ "all_python": true,
+ "candidate": "0230c67cbe2cad21c74d0e3ac768900d30c68a57",
+ "wheel_sha256": "4b8477f4e4e484c84401fcfb676169795497894f14772376d7815b6e809f1036",
+ "ports": {
+  "0": {
+   "dashboard": 19100,
+   "ui_a": 19101,
+   "lab": 19102,
+   "lab_db": 19103
+  },
+  "1": {
+   "dashboard": 19110,
+   "ui_a": 19111,
+   "lab": 19112,
+   "lab_db": 19113
+  },
+  "2": {
+   "dashboard": 19120,
+   "ui_a": 19121,
+   "lab": 19122,
+   "lab_db": 19123
+  }
+ },
+ "jobs": [
+  {
+   "name": "rich",
+   "level": "B",
+   "run": 1
+  },
+  {
+   "name": "sqlmodel",
+   "level": "B",
+   "run": 1
+  },
+  {
+   "name": "python-mss",
+   "level": "B",
+   "run": 1
+  },
+  {
+   "name": "aegra",
+   "level": "B",
+   "run": 1
+  }
+ ],
+ "host": "MacBook-Pro-de-David.local",
+ "system": "Darwin",
+ "machine": "arm64",
+ "python": "3.12.15",
+ "tools": {
+  "uv": {
+   "path": "/opt/homebrew/bin/uv",
+   "version": "uv 0.13.1 (Homebrew 2026-10-14 aarch64-apple-darwin)"
+  },
+  "gh": {
+   "path": "/opt/homebrew/bin/gh",
+   "version": "gh version 2.102.0 (2026-09-30)"
+  },
+  "docker": {
+   "path": "/usr/local/bin/docker",
+   "version": "Docker version 29.8.2, build 7fc2dff"
+  },
+  "act": {
+   "path": "/opt/homebrew/bin/act",
+   "version": "act version 0.2.96"
+  },
+  "node": {
+   "path": "/Users/david/.local/state/fnm_multishells/44933_1793504603807/bin/node",
+   "version": "v24.22.0"
+  },
+  "git": {
+   "path": "/opt/homebrew/bin/git",
+   "version": "git version 2.56.0"
+  }
+ },
+ "path": "/Users/david/unbidden-lab/c13/home-confirm/bin:/opt/homebrew/bin:/usr/local/bin:/Users/david/.local/state/fnm_multishells/44933_1793504603807/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+ "pending": [
+  {
+   "name": "rich",
+   "level": "B",
+   "run": 1
+  },
+  {
+   "name": "sqlmodel",
+   "level": "B",
+   "run": 1
+  },
+  {
+   "name": "python-mss",
+   "level": "B",
+   "run": 1
+  },
+  {
+   "name": "aegra",
+   "level": "B",
+   "run": 1
+  }
+ ]
+}

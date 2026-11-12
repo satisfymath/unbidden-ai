@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:18820/?s=<token>",
+ "console_errors": [
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.",
+  " Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback."
+ ],
+ "steps": [
+  {
+   "name": "loaded",
+   "has_root": true,
+   "topbar": [
+    "Oportunidades",
+    "TITLE\tSTATUS\tLEVEL · L\tDECISION",
+    "",
+    "certifi 2026.5.20: 2 known vulnerabilities, fixed in 2026.10.18\tpropuesta\t4\tpropose_change",
+    "IndexError in format_unit_value (progressbar/widgets.py)\tdescartada\t2\tdecline",
+    "",
+    "2 fila(s)",
+    "actual",
+    "workspace",
+    "04 nov, 16:21",
+    "opportunities",
+    "Oportunidades"
+   ],
+   "mentions_live": true,
+   "mentions_demo": false,
+   "widgets_line": "5 widgets · Guardado"
+  },
+  {
+   "name": "activity",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "python-progressbar",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Actividad en vivo · 110 eventos · en vivo",
+    "todos los tipos",
+    "agent.note",
+    "decision.made",
+    "egress.blocked",
+    "job.finished",
+    "job.started",
+    "model.fallback",
+    "operations.merged",
+    "world.changed",
+    "Trabajo terminado",
+    "16:20",
+    "next: [] · outcome: ok · seconds: 4.1",
+    "Trabajo iniciado",
+    "16:20",
+    "doing: deciding what to try · stage: decided · subject: null",
+    "Trabajo terminado",
+    "16:20",
+    "next: [] · outcome: ok · seconds: 5.6",
+    "Mapa actualizado",
+    "16:20",
+    "{\"carried\":[\"repo:github:satisfymath/c13-python-progressbar\"],\"n_added\":0,\"n_car",
+    "Trabajo iniciado",
+    "16:20",
+    "doing: mapping the running system · stage: found · subject: null",
+    "Trabajo terminado",
+    "16:20",
+    "next: [] · outcome: ok · seconds: 1",
+    "Trabajo iniciado",
+    "16:20",
+    "doing: checking the connections · stage: found · subject: null",
+    "Trabajo terminado"
+   ]
+  },
+  {
+   "name": "experiments",
+   "lines": [
+    "UNBIDDEN",
+    "/",
+    "python-progressbar",
+    "Espacio",
+    "Experimentos",
+    "Actividad",
+    "Local, Autónomo",
+    "Vivo · lectura del workspace",
+    "Experimentos y hallazgos",
+    "· 2 oportunidades, ordenadas por evidencia",
+    "L4 validado",
+    "certifi 2026.5.20: 2 known vulnerabilities, fixed in 2026.10.18",
+    "pypi-advisories · security · propose_change · 04 nov, 16:12",
+    "propuesta",
+    "—",
+    "L2 reproducido",
+    "IndexError in format_unit_value (progressbar/widgets.py)",
+    "robustness · bugs · decline · 04 nov, 16:13",
+    "descartada",
+    "—",
+    "certifi 2026.5.20: 2 known vulnerabilities, fixed in 2026.10.18",
+    "hallazgo al lienzo",
+    "experimento al lienzo",
+    "L4 validado",
+    "propuesta",
+    "pypi-advisories · security",
+    "certifi 2026.5.20: 2 known vulnerabilities, fixed in 2026.10.18",
+    "certifi: certifi 2026.5.20: GHSA-6q48-6c7w-9gw2 (PYSEC-2026-4320); fixed in 2026.10.18: Certifi versions before 2026.10.18 include the `emSign ECC Root CA - G3` root certificate in their bundled CA store. Eight eMudhra intermediate CA certificates that chain to this root have compromised; certifi: certifi 2026.5.20: PYSEC-2026-4320 (GHSA-6q48-6c7w-9gw2); fixed in 2026.10.18: Certifi versions before 2026.10.18 include the `emSign ECC Root CA - G3` root certificate in their bundled CA store. Eight eMudhra intermediate CA certificates that chain to this root have compromised",
+    "Decisión propose_change",
+    "evidence L4 meets the mandate's L4"
+   ]
+  },
+  {
+   "name": "reloaded",
+   "widgets_line": "5 widgets · Guardado",
+   "mentions_live": true
+  },
+  {
+   "name": "secrets",
+   "suspicious": 0
+  }
+ ],
+ "ok": true
+}
