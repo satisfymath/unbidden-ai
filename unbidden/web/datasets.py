@@ -70,7 +70,27 @@ def dataset(
     return register
 
 
-def catalogue() -> list[dict[str, Any]]:
+def provided(source: Source | None) -> dict[str, Dataset]:
+    """The datasets installed plugins offer for this workspace, by id. A provider that fails offers nothing; an
+    id that does not start with the provider's name, or that a shipped dataset has, is left out."""
+    if source is None:
+        return {}
+    from unbidden import plugins
+
+    found: dict[str, Dataset] = {}
+    for name, provider in plugins.dataset_providers().items():
+        try:
+            offered = provider.datasets(source)
+        except Exception:  # a plugin's read may fail in any way; the canvas goes on with what is shipped
+            continue
+        for d in offered:
+            if isinstance(d, Dataset) and d.id.startswith(f"{name}.") and d.id not in CATALOGUE:
+                found.setdefault(d.id, d)
+    return found
+
+
+def catalogue(source: Source | None = None) -> list[dict[str, Any]]:
+    """Every dataset a widget may show: the shipped ones and, for a workspace, what its plugins offer."""
     return [
         {
             "id": d.id,
@@ -80,7 +100,7 @@ def catalogue() -> list[dict[str, Any]]:
             "unit": d.unit,
             "scope": d.scope,
         }
-        for d in CATALOGUE.values()
+        for d in [*CATALOGUE.values(), *provided(source).values()]
     ]
 
 
@@ -88,7 +108,7 @@ def catalogue() -> list[dict[str, Any]]:
 
 
 def resolve(source: Source, ref: DataRef) -> DataResult:
-    spec = CATALOGUE.get(ref.dataset)
+    spec = CATALOGUE.get(ref.dataset) or provided(source).get(ref.dataset)
     if spec is None:
         raise DatasetError(f"unknown dataset {ref.dataset!r}; see /api/datasets")
     unknown = set(ref.params) - set(spec.params)

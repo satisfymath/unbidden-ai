@@ -6,6 +6,9 @@
   `unbidden.ask_kinds`, `unbidden.skills`); `unbidden plugins` lists them and `unbidden doctor` says when one was
   left out. A plugin never takes a shipped name and never widens a permission: its connection passes the same
   gate (`connect.base.require`) as a shipped one. [`docs/PLUGINS.md`](PLUGINS.md).
+- **A plugin can put the workspace's own data on the web canvas and add tools to its chat**
+  (`unbidden.datasets`, `unbidden.chat_tools`). A provider's dataset ids carry its name, so none stands in for a
+  shipped dataset; a tool's arguments are validated before it runs and its failure is a result of the turn.
 - **A local route that points off this machine is refused unless the mandate declares it.** Until now nothing
   checked where the local route's provider was: with `routing.local` set to a remote API, what only the local model
   may see (production data) left the machine with no egress record, outside the spend ledger and the monthly cap,

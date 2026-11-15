@@ -1,6 +1,6 @@
 # Plugins
 
-An installed Python package can add three things to Unbidden, each by an entry point. Nothing is configured in
+An installed Python package can add five things to Unbidden, each by an entry point. Nothing is configured in
 Unbidden itself: install the package next to it and `unbidden plugins` lists what it added.
 
 | Group | Adds | The object |
@@ -8,6 +8,8 @@ Unbidden itself: install the package next to it and `unbidden plugins` lists wha
 | `unbidden.connectors` | a kind of resource a mandate's grant may name (`kind: mqtt`) | a `connect.base.Connector`: `kind`, `validate(grant)`, `check(grant)`; optionally `protocol` |
 | `unbidden.ask_kinds` | a class of question for a person | an `unbidden.plugins.AskKind`: `kind`, `apply(ws, store, ask, option, value, who) -> str` |
 | `unbidden.skills` | a capability with a card, listed and runnable | an `unbidden.plugins.Skill`: `name`, `card` (a `SkillCard`), `run(inputs) -> dict` |
+| `unbidden.datasets` | the workspace's own data as datasets of the web canvas and its chat | an `unbidden.plugins.DatasetProvider`: `name`, `datasets(source) -> list[web.datasets.Dataset]`; every id starts with `name.` |
+| `unbidden.chat_tools` | a tool the web chat's model may call | an `unbidden.plugins.ChatTool`: `name`, `description`, `args` (a pydantic model), `run(source, brain, args) -> ToolResult` (or an awaitable of one) |
 
 ```toml
 # the plugin's pyproject.toml
@@ -19,7 +21,19 @@ meeting = "my_plugin.asks:Meeting"
 
 [project.entry-points."unbidden.skills"]
 pillar_fos = "my_plugin.skills:PillarFos"
+
+[project.entry-points."unbidden.datasets"]
+mine = "my_plugin.web:MineData"
+
+[project.entry-points."unbidden.chat_tools"]
+mine_answer = "my_plugin.web:MineAnswer"
 ```
+
+A dataset provider is asked each time the catalogue is read, so it can offer what exists now (one dataset per
+table of a lake it keeps). Its datasets are listed at `GET /api/ws/{sid}/datasets`, charted with `create_widget`
+and read with `inspect_data` like the shipped ones, with the same bounded transforms: no SQL arrives from the
+browser. A chat tool's arguments are validated against its model before it runs; a tool that awaits (its own model
+calls, through the workspace's Brain it is handed) runs only in a turn a model plans.
 
 The entry point's name is the name Unbidden uses, and the object must carry the same one (`kind` or `name`). A
 class is instantiated once with no arguments; an instance is used as it is.

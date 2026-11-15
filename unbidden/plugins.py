@@ -1,6 +1,6 @@
 """Extension points: what an installed package may add to Unbidden, and nothing it may widen.
 
-A package declares entry points in three groups; Unbidden loads them by name when the registry is first read:
+A package declares entry points in five groups; Unbidden loads them by name when the registry is first read:
 
 - `unbidden.connectors`: a `connect.base.Connector` (or a callable returning one) for a kind of resource a grant
   may name (`mqtt`, `opcua`, ...). It is checked and gated exactly like the shipped ones: every read and write
@@ -8,6 +8,10 @@ A package declares entry points in three groups; Unbidden loads them by name whe
 - `unbidden.ask_kinds`: an `AskKind`, a class of question for a person with the effect its answer applies.
 - `unbidden.skills`: a `Skill`, a capability with a card (purpose, inputs, outputs, permissions, limits) that can
   be listed and run.
+- `unbidden.datasets`: a `DatasetProvider`: the datasets a workspace's own data offers to the web canvas and its
+  chat (`web.datasets.Dataset`), found when asked. Every id starts with the provider's name and a dot, so none
+  can stand in for a shipped dataset. Reading one changes nothing: a provider reads.
+- `unbidden.chat_tools`: a `ChatTool` the web chat's model may call, with its arguments validated first.
 
 Rules that hold for every group: a plugin never replaces a shipped name; a plugin that fails to load, or is not
 what its group expects, is left out and reported (`problems`, shown by `unbidden plugins` and `unbidden doctor`),
@@ -24,7 +28,9 @@ from typing import Any, Protocol, runtime_checkable
 CONNECTORS = "unbidden.connectors"
 ASK_KINDS = "unbidden.ask_kinds"
 SKILLS = "unbidden.skills"
-GROUPS = (CONNECTORS, ASK_KINDS, SKILLS)
+DATASETS = "unbidden.datasets"
+CHAT_TOOLS = "unbidden.chat_tools"
+GROUPS = (CONNECTORS, ASK_KINDS, SKILLS, DATASETS, CHAT_TOOLS)
 
 # The names Unbidden ships, which no plugin may take.
 NATIVE_CONNECTORS = frozenset({"github", "http_api", "postgres"})
@@ -32,7 +38,16 @@ NATIVE_ASK_KINDS = frozenset(
     {"approval", "credential", "access", "hold", "deploy_steps", "spend", "capability", "registry", "drill", "resume",
      "ledger", "connection"}
 )  # fmt: skip
-_RESERVED: dict[str, frozenset[str]] = {CONNECTORS: NATIVE_CONNECTORS, ASK_KINDS: NATIVE_ASK_KINDS, SKILLS: frozenset()}
+NATIVE_CHAT_TOOLS = frozenset(
+    {"inspect_data", "create_widget", "update_widget", "connect_widgets", "undo_presentation", "explain"}
+)
+_RESERVED: dict[str, frozenset[str]] = {
+    CONNECTORS: NATIVE_CONNECTORS,
+    ASK_KINDS: NATIVE_ASK_KINDS,
+    SKILLS: frozenset(),
+    DATASETS: frozenset(),
+    CHAT_TOOLS: NATIVE_CHAT_TOOLS,
+}
 
 
 @runtime_checkable
@@ -64,6 +79,29 @@ class Skill(Protocol):
     card: SkillCard
 
     def run(self, inputs: dict[str, Any]) -> dict[str, Any]: ...
+
+
+@runtime_checkable
+class DatasetProvider(Protocol):
+    """What a workspace's own data offers the web canvas. `datasets` is asked each time the catalogue is read, so
+    it may answer from what exists now (the tables of a lake); it should be cheap, or keep its own cache."""
+
+    name: str
+
+    def datasets(self, source: Any) -> list[Any]: ...
+
+
+@runtime_checkable
+class ChatTool(Protocol):
+    """A tool the web chat's model may call. `args` is a pydantic model: the arguments are validated against it
+    before `run`. `run` returns a `web.contracts.ToolResult`, or an awaitable of one; `brain` is the workspace's
+    own (its calls are routed, recorded and charged like any other), or None when no model is configured."""
+
+    name: str
+    description: str
+    args: Any
+
+    def run(self, source: Any, brain: Any, args: Any) -> Any: ...
 
 
 @dataclass(frozen=True)
@@ -105,6 +143,20 @@ def _check(group: str, name: str, obj: Any) -> str | None:
     elif group == SKILLS:
         if not isinstance(obj, Skill) or not isinstance(obj.card, SkillCard):
             return "not a skill: it needs name, card (a SkillCard) and run(inputs)"
+        if obj.name != name:
+            return f"its name is {obj.name!r}, not the name it is registered under"
+    elif group == DATASETS:
+        if not isinstance(obj, DatasetProvider):
+            return "not a dataset provider: it needs name and datasets(source)"
+        from unbidden.web.datasets import CATALOGUE
+
+        if name in {shipped.split(".")[0] for shipped in CATALOGUE}:
+            return "the name is the first part of a shipped dataset's id; left out"
+        if obj.name != name:
+            return f"its name is {obj.name!r}, not the name it is registered under"
+    elif group == CHAT_TOOLS:
+        if not isinstance(obj, ChatTool) or not callable(getattr(obj.args, "model_validate", None)):
+            return "not a chat tool: it needs name, description, args (a pydantic model) and run(source, brain, args)"
         if obj.name != name:
             return f"its name is {obj.name!r}, not the name it is registered under"
     return None
@@ -169,6 +221,14 @@ def ask_kinds() -> dict[str, AskKind]:
 
 def skills() -> dict[str, Skill]:
     return {name: p.obj for name, p in _state()[0][SKILLS].items()}
+
+
+def dataset_providers() -> dict[str, DatasetProvider]:
+    return {name: p.obj for name, p in _state()[0][DATASETS].items()}
+
+
+def chat_tools() -> dict[str, ChatTool]:
+    return {name: p.obj for name, p in _state()[0][CHAT_TOOLS].items()}
 
 
 def known_ask_kinds() -> frozenset[str]:

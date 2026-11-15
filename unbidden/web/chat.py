@@ -15,11 +15,12 @@ actions panel or the CLI, which go through the project's effective permissions.
 
 from __future__ import annotations
 
+import inspect
 import json
 import re
 import threading
 import unicodedata
-from collections.abc import Callable, Coroutine
+from collections.abc import Awaitable, Callable, Coroutine
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -181,6 +182,11 @@ TOOLS: dict[str, tuple[type[BaseModel], str]] = {
 }
 
 
+def _plugin_failed(name: str, exc: Exception) -> ToolResult:
+    return ToolResult(ok=False, tool=name, summary="the tool failed",
+                      error=ToolError(code="refused", detail=f"{type(exc).__name__}: {exc}"[:300]))  # fmt: skip
+
+
 async def _closing[T](brain: Any, coroutine: Coroutine[Any, Any, T]) -> T:
     """Run one turn on this loop and close the Brain's HTTP clients of this loop before `asyncio.run` returns:
     the Brain is cached per source and outlives the loop (providers/clients.py)."""
@@ -191,7 +197,11 @@ async def _closing[T](brain: Any, coroutine: Coroutine[Any, Any, T]) -> T:
 
 
 def tool_specs() -> list[ToolSpec]:
-    return [ToolSpec.from_model(name, description, model) for name, (model, description) in TOOLS.items()]
+    """The shipped tools and the ones installed plugins add (`unbidden.chat_tools`)."""
+    from unbidden import plugins
+
+    shipped = [ToolSpec.from_model(name, description, model) for name, (model, description) in TOOLS.items()]
+    return shipped + [ToolSpec.from_model(name, t.description, t.args) for name, t in plugins.chat_tools().items()]
 
 
 # The runtime -------------------------------------------------------------------------------------------------
@@ -212,6 +222,7 @@ class ToolRuntime:
         self.presentation = presentation
         self.selected = selected
         self.created: list[str] = []
+        self.brain: Any = None  # the workspace's Brain when a model plans the turn: what a plugin's tool may use
 
     # Context --------------------------------------------------------------------------------------------------
 
@@ -270,6 +281,11 @@ class ToolRuntime:
     def call(self, name: str, arguments: dict[str, Any]) -> ToolResult:
         spec = TOOLS.get(name)
         if spec is None:
+            from unbidden import plugins
+
+            added = plugins.chat_tools().get(name)
+            if added is not None:
+                return self._call_plugin(name, added, arguments)
             return ToolResult(
                 ok=False,
                 tool=name,
@@ -297,6 +313,43 @@ class ToolRuntime:
                 summary="the data reference is not valid",
                 error=ToolError(code="invalid", detail=str(exc)),
             )
+
+    def _call_plugin(self, name: str, tool: Any, arguments: dict[str, Any]) -> ToolResult:
+        """A plugin's tool: its arguments validated against its own model, its failure a result and not a crash.
+        One that works through the model (it returns an awaitable) runs only in `acall`."""
+        started = self._start_plugin(name, tool, arguments)
+        if isinstance(started, ToolResult):
+            return started
+        if inspect.iscoroutine(started):
+            started.close()
+        why = ToolError(code="unsupported", detail=f"{name} runs only when a model plans the turn")
+        return ToolResult(ok=False, tool=name, summary="needs the model's turn", error=why)
+
+    def _start_plugin(self, name: str, tool: Any, arguments: dict[str, Any]) -> ToolResult | Awaitable[ToolResult]:
+        try:
+            args = tool.args.model_validate(arguments)
+        except ValidationError as exc:
+            why = ToolError(code="invalid", detail=exc.errors()[0].get("msg", str(exc))[:300])
+            return ToolResult(ok=False, tool=name, summary="invalid arguments", error=why)
+        try:
+            return tool.run(self.source, self.brain, args)
+        except Exception as exc:
+            return _plugin_failed(name, exc)
+
+    async def acall(self, name: str, arguments: dict[str, Any]) -> ToolResult:
+        """`call`, for a turn a model plans: a plugin's tool may await (its own model calls)."""
+        from unbidden import plugins
+
+        added = None if name in TOOLS else plugins.chat_tools().get(name)
+        if added is None:
+            return self.call(name, arguments)
+        started = self._start_plugin(name, added, arguments)
+        if isinstance(started, ToolResult):
+            return started
+        try:
+            return await started
+        except Exception as exc:
+            return _plugin_failed(name, exc)
 
     def tool_inspect_data(self, args: InspectArgs | DataRef) -> ToolResult:
         ref = args if isinstance(args, DataRef) else args.ref()
@@ -847,9 +900,9 @@ Datasets (id: columns; params):
 Selected widgets: {selected}."""
 
 
-def _catalogue_lines() -> str:
+def _catalogue_lines(source: Source | None = None) -> str:
     lines = []
-    for d in datasets.catalogue():
+    for d in datasets.catalogue(source):
         cols = ", ".join(c["name"] for c in d["fields"])
         params = ", ".join(d["params"]) or "none"
         lines.append(f"- {d['id']}: {cols}; params: {params}")
@@ -880,7 +933,7 @@ class BrainPlanner:
             or "none"
         )
         workspace = f"{rt.source.name}, {rt.source.mode} mode"
-        system = SYSTEM.format(workspace=workspace, catalogue=_catalogue_lines(), selected=selected,
+        system = SYSTEM.format(workspace=workspace, catalogue=_catalogue_lines(rt.source), selected=selected,
                                language=language_name())  # fmt: skip
         messages = [Message(role="system", content=system, source="prompt")]
         for m in history[-6:]:
@@ -925,7 +978,8 @@ class BrainPlanner:
             for call in response.tool_calls:
                 emit("state", {"state": "reading" if call.name in ("inspect_data", "explain") else "building"})
                 emit("tool_call", {"id": call.id, "name": call.name, "arguments": call.arguments})
-                result = rt.call(call.name, call.arguments)
+                rt.brain = self.brain
+                result = await rt.acall(call.name, call.arguments)
                 calls.append(ChatToolCall(id=call.id, name=call.name, arguments=call.arguments))
                 results.append(result)
                 emit("tool_result", result.model_dump(mode="json"))

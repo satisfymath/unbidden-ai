@@ -159,6 +159,7 @@ class App:
         r("GET", "/api/session", self.session)
         r("GET", "/api/sources", self.list_sources)
         r("GET", "/api/datasets", lambda _: Response(body={"schema": SCHEMA, "datasets": datasets.catalogue()}))
+        r("GET", "/api/ws/{sid}/datasets", self.workspace_datasets)
         r("GET", "/api/ws/{sid}/summary", self.summary)
         r("GET", "/api/ws/{sid}/mandate", self.mandate)
         r("GET", "/api/ws/{sid}/opportunities", self.opportunities)
@@ -464,6 +465,10 @@ class App:
                 beat = time.monotonic()
                 yield sse("heartbeat", {"last_seq": last, "observed_at": datetime.now(UTC).isoformat()})
             time.sleep(POLL_S)
+
+    def workspace_datasets(self, req: Request) -> Response:
+        """The shipped datasets and what this workspace's plugins offer."""
+        return Response(body={"schema": SCHEMA, "datasets": datasets.catalogue(self.source(req))})
 
     def data(self, req: Request) -> Response:
         src = self.source(req)
