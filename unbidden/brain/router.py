@@ -96,6 +96,21 @@ def parse_json(content: str) -> Any:
     return json.loads(match.group("body") if match else content)
 
 
+def _unstring(arguments: dict[str, Any]) -> dict[str, Any]:
+    """The arguments with each top-level string that is the JSON text of an object or a list read back."""
+    out: dict[str, Any] = {}
+    for key, value in arguments.items():
+        out[key] = value
+        if isinstance(value, str) and value.lstrip()[:1] in ("{", "["):
+            try:
+                parsed = json.loads(value)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(parsed, dict | list):
+                out[key] = parsed
+    return out
+
+
 def check_output(request: LLMRequest, response: LLMResponse) -> str | None:
     """Why an answer cannot be used, or None. The message is written for the model to fix it."""
     if response.truncated:
@@ -107,8 +122,16 @@ def check_output(request: LLMRequest, response: LLMResponse) -> str | None:
         tool = tools.get(call.name)
         if tool is None:
             return f"there is no tool named {call.name!r}; the tools are: {', '.join(sorted(tools))}"
-        errors = sorted(Draft202012Validator(tool.parameters).iter_errors(call.arguments), key=str)
+        validator = Draft202012Validator(tool.parameters)
+        errors = sorted(validator.iter_errors(call.arguments), key=str)
         if errors:
+            # A model often sends a nested object as its JSON text. When reading those back makes the arguments
+            # valid, that is what it meant: the call goes on with them, checked against the same schema.
+            unstrung = _unstring(call.arguments)
+            if unstrung != call.arguments and not any(validator.iter_errors(unstrung)):
+                call.arguments.clear()
+                call.arguments.update(unstrung)
+                continue
             return f"the arguments of {call.name} do not match its schema: {errors[0].message}"
     if request.expect_files:
         try:

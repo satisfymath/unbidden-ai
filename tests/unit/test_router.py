@@ -462,3 +462,20 @@ async def test_a_model_on_this_machine_is_untouched_by_the_rule(store: Store, ma
     assert off_machine(At("http://host.docker.internal:11434")) is None
     assert off_machine(At("https://api.meta.ai/v1")) == "api.meta.ai"
     assert off_machine(At("http://192.168.1.20:11434")) == "192.168.1.20"  # another machine, even a near one
+
+
+def test_a_nested_object_sent_as_its_json_text_is_read_back_when_that_makes_the_call_valid() -> None:
+    from unbidden.brain.router import check_output
+
+    schema = {"type": "object", "required": ["title", "dataRef"], "additionalProperties": False,
+              "properties": {"title": {"type": "string"},
+                             "dataRef": {"type": "object", "required": ["dataset"],
+                                         "properties": {"dataset": {"type": "string"}}}}}  # fmt: skip
+    request = LLMRequest(purpose="chat.inform", tier=Tier.LOCAL, messages=[Message(role="user", content="x")],
+                         tools=[ToolSpec(name="create_widget", description="d", parameters=schema)])  # fmt: skip
+    call = ToolCall(name="create_widget", arguments={"title": "{t}", "dataRef": '{"dataset": "spend.calls"}'})
+    assert check_output(request, LLMResponse(tool_calls=[call])) is None
+    assert call.arguments == {"title": "{t}", "dataRef": {"dataset": "spend.calls"}}  # a title is left as text
+    wrong = ToolCall(name="create_widget", arguments={"title": "t", "dataRef": '{"other": 1}'})
+    problem = check_output(request, LLMResponse(tool_calls=[wrong]))
+    assert problem is not None and "do not match its schema" in problem and isinstance(wrong.arguments["dataRef"], str)
