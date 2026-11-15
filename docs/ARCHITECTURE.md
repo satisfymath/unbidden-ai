@@ -122,6 +122,9 @@ Guaranteed by code, and covered by tests:
   published port: no internet, no other host port; read-only, not root. Anomaly screenshots are removed after the
   mandate's `ui_capture_retention_days` (`tests/unit/test_ui_confinement.py`). Pages that load from a CDN render
   without it.
+- **The local model is on this machine.** A local route whose provider is elsewhere is refused unless the mandate
+  says `models.local_tier_offmachine: allow`; then every call is recorded as egress and charged at the model's
+  price (`tests/unit/test_router.py`). With `allow`, production data does leave: it is for synthetic data only.
 - **Plugins.** A plugin's connection passes the same gate as a shipped one (a connector that can write is refused
   when the grant says `read`), a shipped kind cannot be replaced, and a plugin that fails to load is left out
   (`tests/unit/test_plugins.py`). Not guaranteed: what a plugin's own code does in the agent's process.

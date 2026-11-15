@@ -112,6 +112,11 @@ class ModelsPolicy(Contract):
     # `deny`: no call is served by the local model at all (stage 9's runs: Meta's API only). A call that may not
     # leave (secrets, production data, unrenamed private code) is then refused and says why, never sent locally.
     local_inference: Literal["allow", "deny"] = "allow"
+    # `allow`: the local route may be served by a model that is not on this machine (a remote API standing in for
+    # the local model). What the local model sees then leaves the machine, secrets excepted, so this is for an
+    # evaluation or a laboratory whose data is synthetic, never for a real system. Each call is recorded as egress
+    # to an allowed destination and charged at the model's price. `deny`: such a route is refused.
+    local_tier_offmachine: Literal["allow", "deny"] = "deny"
 
 
 class ConnectionGrant(Contract):

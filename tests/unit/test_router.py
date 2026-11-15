@@ -10,6 +10,7 @@ from unbidden.brain.router import (
     EgressBlocked,
     KillSwitchEngaged,
     ModelFailed,
+    PolicyDenied,
     SecretInPrompt,
     SpendLimitReached,
 )
@@ -355,3 +356,109 @@ async def test_a_refused_key_is_recorded_as_such_and_never_billed(store: Store, 
     assert called.payload["ok"] is False and called.payload["problem"] == "key rejected"
     rows = brain.spend.rows()
     assert rows and rows[-1]["status"] == "failed" and float(rows[-1]["charged"]) == 0.0
+
+
+# The local route served off this machine (a remote API standing in for the local model) --------------------
+
+
+def stand_in_brain(store: Store, mandate: Mandate, *, allow: bool) -> tuple[Brain, RemoteMock]:
+    config = load_config()
+    for tier in (Tier.LOCAL, Tier.FRONTIER, Tier.CODE):
+        config.routing[tier].provider = "remote"
+        config.routing[tier].model = "muse-spark-1.3"
+    remote = RemoteMock()
+    mandate.models.local_tier_offmachine = "allow" if allow else "deny"
+    return Brain(config, {"remote": remote}, store, mandate), remote
+
+
+def production_request() -> LLMRequest:
+    """What only the local model may see: rows read from a running system."""
+    return LLMRequest(
+        purpose="test.decide",
+        tier=Tier.LOCAL,
+        messages=[Message(role="user", content="pillar B3 reads 31.2 MPa; decide", source="runtime")],
+    )
+
+
+async def test_a_local_route_that_points_off_this_machine_is_refused_unless_declared(
+    store: Store, mandate: Mandate
+) -> None:
+    brain, remote = stand_in_brain(store, mandate, allow=False)
+    remote.script("test.decide", "fix")
+    with pytest.raises(PolicyDenied, match="not this machine"):
+        await brain.complete(production_request())
+    assert remote.requests == []  # nothing was sent
+    denied = [e for e in store.events() if e.type is EventType.POLICY_DENIED]
+    assert denied and denied[-1].payload["rule"] == "local_tier_offmachine"
+
+
+async def test_a_declared_stand_in_sees_what_the_local_model_sees_and_is_recorded_as_leaving(
+    store: Store, mandate: Mandate
+) -> None:
+    brain, remote = stand_in_brain(store, mandate, allow=True)
+    remote.script("test.decide", "fix")
+    response = await brain.complete(production_request())
+    assert response.content == "fix" and len(remote.requests) == 1
+    (attempt,) = store.list("egress", EgressAttempt)
+    assert attempt.status == "allowed_sent" and attempt.destination == "api.meta.ai"
+    assert "31.2 MPa" in attempt.payload  # the exact payload that left is kept
+    allowed = [e for e in store.events() if e.type is EventType.EGRESS_ALLOWED]
+    assert allowed[-1].payload["local_tier_offmachine"] is True
+    assert allowed[-1].payload["label"] == "production_data"
+    (run,) = store.list("model_runs", ModelRun)
+    assert run.tier is Tier.LOCAL and run.egress_attempt_id == attempt.id
+    # Charged at the model's price, not as local compute time: the mock reports 100 tokens in and 20 out.
+    assert run.cost.usd_local == 0.0
+    assert run.cost.usd_remote == pytest.approx((100 * 1.25 + 20 * 4.25) / 1e6)
+    assert brain.month_remote_spend() > 0
+    assert "standing in for the local model" in brain.where("test.decide", source="runtime")
+    assert "api.meta.ai" in brain.where("test.decide", source="runtime")
+
+
+async def test_a_stand_in_still_needs_an_allowed_destination_and_respects_the_cap(
+    store: Store, mandate: Mandate
+) -> None:
+    brain, remote = stand_in_brain(store, mandate, allow=True)
+    mandate.egress.remote_models.destinations = []
+    remote.script("test.decide", "fix")
+    with pytest.raises((EgressBlocked, PolicyDenied)):
+        await brain.complete(production_request())
+    assert remote.requests == []
+    mandate.egress.remote_models.destinations = ["api.meta.ai"]
+    mandate.business_constraints.maximum_monthly_spend_usd = 0.0
+    with pytest.raises(SpendLimitReached):
+        await brain.complete(production_request())
+    assert remote.requests == []
+
+
+async def test_a_stand_in_never_receives_a_secret(store: Store, mandate: Mandate) -> None:
+    brain, remote = stand_in_brain(store, mandate, allow=True)
+    leaky = LLMRequest(
+        purpose="test.decide",
+        tier=Tier.LOCAL,
+        messages=[Message(role="user", content="key AKIAIOSFODNN7EXAMPLE reads the bus", source="runtime")],
+    )
+    with pytest.raises(SecretInPrompt):
+        await brain.complete(leaky)
+    assert remote.requests == []
+
+
+async def test_a_model_on_this_machine_is_untouched_by_the_rule(store: Store, mandate: Mandate) -> None:
+    from unbidden.brain.router import off_machine
+
+    brain, local, _remote = make_brain(store, mandate)
+    local.script("test.decide", "fix")
+    await brain.complete(production_request())
+    assert store.list("egress", EgressAttempt) == []
+    (run,) = store.list("model_runs", ModelRun)
+    assert run.cost.usd_remote == 0.0
+
+    class At:
+        def __init__(self, base_url: str) -> None:
+            self.base_url = base_url
+
+    assert off_machine(At("http://localhost:11434")) is None
+    assert off_machine(At("http://127.0.0.1:8080/v1")) is None
+    assert off_machine(At("http://host.docker.internal:11434")) is None
+    assert off_machine(At("https://api.meta.ai/v1")) == "api.meta.ai"
+    assert off_machine(At("http://192.168.1.20:11434")) == "192.168.1.20"  # another machine, even a near one

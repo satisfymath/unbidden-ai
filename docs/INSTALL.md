@@ -306,6 +306,11 @@ bridge or when `private_code_to_frontier: allow` (the assistant asks; `deny` kee
 gate re-checks every payload (`unbidden egress --payload` shows what left, byte for byte). `unbidden models` and
 `unbidden route` change and explain the routing afterwards.
 
+One setting changes that, and no option writes it: `models.local_tier_offmachine: allow` lets a model that is not on
+this machine serve the local route (a remote API standing in for the local model, with `routing.local` pointed at
+it in `.unbidden/config.yaml`). What the local model sees then leaves, recorded and charged like any call that
+leaves. It is for an evaluation or a laboratory whose data is synthetic; without it such a route is refused.
+
 ## Autonomy and effective permissions
 
 A mode sets what reaches GitHub and production; the other permissions are granted on their own and never inherited

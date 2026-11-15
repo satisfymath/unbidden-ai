@@ -13,6 +13,7 @@ import json
 import re
 from datetime import datetime
 from typing import Any, NoReturn
+from urllib.parse import urlsplit
 
 from jsonschema import Draft202012Validator
 
@@ -129,6 +130,19 @@ def check_output(request: LLMRequest, response: LLMResponse) -> str | None:
 # What one picture may cost at worst, in input tokens. Measured on Meta: a 800 x 480 screenshot and its prompt, 559
 # tokens (docs/bench/multimodal/feasibility-1.json); a full viewport stays well under this.
 IMAGE_TOKENS_WORST = 4000
+
+
+_THIS_MACHINE = ("localhost", "::1", "host.docker.internal")
+
+
+def off_machine(provider: Any) -> str | None:
+    """The host a provider reaches when it is not this machine, else None. A provider with no address (a mock)
+    is taken to be here."""
+    url = getattr(provider, "base_url", None)
+    host = urlsplit(url).hostname if isinstance(url, str) and url else getattr(provider, "host", None)
+    if not isinstance(host, str) or not host:
+        return None
+    return None if host in _THIS_MACHINE or host.startswith("127.") else host
 
 
 def _payload(request: LLMRequest) -> str:
@@ -272,6 +286,9 @@ class Brain:
             return f"the {decision.tier.value} model"
         if decision.tier.remote:
             return f"the model at {getattr(provider, 'host', provider.name)} ({route.model})"
+        elsewhere = off_machine(provider)
+        if elsewhere is not None:
+            return f"the model at {elsewhere} ({route.model}), standing in for the local model"
         return f"the local model ({route.model})"
 
     async def complete(self, request: LLMRequest, *, identifiers: SensitiveTermIndex | None = None) -> LLMResponse:
@@ -333,11 +350,23 @@ class Brain:
                 raise KillSwitchEngaged("the kill switch is engaged")
             checkpoint("model call")
             sized = current.model_copy(update={"max_tokens": max_tokens})
-            egress_id, spend_id = (
-                self._gate(sized, route, provider, identifiers, classification, attempt)
-                if tier.remote
-                else (None, None)
-            )
+            stand_in = None if tier.remote else off_machine(provider)
+            if tier.remote:
+                egress_id, spend_id = self._gate(sized, route, provider, identifiers, classification, attempt)
+            elif stand_in is not None:
+                # The local route points off this machine: refused unless a person declared it, and then recorded
+                # and charged like any call that leaves.
+                if self.mandate.models.local_tier_offmachine != "allow":
+                    self._deny(
+                        request,
+                        "local_tier_offmachine",
+                        f"the local route is served by {stand_in}, which is not this machine; the mandate does not "
+                        "allow that (models.local_tier_offmachine)",
+                    )
+                egress_id, spend_id = self._gate(sized, route, provider, identifiers, classification, attempt,
+                                                 stand_in=True)  # fmt: skip
+            else:
+                egress_id, spend_id = None, None
             self._check_local(routed)
             try:
                 response = await provider.chat(sized, model=route.model, think=think)
@@ -433,9 +462,16 @@ class Brain:
         extra: SensitiveTermIndex | None,
         classification: Classification | None = None,
         try_number: int = 1,
-    ) -> tuple[str, str]:
+        *,
+        stand_in: bool = False,
+    ) -> tuple[str, str | None]:
         """Policy, the contributor rule, both spend limits, then the egress gate; returns the egress attempt and the
-        spend reservation of a call allowed to leave."""
+        spend reservation of a call allowed to leave.
+
+        `stand_in`: the call is the local route served off this machine, which a person allowed in the mandate
+        (`models.local_tier_offmachine`). The destination, the spend limits and the record are the same; what is
+        not applied is the rule that the content be synthetic, since standing in for the local model means seeing
+        what the local model sees. A secret in the prompt was already refused for every route (`_guard_prompt`)."""
         host = getattr(provider, "host", provider.name)
         verdict = self.policy.evaluate(
             ActionRequest(capability="model.remote.synthetic", purpose=request.purpose, destinations=[host])
@@ -472,6 +508,7 @@ class Brain:
             price.input_per_mtok,
             price.output_per_mtok,
         )
+        spend_id: str | None
         try:
             spend_id = self.spend.reserve(
                 est_usd=est,
@@ -492,6 +529,11 @@ class Brain:
         # carry none. Secrets and production data are refused here again, whatever the route decided.
         names = index if label in (ContentLabel.SYNTHETIC, ContentLabel.INSTRUCTIONS) else SensitiveTermIndex()
         egress = evaluate_synthetic(self.mandate, host, payload, names)
+        if stand_in:
+            # Only the destination rule holds for a stand-in: the size cap and the identifier rule are about
+            # synthetic tasks. What it matched is kept, so the record says what left.
+            kept = [r for r in egress.reasons if "not an allowed remote model destination" in r or "secret" in r]
+            egress = egress.model_copy(update={"allowed": not kept, "reasons": kept})
         if images:
             # Pictures leave only where a person let screenshots leave, under the policy's own rule for them.
             shots = evaluate_screenshots(self.mandate, host, [i.data() for i in images], payload)
@@ -503,7 +545,7 @@ class Brain:
                 update={"allowed": not reasons, "reasons": reasons, "kind": "screenshots",
                         "payload_bytes": egress.payload_bytes + sum(len(i.data()) for i in images)}
             )  # fmt: skip
-        if label in NEVER_REMOTE:
+        if label in NEVER_REMOTE and not stand_in:
             reasons = [*egress.reasons, f"{label.value} never leaves this machine"]
             egress = egress.model_copy(update={"allowed": False, "reasons": reasons})
         attempt = EgressAttempt(
@@ -530,11 +572,13 @@ class Brain:
                     "sha256": egress.payload_sha256,
                     "reasons": egress.reasons,
                     "matched": egress.matched,
+                    **({"local_tier_offmachine": True, "label": label.value} if stand_in else {}),
                 },
             )
         )
         if not egress.allowed:
-            self.spend.release(spend_id, "blocked by the egress gate")
+            if spend_id is not None:
+                self.spend.release(spend_id, "blocked by the egress gate")
             raise EgressBlocked(egress)
         return attempt.id, spend_id
 
@@ -617,7 +661,7 @@ class Brain:
             prompt_sha256=request.prompt_sha256,
             egress_attempt_id=egress_id,
             usage=response.usage if response is not None else Usage(),
-            cost=self._cost(route, response, request.tier.remote),
+            cost=self._cost(route, response, request.tier.remote or off_machine(provider) is not None),
             correlation_id=request.correlation_id,
             route_reason=why,
         )

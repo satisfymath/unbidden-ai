@@ -6,6 +6,14 @@
   `unbidden.ask_kinds`, `unbidden.skills`); `unbidden plugins` lists them and `unbidden doctor` says when one was
   left out. A plugin never takes a shipped name and never widens a permission: its connection passes the same
   gate (`connect.base.require`) as a shipped one. [`docs/PLUGINS.md`](PLUGINS.md).
+- **A local route that points off this machine is refused unless the mandate declares it.** Until now nothing
+  checked where the local route's provider was: with `routing.local` set to a remote API, what only the local model
+  may see (production data) left the machine with no egress record, outside the spend ledger and the monthly cap,
+  and charged as local compute time. Now such a call is refused (`models.local_tier_offmachine: deny`, the
+  default). With `allow`, a remote model may stand in for the local one: for an evaluation or a laboratory whose
+  data is synthetic. Each call is then an egress record to an allowed destination, with the exact payload, reserved
+  and charged at the model's price; a secret is still refused on every route. A model on another machine of the
+  local network counts as off this machine. `tests/unit/test_router.py`.
 - **A grant's `kind` and an ask's `kind` are no longer closed lists.** A grant for a kind with no connector is
   reported as needing a capability, as before for a kind without an integration; an ask of a kind nobody provides
   is not opened. Nothing changes for a mandate that names only `postgres`, `http_api` or `github`.
