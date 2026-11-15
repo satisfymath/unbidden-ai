@@ -38,6 +38,7 @@ cannot leave a deploy unjudged.
 | `forge/` | Capabilities Unbidden builds for itself: regex log adapters and stats readers (`stats.py`, for text metrics endpoints no connector reads). Each carries a card (purpose, typed IO, permissions it cannot widen, privacy, limits, tests, failures, how to disable it) and is judged by a versioned oracle with no model (held-out real lines plus metamorphic variants) before it can be used. A format a reader already exists for is not built |
 | `publish/` | Branches, PR bodies with their evidence, and pinned merges through the GitHub API |
 | `operate/` | Deploys and rollbacks using the team's declared steps, holds, and the deploy ledger (`ledger.py`): which commit each set of running containers holds, and how that is known |
+| `plugins.py` | Extension points: connectors, ask kinds and skills that installed packages add through entry points. A plugin never takes a shipped name or widens a permission, and one that fails is left out and reported ([`PLUGINS.md`](PLUGINS.md)) |
 | `cli.py` | Every human interaction. `--json` everywhere |
 | `bench/` | Benchmarks, outside the product: `scale.py` runs full autonomous cycles on pinned repositories and records each from state and the spend ledger; `scale_report.py` turns the record into rates with intervals |
 
@@ -121,6 +122,9 @@ Guaranteed by code, and covered by tests:
   published port: no internet, no other host port; read-only, not root. Anomaly screenshots are removed after the
   mandate's `ui_capture_retention_days` (`tests/unit/test_ui_confinement.py`). Pages that load from a CDN render
   without it.
+- **Plugins.** A plugin's connection passes the same gate as a shipped one (a connector that can write is refused
+  when the grant says `read`), a shipped kind cannot be replaced, and a plugin that fails to load is left out
+  (`tests/unit/test_plugins.py`). Not guaranteed: what a plugin's own code does in the agent's process.
 - **Provisioning.** Every dependency image is built only when the mandate allows the language's registries:
   `provision()` takes the policy, so no path can skip it. The build's own network is not yet restricted (PR7b).
 - **Model-written patterns.** Log and stats readers Forge built run on RE2, in time linear in their input, and

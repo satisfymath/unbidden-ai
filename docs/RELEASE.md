@@ -1,5 +1,15 @@
 # Unbidden release notes: experimental candidate, not 1.0
 
+## 0.19.0 (2026-11-15): plugins
+
+- **Installed packages can add connectors, ask kinds and skills** through entry points (`unbidden.connectors`,
+  `unbidden.ask_kinds`, `unbidden.skills`); `unbidden plugins` lists them and `unbidden doctor` says when one was
+  left out. A plugin never takes a shipped name and never widens a permission: its connection passes the same
+  gate (`connect.base.require`) as a shipped one. [`docs/PLUGINS.md`](PLUGINS.md).
+- **A grant's `kind` and an ask's `kind` are no longer closed lists.** A grant for a kind with no connector is
+  reported as needing a capability, as before for a kind without an integration; an ask of a kind nobody provides
+  is not opened. Nothing changes for a mandate that names only `postgres`, `http_api` or `github`.
+
 ## 0.18.10 (2026-11-04): a result the director has not swept is work to come
 
 - **The agent is not idle while a lab result or a reopened opportunity waits for the director.** rich, the 0.18.9

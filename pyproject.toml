@@ -1,6 +1,6 @@
 [project]
 name = "unbidden-ai"
-version = "0.18.10"
+version = "0.19.0"
 description = "A proactive engineering agent that proves improvements in a sandbox and proposes them as pull requests with evidence."
 readme = "README.md"
 license = "Apache-2.0"

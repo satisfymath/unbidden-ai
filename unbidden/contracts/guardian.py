@@ -119,7 +119,9 @@ class ConnectionGrant(Contract):
     what the credential can really do is observed, and only the smaller of the two is used."""
 
     id: str = Field(min_length=1)  # a name for the resource in this project
-    kind: Literal["postgres", "http_api", "github"]
+    # postgres, http_api, github, or a kind an installed plugin connects (unbidden.plugins). A kind with no
+    # connector is not an error here: the connection is reported as needing a capability and nothing uses it.
+    kind: str = Field(pattern=r"^[a-z][a-z0-9_]*$")
     location: str  # host:port/database, a base URL, or owner/name
     environment: Literal["local", "development", "staging", "production"] = "staging"
     credential_ref: str | None = None  # a broker name, never a value

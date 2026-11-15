@@ -1,4 +1,5 @@
-"""The connectors Unbidden ships, by the kind a grant names."""
+"""The connectors a grant may name by kind: the ones Unbidden ships, and the ones installed packages add
+(`unbidden.plugins`, group `unbidden.connectors`). A plugin never replaces a shipped kind."""
 
 from __future__ import annotations
 
@@ -9,5 +10,11 @@ def connectors() -> dict[str, Connector]:
     from unbidden.connect.github import GitHubConnector
     from unbidden.connect.http_api import HttpApiConnector
     from unbidden.connect.postgres import PostgresConnector
+    from unbidden.plugins import connectors as plugged
 
-    return {"github": GitHubConnector(), "http_api": HttpApiConnector(), "postgres": PostgresConnector()}
+    shipped: dict[str, Connector] = {
+        "github": GitHubConnector(),
+        "http_api": HttpApiConnector(),
+        "postgres": PostgresConnector(),
+    }
+    return {**plugged(), **shipped}

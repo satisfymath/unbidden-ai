@@ -1464,6 +1464,14 @@ def doctor_checks(
         pass
     if fix and not (rec.installed and rec.fits):
         checks.append(("fix", *doctor_fix(rec, ollama_url, say)))
+    # Installed plugins, only when there are any: one left out is said here, and the agent runs without it.
+    from unbidden import plugins
+
+    extensions = plugins.summary()
+    if extensions["plugins"] or extensions["problems"]:
+        left_out = "; ".join(f"{b['name']} ({b['source']}): {b['why']}" for b in extensions["problems"])
+        loaded = f"{len(extensions['plugins'])} loaded"
+        checks.append(("plugins", not left_out, f"{loaded}; left out: {left_out}" if left_out else loaded))
     # Required or optional follows the option the mandate chose: `api` needs no Ollama, `local` needs no key.
     from unbidden.setup.requirements import doctor_requirements, explain
 
@@ -2055,6 +2063,40 @@ def cmd_spend(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_plugins(args: argparse.Namespace) -> int:
+    """What installed packages add (connectors, ask kinds, skills), and any left out with the reason."""
+    from unbidden import plugins
+
+    data = plugins.summary()
+    data["skills"] = {
+        name: {
+            "purpose": skill.card.purpose,
+            "inputs": skill.card.inputs,
+            "outputs": skill.card.outputs,
+            "permissions": list(skill.card.permissions),
+            "limits": skill.card.limits,
+            "evidence_level": skill.card.evidence_level,
+        }
+        for name, skill in plugins.skills().items()
+    }
+    if _emit(args, data):
+        return 0
+    if not data["plugins"] and not data["problems"]:
+        console.print("no plugins installed [dim](a package adds them through entry points: docs/PLUGINS.md)[/]")
+        return 0
+    table = Table(box=None, header_style="bold")
+    for column in ("group", "name", "from", ""):
+        table.add_column(column)
+    for row in data["plugins"]:
+        purpose = data["skills"].get(row["name"], {}).get("purpose", "") if row["group"] == plugins.SKILLS else ""
+        table.add_row(row["group"].removeprefix("unbidden."), row["name"], row["source"], purpose)
+    console.print(table)
+    for bad in data["problems"]:
+        group = bad["group"].removeprefix("unbidden.")
+        console.print(f"[yellow]left out[/] {group} {bad['name']} ({bad['source']}): {bad['why']}")
+    return 0
+
+
 def cmd_connections(args: argparse.Namespace) -> int:
     """The project's resources: found, granted, connected, and what can be read or changed in each, as checked."""
     from unbidden.connect.kinds import connectors
@@ -2517,6 +2559,7 @@ def build_parser() -> argparse.ArgumentParser:
     hold.add_argument("reason", nargs="?", default="released by a person")
     deploys = command("deploys", cmd_deploys, "every deploy seen, the code it ran and how that is known")
     deploys.add_argument("--commit", help="which deploys ran this commit (or a descendant of it)")
+    command("plugins", cmd_plugins, "what installed packages add: connectors, ask kinds, skills")
     doctor = command("doctor", cmd_doctor, "check the machine, local model, Docker, Meta API, GitHub and mandate")
     doctor.add_argument("--fix", action="store_true", help="pull the recommended local model if it is missing")
     ask = command("ask", cmd_ask, "the agent's questions for you; answer one with its option")

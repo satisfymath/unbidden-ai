@@ -9,6 +9,7 @@ The reference for the `unbidden` command. To install it, see [`INSTALL.md`](INST
 | `unbidden` | the setup assistant the first time, the home screen afterwards (state, agent, blocks, next action) |
 | `setup` | three questions at most: the model key when none is found, how much it may do on its own, apply; the rest is found (repository, GitHub access, scope, compose connections, machine) or kept at a default, changed by name (`setup budget`, `setup connections`); `--non-interactive` with flags |
 | `doctor`, `status`, `map` | check the machine for the chosen option; agent, dashboard and kill switch; what Unbidden knows and cannot see |
+| `plugins` | what installed packages add (connectors, ask kinds, skills), and any left out with the reason ([`PLUGINS.md`](PLUGINS.md)) |
 | `start`, `stop`, `watch` | the agent in the background (`--ui` serves the dashboard), ended cleanly; or in the foreground of this terminal |
 | `ui`, `chat` | open or reuse the dashboard (`--stop` ends one served apart); the chat from the terminal |
 | `scan`, `inbox`, `show`, `try`, `why`, `decide` | find opportunities, inspect them, run an experiment, see every decision and payload |

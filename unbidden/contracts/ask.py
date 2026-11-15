@@ -14,10 +14,10 @@ from pydantic import Field
 
 from unbidden.contracts.common import Contract, new_id, utc_now
 
-Kind = Literal[
-    "approval", "credential", "access", "hold", "deploy_steps", "spend", "capability", "registry", "drill", "resume",
-    "ledger", "connection",
-]  # fmt: skip
+# The kinds Unbidden ships are `unbidden.plugins.NATIVE_ASK_KINDS`; an installed plugin adds its own (group
+# `unbidden.ask_kinds`). The record accepts any well-formed kind, so an ask stays readable after its plugin is
+# removed; `director.asks.open_ask` is where an unknown kind is refused, and answering one says what is missing.
+KIND_PATTERN = r"^[a-z][a-z0-9_]*$"
 Status = Literal["open", "answered", "withdrawn"]
 Input = Literal["none", "secret", "text"]
 
@@ -30,7 +30,7 @@ class AskOption(Contract):
 
 class Ask(Contract):
     id: str = Field(default_factory=lambda: new_id("ask"))
-    kind: Kind
+    kind: str = Field(pattern=KIND_PATTERN)
     title: str  # one line: what is asked
     why: str  # what the agent found, and what the answer changes
     options: list[AskOption]

@@ -39,6 +39,10 @@ def open_ask(store: Store, ask: Ask) -> Ask:
     existing = find_open(store, ask.dedup_key)
     if existing is not None:
         return existing
+    from unbidden.plugins import known_ask_kinds
+
+    if ask.kind not in known_ask_kinds():
+        raise AskError(f"no ask kind {ask.kind!r}: not one Unbidden ships, and no installed plugin provides it")
     store.put(COLLECTION, ask)
     store.append_event(
         Event(
@@ -409,6 +413,18 @@ def _apply(ws: Any, store: Store, ask: Ask, option: str, value: str | None, who:
                       actor=who)  # fmt: skip
         _release_blocks(store, ask)
         return f"monthly cap now US${amount:.2f} (was US${before:.2f})"
+    from unbidden.plugins import NATIVE_ASK_KINDS, ask_kinds
+
+    if ask.kind not in NATIVE_ASK_KINDS:
+        plugged = ask_kinds().get(ask.kind)
+        if plugged is None:
+            raise AskError(f"the plugin that answers {ask.kind!r} asks is not installed; `later` keeps it open")
+        try:
+            return plugged.apply(ws, store, ask, option, value, who)
+        except AskError:
+            raise
+        except ValueError as exc:
+            raise AskError(str(exc)) from exc
     raise AskError(f"no effect for {ask.kind}/{option}")
 
 

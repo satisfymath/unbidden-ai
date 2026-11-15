@@ -202,6 +202,13 @@ def apply(conn: Connection, result: CheckResult) -> Connection:
     return conn
 
 
+def _protocol(kind: str, connector: Connector | None) -> str:
+    """The wire protocol shown for a connection: known for the shipped kinds, declared by a plugin's connector
+    (`protocol`), else the kind's own name."""
+    shipped = {"postgres": "postgresql", "http_api": "http", "github": "https"}
+    return shipped.get(kind) or str(getattr(connector, "protocol", None) or kind)
+
+
 def survey(
     repo: Path,
     store: Store,
@@ -221,7 +228,7 @@ def survey(
             project=project,
             kind=grant.kind,
             grant=grant.id,
-            protocol={"postgres": "postgresql", "http_api": "http", "github": "https"}[grant.kind],
+            protocol=_protocol(grant.kind, connectors.get(grant.kind)),
             location=grant.location,
             environment=Environment(grant.environment),
             credential_ref=grant.credential_ref,
