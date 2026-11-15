@@ -893,7 +893,11 @@ You may only act through the tools. Never invent numbers or findings: read them 
 inspect_data({{"dataset": <id>, "params": {{...}}, "limit": 20}}) and answer from what it returns; one or two reads
 are usually enough, then answer the question with the numbers you read and their ids. To put something
 on the canvas use create_widget with a dataRef {{"dataset": <id>, "params": {{...}}}} and a view whose x/y are columns
-of that dataset. If the record lacks the data, say so and name what would produce it. A request to show something
+of that dataset. A dataRef may carry a transform, so a count or a sum per category needs no other tool:
+{{"dataset": <id>, "transform": {{"filter": [{{"field": <column>, "op": "eq", "value": <value>}}], "group_by": <column>,
+"aggregate": {{"field": <column>, "fn": "count|sum|mean|median|min|max"}}}}}}. Tool calls are few: when asked for a chart, read
+at most once and then build it; create_widget itself says if a column is wrong. When a tool returns a dataRef, chart
+that dataRef as it is. If the record lacks the data, say so and name what would produce it. A request to show something
 never runs an experiment, opens an access or deploys anything.
 Datasets (id: columns; params):
 {catalogue}
@@ -942,7 +946,7 @@ class BrainPlanner:
         messages.append(Message(role="user", content=text, source="prompt"))
         calls: list[ChatToolCall] = []
         results: list[ToolResult] = []
-        rounds = 5
+        rounds = 8
         for round_no in range(rounds + 1):
             if cancelled.is_set():
                 return wt("brain.cancelled"), calls, results
